@@ -708,4 +708,50 @@ struct mat4 {
     }
 };
 
+struct Basis {
+    quat    rot;
+    vec3    pos;
+    float   w;
+
+    Basis() {}
+    Basis(const quat &rot, const vec3 &pos) : rot(rot), pos(pos), w(1.0f) {}
+    Basis(const mat4 &matrix) : rot(matrix.getRot()), pos(matrix.getPos()), w(1.0f) {}
+
+    void identity() {
+        rot = quat(0, 0, 0, 1);
+        pos = vec3(0, 0, 0);
+        w   = 1.0f;
+    }
+
+    Basis operator * (const Basis &basis) const {
+        return Basis(rot * basis.rot, pos + rot * basis.pos);
+    }
+
+    vec3 operator * (const vec3 &v) const {
+        return rot * v + pos;
+    }
+
+    Basis inverse() const {
+        quat q = rot.conjugate();
+        return Basis(q, -(q * pos));
+    }
+
+    void translate(const vec3 &v) {
+        pos += rot * v;
+    }
+
+    void rotate(const quat &q) {
+        rot = rot * q;
+    }
+
+    Basis lerp(const Basis &basis, float t) {
+        if (t <= 0.0f) return *this;
+        if (t >= 1.0f) return basis;
+        Basis b;
+        b.rot = rot.lerp(basis.rot, t);
+        b.pos = pos.lerp(basis.pos, t);
+        return b;
+    }
+};
+
 #endif //OPENDEMO_VEC_H
