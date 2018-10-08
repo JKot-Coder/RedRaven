@@ -1,17 +1,20 @@
 set(sources
        ./core.h
-        input.h vecmath.h)
+        input.h
+        vecmath.h
+        render/render.h)
+
 set(definitions)
 
-set(GAPI AUTO CACHE STRING "Graphics api")
-set_property(CACHE GAPI PROPERTY STRINGS OPENGL)
+set(render AUTO CACHE STRING "Graphics api")
+set_property(CACHE render PROPERTY STRINGS OPENGL)
 
 if (WIN32)
     list(APPEND sources
             platform/win/main.cpp
             )
-    if(GAPI STREQUAL AUTO)
-        SET(GAPI OPENGL)
+    if(render STREQUAL AUTO)
+        SET(render OPENGL)
     endif()
 endif ()
 
@@ -19,25 +22,25 @@ if (LINUX)
     list(APPEND sources
             platform/linux/main.cpp
             )
-    if(GAPI STREQUAL AUTO)
-        SET(GAPI OPENGL)
+    if(render STREQUAL AUTO)
+        SET(render OPENGL)
     endif()
 endif ()
 
-if (GAPI STREQUAL OPENGL)
+if (render STREQUAL OPENGL)
     list(APPEND sources
-            gapi/gl.h
+            render/render_gl.h
             )
 endif ()
 
-include_directories (. gapi)
+include_directories (. render)
 
 add_executable (open_demo ${sources})
 
-if (GAPI STREQUAL OPENGL)
+if (render STREQUAL OPENGL)
     find_package(OpenGL REQUIRED)
     target_link_libraries(open_demo ${OPENGL_LIBRARIES})
-    list(APPEND definitions GAPI_GL)
+    list(APPEND definitions RENDER_GL)
 endif ()
 
 if (WIN32)

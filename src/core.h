@@ -5,8 +5,8 @@
 #include "vecmath.h"
 #include "input.h"
 
-#ifdef GAPI_GL
-    #include "gl.h"
+#ifdef RENDER_GL
+  #include "render_gl.h"
 #endif
 
 namespace Core {

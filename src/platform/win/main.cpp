@@ -10,7 +10,7 @@
 
 HWND hWnd;
 
-#ifdef GAPI_GL
+#ifdef RENDER_GL
     HDC   hDC;
     HGLRC hRC;
 
