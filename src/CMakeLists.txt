@@ -1,50 +1,77 @@
-set(sources
-       ./core.h
-        input.h
-        vecmath.h
-        render/render.h)
-
 set(definitions)
 
-set(render AUTO CACHE STRING "Graphics api")
-set_property(CACHE render PROPERTY STRINGS OPENGL)
+set(RENDER AUTO CACHE STRING "Graphics api")
+set_property(CACHE RENDER PROPERTY STRINGS OPENGL)
 
 if (WIN32)
-    list(APPEND sources
-            platform/win/main.cpp
-            )
-    if(render STREQUAL AUTO)
-        SET(render OPENGL)
+    set(OPEN_DEMO_SRC_PLATFORM)
+    SET(OPEN_DEMO_PLATFORM_DEFINITIONS
+            OS_WIN
+            NOMINMAX)
+    if(RENDER STREQUAL AUTO)
+        SET(RENDER OPENGL)
+    endif()
+endif ()
+
+if (APPLE)
+    set(OPEN_DEMO_SRC_PLATFORM)
+    SET(OPEN_DEMO_PLATFORM_DEFINITIONS
+            OS_APPLE)
+    if(RENDER STREQUAL AUTO)
+        SET(RENDER OPENGL)
     endif()
 endif ()
 
 if (LINUX)
-    list(APPEND sources
-            platform/linux/main.cpp
-            )
-    if(render STREQUAL AUTO)
-        SET(render OPENGL)
+    set(OPEN_DEMO_SRC_PLATFORM)
+    if(RENDER STREQUAL AUTO)
+        SET(RENDER OPENGL)
     endif()
 endif ()
 
-if (render STREQUAL OPENGL)
-    list(APPEND sources
-            render/render_gl.h
-            )
-endif ()
-
-include_directories (. render)
-
-add_executable (open_demo ${sources})
-
-if (render STREQUAL OPENGL)
+if (RENDER STREQUAL OPENGL)
     find_package(OpenGL REQUIRED)
-    target_link_libraries(open_demo ${OPENGL_LIBRARIES})
-    list(APPEND definitions RENDER_GL)
+
+    set(OPENGL_SOURCES
+            render/render_gl.hpp)
+
+    set(RENDER_DEFINITIONS
+            RENDER_GL)
 endif ()
 
-if (WIN32)
-    list(APPEND definitions OS_WIN NOMINMAX)
-endif ()
+find_package(SDL2 REQUIRED)
 
-target_compile_definitions(open_demo PRIVATE ${definitions})
+set(OPEN_DEMO_LINK_LIBRARIES
+        ${SDL2_LIBRARY}
+        ${OPENGL_LIBRARIES})
+
+set(OPEN_DEMO_DEFINITIONS
+        ${OPEN_DEMO_PLATFORM_DEFINITIONS} )
+
+set(OPEN_DEMO_INCLUDE_DIRS
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/src/windowing
+        ${SDL2_INCLUDE_DIR})
+
+set(OPEN_DEMO_SRC_COMMON
+        ./core.h
+        input.h
+        vecmath.h
+        main.cpp)
+
+set(OPEN_DEMO_SRC_MODULE_WINDOWING
+        windowing/Window.hpp
+        windowing/Windowing.hpp
+        windowing/WindowSettings.hpp
+        windowing/Windowing.cpp
+        windowing/Window.cpp)
+
+set(OPEN_DEMO_SRC
+        ${OPEN_DEMO_SRC_COMMON}
+        ${OPEN_DEMO_SRC_PLATFORM}
+        ${OPEN_DEMO_SRC_MODULE_WINDOWING})
+
+add_executable (open_demo ${OPEN_DEMO_SRC})
+target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})
+target_compile_definitions(open_demo PRIVATE ${OPEN_DEMO_DEFINITIONS})
+target_include_directories(open_demo PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})

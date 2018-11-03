@@ -1,6 +1,4 @@
-#ifndef OPENDEMO_RENDER_H
-#define OPENDEMO_RENDER_H
-
+#pragma once
 #include <cstdint>
 
 #define MAX_LIGHTS           4
@@ -170,4 +168,3 @@ namespace Render {
         uint8_t ctrlIndex;
     } settings;
 }
-#endif //OPENDEMO_RENDER_H

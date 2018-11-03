@@ -6,7 +6,7 @@
 #include "input.h"
 
 #ifdef RENDER_GL
-  #include "render_gl.h"
+  #include "render_gl.hpp"
 #endif
 
 namespace Core {

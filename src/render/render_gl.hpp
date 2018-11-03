@@ -1,11 +1,16 @@
-#ifndef OPENDEMO_RENDER_GL_H
-#define OPENDEMO_RENDER_GL_H
+#pragma once
 
-#include "render/render.h"
+#include "render/render.hpp"
 
 #ifdef OS_WIN
     #include <gl/GL.h>
     #include <gl/glext.h>
+#endif
+
+#ifdef OS_APPLE
+    #include <OpenGL/OpenGL.h>
+    #include <OpenGL/gl3.h>
+    #include <OpenGL/glext.h>
 #endif
 
 namespace Render {
@@ -108,7 +113,6 @@ namespace Render {
     PFNGLDISCARDFRAMEBUFFEREXTPROC      glDiscardFramebufferEXT;
 #endif
 
-
     GLuint FBO, defaultFBO;
     struct RenderTargetCache {
         int count;
@@ -166,7 +170,7 @@ namespace Render {
                 GLuint ifmt, fmt;
                 GLenum type;
             } formats[FMT_MAX] = {
-                    {GL_LUMINANCE,       GL_LUMINANCE,       GL_UNSIGNED_BYTE}, // LUMINANCE
+                    {GL_RED,             GL_RED,       GL_UNSIGNED_BYTE}, // LUMINANCE
                     {GL_RGBA,            GL_RGBA,            GL_UNSIGNED_BYTE}, // RGBA
                     {GL_RGB,             GL_RGB,             GL_UNSIGNED_SHORT_5_6_5}, // RGB16
                     {GL_RGBA,            GL_RGBA,            GL_UNSIGNED_SHORT_5_5_5_1}, // RGBA16
@@ -205,7 +209,7 @@ namespace Render {
 
             void *pix = data;
             if (data && !support.texNPOT && (width != origWidth || height != origHeight))
-                pix = NULL;
+                pix = nullptr;
 
             for (int i = 0; i < 6; i++) {
                 glTexImage2D(cube ? (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i) : GL_TEXTURE_2D, 0, desc.ifmt, width, height,
@@ -250,7 +254,7 @@ namespace Render {
 
         void unbind(int sampler) {
             if (active.textures[sampler]) {
-                active.textures[sampler] = NULL;
+                active.textures[sampler] = nullptr;
                 glActiveTexture(GL_TEXTURE0 + sampler);
                 glBindTexture((opt & OPT_CUBEMAP) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
             }
@@ -260,7 +264,7 @@ namespace Render {
             bool filter = (opt & OPT_NEAREST) == 0 && (value > Settings::LOW);
             bool mipmaps = (opt & OPT_MIPMAPS) != 0;
 
-            active.textures[0] = NULL;
+            active.textures[0] = nullptr;
             bind(0);
             if (support.maxAniso > 0)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
@@ -275,7 +279,7 @@ namespace Render {
 
     bool extSupport(const char *str, const char *ext) {
         if (!str) return false;
-        return strstr(str, ext) != NULL;
+        return strstr(str, ext) != nullptr;
     }
 
     void init() {
@@ -369,7 +373,7 @@ namespace Render {
 
         char *ext = (char*)glGetString(GL_EXTENSIONS);
     /*
-        if (ext != NULL) {
+        if (ext != nullptr) {
             char buf[255];
             int len = strlen(ext);
             int start = 0;
