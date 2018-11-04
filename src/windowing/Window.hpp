@@ -7,8 +7,12 @@ namespace Windowing{
     class Window
     {
     public:
-        void Init(const WindowSettings &settings);
+        Window();
+
+        bool Init(const WindowSettings &settings);
         bool IsWindow() const;
+    private:
+        SDL_Window* window;
     };
 
 }

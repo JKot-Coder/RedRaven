@@ -50,6 +50,7 @@ set(OPEN_DEMO_DEFINITIONS
 
 set(OPEN_DEMO_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/src/common
         ${CMAKE_SOURCE_DIR}/src/windowing
         ${SDL2_INCLUDE_DIR})
 
@@ -58,6 +59,10 @@ set(OPEN_DEMO_SRC_COMMON
         input.h
         vecmath.h
         main.cpp)
+
+set(OPEN_DEMO_SRC_MODULE_COMMON
+        common/Exception.cpp
+        common/Exception.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.hpp
@@ -69,6 +74,7 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_COMMON}
         ${OPEN_DEMO_SRC_PLATFORM}
+        ${OPEN_DEMO_SRC_MODULE_COMMON}
         ${OPEN_DEMO_SRC_MODULE_WINDOWING})
 
 add_executable (open_demo ${OPEN_DEMO_SRC})

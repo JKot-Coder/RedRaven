@@ -1,11 +1,21 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 namespace Windowing {
 
-    struct WindowSettings {
-        std::string Title;
+    struct WindowRect {
+        WindowRect(): X(0), Y(0), Width(0), Height(0) {} ;
+        WindowRect(int32_t x, int32_t y, int32_t width, int32_t height) : X(x), Y(y), Width(width), Height(height) {};
+
+        int32_t X, Y, Width, Height;
     };
 
+    struct WindowSettings {
+        WindowSettings(): Title(""), WindowRect() {};
+
+        std::string Title;
+        WindowRect WindowRect;
+    };
 }
