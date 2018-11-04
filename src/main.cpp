@@ -1,17 +1,18 @@
+#include <memory>
+
+#include "Application.hpp"
 #include "windowing/Windowing.hpp"
-#include "windowing/WindowSettings.hpp"
 
 int main(int argc, char** argv) {
-    Windowing::WindowSettings settings;
-    Windowing::WindowRect rect(0, 0, 800, 600);
+    std::shared_ptr<Windowing::IListener> app(static_cast<Windowing::IListener*>(new Application()));
 
-    settings.Title = "OpenDemo";
-    settings.WindowRect = rect;
+    Windowing::Windowing::Subscribe(app);
+    dynamic_cast<Application*>(app.get())->Start();
+    Windowing::Windowing::UnSubscribe(app);
 
-    Windowing::Windowing::CreateWindow(settings);
+    app.reset();
+    app = nullptr;
 
-    while(true) {
-        Windowing::Windowing::PoolEvents();
-    }
+    return 0;
 }
 

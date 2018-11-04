@@ -55,16 +55,18 @@ set(OPEN_DEMO_INCLUDE_DIRS
         ${SDL2_INCLUDE_DIR})
 
 set(OPEN_DEMO_SRC_COMMON
-        ./core.h
         input.h
         vecmath.h
-        main.cpp)
+        main.cpp
+        Application.cpp
+        Application.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_COMMON
         common/Exception.cpp
         common/Exception.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
+        windowing/Listener.hpp
         windowing/Window.hpp
         windowing/Windowing.hpp
         windowing/WindowSettings.hpp
