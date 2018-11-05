@@ -4,6 +4,8 @@
 
 class Application: public Windowing::IListener {
 public:
+    Application() : quit(false) {}
+
     void Start();
     virtual void Quit() override;
 

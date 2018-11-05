@@ -10,7 +10,7 @@
 namespace Windowing {
 
     std::unique_ptr<Windowing> Windowing::Windowing::windowingInstance = std::unique_ptr<Windowing>(new Windowing());
-    std::vector<std::shared_ptr<IListener>> Windowing::Windowing::listeners = std::vector<std::shared_ptr<IListener>>();
+    std::vector<IListener*> Windowing::Windowing::listeners = std::vector<IListener*>();
 
     Windowing::Windowing(){
         if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
@@ -29,32 +29,32 @@ namespace Windowing {
 
             for(auto& listener: listeners) {
                 if (e.type == SDL_QUIT) {
-                    listener.get()->Quit();
+                    listener->Quit();
                 }
             }
 
         }
     }
 
-    const Window& Windowing::CreateWindow(const WindowSettings &settings){
-        Window window;
-        window.Init(settings);
+    const Window* Windowing::CreateWindow(const WindowSettings &settings){
+        auto window = new Window();
+        window->Init(settings);
 
         return window;
     }
 
-    void Windowing::Subscribe(const std::shared_ptr<IListener> &listener) {
+    void Windowing::Subscribe(IListener *listener) {
         for(auto& item: listeners) {
-            if(listener.get() == item.get())
+            if(listener == item)
                 throw Common::Exception("Error subscribe listener, listener already subscribed");
         }
 
         listeners.push_back(listener);
     }
 
-    void Windowing::UnSubscribe(const std::shared_ptr<IListener> &listener) {
+    void Windowing::UnSubscribe(const IListener* listener) {
         for (auto it = listeners.begin(); it != listeners.end(); ) {
-            if (listener.get() == (*it).get()) {
+            if (listener == *it) {
                 it = listeners.erase(it);
                 return;
             }

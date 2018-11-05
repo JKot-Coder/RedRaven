@@ -12,11 +12,14 @@ void Application::Start() {
     settings.Title = "OpenDemo";
     settings.WindowRect = rect;
 
+    Windowing::Windowing::Subscribe(this);
     Windowing::Windowing::CreateWindow(settings);
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
     }
+
+    Windowing::Windowing::UnSubscribe(this);
 }
 
 void Application::Quit() {

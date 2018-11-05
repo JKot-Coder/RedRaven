@@ -13,7 +13,7 @@ namespace Windowing{
 
     bool Window::Init(const WindowSettings &settings){
         std::string windowerror;
-        Uint32 windowflags;
+        Uint32 windowflags = 0;
 
         if (window)
             throw Common::Exception("Window already initialized");

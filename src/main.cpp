@@ -4,14 +4,12 @@
 #include "windowing/Windowing.hpp"
 
 int main(int argc, char** argv) {
-    std::shared_ptr<Windowing::IListener> app(static_cast<Windowing::IListener*>(new Application()));
+    (void)argc;
+    (void)argv;
 
-    Windowing::Windowing::Subscribe(app);
-    dynamic_cast<Application*>(app.get())->Start();
-    Windowing::Windowing::UnSubscribe(app);
+    auto app = new Application;
 
-    app.reset();
-    app = nullptr;
+    app->Start();
 
     return 0;
 }

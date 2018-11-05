@@ -14,12 +14,13 @@ namespace Windowing {
         Windowing();
         ~Windowing();
 
-        static const Window& CreateWindow(const WindowSettings &settings);
+        static const Window* CreateWindow(const WindowSettings &settings);
         static void PoolEvents();
-        static void Subscribe(const std::shared_ptr<IListener> &listener);
-        static void UnSubscribe(const std::shared_ptr<IListener> &listener);
+        static void Subscribe(IListener *listener);
+        static void UnSubscribe(const IListener *listener);
+
     private:
-        static std::vector<std::shared_ptr<IListener>> listeners;
+        static std::vector<IListener*> listeners;
         static std::unique_ptr<Windowing> windowingInstance;
     };
 }
