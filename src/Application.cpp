@@ -13,11 +13,13 @@ void Application::Start() {
     settings.WindowRect = rect;
 
     Windowing::Windowing::Subscribe(this);
-    Windowing::Windowing::CreateWindow(settings);
+    auto window = Windowing::Windowing::CreateWindow(settings);
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
     }
+    window.reset();
+    window = nullptr;
 
     Windowing::Windowing::UnSubscribe(this);
 }

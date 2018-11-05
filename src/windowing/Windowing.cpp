@@ -36,11 +36,11 @@ namespace Windowing {
         }
     }
 
-    const Window* Windowing::CreateWindow(const WindowSettings &settings){
+    const std::shared_ptr<Window> Windowing::CreateWindow(const WindowSettings &settings){
         auto window = new Window();
         window->Init(settings);
 
-        return window;
+        return std::shared_ptr<Window>(window);
     }
 
     void Windowing::Subscribe(IListener *listener) {

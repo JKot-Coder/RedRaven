@@ -8,6 +8,7 @@ namespace Windowing{
     {
     public:
         Window();
+        ~Window();
 
         bool Init(const WindowSettings &settings);
         bool IsWindow() const;

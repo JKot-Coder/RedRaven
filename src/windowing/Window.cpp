@@ -3,12 +3,21 @@
 #include "common/Exception.hpp"
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Window.hpp"
+#include "Window.hpp"
+
 
 namespace Windowing{
 
     Window::Window() : window(nullptr)
     {
 
+    }
+
+    Window::~Window() {
+        if (window){
+            SDL_DestroyWindow(window);
+            window = nullptr;
+        }
     }
 
     bool Window::Init(const WindowSettings &settings){

@@ -14,7 +14,7 @@ namespace Windowing {
         Windowing();
         ~Windowing();
 
-        static const Window* CreateWindow(const WindowSettings &settings);
+        static const std::shared_ptr<Window> CreateWindow(const WindowSettings &settings);
         static void PoolEvents();
         static void Subscribe(IListener *listener);
         static void UnSubscribe(const IListener *listener);
