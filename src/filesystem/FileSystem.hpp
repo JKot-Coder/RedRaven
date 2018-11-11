@@ -4,9 +4,9 @@
 
 namespace FileSystem {
 
-    class Stream;
+    class FileStream;
 
-    enum Mode
+    enum Mode : int8_t
     {
         MODE_CLOSED,
         MODE_READ,
@@ -16,7 +16,7 @@ namespace FileSystem {
     };
 
     class FileSystem {
-        const std::shared_ptr<Stream> Open(const std::string &fileName, Mode RW = MODE_READ);
+        const std::shared_ptr<FileStream> Open(const std::string &fileName, Mode RW = MODE_READ);
     };
 }
 

@@ -7,7 +7,7 @@ namespace Windowing {
 
     struct WindowSettings;
     class Window;
-    class IListener;
+    class Listener;
 
     class Windowing {
     public:
@@ -16,11 +16,11 @@ namespace Windowing {
 
         static const std::shared_ptr<Window> CreateWindow(const WindowSettings &settings);
         static void PoolEvents();
-        static void Subscribe(IListener *listener);
-        static void UnSubscribe(const IListener *listener);
+        static void Subscribe(Listener *listener);
+        static void UnSubscribe(const Listener *listener);
 
     private:
-        static std::vector<IListener*> listeners;
+        static std::vector<Listener*> listeners;
         static std::unique_ptr<Windowing> windowingInstance;
     };
 }

@@ -10,7 +10,7 @@
 namespace Windowing {
 
     std::unique_ptr<Windowing> Windowing::Windowing::windowingInstance = std::unique_ptr<Windowing>(new Windowing());
-    std::vector<IListener*> Windowing::Windowing::listeners = std::vector<IListener*>();
+    std::vector<Listener*> Windowing::Windowing::listeners = std::vector<Listener*>();
 
     Windowing::Windowing(){
         if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
@@ -43,7 +43,7 @@ namespace Windowing {
         return std::shared_ptr<Window>(window);
     }
 
-    void Windowing::Subscribe(IListener *listener) {
+    void Windowing::Subscribe(Listener *listener) {
         for(auto& item: listeners) {
             if(listener == item)
                 throw Common::Exception("Error subscribe listener, listener already subscribed");
@@ -52,7 +52,7 @@ namespace Windowing {
         listeners.push_back(listener);
     }
 
-    void Windowing::UnSubscribe(const IListener* listener) {
+    void Windowing::UnSubscribe(const Listener* listener) {
         for (auto it = listeners.begin(); it != listeners.end(); ) {
             if (listener == *it) {
                 it = listeners.erase(it);

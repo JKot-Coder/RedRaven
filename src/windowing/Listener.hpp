@@ -2,7 +2,7 @@
 
 namespace Windowing{
 
-    class IListener {
+    class Listener {
     public:
         virtual void Quit() {};
     };

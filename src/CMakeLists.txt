@@ -64,10 +64,14 @@ set(OPEN_DEMO_SRC_COMMON
 
 set(OPEN_DEMO_SRC_MODULE_COMMON
         common/Exception.cpp
-        common/Exception.hpp)
+        common/Exception.hpp
+        common/Stream.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_FILE_SYSTEM
-        filesystem/FileSystem.cpp filesystem/FileSystem.hpp)
+        filesystem/FileSystem.cpp
+        filesystem/FileSystem.hpp
+        filesystem/FileStream.cpp
+        filesystem/FileStream.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Listener.hpp

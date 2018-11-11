@@ -2,7 +2,7 @@
 
 #include "windowing/Listener.hpp"
 
-class Application: public Windowing::IListener {
+class Application: public Windowing::Listener {
 public:
     Application() : quit(false) {}
 
