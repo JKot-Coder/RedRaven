@@ -52,6 +52,7 @@ set(OPEN_DEMO_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/src/common
         ${CMAKE_SOURCE_DIR}/src/filesystem
+        ${CMAKE_SOURCE_DIR}/src/resource_manager
         ${CMAKE_SOURCE_DIR}/src/windowing
         ${SDL2_INCLUDE_DIR})
 
@@ -73,6 +74,10 @@ set(OPEN_DEMO_SRC_MODULE_FILE_SYSTEM
         filesystem/FileStream.cpp
         filesystem/FileStream.hpp)
 
+set(OPEN_DEMO_SRC_RESOURCE_MANAGER
+        resource_manager/ResourceManager.cpp
+        resource_manager/ResourceManager.hpp)
+
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Listener.hpp
         windowing/Window.hpp
@@ -86,6 +91,7 @@ set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_PLATFORM}
         ${OPEN_DEMO_SRC_MODULE_COMMON}
         ${OPEN_DEMO_SRC_MODULE_FILE_SYSTEM}
+        ${OPEN_DEMO_SRC_RESOURCE_MANAGER}
         ${OPEN_DEMO_SRC_MODULE_WINDOWING})
 
 add_executable (open_demo ${OPEN_DEMO_SRC})
