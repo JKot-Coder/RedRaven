@@ -23,4 +23,5 @@ namespace Windowing {
         static std::vector<Listener*> listeners;
         static std::unique_ptr<Windowing> windowingInstance;
     };
+
 }

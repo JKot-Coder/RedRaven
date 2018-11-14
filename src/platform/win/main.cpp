@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
                 Core::quit();
         }
         //if (Game::update()) {
-         //   Game::render();
+         //   Game::render_old();
           //  Core::waitVBlank();
             ContextSwap();
         //}

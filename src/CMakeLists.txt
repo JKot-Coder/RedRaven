@@ -35,8 +35,14 @@ if (RENDER STREQUAL OPENGL)
     set(OPENGL_SOURCES
             render/render_gl.hpp)
 
-    set(RENDER_DEFINITIONS
-            RENDER_GL)
+    set(OPEN_DEMO_SRC_MODULE_RENDER_GAPI
+            render/opengl/Shader.cpp
+            render/opengl/Shader.hpp)
+
+    set(OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI
+            ${CMAKE_SOURCE_DIR}/src/render/opengl
+            ${CMAKE_SOURCE_DIR}/src/depencies/glad
+            ${CMAKE_SOURCE_DIR}/src/depencies/KHR)
 endif ()
 
 find_package(SDL2 REQUIRED)
@@ -54,14 +60,21 @@ set(OPEN_DEMO_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/src/filesystem
         ${CMAKE_SOURCE_DIR}/src/resource_manager
         ${CMAKE_SOURCE_DIR}/src/windowing
+        ${CMAKE_SOURCE_DIR}/src/render
+        ${OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI}
         ${SDL2_INCLUDE_DIR})
 
 set(OPEN_DEMO_SRC_COMMON
         input.h
-        vecmath.h
+        VecMath.h
         main.cpp
         Application.cpp
         Application.hpp)
+
+set(OPEN_DEMO_SRC_DEPS_GLAD
+        dependencies/glad/glad.c
+        dependencies/glad/glad.h
+        dependencies/KHR/khrplatform.h)
 
 set(OPEN_DEMO_SRC_MODULE_COMMON
         common/Exception.cpp
@@ -74,7 +87,7 @@ set(OPEN_DEMO_SRC_MODULE_FILE_SYSTEM
         filesystem/FileStream.cpp
         filesystem/FileStream.hpp)
 
-set(OPEN_DEMO_SRC_RESOURCE_MANAGER
+set(OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER
         resource_manager/ResourceManager.cpp
         resource_manager/ResourceManager.hpp)
 
@@ -86,13 +99,21 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Windowing.cpp
         windowing/Window.cpp)
 
+set(OPEN_DEMO_SRC_MODULE_RENDER
+        render/Shader.cpp
+        render/Shader.hpp
+        render/opengl/Rendering.cpp)
+
 set(OPEN_DEMO_SRC
+        ${OPEN_DEMO_SRC_DEPS_GLAD}
         ${OPEN_DEMO_SRC_COMMON}
         ${OPEN_DEMO_SRC_PLATFORM}
         ${OPEN_DEMO_SRC_MODULE_COMMON}
         ${OPEN_DEMO_SRC_MODULE_FILE_SYSTEM}
-        ${OPEN_DEMO_SRC_RESOURCE_MANAGER}
-        ${OPEN_DEMO_SRC_MODULE_WINDOWING})
+        ${OPEN_DEMO_SRC_MODULE_ESOURCE_MANAGER}
+        ${OPEN_DEMO_SRC_MODULE_WINDOWING}
+        ${OPEN_DEMO_SRC_MODULE_RENDER}
+        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI})
 
 add_executable (open_demo ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})
