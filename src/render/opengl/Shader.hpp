@@ -13,11 +13,13 @@ namespace OpenGL {
     class Shader : public Render::Shader {
     public:
         Shader();
-        ~Shader();
+        virtual ~Shader() override;
 
-        void LinkSource(const Common::Stream& stream);
+        virtual bool LinkSource(Common::Stream* stream) override;
     private:
         GLuint ID;
+
+        bool checkLink();
     };
 
 }

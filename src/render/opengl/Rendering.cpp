@@ -1,12 +1,14 @@
 #include <SDL_video.h>
 
+#include "common/Utils.hpp"
 #include "common/Exception.hpp"
 
 #include "windowing/Window.hpp"
 
 #include "render/Rendering.hpp"
+#include "render/opengl/Shader.hpp"
+
 #include "render/opengl/Rendering.hpp"
-#include "Rendering.hpp"
 
 namespace Render {
     std::unique_ptr<Rendering> Render::Rendering::instance = std::unique_ptr<Rendering>(new OpenGL::Rendering());
@@ -33,7 +35,7 @@ namespace OpenGL {
         if (!gladLoadGL())
             Common::Exception("Can't initalize openGL.");
 
-        printf("OpenGL Version %d.%d loaded", GLVersion.major, GLVersion.minor);
+        LOG("OpenGL Version %d.%d loaded \n", GLVersion.major, GLVersion.minor);
 
         if (!GLAD_GL_VERSION_3_3) {
             Common::Exception("OpenGL version is not supported.");
@@ -46,5 +48,9 @@ namespace OpenGL {
         }
     }
 
+    std::shared_ptr<Render::Shader> Rendering::CreateShader() {
+        auto test = std::shared_ptr<OpenGL::Shader>(new OpenGL::Shader());
+        return test;
+    }
 }
 }

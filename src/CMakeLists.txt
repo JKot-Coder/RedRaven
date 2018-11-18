@@ -66,7 +66,7 @@ set(OPEN_DEMO_INCLUDE_DIRS
 
 set(OPEN_DEMO_SRC_COMMON
         input.h
-        VecMath.h
+        common/VecMath.h
         main.cpp
         Application.cpp
         Application.hpp)
@@ -110,10 +110,10 @@ set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_PLATFORM}
         ${OPEN_DEMO_SRC_MODULE_COMMON}
         ${OPEN_DEMO_SRC_MODULE_FILE_SYSTEM}
-        ${OPEN_DEMO_SRC_MODULE_ESOURCE_MANAGER}
+        ${OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER}
         ${OPEN_DEMO_SRC_MODULE_WINDOWING}
         ${OPEN_DEMO_SRC_MODULE_RENDER}
-        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI})
+        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI} common/Utils.hpp)
 
 add_executable (open_demo ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})

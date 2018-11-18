@@ -21,6 +21,8 @@ namespace FileSystem {
         virtual int32_t GetPosition() override;
         virtual void SetPosition(int32_t value) override;
 
+        virtual int32_t GetSize() override;
+
         virtual int32_t Read(char *data, int32_t length) override;
         virtual int32_t Write(const char *data, int32_t length) override;
     private:

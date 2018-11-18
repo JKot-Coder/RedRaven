@@ -63,6 +63,20 @@ namespace FileSystem {
         return fileStream.tellg();
     }
 
+    int32_t FileStream::GetSize() {
+        if (mode == MODE_CLOSED)
+            return 0;
+
+        auto currentPosition = GetPosition();
+
+        fileStream.seekg(0, std::ios_base::end);
+        auto size = GetPosition();
+
+        SetPosition(currentPosition);
+
+        return size;
+    }
+
     void FileStream::SetPosition(int32_t value) {
         if (mode == MODE_CLOSED)
             throw Common::Exception("Error file %s not opened", fileName.c_str());

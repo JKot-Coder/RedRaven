@@ -2,7 +2,9 @@
 
 #include <memory>
 
-//#include "render/shader.hpp"
+namespace Render{
+    class Shader;
+}
 
 namespace ResourceManager{
 
@@ -12,8 +14,7 @@ namespace ResourceManager{
             return instance;
         }
 
-       // const std::shared_ptr<Shader>& LoadShader();
-
+        const std::shared_ptr<Render::Shader> LoadShader(const std::string& filename);
     private:
         static std::unique_ptr<ResourceManager> instance;
     };

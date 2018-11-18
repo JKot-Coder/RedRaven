@@ -19,4 +19,6 @@ private:
 
     void init();
     void terminate();
+
+    void loadResouces();
 };

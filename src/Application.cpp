@@ -1,5 +1,7 @@
 #include <memory>
-#include <render/Rendering.hpp>
+
+#include "resource_manager/ResourceManager.hpp"
+#include "render/Rendering.hpp"
 
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
@@ -8,6 +10,7 @@
 
 void Application::Start() {
     init();
+    loadResouces();
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
@@ -40,4 +43,10 @@ void Application::terminate() {
     Render::Instance().get()->Terminate();
     Windowing::Windowing::UnSubscribe(this);
 }
+
+void Application::loadResouces() {
+    auto *resourceManager = ResourceManager::Instance().get();
+    resourceManager->LoadShader("");
+}
+
 

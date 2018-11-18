@@ -1,13 +1,17 @@
-#include "FileSystem.hpp"
+#include "FileStream.hpp"
 
+#include "FileSystem.hpp"
 
 namespace FileSystem {
 
-    const std::shared_ptr<FileStream> FileSystem::Open(const std::string &fileName, Mode RW) {
-        (void) fileName;
-        (void) RW;
+    std::unique_ptr<FileSystem> FileSystem::instance = std::unique_ptr<FileSystem>(new FileSystem());
 
-        return std::shared_ptr<FileStream>();
+    Common::Stream* FileSystem::Open(const std::string &fileName, Mode RW) {
+        auto* fileStream = new FileStream(fileName);
+
+        fileStream->Open(RW);
+
+        return fileStream;
     }
 
 }

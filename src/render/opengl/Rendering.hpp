@@ -14,6 +14,8 @@ namespace OpenGL {
 
         virtual void Init(const std::shared_ptr<Windowing::Window>& window) override;
         virtual void Terminate() override;
+
+        virtual std::shared_ptr<Shader> CreateShader() override;
     private:
         SDL_GLContext context;
     };
