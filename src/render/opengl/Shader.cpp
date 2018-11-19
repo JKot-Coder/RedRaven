@@ -27,8 +27,8 @@ namespace OpenGL {
 
         const int type[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
         const char *code[2][4] = {
-                { GLSL_VERT , "#line 0\n", text },
-                { GLSL_FRAG , "#line 0\n", text }
+                { "#version 330 core\n", GLSL_VERT, "#line 0\n", text },
+                { "#version 330 core\n", GLSL_FRAG, "#line 0\n", text }
         };
 
         GLchar info[1024];

@@ -46,7 +46,7 @@ void Application::terminate() {
 
 void Application::loadResouces() {
     auto *resourceManager = ResourceManager::Instance().get();
-    resourceManager->LoadShader("");
+    resourceManager->LoadShader("resources/test.shader");
 }
 
 
