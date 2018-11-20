@@ -21,7 +21,8 @@ namespace OpenGL {
         const char GLSL_FRAG[] = "#define FRAGMENT\n";
 
         auto shaderSize = stream->GetSize();
-        char *text = new char(shaderSize);
+        char *text = new char[shaderSize + 1];
+        text[shaderSize] = 0;
 
         stream->Read(text, shaderSize);
 

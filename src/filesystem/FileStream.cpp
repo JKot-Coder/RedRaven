@@ -23,7 +23,7 @@ namespace FileSystem {
 
         switch (mode) {
             case MODE_READ: {
-                fileStream.open(fileName, std::ios::out);
+                fileStream.open(fileName, std::ios::in);
             }
                 break;
             case MODE_WRITE: {
@@ -69,7 +69,7 @@ namespace FileSystem {
 
         auto currentPosition = GetPosition();
 
-        fileStream.seekg(0, std::ios_base::end);
+        fileStream.seekg(0, fileStream.end);
         auto size = GetPosition();
 
         SetPosition(currentPosition);
