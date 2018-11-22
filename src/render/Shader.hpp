@@ -13,4 +13,3 @@ namespace Render
         virtual bool LinkSource(Common::Stream* stream) = 0;
     };
 }
-

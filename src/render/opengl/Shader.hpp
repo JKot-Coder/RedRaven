@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/opengl/Rendering.hpp"
+#include <cstdint>
 #include "render/Shader.hpp"
 
 namespace Common {
@@ -9,6 +9,8 @@ namespace Common {
 
 namespace Render {
 namespace OpenGL {
+
+    typedef uint16_t GLuint;
 
     class Shader : public Render::Shader {
     public:

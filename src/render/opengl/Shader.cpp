@@ -1,9 +1,11 @@
-#include <common/Utils.hpp>
-#include "Shader.hpp"
+#include "dependencies/glad/glad.h"
 
+#include "common/Utils.hpp"
 #include "common/Stream.hpp"
 
 #include "render/opengl/Rendering.hpp"
+
+#include "Shader.hpp"
 
 namespace Render {
 namespace OpenGL {

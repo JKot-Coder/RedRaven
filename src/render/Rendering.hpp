@@ -10,6 +10,15 @@ namespace Render {
 
     class Shader;
 
+    enum Attributes{
+        POSITION,
+        NORMAL,
+        TEXCOORD,
+        COLOR,
+
+        MAX_ATTRIBUTES
+    };
+
     class Rendering {
     public:
         inline static const std::unique_ptr<Rendering>& Instance() {

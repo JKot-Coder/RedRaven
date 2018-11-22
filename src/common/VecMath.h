@@ -5,6 +5,8 @@
 #include <float.h>
 #include <stdio.h>
 
+#include "common/Utils.hpp"
+
 #define DECL_ENUM(v) v,
 #define DECL_STR(v)  #v,
 

@@ -37,7 +37,11 @@ if (RENDER STREQUAL OPENGL)
 
     set(OPEN_DEMO_SRC_MODULE_RENDER_GAPI
             render/opengl/Shader.cpp
-            render/opengl/Shader.hpp)
+            render/opengl/Shader.hpp
+            render/opengl/Rendering.hpp
+            render/opengl/Rendering.cpp
+            render/opengl/Mesh.cpp
+            render/opengl/Mesh.hpp)
 
     set(OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI
             ${CMAKE_SOURCE_DIR}/src/render/opengl
@@ -100,9 +104,9 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.cpp)
 
 set(OPEN_DEMO_SRC_MODULE_RENDER
-        render/Shader.cpp
+        render/Rendering.hpp
         render/Shader.hpp
-        render/opengl/Rendering.cpp)
+        render/Mesh.hpp)
 
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_DEPS_GLAD}
