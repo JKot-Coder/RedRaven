@@ -26,13 +26,11 @@ namespace Windowing {
         SDL_Event e;
 
         while (SDL_PollEvent(&e)){
-
             for(auto& listener: listeners) {
                 if (e.type == SDL_QUIT) {
                     listener->Quit();
                 }
             }
-
         }
     }
 

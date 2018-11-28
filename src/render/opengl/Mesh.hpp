@@ -8,17 +8,20 @@ namespace OpenGL {
 
     typedef uint32_t GLuint;
 
-    class Mesh : Render::Mesh {
+    class Mesh : public Render::Mesh {
+    public:
         Mesh();
         virtual ~Mesh() override;
 
-        void Init(Vertex *vertices, int vCount);
-        //void setupFVF(GAPI::Vertex *v) const;
+        virtual void Init(Vertex *vertices, int vCount) override;
 
-        void Bind() const;
+        virtual void Bind() const override;
+        virtual void Draw() const override;
     private:
         GLuint VAO_ID;
         GLuint VBO_ID;
+
+        int32_t vCount;
     };
 
 }

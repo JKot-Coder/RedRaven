@@ -4,10 +4,6 @@
 
 namespace Render
 {
-    class Mesh {
-    public:
-        virtual ~Mesh() {};
-    };
 
     struct Vertex {
         Common::vec3 position;   // xyz  - position,
@@ -15,4 +11,15 @@ namespace Render
         Common::vec2 texCoord;   // xy   - texture coordinates
         Common::vec4 color;      // for non-textured geometry
     };
+
+    class Mesh {
+    public:
+        virtual ~Mesh() {};
+
+        virtual void Init(Vertex *vertices, int vCount) = 0;
+
+        virtual void Bind() const = 0;
+        virtual void Draw() const = 0; //TODO: remove
+    };
+
 }

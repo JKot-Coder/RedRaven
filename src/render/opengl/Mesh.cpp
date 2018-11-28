@@ -13,10 +13,12 @@ namespace OpenGL {
 
     Mesh::~Mesh() {
         glDeleteBuffers(1, &VBO_ID);
-        glDeleteVertexArrays(1, &VBO_ID);
+        glDeleteVertexArrays(1, &VAO_ID);
     }
 
     void Mesh::Init(Render::Vertex *vertices, int vCount) {
+        this->vCount = vCount;
+
         glBindVertexArray(VAO_ID);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO_ID);
@@ -27,11 +29,23 @@ namespace OpenGL {
         glEnableVertexAttribArray(Attributes::TEXCOORD);
         glEnableVertexAttribArray(Attributes::COLOR);
 
-        glVertexAttribPointer(Attributes::POSITION, 3, GL_FLOAT, false, sizeof(*vertices), &vertices->position);
-        glVertexAttribPointer(Attributes::NORMAL,   3, GL_FLOAT, true,  sizeof(*vertices), &vertices->normal);
-        glVertexAttribPointer(Attributes::TEXCOORD, 2, GL_FLOAT, true,  sizeof(*vertices), &vertices->texCoord);
-        glVertexAttribPointer(Attributes::COLOR,    4, GL_FLOAT, true,  sizeof(*vertices), &vertices->color);
+        glVertexAttribPointer(Attributes::POSITION, 3, GL_FLOAT, false, sizeof(*vertices), (void*)offsetof(Vertex, position));
+        glVertexAttribPointer(Attributes::NORMAL,   3, GL_FLOAT, true,  sizeof(*vertices), (void*)offsetof(Vertex, normal));
+        glVertexAttribPointer(Attributes::TEXCOORD, 2, GL_FLOAT, true,  sizeof(*vertices), (void*)offsetof(Vertex, texCoord));
+        glVertexAttribPointer(Attributes::COLOR,    4, GL_FLOAT, true,  sizeof(*vertices), (void*)offsetof(Vertex, color));
+        glVertexAttribPointer(Attributes::COLOR,    4, GL_FLOAT, true,  sizeof(*vertices), (void*)offsetof(Vertex, color));
 
+        glBindVertexArray(0);
+    }
+
+    void Mesh::Bind() const {
+        glBindVertexArray(VAO_ID);
+    }
+
+    void Mesh::Draw() const {
+        Bind();
+        glDisable(GL_CULL_FACE);
+        glDrawArrays(GL_TRIANGLES, 0, vCount);
         glBindVertexArray(0);
     }
 

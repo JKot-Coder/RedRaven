@@ -36,8 +36,7 @@ namespace FileSystem {
             }
                 break;
             default:
-                Common::Exception("Wrong file mode");
-                return false;
+                throw Common::Exception("Wrong file mode");
         }
 
         if (fileStream.fail() )

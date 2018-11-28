@@ -106,7 +106,10 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
 set(OPEN_DEMO_SRC_MODULE_RENDER
         render/Rendering.hpp
         render/Shader.hpp
-        render/Mesh.hpp)
+        render/Mesh.hpp
+        render/Primitives.cpp
+        render/Primitives.hpp
+        render/Shader.cpp)
 
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_DEPS_GLAD}

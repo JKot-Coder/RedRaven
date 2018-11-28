@@ -5,7 +5,7 @@
 
 namespace Common {
 
-    Exception::Exception(const char* fmt, ...) {
+    Exception::Exception(const char *fmt, ...) {
         va_list args;
         int sizeBuffer = strlen(fmt) * 2;
         std::string str;

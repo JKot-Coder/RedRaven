@@ -1,14 +1,15 @@
+#extension GL_ARB_explicit_attrib_location : require
+
 #ifdef VERTEX
 
-layout(location = 0)in vec4 vert;
+layout(location = 0) in vec3 Vert;
 
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 model;
+uniform mat4 ViewProjection;
+uniform mat4 Model;
 
 void main()
 {
-	gl_Position = projection * view * model * vert;
+	gl_Position = vec4(Vert, 1.0);// ViewProjection * Vert;
 }
 
 #endif
@@ -19,7 +20,7 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = vec4(0.4, 0.4, 0.8, 1.0);
+	fragColor = vec4(0.9, 0.4, 0.8, 1.0);
 }
 
 #endif

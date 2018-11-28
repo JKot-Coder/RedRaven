@@ -2,18 +2,50 @@
 
 #include "resource_manager/ResourceManager.hpp"
 #include "render/Rendering.hpp"
+#include "render/Primitives.hpp"
+#include "render/Shader.hpp"
+#include "render/Mesh.hpp"
 
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
 
 #include "Application.hpp"
 
+using namespace Common;
+
 void Application::Start() {
     init();
     loadResouces();
 
+    const auto& render = Render::Instance();
+
     while(!quit) {
         Windowing::Windowing::PoolEvents();
+        render->Update();
+
+        render->SetClearColor(vec4(0.25, 0.25, 0.25, 0));
+        render->Clear(true, true);
+
+        vec3 eyePos = vec3(0, 0, 0);
+        vec3 targetPos = vec3(0, 0, -2);
+
+        mat4 proj(mat4::PROJ_ZERO_POS, 90, 1, 1, 100);
+        mat4 viewInv(eyePos, targetPos, vec3(0, -1, 0));
+        mat4 view = viewInv.inverseOrtho();
+        mat4 model;
+        mat4 viewProj = proj * view;
+
+        (void) viewProj;
+
+        model.identity();
+
+        shader->Bind();
+        shader->SetParam(Render::Shader::VIEW_PROJECTION_MATRIX, model, 1);
+        shader->SetParam(Render::Shader::MODEL_MATRIX, model, 1);
+
+        sphereMesh->Draw();
+
+        render->SwapBuffers();
     }
 
     terminate();
@@ -33,20 +65,24 @@ void Application::init() {
     Windowing::Windowing::Subscribe(this);
     window = Windowing::Windowing::CreateWindow(settings);
 
-    Render::Instance().get()->Init(window);
+    auto& render = Render::Instance();
+    render->Init(window);
+
 }
 
 void Application::terminate() {
     window.reset();
     window = nullptr;
 
-    Render::Instance().get()->Terminate();
+    Render::Instance()->Terminate();
     Windowing::Windowing::UnSubscribe(this);
 }
 
 void Application::loadResouces() {
-    auto *resourceManager = ResourceManager::Instance().get();
-    resourceManager->LoadShader("resources/test.shader");
+   auto *resourceManager = ResourceManager::Instance().get();
+   shader = resourceManager->LoadShader("resources/test.shader");
+
+   sphereMesh = Render::Primitives::GetSphereMesh(23);
 }
 
 

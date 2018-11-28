@@ -18,7 +18,7 @@ namespace OpenGL {
         glDeleteProgram(ID);
     }
 
-    bool Shader::LinkSource(Common::Stream* stream) {
+    bool Shader::LinkSource(Common::Stream *stream) {
         const char GLSL_VERT[] = "#define VERTEX\n";
         const char GLSL_FRAG[] = "#define FRAGMENT\n";
 
@@ -48,21 +48,48 @@ namespace OpenGL {
             glDeleteShader(obj);
         }
 
-       // for (int at = 0; at < aMAX; at++)
-        //    glBindAttribLocation(ID, at, AttribName[at]);
+//        for (int at = 0; at < aMAX; at++)
+//            glBindAttribLocation(ID, at, AttribName[at]);
 
         glLinkProgram(ID);
 
         glGetProgramInfoLog(ID, sizeof(info), NULL, info);
         if (info[0]) LOG("! program: %s\n", info);
 
-        return checkLink();
+        if (!checkLink())
+            return false;
+
+        Bind();
+
+        for (int ut = 0; ut < UNIFORM_TYPE_MAX; ut++)
+            uniformID[ut] = glGetUniformLocation(ID, (GLchar*)UniformsNames[ut]);
+
+        return true;
     }
 
-    bool Shader::checkLink() {
+    bool Shader::checkLink() const {
         GLint success;
         glGetProgramiv(ID, GL_LINK_STATUS, &success);
         return success != 0;
+    }
+
+    void Shader::Bind() const {
+        glUseProgram(ID);
+    }
+
+    void Shader::SetParam(Shader::UniformType uType, const Common::vec4 &value, int count) const {
+        if (uniformID[uType] != -1)
+            glUniform4fv(uniformID[uType], count, (GLfloat*)&value);
+    }
+
+    void Shader::SetParam(Shader::UniformType uType, const Common::mat4 &value, int count) const {
+        if (uniformID[uType] != -1)
+            glUniformMatrix4fv(uniformID[uType], count, false, (GLfloat*)&value);
+    }
+
+    void Shader::SetParam(Shader::UniformType uType, const Common::Basis &value, int count) const {
+        if (uniformID[uType] != -1)
+            glUniform4fv(uniformID[uType], count * 2, (GLfloat*)&value);
     }
 
 }
