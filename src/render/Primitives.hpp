@@ -8,7 +8,7 @@ namespace Render {
 
     class Primitives {
     public:
-        static std::shared_ptr<Mesh> GetSphereMesh(int segments);
+        static std::shared_ptr<Mesh> GetSphereMesh(uint32_t segments);
     };
 
 }

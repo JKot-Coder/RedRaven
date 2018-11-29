@@ -1,3 +1,6 @@
+#include <vector>
+#include <array>
+
 #include "common/VecMath.h"
 
 #include "render/Rendering.hpp"
@@ -9,38 +12,90 @@ using namespace Common;
 
 namespace Render {
 
-    std::shared_ptr<Mesh> Primitives::GetSphereMesh(int segments)
+    std::shared_ptr<Mesh> Primitives::GetSphereMesh(uint32_t segments)
     {
         const auto& render = Render::Instance();
         const auto& mesh = render->CreateMesh();
 
-//        Render::Vertex* vertices = new Vertex[segments * segments];
-//
-//        for (int i = 0; i < segments; i++){
-//            float lng = PI * (i + 1) / static_cast<float>(segments);
-//
-//            for (int j = 0; j < segments; j++) {
-//                float lat  = 2.0f * PI * j / static_cast<float>(segments);
-//                vertices->position = Common::vec3(lng, lat);
-//            }
-//        }
+        const uint32_t vertexCount = segments * (segments - 1) + 2;
+        auto vertices = new Vertex[vertexCount];
 
+        uint32_t index = 0;
+        vertices[index].position = vec3(0.0f, 1.0f, 0.0f);
+        index++;
 
-//        Render::Vertex* vertices = new Vertex[3];
-//
-//        vertices[0].position = vec3( -1.0f, -1.0f, -2.0f );
-//        vertices[1].position = vec3(  0.0f,  1.0f, -2.0f );
-//        vertices[2].position = vec3(  1.0f, -1.0f, -2.0f );
+        for (uint32_t j = 0; j < segments - 1; ++j)
+        {
+            double const polar = M_PI * double(j+1) / double(segments);
+            double const sp = sin(polar);
+            double const cp = cos(polar);
+            for (uint32_t i = 0; i < segments; ++i)
+            {
+                double const azimuth = 2.0 * M_PI * double(i) / double(segments);
+                double const sa = sin(azimuth);
+                double const ca = cos(azimuth);
+                double const x = sp * ca;
+                double const y = cp;
+                double const z = sp * sa;
 
-        //TODO: TEMPORARY SOLUTION
-        Render::Vertex* vertices = new Vertex[3];
+                vertices[index].position = vec3(x, y, z);
+                index++;
+            }
+        }
+        vertices[index].position = vec3(0.0f, -1.0f, 0.0f);
 
-        vertices[0].position = vec3(  0.0f,  0.0f, 0.0f );
-        vertices[1].position = vec3(  0.5f,  0.0f, 0.0f );
-        vertices[2].position = vec3(  0.5f,  0.5f, 0.0f );
+        std::vector<Vertex> *triangles = new std::vector<Vertex>();
 
-        (void) segments;
-        mesh->Init(vertices, 3);
+        for (uint32_t i = 0; i < segments; ++i)
+        {
+            uint32_t const a = i + 1;
+            uint32_t const b = (i + 1) % segments + 1;
+
+            triangles->emplace_back(vertices[0]);
+            triangles->emplace_back(vertices[b]);
+            triangles->emplace_back(vertices[a]);
+
+//            triangles->emplace_back(vertices[a]);
+//            triangles->emplace_back(vertices[0]);
+//            triangles->emplace_back(vertices[b]);
+        }
+
+        for (uint32_t j = 0; j < segments - 2; ++j)
+        {
+            uint32_t aStart = j * segments + 1;
+            uint32_t bStart = (j + 1) * segments + 1;
+            for (uint32_t i = 0; i < segments; ++i)
+            {
+                const uint32_t a = aStart + i;
+                const uint32_t a1 = aStart + (i + 1) % segments;
+                const uint32_t b = bStart + i;
+                const uint32_t b1 = bStart + (i + 1) % segments;
+
+                triangles->emplace_back(vertices[a]);
+                triangles->emplace_back(vertices[a1]);
+                triangles->emplace_back(vertices[b1]);
+
+                triangles->emplace_back(vertices[a]);
+                triangles->emplace_back(vertices[b]);
+                triangles->emplace_back(vertices[b1]);
+            }
+        }
+
+        for (uint32_t i = 0; i < segments; ++i)
+        {
+            uint32_t const a = i + segments * (segments - 2) + 1;
+            uint32_t const b = (i + 1) % segments + segments * (segments - 2) + 1;
+
+            triangles->emplace_back(vertices[vertexCount-1]);
+            triangles->emplace_back(vertices[a]);
+            triangles->emplace_back(vertices[b]);
+        }
+
+        mesh->Init(triangles->data(), triangles->size());
+
+        delete triangles;
+        delete[] vertices;
+
         return mesh;
     }
 

@@ -9,7 +9,7 @@ uniform mat4 Model;
 
 void main()
 {
-	gl_Position = vec4(Vert, 1.0);// ViewProjection * Vert;
+	gl_Position = ViewProjection * vec4(Vert, 1.0);
 }
 
 #endif

@@ -41,6 +41,15 @@ namespace Windowing{
         return true;
     }
 
+    Common::vec2 Window::GetSize() const {
+        if(!window)
+            return Common::vec2(0, 0);
+
+        int32_t w, h;
+        SDL_GetWindowSize(window, &w, &h);
+        return Common::vec2(w, h);
+    }
+
     bool Window::IsWindow() const{
         return window;
     }

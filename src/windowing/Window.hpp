@@ -2,6 +2,8 @@
 
 #include <common/VecMath.h>
 
+struct SDL_Window;
+
 namespace Windowing{
 
     struct WindowSettings;
@@ -15,15 +17,7 @@ namespace Windowing{
         bool Init(const WindowSettings &settings);
         bool IsWindow() const;
 
-
-        Common::vec2 GetSize() const {
-            if(!window)
-                return Common::vec2(0, 0);
-
-            int32_t w, h;
-            SDL_GetWindowSize(window, &w, &h);
-            return Common::vec2(w, h);
-        }
+        Common::vec2 GetSize() const;
 
         SDL_Window* GetSDLWindow() const { return window; };
     private:

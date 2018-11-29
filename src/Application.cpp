@@ -8,6 +8,7 @@
 
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
+#include "windowing/Window.hpp"
 
 #include "Application.hpp"
 
@@ -26,21 +27,21 @@ void Application::Start() {
         render->SetClearColor(vec4(0.25, 0.25, 0.25, 0));
         render->Clear(true, true);
 
-        vec3 eyePos = vec3(0, 0, 0);
-        vec3 targetPos = vec3(0, 0, -2);
+        vec3 eyePos = vec3(0, 0, -7);
+        vec3 targetPos = vec3(0, 0, 0);
 
-        mat4 proj(mat4::PROJ_ZERO_POS, 90, 1, 1, 100);
+        vec2 windowSize = window->GetSize();
+
+        mat4 proj(mat4::PROJ_ZERO_POS, 90, windowSize.x / windowSize.y, 1, 100);
         mat4 viewInv(eyePos, targetPos, vec3(0, -1, 0));
         mat4 view = viewInv.inverseOrtho();
-        mat4 model;
         mat4 viewProj = proj * view;
 
-        (void) viewProj;
-
+        mat4 model;
         model.identity();
 
         shader->Bind();
-        shader->SetParam(Render::Shader::VIEW_PROJECTION_MATRIX, model, 1);
+        shader->SetParam(Render::Shader::VIEW_PROJECTION_MATRIX, viewProj, 1);
         shader->SetParam(Render::Shader::MODEL_MATRIX, model, 1);
 
         sphereMesh->Draw();
