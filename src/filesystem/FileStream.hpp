@@ -13,7 +13,7 @@ namespace FileSystem {
     class FileStream : public Common::Stream {
     public:
         FileStream(const std::string &fileName);
-        ~FileStream();
+        virtual ~FileStream() override;
 
         bool Open(Mode mode);
         void Close();

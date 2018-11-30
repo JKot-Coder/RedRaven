@@ -42,11 +42,14 @@ namespace OpenGL {
             glCompileShader(obj);
 
             glGetShaderInfoLog(obj, sizeof(info), NULL, info);
-            if (info[0]) LOG("! shader: %s\n", info);
+            if (info[0])
+                LOG("! shader: %s\n", info);
 
             glAttachShader(ID, obj);
             glDeleteShader(obj);
         }
+
+        delete[] text;
 
 //        for (int at = 0; at < aMAX; at++)
 //            glBindAttribLocation(ID, at, AttribName[at]);

@@ -6,6 +6,8 @@ namespace Common {
 
     class Stream {
     public:
+        virtual ~Stream() {};
+
         virtual int32_t GetPosition() = 0;
         virtual void SetPosition(int32_t value) = 0;
 

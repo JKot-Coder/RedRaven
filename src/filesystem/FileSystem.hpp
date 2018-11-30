@@ -25,7 +25,7 @@ namespace FileSystem {
             return instance;
         }
 
-        Common::Stream* Open(const std::string &fileName, Mode RW = MODE_READ);
+        std::shared_ptr<Common::Stream> Open(const std::string &fileName, Mode RW = MODE_READ) const;
     private:
         static std::unique_ptr<FileSystem> instance;
     };

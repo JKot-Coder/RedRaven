@@ -6,12 +6,12 @@ namespace FileSystem {
 
     std::unique_ptr<FileSystem> FileSystem::instance = std::unique_ptr<FileSystem>(new FileSystem());
 
-    Common::Stream* FileSystem::Open(const std::string &fileName, Mode RW) {
+    std::shared_ptr<Common::Stream> FileSystem::Open(const std::string &fileName, Mode RW) const {
         auto* fileStream = new FileStream(fileName);
 
         fileStream->Open(RW);
 
-        return fileStream;
+        return std::shared_ptr<Common::Stream>(fileStream);
     }
 
 }

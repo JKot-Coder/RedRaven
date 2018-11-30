@@ -15,7 +15,7 @@ namespace ResourceManager {
     const std::shared_ptr<Render::Shader> ResourceManager::LoadShader(const std::string& filename) {
         auto *filesystem = FileSystem::Instance().get();
 
-        Common::Stream* stream;
+        std::shared_ptr<Common::Stream> stream;
         try {
             stream = filesystem->Open(filename, FileSystem::MODE_READ);
         } catch(const std::exception &exception) {
@@ -24,7 +24,7 @@ namespace ResourceManager {
 
         auto *render = Render::Instance().get();
         auto shader = render->CreateShader();
-        shader->LinkSource(stream);
+        shader->LinkSource(stream.get());
 
         return shader;
     }
