@@ -28,6 +28,8 @@ namespace Render
         enum UniformType {
             VIEW_PROJECTION_MATRIX,
             MODEL_MATRIX,
+            CAMERA_POSITION,
+            MATERIAL,
             UNIFORM_TYPE_MAX
         };
 

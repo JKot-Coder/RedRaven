@@ -12,7 +12,13 @@
 
 #include "Application.hpp"
 
+#include <chrono>
+
 using namespace Common;
+
+int osGetTime() {
+    return std::chrono::system_clock::now().time_since_epoch().count();
+}
 
 void Application::Start() {
     init();
@@ -24,10 +30,14 @@ void Application::Start() {
         Windowing::Windowing::PoolEvents();
         render->Update();
 
+        float rotation = osGetTime() / 1000000.0f;
+
         render->SetClearColor(vec4(0.25, 0.25, 0.25, 0));
         render->Clear(true, true);
 
-        vec3 eyePos = vec3(0, 0, -7);
+        float r = 0.4 + PI;
+        vec3 eyePos = vec3(sin(r), 0, cos(r) ) * 7;
+       // eyePos = vec3(0, 0, -8);
         vec3 targetPos = vec3(0, 0, 0);
 
         vec2 windowSize = window->GetSize();
@@ -39,10 +49,17 @@ void Application::Start() {
 
         mat4 model;
         model.identity();
+        //model.translate(vec3(0, 1.0, 0.0));
+
+
+       // model.rotateX(rotation);
+        vec4 material = vec4(sin(rotation), 0, 0, 0);
 
         shader->Bind();
         shader->SetParam(Render::Shader::VIEW_PROJECTION_MATRIX, viewProj, 1);
         shader->SetParam(Render::Shader::MODEL_MATRIX, model, 1);
+        shader->SetParam(Render::Shader::CAMERA_POSITION, eyePos, 1);
+        shader->SetParam(Render::Shader::MATERIAL, material, 1);
 
         sphereMesh->Draw();
 

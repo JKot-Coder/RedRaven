@@ -2,6 +2,6 @@
 
 namespace Render {
 
-    const char* const Shader::UniformsNames[] = { "ViewProjection", "Model" };
+    const char* const Shader::UniformsNames[Shader::UNIFORM_TYPE_MAX] = { "ViewProjection", "Model", "CameraPosition", "Material" };
 
 }

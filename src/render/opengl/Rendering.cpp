@@ -73,6 +73,12 @@ namespace OpenGL {
 
         if (!GLAD_GL_VERSION_3_3)
             throw Common::Exception("OpenGL version is not supported.");
+
+        glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
     }
 
     void Rendering::Terminate() {

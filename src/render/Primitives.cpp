@@ -22,6 +22,7 @@ namespace Render {
 
         uint32_t index = 0;
         vertices[index].position = vec3(0.0f, 1.0f, 0.0f);
+        vertices[index].normal   = vec3(0.0f, 1.0f, 0.0f);
         index++;
 
         for (uint32_t j = 0; j < segments - 1; ++j)
@@ -29,6 +30,7 @@ namespace Render {
             double const polar = M_PI * double(j+1) / double(segments);
             double const sp = sin(polar);
             double const cp = cos(polar);
+
             for (uint32_t i = 0; i < segments; ++i)
             {
                 double const azimuth = 2.0 * M_PI * double(i) / double(segments);
@@ -38,11 +40,15 @@ namespace Render {
                 double const y = cp;
                 double const z = sp * sa;
 
+
                 vertices[index].position = vec3(x, y, z);
+                vertices[index].normal   = vec3(x, y, z);
                 index++;
             }
         }
+
         vertices[index].position = vec3(0.0f, -1.0f, 0.0f);
+        vertices[index].normal   = vec3(0.0f, -1.0f, 0.0f);
 
         std::vector<Vertex> *triangles = new std::vector<Vertex>();
 
@@ -54,10 +60,6 @@ namespace Render {
             triangles->emplace_back(vertices[0]);
             triangles->emplace_back(vertices[b]);
             triangles->emplace_back(vertices[a]);
-
-//            triangles->emplace_back(vertices[a]);
-//            triangles->emplace_back(vertices[0]);
-//            triangles->emplace_back(vertices[b]);
         }
 
         for (uint32_t j = 0; j < segments - 2; ++j)
