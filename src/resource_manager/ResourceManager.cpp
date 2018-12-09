@@ -17,7 +17,7 @@ namespace ResourceManager {
 
         std::shared_ptr<Common::Stream> stream;
         try {
-            stream = filesystem->Open(filename, FileSystem::MODE_READ);
+            stream = filesystem->Open(filename, FileSystem::Mode::READ);
         } catch(const std::exception &exception) {
             LOG("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
         }

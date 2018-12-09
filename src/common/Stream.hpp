@@ -8,13 +8,13 @@ namespace Common {
     public:
         virtual ~Stream() {};
 
-        virtual int32_t GetPosition() = 0;
-        virtual void SetPosition(int32_t value) = 0;
+        virtual int GetPosition() = 0;
+        virtual void SetPosition(int value) = 0;
 
-        virtual int32_t GetSize() = 0;
+        virtual int GetSize() = 0;
 
-        virtual int32_t Read(char *data, int32_t length) = 0;
-        virtual int32_t Write(const char *data, int32_t length) = 0;
+        virtual int Read(char *data, int length) = 0;
+        virtual int Write(const char *data, int length) = 0;
     };
 
 }

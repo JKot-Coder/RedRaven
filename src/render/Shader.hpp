@@ -14,17 +14,6 @@ namespace Render
     class Shader {
     public:
 
-//        enum Attributes {
-//            POSITION,
-//            NORMAL,
-//            TEX_COORD,
-//            COLOR,
-//            MAX_ATTRIBUTES
-//        };
-//
-//        static const char* const AttributesNames[MAX_ATTRIBUTES] = { ""};
-
-
         enum UniformType {
             VIEW_PROJECTION_MATRIX,
             MODEL_MATRIX,
@@ -33,7 +22,7 @@ namespace Render
             UNIFORM_TYPE_MAX
         };
 
-        static const char* const UniformsNames[UNIFORM_TYPE_MAX];
+        static const char* const UniformsNames[UniformType::UNIFORM_TYPE_MAX];
 
         virtual ~Shader() {};
 

@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "render/RenderPasses.hpp"
+
 namespace Common {
     struct vec4;
 }
@@ -15,7 +17,7 @@ namespace Render {
     class Shader;
     class Mesh;
 
-    enum Attributes{
+    enum Attributes {
         POSITION,
         NORMAL,
         TEXCOORD,
@@ -48,6 +50,9 @@ namespace Render {
 
     private:
         static std::unique_ptr<Rendering> instance;
+        static std::tuple<
+            std::unique_ptr<RenderPassOpaque>
+        > renderPasses;
     };
 
     inline static const std::unique_ptr<Rendering>& Instance() {

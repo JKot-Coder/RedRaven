@@ -8,7 +8,7 @@
 
 namespace FileSystem {
 
-    enum Mode : int8_t;
+    enum class Mode : int8_t;
 
     class FileStream : public Common::Stream {
     public:

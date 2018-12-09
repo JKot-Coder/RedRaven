@@ -81,6 +81,7 @@ set(OPEN_DEMO_SRC_DEPS_GLAD
         dependencies/KHR/khrplatform.h)
 
 set(OPEN_DEMO_SRC_MODULE_COMMON
+        common/Utils.hpp
         common/Exception.cpp
         common/Exception.hpp
         common/Stream.hpp)
@@ -104,12 +105,16 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.cpp)
 
 set(OPEN_DEMO_SRC_MODULE_RENDER
+        render/Rendering.cpp
         render/Rendering.hpp
         render/Shader.hpp
         render/Mesh.hpp
         render/Primitives.cpp
         render/Primitives.hpp
-        render/Shader.cpp)
+        render/Shader.cpp
+        render/RenderTargetContext.hpp
+        render/RenderPasses.cpp
+        render/RenderPasses.hpp )
 
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_DEPS_GLAD}
@@ -120,7 +125,7 @@ set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER}
         ${OPEN_DEMO_SRC_MODULE_WINDOWING}
         ${OPEN_DEMO_SRC_MODULE_RENDER}
-        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI} common/Utils.hpp)
+        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI} )
 
 add_executable (open_demo ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})

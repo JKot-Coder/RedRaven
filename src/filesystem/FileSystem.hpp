@@ -10,13 +10,12 @@ namespace FileSystem {
 
     class FileStream;
 
-    enum Mode : int8_t
+    enum class Mode : int8_t
     {
-        MODE_CLOSED,
-        MODE_READ,
-        MODE_WRITE,
-        MODE_APPEND,
-        MODE_MAX_ENUM
+        CLOSED,
+        READ,
+        WRITE,
+        APPEND
     };
 
     class FileSystem {
@@ -25,7 +24,7 @@ namespace FileSystem {
             return instance;
         }
 
-        std::shared_ptr<Common::Stream> Open(const std::string &fileName, Mode RW = MODE_READ) const;
+        std::shared_ptr<Common::Stream> Open(const std::string &fileName, Mode RW = Mode::READ) const;
     private:
         static std::unique_ptr<FileSystem> instance;
     };
