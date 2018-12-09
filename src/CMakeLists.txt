@@ -1,15 +1,15 @@
 set(definitions)
 
-set(RENDER AUTO CACHE STRING "Graphics api")
-set_property(CACHE RENDER PROPERTY STRINGS OPENGL)
+set(rendering AUTO CACHE STRING "Graphics api")
+set_property(CACHE rendering PROPERTY STRINGS OPENGL)
 
 if (WIN32)
     set(OPEN_DEMO_SRC_PLATFORM)
     SET(OPEN_DEMO_PLATFORM_DEFINITIONS
             OS_WIN
             NOMINMAX)
-    if(RENDER STREQUAL AUTO)
-        SET(RENDER OPENGL)
+    if(rendering STREQUAL AUTO)
+        SET(rendering OPENGL)
     endif()
 endif ()
 
@@ -17,31 +17,31 @@ if (APPLE)
     set(OPEN_DEMO_SRC_PLATFORM)
     SET(OPEN_DEMO_PLATFORM_DEFINITIONS
             OS_APPLE)
-    if(RENDER STREQUAL AUTO)
-        SET(RENDER OPENGL)
+    if(rendering STREQUAL AUTO)
+        SET(rendering OPENGL)
     endif()
 endif ()
 
 if (LINUX)
     set(OPEN_DEMO_SRC_PLATFORM)
-    if(RENDER STREQUAL AUTO)
-        SET(RENDER OPENGL)
+    if(rendering STREQUAL AUTO)
+        SET(rendering OPENGL)
     endif()
 endif ()
 
-if (RENDER STREQUAL OPENGL)
+if (rendering STREQUAL OPENGL)
     find_package(OpenGL REQUIRED)
 
     set(OPENGL_SOURCES
-            render/render_gl.hpp)
+            rendering/render_gl.hpp)
 
     set(OPEN_DEMO_SRC_MODULE_RENDER_GAPI
-            render/opengl/Shader.cpp
-            render/opengl/Shader.hpp
-            render/opengl/Rendering.hpp
-            render/opengl/Rendering.cpp
-            render/opengl/Mesh.cpp
-            render/opengl/Mesh.hpp)
+            rendering/opengl/Shader.cpp
+            rendering/opengl/Shader.hpp
+            rendering/opengl/Render.hpp
+            rendering/opengl/Render.cpp
+            rendering/opengl/Mesh.cpp
+            rendering/opengl/Mesh.hpp)
 
     set(OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI
             ${CMAKE_SOURCE_DIR}/src/render/opengl
@@ -105,16 +105,16 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.cpp)
 
 set(OPEN_DEMO_SRC_MODULE_RENDER
-        render/Rendering.cpp
-        render/Rendering.hpp
-        render/Shader.hpp
-        render/Mesh.hpp
-        render/Primitives.cpp
-        render/Primitives.hpp
-        render/Shader.cpp
-        render/RenderTargetContext.hpp
-        render/RenderPasses.cpp
-        render/RenderPasses.hpp )
+        rendering/Render.cpp
+        rendering/Render.hpp
+        rendering/Shader.hpp
+        rendering/Mesh.hpp
+        rendering/Primitives.cpp
+        rendering/Primitives.hpp
+        rendering/Shader.cpp
+        rendering/RenderTargetContext.hpp
+        rendering/RenderPasses.cpp
+        rendering/RenderPasses.hpp)
 
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_DEPS_GLAD}

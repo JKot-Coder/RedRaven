@@ -3,11 +3,11 @@
 #include "common/Utils.hpp"
 #include "common/Stream.hpp"
 
-#include "render/opengl/Rendering.hpp"
+#include "rendering/opengl/Render.hpp"
 
 #include "Shader.hpp"
 
-namespace Render {
+namespace Rendering {
 namespace OpenGL {
 
     Shader::Shader() : ID(glCreateProgram()) {

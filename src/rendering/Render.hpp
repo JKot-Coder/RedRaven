@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "render/RenderPasses.hpp"
+#include "rendering/RenderPasses.hpp"
 
 namespace Common {
     struct vec4;
@@ -12,7 +12,7 @@ namespace Windowing {
     class Window;
 }
 
-namespace Render {
+namespace Rendering {
 
     class Shader;
     class Mesh;
@@ -25,13 +25,13 @@ namespace Render {
         MAX_ATTRIBUTES
     };
 
-    class Rendering {
+    class Render {
     public:
-        inline static const std::unique_ptr<Rendering>& Instance() {
+        inline static const std::unique_ptr<Render>& Instance() {
             return instance;
         }
 
-        virtual ~Rendering() {}
+        virtual ~Render() {}
 
         virtual void Init(const std::shared_ptr<Windowing::Window> &window) = 0;
         virtual void Terminate() = 0;
@@ -49,14 +49,14 @@ namespace Render {
         std::shared_ptr<Windowing::Window> window;
 
     private:
-        static std::unique_ptr<Rendering> instance;
+        static std::unique_ptr<Render> instance;
         static std::tuple<
             std::unique_ptr<RenderPassOpaque>
         > renderPasses;
     };
 
-    inline static const std::unique_ptr<Rendering>& Instance() {
-        return Rendering::Instance();
+    inline static const std::unique_ptr<Render>& Instance() {
+        return Render::Instance();
     }
 
 }

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 
-namespace Render {
+namespace Rendering {
 
     class RenderTarget {
 

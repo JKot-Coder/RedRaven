@@ -8,7 +8,7 @@ namespace Common{
     class Stream;
 }
 
-namespace Render
+namespace Rendering
 {
 
     class Shader {

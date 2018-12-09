@@ -3,18 +3,18 @@
 
 #include "common/VecMath.h"
 
-#include "render/Rendering.hpp"
-#include "render/Mesh.hpp"
+#include "rendering/Render.hpp"
+#include "rendering/Mesh.hpp"
 
-#include "render/Primitives.hpp"
+#include "rendering/Primitives.hpp"
 
 using namespace Common;
 
-namespace Render {
+namespace Rendering {
 
     std::shared_ptr<Mesh> Primitives::GetSphereMesh(uint32_t segments)
     {
-        const auto& render = Render::Instance();
+        const auto& render = Rendering::Instance();
         const auto& mesh = render->CreateMesh();
 
         const uint32_t vertexCount = segments * (segments - 1) + 2;

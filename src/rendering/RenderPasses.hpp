@@ -3,7 +3,7 @@
 #include <tuple>
 #include <memory>
 
-namespace Render {
+namespace Rendering {
 
     enum class RenderPassType {
         OPAQUE,

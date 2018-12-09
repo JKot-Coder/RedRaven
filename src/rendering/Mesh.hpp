@@ -2,7 +2,7 @@
 
 #include "common/VecMath.h"
 
-namespace Render
+namespace Rendering
 {
 
     struct Vertex {

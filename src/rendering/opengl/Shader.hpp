@@ -4,18 +4,18 @@
 
 #include "common/VecMath.h"
 
-#include "render/Shader.hpp"
+#include "rendering/Shader.hpp"
 
 namespace Common {
     class Stream;
 }
 
-namespace Render {
+namespace Rendering {
 namespace OpenGL {
 
     typedef uint32_t GLuint;
 
-    class Shader : public Render::Shader {
+    class Shader : public Rendering::Shader {
     public:
         Shader();
         virtual ~Shader() override;

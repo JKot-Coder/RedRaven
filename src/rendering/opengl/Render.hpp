@@ -1,15 +1,15 @@
 #pragma once
 
-#include "render/Rendering.hpp"
+#include "rendering/Render.hpp"
 
 typedef void *SDL_GLContext;
 
-namespace Render {
+namespace Rendering {
 namespace OpenGL {
 
-    class Rendering : public Render::Rendering {
+    class Render : public Rendering::Render {
     public:
-        Rendering();
+        Render();
 
         virtual void Init(const std::shared_ptr<Windowing::Window>& window) override;
         virtual void Terminate() override;
@@ -20,8 +20,8 @@ namespace OpenGL {
         virtual void SetClearColor(const Common::vec4 &color) const override;
         virtual void Clear(bool color, bool depth) const override;
 
-        virtual std::shared_ptr<Render::Shader> CreateShader() const override;
-        virtual std::shared_ptr<Render::Mesh> CreateMesh() const override;
+        virtual std::shared_ptr<Rendering::Shader> CreateShader() const override;
+        virtual std::shared_ptr<Rendering::Mesh> CreateMesh() const override;
     private:
         SDL_GLContext context;
     };

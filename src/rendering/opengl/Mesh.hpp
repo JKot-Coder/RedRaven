@@ -1,14 +1,14 @@
 #pragma once
 
 #include <cstdint>
-#include "render/Mesh.hpp"
+#include "rendering/Mesh.hpp"
 
-namespace Render {
+namespace Rendering {
 namespace OpenGL {
 
     typedef uint32_t GLuint;
 
-    class Mesh : public Render::Mesh {
+    class Mesh : public Rendering::Mesh {
     public:
         Mesh();
         virtual ~Mesh() override;

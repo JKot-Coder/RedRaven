@@ -6,7 +6,7 @@ namespace Windowing {
     class Window;
 }
 
-namespace Render {
+namespace Rendering {
     class Shader;
     class Mesh;
 }
@@ -20,8 +20,8 @@ public:
 private:
     bool quit;
 
-    std::shared_ptr<Render::Mesh> sphereMesh;
-    std::shared_ptr<Render::Shader> shader;
+    std::shared_ptr<Rendering::Mesh> sphereMesh;
+    std::shared_ptr<Rendering::Shader> shader;
 
     std::shared_ptr<Windowing::Window> window;
 

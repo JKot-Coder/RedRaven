@@ -1,6 +1,6 @@
-#include "render/Shader.hpp"
+#include "rendering/Shader.hpp"
 
-namespace Render {
+namespace Rendering {
 
     const char* const Shader::UniformsNames[Shader::UNIFORM_TYPE_MAX] = { "ViewProjection", "Model", "CameraPosition", "Material" };
 

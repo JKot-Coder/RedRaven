@@ -7,19 +7,19 @@
 
 #include "windowing/Window.hpp"
 
-#include "render/Rendering.hpp"
-#include "render/opengl/Shader.hpp"
-#include "render/opengl/Mesh.hpp"
+#include "rendering/Render.hpp"
+#include "rendering/opengl/Shader.hpp"
+#include "rendering/opengl/Mesh.hpp"
 
-#include "render/opengl/Rendering.hpp"
-#include "Rendering.hpp"
+#include "rendering/opengl/Render.hpp"
+#include "Render.hpp"
 
 
-namespace Render {
-    std::unique_ptr<Rendering> Render::Rendering::instance = std::unique_ptr<Rendering>(new OpenGL::Rendering());
+namespace Rendering {
+    std::unique_ptr<Render> Rendering::Render::instance = std::unique_ptr<Render>(new OpenGL::Render());
 }
 
-namespace Render {
+namespace Rendering {
 namespace OpenGL {
 
     const auto gluErrorString = [](GLenum errorCode)->const char *
@@ -49,11 +49,11 @@ namespace OpenGL {
         }
     };
 
-    Rendering::Rendering() : context(nullptr) {
+    Render::Render() : context(nullptr) {
 
     }
 
-    void Rendering::Init(const std::shared_ptr<Windowing::Window> &window) {
+    void Render::Init(const std::shared_ptr<Windowing::Window> &window) {
         this->window = window;
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -81,19 +81,19 @@ namespace OpenGL {
         glDepthMask(GL_TRUE);
     }
 
-    void Rendering::Terminate() {
+    void Render::Terminate() {
         if (context){
             SDL_GL_DeleteContext(context);
         }
     }
 
-    void Rendering::Update() const {
+    void Render::Update() const {
         auto windowSize = window->GetSize();
         glViewport(0, 0, windowSize.x, windowSize.y);
         glScissor(0, 0, windowSize.x, windowSize.y);
     }
 
-    void Rendering::SwapBuffers() const {
+    void Render::SwapBuffers() const {
         //TODO remove
         GLenum error;
         while ((error = glGetError()) != GL_NO_ERROR) {
@@ -103,21 +103,21 @@ namespace OpenGL {
         SDL_GL_SwapWindow(window->GetSDLWindow());
     }
 
-    void Rendering::SetClearColor(const Common::vec4 &color) const {
+    void Render::SetClearColor(const Common::vec4 &color) const {
         glClearColor(color.x, color.y, color.z, color.w);
         glClearDepth(1.0f); //Todo: Remove
     }
 
-    void Rendering::Clear(bool color, bool depth) const {
+    void Render::Clear(bool color, bool depth) const {
         uint32_t mask = (color ? GL_COLOR_BUFFER_BIT : 0) | (depth ? GL_DEPTH_BUFFER_BIT : 0);
         if (mask) glClear(mask);
     }
 
-    std::shared_ptr<Render::Shader> Rendering::CreateShader() const {
+    std::shared_ptr<Rendering::Shader> Render::CreateShader() const {
         return std::shared_ptr<OpenGL::Shader>(new OpenGL::Shader());
     }
 
-    std::shared_ptr<Render::Mesh> Rendering::CreateMesh() const {
+    std::shared_ptr<Rendering::Mesh> Render::CreateMesh() const {
         return std::shared_ptr<OpenGL::Mesh>(new OpenGL::Mesh());
     }
 

@@ -1,10 +1,10 @@
 #include <memory>
 
 #include "resource_manager/ResourceManager.hpp"
-#include "render/Rendering.hpp"
-#include "render/Primitives.hpp"
-#include "render/Shader.hpp"
-#include "render/Mesh.hpp"
+#include "rendering/Render.hpp"
+#include "rendering/Primitives.hpp"
+#include "rendering/Shader.hpp"
+#include "rendering/Mesh.hpp"
 
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
@@ -24,7 +24,7 @@ void Application::Start() {
     init();
     loadResouces();
 
-    const auto& render = Render::Instance();
+    const auto& render = Rendering::Instance();
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
@@ -56,10 +56,10 @@ void Application::Start() {
         vec4 material = vec4(sin(rotation), 0, 0, 0);
 
         shader->Bind();
-        shader->SetParam(Render::Shader::VIEW_PROJECTION_MATRIX, viewProj, 1);
-        shader->SetParam(Render::Shader::MODEL_MATRIX, model, 1);
-        shader->SetParam(Render::Shader::CAMERA_POSITION, eyePos, 1);
-        shader->SetParam(Render::Shader::MATERIAL, material, 1);
+        shader->SetParam(Rendering::Shader::VIEW_PROJECTION_MATRIX, viewProj, 1);
+        shader->SetParam(Rendering::Shader::MODEL_MATRIX, model, 1);
+        shader->SetParam(Rendering::Shader::CAMERA_POSITION, eyePos, 1);
+        shader->SetParam(Rendering::Shader::MATERIAL, material, 1);
 
         sphereMesh->Draw();
 
@@ -83,7 +83,7 @@ void Application::init() {
     Windowing::Windowing::Subscribe(this);
     window = Windowing::Windowing::CreateWindow(settings);
 
-    auto& render = Render::Instance();
+    auto& render = Rendering::Instance();
     render->Init(window);
 
 }
@@ -92,7 +92,7 @@ void Application::terminate() {
     window.reset();
     window = nullptr;
 
-    Render::Instance()->Terminate();
+    Rendering::Instance()->Terminate();
     Windowing::Windowing::UnSubscribe(this);
 }
 
@@ -100,7 +100,7 @@ void Application::loadResouces() {
    auto *resourceManager = ResourceManager::Instance().get();
    shader = resourceManager->LoadShader("resources/test.shader");
 
-   sphereMesh = Render::Primitives::GetSphereMesh(23);
+   sphereMesh = Rendering::Primitives::GetSphereMesh(23);
 }
 
 

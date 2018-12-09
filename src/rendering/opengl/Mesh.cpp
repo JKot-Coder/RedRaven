@@ -1,9 +1,9 @@
-#include <render/Rendering.hpp>
+#include "rendering/Render.hpp"
 #include "dependencies/glad/glad.h"
 
 #include "Mesh.hpp"
 
-namespace Render {
+namespace Rendering {
 namespace OpenGL {
 
     Mesh::Mesh() {
@@ -16,7 +16,7 @@ namespace OpenGL {
         glDeleteVertexArrays(1, &VAO_ID);
     }
 
-    void Mesh::Init(Render::Vertex *vertices, int vCount) {
+    void Mesh::Init(Rendering::Vertex *vertices, int vCount) {
         this->vCount = vCount;
 
         glBindVertexArray(VAO_ID);
