@@ -8,7 +8,7 @@ namespace OpenGL {
 
     typedef uint32_t GLuint;
 
-    class Mesh : public Rendering::Mesh {
+    class Mesh final : public Rendering::Mesh {
     public:
         Mesh();
         virtual ~Mesh() override;
@@ -18,8 +18,8 @@ namespace OpenGL {
         virtual void Bind() const override;
         virtual void Draw() const override;
     private:
-        GLuint VAO_ID;
-        GLuint VBO_ID;
+        GLuint vaoId;
+        GLuint vboId;
 
         int32_t vCount;
     };

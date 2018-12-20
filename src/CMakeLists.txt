@@ -31,9 +31,7 @@ endif ()
 
 if (rendering STREQUAL OPENGL)
     find_package(OpenGL REQUIRED)
-
-    set(OPENGL_SOURCES
-            rendering/render_gl.hpp)
+    set(RENDER_GAPI_LIBRARIES ${OPENGL_LIBRARIES})
 
     set(OPEN_DEMO_SRC_MODULE_RENDER_GAPI
             rendering/opengl/Shader.cpp
@@ -41,7 +39,11 @@ if (rendering STREQUAL OPENGL)
             rendering/opengl/Render.hpp
             rendering/opengl/Render.cpp
             rendering/opengl/Mesh.cpp
-            rendering/opengl/Mesh.hpp)
+            rendering/opengl/Mesh.hpp
+            rendering/opengl/RenderTarget.cpp
+            rendering/opengl/RenderTarget.hpp
+            rendering/opengl/Texture.cpp
+            rendering/opengl/Texture.hpp)
 
     set(OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI
             ${CMAKE_SOURCE_DIR}/src/render/opengl
@@ -53,7 +55,7 @@ find_package(SDL2 REQUIRED)
 
 set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
-        ${OPENGL_LIBRARIES})
+        ${RENDER_GAPI_LIBRARIES})
 
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS} )
@@ -114,7 +116,15 @@ set(OPEN_DEMO_SRC_MODULE_RENDER
         rendering/Shader.cpp
         rendering/RenderTargetContext.hpp
         rendering/RenderPasses.cpp
-        rendering/RenderPasses.hpp)
+        rendering/RenderPasses.hpp
+        rendering/RenderTarget.hpp
+        rendering/Texture.hpp
+        rendering/SceneGraph.hpp
+        rendering/RenderContext.hpp rendering/Material.hpp rendering/Camera.cpp rendering/Camera.hpp rendering/Transform.hpp)
+
+set(OPEN_DEMO_SRC_SCENES
+        scenes/Scene_1.hpp
+        scenes/Scene_1.cpp)
 
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_DEPS_GLAD}
@@ -125,7 +135,8 @@ set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER}
         ${OPEN_DEMO_SRC_MODULE_WINDOWING}
         ${OPEN_DEMO_SRC_MODULE_RENDER}
-        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI} )
+        ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI}
+        ${OPEN_DEMO_SRC_SCENES} )
 
 add_executable (open_demo ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})

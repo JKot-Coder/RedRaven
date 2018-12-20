@@ -392,6 +392,18 @@ namespace Common {
             w = c;
         }
 
+        quat(const vec3 &lookAt, const vec3 &upVector) {
+            vec3 forward = lookAt.normal();
+            vec3 right = upVector.normal().cross(forward);
+            vec3 up = forward.cross(right);
+
+            w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
+            float w4_recip = 1.0f / (4.0f * w);
+            x = (forward.y - up.z) * w4_recip;
+            y = (right.z - forward.x) * w4_recip;
+            z = (up.x - right.y) * w4_recip;
+        }
+
         quat operator-() const {
             return quat(-x, -y, -z, -w);
         }

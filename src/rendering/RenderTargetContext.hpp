@@ -5,15 +5,9 @@
 
 namespace Rendering {
 
-    class RenderTarget {
+    class RenderTarget;
 
-    };
-
-    enum class RenderTargetIndex {
-        INDEX_0,
-        INDEX_1,
-        INDEX_MAX
-    };
+    enum class RenderTargetIndex;
 
     class RenderTargetContext {
     public:

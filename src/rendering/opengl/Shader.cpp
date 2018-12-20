@@ -10,12 +10,12 @@
 namespace Rendering {
 namespace OpenGL {
 
-    Shader::Shader() : ID(glCreateProgram()) {
+    Shader::Shader() : id(glCreateProgram()) {
 
     }
 
     Shader::~Shader() {
-        glDeleteProgram(ID);
+        glDeleteProgram(id);
     }
 
     bool Shader::LinkSource(Common::Stream *stream) {
@@ -45,18 +45,18 @@ namespace OpenGL {
             if (info[0])
                 LOG("! shader: %s\n", info);
 
-            glAttachShader(ID, obj);
+            glAttachShader(id, obj);
             glDeleteShader(obj);
         }
 
         delete[] text;
 
 //        for (int at = 0; at < aMAX; at++)
-//            glBindAttribLocation(ID, at, AttribName[at]);
+//            glBindAttribLocation(id, at, AttribName[at]);
 
-        glLinkProgram(ID);
+        glLinkProgram(id);
 
-        glGetProgramInfoLog(ID, sizeof(info), NULL, info);
+        glGetProgramInfoLog(id, sizeof(info), NULL, info);
         if (info[0]) LOG("! program: %s\n", info);
 
         if (!checkLink())
@@ -65,19 +65,19 @@ namespace OpenGL {
         Bind();
 
         for (int ut = 0; ut < UNIFORM_TYPE_MAX; ut++)
-            uniformID[ut] = glGetUniformLocation(ID, (GLchar*)UniformsNames[ut]);
+            uniformID[ut] = glGetUniformLocation(id, (GLchar*)UniformsNames[ut]);
 
         return true;
     }
 
     bool Shader::checkLink() const {
         GLint success;
-        glGetProgramiv(ID, GL_LINK_STATUS, &success);
+        glGetProgramiv(id, GL_LINK_STATUS, &success);
         return success != 0;
     }
 
     void Shader::Bind() const {
-        glUseProgram(ID);
+        glUseProgram(id);
     }
 
     void Shader::SetParam(Shader::UniformType uType, const Common::vec4 &value, int count) const {

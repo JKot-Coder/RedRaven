@@ -7,8 +7,8 @@ namespace Windowing {
 }
 
 namespace Rendering {
-    class Shader;
     class Mesh;
+    class SceneGraph;
 }
 
 class Application: public Windowing::Listener {
@@ -20,10 +20,8 @@ public:
 private:
     bool quit;
 
-    std::shared_ptr<Rendering::Mesh> sphereMesh;
-    std::shared_ptr<Rendering::Shader> shader;
-
     std::shared_ptr<Windowing::Window> window;
+    std::shared_ptr<Rendering::SceneGraph> scene;
 
     void init();
     void terminate();

@@ -7,21 +7,21 @@ namespace Rendering {
 namespace OpenGL {
 
     Mesh::Mesh() {
-        glGenBuffers(1, &VBO_ID);
-        glGenVertexArrays(1, &VAO_ID);
+        glGenBuffers(1, &vboId);
+        glGenVertexArrays(1, &vaoId);
     }
 
     Mesh::~Mesh() {
-        glDeleteBuffers(1, &VBO_ID);
-        glDeleteVertexArrays(1, &VAO_ID);
+        glDeleteBuffers(1, &vboId);
+        glDeleteVertexArrays(1, &vaoId);
     }
 
     void Mesh::Init(Rendering::Vertex *vertices, int vCount) {
         this->vCount = vCount;
 
-        glBindVertexArray(VAO_ID);
+        glBindVertexArray(vaoId);
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_ID);
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, vCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(Attributes::POSITION);
@@ -39,12 +39,11 @@ namespace OpenGL {
     }
 
     void Mesh::Bind() const {
-        glBindVertexArray(VAO_ID);
+        glBindVertexArray(vaoId);
     }
 
     void Mesh::Draw() const {
         Bind();
-        glDisable(GL_CULL_FACE);
         glDrawArrays(GL_TRIANGLES, 0, vCount);
         glBindVertexArray(0);
     }

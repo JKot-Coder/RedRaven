@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "rendering/Render.hpp"
 
 typedef void *SDL_GLContext;
@@ -7,7 +9,10 @@ typedef void *SDL_GLContext;
 namespace Rendering {
 namespace OpenGL {
 
-    class Render : public Rendering::Render {
+    typedef uint32_t GLuint;
+    typedef uint32_t GLenum;
+
+    class Render final: public Rendering::Render {
     public:
         Render();
 
@@ -17,8 +22,11 @@ namespace OpenGL {
         virtual void Update() const override;
         virtual void SwapBuffers() const override;
 
-        virtual void SetClearColor(const Common::vec4 &color) const override;
-        virtual void Clear(bool color, bool depth) const override;
+        virtual void Clear(const Common::vec4 &color, float depth) const override;
+        virtual void ClearColor(const Common::vec4 &color) const override;
+        virtual void ClearDepthStencil(float depth) const override;
+
+        virtual void DrawElement(const RenderContext& renderContext, const RenderElement& renderElement) const override;
 
         virtual std::shared_ptr<Rendering::Shader> CreateShader() const override;
         virtual std::shared_ptr<Rendering::Mesh> CreateMesh() const override;

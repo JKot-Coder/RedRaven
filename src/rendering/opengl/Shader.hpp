@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #include "common/VecMath.h"
 
 #include "rendering/Shader.hpp"
@@ -13,9 +11,7 @@ namespace Common {
 namespace Rendering {
 namespace OpenGL {
 
-    typedef uint32_t GLuint;
-
-    class Shader : public Rendering::Shader {
+    class Shader final : public Rendering::Shader {
     public:
         Shader();
         virtual ~Shader() override;
@@ -27,7 +23,7 @@ namespace OpenGL {
         virtual void SetParam(UniformType uType, const Common::mat4 &value, int count = 1) const override;
         virtual void SetParam(UniformType uType, const Common::Basis &value, int count = 1) const override;
     private:
-        GLuint ID;
+        GLuint id;
         GLint uniformID[UNIFORM_TYPE_MAX];
         bool checkLink() const;
     };

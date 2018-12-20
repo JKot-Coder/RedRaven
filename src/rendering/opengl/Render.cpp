@@ -7,13 +7,12 @@
 
 #include "windowing/Window.hpp"
 
+#include "rendering/Camera.hpp"
+
 #include "rendering/Render.hpp"
 #include "rendering/opengl/Shader.hpp"
 #include "rendering/opengl/Mesh.hpp"
-
 #include "rendering/opengl/Render.hpp"
-#include "Render.hpp"
-
 
 namespace Rendering {
     std::unique_ptr<Render> Rendering::Render::instance = std::unique_ptr<Render>(new OpenGL::Render());
@@ -79,6 +78,10 @@ namespace OpenGL {
 
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
+
+        glDisable(GL_CULL_FACE);
+
+        Rendering::Render::Init();
     }
 
     void Render::Terminate() {
@@ -103,14 +106,32 @@ namespace OpenGL {
         SDL_GL_SwapWindow(window->GetSDLWindow());
     }
 
-    void Render::SetClearColor(const Common::vec4 &color) const {
+    void Render::Clear(const Common::vec4 &color, float depth) const {
         glClearColor(color.x, color.y, color.z, color.w);
-        glClearDepth(1.0f); //Todo: Remove
+        glClearDepth(depth);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
-    void Render::Clear(bool color, bool depth) const {
-        uint32_t mask = (color ? GL_COLOR_BUFFER_BIT : 0) | (depth ? GL_DEPTH_BUFFER_BIT : 0);
-        if (mask) glClear(mask);
+    void Render::ClearColor(const Common::vec4 &color) const {
+        glClearColor(color.x, color.y, color.z, color.w);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    void Render::ClearDepthStencil(float depth) const {
+        glClearDepth(depth);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    }
+
+    void Render::DrawElement(const RenderContext& renderContext, const RenderElement& renderElement) const {
+        auto camera = renderContext.GetCamera();
+
+        pbrShader->Bind();
+        pbrShader->SetParam(Shader::UniformType::MODEL_MATRIX, renderElement.modelMatrix);
+        pbrShader->SetParam(Shader::UniformType::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
+        pbrShader->SetParam(Shader::UniformType::CAMERA_POSITION, camera->GetTransform().GetPostion());
+        pbrShader->SetParam(Shader::UniformType::MATERIAL, vec4(1,1,1,1));
+
+        renderElement.mesh->Draw();
     }
 
     std::shared_ptr<Rendering::Shader> Render::CreateShader() const {
