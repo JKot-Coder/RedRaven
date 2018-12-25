@@ -1,7 +1,17 @@
 set(definitions)
 
+
 set(rendering AUTO CACHE STRING "Graphics api")
 set_property(CACHE rendering PROPERTY STRINGS OPENGL)
+
+set(OPEN_DEMO_BUILD_DEFINITIONS)
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    set(OPEN_DEMO_BUILD_DEFINITIONS
+            DEBUG)
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+    set(OPEN_DEMO_BUILD_DEFINITIONS
+            RELEASE)
+endif()
 
 if (WIN32)
     set(OPEN_DEMO_SRC_PLATFORM)
@@ -40,10 +50,10 @@ if (rendering STREQUAL OPENGL)
             rendering/opengl/Render.cpp
             rendering/opengl/Mesh.cpp
             rendering/opengl/Mesh.hpp
-            rendering/opengl/RenderTarget.cpp
-            rendering/opengl/RenderTarget.hpp
             rendering/opengl/Texture.cpp
-            rendering/opengl/Texture.hpp)
+            rendering/opengl/Texture.hpp
+            rendering/opengl/RenderTargetContext.cpp
+            rendering/opengl/RenderTargetContext.hpp)
 
     set(OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI
             ${CMAKE_SOURCE_DIR}/src/render/opengl
@@ -58,7 +68,8 @@ set(OPEN_DEMO_LINK_LIBRARIES
         ${RENDER_GAPI_LIBRARIES})
 
 set(OPEN_DEMO_DEFINITIONS
-        ${OPEN_DEMO_PLATFORM_DEFINITIONS} )
+        ${OPEN_DEMO_PLATFORM_DEFINITIONS}
+        ${OPEN_DEMO_BUILD_DEFINITIONS})
 
 set(OPEN_DEMO_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/src
@@ -120,7 +131,11 @@ set(OPEN_DEMO_SRC_MODULE_RENDER
         rendering/RenderTarget.hpp
         rendering/Texture.hpp
         rendering/SceneGraph.hpp
-        rendering/RenderContext.hpp rendering/Material.hpp rendering/Camera.cpp rendering/Camera.hpp rendering/Transform.hpp)
+        rendering/RenderContext.hpp
+        rendering/Material.hpp
+        rendering/Camera.hpp
+        rendering/Transform.hpp
+        rendering/RenderContext.cpp)
 
 set(OPEN_DEMO_SRC_SCENES
         scenes/Scene_1.hpp
@@ -136,9 +151,9 @@ set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_MODULE_WINDOWING}
         ${OPEN_DEMO_SRC_MODULE_RENDER}
         ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI}
-        ${OPEN_DEMO_SRC_SCENES} )
+        ${OPEN_DEMO_SRC_SCENES})
 
-add_executable (open_demo ${OPEN_DEMO_SRC})
+add_executable(open_demo ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})
 target_compile_definitions(open_demo PRIVATE ${OPEN_DEMO_DEFINITIONS})
 target_include_directories(open_demo PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})

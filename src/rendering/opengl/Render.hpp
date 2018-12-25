@@ -16,21 +16,26 @@ namespace OpenGL {
     public:
         Render();
 
-        virtual void Init(const std::shared_ptr<Windowing::Window>& window) override;
+        virtual void Init(const std::shared_ptr<Windowing::Window> &window) override;
         virtual void Terminate() override;
 
-        virtual void Update() const override;
         virtual void SwapBuffers() const override;
 
         virtual void Clear(const Common::vec4 &color, float depth) const override;
         virtual void ClearColor(const Common::vec4 &color) const override;
         virtual void ClearDepthStencil(float depth) const override;
 
-        virtual void DrawElement(const RenderContext& renderContext, const RenderElement& renderElement) const override;
+        virtual void Begin(const std::shared_ptr<RenderContext> &renderContext) override;
+        virtual void DrawElement(const RenderElement& renderElement) const override;
+        virtual void End() const override;
 
+        virtual std::shared_ptr<Rendering::Texture2D> CreateTexture2D() const override;
         virtual std::shared_ptr<Rendering::Shader> CreateShader() const override;
         virtual std::shared_ptr<Rendering::Mesh> CreateMesh() const override;
+        virtual std::shared_ptr<Rendering::RenderTargetContext> CreateRenderTargetContext() const override;
+
     private:
+        std::shared_ptr<RenderContext> renderContext;
         SDL_GLContext context;
     };
 

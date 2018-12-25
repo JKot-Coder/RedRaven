@@ -67,6 +67,12 @@ namespace OpenGL {
         for (int ut = 0; ut < UNIFORM_TYPE_MAX; ut++)
             uniformID[ut] = glGetUniformLocation(id, (GLchar*)UniformsNames[ut]);
 
+        for (int st = 0; st < SAMPLER_TYPE_MAX; st++) {
+            GLint idx = glGetUniformLocation(id, (GLchar*)SamplerNames[st]);
+            if (idx != -1)
+                glUniform1iv(idx, 1, &st);
+        }
+
         return true;
     }
 

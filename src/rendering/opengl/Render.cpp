@@ -8,11 +8,14 @@
 #include "windowing/Window.hpp"
 
 #include "rendering/Camera.hpp"
-
 #include "rendering/Render.hpp"
+#include "rendering/RenderContext.hpp"
+
+#include "rendering/opengl/Texture.hpp"
 #include "rendering/opengl/Shader.hpp"
 #include "rendering/opengl/Mesh.hpp"
 #include "rendering/opengl/Render.hpp"
+#include "rendering/opengl/RenderTargetContext.hpp"
 
 namespace Rendering {
     std::unique_ptr<Render> Rendering::Render::instance = std::unique_ptr<Render>(new OpenGL::Render());
@@ -43,10 +46,18 @@ namespace OpenGL {
 //                return "table too large";
             case GL_OUT_OF_MEMORY:
                 return "out of memory";
-//            case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
-//                return "invalid framebuffer operation";
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+                return "invalid framebuffer operation";
         }
     };
+
+    GLuint GetOpenGLDepthTestFunction(DepthTestFunction depthTestFunction) {
+        static const GLuint depthTestFunctions[DEPTH_TEST_FUNC_MAX] = {
+            GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
+        };
+
+        return depthTestFunctions[depthTestFunction];
+    }
 
     Render::Render() : context(nullptr) {
 
@@ -76,9 +87,6 @@ namespace OpenGL {
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
 
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-
         glDisable(GL_CULL_FACE);
 
         Rendering::Render::Init();
@@ -90,17 +98,11 @@ namespace OpenGL {
         }
     }
 
-    void Render::Update() const {
-        auto windowSize = window->GetSize();
-        glViewport(0, 0, windowSize.x, windowSize.y);
-        glScissor(0, 0, windowSize.x, windowSize.y);
-    }
-
     void Render::SwapBuffers() const {
         //TODO remove
         GLenum error;
         while ((error = glGetError()) != GL_NO_ERROR) {
-            fprintf(stderr, "GL_ERROR: %s\n", gluErrorString(error));
+            fprintf(stderr, "GL_ERROR: %d : %s\n", error, gluErrorString(error));
         }
 
         SDL_GL_SwapWindow(window->GetSDLWindow());
@@ -109,6 +111,7 @@ namespace OpenGL {
     void Render::Clear(const Common::vec4 &color, float depth) const {
         glClearColor(color.x, color.y, color.z, color.w);
         glClearDepth(depth);
+        //glClearBuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
@@ -122,16 +125,62 @@ namespace OpenGL {
         glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
-    void Render::DrawElement(const RenderContext& renderContext, const RenderElement& renderElement) const {
-        auto camera = renderContext.GetCamera();
+    void Render::Begin(const std::shared_ptr<RenderContext> &renderContext) {
+        this->renderContext = renderContext;
 
-        pbrShader->Bind();
-        pbrShader->SetParam(Shader::UniformType::MODEL_MATRIX, renderElement.modelMatrix);
-        pbrShader->SetParam(Shader::UniformType::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
-        pbrShader->SetParam(Shader::UniformType::CAMERA_POSITION, camera->GetTransform().GetPostion());
-        pbrShader->SetParam(Shader::UniformType::MATERIAL, vec4(1,1,1,1));
+        const auto& camera = renderContext->GetCamera();
+        const auto& shader = renderContext->GetShader();
+        const auto& renderTarget = renderContext->GetRenderTarget();
+
+        float rtWidth, rtHeight;
+        if (renderTarget == nullptr) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            auto windowSize = window->GetSize();
+            rtWidth = windowSize.x;
+            rtHeight = windowSize.y;
+        } else {
+            renderTarget->Bind();
+            rtWidth = renderTarget->GetWidth();
+            rtHeight = renderTarget->GetHeight();
+        }
+
+        glViewport(0, 0, rtWidth, rtHeight);
+        glScissor(0, 0, rtWidth, rtHeight);
+
+        glDepthMask(renderContext->GetDepthWrite());
+
+        const auto depthTestFunction = renderContext->GetDepthTestFunction();
+        if (depthTestFunction == ALWAYS){
+            glDisable(GL_DEPTH_TEST);
+        }
+
+        glDepthFunc(GetOpenGLDepthTestFunction(depthTestFunction));
+
+        shader->Bind();
+
+        if (camera != nullptr) {
+            camera->SetAspect(rtWidth, rtHeight);
+            shader->SetParam(Shader::UniformType::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
+            shader->SetParam(Shader::UniformType::CAMERA_POSITION, camera->GetTransform().GetPostion());
+        }
+    }
+
+    void Render::DrawElement(const RenderElement &renderElement) const {
+        const auto& shader = renderContext->GetShader();
+
+        shader->SetParam(Shader::UniformType::MODEL_MATRIX, renderElement.modelMatrix);
+        shader->SetParam(Shader::UniformType::MATERIAL, vec4(1,1,1,1));
 
         renderElement.mesh->Draw();
+    }
+
+    void Render::End() const {
+
+    }
+
+    std::shared_ptr<Rendering::Texture2D> Render::CreateTexture2D() const {
+        return std::shared_ptr<OpenGL::Texture2D>(new OpenGL::Texture2D());
     }
 
     std::shared_ptr<Rendering::Shader> Render::CreateShader() const {
@@ -140,6 +189,10 @@ namespace OpenGL {
 
     std::shared_ptr<Rendering::Mesh> Render::CreateMesh() const {
         return std::shared_ptr<OpenGL::Mesh>(new OpenGL::Mesh());
+    }
+
+    std::shared_ptr<Rendering::RenderTargetContext> Render::CreateRenderTargetContext() const {
+        return std::shared_ptr<OpenGL::RenderTargetContext>(new OpenGL::RenderTargetContext);
     }
 
 }

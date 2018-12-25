@@ -101,4 +101,35 @@ namespace Rendering {
         return mesh;
     }
 
+    std::shared_ptr<Mesh> Primitives::GetFullScreenQuad() {
+        static std::shared_ptr<Mesh> fullScreenQuad;
+
+        if (fullScreenQuad == nullptr) {
+            const auto &render = Rendering::Instance();
+            fullScreenQuad = render->CreateMesh();
+
+            Vertex vertices[6];
+
+            vertices[0].position = vec3( 1.0f, -1.0f, 0.0f);
+            vertices[1].position = vec3(-1.0f,  1.0f, 0.0f);
+            vertices[2].position = vec3(-1.0f, -1.0f, 0.0f);
+
+            vertices[3].position = vec3( 1.0f, -1.0f, 0.0f);
+            vertices[4].position = vec3( 1.0f,  1.0f, 0.0f);
+            vertices[5].position = vec3(-1.0f,  1.0f, 0.0f);
+
+            vertices[0].texCoord = vec2( 1.0f, 0.0f);
+            vertices[1].texCoord = vec2( 0.0f, 1.0f);
+            vertices[2].texCoord = vec2( 0.0f, 0.0f);
+
+            vertices[3].texCoord = vec2( 1.0f, 0.0f);
+            vertices[4].texCoord = vec2( 1.0f, 1.0f);
+            vertices[5].texCoord = vec2( 0.0f, 1.0f);
+
+            fullScreenQuad->Init(vertices, 6);
+        }
+
+        return fullScreenQuad;
+    }
+
 }

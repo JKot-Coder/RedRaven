@@ -3,27 +3,57 @@
 #include <cstdint>
 #include <memory>
 
+#include "common/Utils.hpp"
+
+#include "rendering/RenderTarget.hpp"
+
 namespace Rendering {
 
-    class RenderTarget;
-
-    enum class RenderTargetIndex;
+    enum RenderTargetIndex {
+        INDEX_0,
+        INDEX_1,
+        INDEX_2,
+        INDEX_MAX
+    };
 
     class RenderTargetContext {
     public:
 
-        inline void SetDepthStencilTarget(const std::shared_ptr<RenderTarget>& renderTarget) {
-            deptStencil = renderTarget;
+        virtual inline void SetDepthStencilTarget(const RenderTarget::RenderTargetDescription& renderTargetDescription) {
+            ASSERT(renderTargetDescription.isDepthTarget);
+
+            if (width == -1 && height == -1) {
+                width = renderTargetDescription.texture->GetWidth();
+                height = renderTargetDescription.texture->GetHeight();
+            }
+
+            ASSERT(renderTargetDescription.texture->GetHeight() == height);
+            ASSERT(renderTargetDescription.texture->GetWidth() == width);
+
+            depthStencil = renderTargetDescription;
         }
 
-        void SetColorTarget(RenderTargetIndex index, const std::shared_ptr<RenderTarget>& renderTarget){
-            colorTargets[index] = renderTarget;
+        virtual inline void SetColorTarget(RenderTargetIndex index, const RenderTarget::RenderTargetDescription& renderTargetDescription) {
+            if (width == -1 && height == -1) {
+                width = renderTargetDescription.texture->GetWidth();
+                height = renderTargetDescription.texture->GetHeight();
+            }
+
+            ASSERT(renderTargetDescription.texture->GetHeight() == height);
+            ASSERT(renderTargetDescription.texture->GetWidth() == width);
+
+            colorTargets[index] = renderTargetDescription;
         }
+
+        inline float GetWidth() const { return this->width; }
+        inline float GetHeight() const { return this->height; }
 
         virtual void Bind() = 0;
+
     private:
-        std::shared_ptr<RenderTarget> deptStencil;
-        std::shared_ptr<RenderTarget> colorTargets[RenderTargetIndex::INDEX_MAX];
+        int width = -1, height = -1;
+        RenderTarget::RenderTargetDescription depthStencil;
+        RenderTarget::RenderTargetDescription colorTargets[RenderTargetIndex::INDEX_MAX];
     };
 
 }

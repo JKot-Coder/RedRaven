@@ -5,27 +5,31 @@
 
 namespace Rendering {
 
-    enum class RenderTargetIndex {
-        INDEX_0,
-        INDEX_1,
-        INDEX_MAX
-    };
-
-    class CommonRenderTarget {
-    };
-
-    class RenderTargetTexture : virtual CommonTexture, virtual CommonRenderTarget {
+    class RenderTarget {
     public:
 
         struct RenderTargetDescription {
-            int width;
-            int height;
-            PixelFormat pixelFormat;
+            bool isDepthTarget;
+            std::shared_ptr<CommonTexture> texture;
         };
 
-        virtual ~RenderTargetTexture() {};
+//        virtual ~RenderTarget() {};
 
-        virtual void Init(const RenderTargetDescription& description) = 0;
+//        inline void Init(const RenderTargetDescription& description) {
+//            //TODO validation depth format.
+//
+//            texture = description.texture;
+//            isDepthTarget = description.isDepthTarget;
+//        }
+//
+//        inline bool IsDepthTarget() const { return isDepthTarget; }
+//        inline std::shared_ptr<CommonTexture> GetTexture() const { return texture; }
+//        inline float GetWidth() const { return texture->GetWidth(); }
+//        inline float GetHeight() const { return texture->GetHeight(); }
+//
+//    private:
+//        bool isDepthTarget;
+//        std::shared_ptr<CommonTexture> texture;
     };
 
 }

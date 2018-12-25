@@ -22,7 +22,13 @@ namespace Rendering
             UNIFORM_TYPE_MAX
         };
 
+        enum SamplerType {
+            ALBEDO,
+            SAMPLER_TYPE_MAX
+        };
+
         static const char* const UniformsNames[UniformType::UNIFORM_TYPE_MAX];
+        static const char* const SamplerNames[SamplerType::SAMPLER_TYPE_MAX];
 
         virtual ~Shader() {};
 

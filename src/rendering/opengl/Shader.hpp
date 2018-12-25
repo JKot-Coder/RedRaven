@@ -4,6 +4,8 @@
 
 #include "rendering/Shader.hpp"
 
+#include "rendering/opengl/Render.hpp"
+
 namespace Common {
     class Stream;
 }

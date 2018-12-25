@@ -5,7 +5,7 @@
 namespace Rendering {
 namespace OpenGL {
 
-    Texture2D::Texture2D() {
+    Texture2D::Texture2D() : width(0), height(0) {
         glGenTextures(1, &id);
     }
 
@@ -27,10 +27,17 @@ namespace OpenGL {
         return formats[pixelFormat];
     }
 
-    void Texture2D::Init(const Texture2D::Description &description, void* data) {
+    void Texture2D::Init(const Texture2D::Description &description, void *data) {
+        width = description.width;
+        height = description.height;
+
         auto pixelFormatDescription = GetOpenGlPixelFormatDescription(description.pixelFormat);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, description.width, description.height, 0, pixelFormatDescription.format, pixelFormatDescription.type, data);
+        Bind(0);
+        glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, width, height, 0, pixelFormatDescription.format, pixelFormatDescription.type, data);
+
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     }
 
     void Texture2D::Bind(int sampler) {

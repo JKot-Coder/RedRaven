@@ -2,7 +2,6 @@
 
 #include "resource_manager/ResourceManager.hpp"
 #include "rendering/Render.hpp"
-#include "rendering/opengl/RenderTarget.hpp"
 #include "rendering/Primitives.hpp"
 #include "rendering/Shader.hpp"
 #include "rendering/Mesh.hpp"
@@ -26,7 +25,6 @@ void Application::Start() {
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
-        render->Update();
         render->Collect(scene);
         render->Draw();
 
