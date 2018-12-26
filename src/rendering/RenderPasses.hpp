@@ -29,7 +29,7 @@ namespace Rendering {
 
     class RenderPassOpaque final: public RenderPass {
     public:
-        RenderPassOpaque(Rendering::Render* render, const std::shared_ptr<RenderTargetContext> &hdrRenderTargetContext);
+        RenderPassOpaque(Rendering::Render& render, const std::shared_ptr<RenderTargetContext> &hdrRenderTargetContext);
 
         virtual void Collect(const std::shared_ptr<SceneGraph> &sceneGraph) override;
         virtual void Draw() override;
@@ -44,7 +44,7 @@ namespace Rendering {
 
     class RenderPassPostProcess final: public RenderPass {
     public:
-        RenderPassPostProcess(Rendering::Render *render, const std::shared_ptr<Texture2D> &hdrTexture);
+        RenderPassPostProcess(Rendering::Render& render, const std::shared_ptr<Texture2D> &hdrTexture);
 
         virtual void Collect(const std::shared_ptr<SceneGraph> &sceneGraph) override;
         virtual void Draw() override;

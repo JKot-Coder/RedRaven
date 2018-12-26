@@ -35,6 +35,7 @@ namespace OpenGL {
         virtual std::shared_ptr<Rendering::RenderTargetContext> CreateRenderTargetContext() const override;
 
     private:
+        std::shared_ptr<Windowing::Window> window;
         std::shared_ptr<RenderContext> renderContext;
         SDL_GLContext context;
     };

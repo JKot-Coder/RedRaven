@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include "rendering/RenderPasses.hpp"
-
 namespace Common {
     struct vec4;
 }
@@ -69,9 +67,6 @@ namespace Rendering {
         virtual void ClearColor(const Common::vec4 &color) const = 0;
         virtual void ClearDepthStencil(float depth) const = 0;
 
-        void Collect(const std::shared_ptr<SceneGraph>& sceneGraph);
-        void Draw();
-
         virtual void Begin(const std::shared_ptr<RenderContext> &renderContext) = 0;
         virtual void DrawElement(const RenderElement& renderElement) const = 0;
         virtual void End() const = 0;
@@ -82,31 +77,6 @@ namespace Rendering {
         virtual std::shared_ptr<RenderTargetContext> CreateRenderTargetContext() const = 0;
 
     protected:
-        void Init();
-
-        std::shared_ptr<Windowing::Window> window;
-
-
-    private:
-        template<typename PassType, typename... Args>
-        void initPass(Args&&... args)
-        {
-            auto& passPtr = std::get<std::unique_ptr<PassType>>(renderPasses);
-            passPtr = std::make_unique<PassType>(std::forward<Args>(args)...);
-        }
-
-        template<typename PassType>
-        inline PassType* getPass() const
-        {
-            return std::get<std::unique_ptr<PassType>>(renderPasses).get();
-        }
-
-    private:
-        std::tuple<
-            std::unique_ptr<RenderPassOpaque>,
-            std::unique_ptr<RenderPassPostProcess>
-        > renderPasses;
-
         static std::unique_ptr<Render> instance;
     };
 

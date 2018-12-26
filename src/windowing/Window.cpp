@@ -22,11 +22,9 @@ namespace Windowing{
 
     bool Window::Init(const WindowSettings &settings){
         std::string windowerror;
-        Uint32 windowflags = 0;
+        Uint32 windowflags = SDL_WINDOW_RESIZABLE;
 
-        if (window)
-            throw Common::Exception("Window already initialized");
-
+        ASSERT(!window)
 
         const auto& windowRect = settings.WindowRect;
 
@@ -38,19 +36,26 @@ namespace Windowing{
             return false;
         }
 
+        SDL_SetWindowData(window, "WindowObject", this);
+
         return true;
     }
 
-    Common::vec2 Window::GetSize() const {
-        if(!window)
-            return Common::vec2(0, 0);
+    int Window::GetWidth() const {
+        ASSERT(window)
 
         int32_t w, h;
         SDL_GetWindowSize(window, &w, &h);
-        return Common::vec2(w, h);
+        return w;
     }
 
-    bool Window::IsWindow() const{
+    int Window::GetHeight() const {
+        int32_t w, h;
+        SDL_GetWindowSize(window, &w, &h);
+        return h;
+    }
+
+    bool Window::IsWindow() const {
         return window;
     }
 

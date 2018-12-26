@@ -17,7 +17,8 @@ namespace Windowing{
         bool Init(const WindowSettings &settings);
         bool IsWindow() const;
 
-        Common::vec2 GetSize() const;
+        int GetWidth() const;
+        int GetHeight() const;
 
         SDL_Window* GetSDLWindow() const { return window; };
     private:

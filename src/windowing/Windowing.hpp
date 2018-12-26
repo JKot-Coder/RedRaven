@@ -7,10 +7,16 @@ namespace Windowing {
 
     struct WindowSettings;
     class Window;
-    class Listener;
 
     class Windowing {
     public:
+
+        class Listener {
+        public:
+            virtual void WindowResize(const Window &window) { (void) window; };
+            virtual void Quit() {};
+        };
+
         Windowing();
         ~Windowing();
 

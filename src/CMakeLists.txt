@@ -110,7 +110,6 @@ set(OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER
         resource_manager/ResourceManager.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
-        windowing/Listener.hpp
         windowing/Window.hpp
         windowing/Windowing.hpp
         windowing/WindowSettings.hpp
@@ -118,7 +117,6 @@ set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.cpp)
 
 set(OPEN_DEMO_SRC_MODULE_RENDER
-        rendering/Render.cpp
         rendering/Render.hpp
         rendering/Shader.hpp
         rendering/Mesh.hpp
@@ -135,7 +133,9 @@ set(OPEN_DEMO_SRC_MODULE_RENDER
         rendering/Material.hpp
         rendering/Camera.hpp
         rendering/Transform.hpp
-        rendering/RenderContext.cpp)
+        rendering/RenderContext.cpp
+        rendering/RenderPipeline.cpp
+        rendering/RenderPipeline.hpp)
 
 set(OPEN_DEMO_SRC_SCENES
         scenes/Scene_1.hpp

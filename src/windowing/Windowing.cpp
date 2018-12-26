@@ -5,12 +5,11 @@
 
 #include "windowing/Window.hpp"
 #include "windowing/Windowing.hpp"
-#include "windowing/Listener.hpp"
 
 namespace Windowing {
 
     std::unique_ptr<Windowing> Windowing::Windowing::windowingInstance = std::unique_ptr<Windowing>(new Windowing());
-    std::vector<Listener*> Windowing::Windowing::listeners = std::vector<Listener*>();
+    std::vector<Windowing::Listener*> Windowing::Windowing::listeners = std::vector<Windowing::Listener*>();
 
     Windowing::Windowing(){
         if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
@@ -27,8 +26,21 @@ namespace Windowing {
 
         while (SDL_PollEvent(&e)){
             for(auto& listener: listeners) {
-                if (e.type == SDL_QUIT) {
-                    listener->Quit();
+                switch (e.type) {
+                    case SDL_QUIT:
+                        listener->Quit();
+                        break;
+                    case SDL_WINDOWEVENT:
+                        SDL_Window* sdlWindow = SDL_GetWindowFromID(e.window.windowID);
+                        Window* window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
+
+                        switch (e.window.event){
+                            case SDL_WINDOWEVENT_RESIZED:
+                                listener->WindowResize(*window);
+                                break;
+                        }
+
+                        break;
                 }
             }
         }

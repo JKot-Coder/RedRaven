@@ -2,6 +2,7 @@
 
 #include "resource_manager/ResourceManager.hpp"
 #include "rendering/Render.hpp"
+#include "rendering/RenderPipeline.hpp"
 #include "rendering/Primitives.hpp"
 #include "rendering/Shader.hpp"
 #include "rendering/Mesh.hpp"
@@ -22,14 +23,18 @@ void Application::Start() {
     loadResouces();
 
     const auto& render = Rendering::Instance();
+    auto* renderPipeline = new Rendering::RenderPipeline(window);
+    renderPipeline->Init();
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
-        render->Collect(scene);
-        render->Draw();
+        renderPipeline->Collect(scene);
+        renderPipeline->Draw();
 
         render->SwapBuffers();
     }
+
+    delete renderPipeline;
 
     terminate();
 }

@@ -23,9 +23,12 @@ namespace OpenGL {
         inline virtual int GetWidth() const override { return width; }
         inline virtual int GetHeight() const override { return height; }
 
+        virtual void Resize(int width, int height) override;
+
         inline GLuint GetNativeId() const { return id; }
     private:
         GLuint id;
+        OpenGlPixelFormatDescription pixelFormatDescription;
         int width, height;
 
         OpenGlPixelFormatDescription GetOpenGlPixelFormatDescription(PixelFormat pixelFormat) const;

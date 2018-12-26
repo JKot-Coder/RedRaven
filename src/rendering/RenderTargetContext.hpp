@@ -48,6 +48,22 @@ namespace Rendering {
         inline float GetWidth() const { return this->width; }
         inline float GetHeight() const { return this->height; }
 
+        virtual inline void Resize(int width, int height){
+            this->width = width;
+            this->height = height;
+
+            if (depthStencil.texture != nullptr){
+                depthStencil.texture->Resize(width, height);
+            }
+
+            for (auto targetDesription : colorTargets){
+               if (targetDesription.texture) {
+                   targetDesription.texture->Resize(width, height);
+               }
+            }
+
+        }
+
         virtual void Bind() = 0;
 
     private:

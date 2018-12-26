@@ -11,6 +11,8 @@ namespace Rendering {
         virtual int GetWidth() const = 0;
         virtual int GetHeight() const = 0;
 
+        virtual void Resize(int width, int height) = 0;
+
         virtual void Bind(int sampler) = 0;
     };
 

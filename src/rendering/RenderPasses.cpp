@@ -17,8 +17,8 @@ using namespace Common;
 
 namespace Rendering {
 
-    RenderPassOpaque::RenderPassOpaque(Rendering::Render* render, const std::shared_ptr<RenderTargetContext> &hdrRenderTargetContext):
-        render(render),
+    RenderPassOpaque::RenderPassOpaque(Rendering::Render& render, const std::shared_ptr<RenderTargetContext> &hdrRenderTargetContext):
+        render(&render),
         hdrRenderTargetContext(hdrRenderTargetContext),
         renderContext(new RenderContext())
     {
@@ -62,8 +62,8 @@ namespace Rendering {
         render->End();
     }
 
-    RenderPassPostProcess::RenderPassPostProcess(Rendering::Render *render, const std::shared_ptr<Texture2D> &hdrTexture) :
-            render(render),
+    RenderPassPostProcess::RenderPassPostProcess(Rendering::Render& render, const std::shared_ptr<Texture2D> &hdrTexture) :
+            render(&render),
             hdrTexture(hdrTexture),
             renderContext(new RenderContext())
     {

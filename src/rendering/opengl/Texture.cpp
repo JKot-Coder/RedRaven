@@ -30,8 +30,7 @@ namespace OpenGL {
     void Texture2D::Init(const Texture2D::Description &description, void *data) {
         width = description.width;
         height = description.height;
-
-        auto pixelFormatDescription = GetOpenGlPixelFormatDescription(description.pixelFormat);
+        pixelFormatDescription = GetOpenGlPixelFormatDescription(description.pixelFormat);
 
         Bind(0);
         glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, width, height, 0, pixelFormatDescription.format, pixelFormatDescription.type, data);
@@ -43,6 +42,11 @@ namespace OpenGL {
     void Texture2D::Bind(int sampler) {
         glActiveTexture(GL_TEXTURE0 + sampler);
         glBindTexture(GL_TEXTURE_2D, id);
+    }
+
+    void Texture2D::Resize(int width, int height) {
+        Bind(0);
+        glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, width, height, 0, pixelFormatDescription.format, pixelFormatDescription.type, nullptr);
     };
 
 }

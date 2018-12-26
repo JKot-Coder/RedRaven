@@ -86,10 +86,7 @@ namespace OpenGL {
 
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
-
         glDisable(GL_CULL_FACE);
-
-        Rendering::Render::Init();
     }
 
     void Render::Terminate() {
@@ -136,9 +133,8 @@ namespace OpenGL {
         if (renderTarget == nullptr) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-            auto windowSize = window->GetSize();
-            rtWidth = windowSize.x;
-            rtHeight = windowSize.y;
+            rtWidth = window->GetWidth();
+            rtHeight = window->GetHeight();
         } else {
             renderTarget->Bind();
             rtWidth = renderTarget->GetWidth();

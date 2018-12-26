@@ -1,6 +1,6 @@
 #pragma once
 
-#include "windowing/Listener.hpp"
+#include "windowing/Windowing.hpp"
 
 namespace Windowing {
     class Window;
@@ -11,7 +11,7 @@ namespace Rendering {
     class SceneGraph;
 }
 
-class Application: public Windowing::Listener {
+class Application: public Windowing::Windowing::Listener {
 public:
     Application() : quit(false) {}
 
