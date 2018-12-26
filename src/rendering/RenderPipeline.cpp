@@ -30,11 +30,20 @@ namespace Rendering{
         auto const &hdrTexture = render->CreateTexture2D();
         hdrTexture->Init(textureDescription, nullptr);
 
-        RenderTarget::RenderTargetDescription rtd;
-        rtd.texture = hdrTexture;
+        textureDescription.pixelFormat = PixelFormat::D16;
+        auto const &depthTexture = render->CreateTexture2D();
+        depthTexture->Init(textureDescription, nullptr);
+
+        RenderTarget::RenderTargetDescription colorTarget;
+        colorTarget.texture = hdrTexture;
+
+        RenderTarget::RenderTargetDescription depthTarget;
+        depthTarget.texture = depthTexture;
+        depthTarget.isDepthTarget = true;
 
         hdrRenderTargetContext = render->CreateRenderTargetContext();
-        hdrRenderTargetContext->SetColorTarget(RenderTargetIndex::INDEX_0, rtd);
+        hdrRenderTargetContext->SetColorTarget(RenderTargetIndex::INDEX_0, colorTarget);
+        hdrRenderTargetContext->SetDepthStencilTarget(depthTarget);
 
         initPass<RenderPassOpaque>(*render, hdrRenderTargetContext);
         initPass<RenderPassPostProcess>(*render, hdrTexture);

@@ -29,13 +29,22 @@ namespace OpenGL {
         }
     }
 
+    //TODO remove duplicated code
     void RenderTargetContext::SetDepthStencilTarget(const RenderTarget::RenderTargetDescription &renderTargetDescription) {
         Rendering::RenderTargetContext::SetDepthStencilTarget(renderTargetDescription);
+
+        Bind();
+
+        auto const &texture = renderTargetDescription.texture;
+        if (texture) {
+            auto const &openGlTexture = std::dynamic_pointer_cast<Rendering::OpenGL::Texture2D, Rendering::CommonTexture>(texture);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, openGlTexture->GetNativeId(), 0);
+        }
     }
 
     void RenderTargetContext::Bind() {
         glBindFramebuffer(GL_FRAMEBUFFER, id);
-        GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+        GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0}; //TODO FIX IT IMMEDIATELY
         glDrawBuffers(1, DrawBuffers);
     }
 }

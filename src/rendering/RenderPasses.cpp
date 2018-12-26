@@ -40,7 +40,7 @@ namespace Rendering {
         renderContext->SetRenderTarget(hdrRenderTargetContext);
 
         renderContext->SetDepthWrite(true);
-        renderContext->SetDepthTestFunction(ALWAYS);
+        renderContext->SetDepthTestFunction(LEQUAL);
     }
 
     void RenderPassOpaque::Collect(const std::shared_ptr<SceneGraph>& sceneGraph) {

@@ -149,6 +149,8 @@ namespace OpenGL {
         const auto depthTestFunction = renderContext->GetDepthTestFunction();
         if (depthTestFunction == ALWAYS){
             glDisable(GL_DEPTH_TEST);
+        } else{
+            glEnable(GL_DEPTH_TEST);
         }
 
         glDepthFunc(GetOpenGLDepthTestFunction(depthTestFunction));
