@@ -78,8 +78,8 @@ namespace Rendering {
                 triangles->emplace_back(vertices[b1]);
 
                 triangles->emplace_back(vertices[a]);
-                triangles->emplace_back(vertices[b]);
                 triangles->emplace_back(vertices[b1]);
+                triangles->emplace_back(vertices[b]);
             }
         }
 

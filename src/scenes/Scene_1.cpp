@@ -16,14 +16,22 @@ namespace Scenes {
     void Scene_1::Init() {
         sphereMesh = Rendering::Primitives::GetSphereMesh(23);
 
-        mat4 modelMat;
-        modelMat.identity();
+        for (int i = 0; i < 8; i++) {
+            mat4 modelMat;
+            modelMat.identity();
+            modelMat.translate(vec3(-8 + i * 2.2, 0 ,0));
 
-        Rendering::RenderElement element;
-        element.mesh = sphereMesh;
-        element.modelMatrix = modelMat;
+            Rendering::Material material;
+            material.albedo = vec3(1.0, 1.0, 1.0);
+            material.roughness = 0.1 + i/7.0 * 0.9;
 
-        renderElements.push_back(element);
+            Rendering::RenderElement element;
+            element.mesh = sphereMesh;
+            element.modelMatrix = modelMat;
+            element.material = material;
+
+            renderElements.push_back(element);
+        }
     }
 
     void Scene_1::Terminate() {

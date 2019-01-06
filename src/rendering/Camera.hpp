@@ -111,7 +111,7 @@ namespace Rendering {
                 const float width  = orthoSize * aspect;
                 const float height = orthoSize;
 
-                projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5, width * 0.5, -height * 0.5, height * 0.5 );
+                projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5, width * 0.5, -height * 0.5, height * 0.5, zNear, zFar);
             } else {
                 projectionMatrix = mat4(mat4::PROJ_ZERO_POS, fov, aspect, zNear, zFar);
             }

@@ -25,7 +25,7 @@ namespace Rendering{
         Texture2D::Description textureDescription;
         textureDescription.height = window->GetHeight();
         textureDescription.width  = window->GetWidth();
-        textureDescription.pixelFormat = PixelFormat::RGBA8;
+        textureDescription.pixelFormat = PixelFormat::RGBA32F;
 
         auto const &hdrTexture = render->CreateTexture2D();
         hdrTexture->Init(textureDescription, nullptr);
@@ -44,6 +44,9 @@ namespace Rendering{
         hdrRenderTargetContext = render->CreateRenderTargetContext();
         hdrRenderTargetContext->SetColorTarget(RenderTargetIndex::INDEX_0, colorTarget);
         hdrRenderTargetContext->SetDepthStencilTarget(depthTarget);
+
+        hdrRenderTargetContext->Bind();
+        render->ClearColor(vec4(0,0,0,0));
 
         initPass<RenderPassOpaque>(*render, hdrRenderTargetContext);
         initPass<RenderPassPostProcess>(*render, hdrTexture);

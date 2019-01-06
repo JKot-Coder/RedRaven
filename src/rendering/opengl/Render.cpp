@@ -16,6 +16,8 @@
 #include "rendering/opengl/Mesh.hpp"
 #include "rendering/opengl/Render.hpp"
 #include "rendering/opengl/RenderTargetContext.hpp"
+#include "Render.hpp"
+
 
 namespace Rendering {
     std::unique_ptr<Render> Rendering::Render::instance = std::unique_ptr<Render>(new OpenGL::Render());
@@ -86,7 +88,7 @@ namespace OpenGL {
 
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
-        glDisable(GL_CULL_FACE);
+       // glDisable(GL_CULL_FACE);
     }
 
     void Render::Terminate() {
@@ -155,7 +157,10 @@ namespace OpenGL {
 
         glDepthFunc(GetOpenGLDepthTestFunction(depthTestFunction));
 
+        ApplyBlending(renderContext->GetBlending(), renderContext->GetBlendingDescription());
+
         shader->Bind();
+        shader->SetParam(Shader::UniformType::LIGHT_DIR, renderContext->GetLightDirection());
 
         if (camera != nullptr) {
             camera->SetAspect(rtWidth, rtHeight);
@@ -168,7 +173,7 @@ namespace OpenGL {
         const auto& shader = renderContext->GetShader();
 
         shader->SetParam(Shader::UniformType::MODEL_MATRIX, renderElement.modelMatrix);
-        shader->SetParam(Shader::UniformType::MATERIAL, vec4(1,1,1,1));
+        shader->SetParam(Shader::UniformType::MATERIAL, vec4(renderElement.material.roughness,1,1,1));
 
         renderElement.mesh->Draw();
     }
@@ -191,6 +196,20 @@ namespace OpenGL {
 
     std::shared_ptr<Rendering::RenderTargetContext> Render::CreateRenderTargetContext() const {
         return std::shared_ptr<OpenGL::RenderTargetContext>(new OpenGL::RenderTargetContext);
+    }
+
+    void Render::ApplyBlending(bool blending, const BlendingDescription &description) const {
+        if (!blending) {
+            glDisable(GL_BLEND);
+            return;
+        }
+
+        (void) description; //TODO: Replace to true realization of this method
+        glEnable(GL_BLEND);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);//TODO: find a better place for it
+        glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+        glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+
     }
 
 }

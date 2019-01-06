@@ -7,6 +7,10 @@
 typedef void *SDL_GLContext;
 
 namespace Rendering {
+    struct BlendingDescription;
+}
+
+namespace Rendering {
 namespace OpenGL {
 
     typedef uint32_t GLuint;
@@ -35,6 +39,8 @@ namespace OpenGL {
         virtual std::shared_ptr<Rendering::RenderTargetContext> CreateRenderTargetContext() const override;
 
     private:
+        void ApplyBlending(bool blending, const BlendingDescription& description) const;
+
         std::shared_ptr<Windowing::Window> window;
         std::shared_ptr<RenderContext> renderContext;
         SDL_GLContext context;

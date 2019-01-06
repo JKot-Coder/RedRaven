@@ -135,7 +135,9 @@ set(OPEN_DEMO_SRC_MODULE_RENDER
         rendering/Transform.hpp
         rendering/RenderContext.cpp
         rendering/RenderPipeline.cpp
-        rendering/RenderPipeline.hpp)
+        rendering/RenderPipeline.hpp
+        rendering/BlendingDescription.hpp
+        rendering/DepthDescription.hpp)
 
 set(OPEN_DEMO_SRC_SCENES
         scenes/Scene_1.hpp

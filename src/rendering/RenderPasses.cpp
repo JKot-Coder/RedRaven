@@ -31,7 +31,8 @@ namespace Rendering {
         cameraDescription.zNear = 1;
         cameraDescription.zFar = 100;
         cameraDescription.fow = 90;
-        cameraDescription.isOrtho = false;
+        cameraDescription.orthoSize = 13;
+        cameraDescription.isOrtho = true;
 
         camera = std::make_shared<Camera>(cameraDescription);
         camera->LookAt(vec3(0,0,-8), vec3(0,0,0));
@@ -41,18 +42,46 @@ namespace Rendering {
 
         renderContext->SetDepthWrite(true);
         renderContext->SetDepthTestFunction(LEQUAL);
+
+        BlendingDescription blendingDescription(BlendingMode::ADDITIVE);
+
+        renderContext->SetBlending(true);
+        renderContext->SetBlendingDescription(blendingDescription);
     }
 
     void RenderPassOpaque::Collect(const std::shared_ptr<SceneGraph>& sceneGraph) {
         sceneGraph->Collect(*renderContext);
     }
 
+    vec3 RandomRay() {
+        float theta, cosphi, sinphi;
+
+        theta = 2.0f * PI * std::rand() /static_cast <float>(RAND_MAX);
+        cosphi = 1.0f - 2.0f * std::rand() /static_cast <float>(RAND_MAX);
+        sinphi = sqrt(1.0f - min(1.0f, cosphi * cosphi));
+
+        vec3 result;
+
+        result.x = sinphi * cos(theta);
+        result.y = sinphi * sin(theta);
+        result.z = cosphi;
+
+        return result;
+    }
+
     void RenderPassOpaque::Draw() {
         camera->SetAspect(1024, 768);
 
+        //vec3 lightDirection = vec3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
+        vec3 lightDirection = RandomRay();
+
+        renderContext->SetLightDirection(lightDirection);
+
         render->Begin(renderContext);
 
-        render->Clear(vec4(0.25, 0.25, 0.25, 0), 1.0);
+        render->ClearDepthStencil(true);
+        //render->Clear(vec4(0.0, 0.0, 0.0, 0), 1.0);
+        //render->Clear(vec4(0.25, 0.25, 0.25, 0), 1.0);
 
         const auto& renderQuery = renderContext->GetRenderQuery();
         for (const auto& item : renderQuery){

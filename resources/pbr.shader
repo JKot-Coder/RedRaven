@@ -4,6 +4,7 @@
 
 uniform vec4 Material;
 uniform vec4 CameraPosition;
+uniform vec4 LightDirection;
 
 float saturate(float x)
 {
@@ -63,8 +64,24 @@ float D_GGX(float NdotH , float m)
     return m2 / (f * f);
 }
 
-//Renormalized energy version
+float Lambert(float NdotV, float NdotL, float LdotH, float linearRoughness)
+{
+    return 1.0f;//NdotL;
+}
+
 float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float linearRoughness)
+{
+    float fd90           = 0.5 + 2 * LdotH * LdotH * linearRoughness;
+    vec3  f0             = vec3(1.0, 1.0, 1.0);
+    // Two schlick fresnel term
+    float lightScatter   = F_Schlick(f0, fd90, NdotL).r;
+    float viewScatter    = F_Schlick(f0, fd90, NdotV).r;
+
+    return lightScatter * viewScatter;
+}
+
+//Renormalized energy version
+float DisneyDiffuseRenorm(float NdotV, float NdotL, float LdotH, float linearRoughness)
 {
     float energyBias    = mix(0, 0.5, linearRoughness);
     float energyFactor  = mix(1.0, 1.0 / 1.51, linearRoughness);
@@ -117,17 +134,24 @@ void main()
 
 in VertexData Vertex;
 
+// layout (location = 0)
 out vec4 fragColor;
 
 void main()
 {
     vec3 N = normalize(Vertex.Normal);
-    vec3 V = normalize(CameraPosition.xyz  - Vertex.WorldPosition);
-    vec3 L = normalize(vec3(-3.0, 0.0, 0) * 20 - Vertex.WorldPosition); //vec3(1.0, 0.0, 0.0);
+    vec3 V = normalize(CameraPosition.xyz - Vertex.WorldPosition);
+    vec3 L = normalize(LightDirection.xyz);
+
+    V = vec3(0, 0, 1);
+    L = dot(L, N) < 0 ? -L : L;
+    //L = normalize(vec3(-1, 0, 1));
 
     // This code is an example of call of previous functions
     float NdotV = abs(dot(N, V)) + 1e-5; // avoid artifact
+
     vec3 H = normalize(V + L);
+
     float LdotH = saturate(dot(L, H));
     float NdotH = saturate(dot(N, H));
     float NdotL = saturate(dot(N, L));
@@ -138,25 +162,38 @@ void main()
     float roughness = linearRoughness * linearRoughness;
 
     // Specular BRDF
-    vec3  f0  = vec3(0.24, 0.24, 0.24);
-    float f90 = 1.0;
+//   vec3  f0  = vec3(1.0, 0.86, 0.56);
+    vec3  f0  = vec3(1.0, 1.0, 1.0) * 1.0;
+    float f90 = saturate(1.0 - linearRoughness);// + (1-oneMinusReflectivity));
     vec3  F   = F_Schlick(f0, f90, NdotV);
     float Vis = V_SmithGGXCorrelated(NdotV, NdotL, roughness);
     float D   = D_GGX(NdotH, roughness);
     vec3  Fr  = D * F * Vis;
 
+  // vec3 albedo = vec3(0.86, 0.176, 0);
+    vec3 albedo = vec3(1.0, 1.0, 1.0);
+
     // Diffuse BRDF
-    float Fd = DisneyDiffuse(NdotV, NdotL, LdotH, linearRoughness);
-    vec3 albedo = vec3(0.86, 0.176, 0);
-	vec3 color = vec3(Fd * albedo + Fr) * NdotL / PI;
+
+    //vec3 renormCoeff = vec3(1.0f - F);
+    //vec3 renormCoeff = vec3(mix( 1.0, 1.0 / 1.51, linearRoughness ));
+    //float Fd = Lambert(NdotV, NdotL, LdotH, linearRoughness);
+
+    float Fd = DisneyDiffuseRenorm(NdotV, NdotL, LdotH, linearRoughness);
+    vec3 renormCoeff = vec3(1.0f);
+
+    vec3 diffuse = Fd * albedo * renormCoeff * (vec3(1.0) - f0);
+	vec3 color = vec3(diffuse + Fr) * NdotL  / PI;
 
     if (max(max(color.r, color.g), color.b) > 1.0)
     {
-        fragColor = vec4(1.0, 0.0, 0.0, 1.0);
-        return;
+        fragColor = vec4(1.0, 0.0, 0.0, 1.0) ;
+   //     return;
     }
+    fragColor = vec4(color.rgb, 1.0);
 
-	fragColor = vec4(pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);
+    //fragColor = vec4(vec3(NdotL) /  PI, 1.0);
+	//fragColor = vec4(pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);
 }
 
 #endif

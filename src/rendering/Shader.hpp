@@ -19,6 +19,7 @@ namespace Rendering
             MODEL_MATRIX,
             CAMERA_POSITION,
             MATERIAL,
+            LIGHT_DIR,
             UNIFORM_TYPE_MAX
         };
 

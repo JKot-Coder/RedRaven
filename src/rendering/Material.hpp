@@ -2,12 +2,11 @@
 
 #include "common/VecMath.h"
 
-using namespace Common;
-
 namespace Rendering {
 
-    class Material {
-        vec3 albedo;
+    struct Material {
+        Common::vec3 albedo;
+        float roughness;
     };
 
 }
