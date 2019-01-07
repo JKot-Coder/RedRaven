@@ -5,6 +5,7 @@
 
 namespace Rendering{
     class Shader;
+    class Mesh;
 }
 
 namespace ResourceManager{
@@ -16,6 +17,7 @@ namespace ResourceManager{
         }
 
         const std::shared_ptr<Rendering::Shader> LoadShader(const std::string& filename);
+        std::vector<std::shared_ptr<Rendering::Mesh>> LoadScene(const std::string& filename);
     private:
         static std::unique_ptr<ResourceManager> instance;
     };

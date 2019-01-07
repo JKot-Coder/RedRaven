@@ -1,5 +1,7 @@
 #include "common/VecMath.h"
 
+#include "resource_manager/ResourceManager.hpp"
+
 #include "rendering/RenderContext.hpp"
 #include "rendering/Primitives.hpp"
 

@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "common/Stream.hpp"
 #include "common/Utils.hpp"
 
@@ -5,8 +7,11 @@
 
 #include "rendering/Render.hpp"
 #include "rendering/Shader.hpp"
+#include "rendering/Mesh.hpp"
 
-#include "ResourceManager.hpp"
+#include "resource_manager/ResourcesLoaders.hpp"
+
+#include "resource_manager/ResourceManager.hpp"
 
 namespace ResourceManager {
 
@@ -27,5 +32,18 @@ namespace ResourceManager {
         shader->LinkSource(stream.get());
 
         return shader;
+    }
+
+    std::vector<std::shared_ptr<Rendering::Mesh>> ResourceManager::LoadScene(const std::string& filename) {
+        auto *filesystem = FileSystem::Instance().get();
+
+        std::shared_ptr<Common::Stream> stream;
+        try {
+            stream = filesystem->Open(filename, FileSystem::Mode::READ);
+        } catch(const std::exception &exception) {
+            LOG("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
+        }
+
+        return ResourcesLoaders::LoadScene(stream);
     }
 }

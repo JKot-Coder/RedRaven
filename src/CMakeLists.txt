@@ -65,7 +65,8 @@ find_package(SDL2 REQUIRED)
 
 set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
-        ${RENDER_GAPI_LIBRARIES})
+        ${RENDER_GAPI_LIBRARIES}
+        assimp)
 
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS}
@@ -78,6 +79,8 @@ set(OPEN_DEMO_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/src/resource_manager
         ${CMAKE_SOURCE_DIR}/src/windowing
         ${CMAKE_SOURCE_DIR}/src/render
+        ${CMAKE_SOURCE_DIR}/src/dependencies/assimp/include
+        ${CMAKE_CURRENT_BINARY_DIR}/dependencies/assimp/include
         ${OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI}
         ${SDL2_INCLUDE_DIR})
 
@@ -107,7 +110,7 @@ set(OPEN_DEMO_SRC_MODULE_FILE_SYSTEM
 
 set(OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER
         resource_manager/ResourceManager.cpp
-        resource_manager/ResourceManager.hpp)
+        resource_manager/ResourceManager.hpp resource_manager/ResourcesLoaders.cpp resource_manager/ResourcesLoaders.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.hpp
@@ -141,7 +144,9 @@ set(OPEN_DEMO_SRC_MODULE_RENDER
 
 set(OPEN_DEMO_SRC_SCENES
         scenes/Scene_1.hpp
-        scenes/Scene_1.cpp)
+        scenes/Scene_1.cpp
+        scenes/Scene_2.hpp
+        scenes/Scene_2.cpp)
 
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_DEPS_GLAD}

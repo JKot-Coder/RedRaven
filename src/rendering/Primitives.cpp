@@ -50,16 +50,16 @@ namespace Rendering {
         vertices[index].position = vec3(0.0f, -1.0f, 0.0f);
         vertices[index].normal   = vec3(0.0f, -1.0f, 0.0f);
 
-        std::vector<Vertex> *triangles = new std::vector<Vertex>();
+        std::vector<int32_t> *indexes = new std::vector<int32_t>();
 
         for (uint32_t i = 0; i < segments; ++i)
         {
             uint32_t const a = i + 1;
             uint32_t const b = (i + 1) % segments + 1;
 
-            triangles->emplace_back(vertices[0]);
-            triangles->emplace_back(vertices[b]);
-            triangles->emplace_back(vertices[a]);
+            indexes->emplace_back(0);
+            indexes->emplace_back(b);
+            indexes->emplace_back(a);
         }
 
         for (uint32_t j = 0; j < segments - 2; ++j)
@@ -73,13 +73,13 @@ namespace Rendering {
                 const uint32_t b = bStart + i;
                 const uint32_t b1 = bStart + (i + 1) % segments;
 
-                triangles->emplace_back(vertices[a]);
-                triangles->emplace_back(vertices[a1]);
-                triangles->emplace_back(vertices[b1]);
+                indexes->emplace_back(a);
+                indexes->emplace_back(a1);
+                indexes->emplace_back(b1);
 
-                triangles->emplace_back(vertices[a]);
-                triangles->emplace_back(vertices[b1]);
-                triangles->emplace_back(vertices[b]);
+                indexes->emplace_back(a);
+                indexes->emplace_back(b1);
+                indexes->emplace_back(b);
             }
         }
 
@@ -88,14 +88,14 @@ namespace Rendering {
             uint32_t const a = i + segments * (segments - 2) + 1;
             uint32_t const b = (i + 1) % segments + segments * (segments - 2) + 1;
 
-            triangles->emplace_back(vertices[vertexCount-1]);
-            triangles->emplace_back(vertices[a]);
-            triangles->emplace_back(vertices[b]);
+            indexes->emplace_back(vertexCount-1);
+            indexes->emplace_back(a);
+            indexes->emplace_back(b);
         }
 
-        mesh->Init(triangles->data(), triangles->size());
+        mesh->Init(vertices, vertexCount, indexes->data(), indexes->size());
 
-        delete triangles;
+        delete indexes;
         delete[] vertices;
 
         return mesh;

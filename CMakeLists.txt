@@ -43,4 +43,7 @@ if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
     endforeach()
 endif()
 
+
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+add_subdirectory(src/dependencies/assimp)
 add_subdirectory(src)

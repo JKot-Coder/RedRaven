@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <scenes/Scene_1.hpp>
+#include <scenes/Scene_2.hpp>
 
 using namespace Common;
 
@@ -68,6 +69,6 @@ void Application::terminate() {
 }
 
 void Application::loadResouces() {
-    scene = std::make_shared<Scenes::Scene_1>();
+    scene = std::make_shared<Scenes::Scene_2>();
     scene->Init();
 }

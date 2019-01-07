@@ -143,9 +143,9 @@ void main()
     vec3 V = normalize(CameraPosition.xyz - Vertex.WorldPosition);
     vec3 L = normalize(LightDirection.xyz);
 
-    V = vec3(0, 0, 1);
+   // V = vec3(0, 0, 1);
     L = dot(L, N) < 0 ? -L : L;
-    //L = normalize(vec3(-1, 0, 1));
+    L = normalize(vec3(-1, 0, 1));
 
     // This code is an example of call of previous functions
     float NdotV = abs(dot(N, V)) + 1e-5; // avoid artifact
@@ -188,9 +188,11 @@ void main()
     if (max(max(color.r, color.g), color.b) > 1.0)
     {
         fragColor = vec4(1.0, 0.0, 0.0, 1.0) ;
-   //     return;
+        //return;
     }
-    fragColor = vec4(color.rgb, 1.0);
+
+    fragColor = vec4(color, 1.0);
+    //fragColor = vec4(1.0, 1.0, 1.0, 1.0) ;
 
     //fragColor = vec4(vec3(NdotL) /  PI, 1.0);
 	//fragColor = vec4(pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);

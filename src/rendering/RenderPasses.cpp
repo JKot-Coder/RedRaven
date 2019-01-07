@@ -29,13 +29,13 @@ namespace Rendering {
 
         Camera::Description cameraDescription;
         cameraDescription.zNear = 1;
-        cameraDescription.zFar = 100;
+        cameraDescription.zFar = 1500;
         cameraDescription.fow = 90;
         cameraDescription.orthoSize = 13;
-        cameraDescription.isOrtho = true;
+        cameraDescription.isOrtho = false;
 
         camera = std::make_shared<Camera>(cameraDescription);
-        camera->LookAt(vec3(0,0,-8), vec3(0,0,0));
+        camera->LookAt(vec3(-3,-20,0), vec3(0,-20,0));
 
         renderContext->SetCamera(camera);
         renderContext->SetRenderTarget(hdrRenderTargetContext);
@@ -45,7 +45,7 @@ namespace Rendering {
 
         BlendingDescription blendingDescription(BlendingMode::ADDITIVE);
 
-        renderContext->SetBlending(true);
+        renderContext->SetBlending(false);
         renderContext->SetBlendingDescription(blendingDescription);
     }
 
@@ -80,7 +80,7 @@ namespace Rendering {
         render->Begin(renderContext);
 
         render->ClearDepthStencil(true);
-        //render->Clear(vec4(0.0, 0.0, 0.0, 0), 1.0);
+        render->Clear(vec4(0.0, 0.0, 0.0, 0), 1.0);
         //render->Clear(vec4(0.25, 0.25, 0.25, 0), 1.0);
 
         const auto& renderQuery = renderContext->GetRenderQuery();

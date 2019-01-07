@@ -112,4 +112,8 @@ namespace FileSystem {
 
         return length;
     }
+
+    std::istream *FileStream::GetNativeStream() {
+        return &fileStream;
+    }
 }

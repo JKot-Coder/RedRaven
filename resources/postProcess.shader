@@ -33,19 +33,19 @@ out vec4 fragColor;
 void main()
 {
     vec4 color = texture(AlbedoTex, Vertex.TextureCoord);
-    color.rgb = (color.rgb / color.a) * 2.0 * PI;
+   // color.rgb = (color.rgb / color.a) * 2.0 * PI;
 
-  if (max(max(color.r, color.g), color.b) > 1.2)
-    {
-        fragColor = vec4(0.0, 1.0, 0.0, 1.0);
-        return;
-    }
-
-    if (max(max(color.r, color.g), color.b) > 1.0)
-    {
-        fragColor = vec4(1.0, 0.0, 0.0, 1.0);
-        return;
-    }
+//  if (max(max(color.r, color.g), color.b) > 1.2)
+//    {
+//        fragColor = vec4(0.0, 1.0, 0.0, 1.0);
+//        return;
+//    }
+//
+//    if (max(max(color.r, color.g), color.b) > 1.0)
+//    {
+//        fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+//        return;
+//    }
 
  //   fragColor = vec4( color.rgb, 1.0);
 	fragColor = vec4( pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);
