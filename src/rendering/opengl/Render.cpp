@@ -165,7 +165,7 @@ namespace OpenGL {
         if (camera != nullptr) {
             camera->SetAspect(rtWidth, rtHeight);
             shader->SetParam(Shader::UniformType::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
-            shader->SetParam(Shader::UniformType::CAMERA_POSITION, camera->GetTransform().GetPostion());
+            shader->SetParam(Shader::UniformType::CAMERA_POSITION, camera->GetTransform().Position);
         }
     }
 

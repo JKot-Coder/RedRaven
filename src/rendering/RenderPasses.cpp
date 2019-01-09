@@ -26,18 +26,6 @@ namespace Rendering {
         pbrShader = resourceManager->LoadShader("resources/pbr.shader");
 
         renderContext->SetShader(pbrShader);
-
-        Camera::Description cameraDescription;
-        cameraDescription.zNear = 1;
-        cameraDescription.zFar = 1500;
-        cameraDescription.fow = 90;
-        cameraDescription.orthoSize = 13;
-        cameraDescription.isOrtho = false;
-
-        camera = std::make_shared<Camera>(cameraDescription);
-        camera->LookAt(vec3(-3,-20,0), vec3(0,-20,0));
-
-        renderContext->SetCamera(camera);
         renderContext->SetRenderTarget(hdrRenderTargetContext);
 
         renderContext->SetDepthWrite(true);
@@ -50,7 +38,12 @@ namespace Rendering {
     }
 
     void RenderPassOpaque::Collect(const std::shared_ptr<SceneGraph>& sceneGraph) {
+        auto const &camera = sceneGraph->GetMainCamera();
+        camera->SetAspect(1024, 768);
+
         sceneGraph->Collect(*renderContext);
+
+        renderContext->SetCamera(camera);
     }
 
     vec3 RandomRay() {
@@ -70,8 +63,6 @@ namespace Rendering {
     }
 
     void RenderPassOpaque::Draw() {
-        camera->SetAspect(1024, 768);
-
         //vec3 lightDirection = vec3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
         vec3 lightDirection = RandomRay();
 

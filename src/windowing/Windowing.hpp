@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+struct SDL_Keysym;
+
 namespace Windowing {
 
     struct WindowSettings;
@@ -14,6 +16,10 @@ namespace Windowing {
         class Listener {
         public:
             virtual void WindowResize(const Window &window) { (void) window; };
+
+            virtual void KeyUp(const SDL_Keysym &keysym) { (void) keysym; }
+            virtual void KeyDown(const SDL_Keysym &keysym) { (void) keysym; }
+
             virtual void Quit() {};
         };
 

@@ -13,7 +13,6 @@ namespace Rendering {
     class Shader;
     class Texture2D;
     class RenderContext;
-    class Camera;
     class Mesh;
 
     enum class RenderPassType {
@@ -38,7 +37,6 @@ namespace Rendering {
         Render* render;
         std::shared_ptr<RenderTargetContext> hdrRenderTargetContext;
         std::shared_ptr<RenderContext> renderContext;
-        std::shared_ptr<Camera> camera;
         std::shared_ptr<Shader> pbrShader;
     };
 

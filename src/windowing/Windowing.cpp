@@ -30,17 +30,32 @@ namespace Windowing {
                     case SDL_QUIT:
                         listener->Quit();
                         break;
-                    case SDL_WINDOWEVENT:
-                        SDL_Window* sdlWindow = SDL_GetWindowFromID(e.window.windowID);
-                        Window* window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
+                    case SDL_KEYDOWN:
+                    case SDL_KEYUP: {
+                        SDL_KeyboardEvent &keyboardEvent = e.key;
 
-                        switch (e.window.event){
-                            case SDL_WINDOWEVENT_RESIZED:
-                                listener->WindowResize(*window);
+                        switch (keyboardEvent.state){
+                            case SDL_PRESSED:
+                                listener->KeyDown(keyboardEvent.keysym);
+                                break;
+                            case SDL_RELEASED:
+                                listener->KeyUp(keyboardEvent.keysym);
                                 break;
                         }
 
                         break;
+                    }
+                    case SDL_WINDOWEVENT: {
+                        SDL_Window *sdlWindow = SDL_GetWindowFromID(e.window.windowID);
+                        Window *window = static_cast<Window *>(SDL_GetWindowData(sdlWindow, "WindowObject"));
+
+                        switch (e.window.event) {
+                            case SDL_WINDOWEVENT_RESIZED:
+                                listener->WindowResize(*window);
+                                break;
+                        }
+                        break;
+                    }
                 }
             }
         }

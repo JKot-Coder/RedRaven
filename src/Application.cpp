@@ -16,6 +16,7 @@
 #include <chrono>
 #include <scenes/Scene_1.hpp>
 #include <scenes/Scene_2.hpp>
+#include <inputting/Input.hpp>
 
 using namespace Common;
 
@@ -31,6 +32,8 @@ void Application::Start() {
         Windowing::Windowing::PoolEvents();
         renderPipeline->Collect(scene);
         renderPipeline->Draw();
+
+        scene->Update();
 
         render->SwapBuffers();
     }
@@ -53,6 +56,8 @@ void Application::init() {
 
     Windowing::Windowing::Subscribe(this);
     window = Windowing::Windowing::CreateWindow(settings);
+
+    Inputting::Instance()->Init();
 
     auto& render = Rendering::Instance();
     render->Init(window);

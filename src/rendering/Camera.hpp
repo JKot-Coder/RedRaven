@@ -38,7 +38,7 @@ namespace Rendering {
             calcProjectionMatrix();
         }
 
-        inline void SetAspect(float width, float height){
+        inline void SetAspect(float width, float height) {
             SetAspect(width/height);
         }
 
@@ -51,7 +51,7 @@ namespace Rendering {
             calcProjectionMatrix();
         }
 
-        inline void SetFov(float fov){
+        inline void SetFov(float fov) {
             if (fov == this->fov){
                 return;
             }
@@ -79,20 +79,17 @@ namespace Rendering {
             calcProjectionMatrix();
         }
 
+        inline void SetTransform(const Transform &value) { transform = value; }
         inline Transform GetTransform() const { return transform; }
 
         inline mat4 GetViewMatrix() const { return transform.GetMatrix(); }
-        inline mat4 GetViewProjectionMatrix() const {
-            return GetProjectionMatrix() * GetViewMatrix();
-        }
+        inline mat4 GetViewProjectionMatrix() const { return GetProjectionMatrix() * GetViewMatrix(); }
 
-        inline mat4 GetProjectionMatrix() const {
-            return projectionMatrix;
-        }
+        inline mat4 GetProjectionMatrix() const { return projectionMatrix; }
 
         inline void LookAt(vec3 eyePosition, vec3 targetPosition) {
-            transform.SetPostion(eyePosition);
-            transform.SetRotation(quat(targetPosition - eyePosition, vec3(0, 1, 0)));
+            transform.Position = eyePosition;
+            transform.Rotation = quat(targetPosition - eyePosition, vec3(0, 1, 0));
         }
 
     private:
