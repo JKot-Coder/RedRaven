@@ -1,6 +1,11 @@
 #include <memory>
 
+#include "common/Time.hpp"
+
+#include "inputting/Input.hpp"
+
 #include "resource_manager/ResourceManager.hpp"
+
 #include "rendering/Render.hpp"
 #include "rendering/RenderPipeline.hpp"
 #include "rendering/Primitives.hpp"
@@ -11,12 +16,11 @@
 #include "windowing/Windowing.hpp"
 #include "windowing/Window.hpp"
 
+#include "scenes/Scene_1.hpp"
+#include "scenes/Scene_2.hpp"
+
 #include "Application.hpp"
 
-#include <chrono>
-#include <scenes/Scene_1.hpp>
-#include <scenes/Scene_2.hpp>
-#include <inputting/Input.hpp>
 
 using namespace Common;
 
@@ -24,9 +28,12 @@ void Application::Start() {
     init();
     loadResouces();
 
+    const auto& time = Time::Instance();
     const auto& render = Rendering::Instance();
     auto* renderPipeline = new Rendering::RenderPipeline(window);
     renderPipeline->Init();
+
+    time->Init();
 
     while(!quit) {
         Windowing::Windowing::PoolEvents();
@@ -36,6 +43,7 @@ void Application::Start() {
         scene->Update();
 
         render->SwapBuffers();
+        time->Update();
     }
 
     delete renderPipeline;

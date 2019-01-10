@@ -101,7 +101,9 @@ set(OPEN_DEMO_SRC_MODULE_COMMON
         common/Utils.hpp
         common/Exception.cpp
         common/Exception.hpp
-        common/Stream.hpp)
+        common/Stream.hpp
+        common/Time.cpp
+        common/Time.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_FILE_SYSTEM
         filesystem/FileSystem.cpp
