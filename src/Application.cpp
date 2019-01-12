@@ -28,6 +28,7 @@ void Application::Start() {
     init();
     loadResouces();
 
+    const auto& input = Inputting::Instance();
     const auto& time = Time::Instance();
     const auto& render = Rendering::Instance();
     auto* renderPipeline = new Rendering::RenderPipeline(window);
@@ -43,6 +44,7 @@ void Application::Start() {
         scene->Update();
 
         render->SwapBuffers();
+        input->Update();
         time->Update();
     }
 
@@ -66,6 +68,7 @@ void Application::init() {
     window = Windowing::Windowing::CreateWindow(settings);
 
     Inputting::Instance()->Init();
+    Inputting::Instance()->TrapMouseInWindow(window);
 
     auto& render = Rendering::Instance();
     render->Init(window);

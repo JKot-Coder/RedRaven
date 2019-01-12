@@ -24,7 +24,8 @@ namespace Rendering {
             fov(description.fow),
             orthoSize(description.orthoSize),
             zNear(description.zNear),
-            zFar(description.zFar)
+            zFar(description.zFar),
+            transform()
         {
             calcProjectionMatrix();
         }
@@ -83,13 +84,13 @@ namespace Rendering {
         inline Transform GetTransform() const { return transform; }
 
         inline mat4 GetViewMatrix() const { return transform.GetMatrix(); }
-        inline mat4 GetViewProjectionMatrix() const { return GetProjectionMatrix() * GetViewMatrix(); }
+        inline mat4 GetViewProjectionMatrix() const { return GetProjectionMatrix() * GetViewMatrix().inverseOrtho(); }
 
         inline mat4 GetProjectionMatrix() const { return projectionMatrix; }
 
         inline void LookAt(vec3 eyePosition, vec3 targetPosition) {
             transform.Position = eyePosition;
-            transform.Rotation = quat(targetPosition - eyePosition, vec3(0, 1, 0));
+            transform.Rotation = quat(targetPosition - eyePosition);
         }
 
     private:

@@ -23,6 +23,7 @@ namespace Scenes {
         virtual void Collect(Rendering::RenderContext& renderContext) override;
         virtual std::shared_ptr<Rendering::Camera> GetMainCamera() override;
     private:
+        vec2 lookAngle;
         std::shared_ptr<Rendering::Camera> camera;
         std::vector<Rendering::RenderElement> renderElements;
     };

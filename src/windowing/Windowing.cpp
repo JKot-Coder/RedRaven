@@ -12,6 +12,8 @@ namespace Windowing {
     std::vector<Windowing::Listener*> Windowing::Windowing::listeners = std::vector<Windowing::Listener*>();
 
     Windowing::Windowing(){
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+
         if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
             throw Common::Exception("Could not initialize SDL video subsystem (%s)", SDL_GetError());
     }
@@ -44,6 +46,9 @@ namespace Windowing {
                         }
 
                         break;
+                    }
+                    case SDL_MOUSEMOTION: {
+                        listener->MouseMotion(e.motion);
                     }
                     case SDL_WINDOWEVENT: {
                         SDL_Window *sdlWindow = SDL_GetWindowFromID(e.window.windowID);

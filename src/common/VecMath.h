@@ -392,16 +392,56 @@ namespace Common {
             w = c;
         }
 
-        quat(const vec3 &lookAt, const vec3 &upVector) {
+        quat(const vec3 &lookAt) {
             vec3 forward = lookAt.normal();
-            vec3 right = upVector.normal().cross(forward);
-            vec3 up = forward.cross(right);
+            vec3 rotAxis = vec3(0, 0, 1).cross(forward);
+            float dot = vec3(0, 0, 1).dot(forward);
 
-            w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
-            float w4_recip = 1.0f / (4.0f * w);
-            x = (forward.y - up.z) * w4_recip;
-            y = (right.z - forward.x) * w4_recip;
-            z = (up.x - right.y) * w4_recip;
+            x = rotAxis.x;
+            y = rotAxis.y;
+            z = rotAxis.z;
+            w = dot+1;
+
+            normalize();
+        }
+
+        quat(const vec3 &lookAt, const vec3 &upVector) {
+            vec3 up = upVector.normal();
+            vec3 forward = lookAt.normal();
+            vec3 right = up.cross(forward).normal();
+            up = forward.cross(right);
+
+            float e00 = right.x,   e10 = right.y,   e20 = right.z;
+            float e01 = up.x,      e11 = up.y,      e21 = up.z;
+            float e02 = forward.x, e12 = forward.y, e22 = forward.z;
+
+            float t, s;
+            t = 1.0f + e00 + e11 + e22;
+            if (t > 0.0001f) {
+                s = 0.5f / sqrtf(t);
+                x = (e21 - e12) * s;
+                y = (e02 - e20) * s;
+                z = (e10 - e01) * s;
+                w = 0.25f / s;
+            } else if (e00 > e11 && e00 > e22) {
+                s = 0.5f / sqrtf(1.0f + e00 - e11 - e22);
+                x = 0.25f / s;
+                y = (e01 + e10) * s;
+                z = (e02 + e20) * s;
+                w = (e21 - e12) * s;
+            } else if (e11 > e22) {
+                s = 0.5f / sqrtf(1.0f - e00 + e11 - e22);
+                x = (e01 + e10) * s;
+                y = 0.25f / s;
+                z = (e12 + e21) * s;
+                w = (e02 - e20) * s;
+            } else {
+                s = 0.5f / sqrtf(1.0f - e00 - e11 + e22);
+                x = (e02 + e20) * s;
+                y = (e12 + e21) * s;
+                z = 0.25f / s;
+                w = (e10 - e01) * s;
+            }
         }
 
         quat operator-() const {
@@ -507,11 +547,11 @@ namespace Common {
                 e02, e12, e22, e32,
                 e03, e13, e23, e33;
 
-        vec4 &right() const { return *((vec4 *) &e00); }
+        vec3 &right() const { return *((vec3 *) &e00); }
 
-        vec4 &up() const { return *((vec4 *) &e01); }
+        vec3 &up() const { return *((vec3 *) &e01); }
 
-        vec4 &dir() const { return *((vec4 *) &e02); }
+        vec3 &forward() const { return *((vec3 *) &e02); }
 
         vec4 &offset() const { return *((vec4 *) &e03); }
 
@@ -580,10 +620,11 @@ namespace Common {
             r = up.cross(d).normal();
             u = d.cross(r);
 
-            this->right() = vec4(r, 0.0f);
-            this->up() = vec4(u, 0.0f);
-            this->dir() = vec4(d, 0.0f);
+            this->right() = r;
+            this->up() = u;
+            this->forward() = d;
             this->offset() = vec4(from, 1.0f);
+            e30 = e31 = e32 = 0;
         }
 
         mat4(const vec4 &reflectPlane) {
@@ -592,10 +633,11 @@ namespace Common {
                     c = reflectPlane.z,
                     d = reflectPlane.w;
 
-            right() = vec4(1 - 2 * a * a, -2 * b * a, -2 * c * a, 0);
-            up() = vec4(-2 * a * b, 1 - 2 * b * b, -2 * c * b, 0);
-            dir() = vec4(-2 * a * c, -2 * b * c, 1 - 2 * c * c, 0);
+            right() = vec3(1 - 2 * a * a, -2 * b * a, -2 * c * a);
+            up() = vec3(-2 * a * b, 1 - 2 * b * b, -2 * c * b);
+            forward() = vec3(-2 * a * c, -2 * b * c, 1 - 2 * c * c);
             offset() = vec4(-2 * a * d, -2 * b * d, -2 * c * d, 1);
+            e30 = e31 = e32 = 0;
         }
 
 
@@ -880,13 +922,13 @@ namespace Common {
         }
 
         void setRot(const quat &rot) {
-            float sx = rot.x * rot.x,
+            float   sx = rot.x * rot.x,
                     sy = rot.y * rot.y,
                     sz = rot.z * rot.z,
                     sw = rot.w * rot.w,
                     inv = 1.0f / (sx + sy + sz + sw);
 
-            e00 = (sx - sy - sz + sw) * inv;
+            e00 = ( sx - sy - sz + sw) * inv;
             e11 = (-sx + sy - sz + sw) * inv;
             e22 = (-sx - sy + sz + sw) * inv;
             inv *= 2.0f;

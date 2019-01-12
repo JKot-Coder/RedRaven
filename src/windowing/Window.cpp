@@ -1,12 +1,14 @@
 #include <SDL_syswm.h>
+#include <SDL_mouse.h>
+#include <SDL_events.h>
 
 #include "common/Exception.hpp"
+
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Window.hpp"
 #include "Window.hpp"
 
-
-namespace Windowing{
+namespace Windowing {
 
     Window::Window() : window(nullptr)
     {
@@ -37,7 +39,6 @@ namespace Windowing{
         }
 
         SDL_SetWindowData(window, "WindowObject", this);
-
         return true;
     }
 
@@ -55,8 +56,12 @@ namespace Windowing{
         return h;
     }
 
-    bool Window::IsWindow() const {
-        return window;
+    void Window::SetMousePos(int x, int y) const {
+        SDL_WarpMouseInWindow(window, x, y);
+    }
+
+    void Window::ShowCursor(bool value) const {
+        SDL_ShowCursor(value ? SDL_ENABLE : SDL_DISABLE);
     }
 
 }

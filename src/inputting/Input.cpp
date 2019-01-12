@@ -1,10 +1,13 @@
 #include <SDL_scancode.h>
 #include <SDL_keyboard.h>
+#include <SDL_events.h>
 
+#include "common/Utils.hpp"
 #include "common/VecMath.h"
 
+#include "windowing/Window.hpp"
+
 #include "inputting/Input.hpp"
-#include "Input.hpp"
 
 using namespace Common;
 
@@ -80,7 +83,7 @@ namespace Inputting {
 
     void Input::Reset() {
         memset(down, 0, sizeof(down));
-        memset(&mouse, 0, sizeof(mouse));
+        memset(&Mouse, 0, sizeof(Mouse));
     }
 
     void Input::Init() {
@@ -90,22 +93,34 @@ namespace Inputting {
     }
 
     void Input::Update() {
+        if(!mouseWindowTrap.get())
+            return;
+
+        if (SDL_GetMouseFocus() == mouseWindowTrap->GetSDLWindow()) {
+            int height = mouseWindowTrap->GetHeight();
+            int width = mouseWindowTrap->GetWidth();
+            mouseWindowTrap->SetMousePos(width / 2, height / 2);
+            mouseWindowTrap->ShowCursor(false);
+        }
+
+        Mouse.relative = vec2(0, 0);
     }
 
     void Input::SetDown(InputKey key, bool value) {
         if (down[key] == value)
             return;
 
+        //TOdo fix this
         if (value)
             switch (key) {
                 case ikMouseL:
-                    mouse.start.L = mouse.pos;
+//                    mouse.start.L = mouse.pos;
                     break;
                 case ikMouseR:
-                    mouse.start.R = mouse.pos;
+  //                  mouse.start.R = mouse.pos;
                     break;
                 case ikMouseM:
-                    mouse.start.M = mouse.pos;
+    //                mouse.start.M = mouse.pos;
                     break;
                 default:
                     break;
@@ -119,11 +134,12 @@ namespace Inputting {
     }
 
     void Input::SetPos(InputKey key, const vec2 &pos) {
+        (void) pos;
         switch (key) {
             case ikMouseL:
             case ikMouseR:
             case ikMouseM:
-                mouse.pos = pos;
+           //     mouse.pos = pos;
                 return;
             default:
                 return;
@@ -144,6 +160,24 @@ namespace Inputting {
             return;
 
         SetDown(it->second, true);
+    }
+
+    void Input::MouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) {
+        if (mouseWindowTrap.get()) {
+            int height = mouseWindowTrap->GetHeight();
+            int width = mouseWindowTrap->GetWidth();
+            vec2 center = vec2(width, height) * 0.5f;
+            vec2 mouse = vec2(mouseMotionEvent.x, mouseMotionEvent.y);
+            Mouse.relative = mouse - center;
+        }
+        Mouse.pos = vec2(mouseMotionEvent.x, mouseMotionEvent.y);
+    }
+
+    void Input::TrapMouseInWindow(const std::shared_ptr<Windowing::Window> &window) {
+        ASSERT(window.get())
+
+        mouseWindowTrap = window;
+        SDL_SetWindowGrab(mouseWindowTrap->GetSDLWindow(), SDL_TRUE);
     }
 
 }

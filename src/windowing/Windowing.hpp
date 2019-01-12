@@ -4,6 +4,7 @@
 #include <vector>
 
 struct SDL_Keysym;
+struct SDL_MouseMotionEvent;
 
 namespace Windowing {
 
@@ -19,6 +20,8 @@ namespace Windowing {
 
             virtual void KeyUp(const SDL_Keysym &keysym) { (void) keysym; }
             virtual void KeyDown(const SDL_Keysym &keysym) { (void) keysym; }
+
+            virtual void MouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) { (void) mouseMotionEvent; }
 
             virtual void Quit() {};
         };

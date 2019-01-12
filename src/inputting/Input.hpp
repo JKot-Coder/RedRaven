@@ -2,11 +2,10 @@
 
 #include <map>
 
-#include "windowing/Windowing.hpp"
+#include "common/VecMath.h"
+#include "common/Utils.hpp"
 
-namespace Common {
-    struct vec2;
-}
+#include "windowing/Windowing.hpp"
 
 namespace Inputting {
 
@@ -26,10 +25,11 @@ namespace Inputting {
 
         struct Mouse {
             Common::vec2 pos;
+            Common::vec2 relative;
             struct {
                 Common::vec2 L, R, M;
             } start;
-        } mouse;
+        } Mouse;
 
         ~Input();
 
@@ -47,7 +47,11 @@ namespace Inputting {
             return instance;
         }
 
+        void TrapMouseInWindow(const std::shared_ptr<Windowing::Window> &window);
+
     private:
+        std::shared_ptr<Windowing::Window> mouseWindowTrap;
+
         InputKey lastKey;
         bool down[ikMAX];
 
@@ -55,6 +59,8 @@ namespace Inputting {
 
         virtual void KeyUp(const SDL_Keysym &keysym) override;
         virtual void KeyDown(const SDL_Keysym &keysym) override;
+
+        virtual void MouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) override;
 
         void SetDown(InputKey key, bool value);
         void SetPos(InputKey key, const Common::vec2 &pos);
