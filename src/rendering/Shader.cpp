@@ -2,7 +2,7 @@
 
 namespace Rendering {
 
-    const char* const Shader::UniformsNames[Shader::UNIFORM_TYPE_MAX] = { "ViewProjection", "Model", "CameraPosition", "Material", "LightDirection" };
-    const char* const Shader::SamplerNames [Shader::SAMPLER_TYPE_MAX] = { "AlbedoTex" };
+    const char* const Shader::UniformsNames[Uniform::UNIFORM_MAX] = { "ViewProjection", "Model", "CameraPosition", "Material", "LightDirection" };
+    const char* const Shader::SamplerNames [Sampler::SAMPLER_MAX] = { "AlbedoTex", "RoughnessTex" };
 
 }

@@ -6,6 +6,14 @@ namespace Rendering {
 
     enum PixelFormat : int;
 
+    namespace Sampler {
+        enum Type {
+            ALBEDO,
+            ROUGHNESS,
+            SAMPLER_MAX
+        };
+    }
+
     class CommonTexture {
     public:
         virtual int GetWidth() const = 0;

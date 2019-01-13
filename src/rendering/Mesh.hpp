@@ -4,7 +4,6 @@
 
 namespace Rendering
 {
-
     struct Vertex {
         Common::vec3 position;   // xyz  - position,
         Common::vec3 normal;     // xyz  - vertex normal

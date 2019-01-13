@@ -4,41 +4,39 @@
 
 #include "common/VecMath.h"
 
+#include "rendering/Texture.hpp"
+
 namespace Common{
     class Stream;
 }
 
 namespace Rendering
 {
-
-    class Shader {
-    public:
-
-        enum UniformType {
+    namespace Uniform {
+        enum Type {
             VIEW_PROJECTION_MATRIX,
             MODEL_MATRIX,
             CAMERA_POSITION,
             MATERIAL,
             LIGHT_DIR,
-            UNIFORM_TYPE_MAX
+            UNIFORM_MAX
         };
+    }
 
-        enum SamplerType {
-            ALBEDO,
-            SAMPLER_TYPE_MAX
-        };
+    class Shader {
+    public:
 
-        static const char* const UniformsNames[UniformType::UNIFORM_TYPE_MAX];
-        static const char* const SamplerNames[SamplerType::SAMPLER_TYPE_MAX];
+        static const char* const UniformsNames[Uniform::UNIFORM_MAX];
+        static const char* const SamplerNames[Sampler::SAMPLER_MAX];
 
         virtual ~Shader() {};
 
         virtual bool LinkSource(Common::Stream *stream) = 0;
         virtual void Bind() const = 0;
 
-        virtual void SetParam(UniformType uType, const Common::vec4 &value, int count = 1) const = 0;
-        virtual void SetParam(UniformType uType, const Common::mat4 &value, int count = 1) const = 0;
-        virtual void SetParam(UniformType uType, const Common::Basis &value, int count = 1) const = 0;
+        virtual void SetParam(Uniform::Type uType, const Common::vec4 &value, int count = 1) const = 0;
+        virtual void SetParam(Uniform::Type uType, const Common::mat4 &value, int count = 1) const = 0;
+        virtual void SetParam(Uniform::Type uType, const Common::Basis &value, int count = 1) const = 0;
     };
 
 }

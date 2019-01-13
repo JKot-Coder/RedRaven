@@ -8,10 +8,12 @@
 #include "rendering/Render.hpp"
 #include "rendering/Shader.hpp"
 #include "rendering/Mesh.hpp"
+#include "rendering/Texture.hpp"
 
 #include "resource_manager/ResourcesLoaders.hpp"
 
 #include "resource_manager/ResourceManager.hpp"
+#include "ResourceManager.hpp"
 
 namespace ResourceManager {
 
@@ -27,14 +29,19 @@ namespace ResourceManager {
             LOG("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
         }
 
-        auto *render = Rendering::Instance().get();
+        const auto &render = Rendering::Instance().get();
         auto shader = render->CreateShader();
         shader->LinkSource(stream.get());
 
         return shader;
     }
 
-    std::vector<std::shared_ptr<Rendering::Mesh>> ResourceManager::LoadScene(const std::string& filename) {
+    const std::vector<Rendering::RenderElement> ResourceManager::LoadScene(const std::string &filename) {
+        //Todo: pass a stream for easy migrate to virtual file system in future
+        return ResourcesLoaders::LoadScene(filename);
+    }
+
+    const std::shared_ptr<Rendering::CommonTexture> ResourceManager::LoadTexture(const std::string &filename) {
         auto *filesystem = FileSystem::Instance().get();
 
         std::shared_ptr<Common::Stream> stream;
@@ -44,6 +51,6 @@ namespace ResourceManager {
             LOG("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
         }
 
-        return ResourcesLoaders::LoadScene(stream);
+        return ResourcesLoaders::LoadTexture(stream);
     }
 }

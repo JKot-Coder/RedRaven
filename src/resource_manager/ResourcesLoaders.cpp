@@ -1,37 +1,72 @@
 #include <vector>
 #include <iostream>
+#include <boost/filesystem.hpp>
+
+#include <stb_image.h>
 
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "common/Stream.hpp"
 #include "common/VecMath.h"
 
+#include "rendering/Texture.hpp"
+#include "rendering/Material.hpp"
 #include "rendering/Render.hpp"
 
+#include "resource_manager/ResourceManager.hpp"
 #include "resource_manager/ResourcesLoaders.hpp"
+#include "ResourcesLoaders.hpp"
 
 using namespace Common;
 
 namespace ResourceManager {
 
-    vec3 ConvertVector(aiVector3D vector) {
+    const vec3 ConvertVector(const aiVector3D &vector) {
         return vec3(vector.x, vector.y, vector.z);
     }
 
-    std::vector<std::shared_ptr<Rendering::Mesh>> ResourcesLoaders::LoadScene(const std::shared_ptr<Common::Stream> &stream) {
-        size_t dataSize = stream->GetSize();
-        char *buffer = new char[dataSize];
-        stream->Read(buffer, dataSize);
+    const vec2 ConvertVector(const aiVector2D &vector) {
+        return vec2(vector.x, vector.y);
+    }
 
-        auto scene = aiImportFileFromMemory(buffer, dataSize, aiProcessPreset_TargetRealtime_MaxQuality, stream->GetName().c_str());
-        delete[] buffer;
+    const std::shared_ptr<Rendering::CommonTexture> LoadMaterialTexture(const boost::filesystem::path &path, const aiMaterial *material, aiTextureType type) {
+        const auto &resourceManager = ResourceManager::Instance().get();
+        if (material->GetTextureCount(type) == 0)
+            return nullptr;
 
-        std::vector<std::shared_ptr<Rendering::Mesh>> renderMeshes;
+        aiString textureName("");
+        aiReturn ok = material->GetTexture(type, 0, &textureName);
 
-        const auto meshes = scene->mMeshes;
+        if (ok != aiReturn_SUCCESS)
+            return nullptr;
+
+        return resourceManager->LoadTexture((path / textureName.C_Str()).c_str());
+    }
+
+    const std::vector<Rendering::RenderElement> ResourcesLoaders::LoadScene(const std::string &filename) {
+        //Todo: Replace to aiImportFileEx, it's needed for implementing virtual file system
+        auto scene = aiImportFile(filename.data(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs);
+        std::vector<Rendering::RenderElement> renderElements;
+        std::vector<Rendering::Material> renderMaterials;
+
+        const auto &materials = scene->mMaterials;
+        for(size_t i = 0; i < scene->mNumMaterials; i++){
+            const auto &material = materials[i];
+            Rendering::Material renderingMaterial;
+
+            boost::filesystem::path directoryPath = boost::filesystem::path(filename).parent_path();
+
+            renderingMaterial.albedoMap = LoadMaterialTexture(directoryPath, material, aiTextureType_DIFFUSE);
+            renderingMaterial.roughnessMap = LoadMaterialTexture(directoryPath, material, aiTextureType_SHININESS);
+
+            renderMaterials.push_back(renderingMaterial);
+        }
+
+        const auto &meshes = scene->mMeshes;
         for(size_t i = 0; i < scene->mNumMeshes; i++){
-            const auto mesh = meshes[i];
+            const auto &mesh = meshes[i];
 
             std::vector<int32_t> indexes;
             for(size_t j = 0; j < mesh->mNumFaces; j++){
@@ -44,8 +79,14 @@ namespace ResourceManager {
             for(size_t j = 0; j < mesh->mNumVertices; j++) {
                 Rendering::Vertex vertex;
 
+                vec3 texCoord(0, 0, 0);
+
+                if(mesh->mNumUVComponents[0] == 2)
+                    texCoord = ConvertVector(mesh->mTextureCoords[0][j]);
+
                 vertex.position = ConvertVector(mesh->mVertices[j]);
                 vertex.normal = ConvertVector(mesh->mNormals[j]);
+                vertex.texCoord = vec2(texCoord.x, texCoord.y);
 
                 vertices.push_back(vertex);
             }
@@ -54,9 +95,56 @@ namespace ResourceManager {
             auto renderMesh = render->CreateMesh();
             renderMesh->Init(vertices, indexes);
 
-            renderMeshes.push_back(renderMesh);
+            Rendering::RenderElement renderElement;
+            renderElement.mesh = renderMesh;
+            renderElement.modelMatrix.identity();
+            renderElement.material = renderMaterials[mesh->mMaterialIndex];
+
+            renderElements.push_back(renderElement);
         }
 
-        return renderMeshes;
+        return renderElements;
+    }
+
+    const std::shared_ptr<Rendering::CommonTexture> ResourcesLoaders::LoadTexture(const std::shared_ptr<Common::Stream> &stream) {
+        const auto &render = Rendering::Instance().get();
+
+        size_t dataSize = stream->GetSize();
+        char *buffer = new char[dataSize];
+        stream->Read(buffer, dataSize);
+
+        int width, height, channels;
+        const auto image = stbi_load_from_memory(reinterpret_cast<u_char*>(buffer), dataSize, &width, &height, &channels, STBI_default);
+
+        delete[] buffer;
+
+        auto texture = render->CreateTexture2D();
+
+        if (image == nullptr) {
+            return texture;
+        }
+
+        Rendering::Texture2D::Description textureDescription;
+        textureDescription.height = width;
+        textureDescription.width = height;
+
+        switch (channels) {
+            case 1:
+                textureDescription.pixelFormat = Rendering::R8;
+                break;
+            case 2:
+                textureDescription.pixelFormat = Rendering::RG8;
+                break;
+            case 3:
+                textureDescription.pixelFormat = Rendering::RGB8;
+                break;
+            case 4:
+                textureDescription.pixelFormat = Rendering::RGBA8;
+                break;
+        }
+
+        texture->Init(textureDescription, image);
+        stbi_image_free(image);
+        return texture;
     }
 }

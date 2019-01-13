@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "Material.hpp"
 
 namespace Common {
     struct vec4;
@@ -15,11 +16,14 @@ namespace Rendering {
     class Texture2D;
     class Shader;
     class Mesh;
-    struct RenderElement;
     class RenderContext;
     class RenderTargetContext;
+    struct Material;
 
     enum PixelFormat : int {
+        R8,
+        RG8,
+        RGB8,
         RGBA8,
         RGB565,
         RGB5_A1,
@@ -35,6 +39,13 @@ namespace Rendering {
         TEXCOORD,
         COLOR,
         MAX_ATTRIBUTES
+    };
+
+    struct RenderElement {
+    public:
+        Common::mat4 modelMatrix;
+        Material material;
+        std::shared_ptr<Mesh> mesh;
     };
 
     class Render {

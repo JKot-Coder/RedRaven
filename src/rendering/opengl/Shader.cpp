@@ -64,10 +64,10 @@ namespace OpenGL {
 
         Bind();
 
-        for (int ut = 0; ut < UNIFORM_TYPE_MAX; ut++)
+        for (int ut = 0; ut < Uniform::UNIFORM_MAX; ut++)
             uniformID[ut] = glGetUniformLocation(id, (GLchar*)UniformsNames[ut]);
 
-        for (int st = 0; st < SAMPLER_TYPE_MAX; st++) {
+        for (int st = 0; st < Sampler::SAMPLER_MAX; st++) {
             GLint idx = glGetUniformLocation(id, (GLchar*)SamplerNames[st]);
             if (idx != -1)
                 glUniform1iv(idx, 1, &st);
@@ -86,17 +86,17 @@ namespace OpenGL {
         glUseProgram(id);
     }
 
-    void Shader::SetParam(Shader::UniformType uType, const Common::vec4 &value, int count) const {
+    void Shader::SetParam(Uniform::Type uType, const Common::vec4 &value, int count) const {
         if (uniformID[uType] != -1)
             glUniform4fv(uniformID[uType], count, (GLfloat*)&value);
     }
 
-    void Shader::SetParam(Shader::UniformType uType, const Common::mat4 &value, int count) const {
+    void Shader::SetParam(Uniform::Type uType, const Common::mat4 &value, int count) const {
         if (uniformID[uType] != -1)
             glUniformMatrix4fv(uniformID[uType], count, false, (GLfloat*)&value);
     }
 
-    void Shader::SetParam(Shader::UniformType uType, const Common::Basis &value, int count) const {
+    void Shader::SetParam(Uniform::Type uType, const Common::Basis &value, int count) const {
         if (uniformID[uType] != -1)
             glUniform4fv(uniformID[uType], count * 2, (GLfloat*)&value);
     }

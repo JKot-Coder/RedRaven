@@ -160,20 +160,27 @@ namespace OpenGL {
         ApplyBlending(renderContext->GetBlending(), renderContext->GetBlendingDescription());
 
         shader->Bind();
-        shader->SetParam(Shader::UniformType::LIGHT_DIR, renderContext->GetLightDirection());
+        shader->SetParam(Uniform::Type::LIGHT_DIR, renderContext->GetLightDirection());
 
         if (camera != nullptr) {
             camera->SetAspect(rtWidth, rtHeight);
-            shader->SetParam(Shader::UniformType::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
-            shader->SetParam(Shader::UniformType::CAMERA_POSITION, camera->GetTransform().Position);
+            shader->SetParam(Uniform::Type::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
+            shader->SetParam(Uniform::Type::CAMERA_POSITION, camera->GetTransform().Position);
         }
     }
 
     void Render::DrawElement(const RenderElement &renderElement) const {
         const auto& shader = renderContext->GetShader();
+        const auto& material = renderElement.material;
 
-        shader->SetParam(Shader::UniformType::MODEL_MATRIX, renderElement.modelMatrix);
-        shader->SetParam(Shader::UniformType::MATERIAL, vec4(renderElement.material.roughness,1,1,1));
+        shader->SetParam(Uniform::Type::MODEL_MATRIX, renderElement.modelMatrix);
+        shader->SetParam(Uniform::Type::MATERIAL, vec4(renderElement.material.roughness,1,1,1));
+
+        if(material.albedoMap)
+            material.albedoMap->Bind(Sampler::ALBEDO);
+
+        if(material.roughnessMap)
+            material.roughnessMap->Bind(Sampler::ROUGHNESS);
 
         renderElement.mesh->Draw();
     }
@@ -209,7 +216,6 @@ namespace OpenGL {
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);//TODO: find a better place for it
         glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
         glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
-
     }
 
 }

@@ -106,12 +106,14 @@ vec3 tonemapReinhard(vec3 x){
 struct VertexData {
     vec3 Normal;
     vec3 WorldPosition;
+    vec2 UV;
 };
 
 #ifdef VERTEX
 
 layout(location = 0) in vec3 Position;
 layout(location = 1) in vec3 Normal;
+layout(location = 2) in vec2 UV;
 
 uniform mat4 ViewProjection;
 uniform mat4 Model;
@@ -124,6 +126,7 @@ void main()
 
     Vertex.Normal = normalize(mat3(Model) * Normal);
 	Vertex.WorldPosition = WorldPosition.xyz;
+	Vertex.UV = UV;
 
 	gl_Position = ViewProjection * WorldPosition;
 }
@@ -134,8 +137,10 @@ void main()
 
 in VertexData Vertex;
 
-// layout (location = 0)
-out vec4 fragColor;
+out vec4 FragColor;
+
+uniform sampler2D AlbedoTex;
+uniform sampler2D RoughnessTex;
 
 void main()
 {
@@ -158,12 +163,12 @@ void main()
 
     float LdotV = saturate(dot(L, V));
 
-    float linearRoughness = abs(Material.x);
+    float linearRoughness = texture(RoughnessTex, Vertex.UV).r;//abs(Material.x);
     float roughness = linearRoughness * linearRoughness;
 
     // Specular BRDF
 //   vec3  f0  = vec3(1.0, 0.86, 0.56);
-    vec3  f0  = vec3(1.0, 1.0, 1.0) * 1.0;
+    vec3  f0  = vec3(1.0, 1.0, 1.0) * 0.2;
     float f90 = saturate(1.0 - linearRoughness);// + (1-oneMinusReflectivity));
     vec3  F   = F_Schlick(f0, f90, NdotV);
     float Vis = V_SmithGGXCorrelated(NdotV, NdotL, roughness);
@@ -171,7 +176,7 @@ void main()
     vec3  Fr  = D * F * Vis;
 
   // vec3 albedo = vec3(0.86, 0.176, 0);
-    vec3 albedo = vec3(1.0, 1.0, 1.0);
+    vec4 albedo = texture(AlbedoTex, Vertex.UV);
 
     // Diffuse BRDF
 
@@ -182,16 +187,16 @@ void main()
     float Fd = DisneyDiffuseRenorm(NdotV, NdotL, LdotH, linearRoughness);
     vec3 renormCoeff = vec3(1.0f);
 
-    vec3 diffuse = Fd * albedo * renormCoeff * (vec3(1.0) - f0);
-	vec3 color = vec3(diffuse + Fr) * NdotL  / PI;
+    vec3 diffuse = Fd * albedo.rgb * renormCoeff * (vec3(1.0) - f0);
+	vec3 color = vec3(diffuse + Fr) * NdotL / PI;
 
     if (max(max(color.r, color.g), color.b) > 1.0)
     {
-        fragColor = vec4(1.0, 0.0, 0.0, 1.0) ;
+        FragColor = vec4(1.0, 0.0, 0.0, 1.0) ;
         //return;
     }
 
-    fragColor = vec4(color, 1.0);
+    FragColor = vec4(color, albedo.a);
     //fragColor = vec4(1.0, 1.0, 1.0, 1.0) ;
 
     //fragColor = vec4(vec3(NdotL) /  PI, 1.0);

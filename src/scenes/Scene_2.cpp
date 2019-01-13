@@ -5,6 +5,7 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
+#include "rendering/Render.hpp"
 #include "rendering/Camera.hpp"
 #include "rendering/RenderContext.hpp"
 #include "rendering/Primitives.hpp"
@@ -17,7 +18,7 @@ namespace Scenes {
 
     void Scene_2::Init() {
         const auto &resourceManager = ResourceManager::Instance();
-        const auto meshes = resourceManager->LoadScene("../../assets/sponza.obj");
+        const auto scene = resourceManager->LoadScene("../../assets/sponza.obj");
 
         lookAngle = vec2(0, 0);
 
@@ -31,21 +32,7 @@ namespace Scenes {
         camera = std::make_shared<Rendering::Camera>(cameraDescription);
         camera->LookAt(vec3(-3,-20,0), vec3(0,-20,0));
 
-        mat4 modelMat;
-        modelMat.identity();
-
-        Rendering::Material material;
-        material.albedo = vec3(1.0, 1.0, 1.0);
-        material.roughness = 0.8;
-
-        for (size_t i = 0; i < meshes.size(); ++i) {
-            Rendering::RenderElement element;
-            element.mesh = meshes[i];
-            element.modelMatrix = modelMat;
-            element.material = material;
-
-            renderElements.push_back(element);
-        }
+        renderElements = scene;
     }
 
     void Scenes::Scene_2::Collect(Rendering::RenderContext& renderContext) {

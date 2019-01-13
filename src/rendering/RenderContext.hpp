@@ -17,14 +17,8 @@ namespace Rendering {
     class Shader;
     class Camera;
     class RenderTargetContext;
+    struct RenderElement;
     enum DepthTestFunction : int;
-
-    struct RenderElement {
-    public:
-        mat4 modelMatrix;
-        Rendering::Material material;
-        std::shared_ptr<Rendering::Mesh> mesh;
-    };
 
     typedef std::vector<RenderElement> RenderQuery;
 

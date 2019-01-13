@@ -1,6 +1,5 @@
 set(definitions)
 
-
 set(rendering AUTO CACHE STRING "Graphics api")
 set_property(CACHE rendering PROPERTY STRINGS OPENGL)
 
@@ -15,27 +14,27 @@ endif()
 
 if (WIN32)
     set(OPEN_DEMO_SRC_PLATFORM)
-    SET(OPEN_DEMO_PLATFORM_DEFINITIONS
+    set(OPEN_DEMO_PLATFORM_DEFINITIONS
             OS_WIN
             NOMINMAX)
     if(rendering STREQUAL AUTO)
-        SET(rendering OPENGL)
+        set(rendering OPENGL)
     endif()
 endif ()
 
 if (APPLE)
     set(OPEN_DEMO_SRC_PLATFORM)
-    SET(OPEN_DEMO_PLATFORM_DEFINITIONS
+    set(OPEN_DEMO_PLATFORM_DEFINITIONS
             OS_APPLE)
     if(rendering STREQUAL AUTO)
-        SET(rendering OPENGL)
+        set(rendering OPENGL)
     endif()
 endif ()
 
 if (LINUX)
     set(OPEN_DEMO_SRC_PLATFORM)
     if(rendering STREQUAL AUTO)
-        SET(rendering OPENGL)
+        set(rendering OPENGL)
     endif()
 endif ()
 
@@ -56,32 +55,36 @@ if (rendering STREQUAL OPENGL)
             rendering/opengl/RenderTargetContext.hpp)
 
     set(OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI
-            ${CMAKE_SOURCE_DIR}/src/render/opengl
-            ${CMAKE_SOURCE_DIR}/src/depencies/glad
-            ${CMAKE_SOURCE_DIR}/src/depencies/KHR)
+            ${PROJECT_SOURCE_DIR}/src/render/opengl
+            ${PROJECT_SOURCE_DIR}/src/depencies/glad
+            ${PROJECT_SOURCE_DIR}/src/depencies/KHR)
 endif ()
 
-find_package(SDL2 REQUIRED)
+hunter_add_package(Assimp)
+find_package(Assimp CONFIG REQUIRED)
+
+hunter_add_package(Boost COMPONENTS filesystem)
+find_package(Boost CONFIG REQUIRED filesystem)
 
 set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
         ${RENDER_GAPI_LIBRARIES}
-        assimp)
+        STB
+        Assimp::assimp
+        Boost::filesystem)
 
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS}
         ${OPEN_DEMO_BUILD_DEFINITIONS})
 
 set(OPEN_DEMO_INCLUDE_DIRS
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/common
-        ${CMAKE_SOURCE_DIR}/src/filesystem
-        ${CMAKE_SOURCE_DIR}/src/input
-        ${CMAKE_SOURCE_DIR}/src/resource_manager
-        ${CMAKE_SOURCE_DIR}/src/windowing
-        ${CMAKE_SOURCE_DIR}/src/render
-        ${CMAKE_SOURCE_DIR}/src/dependencies/assimp/include
-        ${CMAKE_CURRENT_BINARY_DIR}/dependencies/assimp/include
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/src/common
+        ${PROJECT_SOURCE_DIR}/src/filesystem
+        ${PROJECT_SOURCE_DIR}/src/input
+        ${PROJECT_SOURCE_DIR}/src/resource_manager
+        ${PROJECT_SOURCE_DIR}/src/windowing
+        ${PROJECT_SOURCE_DIR}/src/render
         ${OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI}
         ${SDL2_INCLUDE_DIR})
 

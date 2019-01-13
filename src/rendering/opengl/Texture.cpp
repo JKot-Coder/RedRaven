@@ -16,6 +16,9 @@ namespace OpenGL {
     Texture2D::OpenGlPixelFormatDescription Texture2D::GetOpenGlPixelFormatDescription(PixelFormat pixelFormat) const {
 
         static const OpenGlPixelFormatDescription formats[PIXEL_FORMAT_MAX] = {
+            { GL_R8,                GL_RED,             GL_UNSIGNED_BYTE          }, // R8
+            { GL_RG8,               GL_RG,              GL_UNSIGNED_BYTE          }, // RG8
+            { GL_RGB8,              GL_RGB,             GL_UNSIGNED_BYTE          }, // RGB8
             { GL_RGBA8,             GL_RGBA,            GL_UNSIGNED_BYTE          }, // RGBA8
             { GL_RGB565,            GL_RGB,             GL_UNSIGNED_SHORT_5_6_5   }, // R5G6B5
             { GL_RGB5_A1,           GL_RGBA,            GL_UNSIGNED_SHORT_5_5_5_1 }, // R5G5B5A1
