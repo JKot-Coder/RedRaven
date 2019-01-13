@@ -59,7 +59,9 @@ namespace ResourceManager {
             boost::filesystem::path directoryPath = boost::filesystem::path(filename).parent_path();
 
             renderingMaterial.albedoMap = LoadMaterialTexture(directoryPath, material, aiTextureType_DIFFUSE);
+            renderingMaterial.normalMap = LoadMaterialTexture(directoryPath, material, aiTextureType_NORMALS);
             renderingMaterial.roughnessMap = LoadMaterialTexture(directoryPath, material, aiTextureType_SHININESS);
+            renderingMaterial.metallicMap = LoadMaterialTexture(directoryPath, material, aiTextureType_AMBIENT);
 
             renderMaterials.push_back(renderingMaterial);
         }
@@ -86,6 +88,8 @@ namespace ResourceManager {
 
                 vertex.position = ConvertVector(mesh->mVertices[j]);
                 vertex.normal = ConvertVector(mesh->mNormals[j]);
+                vertex.tangent = ConvertVector(mesh->mTangents[j]);
+                vertex.binormal = ConvertVector(mesh->mBitangents[j]);
                 vertex.texCoord = vec2(texCoord.x, texCoord.y);
 
                 vertices.push_back(vertex);

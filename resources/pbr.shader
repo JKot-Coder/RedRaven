@@ -105,6 +105,8 @@ vec3 tonemapReinhard(vec3 x){
 
 struct VertexData {
     vec3 Normal;
+    vec3 Tangent;
+    vec3 Binormal;
     vec3 WorldPosition;
     vec2 UV;
 };
@@ -112,8 +114,11 @@ struct VertexData {
 #ifdef VERTEX
 
 layout(location = 0) in vec3 Position;
-layout(location = 1) in vec3 Normal;
-layout(location = 2) in vec2 UV;
+layout(location = 1) in vec2 UV;
+layout(location = 2) in vec3 Normal;
+layout(location = 3) in vec3 Tangent;
+layout(location = 4) in vec3 Binormal;
+layout(location = 5) in vec4 Color;
 
 uniform mat4 ViewProjection;
 uniform mat4 Model;
@@ -125,6 +130,8 @@ void main()
     vec4 WorldPosition = Model * vec4(Position, 1.0);
 
     Vertex.Normal = normalize(mat3(Model) * Normal);
+    Vertex.Tangent = normalize(mat3(Model) * Tangent);
+    Vertex.Binormal = normalize(mat3(Model) * Binormal);
 	Vertex.WorldPosition = WorldPosition.xyz;
 	Vertex.UV = UV;
 
@@ -139,18 +146,25 @@ in VertexData Vertex;
 
 out vec4 FragColor;
 
-uniform sampler2D AlbedoTex;
-uniform sampler2D RoughnessTex;
+uniform sampler2D AlbedoMap;
+uniform sampler2D NormalMap;
+uniform sampler2D RoughnessMap;
+uniform sampler2D MetallicMap;
 
 void main()
 {
-    vec3 N = normalize(Vertex.Normal);
+    mat3 TBNBasis = mat3(normalize(Vertex.Tangent),
+                         normalize(Vertex.Binormal),
+                         normalize(Vertex.Normal));
+
+    vec3 normal = texture(NormalMap, Vertex.UV).xyz;
+    vec3 N = normalize(TBNBasis * (2.0 * normal - 1.0));
     vec3 V = normalize(CameraPosition.xyz - Vertex.WorldPosition);
     vec3 L = normalize(LightDirection.xyz);
 
    // V = vec3(0, 0, 1);
     L = dot(L, N) < 0 ? -L : L;
-    L = normalize(vec3(-1, 0, 1));
+    L = normalize(vec3(-1, 1, 1));
 
     // This code is an example of call of previous functions
     float NdotV = abs(dot(N, V)) + 1e-5; // avoid artifact
@@ -163,44 +177,33 @@ void main()
 
     float LdotV = saturate(dot(L, V));
 
-    float linearRoughness = texture(RoughnessTex, Vertex.UV).r;//abs(Material.x);
+    float linearRoughness = texture(RoughnessMap, Vertex.UV).r;
     float roughness = linearRoughness * linearRoughness;
+    float metallic = texture(MetallicMap, Vertex.UV).r;
+
+    float oneMinusReflectivity = 0.96f - metallic * 0.96f;
+    vec4 albedo = texture(AlbedoMap, Vertex.UV);
+    albedo.rgb = vec3( pow(albedo.r, 2.2), pow(albedo.g, 2.2), pow(albedo.b, 2.2));
 
     // Specular BRDF
-//   vec3  f0  = vec3(1.0, 0.86, 0.56);
-    vec3  f0  = vec3(1.0, 1.0, 1.0) * 0.2;
-    float f90 = saturate(1.0 - linearRoughness);// + (1-oneMinusReflectivity));
+    vec3  f0 = mix(vec3(0.04f, 0.04f, 0.04f), albedo.rgb, metallic);
+    float f90 = 1.0;//- linearRoughness);// + (1-oneMinusReflectivity));
     vec3  F   = F_Schlick(f0, f90, NdotV);
     float Vis = V_SmithGGXCorrelated(NdotV, NdotL, roughness);
     float D   = D_GGX(NdotH, roughness);
     vec3  Fr  = D * F * Vis;
-
-  // vec3 albedo = vec3(0.86, 0.176, 0);
-    vec4 albedo = texture(AlbedoTex, Vertex.UV);
+    albedo.rgb *= oneMinusReflectivity;
 
     // Diffuse BRDF
-
     //vec3 renormCoeff = vec3(1.0f - F);
     //vec3 renormCoeff = vec3(mix( 1.0, 1.0 / 1.51, linearRoughness ));
     //float Fd = Lambert(NdotV, NdotL, LdotH, linearRoughness);
 
     float Fd = DisneyDiffuseRenorm(NdotV, NdotL, LdotH, linearRoughness);
-    vec3 renormCoeff = vec3(1.0f);
-
-    vec3 diffuse = Fd * albedo.rgb * renormCoeff * (vec3(1.0) - f0);
+    vec3 diffuse = Fd * albedo.rgb;
 	vec3 color = vec3(diffuse + Fr) * NdotL / PI;
 
-    if (max(max(color.r, color.g), color.b) > 1.0)
-    {
-        FragColor = vec4(1.0, 0.0, 0.0, 1.0) ;
-        //return;
-    }
-
     FragColor = vec4(color, albedo.a);
-    //fragColor = vec4(1.0, 1.0, 1.0, 1.0) ;
-
-    //fragColor = vec4(vec3(NdotL) /  PI, 1.0);
-	//fragColor = vec4(pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);
 }
 
 #endif

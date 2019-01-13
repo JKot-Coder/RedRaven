@@ -32,8 +32,6 @@ namespace Scenes {
             modelMat.translate(vec3(-8 + i * 2.2, 0 ,0));
 
             Rendering::Material material;
-            material.albedo = vec3(1.0, 1.0, 1.0);
-            material.roughness = 0.1 + i/7.0 * 0.9;
 
             Rendering::RenderElement element;
             element.mesh = sphereMesh;

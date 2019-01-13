@@ -11,8 +11,8 @@ uniform sampler2D AlbedoTex;
 #ifdef VERTEX
 
 layout(location = 0) in vec3 Position;
-layout(location = 1) in vec3 Normal;
-layout(location = 2) in vec2 TextureCoord;
+layout(location = 1) in vec2 TextureCoord;
+layout(location = 2) in vec3 Normal;
 
 out VertexData Vertex;
 
@@ -47,8 +47,8 @@ void main()
 //        return;
 //    }
 
- //   fragColor = vec4( color.rgb, 1.0);
-	fragColor = vec4( pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);
+  // fragColor = vec4( color.rgb, 1.0);
+    fragColor = vec4( pow(color.r, 1/2.2), pow(color.g, 1/2.2), pow(color.b, 1/2.2), 1.0);
 }
 
 #endif

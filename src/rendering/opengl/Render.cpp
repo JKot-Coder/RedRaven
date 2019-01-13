@@ -174,10 +174,16 @@ namespace OpenGL {
         const auto& material = renderElement.material;
 
         shader->SetParam(Uniform::Type::MODEL_MATRIX, renderElement.modelMatrix);
-        shader->SetParam(Uniform::Type::MATERIAL, vec4(renderElement.material.roughness,1,1,1));
+       // shader->SetParam(Uniform::Type::MATERIAL, vec4(renderElement.material.roughness,1,1,1));
 
         if(material.albedoMap)
             material.albedoMap->Bind(Sampler::ALBEDO);
+
+        if(material.normalMap)
+            material.normalMap->Bind(Sampler::NORMAL);
+
+        if(material.metallicMap)
+            material.metallicMap->Bind(Sampler::METALLIC);
 
         if(material.roughnessMap)
             material.roughnessMap->Bind(Sampler::ROUGHNESS);

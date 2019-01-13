@@ -35,8 +35,10 @@ namespace Rendering {
 
     enum Attributes {
         POSITION,
-        NORMAL,
         TEXCOORD,
+        NORMAL,
+        TANGENT,
+        BINORMAL,
         COLOR,
         MAX_ATTRIBUTES
     };

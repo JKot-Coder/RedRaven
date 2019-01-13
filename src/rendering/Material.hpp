@@ -9,9 +9,6 @@ namespace Rendering {
     class CommonTexture;
 
     struct Material {
-        Common::vec3 albedo;
-        float roughness;
-
         std::shared_ptr<CommonTexture> albedoMap;
         std::shared_ptr<CommonTexture> normalMap;
         std::shared_ptr<CommonTexture> metallicMap;

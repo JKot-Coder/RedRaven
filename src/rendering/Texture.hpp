@@ -9,7 +9,9 @@ namespace Rendering {
     namespace Sampler {
         enum Type {
             ALBEDO,
+            NORMAL,
             ROUGHNESS,
+            METALLIC,
             SAMPLER_MAX
         };
     }

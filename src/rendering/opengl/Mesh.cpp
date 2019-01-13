@@ -59,14 +59,17 @@ namespace OpenGL {
 
     void Mesh::SetupAttributes() {
         glEnableVertexAttribArray(Attributes::POSITION);
-        glEnableVertexAttribArray(Attributes::NORMAL);
         glEnableVertexAttribArray(Attributes::TEXCOORD);
+        glEnableVertexAttribArray(Attributes::NORMAL);
+        glEnableVertexAttribArray(Attributes::TANGENT);
+        glEnableVertexAttribArray(Attributes::BINORMAL);
         glEnableVertexAttribArray(Attributes::COLOR);
 
         glVertexAttribPointer(Attributes::POSITION, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, position));
-        glVertexAttribPointer(Attributes::NORMAL,   3, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, normal));
         glVertexAttribPointer(Attributes::TEXCOORD, 2, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-        glVertexAttribPointer(Attributes::COLOR,    4, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, color));
+        glVertexAttribPointer(Attributes::NORMAL,   3, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, normal));
+        glVertexAttribPointer(Attributes::TANGENT,  3, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+        glVertexAttribPointer(Attributes::BINORMAL, 3, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, binormal));
         glVertexAttribPointer(Attributes::COLOR,    4, GL_FLOAT, true,  sizeof(Vertex), (void*)offsetof(Vertex, color));
     };
 
