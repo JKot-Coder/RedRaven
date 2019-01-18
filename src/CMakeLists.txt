@@ -60,18 +60,13 @@ if (rendering STREQUAL OPENGL)
             ${PROJECT_SOURCE_DIR}/src/depencies/KHR)
 endif ()
 
-hunter_add_package(Assimp)
-find_package(Assimp CONFIG REQUIRED)
-
-hunter_add_package(Boost COMPONENTS filesystem)
-find_package(Boost CONFIG REQUIRED filesystem)
-
 set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
         ${RENDER_GAPI_LIBRARIES}
         STB
-        Assimp::assimp
-        Boost::filesystem)
+        ${CONAN_LIBS_ASSIMP}
+        ${CONAN_LIBS_BOOST_FILESYSTEM}
+        ${CONAN_LIBS})
 
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS}
@@ -177,7 +172,8 @@ target_compile_definitions(open_demo PRIVATE ${OPEN_DEMO_DEFINITIONS})
 target_include_directories(open_demo PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})
 
 if(MSVC)
-    target_compile_options($open_demo PRIVATE /W4 /WX)
+	set_target_properties(open_demo PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "build/bin")
+    target_compile_options(open_demo PRIVATE /W4 /WX)
 else(MSVC)
     target_compile_options(open_demo PRIVATE -Wall -Wextra -pedantic -Werror)
 endif(MSVC)

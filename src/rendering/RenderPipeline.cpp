@@ -62,9 +62,9 @@ namespace Rendering{
         getPass<RenderPassPostProcess>()->Draw();
     }
 
-    void RenderPipeline::WindowResize(const Windowing::Window &window) {
-        int width = window.GetWidth();
-        int height = window.GetHeight();
+    void RenderPipeline::OnWindowResize(const Windowing::Window &window_) {
+        int width = window_.GetWidth();
+        int height = window_.GetHeight();
         hdrRenderTargetContext->Resize(width, height);
     }
 

@@ -53,7 +53,7 @@ void Application::Start() {
     terminate();
 }
 
-void Application::Quit() {
+void Application::OnQuit() {
     quit = true;
 }
 
@@ -65,7 +65,7 @@ void Application::init() {
     settings.WindowRect = rect;
 
     Windowing::Windowing::Subscribe(this);
-    window = Windowing::Windowing::CreateWindow(settings);
+    window = Windowing::Windowing::ConstructWindow(settings);
 
     Inputting::Instance()->Init();
     Inputting::Instance()->TrapMouseInWindow(window);

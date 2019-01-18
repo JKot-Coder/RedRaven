@@ -16,20 +16,21 @@ namespace Windowing {
 
         class Listener {
         public:
-            virtual void WindowResize(const Window &window) { (void) window; };
+            virtual void OnWindowResize(const Window &window) { (void) window; };
 
-            virtual void KeyUp(const SDL_Keysym &keysym) { (void) keysym; }
-            virtual void KeyDown(const SDL_Keysym &keysym) { (void) keysym; }
+            virtual void OnKeyUp(const SDL_Keysym &keysym) { (void) keysym; }
+            virtual void OnKeyDown(const SDL_Keysym &keysym) { (void) keysym; }
 
-            virtual void MouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) { (void) mouseMotionEvent; }
+            virtual void OnMouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) { (void) mouseMotionEvent; }
 
-            virtual void Quit() {};
+            virtual void OnQuit() {};
         };
 
         Windowing();
         ~Windowing();
 
-        static const std::shared_ptr<Window> CreateWindow(const WindowSettings &settings);
+        //Use construct instead create to avoid problems with mvc
+        static const std::shared_ptr<Window> ConstructWindow(const WindowSettings &settings);
         static void PoolEvents();
         static void Subscribe(Listener *listener);
         static void UnSubscribe(const Listener *listener);

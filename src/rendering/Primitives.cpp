@@ -27,19 +27,18 @@ namespace Rendering {
 
         for (uint32_t j = 0; j < segments - 1; ++j)
         {
-            double const polar = M_PI * double(j+1) / double(segments);
-            double const sp = sin(polar);
-            double const cp = cos(polar);
+            float const polar = PI * float(j+1) / float(segments);
+            float const sp = sin(polar);
+            float const cp = cos(polar);
 
             for (uint32_t i = 0; i < segments; ++i)
             {
-                double const azimuth = 2.0 * M_PI * double(i) / double(segments);
-                double const sa = sin(azimuth);
-                double const ca = cos(azimuth);
-                double const x = sp * ca;
-                double const y = cp;
-                double const z = sp * sa;
-
+                float const azimuth = 2.0f * PI * float(i) / float(segments);
+                float const sa = sin(azimuth);
+                float const ca = cos(azimuth);
+                float const x = sp * ca;
+                float const y = cp;
+                float const z = sp * sa;
 
                 vertices[index].position = vec3(x, y, z);
                 vertices[index].normal   = vec3(x, y, z);
@@ -93,7 +92,7 @@ namespace Rendering {
             indexes->emplace_back(b);
         }
 
-        mesh->Init(vertices, vertexCount, indexes->data(), indexes->size());
+        mesh->Init(vertices, vertexCount, indexes->data(), static_cast<int32_t>(indexes->size()));
 
         delete indexes;
         delete[] vertices;

@@ -26,16 +26,16 @@ namespace Rendering {
     public:
         RenderContext();
 
-        inline void SetDepthWrite(bool value) { this->depthWrite = value; }
-        inline void SetDepthTestFunction(DepthTestFunction function) { this->depthTestFunction = function; }
+        inline void SetDepthWrite(bool value) { depthWrite = value; }
+        inline void SetDepthTestFunction(DepthTestFunction value) { depthTestFunction = value; }
 
-        inline void SetBlending(bool value) { this->blending = value; }
-        inline void SetBlendingDescription(const BlendingDescription& blendingDescription) { this->blendingDescription = blendingDescription; }
+        inline void SetBlending(bool value) { blending = value; }
+        inline void SetBlendingDescription(const BlendingDescription& value) { blendingDescription = value; }
 
-        inline void SetCamera(const std::shared_ptr<Camera> &camera) { this->camera = camera; }
-        inline void SetRenderTarget(const std::shared_ptr<RenderTargetContext> &renderTargetContext) { this->renderTargetContext = renderTargetContext; }
-        inline void SetShader(const std::shared_ptr<Shader> &shader) { this->shader = shader; }
-        inline void SetLightDirection(const vec3& direction) { this->lightDirection = direction; }
+        inline void SetCamera(const std::shared_ptr<Camera> &value) { camera = value; }
+        inline void SetRenderTarget(const std::shared_ptr<RenderTargetContext> &value) { renderTargetContext = value; }
+        inline void SetShader(const std::shared_ptr<Shader> &value) { shader = value; }
+        inline void SetLightDirection(const vec3& value) { lightDirection = value; }
 
         inline bool GetDepthWrite() const { return depthWrite; }
         inline DepthTestFunction GetDepthTestFunction() const { return depthTestFunction; }

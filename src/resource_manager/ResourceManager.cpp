@@ -22,17 +22,18 @@ namespace ResourceManager {
     const std::shared_ptr<Rendering::Shader> ResourceManager::LoadShader(const std::string& filename) {
         auto *filesystem = FileSystem::Instance().get();
 
+		const auto &render = Rendering::Instance().get();
+		auto shader = render->CreateShader();
+
         std::shared_ptr<Common::Stream> stream;
         try {
             stream = filesystem->Open(filename, FileSystem::Mode::READ);
         } catch(const std::exception &exception) {
             LOG("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
+			return shader;
         }
 
-        const auto &render = Rendering::Instance().get();
-        auto shader = render->CreateShader();
-        shader->LinkSource(stream.get());
-
+        shader->LinkSource(stream);
         return shader;
     }
 

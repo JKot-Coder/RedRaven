@@ -13,8 +13,8 @@ namespace OpenGL {
         Mesh();
         virtual ~Mesh() override;
 
-        virtual void Init(const Vertex *vertices, int vCount) override;
-        virtual void Init(const Vertex *vertices, int vCount, const int32_t *indexes, int iCount) override;
+        virtual void Init(const Vertex *vertices, int32_t vCount) override;
+        virtual void Init(const Vertex *vertices, int32_t vCount, const int32_t *indexes, int32_t iCount) override;
 
         virtual void Init(const std::vector<Vertex> &vertices) override;
         virtual void Init(const std::vector<Vertex> &vertices, const std::vector<int32_t> &indexes) override;

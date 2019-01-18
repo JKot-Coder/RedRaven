@@ -16,7 +16,7 @@ public:
     Application() : quit(false) {}
 
     void Start();
-    virtual void Quit() override;
+    virtual void OnQuit() override;
 private:
     bool quit;
 

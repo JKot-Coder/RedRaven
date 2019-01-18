@@ -11,13 +11,13 @@ namespace Common {
 
         virtual std::string GetName() const = 0;
 
-        virtual int GetPosition() = 0;
-        virtual void SetPosition(int value) = 0;
+        virtual int64_t GetPosition() = 0;
+        virtual void SetPosition(int64_t value) = 0;
 
-        virtual int GetSize() = 0;
+        virtual int64_t GetSize() = 0;
 
-        virtual int Read(char *data, int length) = 0;
-        virtual int Write(const char *data, int length) = 0;
+        virtual int64_t Read(char *data, int64_t length) = 0;
+        virtual int64_t Write(const char *data, int64_t length) = 0;
 
         virtual std::istream* GetNativeStream() = 0;
     };

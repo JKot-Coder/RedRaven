@@ -19,8 +19,8 @@ namespace Rendering
     public:
         virtual ~Mesh() {};
 
-        virtual void Init(const Vertex *vertices, int vCount) = 0;
-        virtual void Init(const Vertex *vertices, int vCount, const int32_t *indexes, int iCount) = 0;
+        virtual void Init(const Vertex *vertices, int32_t vCount) = 0;
+        virtual void Init(const Vertex *vertices, int32_t vCount, const int32_t *indexes, int32_t iCount) = 0;
 
         virtual void Init(const std::vector<Vertex> &vertices) = 0;
         virtual void Init(const std::vector<Vertex> &vertices, const std::vector<int32_t> &indexes) = 0;

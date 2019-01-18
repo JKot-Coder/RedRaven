@@ -22,13 +22,13 @@ namespace FileSystem {
             return fileName;
         }
 
-        virtual int32_t GetPosition() override;
-        virtual void SetPosition(int32_t value) override;
+        virtual int64_t GetPosition() override;
+        virtual void SetPosition(int64_t value) override;
 
-        virtual int32_t GetSize() override;
+        virtual int64_t GetSize() override;
 
-        virtual int32_t Read(char *data, int32_t length) override;
-        virtual int32_t Write(const char *data, int32_t length) override;
+        virtual int64_t Read(char *data, int64_t length) override;
+        virtual int64_t Write(const char *data, int64_t length) override;
 
         virtual std::istream* GetNativeStream() override;
     private:

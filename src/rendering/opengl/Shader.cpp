@@ -18,7 +18,7 @@ namespace OpenGL {
         glDeleteProgram(id);
     }
 
-    bool Shader::LinkSource(Common::Stream *stream) {
+    bool Shader::LinkSource(const std::shared_ptr<Common::Stream> &stream) {
         const char GLSL_VERT[] = "#define VERTEX\n";
         const char GLSL_FRAG[] = "#define FRAGMENT\n";
 

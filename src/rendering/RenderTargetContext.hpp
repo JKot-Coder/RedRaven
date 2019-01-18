@@ -45,12 +45,13 @@ namespace Rendering {
             colorTargets[index] = renderTargetDescription;
         }
 
-        inline float GetWidth() const { return this->width; }
-        inline float GetHeight() const { return this->height; }
+        inline int GetWidth() const { return this->width; }
+        inline int GetHeight() const { return this->height; }
 
-        virtual inline void Resize(int width, int height){
-            this->width = width;
-            this->height = height;
+        virtual inline void Resize(int width_, int height_){
+            //TODO asserts and checks for updated value
+            width = width_;
+            height = height_;
 
             if (depthStencil.texture != nullptr){
                 depthStencil.texture->Resize(width, height);

@@ -97,9 +97,9 @@ namespace Inputting {
             return;
 
         if (SDL_GetMouseFocus() == mouseWindowTrap->GetSDLWindow()) {
-            int height = mouseWindowTrap->GetHeight();
-            int width = mouseWindowTrap->GetWidth();
-            mouseWindowTrap->SetMousePos(width / 2, height / 2);
+            //int height = mouseWindowTrap->GetHeight();
+           // int width = mouseWindowTrap->GetWidth();
+          //  mouseWindowTrap->SetMousePos(width / 2, height / 2);
             mouseWindowTrap->ShowCursor(false);
         }
 
@@ -146,7 +146,7 @@ namespace Inputting {
         }
     }
 
-    void Input::KeyUp(const SDL_Keysym &keysym) {
+    void Input::OnKeyUp(const SDL_Keysym &keysym) {
         const auto &it = SDLToInputKeyMap.find(keysym.scancode);
         if(it == SDLToInputKeyMap.end())
             return;
@@ -154,7 +154,7 @@ namespace Inputting {
         SetDown(it->second, false);
     }
 
-    void Input::KeyDown(const SDL_Keysym &keysym) {
+    void Input::OnKeyDown(const SDL_Keysym &keysym) {
         const auto &it = SDLToInputKeyMap.find(keysym.scancode);
         if(it == SDLToInputKeyMap.end())
             return;
@@ -162,22 +162,22 @@ namespace Inputting {
         SetDown(it->second, true);
     }
 
-    void Input::MouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) {
+    void Input::OnMouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) {
         if (mouseWindowTrap.get()) {
-            int height = mouseWindowTrap->GetHeight();
-            int width = mouseWindowTrap->GetWidth();
+            float height = static_cast<float>(mouseWindowTrap->GetHeight());
+            float width = static_cast<float>(mouseWindowTrap->GetWidth());
             vec2 center = vec2(width, height) * 0.5f;
-            vec2 mouse = vec2(mouseMotionEvent.x, mouseMotionEvent.y);
+            vec2 mouse = vec2(static_cast<float>(mouseMotionEvent.x), static_cast<float>(mouseMotionEvent.y));
             Mouse.relative = mouse - center;
         }
-        Mouse.pos = vec2(mouseMotionEvent.x, mouseMotionEvent.y);
+        Mouse.pos = vec2(static_cast<float>(mouseMotionEvent.x),  static_cast<float>(mouseMotionEvent.y));
     }
 
     void Input::TrapMouseInWindow(const std::shared_ptr<Windowing::Window> &window) {
         ASSERT(window.get())
 
         mouseWindowTrap = window;
-        SDL_SetWindowGrab(mouseWindowTrap->GetSDLWindow(), SDL_TRUE);
+      //  SDL_SetWindowGrab(mouseWindowTrap->GetSDLWindow(), SDL_TRUE);
     }
 
 }

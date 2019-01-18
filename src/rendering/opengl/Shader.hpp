@@ -18,7 +18,7 @@ namespace OpenGL {
         Shader();
         virtual ~Shader() override;
 
-        virtual bool LinkSource(Common::Stream *stream) override;
+        virtual bool LinkSource(const std::shared_ptr<Common::Stream> &stream) override;
         virtual void Bind() const override;
 
         virtual void SetParam(Uniform::Type uType, const Common::vec4 &value, int count = 1) const override;

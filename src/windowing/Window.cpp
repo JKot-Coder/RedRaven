@@ -24,7 +24,7 @@ namespace Windowing {
 
     bool Window::Init(const WindowSettings &settings){
         std::string windowerror;
-        Uint32 windowflags = SDL_WINDOW_RESIZABLE;
+		Uint32 windowflags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
 
         ASSERT(!window)
 
@@ -57,7 +57,8 @@ namespace Windowing {
     }
 
     void Window::SetMousePos(int x, int y) const {
-        SDL_WarpMouseInWindow(window, x, y);
+        (void) x, y;
+      //  SDL_WarpMouseInWindow(window, x, y);
     }
 
     void Window::ShowCursor(bool value) const {

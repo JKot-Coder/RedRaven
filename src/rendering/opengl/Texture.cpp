@@ -50,7 +50,11 @@ namespace OpenGL {
         glBindTexture(GL_TEXTURE_2D, id);
     }
 
-    void Texture2D::Resize(int width, int height) {
+    void Texture2D::Resize(int width_, int height_) {
+        //TODO asserts and check for update
+        width = width_;
+        height = height_;
+
         Bind(0);
         glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, width, height, 0, pixelFormatDescription.format, pixelFormatDescription.type, nullptr);
     };

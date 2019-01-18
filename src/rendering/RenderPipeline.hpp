@@ -36,7 +36,7 @@ namespace Rendering {
             return std::get<std::unique_ptr<PassType>>(renderPasses).get();
         }
 
-        virtual void WindowResize(const Windowing::Window &window) override;
+        virtual void OnWindowResize(const Windowing::Window &window) override;
     };
 }
 

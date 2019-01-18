@@ -18,9 +18,9 @@ namespace OpenGL {
         glDeleteVertexArrays(1, &vaoId);
     }
 
-    void Mesh::Init(const Rendering::Vertex *vertices, int vCount) {
-        this->vCount = vCount;
-        this->iCount = 0;
+    void Mesh::Init(const Rendering::Vertex *vertices, int32_t vCount_) {
+        vCount = vCount_;
+        iCount = 0;
 
         glBindVertexArray(vaoId);
 
@@ -32,9 +32,9 @@ namespace OpenGL {
         glBindVertexArray(0);
     }
 
-    void Mesh::Init(const Vertex *vertices, int vCount, const int32_t *indexes, int iCount) {
-        this->vCount = vCount;
-        this->iCount = iCount;
+    void Mesh::Init(const Vertex *vertices, int32_t vCount_, const int32_t *indexes, int32_t iCount_) {
+        vCount = vCount_;
+        iCount = iCount_;
 
         glBindVertexArray(vaoId);
 
@@ -50,11 +50,11 @@ namespace OpenGL {
     }
 
     void Mesh::Init(const std::vector<Vertex> &vertices) {
-        Init(vertices.data(), vertices.size());
+        Init(vertices.data(), static_cast<int32_t>(vertices.size()));
     }
 
     void Mesh::Init(const std::vector<Vertex> &vertices, const std::vector<int32_t> &indexes) {
-        Init(vertices.data(), vertices.size(), indexes.data(), indexes.size());
+        Init(vertices.data(), static_cast<int32_t>(vertices.size()), indexes.data(), static_cast<int32_t>(indexes.size()));
     }
 
     void Mesh::SetupAttributes() {

@@ -65,8 +65,8 @@ namespace OpenGL {
 
     }
 
-    void Render::Init(const std::shared_ptr<Windowing::Window> &window) {
-        this->window = window;
+    void Render::Init(const std::shared_ptr<Windowing::Window> &window_) {
+        window = window_;
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -124,14 +124,14 @@ namespace OpenGL {
         glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
-    void Render::Begin(const std::shared_ptr<RenderContext> &renderContext) {
-        this->renderContext = renderContext;
+    void Render::Begin(const std::shared_ptr<RenderContext> &renderContext_) {
+        renderContext = renderContext_;
 
         const auto& camera = renderContext->GetCamera();
         const auto& shader = renderContext->GetShader();
         const auto& renderTarget = renderContext->GetRenderTarget();
 
-        float rtWidth, rtHeight;
+        int rtWidth, rtHeight;
         if (renderTarget == nullptr) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

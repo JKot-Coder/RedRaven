@@ -31,7 +31,7 @@ namespace Rendering
 
         virtual ~Shader() {};
 
-        virtual bool LinkSource(Common::Stream *stream) = 0;
+        virtual bool LinkSource(const std::shared_ptr<Common::Stream> &stream) = 0;
         virtual void Bind() const = 0;
 
         virtual void SetParam(Uniform::Type uType, const Common::vec4 &value, int count = 1) const = 0;

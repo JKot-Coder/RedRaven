@@ -12,10 +12,10 @@ namespace Windowing {
     std::vector<Windowing::Listener*> Windowing::Windowing::listeners = std::vector<Windowing::Listener*>();
 
     Windowing::Windowing(){
-        SDL_SetRelativeMouseMode(SDL_TRUE);
-
         if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
             throw Common::Exception("Could not initialize SDL video subsystem (%s)", SDL_GetError());
+
+		SDL_SetRelativeMouseMode(SDL_TRUE);
     }
 
     Windowing::~Windowing(){
@@ -30,7 +30,7 @@ namespace Windowing {
             for(auto& listener: listeners) {
                 switch (e.type) {
                     case SDL_QUIT:
-                        listener->Quit();
+                        listener->OnQuit();
                         break;
                     case SDL_KEYDOWN:
                     case SDL_KEYUP: {
@@ -38,17 +38,17 @@ namespace Windowing {
 
                         switch (keyboardEvent.state){
                             case SDL_PRESSED:
-                                listener->KeyDown(keyboardEvent.keysym);
+                                listener->OnKeyDown(keyboardEvent.keysym);
                                 break;
                             case SDL_RELEASED:
-                                listener->KeyUp(keyboardEvent.keysym);
+                                listener->OnKeyUp(keyboardEvent.keysym);
                                 break;
                         }
 
                         break;
                     }
                     case SDL_MOUSEMOTION: {
-                        listener->MouseMotion(e.motion);
+                        listener->OnMouseMotion(e.motion);
                     }
                     case SDL_WINDOWEVENT: {
                         SDL_Window *sdlWindow = SDL_GetWindowFromID(e.window.windowID);
@@ -56,7 +56,7 @@ namespace Windowing {
 
                         switch (e.window.event) {
                             case SDL_WINDOWEVENT_RESIZED:
-                                listener->WindowResize(*window);
+                                listener->OnWindowResize(*window);
                                 break;
                         }
                         break;
@@ -66,7 +66,7 @@ namespace Windowing {
         }
     }
 
-    const std::shared_ptr<Window> Windowing::CreateWindow(const WindowSettings &settings){
+    const std::shared_ptr<Window> Windowing::ConstructWindow(const WindowSettings &settings){
         auto window = new Window();
         window->Init(settings);
 

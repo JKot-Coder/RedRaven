@@ -42,10 +42,12 @@ namespace ResourceManager {
         if (ok != aiReturn_SUCCESS)
             return nullptr;
 
-        return resourceManager->LoadTexture((path / textureName.C_Str()).c_str());
+        //TODO: use wstring on windows platform to avoid lost of non latin characters
+        return resourceManager->LoadTexture((path / textureName.C_Str()).string());
     }
 
     const std::vector<Rendering::RenderElement> ResourcesLoaders::LoadScene(const std::string &filename) {
+		printf("%s\n", boost::filesystem::current_path().string().c_str());
         //Todo: Replace to aiImportFileEx, it's needed for implementing virtual file system
         auto scene = aiImportFile(filename.data(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs);
         std::vector<Rendering::RenderElement> renderElements;
@@ -118,7 +120,7 @@ namespace ResourceManager {
         stream->Read(buffer, dataSize);
 
         int width, height, channels;
-        const auto image = stbi_load_from_memory(reinterpret_cast<u_char*>(buffer), dataSize, &width, &height, &channels, STBI_default);
+        const auto image = stbi_load_from_memory(reinterpret_cast<uint8_t*>(buffer), static_cast<int>(dataSize), &width, &height, &channels, STBI_default);
 
         delete[] buffer;
 

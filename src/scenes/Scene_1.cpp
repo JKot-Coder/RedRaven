@@ -29,7 +29,7 @@ namespace Scenes {
         for (int i = 0; i < 8; i++) {
             mat4 modelMat;
             modelMat.identity();
-            modelMat.translate(vec3(-8 + i * 2.2, 0 ,0));
+            modelMat.translate(vec3(-8.0f + i * 2.2f, 0.0f, 0.0f));
 
             Rendering::Material material;
 

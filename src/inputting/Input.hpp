@@ -57,10 +57,10 @@ namespace Inputting {
 
         static std::unique_ptr<Input> instance;
 
-        virtual void KeyUp(const SDL_Keysym &keysym) override;
-        virtual void KeyDown(const SDL_Keysym &keysym) override;
+        virtual void OnKeyUp(const SDL_Keysym &keysym) override;
+        virtual void OnKeyDown(const SDL_Keysym &keysym) override;
 
-        virtual void MouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) override;
+        virtual void OnMouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) override;
 
         void SetDown(InputKey key, bool value);
         void SetPos(InputKey key, const Common::vec2 &pos);

@@ -30,53 +30,53 @@ namespace Rendering {
             calcProjectionMatrix();
         }
 
-        inline void SetOrtho(bool isOrtho) {
-            if (isOrtho == this->isOrtho){
+        inline void SetOrtho(bool value) {
+            if (isOrtho == value){
                 return;
             }
 
-            this->isOrtho = isOrtho;
+            isOrtho = value;
             calcProjectionMatrix();
         }
 
-        inline void SetAspect(float width, float height) {
-            SetAspect(width/height);
+        inline void SetAspect(int width, int height) {
+            SetAspect(static_cast<float>(width) / static_cast<float>(height));
         }
 
-        inline void SetAspect(float aspect) {
-            if (aspect == this->aspect){
+        inline void SetAspect(float value) {
+            if (aspect == value){
                 return;
             }
 
-            this->aspect = aspect;
+            aspect = value;
             calcProjectionMatrix();
         }
 
-        inline void SetFov(float fov) {
-            if (fov == this->fov){
+        inline void SetFov(float value) {
+            if (fov == value){
                 return;
             }
 
-            this->fov = fov;
+            fov = value;
             calcProjectionMatrix();
         }
 
-        inline void SetOrthoSize(float orthoSize) {
-            if (orthoSize == this->orthoSize){
+        inline void SetOrthoSize(float value) {
+            if (orthoSize == value){
                 return;
             }
 
-            this->orthoSize = orthoSize;
+            orthoSize = value;
             calcProjectionMatrix();
         }
 
-        inline void SetZField(float zNear, float zFar) {
-            if (zNear == this->zNear && zFar == this->zFar){
+        inline void SetZField(float zNear_, float zFar_) {
+            if (zNear == zNear_ && zFar == zFar_){
                 return;
             }
 
-            this->zNear = zNear;
-            this->zFar = zFar;
+            zNear = zNear_;
+            zFar = zFar_;
             calcProjectionMatrix();
         }
 
@@ -109,7 +109,7 @@ namespace Rendering {
                 const float width  = orthoSize * aspect;
                 const float height = orthoSize;
 
-                projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5, width * 0.5, -height * 0.5, height * 0.5, zNear, zFar);
+                projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f, zNear, zFar);
             } else {
                 projectionMatrix = mat4(mat4::PROJ_ZERO_POS, fov, aspect, zNear, zFar);
             }

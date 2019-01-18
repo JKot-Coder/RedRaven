@@ -17,21 +17,21 @@ namespace FileSystem {
             Close();
     }
 
-    bool FileStream::Open(Mode mode) {
-        if (mode == Mode::CLOSED)
+    bool FileStream::Open(Mode openMode) {
+        if (openMode == Mode::CLOSED)
             return true;
 
-        switch (mode) {
+        switch (openMode) {
             case Mode::READ: {
-                fileStream.open(fileName, std::ios::in);
+                fileStream.open(fileName, std::ios::in | std::ios::binary);
             }
                 break;
             case Mode::WRITE: {
-                fileStream.open(fileName, std::ios::in | std::ios::out);
+                fileStream.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
             }
                 break;
             case Mode::APPEND: {
-                fileStream.open(fileName, std::ios::in | std::ios::out);
+                fileStream.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
                 fileStream.seekg(0, std::ios::end);
             }
                 break;
@@ -39,11 +39,10 @@ namespace FileSystem {
                 throw Common::Exception("Wrong file mode");
         }
 
-        if (fileStream.fail() )
+        if (fileStream.fail())
             throw Common::Exception("Error while opening file %s", fileName.c_str());
 
-        this->mode = mode;
-
+        mode = openMode;
         return true;
     }
 
@@ -55,14 +54,14 @@ namespace FileSystem {
         mode = Mode::CLOSED;
     }
 
-    int FileStream::GetPosition() {
+    int64_t FileStream::GetPosition() {
         if (mode == Mode::CLOSED)
             return 0;
 
         return fileStream.tellg();
     }
 
-    int FileStream::GetSize() {
+    int64_t FileStream::GetSize() {
         if (mode == Mode::CLOSED)
             return 0;
 
@@ -76,23 +75,31 @@ namespace FileSystem {
         return size;
     }
 
-    void FileStream::SetPosition(int value) {
+    void FileStream::SetPosition(int64_t value) {
         if (mode == Mode::CLOSED)
             throw Common::Exception("Error file %s not opened", fileName.c_str());
 
         fileStream.seekg(value);
     }
 
-    int FileStream::Read(char *data, int length) {
+    int64_t FileStream::Read(char *data, int64_t length) {
         if (mode == Mode::CLOSED)
             throw Common::Exception("Error file %s not opened", fileName.c_str());
 
-        int startPosition = GetPosition();
+        int64_t startPosition = GetPosition();
 
-        fileStream.read(data, length);
+		fileStream.exceptions(fileStream.exceptions() | std::ios::failbit);
+		try {
+			fileStream.read(data, length);
+		}
+		catch (std::ios_base::failure& e) {
+			std::cerr << e.what() << "!" << e.code().message() << '\n';
+		}
 
-        if (fileStream.fail())
-            throw Common::Exception("Error while reading file %s", fileName.c_str());
+			if (fileStream.fail()) {
+	
+				throw Common::Exception("Error while reading file %s", fileName.c_str());
+			}
 
         if(fileStream.eof()){
             return GetPosition() - startPosition;
@@ -101,7 +108,7 @@ namespace FileSystem {
         return length;
     }
 
-    int FileStream::Write(const char *data, int length) {
+    int64_t FileStream::Write(const char *data, int64_t length) {
         if (mode == Mode::CLOSED)
             throw Common::Exception("Error file %s not opened", fileName.c_str());
 

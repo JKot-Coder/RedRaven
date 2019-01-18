@@ -18,7 +18,7 @@ namespace Scenes {
 
     void Scene_2::Init() {
         const auto &resourceManager = ResourceManager::Instance();
-        const auto scene = resourceManager->LoadScene("../../assets/sponza.obj");
+        const auto scene = resourceManager->LoadScene("../assets/sponza.obj");
 
         lookAngle = vec2(0, 0);
 
@@ -62,7 +62,7 @@ namespace Scenes {
             camTransform.Position += camTransform.Rotation * vec3(-1, 0, 0) * speed * dt;
         }
 
-        lookAngle = lookAngle - inputting->Mouse.relative * 0.001;
+        lookAngle = lookAngle - inputting->Mouse.relative * 0.001f;
         lookAngle.y = clamp(lookAngle.y, -PI/2 + 0.1f, +PI/2 - 0.1f);
 
         vec3 dir = vec3(lookAngle.y, lookAngle.x) * 2.0;
