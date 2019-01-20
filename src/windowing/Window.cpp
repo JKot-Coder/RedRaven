@@ -10,9 +10,8 @@
 
 namespace Windowing {
 
-    Window::Window() : window(nullptr)
+    Window::Window()
     {
-
     }
 
     Window::~Window() {
@@ -22,13 +21,25 @@ namespace Windowing {
         }
     }
 
-    bool Window::Init(const WindowSettings &settings){
+    bool Window::Init(const WindowSettings &settings) {
         std::string windowerror;
-		Uint32 windowflags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
+		Uint32 windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
 
         ASSERT(!window)
 
-        const auto& windowRect = settings.WindowRect;
+        auto windowRect = settings.WindowRect;
+
+		switch (windowRect.X)
+		{
+			case WindowRect::WINDOW_POSITION_UNDEFINED: windowRect.X = SDL_WINDOWPOS_UNDEFINED; break; 
+			case WindowRect::WINDOW_POSITION_CENTERED: windowRect.X = SDL_WINDOWPOS_CENTERED; break;
+		}
+
+		switch (windowRect.Y)
+		{
+			case WindowRect::WINDOW_POSITION_UNDEFINED: windowRect.Y = SDL_WINDOWPOS_UNDEFINED; break;
+			case WindowRect::WINDOW_POSITION_CENTERED: windowRect.Y = SDL_WINDOWPOS_CENTERED; break;
+		}
 
         window = SDL_CreateWindow(settings.Title.c_str(), windowRect.X, windowRect.Y, windowRect.Width, windowRect.Height, windowflags);
 
@@ -37,6 +48,11 @@ namespace Windowing {
             windowerror = std::string(SDL_GetError());
             return false;
         }
+
+		auto* screen = SDL_GetWindowSurface(window);
+
+		SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+		SDL_UpdateWindowSurface(window);
 
         SDL_SetWindowData(window, "WindowObject", this);
         return true;
@@ -61,8 +77,13 @@ namespace Windowing {
       //  SDL_WarpMouseInWindow(window, x, y);
     }
 
-    void Window::ShowCursor(bool value) const {
-        SDL_ShowCursor(value ? SDL_ENABLE : SDL_DISABLE);
+    void Window::ShowCursor(bool value) {
+        auto result = SDL_ShowCursor(value ? SDL_ENABLE : SDL_DISABLE);
+		
+		switch (result) {
+			case SDL_DISABLE: cursorIsHidden = true; break; 
+			case SDL_ENABLE: cursorIsHidden = false; break; 
+		}
     }
 
 }

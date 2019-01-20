@@ -47,7 +47,6 @@ namespace ResourceManager {
     }
 
     const std::vector<Rendering::RenderElement> ResourcesLoaders::LoadScene(const std::string &filename) {
-		printf("%s\n", boost::filesystem::current_path().string().c_str());
         //Todo: Replace to aiImportFileEx, it's needed for implementing virtual file system
         auto scene = aiImportFile(filename.data(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs);
         std::vector<Rendering::RenderElement> renderElements;

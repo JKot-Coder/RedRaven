@@ -3,7 +3,7 @@
 #include "windowing/Windowing.hpp"
 
 namespace Windowing {
-    class Window;
+	class InputtingWindow;
 }
 
 namespace Rendering {
@@ -11,7 +11,7 @@ namespace Rendering {
     class SceneGraph;
 }
 
-class Application: public Windowing::Windowing::Listener {
+class Application: public Windowing::IListener {
 public:
     Application() : quit(false) {}
 
@@ -20,7 +20,7 @@ public:
 private:
     bool quit;
 
-    std::shared_ptr<Windowing::Window> window;
+    std::shared_ptr<Windowing::InputtingWindow> window;
     std::shared_ptr<Rendering::SceneGraph> scene;
 
     void init();

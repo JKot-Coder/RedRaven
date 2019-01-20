@@ -119,10 +119,12 @@ set(OPEN_DEMO_SRC_MODULE_RESOURCE_MANAGER
 
 set(OPEN_DEMO_SRC_MODULE_WINDOWING
         windowing/Window.hpp
+		windowing/Window.cpp
+		windowing/InputtingWindow.hpp
+		windowing/InputtingWindow.cpp
         windowing/Windowing.hpp
-        windowing/WindowSettings.hpp
-        windowing/Windowing.cpp
-        windowing/Window.cpp)
+		windowing/Windowing.cpp
+        windowing/WindowSettings.hpp)
 
 set(OPEN_DEMO_SRC_MODULE_RENDER
         rendering/Render.hpp

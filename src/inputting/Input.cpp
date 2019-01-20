@@ -15,71 +15,9 @@ namespace Inputting {
 
     std::unique_ptr<Input> Inputting::Input::instance = std::unique_ptr<Input>(new Input());
 
-    static const std::map<SDL_Scancode, InputKey> SDLToInputKeyMap = {
-
-            { SDL_SCANCODE_A, ikA },
-            { SDL_SCANCODE_B, ikB },
-            { SDL_SCANCODE_C, ikC },
-            { SDL_SCANCODE_D, ikD },
-            { SDL_SCANCODE_E, ikE },
-            { SDL_SCANCODE_F, ikF },
-            { SDL_SCANCODE_G, ikG },
-            { SDL_SCANCODE_H, ikH },
-            { SDL_SCANCODE_I, ikI },
-            { SDL_SCANCODE_J, ikJ },
-            { SDL_SCANCODE_K, ikK },
-            { SDL_SCANCODE_L, ikL },
-            { SDL_SCANCODE_M, ikM },
-            { SDL_SCANCODE_N, ikN },
-            { SDL_SCANCODE_O, ikO },
-            { SDL_SCANCODE_P, ikP },
-            { SDL_SCANCODE_Q, ikQ },
-            { SDL_SCANCODE_R, ikR },
-            { SDL_SCANCODE_S, ikS },
-            { SDL_SCANCODE_T, ikT },
-            { SDL_SCANCODE_U, ikU },
-            { SDL_SCANCODE_V, ikV },
-            { SDL_SCANCODE_W, ikW },
-            { SDL_SCANCODE_X, ikX },
-            { SDL_SCANCODE_Y, ikY },
-            { SDL_SCANCODE_Z, ikZ },
-
-            { SDL_SCANCODE_1, ik1 },
-            { SDL_SCANCODE_2, ik2 },
-            { SDL_SCANCODE_3, ik3 },
-            { SDL_SCANCODE_4, ik4 },
-            { SDL_SCANCODE_5, ik5 },
-            { SDL_SCANCODE_6, ik6 },
-            { SDL_SCANCODE_7, ik7 },
-            { SDL_SCANCODE_8, ik8 },
-            { SDL_SCANCODE_9, ik9 },
-            { SDL_SCANCODE_0, ik0 },
-
-            { SDL_SCANCODE_RETURN,    ikEnter   },
-            { SDL_SCANCODE_ESCAPE,    ikEscape  },
-//            { SDL_SCANCODE_BACKSPACE, ikUnknown },
-            { SDL_SCANCODE_TAB,       ikTab     },
-            { SDL_SCANCODE_SPACE,     ikSpace   },
-
-            { SDL_SCANCODE_RIGHT,     ikRight   },
-            { SDL_SCANCODE_LEFT,      ikLeft    },
-            { SDL_SCANCODE_DOWN,      ikDown    },
-            { SDL_SCANCODE_UP,        ikUp      },
-
-            { SDL_SCANCODE_LCTRL,     ikCtrl    },
-            { SDL_SCANCODE_LSHIFT,    ikShift   },
-            { SDL_SCANCODE_LALT,      ikAlt     }, /**< alt, option */
-//            { SDL_SCANCODE_LGUI,      ikUnknown }, /**< windows, command (apple), meta */
-//            { SDL_SCANCODE_RCTRL,     ikUnknown },
-//            { SDL_SCANCODE_RSHIFT,    ikUnknown },
-//            { SDL_SCANCODE_RALT,      ikUnknown }, /**< alt gr, option */
-//            { SDL_SCANCODE_RGUI,      ikUnknown }, /**< windows, command (apple), meta */
-
-    };
-
     Input::~Input() {
-        Windowing::Windowing::UnSubscribe(this);
-    }
+		Terminate();
+	}
 
     void Input::Reset() {
         memset(down, 0, sizeof(down));
@@ -87,22 +25,25 @@ namespace Inputting {
     }
 
     void Input::Init() {
-        Reset();
-
-        Windowing::Windowing::Subscribe(this);
+		Reset();
     }
 
+	void Input::Terminate() {
+		if (inputtingWindow.get() != nullptr) {
+			inputtingWindow->UnSubscribeOnKeyboardEvents(this);
+			inputtingWindow->UnSubscribeOnMouseEvents(this);
+
+			inputtingWindow = nullptr;
+		}
+	}
+
+	void Input::SubscribeToWindow(const std::shared_ptr<Windowing::InputtingWindow> &inputtingWindow_) {
+		inputtingWindow = inputtingWindow_;
+		inputtingWindow->SubscribeOnKeyboardEvents(this);
+		inputtingWindow->SubscribeOnMouseEvents(this);
+	}
+
     void Input::Update() {
-        if(!mouseWindowTrap.get())
-            return;
-
-        if (SDL_GetMouseFocus() == mouseWindowTrap->GetSDLWindow()) {
-            //int height = mouseWindowTrap->GetHeight();
-           // int width = mouseWindowTrap->GetWidth();
-          //  mouseWindowTrap->SetMousePos(width / 2, height / 2);
-            mouseWindowTrap->ShowCursor(false);
-        }
-
         Mouse.relative = vec2(0, 0);
     }
 
@@ -114,7 +55,7 @@ namespace Inputting {
         if (value)
             switch (key) {
                 case ikMouseL:
-//                    mouse.start.L = mouse.pos;
+//                   mouse.start.L = mouse.pos;
                     break;
                 case ikMouseR:
   //                  mouse.start.R = mouse.pos;
@@ -146,38 +87,24 @@ namespace Inputting {
         }
     }
 
-    void Input::OnKeyUp(const SDL_Keysym &keysym) {
-        const auto &it = SDLToInputKeyMap.find(keysym.scancode);
-        if(it == SDLToInputKeyMap.end())
-            return;
+	void Input::OnKeyUp(InputKey inputKey) {
+		SetDown(inputKey, false);
+	}
 
-        SetDown(it->second, false);
-    }
+	void Input::OnKeyDown(InputKey inputKey) {
+		SetDown(inputKey, true);
+	}
 
-    void Input::OnKeyDown(const SDL_Keysym &keysym) {
-        const auto &it = SDLToInputKeyMap.find(keysym.scancode);
-        if(it == SDLToInputKeyMap.end())
-            return;
+	void Input::OnMouseMove(const Common::vec2 &position, const Common::vec2 &relative) {
+		Mouse.pos = position;
+		Mouse.relative = relative;
+	}
 
-        SetDown(it->second, true);
-    }
+	void Input::OnButtonUp(InputKey inputKey) {;
+		SetDown(inputKey, false);
+	}
 
-    void Input::OnMouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) {
-        if (mouseWindowTrap.get()) {
-            float height = static_cast<float>(mouseWindowTrap->GetHeight());
-            float width = static_cast<float>(mouseWindowTrap->GetWidth());
-            vec2 center = vec2(width, height) * 0.5f;
-            vec2 mouse = vec2(static_cast<float>(mouseMotionEvent.x), static_cast<float>(mouseMotionEvent.y));
-            Mouse.relative = mouse - center;
-        }
-        Mouse.pos = vec2(static_cast<float>(mouseMotionEvent.x),  static_cast<float>(mouseMotionEvent.y));
-    }
-
-    void Input::TrapMouseInWindow(const std::shared_ptr<Windowing::Window> &window) {
-        ASSERT(window.get())
-
-        mouseWindowTrap = window;
-      //  SDL_SetWindowGrab(mouseWindowTrap->GetSDLWindow(), SDL_TRUE);
-    }
-
+	void Input::OnButtonDown(InputKey inputKey) {
+		SetDown(inputKey, true);
+	}
 }

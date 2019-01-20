@@ -5,7 +5,7 @@
 
 namespace Rendering {
 
-    class RenderPipeline final : Windowing::Windowing::Listener {
+    class RenderPipeline final : Windowing::IListener {
     public:
         RenderPipeline(const std::shared_ptr<Windowing::Window> &window);
         ~RenderPipeline();

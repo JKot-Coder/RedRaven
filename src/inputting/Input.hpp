@@ -1,15 +1,17 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "common/VecMath.h"
 #include "common/Utils.hpp"
 
-#include "windowing/Windowing.hpp"
+#include "windowing/InputtingWindow.hpp"
 
 namespace Inputting {
 
-    enum InputKey { ikNone,
+    enum InputKey { 
+		ikNone,
         // keyboard
         ikLeft, ikRight, ikUp, ikDown, ikSpace, ikTab, ikEnter, ikEscape, ikShift, ikCtrl, ikAlt,
         ik0, ik1, ik2, ik3, ik4, ik5, ik6, ik7, ik8, ik9,
@@ -20,7 +22,22 @@ namespace Inputting {
         ikMAX
     };
 
-    class Input final : Windowing::Windowing::Listener {
+	class IKeyboardListener
+	{
+	public:
+		virtual void OnKeyUp(InputKey inputKey) { (void) inputKey; }
+		virtual void OnKeyDown(InputKey inputKey) { (void) inputKey; }
+	};
+
+	class IMouseListener
+	{
+	public:
+		virtual void OnMouseMove(const Common::vec2 &position, const Common::vec2 &relative) { (void) position; (void) relative; }
+		virtual void OnButtonUp(InputKey inputKey) { (void) inputKey; }
+		virtual void OnButtonDown(InputKey inputKey) { (void) inputKey; }
+	};
+
+    class Input final: public IMouseListener, IKeyboardListener {
     public:
 
         struct Mouse {
@@ -35,6 +52,7 @@ namespace Inputting {
 
         void Reset();
         void Init();
+		void Terminate();
         void Update();
 
         inline bool IsDown(InputKey inputKey) const {
@@ -47,20 +65,22 @@ namespace Inputting {
             return instance;
         }
 
-        void TrapMouseInWindow(const std::shared_ptr<Windowing::Window> &window);
+        void SubscribeToWindow(const std::shared_ptr<Windowing::InputtingWindow> &inputtingWindow);
 
     private:
-        std::shared_ptr<Windowing::Window> mouseWindowTrap;
+		static std::unique_ptr<Input> instance;
+
+        std::shared_ptr<Windowing::InputtingWindow> inputtingWindow;
 
         InputKey lastKey;
         bool down[ikMAX];
 
-        static std::unique_ptr<Input> instance;
+		virtual void OnKeyUp(InputKey inputKey) override;
+		virtual void OnKeyDown(InputKey inputKey) override;
 
-        virtual void OnKeyUp(const SDL_Keysym &keysym) override;
-        virtual void OnKeyDown(const SDL_Keysym &keysym) override;
-
-        virtual void OnMouseMotion(const SDL_MouseMotionEvent &mouseMotionEvent) override;
+		virtual void OnMouseMove(const Common::vec2 &position, const Common::vec2 &relative) override;
+		virtual void OnButtonUp(InputKey inputKey) override;
+		virtual void OnButtonDown(InputKey inputKey) override;
 
         void SetDown(InputKey key, bool value);
         void SetPos(InputKey key, const Common::vec2 &pos);

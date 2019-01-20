@@ -24,11 +24,15 @@ namespace Windowing{
         int GetHeight() const;
 
         void SetMousePos(int x, int y) const;
-        void ShowCursor(bool value) const;
+        void ShowCursor(bool value);
+
+		bool IsCursorHidden() const { return cursorIsHidden; }
 
         SDL_Window* GetSDLWindow() const { return window; };
     private:
-        SDL_Window* window;
+		SDL_Window* window = nullptr;
+
+		bool cursorIsHidden = false;
     };
 
 }

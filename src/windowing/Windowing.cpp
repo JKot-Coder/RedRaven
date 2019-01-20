@@ -1,24 +1,25 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 
+#include "common/VecMath.h"
 #include "common/Exception.hpp"
 
 #include "windowing/Window.hpp"
 #include "windowing/Windowing.hpp"
 
+using namespace Common;
+
 namespace Windowing {
 
     std::unique_ptr<Windowing> Windowing::Windowing::windowingInstance = std::unique_ptr<Windowing>(new Windowing());
-    std::vector<Windowing::Listener*> Windowing::Windowing::listeners = std::vector<Windowing::Listener*>();
+    std::vector<IListener*> Windowing::Windowing::listeners = std::vector<IListener*>();
 
-    Windowing::Windowing(){
+    Windowing::Windowing() {
         if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
             throw Common::Exception("Could not initialize SDL video subsystem (%s)", SDL_GetError());
-
-		SDL_SetRelativeMouseMode(SDL_TRUE);
     }
 
-    Windowing::~Windowing(){
+    Windowing::~Windowing() {
         SDL_QuitSubSystem(SDL_INIT_VIDEO);
         SDL_Quit();
     }
@@ -26,7 +27,7 @@ namespace Windowing {
     void Windowing::PoolEvents() {
         SDL_Event e;
 
-        while (SDL_PollEvent(&e)){
+        while (SDL_PollEvent(&e)) {
             for(auto& listener: listeners) {
                 switch (e.type) {
                     case SDL_QUIT:
@@ -34,30 +35,65 @@ namespace Windowing {
                         break;
                     case SDL_KEYDOWN:
                     case SDL_KEYUP: {
-                        SDL_KeyboardEvent &keyboardEvent = e.key;
+                        const auto &keyboardEvent = e.key;
+						auto *sdlWindow = SDL_GetWindowFromID(keyboardEvent.windowID);
+						const auto *window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
 
-                        switch (keyboardEvent.state){
+                        switch (keyboardEvent.state) {
                             case SDL_PRESSED:
-                                listener->OnKeyDown(keyboardEvent.keysym);
+                                listener->OnKeyDown(*window, keyboardEvent.keysym);
                                 break;
                             case SDL_RELEASED:
-                                listener->OnKeyUp(keyboardEvent.keysym);
+                                listener->OnKeyUp(*window, keyboardEvent.keysym);
                                 break;
                         }
 
                         break;
                     }
                     case SDL_MOUSEMOTION: {
-                        listener->OnMouseMotion(e.motion);
+						const auto &motionEvent = e.motion;
+						auto *sdlWindow = SDL_GetWindowFromID(motionEvent.windowID);
+						const auto *window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
+					
+                        listener->OnMouseMotion(*window, 
+							vec2(static_cast<float>(motionEvent.x), static_cast<float>(motionEvent.y)),
+							vec2(static_cast<float>(motionEvent.xrel), static_cast<float>(motionEvent.yrel)));
                     }
+					case SDL_MOUSEBUTTONDOWN:
+					case SDL_MOUSEBUTTONUP: {
+						const auto &buttonEvent = e.button;
+						auto *sdlWindow = SDL_GetWindowFromID(buttonEvent.windowID);
+						const auto *window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
+
+						switch (buttonEvent.state) {
+						case SDL_PRESSED:
+							listener->OnMouseButtonDown(*window, buttonEvent.button);
+							break;
+						case SDL_RELEASED:
+							listener->OnMouseButtonUp(*window, buttonEvent.button);
+							break;
+						}
+					}
                     case SDL_WINDOWEVENT: {
-                        SDL_Window *sdlWindow = SDL_GetWindowFromID(e.window.windowID);
-                        Window *window = static_cast<Window *>(SDL_GetWindowData(sdlWindow, "WindowObject"));
+						auto *sdlWindow = SDL_GetWindowFromID(e.window.windowID);
+						const auto *window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
 
                         switch (e.window.event) {
                             case SDL_WINDOWEVENT_RESIZED:
                                 listener->OnWindowResize(*window);
                                 break;
+							case SDL_WINDOWEVENT_SHOWN:
+								listener->OnWindowShown(*window);
+								break;
+							case SDL_WINDOWEVENT_HIDDEN:
+								listener->OnWindowHidden(*window);
+								break;
+							case SDL_WINDOWEVENT_FOCUS_GAINED:
+								listener->OnWindowFocusGained(*window);
+								break;
+							case SDL_WINDOWEVENT_FOCUS_LOST:
+								listener->OnWindowFocusLost(*window);
+								break;
                         }
                         break;
                     }
@@ -66,14 +102,7 @@ namespace Windowing {
         }
     }
 
-    const std::shared_ptr<Window> Windowing::ConstructWindow(const WindowSettings &settings){
-        auto window = new Window();
-        window->Init(settings);
-
-        return std::shared_ptr<Window>(window);
-    }
-
-    void Windowing::Subscribe(Listener *listener) {
+    void Windowing::Subscribe(IListener *listener) {
         for(auto& item: listeners) {
             if(listener == item)
                 throw Common::Exception("Error subscribe listener, listener already subscribed");
@@ -82,7 +111,7 @@ namespace Windowing {
         listeners.push_back(listener);
     }
 
-    void Windowing::UnSubscribe(const Listener* listener) {
+    void Windowing::UnSubscribe(const IListener* listener) {
         for (auto it = listeners.begin(); it != listeners.end(); ) {
             if (listener == *it) {
                 it = listeners.erase(it);

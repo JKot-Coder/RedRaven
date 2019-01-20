@@ -14,13 +14,12 @@
 
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
-#include "windowing/Window.hpp"
+#include "windowing/InputtingWindow.hpp"
 
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
 
 #include "Application.hpp"
-
 
 using namespace Common;
 
@@ -59,16 +58,18 @@ void Application::OnQuit() {
 
 void Application::init() {
     Windowing::WindowSettings settings;
-    Windowing::WindowRect rect(0, 0, 800, 600);
+    Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED, 
+		Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
 
     settings.Title = "OpenDemo";
     settings.WindowRect = rect;
 
     Windowing::Windowing::Subscribe(this);
-    window = Windowing::Windowing::ConstructWindow(settings);
+    window = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
+	window->Init(settings, true);
 
     Inputting::Instance()->Init();
-    Inputting::Instance()->TrapMouseInWindow(window);
+	Inputting::Instance()->SubscribeToWindow(window);
 
     auto& render = Rendering::Instance();
     render->Init(window);
@@ -79,6 +80,8 @@ void Application::terminate() {
 
     window.reset();
     window = nullptr;
+
+	Inputting::Instance()->Terminate();
 
     Rendering::Instance()->Terminate();
     Windowing::Windowing::UnSubscribe(this);
