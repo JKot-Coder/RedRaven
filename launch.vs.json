@@ -5,9 +5,9 @@
     {
       "type": "default",
       "project": "CMakeLists.txt",
-      "projectTarget": "open_demo.exe (bin\\open_demo.exe)",
-      "name": "open_demo.exe (bin\\open_demo.exe)",
-      "currentDir": "${workspaceRoot}\\build"
+      "projectTarget": "open_demo.exe (build\\bin\\open_demo.exe)",
+      "name": "open_demo.exe (build\\bin\\open_demo.exe)",
+      "currentDir": "${workspaceRoot}\\build\\bin"
     }
   ]
 }

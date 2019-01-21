@@ -24,9 +24,9 @@ namespace Common {
             //      == sizeBuffer-1  --> ambiguous, /may/ have been truncated
             //       > sizeBuffer    --> output was truncated, and sizeOut
             //                            bytes would have been written
-            if (sizeOut == sizeBuffer || sizeOut == -1 || sizeOut == sizeBuffer - 1)
+            if (sizeOut == static_cast<int>(sizeBuffer) || sizeOut == -1 || sizeOut == static_cast<int>(sizeBuffer) - 1)
                 sizeBuffer *= 2;
-            else if (sizeOut > sizeBuffer)
+            else if (sizeOut > static_cast<int>(sizeBuffer))
                 sizeBuffer = sizeOut + 2; // to avoid the ambiguous case
             else
                 break;

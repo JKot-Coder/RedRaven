@@ -18,7 +18,7 @@ namespace Scenes {
 
     void Scene_2::Init() {
         const auto &resourceManager = ResourceManager::Instance();
-        const auto scene = resourceManager->LoadScene("../assets/sponza.obj");
+        const auto scene = resourceManager->LoadScene("../../assets/sponza.obj");
 
         lookAngle = vec2(0, 0);
 

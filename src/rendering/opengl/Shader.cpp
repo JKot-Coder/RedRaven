@@ -22,7 +22,7 @@ namespace OpenGL {
         const char GLSL_VERT[] = "#define VERTEX\n";
         const char GLSL_FRAG[] = "#define FRAGMENT\n";
 
-        auto shaderSize = stream->GetSize();
+        size_t shaderSize = static_cast<size_t>(stream->GetSize());
         char *text = new char[shaderSize + 1];
         text[shaderSize] = 0;
 

@@ -23,7 +23,7 @@ namespace Rendering {
         renderContext(new RenderContext())
     {
         auto *resourceManager = ResourceManager::Instance().get();
-        pbrShader = resourceManager->LoadShader("../resources/pbr.shader");
+        pbrShader = resourceManager->LoadShader("../../assets/shaders/pbr.shader");
 
         renderContext->SetShader(pbrShader);
         renderContext->SetRenderTarget(hdrRenderTargetContext);
@@ -89,7 +89,7 @@ namespace Rendering {
     {
         (void) render;
         auto *resourceManager = ResourceManager::Instance().get();
-        postProcessShader = resourceManager->LoadShader("../resources/postProcess.shader");
+        postProcessShader = resourceManager->LoadShader("../../assets/shaders/postProcess.shader");
 
         renderContext->SetShader(postProcessShader);
         renderContext->SetDepthWrite(false);

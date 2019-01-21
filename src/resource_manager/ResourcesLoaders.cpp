@@ -114,7 +114,7 @@ namespace ResourceManager {
     const std::shared_ptr<Rendering::CommonTexture> ResourcesLoaders::LoadTexture(const std::shared_ptr<Common::Stream> &stream) {
         const auto &render = Rendering::Instance().get();
 
-        size_t dataSize = stream->GetSize();
+        size_t dataSize = static_cast<size_t>(stream->GetSize());
         char *buffer = new char[dataSize];
         stream->Read(buffer, dataSize);
 
