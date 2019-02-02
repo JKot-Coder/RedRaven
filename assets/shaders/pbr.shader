@@ -187,7 +187,7 @@ void main()
 
     // Specular BRDF
     vec3  f0 = mix(vec3(0.04f, 0.04f, 0.04f), albedo.rgb, metallic);
-    float f90 = 1.0;//- linearRoughness);// + (1-oneMinusReflectivity));
+    float f90 = 1.0 - linearRoughness;// + (1-oneMinusReflectivity));
     vec3  F   = F_Schlick(f0, f90, NdotV);
     float Vis = V_SmithGGXCorrelated(NdotV, NdotL, roughness);
     float D   = D_GGX(NdotH, roughness);
