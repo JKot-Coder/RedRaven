@@ -1,6 +1,6 @@
-#include "glad/glad.h"
-
 #include "Texture.hpp"
+
+#include "glad/glad.h"
 
 namespace Rendering {
 namespace OpenGL {

@@ -1,3 +1,5 @@
+#include "RenderPipeline.hpp"
+
 #include "windowing/Window.hpp"
 
 #include "rendering/Texture.hpp"
@@ -7,7 +9,6 @@
 #include "rendering/Render.hpp"
 
 #include "rendering/RenderPipeline.hpp"
-#include "RenderPipeline.hpp"
 
 namespace Rendering{
 

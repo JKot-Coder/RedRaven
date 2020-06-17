@@ -1,7 +1,7 @@
+#include "Exception.hpp"
+
 #include <cstdio>
 #include <stdarg.h>
-
-#include "Exception.hpp"
 
 namespace Common {
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "rendering/Render.hpp"
-
 namespace Rendering {
 
     enum PixelFormat : int;

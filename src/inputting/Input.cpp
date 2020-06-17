@@ -1,3 +1,5 @@
+#include "Input.hpp"
+
 #include <SDL_scancode.h>
 #include <SDL_keyboard.h>
 #include <SDL_events.h>
@@ -6,8 +8,6 @@
 #include "common/VecMath.h"
 
 #include "windowing/Window.hpp"
-
-#include "inputting/Input.hpp"
 
 using namespace Common;
 

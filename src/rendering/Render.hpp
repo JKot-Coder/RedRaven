@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Material.hpp"
+#include "rendering/Material.hpp"
 
 #include <memory>
 #include "common/VecMath.h"
@@ -16,7 +16,6 @@ namespace Rendering {
     class Mesh;
     class RenderContext;
     class RenderTargetContext;
-    struct Material;
 
     enum PixelFormat : int {
         R8,
@@ -44,7 +43,7 @@ namespace Rendering {
     struct RenderElement {
     public:
         Common::mat4 modelMatrix;
-        Material material;
+		Rendering::Material material;
         std::shared_ptr<Mesh> mesh;
     };
 

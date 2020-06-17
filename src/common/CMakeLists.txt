@@ -9,4 +9,4 @@ set(OPEN_DEMO_SRC_MODULE_COMMON
         Time.cpp
         Time.hpp)
         
-add_library(${PROJECT_NAME} ${OPEN_DEMO_SRC_MODULE_COMMON})
+add_library(${PROJECT_NAME} ".." ${OPEN_DEMO_SRC_MODULE_COMMON})

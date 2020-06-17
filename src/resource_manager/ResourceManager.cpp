@@ -1,3 +1,5 @@
+#include "ResourceManager.hpp"
+
 #include <vector>
 
 #include "common/VecMath.h"
@@ -13,7 +15,6 @@
 #include "resource_manager/ResourcesLoaders.hpp"
 
 #include "resource_manager/ResourceManager.hpp"
-#include "ResourceManager.hpp"
 
 namespace ResourceManager {
 

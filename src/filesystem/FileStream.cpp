@@ -1,9 +1,10 @@
+#include "FileStream.hpp"
+
 #include <iostream>
 
 #include <common/Exception.hpp>
 
 #include "FileSystem.hpp"
-#include "FileStream.hpp"
 
 namespace FileSystem {
     

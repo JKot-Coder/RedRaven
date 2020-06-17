@@ -13,6 +13,7 @@ namespace Rendering {
 namespace Rendering {
 namespace OpenGL {
 
+    typedef int GLint;
     typedef uint32_t GLuint;
     typedef uint32_t GLenum;
 

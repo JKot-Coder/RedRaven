@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include "rendering/Texture.hpp"
-
 namespace Rendering {
 
 	class CommonTexture;

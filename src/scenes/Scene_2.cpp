@@ -1,3 +1,5 @@
+#include "Scene_2.hpp"
+
 #include "common/VecMath.h"
 #include "common/Time.hpp"
 
@@ -9,8 +11,6 @@
 #include "rendering/Camera.hpp"
 #include "rendering/RenderContext.hpp"
 #include "rendering/Primitives.hpp"
-
-#include "Scene_2.hpp"
 
 using namespace Common;
 

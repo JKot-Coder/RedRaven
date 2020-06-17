@@ -1,9 +1,9 @@
+#include "RenderTargetContext.hpp"
+
 #include "glad/glad.h"
 
-#include "rendering/opengl/RenderTargetContext.hpp"
 #include "RenderTargetContext.hpp"
 #include "Texture.hpp"
-
 
 namespace Rendering {
 namespace OpenGL {

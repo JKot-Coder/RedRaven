@@ -1,3 +1,5 @@
+#include "Window.hpp"
+
 #include <SDL_syswm.h>
 #include <SDL_mouse.h>
 #include <SDL_events.h>
@@ -6,7 +8,6 @@
 
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Window.hpp"
-#include "Window.hpp"
 
 namespace Windowing {
 

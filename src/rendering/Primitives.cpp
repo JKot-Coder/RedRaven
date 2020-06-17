@@ -1,3 +1,5 @@
+#include "Primitives.hpp"
+
 #include <vector>
 #include <array>
 
@@ -5,8 +7,6 @@
 
 #include "rendering/Render.hpp"
 #include "rendering/Mesh.hpp"
-
-#include "rendering/Primitives.hpp"
 
 using namespace Common;
 

@@ -1,9 +1,9 @@
+#include "Mesh.hpp"
+
 #include "vector"
 
 #include "rendering/Render.hpp"
 #include "glad/glad.h"
-
-#include "Mesh.hpp"
 
 namespace Rendering {
 namespace OpenGL {

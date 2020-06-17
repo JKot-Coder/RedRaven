@@ -1,3 +1,5 @@
+#include "ResourcesLoaders.hpp"
+
 #include <vector>
 #include <iostream>
 
@@ -18,7 +20,6 @@
 
 #include "resource_manager/ResourceManager.hpp"
 #include "resource_manager/ResourcesLoaders.hpp"
-#include "ResourcesLoaders.hpp"
 
 using namespace Common;
 

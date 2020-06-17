@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "common/VecMath.h"
 
 #include "rendering/Shader.hpp"
@@ -26,7 +28,7 @@ namespace OpenGL {
         virtual void SetParam(Uniform::Type uType, const Common::Basis &value, int count = 1) const override;
     private:
         GLuint id;
-        GLint uniformID[Uniform::UNIFORM_MAX];
+		std::array<GLint, Uniform::UNIFORM_MAX> uniformID = {};
         bool checkLink() const;
     };
 

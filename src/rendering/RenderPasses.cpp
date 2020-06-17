@@ -1,3 +1,5 @@
+#include "RenderPasses.hpp"
+
 #include "common/VecMath.h"
 
 #include "resource_manager/ResourceManager.hpp"
@@ -11,7 +13,6 @@
 #include "rendering/Primitives.hpp"
 #include "rendering/RenderTarget.hpp"
 #include "rendering/RenderTargetContext.hpp"
-#include "rendering/RenderPasses.hpp"
 
 using namespace Common;
 

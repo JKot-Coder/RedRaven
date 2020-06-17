@@ -1,3 +1,5 @@
+#include "InputtingWindow.hpp"
+
 #include "SDL.h"
 
 #include "common/Exception.hpp"
@@ -5,8 +7,6 @@
 #include "inputting/Input.hpp"
 
 #include "windowing/Windowing.hpp"
-
-#include "windowing/InputtingWindow.hpp"
 
 namespace Windowing {
 	

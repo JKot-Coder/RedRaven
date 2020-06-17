@@ -5,7 +5,6 @@
 
 #include "common/VecMath.h"
 
-#include "rendering/Material.hpp"
 #include "rendering/BlendingDescription.hpp"
 #include "rendering/DepthDescription.hpp"
 

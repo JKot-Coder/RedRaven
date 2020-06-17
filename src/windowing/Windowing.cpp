@@ -1,3 +1,5 @@
+#include "Windowing.hpp"
+
 #include <SDL.h>
 #include <SDL_syswm.h>
 
@@ -5,7 +7,6 @@
 #include "common/Exception.hpp"
 
 #include "windowing/Window.hpp"
-#include "windowing/Windowing.hpp"
 
 using namespace Common;
 

@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 
+#include "common/VecMath.h"
 #include "rendering/SceneGraph.hpp"
 
 namespace Rendering {
@@ -23,7 +24,7 @@ namespace Scenes {
         virtual void Collect(Rendering::RenderContext& renderContext) override;
         virtual std::shared_ptr<Rendering::Camera> GetMainCamera() override;
     private:
-        vec2 lookAngle;
+        Common::vec2 lookAngle;
         std::shared_ptr<Rendering::Camera> camera;
         std::vector<Rendering::RenderElement> renderElements;
     };

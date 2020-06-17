@@ -1,3 +1,5 @@
+#include "Application.hpp"
+
 #include <memory>
 
 #include "common/Time.hpp"
@@ -18,8 +20,6 @@
 
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
-
-#include "Application.hpp"
 
 using namespace Common;
 

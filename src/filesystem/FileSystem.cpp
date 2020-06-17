@@ -1,6 +1,6 @@
-#include "FileStream.hpp"
-
 #include "FileSystem.hpp"
+
+#include "FileStream.hpp"
 
 namespace FileSystem {
 

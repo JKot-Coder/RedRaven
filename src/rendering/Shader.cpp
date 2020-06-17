@@ -1,4 +1,4 @@
-#include "rendering/Shader.hpp"
+#include "Shader.hpp"
 
 namespace Rendering {
 

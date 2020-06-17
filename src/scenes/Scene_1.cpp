@@ -1,3 +1,5 @@
+#include "Scene_1.hpp"
+
 #include "common/VecMath.h"
 
 #include "resource_manager/ResourceManager.hpp"
@@ -6,8 +8,6 @@
 #include "rendering/Camera.hpp"
 #include "rendering/RenderContext.hpp"
 #include "rendering/Primitives.hpp"
-
-#include "Scene_1.hpp"
 
 using namespace Common;
 

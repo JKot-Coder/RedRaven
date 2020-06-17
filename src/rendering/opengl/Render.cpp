@@ -1,3 +1,5 @@
+#include "Render.hpp"
+
 #include <SDL_video.h>
 
 #include "glad/glad.h"
@@ -16,7 +18,6 @@
 #include "rendering/opengl/Mesh.hpp"
 #include "rendering/opengl/Render.hpp"
 #include "rendering/opengl/RenderTargetContext.hpp"
-#include "Render.hpp"
 
 
 namespace Rendering {
