@@ -175,7 +175,7 @@ target_compile_definitions(open_demo PRIVATE ${OPEN_DEMO_DEFINITIONS})
 target_include_directories(open_demo PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})
 
 if(MSVC)
-	set_target_properties(open_demo PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "/build/bin/")
+	set_target_properties(open_demo PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "../build/bin/")
     target_compile_options(open_demo PRIVATE /W4 /WX)
 else(MSVC)
     target_compile_options(open_demo PRIVATE -Wall -Wextra -pedantic -Werror)
