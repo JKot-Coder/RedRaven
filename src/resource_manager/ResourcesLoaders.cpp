@@ -1,6 +1,5 @@
 #include <vector>
 #include <iostream>
-#include <boost/filesystem.hpp>
 
 #include <stb_image.h>
 
@@ -8,6 +7,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "filesystem/FileSystem.hpp"
 #include "common/Stream.hpp"
 #include "common/VecMath.h"
 
@@ -31,7 +31,7 @@ namespace ResourceManager {
         return vec2(vector.x, vector.y);
     }
 
-    const std::shared_ptr<Rendering::CommonTexture> LoadMaterialTexture(const boost::filesystem::path &path, const aiMaterial *material, aiTextureType type) {
+    const std::shared_ptr<Rendering::CommonTexture> LoadMaterialTexture(const std::string &path, const aiMaterial *material, aiTextureType type) {
         const auto &resourceManager = ResourceManager::Instance().get();
         if (material->GetTextureCount(type) == 0)
             return nullptr;
@@ -43,7 +43,7 @@ namespace ResourceManager {
             return nullptr;
 
         //TODO: use wstring on windows platform to avoid lost of non latin characters
-        return resourceManager->LoadTexture((path / textureName.C_Str()).string());
+        return resourceManager->LoadTexture((fs::path(path) / textureName.C_Str()).string());
     }
 
     const std::vector<Rendering::RenderElement> ResourcesLoaders::LoadScene(const std::string &filename) {
@@ -57,7 +57,7 @@ namespace ResourceManager {
             const auto &material = materials[i];
             Rendering::Material renderingMaterial;
 
-            boost::filesystem::path directoryPath = boost::filesystem::path(filename).parent_path();
+            const auto &directoryPath = fs::path( filename ).parent_path();
 
             renderingMaterial.albedoMap = LoadMaterialTexture(directoryPath, material, aiTextureType_DIFFUSE);
             renderingMaterial.normalMap = LoadMaterialTexture(directoryPath, material, aiTextureType_NORMALS);

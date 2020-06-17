@@ -28,4 +28,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 add_subdirectory(src/dependencies/stb)
+add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src)

@@ -28,14 +28,14 @@ namespace Rendering {
         for (uint32_t j = 0; j < segments - 1; ++j)
         {
             float const polar = PI * float(j+1) / float(segments);
-            float const sp = sin(polar);
-            float const cp = cos(polar);
+            float const sp = (float) sin(polar);
+			float const cp = (float) cos(polar);
 
             for (uint32_t i = 0; i < segments; ++i)
             {
                 float const azimuth = 2.0f * PI * float(i) / float(segments);
-                float const sa = sin(azimuth);
-                float const ca = cos(azimuth);
+				float const sa = (float) sin(azimuth);
+				float const ca = (float) cos(azimuth);
                 float const x = sp * ca;
                 float const y = cp;
                 float const z = sp * sa;

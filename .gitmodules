@@ -1,0 +1,3 @@
+[submodule "src/dependencies/gulrak/filesystem"]
+	path = src/dependencies/gulrak/filesystem
+	url = https://github.com/gulrak/filesystem.git

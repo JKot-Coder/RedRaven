@@ -1,7 +1,6 @@
 [requires]
 Assimp/4.1.0@jacmoe/stable
 sdl2/2.0.9@bincrafters/stable
-boost_filesystem/1.69.0@bincrafters/stable
 
 [generators]
 cmake

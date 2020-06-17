@@ -64,6 +64,7 @@ set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
         ${RENDER_GAPI_LIBRARIES}
         STB
+        ghc_filesystem
         ${CONAN_LIBS_ASSIMP}
         ${CONAN_LIBS_BOOST_FILESYSTEM}
         ${CONAN_LIBS})

@@ -51,12 +51,12 @@ namespace Rendering {
 
         theta = 2.0f * PI * std::rand() /static_cast <float>(RAND_MAX);
         cosphi = 1.0f - 2.0f * std::rand() /static_cast <float>(RAND_MAX);
-        sinphi = sqrt(1.0f - min(1.0f, cosphi * cosphi));
+		sinphi = (float) sqrt(1.0f - min(1.0f, cosphi * cosphi));
 
         vec3 result;
 
-        result.x = sinphi * cos(theta);
-        result.y = sinphi * sin(theta);
+        result.x = sinphi * (float) cos(theta);
+		result.y = sinphi * (float) sin(theta);
         result.z = cosphi;
 
         return result;
