@@ -14,7 +14,7 @@ namespace Rendering {
             METALLIC,
             SAMPLER_MAX
         };
-    }
+    };
 
     class CommonTexture {
     public:

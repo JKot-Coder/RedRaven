@@ -1,6 +1,6 @@
 #include <SDL_video.h>
 
-#include "dependencies/glad/glad.h"
+#include "glad/glad.h"
 
 #include "common/Utils.hpp"
 #include "common/Exception.hpp"

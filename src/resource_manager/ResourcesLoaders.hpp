@@ -3,7 +3,8 @@
 #include <memory>
 #include <string>
 
-#include "rendering/Mesh.hpp"
+#include "rendering/Texture.hpp"
+#include "rendering/Render.hpp"
 
 namespace Common {
     class Stream;

@@ -24,6 +24,11 @@
 #define SQR(x)  ((x)*(x))
 #define randf() ((float)rand()/RAND_MAX)
 
+#if defined(min) | defined(max)
+#undef min
+#undef max
+#endif
+
 namespace Common {
 
     template<typename T>
@@ -41,8 +46,9 @@ namespace Common {
         return a > b ? a : b;
     }
 
-    template<typename T>
-    inline const T max(const T a, const T b, const T c) {
+    template <typename T> 
+    inline constexpr T max( const T a, const T b, const T c )
+	{
         return (a > b && a > c) ? a : ((b > a && b > c) ? b : c);
     }
 
@@ -54,13 +60,13 @@ namespace Common {
     template<typename T>
     inline constexpr int sign(const T val) {
         return (T(0) < val) - (val < T(0));
-    }
+    }  
 
     inline void sincos(float r, float *s, float *c) {
         *s = sinf(r);
         *c = cosf(r);
     }
-
+  
     struct vec2 {
         float x, y;
 

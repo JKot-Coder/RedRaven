@@ -1,4 +1,4 @@
-#include "dependencies/glad/glad.h"
+#include "glad/glad.h"
 
 #include "rendering/opengl/RenderTargetContext.hpp"
 #include "RenderTargetContext.hpp"

@@ -4,10 +4,11 @@
 #include <string>
 #include <memory>
 
+#include "rendering/Texture.hpp"
+
 namespace Rendering{
     class Shader;
     class Mesh;
-    class CommonTexture;
     struct RenderElement;
 }
 

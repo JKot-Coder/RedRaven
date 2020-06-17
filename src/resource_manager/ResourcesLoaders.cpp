@@ -13,6 +13,7 @@
 
 #include "rendering/Texture.hpp"
 #include "rendering/Material.hpp"
+#include "rendering/Mesh.hpp"
 #include "rendering/Render.hpp"
 
 #include "resource_manager/ResourceManager.hpp"
@@ -119,7 +120,8 @@ namespace ResourceManager {
         stream->Read(buffer, dataSize);
 
         int width, height, channels;
-        const auto image = stbi_load_from_memory(reinterpret_cast<uint8_t*>(buffer), static_cast<int>(dataSize), &width, &height, &channels, STBI_default);
+		const auto image = stbi_load_from_memory( reinterpret_cast<uint8_t*>( buffer ), static_cast<int>( dataSize ), &width, &height,
+												  &channels, STBI_default );
 
         delete[] buffer;
 

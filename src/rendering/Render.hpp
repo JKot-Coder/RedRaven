@@ -1,11 +1,9 @@
 #pragma once
 
-#include <memory>
 #include "Material.hpp"
 
-namespace Common {
-    struct vec4;
-}
+#include <memory>
+#include "common/VecMath.h"
 
 namespace Windowing {
     class Window;

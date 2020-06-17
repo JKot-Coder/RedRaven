@@ -1,7 +1,7 @@
 #include "vector"
 
 #include "rendering/Render.hpp"
-#include "dependencies/glad/glad.h"
+#include "glad/glad.h"
 
 #include "Mesh.hpp"
 

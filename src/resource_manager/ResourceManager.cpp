@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "common/VecMath.h"
 #include "common/Stream.hpp"
 #include "common/Utils.hpp"
 
@@ -8,7 +9,6 @@
 #include "rendering/Render.hpp"
 #include "rendering/Shader.hpp"
 #include "rendering/Mesh.hpp"
-#include "rendering/Texture.hpp"
 
 #include "resource_manager/ResourcesLoaders.hpp"
 

@@ -1,18 +1,18 @@
 #pragma once
 
-#include "memory"
+#include <memory>
 
-#include "common/VecMath.h"
+#include "rendering/Texture.hpp"
 
 namespace Rendering {
 
-    class CommonTexture;
+	class CommonTexture;
 
     struct Material {
-        std::shared_ptr<CommonTexture> albedoMap;
-        std::shared_ptr<CommonTexture> normalMap;
-        std::shared_ptr<CommonTexture> metallicMap;
-        std::shared_ptr<CommonTexture> roughnessMap;
+		std::shared_ptr<Rendering::CommonTexture> albedoMap;
+		std::shared_ptr<Rendering::CommonTexture> normalMap;
+		std::shared_ptr<Rendering::CommonTexture> metallicMap;
+		std::shared_ptr<Rendering::CommonTexture> roughnessMap;
     };
 
 }

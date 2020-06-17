@@ -1,7 +1,5 @@
 #include "Time.hpp"
 
-
-
 namespace Common {
 
     std::unique_ptr<Time> Time::instance = std::unique_ptr<Time>(new Time());
@@ -13,6 +11,4 @@ namespace Common {
         dt = (now - lastUpdate).count() * invSeconds;
         lastUpdate = now;
     }
-
-
 }
