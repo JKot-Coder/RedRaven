@@ -1,3 +1,6 @@
 [submodule "src/dependencies/gulrak/filesystem"]
 	path = src/dependencies/gulrak/filesystem
 	url = https://github.com/gulrak/filesystem.git
+[submodule "src/dependencies/fmt"]
+	path = src/dependencies/fmt
+	url = https://github.com/fmtlib/fmt

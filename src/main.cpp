@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    auto app = new Application;
+    auto app = new OpenDemo::Application;
 
     app->Start();
 

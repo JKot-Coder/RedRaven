@@ -3,20 +3,23 @@
 #include <exception>
 #include <string>
 
-namespace Common {
-
-    class Exception: public std::exception {
-    public:
-        Exception(const char *fmt, ...);
-        virtual ~Exception() throw();
-
-        inline virtual const char *what() const throw()
+namespace OpenDemo
+{
+    namespace Common
+    {
+        class Exception : public std::exception
         {
-            return message.c_str();
-        }
+        public:
+            Exception(const char* fmt, ...);
+            virtual ~Exception() throw();
 
-    private:
-        std::string message;
-    };
+            inline virtual const char* what() const throw()
+            {
+                return message.c_str();
+            }
 
+        private:
+            std::string message;
+        };
+    }
 }

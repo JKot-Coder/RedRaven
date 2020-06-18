@@ -2,21 +2,30 @@
 
 #include "common/VecMath.h"
 
-using namespace Common;
+namespace OpenDemo
+{
+    using namespace Common;
 
-namespace Rendering {
+    namespace Rendering
+    {
 
-    struct Transform {
-    public:
-        vec3 Position;
-        quat Rotation;
+        struct Transform
+        {
+        public:
+            vec3 Position;
+            quat Rotation;
 
-        Transform() {
-            Identity();
-        }
+            Transform()
+            {
+                Identity();
+            }
 
-        inline void Identity() { Position = vec3(0, 0, 0); Rotation = quat(0, 0, 0, 1); }
-        inline mat4 GetMatrix() const { return mat4(Rotation, Position); }
-    };
-
+            inline void Identity()
+            {
+                Position = vec3(0, 0, 0);
+                Rotation = quat(0, 0, 0, 1);
+            }
+            inline mat4 GetMatrix() const { return mat4(Rotation, Position); }
+        };
+    }
 }

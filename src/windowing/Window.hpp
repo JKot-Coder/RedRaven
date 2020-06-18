@@ -4,35 +4,40 @@
 
 struct SDL_Window;
 
-namespace Windowing{
-
-    struct WindowSettings;
-
-    class Window
+namespace OpenDemo
+{
+    namespace Windowing
     {
-    public:
-        Window();
-        ~Window();
 
-        bool Init(const WindowSettings &settings);
+        struct WindowSettings;
 
-        inline bool IsWindow() const {
-            return window;
-        }
+        class Window
+        {
+        public:
+            Window();
+            ~Window();
 
-        int GetWidth() const;
-        int GetHeight() const;
+            bool Init(const WindowSettings& settings);
 
-        void SetMousePos(int x, int y) const;
-        void ShowCursor(bool value);
+            inline bool IsWindow() const
+            {
+                return window;
+            }
 
-		bool IsCursorHidden() const { return cursorIsHidden; }
+            int GetWidth() const;
+            int GetHeight() const;
 
-        SDL_Window* GetSDLWindow() const { return window; };
-    private:
-		SDL_Window* window = nullptr;
+            void SetMousePos(int x, int y) const;
+            void ShowCursor(bool value);
 
-		bool cursorIsHidden = false;
-    };
+            bool IsCursorHidden() const { return cursorIsHidden; }
 
+            SDL_Window* GetSDLWindow() const { return window; };
+
+        private:
+            SDL_Window* window = nullptr;
+
+            bool cursorIsHidden = false;
+        };
+    }
 }

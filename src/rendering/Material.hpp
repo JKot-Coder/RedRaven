@@ -2,15 +2,20 @@
 
 #include <memory>
 
-namespace Rendering {
+namespace OpenDemo
+{
+    namespace Rendering
+    {
 
-	class CommonTexture;
+        class CommonTexture;
 
-    struct Material {
-		std::shared_ptr<Rendering::CommonTexture> albedoMap;
-		std::shared_ptr<Rendering::CommonTexture> normalMap;
-		std::shared_ptr<Rendering::CommonTexture> metallicMap;
-		std::shared_ptr<Rendering::CommonTexture> roughnessMap;
-    };
+        struct Material
+        {
+            std::shared_ptr<Rendering::CommonTexture> albedoMap;
+            std::shared_ptr<Rendering::CommonTexture> normalMap;
+            std::shared_ptr<Rendering::CommonTexture> metallicMap;
+            std::shared_ptr<Rendering::CommonTexture> roughnessMap;
+        };
 
+    }
 }

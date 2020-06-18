@@ -21,73 +21,82 @@
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
 
-using namespace Common;
+namespace OpenDemo
+{
+    using namespace Common;
 
-void Application::Start() {
-    init();
-    loadResouces();
+    void Application::Start()
+    {
+        init();
+        loadResouces();
 
-    const auto& input = Inputting::Instance();
-    const auto& time = Time::Instance();
-    const auto& render = Rendering::Instance();
-    auto* renderPipeline = new Rendering::RenderPipeline(window);
-    renderPipeline->Init();
+        const auto& input = Inputting::Instance();
+        const auto& time = Time::Instance();
+        const auto& render = Rendering::Instance();
+        auto* renderPipeline = new Rendering::RenderPipeline(window);
+        renderPipeline->Init();
 
-    time->Init();
+        time->Init();
 
-    while(!quit) {
-        Windowing::Windowing::PoolEvents();
-        renderPipeline->Collect(scene);
-        renderPipeline->Draw();
+        while (!quit)
+        {
+            Windowing::Windowing::PoolEvents();
+            renderPipeline->Collect(scene);
+            renderPipeline->Draw();
 
-        scene->Update();
+            scene->Update();
 
-        render->SwapBuffers();
-        input->Update();
-        time->Update();
+            render->SwapBuffers();
+            input->Update();
+            time->Update();
+        }
+
+        delete renderPipeline;
+
+        terminate();
     }
 
-    delete renderPipeline;
+    void Application::OnQuit()
+    {
+        quit = true;
+    }
 
-    terminate();
-}
+    void Application::init()
+    {
+        Windowing::WindowSettings settings;
+        Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED,
+            Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
 
-void Application::OnQuit() {
-    quit = true;
-}
+        settings.Title = "OpenDemo";
+        settings.WindowRect = rect;
 
-void Application::init() {
-    Windowing::WindowSettings settings;
-    Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED, 
-		Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
+        Windowing::Windowing::Subscribe(this);
+        window = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
+        window->Init(settings, true);
 
-    settings.Title = "OpenDemo";
-    settings.WindowRect = rect;
+        Inputting::Instance()->Init();
+        Inputting::Instance()->SubscribeToWindow(window);
 
-    Windowing::Windowing::Subscribe(this);
-    window = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
-	window->Init(settings, true);
+        auto& render = Rendering::Instance();
+        render->Init(window);
+    }
 
-    Inputting::Instance()->Init();
-	Inputting::Instance()->SubscribeToWindow(window);
+    void Application::terminate()
+    {
+        scene->Terminate();
 
-    auto& render = Rendering::Instance();
-    render->Init(window);
-}
+        window.reset();
+        window = nullptr;
 
-void Application::terminate() {
-    scene->Terminate();
+        Inputting::Instance()->Terminate();
 
-    window.reset();
-    window = nullptr;
+        Rendering::Instance()->Terminate();
+        Windowing::Windowing::UnSubscribe(this);
+    }
 
-	Inputting::Instance()->Terminate();
-
-    Rendering::Instance()->Terminate();
-    Windowing::Windowing::UnSubscribe(this);
-}
-
-void Application::loadResouces() {
-    scene = std::make_shared<Scenes::Scene_2>();
-    scene->Init();
+    void Application::loadResouces()
+    {
+        scene = std::make_shared<Scenes::Scene_2>();
+        scene->Init();
+    }
 }

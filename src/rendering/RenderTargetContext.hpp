@@ -3,74 +3,86 @@
 #include <cstdint>
 #include <memory>
 
-#include "common/Utils.hpp"
+#include "common/Common.hpp"
 
 #include "rendering/RenderTarget.hpp"
 
-namespace Rendering {
+namespace OpenDemo
+{
+    namespace Rendering
+    {
 
-    enum RenderTargetIndex {
-        INDEX_0,
-        INDEX_1,
-        INDEX_2,
-        INDEX_MAX
-    };
+        enum RenderTargetIndex
+        {
+            INDEX_0,
+            INDEX_1,
+            INDEX_2,
+            INDEX_MAX
+        };
 
-    class RenderTargetContext {
-    public:
+        class RenderTargetContext
+        {
+        public:
+            virtual inline void SetDepthStencilTarget(const RenderTarget::RenderTargetDescription& renderTargetDescription)
+            {
+                ASSERT(renderTargetDescription.isDepthTarget);
 
-        virtual inline void SetDepthStencilTarget(const RenderTarget::RenderTargetDescription& renderTargetDescription) {
-            ASSERT(renderTargetDescription.isDepthTarget);
+                if (width == -1 && height == -1)
+                {
+                    width = renderTargetDescription.texture->GetWidth();
+                    height = renderTargetDescription.texture->GetHeight();
+                }
 
-            if (width == -1 && height == -1) {
-                width = renderTargetDescription.texture->GetWidth();
-                height = renderTargetDescription.texture->GetHeight();
+                ASSERT(renderTargetDescription.texture->GetHeight() == height);
+                ASSERT(renderTargetDescription.texture->GetWidth() == width);
+
+                depthStencil = renderTargetDescription;
             }
 
-            ASSERT(renderTargetDescription.texture->GetHeight() == height);
-            ASSERT(renderTargetDescription.texture->GetWidth() == width);
+            virtual inline void SetColorTarget(RenderTargetIndex index, const RenderTarget::RenderTargetDescription& renderTargetDescription)
+            {
+                if (width == -1 && height == -1)
+                {
+                    width = renderTargetDescription.texture->GetWidth();
+                    height = renderTargetDescription.texture->GetHeight();
+                }
 
-            depthStencil = renderTargetDescription;
-        }
+                ASSERT(renderTargetDescription.texture->GetHeight() == height);
+                ASSERT(renderTargetDescription.texture->GetWidth() == width);
 
-        virtual inline void SetColorTarget(RenderTargetIndex index, const RenderTarget::RenderTargetDescription& renderTargetDescription) {
-            if (width == -1 && height == -1) {
-                width = renderTargetDescription.texture->GetWidth();
-                height = renderTargetDescription.texture->GetHeight();
+                colorTargets[index] = renderTargetDescription;
             }
 
-            ASSERT(renderTargetDescription.texture->GetHeight() == height);
-            ASSERT(renderTargetDescription.texture->GetWidth() == width);
+            inline int GetWidth() const { return this->width; }
+            inline int GetHeight() const { return this->height; }
 
-            colorTargets[index] = renderTargetDescription;
-        }
+            virtual inline void Resize(int width_, int height_)
+            {
+                //TODO asserts and checks for updated value
+                width = width_;
+                height = height_;
 
-        inline int GetWidth() const { return this->width; }
-        inline int GetHeight() const { return this->height; }
+                if (depthStencil.texture != nullptr)
+                {
+                    depthStencil.texture->Resize(width, height);
+                }
 
-        virtual inline void Resize(int width_, int height_){
-            //TODO asserts and checks for updated value
-            width = width_;
-            height = height_;
-
-            if (depthStencil.texture != nullptr){
-                depthStencil.texture->Resize(width, height);
+                for (auto targetDesription : colorTargets)
+                {
+                    if (targetDesription.texture)
+                    {
+                        targetDesription.texture->Resize(width, height);
+                    }
+                }
             }
 
-            for (auto targetDesription : colorTargets){
-               if (targetDesription.texture) {
-                   targetDesription.texture->Resize(width, height);
-               }
-            }
+            virtual void Bind() = 0;
 
-        }
+        private:
+            int width = -1, height = -1;
+            RenderTarget::RenderTargetDescription depthStencil;
+            RenderTarget::RenderTargetDescription colorTargets[RenderTargetIndex::INDEX_MAX];
+        };
 
-        virtual void Bind() = 0;
-
-    private:
-        int width = -1, height = -1;
-        RenderTarget::RenderTargetDescription depthStencil;
-        RenderTarget::RenderTargetDescription colorTargets[RenderTargetIndex::INDEX_MAX];
-    };
-
+    }
 }

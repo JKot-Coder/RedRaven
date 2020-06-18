@@ -2,16 +2,21 @@
 
 #include "FileStream.hpp"
 
-namespace FileSystem {
+namespace OpenDemo
+{
+    namespace FileSystem
+    {
 
-    std::unique_ptr<FileSystem> FileSystem::instance = std::unique_ptr<FileSystem>(new FileSystem());
+        std::unique_ptr<FileSystem> FileSystem::instance = std::unique_ptr<FileSystem>(new FileSystem());
 
-    std::shared_ptr<Common::Stream> FileSystem::Open(const std::string &fileName, Mode RW) const {
-        auto* fileStream = new FileStream(fileName);
+        std::shared_ptr<Common::Stream> FileSystem::Open(const std::string& fileName, Mode RW) const
+        {
+            auto* fileStream = new FileStream(fileName);
 
-        fileStream->Open(RW);
+            fileStream->Open(RW);
 
-        return std::shared_ptr<Common::Stream>(fileStream);
+            return std::shared_ptr<Common::Stream>(fileStream);
+        }
+
     }
-
 }

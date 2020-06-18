@@ -8,7 +8,7 @@ conan_basic_setup()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(UNIX AND NOT APPLE)
@@ -33,4 +33,5 @@ include_directories(src)
 
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
+add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src)

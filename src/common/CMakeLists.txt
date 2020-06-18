@@ -2,7 +2,9 @@ project (common)
 
 set(COMMON_SRC
         VecMath.h
-        Utils.hpp
+        Common.hpp
+        Logger.hpp
+        Logger.cpp
         Exception.cpp
         Exception.hpp
         Stream.hpp
@@ -10,3 +12,5 @@ set(COMMON_SRC
         Time.hpp)
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})
+target_include_directories(${PROJECT_NAME} PRIVATE "..")
+target_link_libraries(${PROJECT_NAME} fmt)

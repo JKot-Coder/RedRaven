@@ -1,28 +1,32 @@
 #pragma once
 
-#include <memory>
 #include <chrono>
+#include <memory>
 
-namespace Common {
+namespace OpenDemo
+{
+    namespace Common
+    {
+        class Time
+        {
+        public:
+            inline Time() { Update(); }
 
-    class Time {
-    public:
-        inline Time() { Update(); }
+            inline void Init() { Update(); }
 
-        inline void Init() { Update(); }
+            inline float GetDeltaTime() const { return dt; };
 
-        inline float GetDeltaTime() const { return dt; };
+            void Update();
 
-        void Update();
+            inline static const std::unique_ptr<Time>& Instance()
+            {
+                return instance;
+            }
 
-        inline static const std::unique_ptr<Time>& Instance() {
-            return instance;
-        }
-
-    private:
-        float dt = 0;
-        std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
-        static std::unique_ptr<Time> instance;
-    };
-
+        private:
+            float dt = 0;
+            std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
+            static std::unique_ptr<Time> instance;
+        };
+    }
 }
