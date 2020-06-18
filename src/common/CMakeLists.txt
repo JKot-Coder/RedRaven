@@ -1,6 +1,6 @@
 project (common)
 
-set(OPEN_DEMO_SRC_MODULE_COMMON
+set(COMMON_SRC
         VecMath.h
         Utils.hpp
         Exception.cpp
@@ -9,4 +9,4 @@ set(OPEN_DEMO_SRC_MODULE_COMMON
         Time.cpp
         Time.hpp)
         
-add_library(${PROJECT_NAME} ".." ${OPEN_DEMO_SRC_MODULE_COMMON})
+add_library(${PROJECT_NAME} ${COMMON_SRC})

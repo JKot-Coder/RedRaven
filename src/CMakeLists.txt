@@ -9,12 +9,15 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
             RELEASE)
 endif()
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/gapi)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/gapi_dx12)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/rendering)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/common)
 
 set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
         common
+        gapi_dx12
         renderer
         STB
         ghc_filesystem
@@ -84,7 +87,7 @@ set(OPEN_DEMO_SRC
 add_executable(open_demo ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})
 target_compile_definitions(open_demo PRIVATE ${OPEN_DEMO_DEFINITIONS})
-target_include_directories(open_demo PRIVATE "." ${OPEN_DEMO_INCLUDE_DIRS})
+target_include_directories(open_demo PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})
 
 if(MSVC)
 	set_target_properties(open_demo PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "../build/bin/")
