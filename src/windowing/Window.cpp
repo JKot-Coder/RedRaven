@@ -28,7 +28,7 @@ namespace OpenDemo
 
         bool Window::Init(const WindowSettings& settings)
         {
-            std::string windowerror;
+            U8String windowerror;
             Uint32 windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
 
             ASSERT(!window)
@@ -59,7 +59,7 @@ namespace OpenDemo
 
             if (!window)
             {
-                windowerror = std::string(SDL_GetError());
+                windowerror = U8String(SDL_GetError());
                 return false;
             }
 

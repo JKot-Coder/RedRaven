@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cstdint>
+#include "common/String.hpp"
+
 #include <istream>
 
 namespace OpenDemo
@@ -12,7 +13,7 @@ namespace OpenDemo
         public:
             virtual ~Stream() {};
 
-            virtual std::string GetName() const = 0;
+            virtual U8String GetName() const = 0;
 
             virtual int64_t GetPosition() = 0;
             virtual void SetPosition(int64_t value) = 0;

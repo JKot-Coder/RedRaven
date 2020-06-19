@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <string>
-
 namespace OpenDemo
 {
     namespace Windowing
@@ -37,7 +34,7 @@ namespace OpenDemo
                 : Title("")
                 , WindowRect() {};
 
-            std::string Title;
+            U8String Title;
             WindowRect WindowRect;
         };
     }

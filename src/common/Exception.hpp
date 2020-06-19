@@ -1,7 +1,8 @@
 #pragma once
 
+#include "common/String.hpp"
+
 #include <exception>
-#include <string>
 
 namespace OpenDemo
 {
@@ -19,7 +20,7 @@ namespace OpenDemo
             }
 
         private:
-            std::string message;
+            U8String message;
         };
     }
 }

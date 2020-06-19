@@ -20,7 +20,7 @@ namespace OpenDemo
         class ResourcesLoaders
         {
         public:
-            static const std::vector<Rendering::RenderElement> LoadScene(const std::string& fileName);
+            static const std::vector<Rendering::RenderElement> LoadScene(const U8String& fileName);
             static const std::shared_ptr<Rendering::CommonTexture> LoadTexture(const std::shared_ptr<Common::Stream>& stream);
         };
 

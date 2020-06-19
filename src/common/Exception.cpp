@@ -11,7 +11,7 @@ namespace OpenDemo
         {
             va_list args;
             size_t sizeBuffer = strlen(fmt) * 2;
-            std::string str;
+            U8String str;
 
             while (true)
             {

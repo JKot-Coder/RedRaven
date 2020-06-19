@@ -31,7 +31,7 @@ namespace OpenDemo
         namespace OpenGL
         {
 
-            const auto gluErrorString = [](GLenum errorCode) -> const char* {
+            const auto gluErrorU8String = [](GLenum errorCode) -> const char* {
                 switch (errorCode)
                 {
                 default:
@@ -88,7 +88,7 @@ namespace OpenDemo
                 if (!gladLoadGL())
                     throw Common::Exception("Can't initalize openGL.");
 
-                Log::Info("OpenGL Version {0}.{1} loaded \n", GLVersion.major, GLVersion.minor);
+                Log::Info(FMT_STRING("OpenGL Version {0}.{1} loaded \n"), GLVersion.major, GLVersion.minor);
 
                 if (!GLAD_GL_VERSION_3_3)
                     throw Common::Exception("OpenGL version is not supported.");
@@ -112,7 +112,7 @@ namespace OpenDemo
                 GLenum error;
                 while ((error = glGetError()) != GL_NO_ERROR)
                 {
-                    fprintf(stderr, "GL_ERROR: %d : %s\n", error, gluErrorString(error));
+                    fprintf(stderr, "GL_ERROR: %d : %s\n", error, gluErrorU8String(error));
                 }
 
                 SDL_GL_SwapWindow(window->GetSDLWindow());

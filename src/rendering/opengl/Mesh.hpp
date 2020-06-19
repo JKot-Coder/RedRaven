@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include "rendering/Mesh.hpp"
 
 namespace OpenDemo

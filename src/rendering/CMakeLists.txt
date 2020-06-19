@@ -15,7 +15,7 @@ endif()
 if (WIN32)
     set(OPEN_DEMO_SRC_PLATFORM)
     set(OPEN_DEMO_PLATFORM_DEFINITIONS
-            OS_WIN
+            OS_WINDOWS
             NOMINMAX)
     if(GAPI STREQUAL AUTO)
         set(GAPI OPENGL)
@@ -40,7 +40,7 @@ endif ()
 
 if (GAPI STREQUAL OPENGL)
     find_package(OpenGL REQUIRED)
-    set(RENDER_GAPI_LIBRARIES ${OPENGL_LIBRARIES})
+    set(RENDER_GAPI_LIBRARIES ${OPENGL_LIBRARIES} CONAN_PKG::sdl2)
 
     set(OPEN_DEMO_SRC_MODULE_RENDER_GAPI
             opengl/Shader.cpp

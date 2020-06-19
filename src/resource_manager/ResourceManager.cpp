@@ -20,7 +20,7 @@ namespace OpenDemo
     {
         std::unique_ptr<ResourceManager> ResourceManager::instance = std::unique_ptr<ResourceManager>(new ResourceManager());
 
-        const std::shared_ptr<Rendering::Shader> ResourceManager::LoadShader(const std::string& filename)
+        const std::shared_ptr<Rendering::Shader> ResourceManager::LoadShader(const U8String& filename)
         {
             auto* filesystem = FileSystem::Instance().get();
 
@@ -42,13 +42,13 @@ namespace OpenDemo
             return shader;
         }
 
-        const std::vector<Rendering::RenderElement> ResourceManager::LoadScene(const std::string& filename)
+        const std::vector<Rendering::RenderElement> ResourceManager::LoadScene(const U8String& filename)
         {
             //Todo: pass a stream for easy migrate to virtual file system in future
             return ResourcesLoaders::LoadScene(filename);
         }
 
-        const std::shared_ptr<Rendering::CommonTexture> ResourceManager::LoadTexture(const std::string& filename)
+        const std::shared_ptr<Rendering::CommonTexture> ResourceManager::LoadTexture(const U8String& filename)
         {
             auto* filesystem = FileSystem::Instance().get();
 

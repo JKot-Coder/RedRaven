@@ -11,7 +11,7 @@ namespace OpenDemo
     namespace FileSystem
     {
 
-        FileStream::FileStream(const std::string& fileName)
+        FileStream::FileStream(const U8String& fileName)
             : fileName(fileName)
             , fileStream()
             , mode(Mode::CLOSED)

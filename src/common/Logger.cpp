@@ -1,5 +1,9 @@
 #include "Logger.hpp"
 
+#if defined(OS_WINDOWS)
+#include <windows.h>
+#endif
+
 namespace OpenDemo
 {
     namespace Common
@@ -15,9 +19,14 @@ namespace OpenDemo
 #endif
         }
 
-        void Logger::Log(Level level, const std::string& msg)
+        void Logger::Log(Level level, const U8String& msg)
         {
+#if defined(OS_WINDOWS)
+            OutputDebugStringW(StringConversions::UTF8ToWString(msg).c_str());
+#else
             fmt::print(msg);
+#endif
+            
             if (level == Level::Fatal)
                 debugBreak();
         }

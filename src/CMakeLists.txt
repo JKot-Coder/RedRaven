@@ -21,9 +21,8 @@ set(OPEN_DEMO_LINK_LIBRARIES
         renderer
         STB
         ghc_filesystem
-        ${CONAN_LIBS_ASSIMP}
-        ${CONAN_LIBS_BOOST_FILESYSTEM}
-        ${CONAN_LIBS})
+        CONAN_PKG::Assimp
+        CONAN_PKG::sdl2)
 
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS}

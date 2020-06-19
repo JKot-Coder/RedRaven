@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include "common/String.hpp"
 
 #if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
 #include <filesystem>
@@ -38,7 +38,7 @@ namespace OpenDemo
                 return instance;
             }
 
-            std::shared_ptr<Common::Stream> Open(const std::string& fileName, Mode RW = Mode::READ) const;
+            std::shared_ptr<Common::Stream> Open(const U8String& fileName, Mode RW = Mode::READ) const;
 
         private:
             static std::unique_ptr<FileSystem> instance;

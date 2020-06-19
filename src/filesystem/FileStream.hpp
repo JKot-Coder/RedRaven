@@ -1,10 +1,9 @@
 #pragma once
 
 #include "common/Stream.hpp"
+#include "common/Common.hpp"
 
-#include <cstdint>
 #include <fstream>
-#include <string>
 
 namespace OpenDemo
 {
@@ -16,13 +15,13 @@ namespace OpenDemo
         class FileStream final : public Common::Stream
         {
         public:
-            FileStream(const std::string& fileName);
+            FileStream(const U8String& fileName);
             virtual ~FileStream() override;
 
             bool Open(Mode mode);
             void Close();
 
-            virtual inline std::string GetName() const override
+            virtual inline U8String GetName() const override
             {
                 return fileName;
             }
@@ -38,7 +37,7 @@ namespace OpenDemo
             virtual std::istream* GetNativeStream() override;
 
         private:
-            std::string fileName;
+            U8String fileName;
             std::fstream fileStream;
             Mode mode;
         };

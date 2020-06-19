@@ -38,7 +38,7 @@ namespace OpenDemo
             return vec2(vector.x, vector.y);
         }
 
-        const std::shared_ptr<Rendering::CommonTexture> LoadMaterialTexture(const std::string& path, const aiMaterial* material, aiTextureType type)
+        const std::shared_ptr<Rendering::CommonTexture> LoadMaterialTexture(const U8String& path, const aiMaterial* material, aiTextureType type)
         {
             const auto& resourceManager = ResourceManager::Instance().get();
             if (material->GetTextureCount(type) == 0)
@@ -54,7 +54,7 @@ namespace OpenDemo
             return resourceManager->LoadTexture((fs::path(path) / textureName.C_Str()).string());
         }
 
-        const std::vector<Rendering::RenderElement> ResourcesLoaders::LoadScene(const std::string& filename)
+        const std::vector<Rendering::RenderElement> ResourcesLoaders::LoadScene(const U8String& filename)
         {
             //Todo: Replace to aiImportFileEx, it's needed for implementing virtual file system
             auto scene = aiImportFile(filename.data(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs);

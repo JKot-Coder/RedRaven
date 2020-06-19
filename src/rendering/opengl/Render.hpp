@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #include "rendering/Render.hpp"
 
 typedef void* SDL_GLContext;

@@ -1,29 +1,33 @@
 #pragma once
 
-#include "dependencies/fmt/include/fmt/format.h"
+#include "common/String.hpp"
 
 namespace OpenDemo
 {
 
 #ifdef DEBUG
-#define ASSERT(expr) \
-    if (!expr)       \
-        Log::Fatal(fmt::format("ASSERT:\n  %s:%d\n  %s => %s\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(#expr)));
+#define ASSERT(exp) \
+    if (!(exp))     \
+        Log::Fatal(fmt::format("ASSERT:\n Value:{4} {0}:{1}\n {3} \n", __FILE__, __LINE__, __FUNCTION__, #exp));
+
+#define ASSERT_MSG(exp, msg, ...) \
+    if (!(exp))                   \
+        Log::Fatal(fmt::format("ASSERT:\n Value:{4} {0}:{1}\n {3} => {5} \n", __FILE__, __LINE__, __FUNCTION__, #exp, fmt::format(msg, ##__VA_ARGS__)));
 #else
-#define ASSERT(expr)
+#define ASSERT(ignore) ((void)0);
 #endif
 
-#define LOG_INFO(expr) \
-    Log::Info(fmt::format("INFO:\n  %s:%d\n  %s => %s\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(#expr)))
+#define LOG_INFO(...) \
+    Log::Info(fmt::format("INFO:\n  {0}:{1}\n  {2} => {3}\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(##__VA_ARGS__)));
 
-#define LOG_WARNING(expr) \
-    Log::Warning(fmt::format("WARNING:\n  %s:%d\n  %s => %s\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(#expr)))
+#define LOG_WARNING(...) \
+    Log::Warning(fmt::format("WARNING:\n  {0}:{1}\n  {2} => {3}\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(##__VA_ARGS__)));
 
-#define LOG_ERROR(expr) \
-    Log::Error(fmt::format("EROR:\n  %s:%d\n  %s => %s\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(#expr)))
+#define LOG_ERROR(...) \
+    Log::Error(fmt::format("EROR:\n  {0}:{1}\n  {2} => {3}\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(##__VA_ARGS__)));
 
-#define LOG_FATAL(expr) \
-    Log::Fatal(fmt::format("FATAL:\n  %s:%d\n  %s => %s\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(#expr)))
+#define LOG_FATAL(...) \
+    Log::Fatal(fmt::format("FATAL:\n  {0}:{1}\n  {2} => {3}\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(##__VA_ARGS__)));
 
     namespace Common
     {
@@ -39,7 +43,7 @@ namespace OpenDemo
                 Disabled = -1
             };
 
-            static void Log(Level level, const std::string& msg);
+            static void Log(Level level, const U8String& msg);
         };
     }
 

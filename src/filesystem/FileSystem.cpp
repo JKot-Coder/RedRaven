@@ -9,7 +9,7 @@ namespace OpenDemo
 
         std::unique_ptr<FileSystem> FileSystem::instance = std::unique_ptr<FileSystem>(new FileSystem());
 
-        std::shared_ptr<Common::Stream> FileSystem::Open(const std::string& fileName, Mode RW) const
+        std::shared_ptr<Common::Stream> FileSystem::Open(const U8String& fileName, Mode RW) const
         {
             auto* fileStream = new FileStream(fileName);
 
