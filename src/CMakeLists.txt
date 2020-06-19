@@ -83,7 +83,7 @@ set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_MODULE_RENDER_GAPI}
         ${OPEN_DEMO_SRC_SCENES})
 
-add_executable(open_demo ${OPEN_DEMO_SRC})
+add_executable(open_demo WIN32 ${OPEN_DEMO_SRC})
 target_link_libraries(open_demo ${OPEN_DEMO_LINK_LIBRARIES})
 target_compile_definitions(open_demo PRIVATE ${OPEN_DEMO_DEFINITIONS})
 target_include_directories(open_demo PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})

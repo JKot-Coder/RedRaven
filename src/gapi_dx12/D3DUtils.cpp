@@ -3,6 +3,8 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 
+#include "common/Logger.hpp"
+
 namespace OpenDemo
 {
     namespace Render
@@ -20,7 +22,6 @@ namespace OpenDemo
 
                     void GetAdapter(const ComSharedPtr<IDXGIFactory1>& dxgiFactory, D3D_FEATURE_LEVEL minimumFeatureLevel, ComSharedPtr<IDXGIAdapter1>& adapter)
                     {
-
                         for (uint32_t adapterIndex = 0;; ++adapterIndex)
                         {
                             if (FAILED(dxgiFactory->EnumAdapters1(adapterIndex, adapter.put())))
@@ -39,11 +40,7 @@ namespace OpenDemo
                             // Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
                             if (SUCCEEDED(D3D12CreateDevice(adapter.get(), minimumFeatureLevel, _uuidof(ID3D12Device), nullptr)))
                             {
-#ifdef _DEBUG
-                                wchar_t buff[256] = {};
-                                swprintf_s(buff, L"Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, desc.Description);
-                                OutputDebugStringW(buff);
-#endif
+                                Log::Info(FMT_STRING("Direct3D Adapter ({}): VID:{:#04x}, PID:{:#04x} - {}\n"), adapterIndex, desc.VendorId, desc.DeviceId, StringConversions::WStringToUTF8(desc.Description));
                                 break;
                             }
                         }

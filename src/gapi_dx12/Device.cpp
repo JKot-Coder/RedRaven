@@ -72,7 +72,7 @@ namespace OpenDemo
 
                         if (pDevice != nullptr)
                         {
-                            Log::Info("Successfully created device with feature level: %s" + deviceFeatureLevel);
+                            Log::Info(FMT_STRING("Successfully created device with feature level: {}"), deviceFeatureLevel);
                             return pDevice;
                         }
                     }

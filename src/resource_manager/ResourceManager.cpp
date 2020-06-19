@@ -34,7 +34,7 @@ namespace OpenDemo
             }
             catch (const std::exception& exception)
             {
-                Log::Fatal("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
+                Log::Fatal(FMT_STRING("Error opening resource \"{}\" with error: {}"), filename.c_str(), exception.what());
                 return shader;
             }
 
@@ -59,7 +59,7 @@ namespace OpenDemo
             }
             catch (const std::exception& exception)
             {
-                Log::Error("Error opening resource \"%s\" with error: %s", filename.c_str(), exception.what());
+                Log::Error(FMT_STRING("Error opening resource \"{}\" with error: {}"), filename.c_str(), exception.what());
             }
 
             return ResourcesLoaders::LoadTexture(stream);

@@ -51,7 +51,7 @@ namespace OpenDemo
 
                     glGetShaderInfoLog(obj, sizeof(info), NULL, info);
                     if (info[0])
-                        Log::Warning("! shader: %s\n", info);
+                        Log::Warning(FMT_STRING("! shader: {}\n"), info);
 
                     glAttachShader(id, obj);
                     glDeleteShader(obj);
@@ -66,7 +66,7 @@ namespace OpenDemo
 
                 glGetProgramInfoLog(id, sizeof(info), NULL, info);
                 if (info[0])
-                    Log::Warning("! program: %s\n", info);
+                    Log::Warning(FMT_STRING("! program: {}\n"), info);
 
                 if (!checkLink())
                     return false;
