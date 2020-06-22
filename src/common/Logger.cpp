@@ -33,6 +33,7 @@ namespace OpenDemo
             
             if (level == Level::Fatal)
             {
+                //_CrtDbgReportW;
                 debugBreak();
                 exit(1);
             }

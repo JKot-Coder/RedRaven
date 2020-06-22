@@ -27,21 +27,38 @@ namespace OpenDemo
 {
     using namespace Common;
 
+    void Application::OnWindowResize(const Windowing::Window& window_)
+    {
+        if (!_device)
+            return;
+        int width = window_.GetWidth();
+        int height = window_.GetHeight();
+
+        Render::Device::PresentOptions presentOptions;
+        presentOptions.bufferCount = 2;
+        presentOptions.isStereo = false;
+        presentOptions.rect = RectU(0, 0, width, height);
+        presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
+        presentOptions.windowHandle = _window->GetNativeHandle();
+
+        _device->Reset(presentOptions);
+    }
+
     void Application::Start()
     {
         init();
         // loadResouces();
-
+        _device.reset(new Render::Device::DX12::Device());
         // TODO REMOVE IT
-        auto device = new Render::Device::DX12::Device();
-        device->Init();
+   
+        _device->Init();
         Render::Device::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = RectU(0, 0, 100, 100);
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
-        device->Reset(presentOptions);
+        _device->Reset(presentOptions);
 
         //  const auto& input = Inputting::Instance();
         const auto& time = Time::Instance();
@@ -58,7 +75,7 @@ namespace OpenDemo
             //    renderPipeline->Draw();
 
             //   _scene->Update();
-            device->Present();
+            _device->Present();
             //    render->SwapBuffers();
             //  input->Update();
 

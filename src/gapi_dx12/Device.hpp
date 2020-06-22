@@ -19,7 +19,7 @@ namespace OpenDemo
 
                     GAPIStatus Init() override;
                     GAPIStatus Reset(const PresentOptions& presentOptions) override;
-                    GAPIStatus Present();
+                    GAPIStatus Present() override;
 
                 private:
                     bool _enableDebug = true;

@@ -27,7 +27,7 @@ namespace OpenDemo
 
                 struct PrivateDeviceData
                 {
-                    ComSharedPtr<ID3D12Debug> debugController;
+                    ComSharedPtr<ID3D12Debug1> debugController;
                     ComSharedPtr<IDXGIFactory2> dxgiFactory;
                     ComSharedPtr<IDXGIAdapter1> dxgiAdapter;
                     ComSharedPtr<ID3D12Device> d3dDevice;
@@ -40,7 +40,7 @@ namespace OpenDemo
                 {
                 public:
                     static const int MAX_GPU_FRAMES_BUFFERED = 3;
-                    static const int MAX_BACKBUFFER_COUNT = 3;
+                    static const int MAX_BACK_BUFFER_COUNT = 3;
 
                     TemporaryDX12Impl(PrivateDeviceData* privateData)
                         : _privateData(privateData)
@@ -51,6 +51,7 @@ namespace OpenDemo
                     GAPIStatus Reset(const PresentOptions& presentOptions);
                     GAPIStatus Init();
                     GAPIStatus Present();
+                    CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView();
 
                     void MoveToNextFrame();
 
@@ -68,8 +69,10 @@ namespace OpenDemo
                     winrt::handle m_fenceEvent;
                     uint32_t m_rtvDescriptorSize;
                     uint32_t m_backBufferIndex = 0;
-                    uint32_t m_backBufferCount;
+                    uint32_t m_backBufferCount = 0;
+                    uint32_t m_frameIndex = 0;
                     ComSharedPtr<IDXGISwapChain3> _swapChain;
+                    ComSharedPtr<ID3D12Resource> m_renderTargets[MAX_BACK_BUFFER_COUNT];
                 };
 
                 void TemporaryDX12Impl::WaitForGpu()
@@ -80,23 +83,31 @@ namespace OpenDemo
                 void TemporaryDX12Impl::MoveToNextFrame()
                 {
                     // Schedule a Signal command in the queue.
-                    const UINT64 currentFenceValue = m_fenceValues[m_backBufferIndex];
-                   // ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
+                    const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
+                    // ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
                     _commandQueue->Signal(m_fence.get(), currentFenceValue);
 
                     // Update the back buffer index.
                     m_backBufferIndex = _swapChain->GetCurrentBackBufferIndex();
+                    m_frameIndex = (m_frameIndex++ % m_framesBuffered);
 
                     // If the next frame is not ready to be rendered yet, wait until it is ready.
-                    if (m_fence->GetCompletedValue() < m_fenceValues[m_backBufferIndex])
+                    if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
                     {
-                        m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent.get());
-                     //   ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent.Get()));
+                        m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent.get());
+                        //   ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent.Get()));
                         WaitForSingleObjectEx(m_fenceEvent.get(), INFINITE, FALSE);
                     }
 
                     // Set the fence value for the next frame.
-                    m_fenceValues[m_backBufferIndex] = currentFenceValue + 1;
+                    m_fenceValues[m_frameIndex] = currentFenceValue + 1;
+                }
+
+                CD3DX12_CPU_DESCRIPTOR_HANDLE TemporaryDX12Impl::GetRenderTargetView()
+                {
+                    return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+                        _rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+                        static_cast<INT>(m_backBufferIndex), m_rtvDescriptorSize);
                 }
 
                 GAPIStatus TemporaryDX12Impl::Present()
@@ -108,16 +119,32 @@ namespace OpenDemo
                     const auto& swapChain = _swapChain;
                     const auto& dxgiFactory = _privateData->dxgiFactory;
 
-                    /*   if (beforeState != D3D12_RESOURCE_STATE_PRESENT)
+                    static int index = 0;
+                    // if (beforeState != D3D12_RESOURCE_STATE_PRESENT)
+                    m_commandAllocators[index]->Reset();
+                    m_commandList->Reset(m_commandAllocators[index].get(), nullptr);
+
+                    index = (index++ % m_framesBuffered);
+
                     {
                         // Transition the render target to the state that allows it to be presented to the display.
-                        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_backBufferIndex].Get(), beforeState, D3D12_RESOURCE_STATE_PRESENT);
-                        commandList->ResourceBarrier(1, &barrier);
+                        // D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_backBufferIndex].Get(), beforeState, D3D12_RESOURCE_STATE_PRESENT);
+                        //commandList->ResourceBarrier(1, &barrier);
                     }
 
-                    // Send the command list off to the GPU for processing.
-                    ThrowIfFailed(commandList->Close());
-                    commandQueue->ExecuteCommandLists(1, CommandListCast((commandList.get())));*/
+                    float color[4] = { std::rand() / static_cast<float>(RAND_MAX),
+                        std::rand() / static_cast<float>(RAND_MAX),
+                        std::rand() / static_cast<float>(RAND_MAX), 1 };
+
+                    D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_backBufferIndex].get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+                    commandList->ResourceBarrier(1, &barrier);
+                    commandList->ClearRenderTargetView(GetRenderTargetView(), color, 0, nullptr);
+                    barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_backBufferIndex].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+                    commandList->ResourceBarrier(1, &barrier);
+                    // Send the command list off to the GPU for processing.   */
+                    m_commandList->Close();
+                    ID3D12CommandList* cc[] = { static_cast<ID3D12CommandList*>(m_commandList.get()) };
+                    commandQueue->ExecuteCommandLists(1, cc);
 
                     //HRESULT hr;
                     /*if (m_options & c_AllowTearing)
@@ -137,9 +164,10 @@ namespace OpenDemo
                     // The first argument instructs DXGI to block until VSync, putting the application
                     // to sleep until the next VSync. This ensures we don't waste any cycles rendering
                     // frames that will never be displayed to the screen.
-                    DXGI_PRESENT_PARAMETERS parameters = {};
-                  //  std::this_thread::sleep_for(10ms);
-                    HRESULT hr = swapChain->Present1(1, 0, &parameters);
+                    DXGI_PRESENT_PARAMETERS parameters
+                        = {};
+                    //  std::this_thread::sleep_for(10ms);
+                    HRESULT hr = swapChain->Present1(0, 0, &parameters);
 
                     // If the device was reset we must completely reinitialize the renderer.
                     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -168,6 +196,8 @@ namespace OpenDemo
                             //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                         }
                     }
+
+                    return result;
                 }
 
                 GAPIStatus TemporaryDX12Impl::Init()
@@ -190,7 +220,7 @@ namespace OpenDemo
 
                     // Create descriptor heaps for render target views and depth stencil views.
                     D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
-                    rtvDescriptorHeapDesc.NumDescriptors = MAX_BACKBUFFER_COUNT;
+                    rtvDescriptorHeapDesc.NumDescriptors = MAX_BACK_BUFFER_COUNT;
                     rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 
                     if (GAPIStatusU::Failure(result = GAPIStatus(_privateData->d3dDevice->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(_rtvDescriptorHeap.put())))))
@@ -240,13 +270,13 @@ namespace OpenDemo
                     m_commandList->SetName(L"CommandList");
 
                     // Create a fence for tracking GPU execution progress.
-                    if (GAPIStatusU::Failure(result = GAPIStatus(_privateData->d3dDevice->CreateFence(m_fenceValues[m_backBufferIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.put())))))
+                    if (GAPIStatusU::Failure(result = GAPIStatus(_privateData->d3dDevice->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.put())))))
                     {
                         LOG_ERROR("Failure create CreateFence with HRESULT of 0x%08X", result);
                         return result;
                     }
 
-                    m_fenceValues[m_backBufferIndex]++;
+                    m_fenceValues[m_frameIndex]++;
                     m_fence->SetName(L"DeviceResources");
 
                     m_fenceEvent.attach(CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
@@ -264,12 +294,20 @@ namespace OpenDemo
                     return GAPIStatus::OK;
                 }
 
+                template <typename T>
+                void ThrowIfFailed(T c) { std::ignore = c; };
+
                 // These resources need to be recreated every time the window size is changed.
                 GAPIStatus TemporaryDX12Impl::Reset(const PresentOptions& presentOptions)
                 {
                     ASSERT_IS_CREATION_THREAD;
-
                     ASSERT(presentOptions.windowHandle);
+
+                    if (!m_backBufferCount)
+                        m_backBufferCount = presentOptions.bufferCount;
+
+                    ASSERT_MSG(presentOptions.bufferCount == m_backBufferCount, "Changing backbuffer count should work, but this is untested")
+
                     const HWND windowHandle = presentOptions.windowHandle;
 
                     if (!windowHandle)
@@ -284,11 +322,11 @@ namespace OpenDemo
                     GAPIStatus result = GAPIStatus::OK;
 
                     // Release resources that are tied to the swap chain and update fence values.
-                    /*  for (int n = 0; n < m_backBufferCount; n++)
+                    for (int n = 0; n < m_framesBuffered; n++)
                     {
-                        //m_renderTargets[n].Reset();
-                        m_fenceValues[n] = m_fenceValues[m_backBufferIndex];
-                    }*/
+                        m_renderTargets[n] = nullptr;
+                        m_fenceValues[n] = m_fenceValues[m_frameIndex];
+                    }
 
                     // If the swap chain already exists, resize it, otherwise create one.
                     if (_swapChain)
@@ -302,15 +340,13 @@ namespace OpenDemo
                         }
 
                         const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(presentOptions, DXGI_SWAP_EFFECT_FLIP_DISCARD);
-                        const auto SwapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
+                        const auto swapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
 
-                        if (!SwapChainCompatable)
+                        if (!swapChainCompatable)
                         {
                             LOG_ERROR("SwapChains incompatible");
                             return GAPIStatus::FAIL;
                         }
-
-                        ASSERT_MSG(targetSwapChainDesc.BufferCount == m_backBufferCount, "Changing backbuffer count should work, but this is untested")
 
                         // If the swap chain already exists, resize it.
                         HRESULT hr = _swapChain->ResizeBuffers(
@@ -318,7 +354,7 @@ namespace OpenDemo
                             targetSwapChainDesc.Width,
                             targetSwapChainDesc.Height,
                             targetSwapChainDesc.Format,
-                            0u);
+                            targetSwapChainDesc.Flags);
 
                         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
                         {
@@ -330,17 +366,15 @@ namespace OpenDemo
                             // and correctly set up the new device.
                             return HandleDeviceLost();
                         }
-                        else
+                        else if (GAPIStatusU::Failure(result = GAPIStatus(hr)))
                         {
-                            LOG_ERROR("Failed ResizeBuffers");
-                            return GAPIStatus(hr);
+                            LOG_ERROR("Failed ResizeBuffers")
+                            return GAPIStatus(result);
                         }
                     }
                     else
                     {
                         const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(presentOptions, DXGI_SWAP_EFFECT_FLIP_DISCARD);
-
-                        m_backBufferCount = targetSwapChainDesc.BufferCount;
 
                         ComSharedPtr<IDXGISwapChain1> swapChain;
                         // Create a swap chain for the window.
@@ -363,6 +397,33 @@ namespace OpenDemo
                         // {
                         // }*/
                     }
+
+                    DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
+                    if (GAPIStatusU::Failure(result = GAPIStatus(_swapChain->GetDesc1(&currentSwapChainDesc))))
+                    {
+                        LOG_ERROR("Failure get swapChain Desc");
+                        return result;
+                    }
+
+                    for (UINT n = 0; n < m_backBufferCount; n++)
+                    {
+                        ThrowIfFailed(_swapChain->GetBuffer(n, IID_PPV_ARGS(m_renderTargets[n].put())));
+
+                        wchar_t name[25] = {};
+                        swprintf_s(name, L"Render target %u", n);
+                        m_renderTargets[n]->SetName(name);
+
+                        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+                        rtvDesc.Format = currentSwapChainDesc.Format;
+                        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+                        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor(
+                            _rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+                            static_cast<INT>(n), m_rtvDescriptorSize);
+                        _privateData->d3dDevice->CreateRenderTargetView(m_renderTargets[n].get(), &rtvDesc, rtvDescriptor);
+                    }
+
+                    m_backBufferIndex = 0;
                 }
 
                 GAPIStatus Device::Present()
@@ -394,6 +455,8 @@ namespace OpenDemo
                         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(_privateData->debugController.put()))))
                         {
                             _privateData->debugController->EnableDebugLayer();
+                            _privateData->debugController->SetEnableGPUBasedValidation(true);
+                            _privateData->debugController->SetEnableSynchronizedCommandQueueValidation(true);
                         }
                         else
                         {

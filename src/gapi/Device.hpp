@@ -1,3 +1,5 @@
+#pragma once
+
 #include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
@@ -27,9 +29,12 @@ namespace OpenDemo
 
             class SingleThreadDeviceInterface
             {
+            public:
                 virtual GAPIStatus Init() = 0;
 
                 virtual GAPIStatus Reset(const PresentOptions& presentOptions) = 0;
+
+                virtual GAPIStatus Present() = 0;
             };
 
             class MultiThreadDeviceInterface
