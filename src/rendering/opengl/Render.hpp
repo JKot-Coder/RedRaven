@@ -46,9 +46,9 @@ namespace OpenDemo
             private:
                 void ApplyBlending(bool blending, const BlendingDescription& description) const;
 
-                std::shared_ptr<Windowing::Window> window;
-                std::shared_ptr<RenderContext> renderContext;
-                SDL_GLContext context;
+                std::shared_ptr<Windowing::Window> _window;
+                std::shared_ptr<RenderContext> _renderContext;
+                SDL_GLContext _context;
             };
 
         }

@@ -18,7 +18,6 @@ namespace OpenDemo
 
     namespace Scenes
     {
-
         class Scene_2 final : public Rendering::SceneGraph
         {
         public:
@@ -30,9 +29,9 @@ namespace OpenDemo
             virtual std::shared_ptr<Rendering::Camera> GetMainCamera() override;
 
         private:
-            Common::vec2 lookAngle;
-            std::shared_ptr<Rendering::Camera> camera;
-            std::vector<Rendering::RenderElement> renderElements;
+            Common::vec2 _lookAngle;
+            std::shared_ptr<Rendering::Camera> _camera;
+            std::vector<Rendering::RenderElement> _renderElements;
         };
     }
 }

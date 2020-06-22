@@ -27,11 +27,11 @@ namespace OpenDemo
                 virtual void Draw() const override;
 
             private:
-                GLuint vaoId;
-                GLuint vboId[2];
+                GLuint _vaoId;
+                GLuint _vboId[2];
 
-                int32_t vCount;
-                int32_t iCount;
+                int32_t _vCount;
+                int32_t _iCount;
 
                 void SetupAttributes();
             };

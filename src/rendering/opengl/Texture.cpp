@@ -10,15 +10,15 @@ namespace OpenDemo
         {
 
             Texture2D::Texture2D()
-                : width(0)
-                , height(0)
+                : _width(0)
+                , _height(0)
             {
-                glGenTextures(1, &id);
+                glGenTextures(1, &_id);
             }
 
             Texture2D::~Texture2D()
             {
-                glDeleteTextures(1, &id);
+                glDeleteTextures(1, &_id);
             }
 
             Texture2D::OpenGlPixelFormatDescription Texture2D::GetOpenGlPixelFormatDescription(PixelFormat pixelFormat) const
@@ -41,12 +41,12 @@ namespace OpenDemo
 
             void Texture2D::Init(const Texture2D::Description& description, void* data)
             {
-                width = description.width;
-                height = description.height;
-                pixelFormatDescription = GetOpenGlPixelFormatDescription(description.pixelFormat);
+                _width = description.width;
+                _height = description.height;
+                _pixelFormatDescription = GetOpenGlPixelFormatDescription(description.pixelFormat);
 
                 Bind(0);
-                glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, width, height, 0, pixelFormatDescription.format, pixelFormatDescription.type, data);
+                glTexImage2D(GL_TEXTURE_2D, 0, _pixelFormatDescription.internalFormat, _width, _height, 0, _pixelFormatDescription.format, _pixelFormatDescription.type, data);
 
                 //TODO: normal sampler setup
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -58,17 +58,17 @@ namespace OpenDemo
             void Texture2D::Bind(int sampler)
             {
                 glActiveTexture(GL_TEXTURE0 + sampler);
-                glBindTexture(GL_TEXTURE_2D, id);
+                glBindTexture(GL_TEXTURE_2D, _id);
             }
 
             void Texture2D::Resize(int width_, int height_)
             {
                 //TODO asserts and check for update
-                width = width_;
-                height = height_;
+                _width = width_;
+                _height = height_;
 
                 Bind(0);
-                glTexImage2D(GL_TEXTURE_2D, 0, pixelFormatDescription.internalFormat, width, height, 0, pixelFormatDescription.format, pixelFormatDescription.type, nullptr);
+                glTexImage2D(GL_TEXTURE_2D, 0, _pixelFormatDescription.internalFormat, _width, _height, 0, _pixelFormatDescription.format, _pixelFormatDescription.type, nullptr);
             };
 
         }

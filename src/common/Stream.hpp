@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/String.hpp"
-
 #include <istream>
 
 namespace OpenDemo

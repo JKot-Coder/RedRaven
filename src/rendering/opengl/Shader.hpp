@@ -34,8 +34,8 @@ namespace OpenDemo
                 virtual void SetParam(Uniform::Type uType, const Common::Basis& value, int count = 1) const override;
 
             private:
-                GLuint id;
-                std::array<GLint, Uniform::UNIFORM_MAX> uniformID = {};
+                GLuint _id;
+                std::array<GLint, Uniform::UNIFORM_MAX> _uniformID = {};
                 bool checkLink() const;
             };
 

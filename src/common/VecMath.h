@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "common/Common.hpp"
-
 #define DECL_ENUM(v) v,
 #define DECL_STR(v) #v,
 

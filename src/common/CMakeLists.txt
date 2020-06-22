@@ -1,13 +1,17 @@
 project (common)
 
 set(COMMON_SRC
+        pch.hpp
+        Math.hpp    
+        Math.cpp
+        Math.inl
+        Config.hpp
         VecMath.h
         Check.cpp
-        Common.hpp
+        NativeWindowHandle.hpp
         String.hpp
         Logger.hpp
         Logger.cpp
-        Exception.cpp
         Exception.hpp
         Stream.hpp
         Time.cpp
@@ -16,3 +20,4 @@ set(COMMON_SRC
 add_library(${PROJECT_NAME} ${COMMON_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} fmt utf8cpp)
+target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)

@@ -25,10 +25,10 @@ namespace OpenDemo
             cameraDescription.orthoSize = 13;
             cameraDescription.isOrtho = false;
 
-            camera = std::make_shared<Rendering::Camera>(cameraDescription);
-            camera->LookAt(vec3(-3, -20, 0), vec3(0, -20, 0));
+            _camera = std::make_shared<Rendering::Camera>(cameraDescription);
+            _camera->LookAt(vec3(-3, -20, 0), vec3(0, -20, 0));
 
-            sphereMesh = Rendering::Primitives::GetSphereMesh(23);
+            _sphereMesh = Rendering::Primitives::GetSphereMesh(23);
 
             for (int i = 0; i < 8; i++)
             {
@@ -39,29 +39,29 @@ namespace OpenDemo
                 Rendering::Material material;
 
                 Rendering::RenderElement element;
-                element.mesh = sphereMesh;
+                element.mesh = _sphereMesh;
                 element.modelMatrix = modelMat;
                 element.material = material;
 
-                renderElements.push_back(element);
+                _renderElements.push_back(element);
             }
         }
 
         void Scenes::Scene_1::Collect(Rendering::RenderContext& renderContext)
         {
-            renderContext.GetRenderQuery() = renderElements;
+            renderContext.GetRenderQuery() = _renderElements;
         }
 
         std::shared_ptr<Rendering::Camera> Scene_1::GetMainCamera()
         {
-            return camera;
+            return _camera;
         }
 
         void Scene_1::Terminate()
         {
-            sphereMesh = nullptr;
+            _sphereMesh = nullptr;
 
-            renderElements.clear();
+            _renderElements.clear();
         }
 
     }

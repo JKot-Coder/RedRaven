@@ -14,12 +14,12 @@ namespace OpenDemo
 
             RenderTargetContext::RenderTargetContext()
             {
-                glGenFramebuffers(1, &id);
+                glGenFramebuffers(1, &_id);
             }
 
             RenderTargetContext::~RenderTargetContext()
             {
-                glDeleteFramebuffers(1, &id);
+                glDeleteFramebuffers(1, &_id);
             }
 
             void RenderTargetContext::SetColorTarget(Rendering::RenderTargetIndex index,
@@ -54,7 +54,7 @@ namespace OpenDemo
 
             void RenderTargetContext::Bind()
             {
-                glBindFramebuffer(GL_FRAMEBUFFER, id);
+                glBindFramebuffer(GL_FRAMEBUFFER, _id);
                 GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 }; //TODO FIX IT IMMEDIATELY
                 glDrawBuffers(1, DrawBuffers);
             }

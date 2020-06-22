@@ -29,10 +29,10 @@ namespace OpenDemo
             void UnSubscribeOnMouseEvents(const Inputting::IMouseListener* listener);
 
         private:
-            bool trapMouse = false;
-            bool mouseHolded = false;
-            std::vector<Inputting::IKeyboardListener*> keyboardListeners;
-            std::vector<Inputting::IMouseListener*> mouseListeners;
+            bool _trapMouse = false;
+            bool _mouseHolded = false;
+            std::vector<Inputting::IKeyboardListener*> _keyboardListeners;
+            std::vector<Inputting::IMouseListener*> _mouseListeners;
 
             virtual void OnWindowFocusLost(const Window& window) override;
 

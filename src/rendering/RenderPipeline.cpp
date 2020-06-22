@@ -16,7 +16,7 @@ namespace OpenDemo
     {
 
         RenderPipeline::RenderPipeline(const std::shared_ptr<Windowing::Window>& window)
-            : window(window)
+            : _window(window)
         {
             Windowing::Windowing::Subscribe(this);
         }
@@ -31,8 +31,8 @@ namespace OpenDemo
             const auto& render = Render::Instance();
 
             Texture2D::Description textureDescription;
-            textureDescription.height = window->GetHeight();
-            textureDescription.width = window->GetWidth();
+            textureDescription.height = _window->GetHeight();
+            textureDescription.width = _window->GetWidth();
             textureDescription.pixelFormat = PixelFormat::RGBA32F;
 
             auto const& hdrTexture = render->CreateTexture2D();
@@ -49,14 +49,14 @@ namespace OpenDemo
             depthTarget.texture = depthTexture;
             depthTarget.isDepthTarget = true;
 
-            hdrRenderTargetContext = render->CreateRenderTargetContext();
-            hdrRenderTargetContext->SetColorTarget(RenderTargetIndex::INDEX_0, colorTarget);
-            hdrRenderTargetContext->SetDepthStencilTarget(depthTarget);
+            _hdrRenderTargetContext = render->CreateRenderTargetContext();
+            _hdrRenderTargetContext->SetColorTarget(RenderTargetIndex::INDEX_0, colorTarget);
+            _hdrRenderTargetContext->SetDepthStencilTarget(depthTarget);
 
-            hdrRenderTargetContext->Bind();
+            _hdrRenderTargetContext->Bind();
             render->ClearColor(vec4(0, 0, 0, 0));
 
-            initPass<RenderPassOpaque>(*render, hdrRenderTargetContext);
+            initPass<RenderPassOpaque>(*render, _hdrRenderTargetContext);
             initPass<RenderPassPostProcess>(*render, hdrTexture);
         }
 
@@ -76,7 +76,7 @@ namespace OpenDemo
         {
             int width = window_.GetWidth();
             int height = window_.GetHeight();
-            hdrRenderTargetContext->Resize(width, height);
+            _hdrRenderTargetContext->Resize(width, height);
         }
     }
 }

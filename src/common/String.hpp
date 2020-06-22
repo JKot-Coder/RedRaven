@@ -2,6 +2,7 @@
 
 #include <string>
 #include "dependencies/fmt/include/fmt/format.h"
+#include "dependencies/fmt/include/fmt/printf.h"
 #include "dependencies/utfcpp/source/utf8.h"
 
 namespace OpenDemo

@@ -72,8 +72,8 @@ namespace OpenDemo
             static void UnSubscribe(const IListener* listener);
 
         private:
-            static std::vector<IListener*> listeners;
-            static std::unique_ptr<Windowing> windowingInstance;
+            static std::vector<IListener*> _listeners;
+            static std::unique_ptr<Windowing> _windowingInstance;
         };
 
     }

@@ -23,25 +23,25 @@ namespace OpenDemo
             };
 
             Camera(const Description& description)
-                : isOrtho(description.isOrtho)
-                , aspect(description.aspect)
-                , fov(description.fow)
-                , orthoSize(description.orthoSize)
-                , zNear(description.zNear)
-                , zFar(description.zFar)
-                , transform()
+                : _isOrtho(description.isOrtho)
+                , _aspect(description.aspect)
+                , _fov(description.fow)
+                , _orthoSize(description.orthoSize)
+                , _zNear(description.zNear)
+                , _zFar(description.zFar)
+                , _transform()
             {
                 calcProjectionMatrix();
             }
 
             inline void SetOrtho(bool value)
             {
-                if (isOrtho == value)
+                if (_isOrtho == value)
                 {
                     return;
                 }
 
-                isOrtho = value;
+                _isOrtho = value;
                 calcProjectionMatrix();
             }
 
@@ -52,86 +52,86 @@ namespace OpenDemo
 
             inline void SetAspect(float value)
             {
-                if (aspect == value)
+                if (_aspect == value)
                 {
                     return;
                 }
 
-                aspect = value;
+                _aspect = value;
                 calcProjectionMatrix();
             }
 
             inline void SetFov(float value)
             {
-                if (fov == value)
+                if (_fov == value)
                 {
                     return;
                 }
 
-                fov = value;
+                _fov = value;
                 calcProjectionMatrix();
             }
 
             inline void SetOrthoSize(float value)
             {
-                if (orthoSize == value)
+                if (_orthoSize == value)
                 {
                     return;
                 }
 
-                orthoSize = value;
+                _orthoSize = value;
                 calcProjectionMatrix();
             }
 
             inline void SetZField(float zNear_, float zFar_)
             {
-                if (zNear == zNear_ && zFar == zFar_)
+                if (_zNear == zNear_ && _zFar == zFar_)
                 {
                     return;
                 }
 
-                zNear = zNear_;
-                zFar = zFar_;
+                _zNear = zNear_;
+                _zFar = zFar_;
                 calcProjectionMatrix();
             }
 
-            inline void SetTransform(const Transform& value) { transform = value; }
-            inline Transform GetTransform() const { return transform; }
+            inline void SetTransform(const Transform& value) { _transform = value; }
+            inline Transform GetTransform() const { return _transform; }
 
-            inline mat4 GetViewMatrix() const { return transform.GetMatrix(); }
+            inline mat4 GetViewMatrix() const { return _transform.GetMatrix(); }
             inline mat4 GetViewProjectionMatrix() const { return GetProjectionMatrix() * GetViewMatrix().inverseOrtho(); }
 
-            inline mat4 GetProjectionMatrix() const { return projectionMatrix; }
+            inline mat4 GetProjectionMatrix() const { return _projectionMatrix; }
 
             inline void LookAt(vec3 eyePosition, vec3 targetPosition)
             {
-                transform.Position = eyePosition;
-                transform.Rotation = quat(targetPosition - eyePosition);
+                _transform.Position = eyePosition;
+                _transform.Rotation = quat(targetPosition - eyePosition);
             }
 
         private:
-            bool isOrtho;
-            float aspect;
-            float fov;
-            float orthoSize;
-            float zNear;
-            float zFar;
+            bool _isOrtho;
+            float _aspect;
+            float _fov;
+            float _orthoSize;
+            float _zNear;
+            float _zFar;
 
-            Transform transform;
-            mat4 projectionMatrix;
+            Transform _transform;
+            mat4 _projectionMatrix;
 
             inline void calcProjectionMatrix()
             {
-                if (isOrtho)
+                if (_isOrtho)
                 {
-                    const float width = orthoSize * aspect;
-                    const float height = orthoSize;
+                    const float width = _orthoSize * _aspect;
+                    const float height = _orthoSize;
 
-                    projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f, zNear, zFar);
+                    _projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f, _zNear, _zFar);
                 }
                 else
                 {
-                    projectionMatrix = mat4(mat4::PROJ_ZERO_POS, fov, aspect, zNear, zFar);
+                    _projectionMatrix = mat4(mat4::PROJ_ZERO_POS, _fov, _aspect, _zNear, _zFar);
                 }
             };
         };

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "rendering/RenderContext.hpp"
+
 #include <tuple>
 #include <vector>
 #include <memory>
-
-#include "rendering/RenderContext.hpp"
 
 namespace OpenDemo
 {
@@ -20,7 +20,7 @@ namespace OpenDemo
 
         enum class RenderPassType
         {
-            OPAQUE,
+            //OPAQUE,
             POST_PROCESS
         };
 
@@ -40,10 +40,10 @@ namespace OpenDemo
             virtual void Draw() override;
 
         private:
-            Render* render;
-            std::shared_ptr<RenderTargetContext> hdrRenderTargetContext;
-            std::shared_ptr<RenderContext> renderContext;
-            std::shared_ptr<Shader> pbrShader;
+            Render* _render;
+            std::shared_ptr<RenderTargetContext> _hdrRenderTargetContext;
+            std::shared_ptr<RenderContext> _renderContext;
+            std::shared_ptr<Shader> _pbrShader;
         };
 
         class RenderPassPostProcess final : public RenderPass
@@ -55,11 +55,11 @@ namespace OpenDemo
             virtual void Draw() override;
 
         private:
-            Render* render;
-            std::shared_ptr<Texture2D> hdrTexture;
-            std::shared_ptr<RenderContext> renderContext;
-            std::shared_ptr<Shader> postProcessShader;
-            std::shared_ptr<Mesh> fullScreenQuad;
+            Render* _render;
+            std::shared_ptr<Texture2D> _hdrTexture;
+            std::shared_ptr<RenderContext> _renderContext;
+            std::shared_ptr<Shader> _postProcessShader;
+            std::shared_ptr<Mesh> _fullScreenQuad;
         };
 
     }

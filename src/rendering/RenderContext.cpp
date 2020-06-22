@@ -8,9 +8,9 @@ namespace OpenDemo
     {
 
         RenderContext::RenderContext()
-            : depthWrite(true)
-            , depthTestFunction(DepthTestFunction::LEQUAL)
-            , renderQuery(new RenderQuery())
+            : _depthWrite(true)
+            , _depthTestFunction(DepthTestFunction::LEQUAL)
+            , _renderQuery(new RenderQuery())
         {
         }
 

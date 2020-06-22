@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/String.hpp"
-
 #include <exception>
 
 namespace OpenDemo
@@ -11,16 +9,17 @@ namespace OpenDemo
         class Exception : public std::exception
         {
         public:
-            Exception(const char* fmt, ...);
-            virtual ~Exception() throw();
-
-            inline virtual const char* what() const throw()
+            Exception::Exception(const U8String& msg) noexcept
+                : _message(msg)
             {
-                return message.c_str();
+            }
+            inline const char* what() const override
+            {
+                return _message.c_str();
             }
 
         private:
-            U8String message;
+            U8String _message;
         };
     }
 }

@@ -24,7 +24,7 @@ namespace OpenDemo
             const auto& resourceManager = ResourceManager::Instance();
             const auto scene = resourceManager->LoadScene("../../assets/sponza.obj");
 
-            lookAngle = vec2(0, 0);
+            _lookAngle = vec2(0, 0);
 
             Rendering::Camera::Description cameraDescription;
             cameraDescription.zNear = 80;
@@ -33,15 +33,15 @@ namespace OpenDemo
             cameraDescription.orthoSize = 13;
             cameraDescription.isOrtho = false;
 
-            camera = std::make_shared<Rendering::Camera>(cameraDescription);
-            camera->LookAt(vec3(-3, -20, 0), vec3(0, -20, 0));
+            _camera = std::make_shared<Rendering::Camera>(cameraDescription);
+            _camera->LookAt(vec3(-3, -20, 0), vec3(0, -20, 0));
 
-            renderElements = scene;
+            _renderElements = scene;
         }
 
         void Scenes::Scene_2::Collect(Rendering::RenderContext& renderContext)
         {
-            renderContext.GetRenderQuery() = renderElements;
+            renderContext.GetRenderQuery() = _renderElements;
         }
 
         void Scene_2::Update()
@@ -55,7 +55,7 @@ namespace OpenDemo
                 speed *= 2.0;
             }
 
-            auto camTransform = camera->GetTransform();
+            auto camTransform = _camera->GetTransform();
 
             if (inputting->IsDown(Inputting::ikW))
             {
@@ -75,23 +75,23 @@ namespace OpenDemo
                 camTransform.Position += camTransform.Rotation * vec3(-1, 0, 0) * speed * dt;
             }
 
-            lookAngle = lookAngle - inputting->Mouse.relative * 0.001f;
-            lookAngle.y = clamp(lookAngle.y, -PI / 2 + 0.1f, +PI / 2 - 0.1f);
+            _lookAngle = _lookAngle - inputting->Mouse.relative * 0.001f;
+            _lookAngle.y = clamp(_lookAngle.y, -PI / 2 + 0.1f, +PI / 2 - 0.1f);
 
-            vec3 dir = vec3(lookAngle.y, lookAngle.x) * 2.0;
+            vec3 dir = vec3(_lookAngle.y, _lookAngle.x) * 2.0;
             camTransform.Rotation = quat(dir, vec3(0, 1, 0));
 
-            camera->SetTransform(camTransform);
+            _camera->SetTransform(camTransform);
         }
 
         std::shared_ptr<Rendering::Camera> Scene_2::GetMainCamera()
         {
-            return camera;
+            return _camera;
         }
 
         void Scene_2::Terminate()
         {
-            renderElements.clear();
+            _renderElements.clear();
         }
     }
 }

@@ -29,9 +29,9 @@ namespace OpenDemo
             virtual std::shared_ptr<Rendering::Camera> GetMainCamera() override;
 
         private:
-            std::shared_ptr<Rendering::Camera> camera;
-            std::shared_ptr<Rendering::Mesh> sphereMesh;
-            std::vector<Rendering::RenderElement> renderElements;
+            std::shared_ptr<Rendering::Camera> _camera;
+            std::shared_ptr<Rendering::Mesh> _sphereMesh;
+            std::vector<Rendering::RenderElement> _renderElements;
         };
     }
 }

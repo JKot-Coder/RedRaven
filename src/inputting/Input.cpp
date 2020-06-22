@@ -4,7 +4,6 @@
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
 
-#include "common/Common.hpp"
 #include "common/VecMath.h"
 
 #include "windowing/Window.hpp"
@@ -15,7 +14,7 @@ namespace OpenDemo
 
     namespace Inputting
     {
-        std::unique_ptr<Input> Inputting::Input::instance = std::unique_ptr<Input>(new Input());
+        std::unique_ptr<Input> Inputting::Input::_instance = std::unique_ptr<Input>(new Input());
 
         Input::~Input()
         {
@@ -24,7 +23,7 @@ namespace OpenDemo
 
         void Input::Reset()
         {
-            memset(down, 0, sizeof(down));
+            memset(_down, 0, sizeof(_down));
             memset(&Mouse, 0, sizeof(Mouse));
         }
 
@@ -35,20 +34,20 @@ namespace OpenDemo
 
         void Input::Terminate()
         {
-            if (inputtingWindow.get() != nullptr)
+            if (_inputtingWindow.get() != nullptr)
             {
-                inputtingWindow->UnSubscribeOnKeyboardEvents(this);
-                inputtingWindow->UnSubscribeOnMouseEvents(this);
+                _inputtingWindow->UnSubscribeOnKeyboardEvents(this);
+                _inputtingWindow->UnSubscribeOnMouseEvents(this);
 
-                inputtingWindow = nullptr;
+                _inputtingWindow = nullptr;
             }
         }
 
         void Input::SubscribeToWindow(const std::shared_ptr<Windowing::InputtingWindow>& inputtingWindow_)
         {
-            inputtingWindow = inputtingWindow_;
-            inputtingWindow->SubscribeOnKeyboardEvents(this);
-            inputtingWindow->SubscribeOnMouseEvents(this);
+            _inputtingWindow = inputtingWindow_;
+            _inputtingWindow->SubscribeOnKeyboardEvents(this);
+            _inputtingWindow->SubscribeOnMouseEvents(this);
         }
 
         void Input::Update()
@@ -58,7 +57,7 @@ namespace OpenDemo
 
         void Input::SetDown(InputKey key, bool value)
         {
-            if (down[key] == value)
+            if (_down[key] == value)
                 return;
 
             //TOdo fix this
@@ -78,11 +77,11 @@ namespace OpenDemo
                     break;
                 }
 
-            down[key] = value;
+            _down[key] = value;
 
             if (value && key <= ikZ)
             {
-                lastKey = key;
+                _lastKey = key;
             }
         }
 

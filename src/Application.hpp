@@ -19,7 +19,7 @@ namespace OpenDemo
     {
     public:
         Application()
-            : quit(false)
+            : _quit(false)
         {
         }
 
@@ -27,10 +27,10 @@ namespace OpenDemo
         virtual void OnQuit() override;
 
     private:
-        bool quit;
+        bool _quit;
 
-        std::shared_ptr<Windowing::InputtingWindow> window;
-        std::shared_ptr<Rendering::SceneGraph> scene;
+        std::shared_ptr<Windowing::InputtingWindow> _window;
+        std::shared_ptr<Rendering::SceneGraph> _scene;
 
         void init();
         void terminate();

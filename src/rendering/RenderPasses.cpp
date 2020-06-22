@@ -21,23 +21,23 @@ namespace OpenDemo
     namespace Rendering
     {
         RenderPassOpaque::RenderPassOpaque(Rendering::Render& render, const std::shared_ptr<RenderTargetContext>& hdrRenderTargetContext)
-            : render(&render)
-            , hdrRenderTargetContext(hdrRenderTargetContext)
-            , renderContext(new RenderContext())
+            : _render(&render)
+            , _hdrRenderTargetContext(hdrRenderTargetContext)
+            , _renderContext(new RenderContext())
         {
             auto* resourceManager = ResourceManager::Instance().get();
-            pbrShader = resourceManager->LoadShader("../../assets/shaders/pbr.shader");
+            _pbrShader = resourceManager->LoadShader("../../assets/shaders/pbr.shader");
 
-            renderContext->SetShader(pbrShader);
-            renderContext->SetRenderTarget(hdrRenderTargetContext);
+            _renderContext->SetShader(_pbrShader);
+            _renderContext->SetRenderTarget(hdrRenderTargetContext);
 
-            renderContext->SetDepthWrite(true);
-            renderContext->SetDepthTestFunction(LEQUAL);
+            _renderContext->SetDepthWrite(true);
+            _renderContext->SetDepthTestFunction(LEQUAL);
 
             BlendingDescription blendingDescription(BlendingMode::ADDITIVE);
 
-            renderContext->SetBlending(false);
-            renderContext->SetBlendingDescription(blendingDescription);
+            _renderContext->SetBlending(false);
+            _renderContext->SetBlendingDescription(blendingDescription);
         }
 
         void RenderPassOpaque::Collect(const std::shared_ptr<SceneGraph>& sceneGraph)
@@ -45,9 +45,9 @@ namespace OpenDemo
             auto const& camera = sceneGraph->GetMainCamera();
             camera->SetAspect(1024, 768);
 
-            sceneGraph->Collect(*renderContext);
+            sceneGraph->Collect(*_renderContext);
 
-            renderContext->SetCamera(camera);
+            _renderContext->SetCamera(camera);
         }
 
         vec3 RandomRay()
@@ -72,37 +72,37 @@ namespace OpenDemo
             //vec3 lightDirection = vec3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
             vec3 lightDirection = RandomRay();
 
-            renderContext->SetLightDirection(lightDirection);
+            _renderContext->SetLightDirection(lightDirection);
 
-            render->Begin(renderContext);
+            _render->Begin(_renderContext);
 
-            render->ClearDepthStencil(true);
-            render->Clear(vec4(0.0, 0.0, 0.0, 0), 1.0);
+            _render->ClearDepthStencil(true);
+            _render->Clear(vec4(0.0, 0.0, 0.0, 0), 1.0);
             //render->Clear(vec4(0.25, 0.25, 0.25, 0), 1.0);
 
-            const auto& renderQuery = renderContext->GetRenderQuery();
+            const auto& renderQuery = _renderContext->GetRenderQuery();
             for (const auto& item : renderQuery)
             {
-                render->DrawElement(item);
+                _render->DrawElement(item);
             }
 
-            render->End();
+            _render->End();
         }
 
         RenderPassPostProcess::RenderPassPostProcess(Rendering::Render& render, const std::shared_ptr<Texture2D>& hdrTexture)
-            : render(&render)
-            , hdrTexture(hdrTexture)
-            , renderContext(new RenderContext())
+            : _render(&render)
+            , _hdrTexture(hdrTexture)
+            , _renderContext(new RenderContext())
         {
             (void)render;
             auto* resourceManager = ResourceManager::Instance().get();
-            postProcessShader = resourceManager->LoadShader("../../assets/shaders/postProcess.shader");
+            _postProcessShader = resourceManager->LoadShader("../../assets/shaders/postProcess.shader");
 
-            renderContext->SetShader(postProcessShader);
-            renderContext->SetDepthWrite(false);
-            renderContext->SetDepthTestFunction(DepthTestFunction::ALWAYS);
+            _renderContext->SetShader(_postProcessShader);
+            _renderContext->SetDepthWrite(false);
+            _renderContext->SetDepthTestFunction(DepthTestFunction::ALWAYS);
 
-            fullScreenQuad = Primitives::GetFullScreenQuad();
+            _fullScreenQuad = Primitives::GetFullScreenQuad();
         }
 
         void RenderPassPostProcess::Collect(const std::shared_ptr<SceneGraph>& sceneGraph)
@@ -112,12 +112,12 @@ namespace OpenDemo
 
         void RenderPassPostProcess::Draw()
         {
-            render->Begin(renderContext);
-            hdrTexture->Bind(0);
+            _render->Begin(_renderContext);
+            _hdrTexture->Bind(0);
 
-            fullScreenQuad->Draw();
+            _fullScreenQuad->Draw();
 
-            render->End();
+            _render->End();
         }
     }
 }

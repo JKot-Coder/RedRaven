@@ -4,7 +4,6 @@
 
 #include "glad/glad.h"
 
-#include "common/Common.hpp"
 #include "common/Exception.hpp"
 
 #include "windowing/Window.hpp"
@@ -18,6 +17,8 @@
 #include "rendering/opengl/RenderTargetContext.hpp"
 #include "rendering/opengl/Shader.hpp"
 #include "rendering/opengl/Texture.hpp"
+
+#include "gapi_dx12/Device.hpp"
 
 namespace OpenDemo
 {
@@ -67,28 +68,28 @@ namespace OpenDemo
             }
 
             Render::Render()
-                : context(nullptr)
+                : _context(nullptr)
             {
             }
 
-            void Render::Init(const std::shared_ptr<Windowing::Window>& window_)
+            void Render::Init(const std::shared_ptr<Windowing::Window>& window)
             {
-                window = window_;
+                _window = window;
 
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 
-                context = SDL_GL_CreateContext(window->GetSDLWindow());
+                _context = SDL_GL_CreateContext(_window->GetSDLWindow());
 
-                if (!context)
-                    throw Common::Exception("Can't create OpenGl context with error: %s.", SDL_GetError());
+                if (!_context)
+                    throw Common::Exception(fmt::format(FMT_STRING("Can't create OpenGl context with error: {}."), SDL_GetError()));
 
                 if (!gladLoadGL())
                     throw Common::Exception("Can't initalize openGL.");
 
-                Log::Info(FMT_STRING("OpenGL Version {0}.{1} loaded \n"), GLVersion.major, GLVersion.minor);
+                Log::Format::Info(FMT_STRING("OpenGL Version {0}.{1} loaded \n"), GLVersion.major, GLVersion.minor);
 
                 if (!GLAD_GL_VERSION_3_3)
                     throw Common::Exception("OpenGL version is not supported.");
@@ -100,9 +101,9 @@ namespace OpenDemo
 
             void Render::Terminate()
             {
-                if (context)
+                if (_context)
                 {
-                    SDL_GL_DeleteContext(context);
+                    SDL_GL_DeleteContext(_context);
                 }
             }
 
@@ -115,7 +116,7 @@ namespace OpenDemo
                     fprintf(stderr, "GL_ERROR: %d : %s\n", error, gluErrorU8String(error));
                 }
 
-                SDL_GL_SwapWindow(window->GetSDLWindow());
+                SDL_GL_SwapWindow(_window->GetSDLWindow());
             }
 
             void Render::Clear(const Common::vec4& color, float depth) const
@@ -138,21 +139,21 @@ namespace OpenDemo
                 glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             }
 
-            void Render::Begin(const std::shared_ptr<RenderContext>& renderContext_)
+            void Render::Begin(const std::shared_ptr<RenderContext>& renderContext)
             {
-                renderContext = renderContext_;
+                _renderContext = renderContext;
 
-                const auto& camera = renderContext->GetCamera();
-                const auto& shader = renderContext->GetShader();
-                const auto& renderTarget = renderContext->GetRenderTarget();
+                const auto& camera = _renderContext->GetCamera();
+                const auto& shader = _renderContext->GetShader();
+                const auto& renderTarget = _renderContext->GetRenderTarget();
 
                 int rtWidth, rtHeight;
                 if (renderTarget == nullptr)
                 {
                     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-                    rtWidth = window->GetWidth();
-                    rtHeight = window->GetHeight();
+                    rtWidth = _window->GetWidth();
+                    rtHeight = _window->GetHeight();
                 }
                 else
                 {
@@ -164,9 +165,9 @@ namespace OpenDemo
                 glViewport(0, 0, rtWidth, rtHeight);
                 glScissor(0, 0, rtWidth, rtHeight);
 
-                glDepthMask(renderContext->GetDepthWrite());
+                glDepthMask(_renderContext->GetDepthWrite());
 
-                const auto depthTestFunction = renderContext->GetDepthTestFunction();
+                const auto depthTestFunction = _renderContext->GetDepthTestFunction();
                 if (depthTestFunction == ALWAYS)
                 {
                     glDisable(GL_DEPTH_TEST);
@@ -178,10 +179,10 @@ namespace OpenDemo
 
                 glDepthFunc(GetOpenGLDepthTestFunction(depthTestFunction));
 
-                ApplyBlending(renderContext->GetBlending(), renderContext->GetBlendingDescription());
+                ApplyBlending(_renderContext->GetBlending(), _renderContext->GetBlendingDescription());
 
                 shader->Bind();
-                shader->SetParam(Uniform::Type::LIGHT_DIR, renderContext->GetLightDirection());
+                shader->SetParam(Uniform::Type::LIGHT_DIR, _renderContext->GetLightDirection());
 
                 if (camera != nullptr)
                 {
@@ -193,7 +194,7 @@ namespace OpenDemo
 
             void Render::DrawElement(const RenderElement& renderElement) const
             {
-                const auto& shader = renderContext->GetShader();
+                const auto& shader = _renderContext->GetShader();
                 const auto& material = renderElement.material;
 
                 shader->SetParam(Uniform::Type::MODEL_MATRIX, renderElement.modelMatrix);

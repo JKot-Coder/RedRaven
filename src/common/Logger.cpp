@@ -4,6 +4,10 @@
 #include <windows.h>
 #endif
 
+#if defined(OS_LINUX) || defined(OS_APPLE)
+#include <csignal>
+#endif
+
 namespace OpenDemo
 {
     namespace Common
@@ -28,7 +32,11 @@ namespace OpenDemo
 #endif
             
             if (level == Level::Fatal)
+            {
                 debugBreak();
+                exit(1);
+            }
+
         }
     }
 }

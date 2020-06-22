@@ -14,19 +14,19 @@ namespace OpenDemo
 
             inline void Init() { Update(); }
 
-            inline float GetDeltaTime() const { return dt; };
+            inline float GetDeltaTime() const { return _dt; };
 
             void Update();
 
             inline static const std::unique_ptr<Time>& Instance()
             {
-                return instance;
+                return _instance;
             }
 
         private:
-            float dt = 0;
-            std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
-            static std::unique_ptr<Time> instance;
+            float _dt = 0;
+            std::chrono::time_point<std::chrono::high_resolution_clock> _lastUpdate;
+            static std::unique_ptr<Time> _instance;
         };
     }
 }

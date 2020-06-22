@@ -15,13 +15,13 @@ namespace OpenDemo
     namespace Windowing
     {
 
-        std::unique_ptr<Windowing> Windowing::Windowing::windowingInstance = std::unique_ptr<Windowing>(new Windowing());
-        std::vector<IListener*> Windowing::Windowing::listeners = std::vector<IListener*>();
+        std::unique_ptr<Windowing> Windowing::Windowing::_windowingInstance = std::unique_ptr<Windowing>(new Windowing());
+        std::vector<IListener*> Windowing::Windowing::_listeners = std::vector<IListener*>();
 
         Windowing::Windowing()
         {
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-                throw Common::Exception("Could not initialize SDL video subsystem (%s)", SDL_GetError());
+                throw Common::Exception(fmt::format(FMT_STRING("Could not initialize SDL video subsystem ({})"), SDL_GetError()));
         }
 
         Windowing::~Windowing()
@@ -36,7 +36,7 @@ namespace OpenDemo
 
             while (SDL_PollEvent(&e))
             {
-                for (auto& listener : listeners)
+                for (auto& listener : _listeners)
                 {
                     switch (e.type)
                     {
@@ -121,22 +121,22 @@ namespace OpenDemo
 
         void Windowing::Subscribe(IListener* listener)
         {
-            for (auto& item : listeners)
+            for (auto& item : _listeners)
             {
                 if (listener == item)
                     throw Common::Exception("Error subscribe listener, listener already subscribed");
             }
 
-            listeners.push_back(listener);
+            _listeners.push_back(listener);
         }
 
         void Windowing::UnSubscribe(const IListener* listener)
         {
-            for (auto it = listeners.begin(); it != listeners.end();)
+            for (auto it = _listeners.begin(); it != _listeners.end();)
             {
                 if (listener == *it)
                 {
-                    it = listeners.erase(it);
+                    it = _listeners.erase(it);
                     return;
                 }
                 ++it;

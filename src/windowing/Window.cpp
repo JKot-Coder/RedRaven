@@ -8,6 +8,7 @@
 
 #include "windowing/Window.hpp"
 #include "windowing/WindowSettings.hpp"
+
 namespace OpenDemo
 {
     namespace Windowing
@@ -19,10 +20,10 @@ namespace OpenDemo
 
         Window::~Window()
         {
-            if (window)
+            if (_window)
             {
-                SDL_DestroyWindow(window);
-                window = nullptr;
+                SDL_DestroyWindow(_window);
+                _window = nullptr;
             }
         }
 
@@ -31,7 +32,7 @@ namespace OpenDemo
             U8String windowerror;
             Uint32 windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
 
-            ASSERT(!window)
+            ASSERT(!_window)
 
             auto windowRect = settings.WindowRect;
 
@@ -55,37 +56,52 @@ namespace OpenDemo
                 break;
             }
 
-            window = SDL_CreateWindow(settings.Title.c_str(), windowRect.X, windowRect.Y, windowRect.Width, windowRect.Height, windowflags);
+            _window = SDL_CreateWindow(settings.Title.c_str(), windowRect.X, windowRect.Y, windowRect.Width, windowRect.Height, windowflags);
 
-            if (!window)
+            if (!_window)
             {
                 windowerror = U8String(SDL_GetError());
                 return false;
             }
 
-            auto* screen = SDL_GetWindowSurface(window);
+            auto* screen = SDL_GetWindowSurface(_window);
 
             SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
-            SDL_UpdateWindowSurface(window);
+            SDL_UpdateWindowSurface(_window);
 
-            SDL_SetWindowData(window, "WindowObject", this);
+            SDL_SetWindowData(_window, "WindowObject", this);
             return true;
         }
 
         int Window::GetWidth() const
         {
-            ASSERT(window)
+            ASSERT(_window)
 
             int32_t w, h;
-            SDL_GetWindowSize(window, &w, &h);
+            SDL_GetWindowSize(_window, &w, &h);
             return w;
         }
 
         int Window::GetHeight() const
         {
             int32_t w, h;
-            SDL_GetWindowSize(window, &w, &h);
+            SDL_GetWindowSize(_window, &w, &h);
             return h;
+        }
+
+        OpenDemo::Common::NativeWindowHandle Window::GetNativeHandle() const
+        {
+            if (_window)
+            {
+                SDL_SysWMinfo wmInfo;
+                SDL_VERSION(&wmInfo.version);
+                SDL_GetWindowWMInfo(_window, &wmInfo);
+#ifdef OS_WINDOWS
+                return wmInfo.info.win.window;
+#endif
+            }
+
+            return 0;
         }
 
         void Window::SetMousePos(int x, int y) const
@@ -101,10 +117,10 @@ namespace OpenDemo
             switch (result)
             {
             case SDL_DISABLE:
-                cursorIsHidden = true;
+                _cursorIsHidden = true;
                 break;
             case SDL_ENABLE:
-                cursorIsHidden = false;
+                _cursorIsHidden = false;
                 break;
             }
         }

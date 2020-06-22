@@ -1,12 +1,35 @@
+#include "common/Math.hpp"
+#include "common/NativeWindowHandle.hpp"
+
+#include "gapi/GAPIStatus.hpp"
+
 namespace OpenDemo
 {
     namespace Render
     {
+        enum class ResourceFormat
+        {
+            Unknown
+        };
+
         namespace Device
         {
+            struct PresentOptions
+            {
+                Common::RectU rect;
+
+                Common::NativeWindowHandle windowHandle;
+
+                ResourceFormat resourceFormat;
+                uint32_t bufferCount;
+                bool isStereo;
+            };
+
             class SingleThreadDeviceInterface
             {
-                virtual void Init() = 0;
+                virtual GAPIStatus Init() = 0;
+
+                virtual GAPIStatus Reset(const PresentOptions& presentOptions) = 0;
             };
 
             class MultiThreadDeviceInterface

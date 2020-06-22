@@ -14,25 +14,25 @@ namespace OpenDemo
 
             Mesh::Mesh()
             {
-                glGenBuffers(2, vboId);
-                glGenVertexArrays(1, &vaoId);
+                glGenBuffers(2, _vboId);
+                glGenVertexArrays(1, &_vaoId);
             }
 
             Mesh::~Mesh()
             {
-                glDeleteBuffers(2, vboId);
-                glDeleteVertexArrays(1, &vaoId);
+                glDeleteBuffers(2, _vboId);
+                glDeleteVertexArrays(1, &_vaoId);
             }
 
             void Mesh::Init(const Rendering::Vertex* vertices, int32_t vCount_)
             {
-                vCount = vCount_;
-                iCount = 0;
+                _vCount = vCount_;
+                _iCount = 0;
 
-                glBindVertexArray(vaoId);
+                glBindVertexArray(_vaoId);
 
-                glBindBuffer(GL_ARRAY_BUFFER, vboId[0]);
-                glBufferData(GL_ARRAY_BUFFER, vCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+                glBindBuffer(GL_ARRAY_BUFFER, _vboId[0]);
+                glBufferData(GL_ARRAY_BUFFER, _vCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
                 SetupAttributes();
 
@@ -41,16 +41,16 @@ namespace OpenDemo
 
             void Mesh::Init(const Vertex* vertices, int32_t vCount_, const int32_t* indexes, int32_t iCount_)
             {
-                vCount = vCount_;
-                iCount = iCount_;
+                _vCount = vCount_;
+                _iCount = iCount_;
 
-                glBindVertexArray(vaoId);
+                glBindVertexArray(_vaoId);
 
-                glBindBuffer(GL_ARRAY_BUFFER, vboId[0]);
-                glBufferData(GL_ARRAY_BUFFER, vCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+                glBindBuffer(GL_ARRAY_BUFFER, _vboId[0]);
+                glBufferData(GL_ARRAY_BUFFER, _vCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboId[1]);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, iCount * sizeof(int32_t), indexes, GL_STATIC_DRAW);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vboId[1]);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, _iCount * sizeof(int32_t), indexes, GL_STATIC_DRAW);
 
                 SetupAttributes();
 
@@ -86,20 +86,20 @@ namespace OpenDemo
 
             void Mesh::Bind() const
             {
-                glBindVertexArray(vaoId);
+                glBindVertexArray(_vaoId);
             }
 
             void Mesh::Draw() const
             {
                 Bind();
 
-                if (iCount == 0)
+                if (_iCount == 0)
                 {
-                    glDrawArrays(GL_TRIANGLES, 0, vCount);
+                    glDrawArrays(GL_TRIANGLES, 0, _vCount);
                 }
                 else
                 {
-                    glDrawElements(GL_TRIANGLES, iCount, GL_UNSIGNED_INT, 0);
+                    glDrawElements(GL_TRIANGLES, _iCount, GL_UNSIGNED_INT, 0);
                 }
 
                 glBindVertexArray(0);

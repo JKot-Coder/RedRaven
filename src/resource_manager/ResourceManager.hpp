@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/String.hpp"
-
 #include "rendering/Texture.hpp"
 
 #include <memory>
@@ -23,7 +21,7 @@ namespace OpenDemo
         public:
             inline static const std::unique_ptr<ResourceManager>& Instance()
             {
-                return instance;
+                return _instance;
             }
 
             const std::shared_ptr<Rendering::Shader> LoadShader(const U8String& filename);
@@ -31,7 +29,7 @@ namespace OpenDemo
             const std::shared_ptr<Rendering::CommonTexture> LoadTexture(const U8String& filename);
 
         private:
-            static std::unique_ptr<ResourceManager> instance;
+            static std::unique_ptr<ResourceManager> _instance;
         };
 
         inline static const std::unique_ptr<ResourceManager>& Instance()

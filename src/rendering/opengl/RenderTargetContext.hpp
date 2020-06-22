@@ -22,7 +22,7 @@ namespace OpenDemo
                 virtual void Bind() override;
 
             private:
-                GLuint id;
+                GLuint _id;
             };
 
         }

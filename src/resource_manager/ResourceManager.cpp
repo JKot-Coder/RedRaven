@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "common/Common.hpp"
 #include "common/Stream.hpp"
 #include "common/VecMath.h"
 
@@ -18,7 +17,7 @@ namespace OpenDemo
 {
     namespace ResourceManager
     {
-        std::unique_ptr<ResourceManager> ResourceManager::instance = std::unique_ptr<ResourceManager>(new ResourceManager());
+        std::unique_ptr<ResourceManager> ResourceManager::_instance = std::unique_ptr<ResourceManager>(new ResourceManager());
 
         const std::shared_ptr<Rendering::Shader> ResourceManager::LoadShader(const U8String& filename)
         {
@@ -34,7 +33,7 @@ namespace OpenDemo
             }
             catch (const std::exception& exception)
             {
-                Log::Fatal(FMT_STRING("Error opening resource \"{}\" with error: {}"), filename.c_str(), exception.what());
+                Log::Format::Fatal(FMT_STRING("Error opening resource \"{}\" with error: {}"), filename.c_str(), exception.what());
                 return shader;
             }
 
@@ -59,7 +58,7 @@ namespace OpenDemo
             }
             catch (const std::exception& exception)
             {
-                Log::Error(FMT_STRING("Error opening resource \"{}\" with error: {}"), filename.c_str(), exception.what());
+                Log::Format::Error(FMT_STRING("Error opening resource \"{}\" with error: {}"), filename.c_str(), exception.what());
             }
 
             return ResourcesLoaders::LoadTexture(stream);

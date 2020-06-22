@@ -1,7 +1,6 @@
 #include "gapi/Device.hpp"
 
-#include <d3d12.h>
-#include <dxgi1_4.h>
+#include <memory>
 
 namespace OpenDemo
 {
@@ -18,7 +17,16 @@ namespace OpenDemo
                     Device();
                     ~Device() override;
 
-                    void Init() override;
+                    GAPIStatus Init() override;
+                    GAPIStatus Reset(const PresentOptions& presentOptions) override;
+                    GAPIStatus Present();
+
+                private:
+                    bool _enableDebug = true;
+                    std::unique_ptr<struct PrivateDeviceData> _privateData;
+                    std::unique_ptr<class TemporaryDX12Impl> _impl;
+
+                    GAPIStatus CreateDevice();
                 };
 
             }

@@ -3,7 +3,6 @@
 #include <map>
 #include <memory>
 
-#include "common/Common.hpp"
 #include "common/VecMath.h"
 
 #include "windowing/InputtingWindow.hpp"
@@ -114,23 +113,23 @@ namespace OpenDemo
             {
                 ASSERT(inputKey >= 0 && inputKey < ikMAX)
 
-                return down[inputKey];
+                return _down[inputKey];
             }
 
             inline static const std::unique_ptr<Input>& Instance()
             {
-                return instance;
+                return _instance;
             }
 
             void SubscribeToWindow(const std::shared_ptr<Windowing::InputtingWindow>& inputtingWindow);
 
         private:
-            static std::unique_ptr<Input> instance;
+            static std::unique_ptr<Input> _instance;
 
-            std::shared_ptr<Windowing::InputtingWindow> inputtingWindow;
+            std::shared_ptr<Windowing::InputtingWindow> _inputtingWindow;
 
-            InputKey lastKey;
-            bool down[ikMAX];
+            InputKey _lastKey;
+            bool _down[ikMAX];
 
             virtual void OnKeyUp(InputKey inputKey) override;
             virtual void OnKeyDown(InputKey inputKey) override;

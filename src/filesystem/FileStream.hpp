@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/Stream.hpp"
-#include "common/Common.hpp"
 
 #include <fstream>
 
@@ -23,7 +22,7 @@ namespace OpenDemo
 
             virtual inline U8String GetName() const override
             {
-                return fileName;
+                return _fileName;
             }
 
             virtual int64_t GetPosition() override;
@@ -37,9 +36,9 @@ namespace OpenDemo
             virtual std::istream* GetNativeStream() override;
 
         private:
-            U8String fileName;
-            std::fstream fileStream;
-            Mode mode;
+            U8String _fileName;
+            std::fstream _fileStream;
+            Mode _mode;
         };
 
     }

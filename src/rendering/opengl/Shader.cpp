@@ -2,7 +2,6 @@
 
 #include "glad/glad.h"
 
-#include "common/Common.hpp"
 #include "common/Stream.hpp"
 
 #include "rendering/opengl/Render.hpp"
@@ -15,13 +14,13 @@ namespace OpenDemo
         {
 
             Shader::Shader()
-                : id(glCreateProgram())
+                : _id(glCreateProgram())
             {
             }
 
             Shader::~Shader()
             {
-                glDeleteProgram(id);
+                glDeleteProgram(_id);
             }
 
             bool Shader::LinkSource(const std::shared_ptr<Common::Stream>& stream)
@@ -51,9 +50,9 @@ namespace OpenDemo
 
                     glGetShaderInfoLog(obj, sizeof(info), NULL, info);
                     if (info[0])
-                        Log::Warning(FMT_STRING("! shader: {}\n"), info);
+                        Log::Format::Warning(FMT_STRING("! shader: {}\n"), info);
 
-                    glAttachShader(id, obj);
+                    glAttachShader(_id, obj);
                     glDeleteShader(obj);
                 }
 
@@ -62,11 +61,11 @@ namespace OpenDemo
                 //        for (int at = 0; at < aMAX; at++)
                 //            glBindAttribLocation(id, at, AttribName[at]);
 
-                glLinkProgram(id);
+                glLinkProgram(_id);
 
-                glGetProgramInfoLog(id, sizeof(info), NULL, info);
+                glGetProgramInfoLog(_id, sizeof(info), NULL, info);
                 if (info[0])
-                    Log::Warning(FMT_STRING("! program: {}\n"), info);
+                    Log::Format::Warning(FMT_STRING("! program: {}\n"), info);
 
                 if (!checkLink())
                     return false;
@@ -74,11 +73,11 @@ namespace OpenDemo
                 Bind();
 
                 for (int ut = 0; ut < Uniform::UNIFORM_MAX; ut++)
-                    uniformID[ut] = glGetUniformLocation(id, (GLchar*)UniformsNames[ut]);
+                    _uniformID[ut] = glGetUniformLocation(_id, (GLchar*)UniformsNames[ut]);
 
                 for (int st = 0; st < Sampler::SAMPLER_MAX; st++)
                 {
-                    GLint idx = glGetUniformLocation(id, (GLchar*)SamplerNames[st]);
+                    GLint idx = glGetUniformLocation(_id, (GLchar*)SamplerNames[st]);
                     if (idx != -1)
                         glUniform1iv(idx, 1, &st);
                 }
@@ -89,31 +88,31 @@ namespace OpenDemo
             bool Shader::checkLink() const
             {
                 GLint success;
-                glGetProgramiv(id, GL_LINK_STATUS, &success);
+                glGetProgramiv(_id, GL_LINK_STATUS, &success);
                 return success != 0;
             }
 
             void Shader::Bind() const
             {
-                glUseProgram(id);
+                glUseProgram(_id);
             }
 
             void Shader::SetParam(Uniform::Type uType, const Common::vec4& value, int count) const
             {
-                if (uniformID[uType] != -1)
-                    glUniform4fv(uniformID[uType], count, (GLfloat*)&value);
+                if (_uniformID[uType] != -1)
+                    glUniform4fv(_uniformID[uType], count, (GLfloat*)&value);
             }
 
             void Shader::SetParam(Uniform::Type uType, const Common::mat4& value, int count) const
             {
-                if (uniformID[uType] != -1)
-                    glUniformMatrix4fv(uniformID[uType], count, false, (GLfloat*)&value);
+                if (_uniformID[uType] != -1)
+                    glUniformMatrix4fv(_uniformID[uType], count, false, (GLfloat*)&value);
             }
 
             void Shader::SetParam(Uniform::Type uType, const Common::Basis& value, int count) const
             {
-                if (uniformID[uType] != -1)
-                    glUniform4fv(uniformID[uType], count * 2, (GLfloat*)&value);
+                if (_uniformID[uType] != -1)
+                    glUniform4fv(_uniformID[uType], count * 2, (GLfloat*)&value);
             }
 
         }

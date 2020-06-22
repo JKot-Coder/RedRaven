@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "common/VecMath.h"
 
 #include "rendering/BlendingDescription.hpp"
 #include "rendering/DepthDescription.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace OpenDemo
 {
@@ -29,41 +29,41 @@ namespace OpenDemo
         public:
             RenderContext();
 
-            inline void SetDepthWrite(bool value) { depthWrite = value; }
-            inline void SetDepthTestFunction(DepthTestFunction value) { depthTestFunction = value; }
+            inline void SetDepthWrite(bool value) { _depthWrite = value; }
+            inline void SetDepthTestFunction(DepthTestFunction value) { _depthTestFunction = value; }
 
-            inline void SetBlending(bool value) { blending = value; }
-            inline void SetBlendingDescription(const BlendingDescription& value) { blendingDescription = value; }
+            inline void SetBlending(bool value) { _blending = value; }
+            inline void SetBlendingDescription(const BlendingDescription& value) { _blendingDescription = value; }
 
-            inline void SetCamera(const std::shared_ptr<Camera>& value) { camera = value; }
-            inline void SetRenderTarget(const std::shared_ptr<RenderTargetContext>& value) { renderTargetContext = value; }
-            inline void SetShader(const std::shared_ptr<Shader>& value) { shader = value; }
-            inline void SetLightDirection(const vec3& value) { lightDirection = value; }
+            inline void SetCamera(const std::shared_ptr<Camera>& value) { _camera = value; }
+            inline void SetRenderTarget(const std::shared_ptr<RenderTargetContext>& value) { _renderTargetContext = value; }
+            inline void SetShader(const std::shared_ptr<Shader>& value) { _shader = value; }
+            inline void SetLightDirection(const vec3& value) { _lightDirection = value; }
 
-            inline bool GetDepthWrite() const { return depthWrite; }
-            inline DepthTestFunction GetDepthTestFunction() const { return depthTestFunction; }
+            inline bool GetDepthWrite() const { return _depthWrite; }
+            inline DepthTestFunction GetDepthTestFunction() const { return _depthTestFunction; }
 
-            inline bool GetBlending() const { return blending; }
-            inline BlendingDescription GetBlendingDescription() const { return blendingDescription; }
+            inline bool GetBlending() const { return _blending; }
+            inline BlendingDescription GetBlendingDescription() const { return _blendingDescription; }
 
-            inline std::shared_ptr<Camera> GetCamera() const { return camera; }
-            inline std::shared_ptr<RenderTargetContext> GetRenderTarget() const { return renderTargetContext; }
-            inline std::shared_ptr<Shader> GetShader() const { return shader; }
-            inline RenderQuery& GetRenderQuery() const { return *renderQuery; }
-            inline vec3 GetLightDirection() const { return lightDirection; }
+            inline std::shared_ptr<Camera> GetCamera() const { return _camera; }
+            inline std::shared_ptr<RenderTargetContext> GetRenderTarget() const { return _renderTargetContext; }
+            inline std::shared_ptr<Shader> GetShader() const { return _shader; }
+            inline RenderQuery& GetRenderQuery() const { return *_renderQuery; }
+            inline vec3 GetLightDirection() const { return _lightDirection; }
 
         private:
-            bool depthWrite = true;
-            DepthTestFunction depthTestFunction = DepthTestFunction::LEQUAL;
+            bool _depthWrite = true;
+            DepthTestFunction _depthTestFunction = DepthTestFunction::LEQUAL;
 
-            bool blending = false;
-            BlendingDescription blendingDescription;
+            bool _blending = false;
+            BlendingDescription _blendingDescription;
 
-            vec3 lightDirection;
-            std::unique_ptr<RenderQuery> renderQuery;
-            std::shared_ptr<Camera> camera;
-            std::shared_ptr<RenderTargetContext> renderTargetContext;
-            std::shared_ptr<Shader> shader;
+            vec3 _lightDirection;
+            std::unique_ptr<RenderQuery> _renderQuery;
+            std::shared_ptr<Camera> _camera;
+            std::shared_ptr<RenderTargetContext> _renderTargetContext;
+            std::shared_ptr<Shader> _shader;
         };
     }
 }

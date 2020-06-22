@@ -1,7 +1,10 @@
 project (gapi)
 
 set(GAPI_SRC
+        GAPIStatus.hpp
+        GAPIStatus.cpp
         Device.hpp
         Device.cpp)
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
+target_link_libraries(${PROJECT_NAME} common)

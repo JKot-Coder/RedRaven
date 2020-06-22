@@ -25,17 +25,17 @@ namespace OpenDemo
                 virtual void Init(const Description& description, void* data) override;
                 virtual void Bind(int sampler) override;
 
-                inline virtual int GetWidth() const override { return width; }
-                inline virtual int GetHeight() const override { return height; }
+                inline virtual int GetWidth() const override { return _width; }
+                inline virtual int GetHeight() const override { return _height; }
 
                 virtual void Resize(int width, int height) override;
 
-                inline GLuint GetNativeId() const { return id; }
+                inline GLuint GetNativeId() const { return _id; }
 
             private:
-                GLuint id;
-                OpenGlPixelFormatDescription pixelFormatDescription;
-                int width, height;
+                GLuint _id;
+                OpenGlPixelFormatDescription _pixelFormatDescription;
+                int _width, _height;
 
                 OpenGlPixelFormatDescription GetOpenGlPixelFormatDescription(PixelFormat pixelFormat) const;
             };

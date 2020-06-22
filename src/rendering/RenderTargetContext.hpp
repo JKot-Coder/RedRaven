@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include "common/Common.hpp"
-
 #include "rendering/RenderTarget.hpp"
 
 namespace OpenDemo
@@ -26,51 +24,51 @@ namespace OpenDemo
             {
                 ASSERT(renderTargetDescription.isDepthTarget)
 
-                if (width == -1 && height == -1)
+                if (_width == -1 && _height == -1)
                 {
-                    width = renderTargetDescription.texture->GetWidth();
-                    height = renderTargetDescription.texture->GetHeight();
+                    _width = renderTargetDescription.texture->GetWidth();
+                    _height = renderTargetDescription.texture->GetHeight();
                 }
 
-                ASSERT(renderTargetDescription.texture->GetHeight() == height)
-                ASSERT(renderTargetDescription.texture->GetWidth() == width)
+                ASSERT(renderTargetDescription.texture->GetHeight() == _height)
+                ASSERT(renderTargetDescription.texture->GetWidth() == _width)
 
-                depthStencil = renderTargetDescription;
+                _depthStencil = renderTargetDescription;
             }
 
             virtual inline void SetColorTarget(RenderTargetIndex index, const RenderTarget::RenderTargetDescription& renderTargetDescription)
             {
-                if (width == -1 && height == -1)
+                if (_width == -1 && _height == -1)
                 {
-                    width = renderTargetDescription.texture->GetWidth();
-                    height = renderTargetDescription.texture->GetHeight();
+                    _width = renderTargetDescription.texture->GetWidth();
+                    _height = renderTargetDescription.texture->GetHeight();
                 }
 
-                ASSERT(renderTargetDescription.texture->GetHeight() == height)
-                ASSERT(renderTargetDescription.texture->GetWidth() == width)
+                ASSERT(renderTargetDescription.texture->GetHeight() == _height)
+                ASSERT(renderTargetDescription.texture->GetWidth() == _width)
 
-                colorTargets[index] = renderTargetDescription;
+                _colorTargets[index] = renderTargetDescription;
             }
 
-            inline int GetWidth() const { return this->width; }
-            inline int GetHeight() const { return this->height; }
+            inline int GetWidth() const { return this->_width; }
+            inline int GetHeight() const { return this->_height; }
 
             virtual inline void Resize(int width_, int height_)
             {
                 //TODO asserts and checks for updated value
-                width = width_;
-                height = height_;
+                _width = width_;
+                _height = height_;
 
-                if (depthStencil.texture != nullptr)
+                if (_depthStencil.texture != nullptr)
                 {
-                    depthStencil.texture->Resize(width, height);
+                    _depthStencil.texture->Resize(_width, _height);
                 }
 
-                for (auto targetDesription : colorTargets)
+                for (auto targetDesription : _colorTargets)
                 {
                     if (targetDesription.texture)
                     {
-                        targetDesription.texture->Resize(width, height);
+                        targetDesription.texture->Resize(_width, _height);
                     }
                 }
             }
@@ -78,9 +76,9 @@ namespace OpenDemo
             virtual void Bind() = 0;
 
         private:
-            int width = -1, height = -1;
-            RenderTarget::RenderTargetDescription depthStencil;
-            RenderTarget::RenderTargetDescription colorTargets[RenderTargetIndex::INDEX_MAX];
+            int _width = -1, _height = -1;
+            RenderTarget::RenderTargetDescription _depthStencil;
+            RenderTarget::RenderTargetDescription _colorTargets[RenderTargetIndex::INDEX_MAX];
         };
 
     }

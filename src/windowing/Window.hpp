@@ -1,6 +1,7 @@
 #pragma once
 
-#include <common/VecMath.h>
+#include "common/VecMath.h"
+#include "common/NativeWindowHandle.hpp"
 
 struct SDL_Window;
 
@@ -21,7 +22,7 @@ namespace OpenDemo
 
             inline bool IsWindow() const
             {
-                return window;
+                return _window;
             }
 
             int GetWidth() const;
@@ -30,14 +31,15 @@ namespace OpenDemo
             void SetMousePos(int x, int y) const;
             void ShowCursor(bool value);
 
-            bool IsCursorHidden() const { return cursorIsHidden; }
+            bool IsCursorHidden() const { return _cursorIsHidden; }
 
-            SDL_Window* GetSDLWindow() const { return window; };
+            OpenDemo::Common::NativeWindowHandle GetNativeHandle() const;
+            SDL_Window* GetSDLWindow() const { return _window; };
 
         private:
-            SDL_Window* window = nullptr;
+            SDL_Window* _window = nullptr;
 
-            bool cursorIsHidden = false;
+            bool _cursorIsHidden = false;
         };
     }
 }

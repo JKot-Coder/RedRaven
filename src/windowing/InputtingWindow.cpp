@@ -85,7 +85,7 @@ namespace OpenDemo
 
         bool InputtingWindow::Init(const WindowSettings& settings, bool trapMouse_)
         {
-            trapMouse = trapMouse_;
+            _trapMouse = trapMouse_;
             return Window::Init(settings);
         }
 
@@ -93,24 +93,24 @@ namespace OpenDemo
         {
             ASSERT(listener)
 
-            for (auto& item : keyboardListeners)
+            for (auto& item : _keyboardListeners)
             {
                 if (listener == item)
                     throw Common::Exception("Error subscribe listener, listener already subscribed");
             }
 
-            keyboardListeners.push_back(listener);
+            _keyboardListeners.push_back(listener);
         }
 
         void InputtingWindow::UnSubscribeOnKeyboardEvents(const Inputting::IKeyboardListener* listener)
         {
             ASSERT(listener)
 
-            for (auto it = keyboardListeners.begin(); it != keyboardListeners.end();)
+            for (auto it = _keyboardListeners.begin(); it != _keyboardListeners.end();)
             {
                 if (listener == *it)
                 {
-                    it = keyboardListeners.erase(it);
+                    it = _keyboardListeners.erase(it);
                     return;
                 }
                 ++it;
@@ -120,24 +120,24 @@ namespace OpenDemo
         {
             ASSERT(listener)
 
-            for (auto& item : mouseListeners)
+            for (auto& item : _mouseListeners)
             {
                 if (listener == item)
                     throw Common::Exception("Error subscribe listener, listener already subscribed");
             }
 
-            mouseListeners.push_back(listener);
+            _mouseListeners.push_back(listener);
         }
 
         void InputtingWindow::UnSubscribeOnMouseEvents(const Inputting::IMouseListener* listener)
         {
             ASSERT(listener)
 
-            for (auto it = mouseListeners.begin(); it != mouseListeners.end();)
+            for (auto it = _mouseListeners.begin(); it != _mouseListeners.end();)
             {
                 if (listener == *it)
                 {
-                    it = mouseListeners.erase(it);
+                    it = _mouseListeners.erase(it);
                     return;
                 }
                 ++it;
@@ -161,7 +161,7 @@ namespace OpenDemo
             if (it == SDLToInputKeyMap.end())
                 return;
 
-            for (auto& listener : keyboardListeners)
+            for (auto& listener : _keyboardListeners)
                 listener->OnKeyUp(it->second);
         }
 
@@ -174,7 +174,7 @@ namespace OpenDemo
             if (it == SDLToInputKeyMap.end())
                 return;
 
-            for (auto& listener : keyboardListeners)
+            for (auto& listener : _keyboardListeners)
                 listener->OnKeyDown(it->second);
         }
 
@@ -183,7 +183,7 @@ namespace OpenDemo
             if (&window_ != this)
                 return;
 
-            for (auto& listener : mouseListeners)
+            for (auto& listener : _mouseListeners)
                 listener->OnMouseMove(position, relative);
         }
 
@@ -213,7 +213,7 @@ namespace OpenDemo
                 return;
             }
 
-            for (auto& listener : mouseListeners)
+            for (auto& listener : _mouseListeners)
                 listener->OnButtonUp(key);
         }
 
@@ -228,7 +228,7 @@ namespace OpenDemo
             {
             case SDL_BUTTON_LEFT:
                 key = Inputting::ikMouseL;
-                if (trapMouse && !mouseHolded)
+                if (_trapMouse && !_mouseHolded)
                     HoldMouse();
                 break;
             case SDL_BUTTON_MIDDLE:
@@ -245,13 +245,13 @@ namespace OpenDemo
                 return;
             }
 
-            for (auto& listener : mouseListeners)
+            for (auto& listener : _mouseListeners)
                 listener->OnButtonDown(key);
         }
 
         void InputtingWindow::HoldMouse()
         {
-            mouseHolded = true;
+            _mouseHolded = true;
             ShowCursor(false);
             SDL_SetWindowGrab(GetSDLWindow(), SDL_TRUE);
             SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -259,7 +259,7 @@ namespace OpenDemo
 
         void InputtingWindow::ReleaseMouse()
         {
-            mouseHolded = false;
+            _mouseHolded = false;
             ShowCursor(true);
             SDL_SetWindowGrab(GetSDLWindow(), SDL_FALSE);
             SDL_SetRelativeMouseMode(SDL_FALSE);

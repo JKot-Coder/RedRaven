@@ -19,25 +19,25 @@ namespace OpenDemo
             void Draw();
 
         private:
-            std::shared_ptr<Windowing::Window> window;
-            std::shared_ptr<RenderTargetContext> hdrRenderTargetContext;
+            std::shared_ptr<Windowing::Window> _window;
+            std::shared_ptr<RenderTargetContext> _hdrRenderTargetContext;
 
             std::tuple<
                 std::unique_ptr<RenderPassOpaque>,
                 std::unique_ptr<RenderPassPostProcess>>
-                renderPasses;
+                _renderPasses;
 
             template <typename PassType, typename... Args>
             void initPass(Args&&... args)
             {
-                auto& passPtr = std::get<std::unique_ptr<PassType>>(renderPasses);
+                auto& passPtr = std::get<std::unique_ptr<PassType>>(_renderPasses);
                 passPtr = std::make_unique<PassType>(std::forward<Args>(args)...);
             }
 
             template <typename PassType>
             inline PassType* getPass() const
             {
-                return std::get<std::unique_ptr<PassType>>(renderPasses).get();
+                return std::get<std::unique_ptr<PassType>>(_renderPasses).get();
             }
 
             virtual void OnWindowResize(const Windowing::Window& window) override;
