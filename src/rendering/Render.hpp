@@ -3,7 +3,6 @@
 #include "rendering/Material.hpp"
 
 #include "common/VecMath.h"
-#include <memory>
 
 namespace OpenDemo
 {

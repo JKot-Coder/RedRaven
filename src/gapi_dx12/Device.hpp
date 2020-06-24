@@ -1,7 +1,5 @@
 #include "gapi/Device.hpp"
 
-#include <memory>
-
 namespace OpenDemo
 {
     namespace Render
@@ -10,7 +8,6 @@ namespace OpenDemo
         {
             namespace DX12
             {
-
                 class Device : public Render::Device::Device
                 {
                 public:
@@ -21,12 +18,15 @@ namespace OpenDemo
                     GAPIStatus Reset(const PresentOptions& presentOptions) override;
                     GAPIStatus Present() override;
 
-                private:
-                    bool _enableDebug = true;
-                    std::unique_ptr<struct PrivateDeviceData> _privateData;
-                    std::unique_ptr<class TemporaryDX12Impl> _impl;
+                    uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const override;
 
-                    GAPIStatus CreateDevice();
+                    GAPIStatus InitResource(CommandList& commandList) const override;
+
+                    void WaitForGpu();
+
+                private:
+
+                    std::unique_ptr<class DeviceImplementation> _impl;
                 };
 
             }

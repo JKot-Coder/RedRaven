@@ -1,4 +1,3 @@
-#include <memory>
 
 #include "Application.hpp"
 #include "windowing/Windowing.hpp"

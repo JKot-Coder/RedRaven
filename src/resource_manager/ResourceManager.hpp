@@ -2,7 +2,6 @@
 
 #include "rendering/Texture.hpp"
 
-#include <memory>
 #include <vector>
 
 namespace OpenDemo

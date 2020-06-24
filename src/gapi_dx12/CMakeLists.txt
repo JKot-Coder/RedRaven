@@ -7,7 +7,12 @@ set(GAPI_SRC
         Device.hpp
         Device.cpp
         D3DUtils.hpp
-        D3DUtils.cpp)
+        D3DUtils.cpp
+        FenceImpl.hpp
+        FenceImpl.cpp
+        FencedRingBuffer.hpp
+        CommandListImpl.hpp
+        CommandListImpl.cpp)
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 target_link_libraries(${PROJECT_NAME} common gapi d3d12.lib dxgi.lib dxguid.lib WindowsApp.lib)

@@ -1,7 +1,5 @@
 #include "Application.hpp"
 
-#include <memory>
-
 #include "common/Time.hpp"
 
 #include "inputting/Input.hpp"

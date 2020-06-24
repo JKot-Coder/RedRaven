@@ -3,12 +3,24 @@
 #include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
+#include "gapi/Fence.hpp"
+
 #include "gapi/GAPIStatus.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
+        class CommandList;
+
+        enum class CommandQueueType
+        {
+            GRAPHICS,
+            COMPUTE,
+            COPY,
+            COUNT
+        };
+
         enum class ResourceFormat
         {
             Unknown
@@ -39,6 +51,10 @@ namespace OpenDemo
 
             class MultiThreadDeviceInterface
             {
+            public:
+                virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
+
+                virtual GAPIStatus InitResource(CommandList& commandList) const = 0;
             };
 
             class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

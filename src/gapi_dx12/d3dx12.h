@@ -3178,7 +3178,6 @@ inline bool operator==( const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC &a, const D3D
 #include <list>
 #include <vector>
 #include <string>
-#include <memory>
 #include <wrl/client.h>
 
 //------------------------------------------------------------------------------------------------
