@@ -348,11 +348,9 @@ namespace OpenDemo
                     commandList->ResourceBarrier(1, &barrier);
                     // Send the command list off to the GPU for processing.
                     commandList->Close();
-                    ID3D12CommandList* cc[] = { commandList.get() };
-                    commandQueue->ExecuteCommandLists(1, cc);
 
                     //  TODO Check correct fence work.
-                    _commandList->MoveToNextFrame();
+                    _commandList->Submit(commandQueue.get());
 
                     //HRESULT hr;
                     /*if (m_options & c_AllowTearing)

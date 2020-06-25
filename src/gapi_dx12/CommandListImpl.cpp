@@ -28,9 +28,14 @@ namespace OpenDemo
                         return allocator;
                     };
 
-                    _allocatorsRB.reset(new FencedFrameRingBuffer<ComSharedPtr<ID3D12CommandAllocator>>(fence, newCommandAllocator));
-                    const auto& allocator = _allocatorsRB->CurrentObject();
+                    _allocatorsRB.reset(new FencedFrameRingBuffer<ComSharedPtr<ID3D12CommandAllocator>>());
+                    if (GAPIStatusU::Failure(result = _allocatorsRB->Init(device, newCommandAllocator)))
+                    {
+                        LOG_ERROR("Failure create FencedFrameRingBuffer with HRESULT of 0x%08X", result);
+                        return result;
+                    }
 
+                    const auto& allocator = _allocatorsRB->CurrentObject();
                     if (GAPIStatusU::Failure(result = GAPIStatus(device->CreateCommandList(0, commandListType, allocator.get(), nullptr, IID_PPV_ARGS(_commandList.put())))))
                     {
                         LOG_ERROR("Failure create CreateFence with HRESULT of 0x%08X", result);
@@ -40,12 +45,25 @@ namespace OpenDemo
                     return result;
                 }
 
-                void CommandListImpl::MoveToNextFrame()
+                GAPIStatus CommandListImpl::Submit(ID3D12CommandQueue* queue)
                 {
+                    ASSERT(queue)
                     ASSERT(_commandList.get())
+
                     const auto& allocator = _allocatorsRB->GetNextObject();
-                    allocator->Reset();
-                    _commandList->Reset(allocator.get(), nullptr);
+                    GAPIStatus result = GAPIStatus::OK;
+
+                    ID3D12CommandList* commandLists[] = { _commandList.get() };
+                    queue->ExecuteCommandLists(1, commandLists);
+
+                    if (GAPIStatusU::Failure(result = GAPIStatus(allocator->Reset())))
+                        return result;
+
+                    if (GAPIStatusU::Failure(result = GAPIStatus(_commandList->Reset(allocator.get(), nullptr))))
+                        return result;
+
+                    if (GAPIStatusU::Failure(result = _allocatorsRB->MoveToNextFrame(queue)))
+                        return result;
                 }
             }
         }

@@ -18,56 +18,86 @@ namespace OpenDemo
                 public:
                     using NewObjectFunc = std::function<ObjectType()>;
 
-                    FencedFrameRingBuffer() = delete;
-
-                    FencedFrameRingBuffer(std::shared_ptr<FenceImpl>& fence, NewObjectFunc newFunc)
-                        : _fence(fence)
-                        , _newObjFunc(newFunc)
+                    FencedFrameRingBuffer()
                     {
-                        ASSERT(fence && newFunc);
+#ifdef ENABLE_FENCE_SYNC_CHECK
+                        _fence.reset(new FenceImpl());
+#endif
+                    }
+
+                    GAPIStatus Init(ID3D12Device* device, NewObjectFunc newFunc)
+                    {
+                        ASSERT(device && newFunc);
+
+                        GAPIStatus result = GAPIStatus::OK;
 
                         for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
                         {
-                            _ringBuffer[index].object = createObject();
+                            auto& object = newFunc();
+                            _ringBuffer[index].object = object;
+                            if (!object)
+                            {
+                                Log::Print::Error("Fail to create object in FencedFrameRingBuffer");
+                                return GAPIStatus::FAIL;
+                            }
+#ifdef ENABLE_FENCE_SYNC_CHECK
                             _ringBuffer[index].frameStamp = 0;
+#endif
                         }
+
+#ifdef ENABLE_FENCE_SYNC_CHECK
+                        if (GAPIStatusU::Failure(result = _fence->Init(device, 1)))
+                            return result;
+#endif
+                        return result;
                     }
 
                     ObjectType CurrentObject()
                     {
+                        ASSERT(_ringBuffer[_frameIndex].object)
+#ifdef ENABLE_FENCE_SYNC_CHECK
                         ASSERT(_ringBuffer[_frameIndex].frameStamp <= _fence->GetGpuValue());
+#endif
                         return _ringBuffer[_frameIndex].object;
                     }
 
                     ObjectType GetNextObject()
                     {
-                        auto frameStamp = _fence->GetGpuValue();
-                        ASSERT(_ringBuffer[_frameIndex].frameStamp < frameStamp);
+#ifdef ENABLE_FENCE_SYNC_CHECK
                         _ringBuffer[_frameIndex].frameStamp = _fence->GetCpuValue();
-
+#endif
                         _frameIndex = (++_frameIndex % GPU_FRAMES_BUFFERED);
+
+#ifdef ENABLE_FENCE_SYNC_CHECK
+                        auto fenceGpuValue = _fence->GetGpuValue();
+                        ASSERT(_ringBuffer[_frameIndex].frameStamp < fenceGpuValue);
+#endif
                         return CurrentObject();
                     }
 
-                private:
-                    ObjectType createObject()
+                    GAPIStatus MoveToNextFrame(ID3D12CommandQueue* commandQueue)
                     {
-                        ObjectType obj = _newObjFunc();
-                        if (obj == nullptr)
-                            Log::Print::Fatal("Failed to create new object in fenced frame ring buffer");
-                        return obj;
+#ifdef ENABLE_FENCE_SYNC_CHECK
+                        return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
+#else
+                        return GAPIStatus::OK;
+#endif
                     }
 
+                private:
                     struct Data
                     {
-                        ObjectType object;
-                        uint64_t frameStamp;
+                        ObjectType object = nullptr;
+#ifdef ENABLE_FENCE_SYNC_CHECK
+                        uint64_t frameStamp = 0;
+#endif
                     };
 
-                    NewObjectFunc _newObjFunc = nullptr;
                     std::array<Data, GPU_FRAMES_BUFFERED> _ringBuffer;
                     uint32_t _frameIndex = 0;
-                    std::shared_ptr<FenceImpl>& _fence;
+#ifdef ENABLE_FENCE_SYNC_CHECK
+                    std::unique_ptr<FenceImpl> _fence;
+#endif
                 };
             }
         }

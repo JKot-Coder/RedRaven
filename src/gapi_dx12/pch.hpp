@@ -3,6 +3,8 @@
 // Force common pch first. 
 #include "common/pch.hpp"
 
+#include "gapi_dx12/Config.hpp"
+
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <dxgidebug.h>

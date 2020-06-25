@@ -28,7 +28,7 @@ namespace OpenDemo
                         return _commandList;
                     };
 
-                    void MoveToNextFrame();
+                    GAPIStatus Submit(ID3D12CommandQueue* queue);
 
                 private:
                     D3D12_COMMAND_LIST_TYPE _type;

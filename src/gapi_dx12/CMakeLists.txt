@@ -3,6 +3,7 @@ project (gapi_dx12)
 set(GAPI_SRC
         pch.hpp
         d3dx12.h
+        Config.hpp
         ComSharedPtr.hpp
         Device.hpp
         Device.cpp
