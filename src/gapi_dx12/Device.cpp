@@ -171,7 +171,11 @@ namespace OpenDemo
                         return result;
                     }
 
-                    _fenceValues[_frameIndex]++;
+                    for (int i = 0; i < GPU_FRAMES_BUFFERED; i++)
+                    {
+                        _fenceValues[i] = 0;
+                    }
+                    _fenceValues[_frameIndex] = 1;
                     //_fence->SetName(L"DeviceResources");
 
                     _fenceEvent.attach(CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
@@ -328,15 +332,18 @@ namespace OpenDemo
                         //commandList->ResourceBarrier(1, &barrier);
                     }
 
-                    float color[4] = { std::rand() / static_cast<float>(RAND_MAX),
-                        std::rand() / static_cast<float>(RAND_MAX),
-                        std::rand() / static_cast<float>(RAND_MAX), 1 };
-
                     D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(_renderTargets[_backBufferIndex].get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
                     const auto& commandList = _commandList->GetCommandList();
 
                     commandList->ResourceBarrier(1, &barrier);
-                    commandList->ClearRenderTargetView(getRenderTargetView(_backBufferIndex), color, 0, nullptr);
+                    for (int i = 0; i < 100000; i++)
+                    {
+                        float color[4] = { std::rand() / static_cast<float>(RAND_MAX),
+                            std::rand() / static_cast<float>(RAND_MAX),
+                            std::rand() / static_cast<float>(RAND_MAX), 1 };
+
+                        commandList->ClearRenderTargetView(getRenderTargetView(_backBufferIndex), color, 0, nullptr);
+                    }
                     barrier = CD3DX12_RESOURCE_BARRIER::Transition(_renderTargets[_backBufferIndex].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
                     commandList->ResourceBarrier(1, &barrier);
                     // Send the command list off to the GPU for processing.

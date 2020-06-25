@@ -43,7 +43,7 @@ namespace OpenDemo
                     {
                         auto frameStamp = _fence->GetGpuValue();
                         ASSERT(_ringBuffer[_frameIndex].frameStamp < frameStamp);
-                        _ringBuffer[_frameIndex].frameStamp = frameStamp;
+                        _ringBuffer[_frameIndex].frameStamp = _fence->GetCpuValue();
 
                         _frameIndex = (++_frameIndex % GPU_FRAMES_BUFFERED);
                         return CurrentObject();

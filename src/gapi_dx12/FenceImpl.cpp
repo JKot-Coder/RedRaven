@@ -22,18 +22,23 @@ namespace OpenDemo
                         return result;
                     }
 
+                    _cpu_value = initialValue;
                     return result;
                 }
 
-                GAPIStatus FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value) const
+                GAPIStatus FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
                 {
                     ASSERT(_fence.get())
 
                     GAPIStatus result = GAPIStatus(commandQueue->Signal(_fence.get(), value));
 
                     if (GAPIStatusU::Failure(result))
+                    {
                         LOG_ERROR("Failure signal fence with HRESULT of 0x%08X", result);
+                        return result;
+                    }
 
+                    _cpu_value = value;
                     return result;
                 }
 
