@@ -10,5 +10,6 @@
 #include <dxgidebug.h>
 
 #include "gapi_dx12/ComSharedPtr.hpp"
+#include "gapi_dx12/D3DUtils.hpp"
 #include "gapi/Limits.hpp"
 #include "gapi/GAPIStatus.hpp"

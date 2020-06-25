@@ -6,7 +6,6 @@
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 
-#include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/d3dx12.h"
 
 #include <vector>
@@ -127,7 +126,7 @@ namespace OpenDemo
                             LOG_ERROR("Failure create CommandQueue with HRESULT of 0x%08X", result);
                             return result;
                         }
-                        commandQueue->SetName(L"MainCommanQueue");
+                        commandQueue->SetName(L"MainCommandQueue");
 
                         commandQueue.as(_commandQueues[static_cast<size_t>(CommandQueueType::GRAPHICS)]);
                     }
@@ -160,13 +159,13 @@ namespace OpenDemo
 
                     // Create a fence for tracking GPU execution progress.
                     _fence.reset(new FenceImpl());
-                    if (GAPIStatusU::Failure(result = _fence->Init(_d3dDevice.get(), 1)))
+                    if (GAPIStatusU::Failure(result = _fence->Init(_d3dDevice.get(), 1, "FrameSync")))
                     {
                         return result;
                     }
 
                     _commandList.reset(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT));
-                    if (GAPIStatusU::Failure(_commandList->Init(_d3dDevice.get(), _fence)))
+                    if (GAPIStatusU::Failure(_commandList->Init(_d3dDevice.get(), "Main")))
                     {
                         return result;
                     }
@@ -289,14 +288,10 @@ namespace OpenDemo
                         return result;
                     }
 
-                    for (UINT n = 0; n < _backBufferCount; n++)
+                    for (int index = 0; index < _backBufferCount; index++)
                     {
-                        ThrowIfFailed(_swapChain->GetBuffer(n, IID_PPV_ARGS(_renderTargets[n].put())));
-
-                        //TODO
-                        wchar_t name[25] = {};
-                        swprintf_s(name, L"Render target %u", n);
-                        _renderTargets[n]->SetName(name);
+                        ThrowIfFailed(_swapChain->GetBuffer(index, IID_PPV_ARGS(_renderTargets[index].put())));
+                        D3DUtils::SetAPIName(_renderTargets[index].get(), "BackBuffer", index);
 
                         D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
                         rtvDesc.Format = currentSwapChainDesc.Format;
@@ -304,8 +299,8 @@ namespace OpenDemo
 
                         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor(
                             _rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-                            static_cast<INT>(n), _rtvDescriptorSize);
-                        _d3dDevice->CreateRenderTargetView(_renderTargets[n].get(), &rtvDesc, rtvDescriptor);
+                            static_cast<INT>(index), _rtvDescriptorSize);
+                        _d3dDevice->CreateRenderTargetView(_renderTargets[index].get(), &rtvDesc, rtvDescriptor);
                     }
 
                     _backBufferIndex = 0;
@@ -464,7 +459,7 @@ namespace OpenDemo
                         return result;
                     }
 
-                    _d3dDevice->SetName(L"DX12Device");
+                    D3DUtils::SetAPIName(_d3dDevice.get(), "Main");
                     if (_enableDebug)
                     {
                         // Configure debug device (if active).

@@ -9,7 +9,7 @@ namespace OpenDemo
             namespace DX12
             {
 
-                GAPIStatus FenceImpl::Init(ID3D12Device* device, uint64_t initialValue)
+                GAPIStatus FenceImpl::Init(ID3D12Device* device, uint64_t initialValue, const U8String& name)
                 {
                     ASSERT(device)
                     ASSERT(_fence.get() == nullptr)
@@ -21,6 +21,8 @@ namespace OpenDemo
                         LOG_ERROR("Failure create CreateFence with HRESULT of 0x%08X", result);
                         return result;
                     }
+
+                    D3DUtils::SetAPIName(_fence.get(), name);
 
                     _cpu_value = initialValue;
                     return result;

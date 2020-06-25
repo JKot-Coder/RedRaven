@@ -15,13 +15,12 @@ namespace OpenDemo
                 class CommandListImpl final
                 {
                 public:
-                    // _commandList->SetName(L"CommandList");
                     CommandListImpl() = delete;
                     CommandListImpl(D3D12_COMMAND_LIST_TYPE type)
                         : _type(type)
                     {
                     }
-                    GAPIStatus Init(ID3D12Device* device, std::shared_ptr<FenceImpl>& fence);
+                    GAPIStatus Init(ID3D12Device* device, const U8String& name);
 
                     ComSharedPtr<ID3D12GraphicsCommandList> GetCommandList()
                     {

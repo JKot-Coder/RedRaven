@@ -16,7 +16,7 @@ namespace OpenDemo
                 class FencedFrameRingBuffer
                 {
                 public:
-                    using NewObjectFunc = std::function<ObjectType()>;
+                    using NewObjectFunc = std::function<ObjectType(int index)>;
 
                     FencedFrameRingBuffer()
                     {
@@ -25,7 +25,7 @@ namespace OpenDemo
 #endif
                     }
 
-                    GAPIStatus Init(ID3D12Device* device, NewObjectFunc newFunc)
+                    GAPIStatus Init(ID3D12Device* device, NewObjectFunc newFunc, const U8String& name)
                     {
                         ASSERT(device && newFunc);
 
@@ -33,7 +33,7 @@ namespace OpenDemo
 
                         for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
                         {
-                            auto& object = newFunc();
+                            auto& object = newFunc(index);
                             _ringBuffer[index].object = object;
                             if (!object)
                             {
@@ -46,7 +46,7 @@ namespace OpenDemo
                         }
 
 #ifdef ENABLE_FENCE_SYNC_CHECK
-                        if (GAPIStatusU::Failure(result = _fence->Init(device, 1)))
+                        if (GAPIStatusU::Failure(result = _fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}",name))))
                             return result;
 #endif
                         return result;

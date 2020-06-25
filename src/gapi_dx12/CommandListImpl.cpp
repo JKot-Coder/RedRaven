@@ -9,27 +9,29 @@ namespace OpenDemo
             namespace DX12
             {
 
-                GAPIStatus CommandListImpl::Init(ID3D12Device* device, std::shared_ptr<FenceImpl>& fence)
+                GAPIStatus CommandListImpl::Init(ID3D12Device* device, const U8String& name)
                 {
                     ASSERT(device)
-                    ASSERT(fence.get())
                     ASSERT(_commandList.get() == nullptr)
 
                     GAPIStatus result = GAPIStatus::OK;
                     const auto& commandListType = _type;
 
-                    auto newCommandAllocator = [device, commandListType]() -> ComSharedPtr<ID3D12CommandAllocator> {
+                    auto newCommandAllocator = [name, device, commandListType](int index) -> ComSharedPtr<ID3D12CommandAllocator> {
                         ComSharedPtr<ID3D12CommandAllocator> allocator;
                         if (FAILED(device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(allocator.put()))))
                         {
                             Log::Print::Error("Failed to create command allocator");
                             return nullptr;
                         }
+
+                        D3DUtils::SetAPIName(allocator.get(), name, index);
+
                         return allocator;
                     };
 
                     _allocatorsRB.reset(new FencedFrameRingBuffer<ComSharedPtr<ID3D12CommandAllocator>>());
-                    if (GAPIStatusU::Failure(result = _allocatorsRB->Init(device, newCommandAllocator)))
+                    if (GAPIStatusU::Failure(result = _allocatorsRB->Init(device, newCommandAllocator, fmt::format("CommandList::{}", name))))
                     {
                         LOG_ERROR("Failure create FencedFrameRingBuffer with HRESULT of 0x%08X", result);
                         return result;
@@ -41,6 +43,8 @@ namespace OpenDemo
                         LOG_ERROR("Failure create CreateFence with HRESULT of 0x%08X", result);
                         return result;
                     }
+
+                    D3DUtils::SetAPIName(_commandList.get(), name);
 
                     return result;
                 }
