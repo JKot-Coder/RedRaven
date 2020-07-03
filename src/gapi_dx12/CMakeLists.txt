@@ -5,13 +5,15 @@ set(GAPI_SRC
         d3dx12.h
         Config.hpp
         ComSharedPtr.hpp
-        Device.hpp
-        Device.cpp
         D3DUtils.hpp
         D3DUtils.cpp
+        Device.hpp
+        Device.cpp
+        FencedRingBuffer.hpp
+        CommandListCompiler.hpp
+        CommandListCompiler.cpp
         FenceImpl.hpp
         FenceImpl.cpp
-        FencedRingBuffer.hpp
         CommandListImpl.hpp
         CommandListImpl.cpp)
         

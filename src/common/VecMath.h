@@ -1,12 +1,11 @@
 #pragma once
 
+#include "Math.hpp"
+
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define DECL_ENUM(v) v,
-#define DECL_STR(v) #v,
 
 #define EPS FLT_EPSILON
 #define INF INFINITY
@@ -22,50 +21,10 @@
 #define SQR(x) ((x) * (x))
 #define randf() ((float)rand() / RAND_MAX)
 
-#if defined(min) | defined(max)
-#undef min
-#undef max
-#endif
 namespace OpenDemo
 {
     namespace Common
     {
-
-        template <typename T>
-        inline constexpr T min(const T a, const T b)
-        {
-            return a < b ? a : b;
-        }
-
-        template <typename T>
-        inline constexpr T min(const T a, const T b, const T c)
-        {
-            return (a < b && a < c) ? a : ((b < a && b < c) ? b : c);
-        }
-
-        template <class T>
-        inline constexpr T max(const T a, const T b)
-        {
-            return a > b ? a : b;
-        }
-
-        template <typename T>
-        inline constexpr T max(const T a, const T b, const T c)
-        {
-            return (a > b && a > c) ? a : ((b > a && b > c) ? b : c);
-        }
-
-        template <class T>
-        inline constexpr T clamp(const T x, const T a, const T b)
-        {
-            return x < a ? a : (x > b ? b : x);
-        }
-
-        template <typename T>
-        inline constexpr int sign(const T val)
-        {
-            return (T(0) < val) - (val < T(0));
-        }
 
         inline void sincos(float r, float* s, float* c)
         {

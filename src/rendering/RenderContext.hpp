@@ -5,8 +5,6 @@
 #include "rendering/BlendingDescription.hpp"
 #include "rendering/DepthDescription.hpp"
 
-#include <vector>
-
 namespace OpenDemo
 {
     using namespace Common;

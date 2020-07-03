@@ -1,7 +1,6 @@
 #include "ResourcesLoaders.hpp"
 
 #include <iostream>
-#include <vector>
 
 #include <stb_image.h>
 

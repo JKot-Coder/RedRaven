@@ -3,7 +3,6 @@
 #include "rendering/RenderContext.hpp"
 
 #include <tuple>
-#include <vector>
 
 namespace OpenDemo
 {

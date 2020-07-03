@@ -1,8 +1,13 @@
 project (gapi)
 
 set(GAPI_SRC
+        Frame.hpp
         Limits.hpp
         Resource.hpp
+        Command.hpp
+        LinearAllocator.hpp
+        LinearAllocator.cpp
+        LinearAllocator.inl
 	    CommandList.hpp
         Fence.hpp
         FencedPool.hpp

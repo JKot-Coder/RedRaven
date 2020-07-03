@@ -6,6 +6,7 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
+#include "gapi/CommandList.hpp"
 #include "gapi_dx12/Device.hpp"
 
 #include "rendering/Mesh.hpp"
@@ -48,7 +49,16 @@ namespace OpenDemo
         // loadResouces();
         _device.reset(new Render::Device::DX12::Device());
         // TODO REMOVE IT
-   
+
+        const auto cmdList = new Render::CommandList("asd");
+        std::ignore = cmdList;
+
+        auto alloc = cmdList->GetAllocator();
+        for (int i = 0; i < 100; i++)
+        {
+            alloc->emplace_back<Render::Command>();
+        }
+
         _device->Init();
         Render::Device::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;

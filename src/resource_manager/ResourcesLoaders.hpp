@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "rendering/Render.hpp"
 #include "rendering/Texture.hpp"

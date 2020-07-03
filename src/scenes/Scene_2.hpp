@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "common/VecMath.h"
 #include "rendering/SceneGraph.hpp"
 

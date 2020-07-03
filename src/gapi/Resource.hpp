@@ -18,7 +18,11 @@ namespace OpenDemo
                 CommandList
             };
 
-            virtual ~Resource() = 0;
+            Resource() = delete;
+            Resource(const Resource&) = delete;
+            Resource& operator=(const Resource&) = delete;
+
+            virtual ~Resource() = default;
 
             inline Type GetType() const { return _type; }
             inline U8String GetName() const { return _name; }
@@ -39,7 +43,7 @@ namespace OpenDemo
             void SetPrivateImpl(T* privateImpl) { privateImpl_ = privateImpl; }
 
         protected:
-            Resource(Type type, U8String name)
+            Resource(Type type, const U8String& name)
                 : _type(type)
                 , _name(name)
             {

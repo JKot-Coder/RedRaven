@@ -20,9 +20,17 @@ namespace OpenDemo
 
                     FencedFrameRingBuffer()
                     {
+                        static_assert(std::is_base_of<ID3D12Object, std::remove_pointer<ObjectType>::type>::value, "Wrong type for FencedFrameRingBuffer");
 #ifdef ENABLE_FENCE_SYNC_CHECK
                         _fence.reset(new FenceImpl());
 #endif
+                    }
+
+                    ~FencedFrameRingBuffer()
+                    {
+                        for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
+                            if (_ringBuffer[index].object)
+                                _ringBuffer[index].object->Release();
                     }
 
                     GAPIStatus Init(ID3D12Device* device, NewObjectFunc newFunc, const U8String& name)
@@ -33,7 +41,7 @@ namespace OpenDemo
 
                         for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
                         {
-                            auto& object = newFunc(index);
+                            const auto& object = newFunc(index);
                             _ringBuffer[index].object = object;
                             if (!object)
                             {
@@ -46,7 +54,7 @@ namespace OpenDemo
                         }
 
 #ifdef ENABLE_FENCE_SYNC_CHECK
-                        if (GAPIStatusU::Failure(result = _fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}",name))))
+                        if (GAPIStatusU::Failure(result = _fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}", name))))
                             return result;
 #endif
                         return result;

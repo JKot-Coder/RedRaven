@@ -52,6 +52,9 @@ namespace OpenDemo
             class MultiThreadDeviceInterface
             {
             public:
+                virtual GAPIStatus CompileCommandList(CommandList& commandList) const = 0;
+                virtual GAPIStatus SubmitCommandList(CommandList& commandList) const = 0;
+
                 virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
 
                 virtual GAPIStatus InitResource(CommandList& commandList) const = 0;

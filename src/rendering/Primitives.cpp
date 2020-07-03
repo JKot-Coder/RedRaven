@@ -1,7 +1,6 @@
 #include "Primitives.hpp"
 
 #include <array>
-#include <vector>
 
 #include "common/VecMath.h"
 

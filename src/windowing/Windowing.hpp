@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 struct SDL_Keysym;
 struct SDL_MouseMotionEvent;
 

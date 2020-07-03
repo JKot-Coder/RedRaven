@@ -5,7 +5,9 @@
 #include "common/Config.hpp"
 
 #ifdef __cplusplus
-#include <memory>
-#include "common/String.hpp"
 #include "common/Logger.hpp"
+#include "common/String.hpp"
+#include <cstddef>
+#include <memory>
+#include <vector>
 #endif // __cplusplus

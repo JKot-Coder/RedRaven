@@ -18,6 +18,9 @@ namespace OpenDemo
                     GAPIStatus Reset(const PresentOptions& presentOptions) override;
                     GAPIStatus Present() override;
 
+                    GAPIStatus CompileCommandList(CommandList& commandList) const override;
+                    GAPIStatus SubmitCommandList(CommandList& commandList) const override;
+
                     uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const override;
 
                     GAPIStatus InitResource(CommandList& commandList) const override;

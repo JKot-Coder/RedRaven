@@ -1,7 +1,5 @@
 #include "ResourceManager.hpp"
 
-#include <vector>
-
 #include "common/Stream.hpp"
 #include "common/VecMath.h"
 
