@@ -2,172 +2,529 @@ namespace OpenDemo
 {
     namespace Common
     {
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector2
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         template <typename T>
-        INLINE T& Vector2<T>::operator[](int index) const
+        struct Vector<2, T>
         {
-            ASSERT(index >= 0 && index <= 1)
-            return ((T*)this)[index];
-        }
+            static inline constexpr size_t SIZE = 2;
+            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
+
+            Vector() = default;
+
+            Vector(T s)
+                : x(s)
+                , y(s)
+            {
+            }
+
+            Vector(T x, T y)
+                : x(x)
+                , y(y)
+            {
+            }
+
+            template <typename U>
+            Vector(const Vector<SIZE, U>& vector)
+                : x(static_cast<T>(vector.x))
+                , y(static_cast<T>(vector.y))
+            {
+            }
+
+            bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y; }
+            bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
+            bool operator==(T s) const { return x == s && y == s; }
+            bool operator!=(T s) const { return !(*this == s); }
+            bool operator<(const Vector<SIZE, T>& v) const { return x < v.x && y < v.y; }
+            bool operator>(const Vector<SIZE, T>& v) const { return x > v.x && y > v.y; }
+
+            Vector<SIZE, T> operator-() const { return Vector<SIZE, T>(-x, -y); }
+
+            Vector<SIZE, T>& operator+=(const Vector<SIZE, T>& v)
+            {
+                x += v.x;
+                y += v.y;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator-=(const Vector<SIZE, T>& v)
+            {
+                x -= v.x;
+                y -= v.y;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator*=(const Vector<SIZE, T>& v)
+            {
+                x *= v.x;
+                y *= v.y;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator/=(const Vector<SIZE, T>& v)
+            {
+                x /= v.x;
+                y /= v.y;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator+=(T s)
+            {
+                x += s;
+                y += s;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator-=(T s)
+            {
+                x -= s;
+                y -= s;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator*=(T s)
+            {
+                x *= s;
+                y *= s;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator/=(T s)
+            {
+                x /= s;
+                y /= s;
+                return *this;
+            }
+
+            Vector<SIZE, T> operator+(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x + v.x, y + v.y); }
+            Vector<SIZE, T> operator-(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x - v.x, y - v.y); }
+            Vector<SIZE, T> operator*(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x * v.x, y * v.y); }
+            Vector<SIZE, T> operator/(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x / v.x, y / v.y); }
+            Vector<SIZE, T> operator+(T s) const { return Vector<SIZE, T>(x + s, y + s); }
+            Vector<SIZE, T> operator-(T s) const { return Vector<SIZE, T>(x - s, y - s); }
+            Vector<SIZE, T> operator*(T s) const { return Vector<SIZE, T>(x * s, y * s); }
+            Vector<SIZE, T> operator/(T s) const { return Vector<SIZE, T>(x / s, y / s); }
+
+            T Dot(const Vector<SIZE, T>& v) const { return x * v.x + y * v.y; }
+            T Cross(const Vector<SIZE, T>& v) const { return x * v.y - y * v.x; }
+            Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y)); }
+
+            Vector<SIZE, T>& Rotate(const Vector<SIZE, T>& cs)
+            {
+                *this = Vector<SIZE, T>(x * cs.x - y * cs.y, x * cs.y + y * cs.x);
+                return *this;
+            }
+
+            Vector<SIZE, T>& Rotate(T angle)
+            {
+                Vector<SIZE, T> cs;
+                sincos(angle, &cs.y, &cs.x);
+                return rotate(cs);
+            }
+
+            float Angle() const
+            {
+                return atan2f(y, x);
+            }
+
+            // Shared vectors functions
+            T& operator[](int index) const;
+
+            FloatType Length2() const;
+            FloatType Length() const;
+
+            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            Vector<SIZE, T> Normal() const;
+            ////////////////////////////////
+
+            T x;
+            T y;
+        };
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Vector3
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         template <typename T>
-        INLINE bool Vector2<T>::operator==(const Vector2<T>& v) const { return x == v.x && y == v.y; }
-
-        template <typename T>
-        INLINE bool Vector2<T>::operator!=(const Vector2<T>& v) const { return !(*this == v); }
-
-        template <typename T>
-        INLINE bool Vector2<T>::operator==(T s) const { return x == s && y == s; }
-
-        template <typename T>
-        INLINE bool Vector2<T>::operator!=(T s) const { return !(*this == s); }
-
-        template <typename T>
-        INLINE bool Vector2<T>::operator<(const Vector2<T>& v) const { return x < v.x && y < v.y; }
-
-        template <typename T>
-        INLINE bool Vector2<T>::operator>(const Vector2<T>& v) const { return x > v.x && y > v.y; }
-
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator-() const { return Vector2<T>(-x, -y); }
-
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator+=(const Vector2<T>& v)
+        struct Vector<3, T>
         {
-            x += v.x;
-            y += v.y;
-            return *this;
-        }
+            static inline constexpr size_t SIZE = 3;
+            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
+
+            Vector() = default;
+
+            Vector(T s)
+                : x(s)
+                , y(s)
+                , z(s)
+            {
+            }
+
+            Vector(T x, T y, T z)
+                : x(x)
+                , y(y)
+                , z(z)
+            {
+            }
+
+            template <typename U>
+            Vector(const Vector<SIZE, U>& vector)
+                : x(static_cast<T>(vector.x))
+                , y(static_cast<T>(vector.y))
+                , z(static_cast<T>(vector.z))
+            {
+            }
+
+            Vector(const Vector<SIZE - 1, T>& xy, float z)
+                : x(xy.x)
+                , y(xy.y)
+                , z(z)
+            {
+            }
+
+            Vector(float lng, float lat)
+                : x(sinf(lat) * cosf(lng))
+                , y(-sinf(lng))
+                , z(cosf(lat) * cosf(lng))
+            {
+            }
+
+            Vector<SIZE - 1, T>& xy() const { return *((Vector<SIZE - 1, T>*)&x); }
+            Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
+
+            bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y && z == v.z; }
+            bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
+            bool operator==(T s) const { return x == s && y == s && z == s; }
+            bool operator!=(T s) const { return !(*this == s); }
+            bool operator<(const Vector<SIZE, T>& v) const { return x < v.x && y < v.y && z < v.z; }
+            bool operator>(const Vector<SIZE, T>& v) const { return x > v.x && y > v.y && z > v.z; }
+
+            Vector<SIZE, T> operator-() const { return Vector<SIZE, T>(-x, -y, -z); }
+
+            Vector<SIZE, T>& operator+=(const Vector<SIZE, T>& v)
+            {
+                x += v.x;
+                y += v.y;
+                z += v.z;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator-=(const Vector<SIZE, T>& v)
+            {
+                x -= v.x;
+                y -= v.y;
+                z -= v.z;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator*=(const Vector<SIZE, T>& v)
+            {
+                x *= v.x;
+                y *= v.y;
+                z *= v.z;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator/=(const Vector<SIZE, T>& v)
+            {
+                x /= v.x;
+                y /= v.y;
+                z /= v.z;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator+=(T s)
+            {
+                x += s;
+                y += s;
+                z += s;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator-=(T s)
+            {
+                x -= s;
+                y -= s;
+                z -= s;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator*=(T s)
+            {
+                x *= s;
+                y *= s;
+                z *= s;
+                return *this;
+            }
+
+            Vector<SIZE, T>& operator/=(T s)
+            {
+                x /= s;
+                y /= s;
+                z /= s;
+                return *this;
+            }
+
+            Vector<SIZE, T> operator+(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x + v.x, y + v.y, z + v.z); }
+            Vector<SIZE, T> operator-(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x - v.x, y - v.y, z - v.z); }
+            Vector<SIZE, T> operator*(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x * v.x, y * v.y, z * v.z); }
+            Vector<SIZE, T> operator/(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x / v.x, y / v.y, z / v.z); }
+            Vector<SIZE, T> operator+(T s) const { return Vector<SIZE, T>(x + s, y + s, z + s); }
+            Vector<SIZE, T> operator-(T s) const { return Vector<SIZE, T>(x - s, y - s, z - s); }
+            Vector<SIZE, T> operator*(T s) const { return Vector<SIZE, T>(x * s, y * s, z * s); }
+            Vector<SIZE, T> operator/(T s) const { return Vector<SIZE, T>(x / s, y / s, z / s); }
+
+            T Dot(const Vector<SIZE, T>& v) const { return x * v.x + y * v.y + z * v.z; }
+            Vector<SIZE, T> Cross(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
+            Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y), fabsf(z)); }
+            Vector<SIZE, T> AxisXZ() const { return (fabsf(x) > fabsf(z)) ? Vector<SIZE, T>(float(Sign(x)), 0, 0) : Vector<SIZE, T>(0, 0, float(Sign(z))); }
+            Vector<SIZE, T> Reflect(const Vector<SIZE, T>& n) const { return *this - n * (Dot(n) * 2.0f); }
+
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return v;
+                return *this + (v - *this) * t;
+            }
+
+            const Vector<SIZE, T> RotateY(float angle) const
+            {
+                float s, c;
+                sincos(angle, &s, &c);
+                return vec3(x * c - z * s, y, x * s + z * c);
+            }
+
+            float Angle(const Vector<SIZE, T>& v) const
+            {
+                return Dot(v) / (Length() * v.Length());
+            }
+
+            float AngleX() const { return atan2f(sqrtf(x * x + z * z), y); }
+
+            float AngleY() const { return atan2f(z, x); }
+
+            // Shared vectors functions
+            T& operator[](int index) const;
+
+            FloatType Length2() const;
+            FloatType Length() const;
+
+            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            Vector<SIZE, T> Normal() const;
+            ////////////////////////////////
+
+            T x;
+            T y;
+            T z;
+        };
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Vector4
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator-=(const Vector2<T>& v)
+        struct Vector<4, T>
         {
-            x -= v.x;
-            y -= v.y;
-            return *this;
-        }
+            static inline constexpr size_t SIZE = 4;
+            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
-        template <typename T>
-        Vector2<T>& Vector2<T>::operator*=(const Vector2<T>& v)
-        {
-            x *= v.x;
-            y *= v.y;
-            return *this;
-        }
+            Vector() = default;
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator/=(const Vector2<T>& v)
-        {
-            x /= v.x;
-            y /= v.y;
-            return *this;
-        }
+            Vector(T s)
+                : x(s)
+                , y(s)
+                , z(s)
+                , w(s)
+            {
+            }
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator+=(T s)
-        {
-            x += s;
-            y += s;
-            return *this;
-        }
+            Vector(T x, T y, T z, T w)
+                : x(x)
+                , y(y)
+                , z(z)
+                , w(w)
+            {
+            }
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator-=(T s)
-        {
-            x -= s;
-            y -= s;
-            return *this;
-        }
+            template <typename U>
+            Vector(const Vector<SIZE, U>& vector)
+                : x(static_cast<T>(vector.x))
+                , y(static_cast<T>(vector.y))
+                , z(static_cast<T>(vector.z))
+                , w(static_cast<T>(vector.w))
+            {
+            }
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator*=(T s)
-        {
-            x *= s;
-            y *= s;
-            return *this;
-        }
+            Vector(const vec3& xyz, float w)
+                : x(xyz.x)
+                , y(xyz.y)
+                , z(xyz.z)
+                , w(w)
+            {
+            }
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::operator/=(T s)
-        {
-            x /= s;
-            y /= s;
-            return *this;
-        }
+            Vector(const Vector<SIZE - 2, T>& xy, const Vector<SIZE - 2, T>& zw)
+                : x(xy.x)
+                , y(xy.y)
+                , z(zw.x)
+                , w(zw.y)
+            {
+            }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator+(const Vector2<T>& v) const { return Vector2<T>(x + v.x, y + v.y); }
+            Vector<SIZE - 1, T>& xy() const { return *((Vector<SIZE - 1, T>*)&x); }
+            Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator-(const Vector2<T>& v) const { return Vector2<T>(x - v.x, y - v.y); }
+            bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
+            bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
+            bool operator==(T s) const { return x == s && y == s && z == s && w == s; }
+            bool operator!=(T s) const { return !(*this == s); }
+            bool operator<(const Vector<SIZE, T>& v) const { return x < v.x && y < v.y && z < v.z && w < v.w; }
+            bool operator>(const Vector<SIZE, T>& v) const { return x > v.x && y > v.y && z > v.z && w > v.w; }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator*(const Vector2<T>& v) const { return Vector2<T>(x * v.x, y * v.y); }
+            Vector<SIZE, T> operator-() const { return Vector<SIZE, T>(-x, -y, -z); }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator/(const Vector2<T>& v) const { return Vector2<T>(x / v.x, y / v.y); }
+            Vector<SIZE, T>& operator+=(const Vector<SIZE, T>& v)
+            {
+                x += v.x;
+                y += v.y;
+                z += v.z;
+                w += w.z;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator+(T s) const { return Vector2<T>(x + s, y + s); }
+            Vector<SIZE, T>& operator-=(const Vector<SIZE, T>& v)
+            {
+                x -= v.x;
+                y -= v.y;
+                z -= v.z;
+                w -= v.w;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator-(T s) const { return Vector2<T>(x - s, y - s); }
+            Vector<SIZE, T>& operator*=(const Vector<SIZE, T>& v)
+            {
+                x *= v.x;
+                y *= v.y;
+                z *= v.z;
+                w *= v.w;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator*(T s) const { return Vector2<T>(x * s, y * s); }
+            Vector<SIZE, T>& operator/=(const Vector<SIZE, T>& v)
+            {
+                x /= v.x;
+                y /= v.y;
+                z /= v.z;
+                w /= v.w;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::operator/(T s) const { return Vector2<T>(x / s, y / s); }
+            Vector<SIZE, T>& operator+=(T s)
+            {
+                x += s;
+                y += s;
+                z += s;
+                w += s;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE T Vector2<T>::dot(const Vector2<T>& v) const { return x * v.x + y * v.y; }
+            Vector<SIZE, T>& operator-=(T s)
+            {
+                x -= s;
+                y -= s;
+                z -= s;
+                w -= s;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE T Vector2<T>::cross(const Vector2<T>& v) const { return x * v.y - y * v.x; }
+            Vector<SIZE, T>& operator*=(T s)
+            {
+                x *= s;
+                y *= s;
+                z *= s;
+                w *= s;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE T Vector2<T>::length2() const { return dot(*this); }
+            Vector<SIZE, T>& operator/=(T s)
+            {
+                x /= s;
+                y /= s;
+                z /= s;
+                w /= s;
+                return *this;
+            }
 
-        template <typename T>
-        INLINE T Vector2<T>::length() const { return sqrtf(length2()); }
+            Vector<SIZE, T> operator+(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x + v.x, y + v.y, z + v.z, w + v.w); }
+            Vector<SIZE, T> operator-(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x - v.x, y - v.y, z - v.z, w - v.w); }
+            Vector<SIZE, T> operator*(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x * v.x, y * v.y, z * v.z, w * v.w); }
+            Vector<SIZE, T> operator/(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(x / v.x, y / v.y, z / v.z, w / v.w); }
+            Vector<SIZE, T> operator+(T s) const { return Vector<SIZE, T>(x + s, y + s, z + s, w + s); }
+            Vector<SIZE, T> operator-(T s) const { return Vector<SIZE, T>(x - s, y - s, z - s, w - s); }
+            Vector<SIZE, T> operator*(T s) const { return Vector<SIZE, T>(x * s, y * s, z * s, w * s); }
+            Vector<SIZE, T> operator/(T s) const { return Vector<SIZE, T>(x / s, y / s, z / s, w / s); }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::abs() const { return Vector2<T>(fabsf(x), fabsf(y)); }
+            T Dot(const Vector<SIZE, T>& v) const { return x * v.x + y * v.y + z * v.z + w * v.w; }
+            Vector<SIZE, T> Cross(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
+            Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y), fabsf(z)); }
+            Vector<SIZE, T> AxisXZ() const { return (fabsf(x) > fabsf(z)) ? Vector<SIZE, T>(float(Sign(x)), 0, 0) : Vector<SIZE, T>(0, 0, float(Sign(z))); }
 
-        template <typename T>
-        INLINE Vector2<T> Vector2<T>::normal() const
-        {
-            T s = length();
-            return s == 0.0 ? (*this) : (*this) * (1.0f / s);
-        }
+            Vector<SIZE, T> Reflect(const Vector<SIZE, T>& n) const
+            {
+                return *this - n * (Dot(n) * 2.0f);
+            }
 
-        template <typename T>
-        INLINE T Vector2<T>::angle() const { return atan2f(y, x); }
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return v;
+                return *this + (v - *this) * t;
+            }
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::rotate(const Vector2<T>& cs)
-        {
-            *this = Vector2<T>(x * cs.x - y * cs.y, x * cs.y + y * cs.x);
-            return *this;
-        }
+            const Vector<SIZE, T> RotateY(float angle) const
+            {
+                float s, c;
+                sincos(angle, &s, &c);
+                return vec3(x * c - z * s, y, x * s + z * c);
+            }
 
-        template <typename T>
-        INLINE Vector2<T>& Vector2<T>::rotate(T angle)
-        {
-            Vector2<T> cs;
-            sincos(angle, &cs.y, &cs.x);
-            return rotate(cs);
-        }
+            float Angle(const Vector<SIZE, T>& v) const
+            {
+                return Dot(v) / (Length() * v.Length());
+            }
+
+            float AngleX() const { return atan2f(sqrtf(x * x + z * z), y); }
+
+            float AngleY() const { return atan2f(z, x); }
+
+            // Shared vectors functions
+            T& operator[](int index) const;
+
+            FloatType Length2() const;
+            FloatType Length() const;
+
+            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            Vector<SIZE, T> Normal() const;
+            ////////////////////////////////
+
+            T x;
+            T y;
+            T z;
+        };
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Rect
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         template <typename T>
-        INLINE bool Rect<T>::contains(T x, T y) const
+        bool Rect<T>::Contains(T x, T y) const
         {
             // Rectangles with negative dimensions are allowed, so we must handle them correctly
             // Compute the real min and max of the rectangle on both axes
@@ -181,20 +538,20 @@ namespace OpenDemo
         }
 
         template <typename T>
-        INLINE bool Rect<T>::contains(const Vector2<T>& point) const
+        bool Rect<T>::Contains(const Vector<2, T>& point) const
         {
             return contains(point.x, point.y);
         }
 
         template <typename T>
-        INLINE bool Rect<T>::intersects(const Rect<T>& rect) const
+        bool Rect<T>::Intersects(const Rect<T>& rect) const
         {
             Rect<T> intersection;
             return intersects(rect, intersection);
         }
 
         template <typename T>
-        INLINE bool Rect<T>::intersects(const Rect<T>& rect, Rect<T>& intersection) const
+        bool Rect<T>::Intersects(const Rect<T>& rect, Rect<T>& intersection) const
         {
             // Rectangles with negative dimensions are allowed, so we must handle them correctly
 
@@ -230,25 +587,25 @@ namespace OpenDemo
         }
 
         template <typename T>
-        INLINE Vector2<T> Rect<T>::getPosition() const
+        Vector<2, T> Rect<T>::GetPosition() const
         {
-            return Vector2<T>(left, top);
+            return Vector<2, T>(left, top);
         }
 
         template <typename T>
-        INLINE Vector2<T> Rect<T>::getSize() const
+        Vector<2, T> Rect<T>::GetSize() const
         {
-            return Vector2<T>(width, height);
+            return Vector<2, T>(width, height);
         }
 
         template <typename T>
-        inline bool Rect<T>::operator==(const Rect<T>& rect) const
+        bool Rect<T>::operator==(const Rect<T>& rect) const
         {
             return (left == rect.left) && (width == rect.width) && (top == rect.top) && (height == rect.height);
         }
 
         template <typename T>
-        inline bool Rect<T>::operator!=(const Rect<T>& rect) const
+        bool Rect<T>::operator!=(const Rect<T>& rect) const
         {
             return !(left == rect);
         }

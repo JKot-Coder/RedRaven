@@ -1,6 +1,24 @@
 #pragma once
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/quaternion.hpp"
+
 #include <algorithm>
+
+#define EPS FLT_EPSILON
+#define INF INFINITY
+#define PI 3.14159265358979323846f
+#define PI2 (PI * 2.0f)
+#define DEG2RAD (PI / 180.0f)
+#define RAD2DEG (180.0f / PI)
+
+#define COS30 0.86602540378f
+#define COS45 0.70710678118f
+#define COS60 0.50000000000f
+
+#define SQR(x) ((x) * (x))
+#define randf() ((float)rand() / RAND_MAX)
 
 #if defined(min) | defined(max)
 #undef min
@@ -11,39 +29,42 @@ namespace OpenDemo
 {
     namespace Common
     {
-        // TODO CAPS
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Common
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
         template <typename T>
-        inline constexpr T min(const T a, const T b)
+        inline constexpr T Min(const T a, const T b)
         {
             return a < b ? a : b;
         }
 
         template <typename T>
-        inline constexpr T min(const T a, const T b, const T c)
+        inline constexpr T Min(const T a, const T b, const T c)
         {
             return (a < b && a < c) ? a : ((b < a && b < c) ? b : c);
         }
 
         template <class T>
-        inline constexpr T max(const T a, const T b)
+        inline constexpr T Max(const T a, const T b)
         {
             return a > b ? a : b;
         }
 
         template <typename T>
-        inline constexpr T max(const T a, const T b, const T c)
+        inline constexpr T Max(const T a, const T b, const T c)
         {
             return (a > b && a > c) ? a : ((b > a && b > c) ? b : c);
         }
 
         template <class T>
-        inline constexpr T clamp(const T x, const T a, const T b)
+        inline constexpr T Clamp(const T x, const T a, const T b)
         {
             return x < a ? a : (x > b ? b : x);
         }
 
         template <typename T>
-        inline constexpr int sign(const T val)
+        inline constexpr int Sign(const T val)
         {
             return (T(0) < val) - (val < T(0));
         }
@@ -86,72 +107,32 @@ namespace OpenDemo
             return value;
         }
 
-        template <typename T>
-        struct Vector2
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Vector
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        template <size_t Len, typename T>
+        struct Vector
         {
-            Vector2() = default;
+        public:
+            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
-            Vector2(T s)
-                : x(s)
-                , y(s)
+            T& operator[](int index) const
             {
+                ASSERT(index >= 0 && index < Len)
+                return ((T*)this)[index];
             }
 
-            Vector2<T>(T x, T y)
-                : x(x)
-                , y(y)
+            FloatType Length2() const { return Dot(*this); }
+
+            FloatType Length() const { return sqrtf(Length2()); }
+
+            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            Vector<Len, T> Normal() const
             {
+                FloatType s = Length();
+                return s == 0.0 ? (*this) : (*this) * (FloatType(1.0) / s);
             }
-
-            template <typename U>
-            Vector2<T>::Vector2(const Vector2<U>& vector)
-                : x(static_cast<T>(vector.x))
-                , y(static_cast<T>(vector.y))
-            {
-            }
-
-            T& operator[](int index) const;
-
-            bool operator==(const Vector2<T>& v) const;
-            bool operator!=(const Vector2<T>& v) const;
-            bool operator==(T s) const;
-            bool operator!=(T s) const;
-            bool operator<(const Vector2<T>& v) const;
-            bool operator>(const Vector2<T>& v) const;
-
-            Vector2<T> operator-() const;
-            Vector2<T>& operator+=(const Vector2<T>& v);
-            Vector2<T>& operator-=(const Vector2<T>& v);
-            Vector2<T>& operator*=(const Vector2<T>& v);
-            Vector2<T>& operator/=(const Vector2<T>& v);
-            Vector2<T>& operator+=(T s);
-            Vector2<T>& operator-=(T s);
-            Vector2<T>& operator*=(T s);
-            Vector2<T>& operator/=(T s);
-            Vector2<T> operator+(const Vector2<T>& v) const;
-            Vector2<T> operator-(const Vector2<T>& v) const;
-            Vector2<T> operator*(const Vector2<T>& v) const;
-            Vector2<T> operator/(const Vector2<T>& v) const;
-            Vector2<T> operator+(T s) const;
-            Vector2<T> operator-(T s) const;
-            Vector2<T> operator*(T s) const;
-            Vector2<T> operator/(T s) const;
-
-            T dot(const Vector2<T>& v) const;
-            T cross(const Vector2<T>& v) const;
-
-            T length2() const;
-            T length() const;
-
-            Vector2<T> abs() const;
-            Vector2<T> normal() const;
-            T angle() const;
-
-            Vector2<T>& rotate(const Vector2<T>& cs);
-            Vector2<T>& rotate(T angle);
-
-            T x;
-            T y;
         };
 
         template <typename T>
@@ -164,7 +145,7 @@ namespace OpenDemo
                 , width(rectWidth)
                 , height(rectHeight) {};
 
-            Rect(const Vector2<T>& position, const Vector2<T>& size)
+            Rect(const Vector<2, T>& position, const Vector<2, T>& size)
                 : left(position.x)
                 , top(position.y)
                 , width(size.x)
@@ -179,13 +160,13 @@ namespace OpenDemo
                 , width(static_cast<T>(rectangle.width))
                 , height(static_cast<T>(rectangle.height)) {};
 
-            bool contains(T x, T y) const;
-            bool contains(const Vector2<T>& point) const;
-            bool intersects(const Rect<T>& rect) const;
-            bool intersects(const Rect<T>& rect, Rect<T>& intersection) const;
+            bool Contains(T x, T y) const;
+            bool Contains(const Vector<2, T>& point) const;
+            bool Intersects(const Rect<T>& rect) const;
+            bool Intersects(const Rect<T>& rect, Rect<T>& intersection) const;
 
-            Vector2<T> getPosition() const;
-            Vector2<T> getSize() const;
+            Vector<2, T> GetPosition() const;
+            Vector<2, T> GetSize() const;
 
             bool operator==(const Rect<T>& rect) const;
             bool operator!=(const Rect<T>& rect) const;
@@ -196,12 +177,10 @@ namespace OpenDemo
             T height;
         };
 
-        using Vector2F = Vector2<float>;
-        using Vector2U32 = Vector2<uint32_t>;
-        using Vector2U = Vector2U32;
+        using Vector2 = Vector<2, float>;
+        using UVector2 = Vector<2, uint32_t>;
 
-        using RectU32 = Rect<uint32_t>;
-        using RectU = RectU32;
+        using URect = Rect<uint32_t>;
 
         namespace PointerMath
         {
@@ -237,6 +216,4 @@ namespace OpenDemo
     }
 }
 
-#ifdef ENABLE_INLINE
-#include <Math.inl>
-#endif
+#include "Math.inl"
