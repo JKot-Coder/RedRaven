@@ -30,8 +30,8 @@ namespace OpenDemo
 
                 virtual void SwapBuffers() const override;
 
-                virtual void Clear(const Common::vec4& color, float depth) const override;
-                virtual void ClearColor(const Common::vec4& color) const override;
+                virtual void Clear(const Common::Vector4& color, float depth) const override;
+                virtual void ClearColor(const Common::Vector4& color) const override;
                 virtual void ClearDepthStencil(float depth) const override;
 
                 virtual void Begin(const std::shared_ptr<RenderContext>& renderContext) override;

@@ -1,25 +1,13 @@
 #pragma once
 
+// Deprecated
+
 #include "Math.hpp"
 
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define EPS FLT_EPSILON
-#define INF INFINITY
-#define PI 3.14159265358979323846f
-#define PI2 (PI * 2.0f)
-#define DEG2RAD (PI / 180.0f)
-#define RAD2DEG (180.0f / PI)
-
-#define COS30 0.86602540378f
-#define COS45 0.70710678118f
-#define COS60 0.50000000000f
-
-#define SQR(x) ((x) * (x))
-#define randf() ((float)rand() / RAND_MAX)
 
 namespace OpenDemo
 {
@@ -328,7 +316,7 @@ namespace OpenDemo
                 return s == 0.0f ? (*this) : (*this) * (1.0f / s);
             }
 
-            vec3 axisXZ() const { return (fabsf(x) > fabsf(z)) ? vec3(float(sign(x)), 0, 0) : vec3(0, 0, float(sign(z))); }
+            vec3 axisXZ() const { return (fabsf(x) > fabsf(z)) ? vec3(float(Sign(x)), 0, 0) : vec3(0, 0, float(Sign(z))); }
 
             vec3 reflect(const vec3& n) const
             {

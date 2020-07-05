@@ -56,6 +56,7 @@ add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src/dependencies/utfcpp)
+add_subdirectory(src/dependencies/eigen)
 
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")

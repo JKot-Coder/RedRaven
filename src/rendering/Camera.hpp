@@ -98,15 +98,23 @@ namespace OpenDemo
             inline void SetTransform(const Transform& value) { _transform = value; }
             inline Transform GetTransform() const { return _transform; }
 
-            inline mat4 GetViewMatrix() const { return _transform.GetMatrix(); }
-            inline mat4 GetViewProjectionMatrix() const { return GetProjectionMatrix() * GetViewMatrix().inverseOrtho(); }
-
-            inline mat4 GetProjectionMatrix() const { return _projectionMatrix; }
-
-            inline void LookAt(vec3 eyePosition, vec3 targetPosition)
+            inline Matrix4 GetViewMatrix() const { return _transform.GetMatrix(); }
+            inline Matrix4 GetViewProjectionMatrix() const
             {
+                ASSERT(false)
+                return GetProjectionMatrix();
+               // *GetViewMatrix().inverseOrtho();
+            }
+
+            inline Matrix4 GetProjectionMatrix() const { return _projectionMatrix; }
+
+            inline void LookAt(Vector3 eyePosition, Vector3 targetPosition)
+            {
+                std::ignore = targetPosition;
                 _transform.Position = eyePosition;
-                _transform.Rotation = quat(targetPosition - eyePosition);
+                ASSERT(false)
+               // use quatLookAt
+                //_transform.Rotation = Quaternion(targetPosition - eyePosition);
             }
 
         private:
@@ -118,21 +126,23 @@ namespace OpenDemo
             float _zFar;
 
             Transform _transform;
-            mat4 _projectionMatrix;
+            Matrix4 _projectionMatrix;
 
             inline void calcProjectionMatrix()
             {
-                if (_isOrtho)
+                ASSERT(false)
+                /*
+                    if (_isOrtho)
                 {
                     const float width = _orthoSize * _aspect;
                     const float height = _orthoSize;
 
-                    _projectionMatrix = mat4(mat4::PROJ_ZERO_POS, -width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f, _zNear, _zFar);
+                    _projectionMatrix = Matrix4(mat4::PROJ_ZERO_POS, -width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f, _zNear, _zFar);
                 }
                 else
                 {
-                    _projectionMatrix = mat4(mat4::PROJ_ZERO_POS, _fov, _aspect, _zNear, _zFar);
-                }
+                    _projectionMatrix = Matrix4(mat4::PROJ_ZERO_POS, _fov, _aspect, _zNear, _zFar);
+                }*/
             };
         };
 

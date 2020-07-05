@@ -4,7 +4,7 @@
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "windowing/Window.hpp"
 
@@ -52,7 +52,7 @@ namespace OpenDemo
 
         void Input::Update()
         {
-            Mouse.relative = vec2(0, 0);
+            Mouse.relative = Vector2i(0, 0);
         }
 
         void Input::SetDown(InputKey key, bool value)
@@ -85,7 +85,7 @@ namespace OpenDemo
             }
         }
 
-        void Input::SetPos(InputKey key, const vec2& pos)
+        void Input::SetPos(InputKey key, const Vector2i& pos)
         {
             (void)pos;
             switch (key)
@@ -110,7 +110,7 @@ namespace OpenDemo
             SetDown(inputKey, true);
         }
 
-        void Input::OnMouseMove(const Common::vec2& position, const Common::vec2& relative)
+        void Input::OnMouseMove(const Vector2i& position, const Vector2i& relative)
         {
             Mouse.pos = position;
             Mouse.relative = relative;

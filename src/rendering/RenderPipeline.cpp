@@ -54,7 +54,7 @@ namespace OpenDemo
             _hdrRenderTargetContext->SetDepthStencilTarget(depthTarget);
 
             _hdrRenderTargetContext->Bind();
-            render->ClearColor(vec4(0, 0, 0, 0));
+            render->ClearColor(Vector4(0, 0, 0, 0));
 
             initPass<RenderPassOpaque>(*render, _hdrRenderTargetContext);
             initPass<RenderPassPostProcess>(*render, hdrTexture);

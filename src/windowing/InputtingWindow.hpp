@@ -39,7 +39,7 @@ namespace OpenDemo
             virtual void OnKeyUp(const Window& window, const SDL_Keysym& keysym) override;
             virtual void OnKeyDown(const Window& window, const SDL_Keysym& keysym) override;
 
-            virtual void OnMouseMotion(const Window& window, const Common::vec2& position, const Common::vec2& relative) override;
+            virtual void OnMouseMotion(const Window& window, const Vector2i& position, const Vector2i& relative) override;
             virtual void OnMouseButtonUp(const Window& window, uint32_t button) override;
             virtual void OnMouseButtonDown(const Window& window, uint32_t button) override;
 

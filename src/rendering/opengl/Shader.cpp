@@ -97,24 +97,24 @@ namespace OpenDemo
                 glUseProgram(_id);
             }
 
-            void Shader::SetParam(Uniform::Type uType, const Common::vec4& value, int count) const
+            void Shader::SetParam(Uniform::Type uType, const Common::Vector4& value, int count) const
             {
                 if (_uniformID[uType] != -1)
                     glUniform4fv(_uniformID[uType], count, (GLfloat*)&value);
             }
 
-            void Shader::SetParam(Uniform::Type uType, const Common::mat4& value, int count) const
+            void Shader::SetParam(Uniform::Type uType, const Common::Matrix4& value, int count) const
             {
                 if (_uniformID[uType] != -1)
                     glUniformMatrix4fv(_uniformID[uType], count, false, (GLfloat*)&value);
             }
-
+            /*
             void Shader::SetParam(Uniform::Type uType, const Common::Basis& value, int count) const
             {
                 if (_uniformID[uType] != -1)
                     glUniform4fv(_uniformID[uType], count * 2, (GLfloat*)&value);
             }
-
+            */
         }
     }
 }

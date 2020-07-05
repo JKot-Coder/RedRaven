@@ -2,7 +2,7 @@
 
 #include "rendering/Material.hpp"
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 namespace OpenDemo
 {
@@ -48,7 +48,7 @@ namespace OpenDemo
         struct RenderElement
         {
         public:
-            Common::mat4 modelMatrix;
+            Matrix4 modelMatrix;
             Rendering::Material material;
             std::shared_ptr<Mesh> mesh;
         };
@@ -68,8 +68,8 @@ namespace OpenDemo
 
             virtual void SwapBuffers() const = 0;
 
-            virtual void Clear(const Common::vec4& color, float depth) const = 0;
-            virtual void ClearColor(const Common::vec4& color) const = 0;
+            virtual void Clear(const Common::Vector4& color, float depth) const = 0;
+            virtual void ClearColor(const Common::Vector4& color) const = 0;
             virtual void ClearDepthStencil(float depth) const = 0;
 
             virtual void Begin(const std::shared_ptr<RenderContext>& renderContext) = 0;

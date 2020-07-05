@@ -1,9 +1,7 @@
 #pragma once
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/quaternion.hpp"
-
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <algorithm>
 
 #define EPS FLT_EPSILON
@@ -29,6 +27,21 @@ namespace OpenDemo
 {
     namespace Common
     {
+        using Vector2 = Eigen::Vector2f;
+        using Vector3 = Eigen::Vector3f;
+        using Vector4 = Eigen::Vector4f;
+
+        using Vector2i = Eigen::Vector2i;
+        using Vector3i = Eigen::Vector3i;
+        using Vector4i = Eigen::Vector4i;
+
+        using Matrix4 = Eigen::Matrix4f;
+        using Quaternion = Eigen::Quaternionf;
+
+        using AlignedBox2i = Eigen::AlignedBox2i;
+
+        using Affine3 = Eigen::Affine3f;
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Common
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,79 +121,8 @@ namespace OpenDemo
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Vector
+        // PointerMath
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        template <size_t Len, typename T>
-        struct Vector
-        {
-        public:
-            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
-
-            T& operator[](int index) const
-            {
-                ASSERT(index >= 0 && index < Len)
-                return ((T*)this)[index];
-            }
-
-            FloatType Length2() const { return Dot(*this); }
-
-            FloatType Length() const { return sqrtf(Length2()); }
-
-            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
-            Vector<Len, T> Normal() const
-            {
-                FloatType s = Length();
-                return s == 0.0 ? (*this) : (*this) * (FloatType(1.0) / s);
-            }
-        };
-
-        template <typename T>
-        struct Rect
-        {
-            Rect() = default;
-            Rect(T rectLeft, T rectTop, T rectWidth, T rectHeight)
-                : left(rectLeft)
-                , top(rectTop)
-                , width(rectWidth)
-                , height(rectHeight) {};
-
-            Rect(const Vector<2, T>& position, const Vector<2, T>& size)
-                : left(position.x)
-                , top(position.y)
-                , width(size.x)
-                , height(size.y)
-            {
-            }
-
-            template <typename U>
-            explicit Rect(const Rect<U>& rectangle)
-                : left(static_cast<T>(rectangle.left))
-                , top(static_cast<T>(rectangle.top))
-                , width(static_cast<T>(rectangle.width))
-                , height(static_cast<T>(rectangle.height)) {};
-
-            bool Contains(T x, T y) const;
-            bool Contains(const Vector<2, T>& point) const;
-            bool Intersects(const Rect<T>& rect) const;
-            bool Intersects(const Rect<T>& rect, Rect<T>& intersection) const;
-
-            Vector<2, T> GetPosition() const;
-            Vector<2, T> GetSize() const;
-
-            bool operator==(const Rect<T>& rect) const;
-            bool operator!=(const Rect<T>& rect) const;
-
-            T left;
-            T top;
-            T width;
-            T height;
-        };
-
-        using Vector2 = Vector<2, float>;
-        using UVector2 = Vector<2, uint32_t>;
-
-        using URect = Rect<uint32_t>;
 
         namespace PointerMath
         {
@@ -215,5 +157,3 @@ namespace OpenDemo
         }
     }
 }
-
-#include "Math.inl"

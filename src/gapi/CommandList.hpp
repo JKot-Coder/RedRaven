@@ -32,8 +32,6 @@ namespace OpenDemo
                 static_assert(std::is_base_of<Command, Type>::value);
                 static_assert(std::is_trivially_move_constructible<Type>::value);
 
-                void* commandStorage = Allocate(sizeof(Type));
-                new (commandStorage) Type();
                 commands_.push_back(Create<Type>(std::forward<Args>(params)...));
             }
 

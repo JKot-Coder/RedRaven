@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 namespace OpenDemo
 {
@@ -12,8 +12,8 @@ namespace OpenDemo
         struct Transform
         {
         public:
-            vec3 Position;
-            quat Rotation;
+            Vector3 Position;
+            Quaternion Rotation;
 
             Transform()
             {
@@ -22,10 +22,20 @@ namespace OpenDemo
 
             inline void Identity()
             {
-                Position = vec3(0, 0, 0);
-                Rotation = quat(0, 0, 0, 1);
+                Position = Vector3(0, 0, 0);
+                Rotation = Quaternion(1, 0, 0, 0);
             }
-            inline mat4 GetMatrix() const { return mat4(Rotation, Position); }
+
+            inline Matrix4 GetMatrix() const
+            {
+                Matrix4 result;
+
+                result.setIdentity();
+                result.block<3, 3>(0, 0) = Rotation.toRotationMatrix();
+                result.block<3, 1>(0, 3) = Position;
+
+                return result;
+            }
         };
     }
 }

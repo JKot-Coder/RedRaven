@@ -1,6 +1,6 @@
 #include "RenderPasses.hpp"
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "resource_manager/ResourceManager.hpp"
 
@@ -50,35 +50,35 @@ namespace OpenDemo
             _renderContext->SetCamera(camera);
         }
 
-        vec3 RandomRay()
+        Vector3 RandomRay()
         {
             float theta, cosphi, sinphi;
 
             theta = 2.0f * PI * std::rand() / static_cast<float>(RAND_MAX);
             cosphi = 1.0f - 2.0f * std::rand() / static_cast<float>(RAND_MAX);
-            sinphi = (float)sqrt(1.0f - min(1.0f, cosphi * cosphi));
+            sinphi = (float)sqrt(1.0f - Min(1.0f, cosphi * cosphi));
 
-            vec3 result;
-
-            result.x = sinphi * (float)cos(theta);
-            result.y = sinphi * (float)sin(theta);
-            result.z = cosphi;
+            Vector3 result(
+                sinphi * (float)cos(theta),
+                sinphi * (float)sin(theta),
+                cosphi
+            );
 
             return result;
         }
 
         void RenderPassOpaque::Draw()
         {
-            //vec3 lightDirection = vec3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
-            vec3 lightDirection = RandomRay();
+            //Vector3 lightDirection = Vector3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
+            Vector3 lightDirection = RandomRay();
 
             _renderContext->SetLightDirection(lightDirection);
 
             _render->Begin(_renderContext);
 
             _render->ClearDepthStencil(true);
-            _render->Clear(vec4(0.0, 0.0, 0.0, 0), 1.0);
-            //render->Clear(vec4(0.25, 0.25, 0.25, 0), 1.0);
+            _render->Clear(Vector4(0.0, 0.0, 0.0, 0), 1.0);
+            //render->Clear(Vector4(0.25, 0.25, 0.25, 0), 1.0);
 
             const auto& renderQuery = _renderContext->GetRenderQuery();
             for (const auto& item : renderQuery)

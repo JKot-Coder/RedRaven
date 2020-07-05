@@ -30,7 +30,7 @@ namespace OpenDemo
         {
             struct PresentOptions
             {
-                Common::RectU rect;
+                AlignedBox2i rect;
 
                 Common::NativeWindowHandle windowHandle;
 

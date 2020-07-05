@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 #include "rendering/SceneGraph.hpp"
 
 namespace OpenDemo
@@ -26,7 +26,7 @@ namespace OpenDemo
             virtual std::shared_ptr<Rendering::Camera> GetMainCamera() override;
 
         private:
-            Common::vec2 _lookAngle;
+            Common::Vector2 _lookAngle;
             std::shared_ptr<Rendering::Camera> _camera;
             std::vector<Rendering::RenderElement> _renderElements;
         };

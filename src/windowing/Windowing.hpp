@@ -1,15 +1,12 @@
 #pragma once
 
+#include "common/Math.hpp"
+
 struct SDL_Keysym;
 struct SDL_MouseMotionEvent;
 
 namespace OpenDemo
 {
-    namespace Common
-    {
-        struct vec2;
-    }
-
     namespace Windowing
     {
 
@@ -38,7 +35,7 @@ namespace OpenDemo
                 (void)keysym;
             }
 
-            virtual void OnMouseMotion(const Window& window, const Common::vec2& position, const Common::vec2& relative)
+            virtual void OnMouseMotion(const Window& window, const Vector2i& position, const Vector2i& relative)
             {
                 (void)window;
                 (void)position;

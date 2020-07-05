@@ -5,6 +5,8 @@ set(GAPI_SRC
         Limits.hpp
         Resource.hpp
         Command.hpp
+        CommandClear.hpp
+        ResourceViews.hpp
         LinearAllocator.hpp
         LinearAllocator.cpp
         LinearAllocator.inl

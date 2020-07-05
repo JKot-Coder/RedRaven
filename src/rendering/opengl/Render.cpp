@@ -119,17 +119,17 @@ namespace OpenDemo
                 SDL_GL_SwapWindow(_window->GetSDLWindow());
             }
 
-            void Render::Clear(const Common::vec4& color, float depth) const
+            void Render::Clear(const Common::Vector4& color, float depth) const
             {
-                glClearColor(color.x, color.y, color.z, color.w);
+                glClearColor(color[0], color[1], color[2], color[3]);
                 glClearDepth(depth);
                 //glClearBuffer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             }
 
-            void Render::ClearColor(const Common::vec4& color) const
+            void Render::ClearColor(const Common::Vector4& color) const
             {
-                glClearColor(color.x, color.y, color.z, color.w);
+                glClearColor(color[0], color[1], color[2], color[3]);
                 glClear(GL_COLOR_BUFFER_BIT);
             }
 
@@ -181,14 +181,17 @@ namespace OpenDemo
 
                 ApplyBlending(_renderContext->GetBlending(), _renderContext->GetBlendingDescription());
 
+                const auto& lightDir = _renderContext->GetLightDirection();
+
                 shader->Bind();
-                shader->SetParam(Uniform::Type::LIGHT_DIR, _renderContext->GetLightDirection());
+                shader->SetParam(Uniform::Type::LIGHT_DIR, Vector4(lightDir.x(), lightDir.y(), lightDir.z(), 0));
 
                 if (camera != nullptr)
                 {
+                    const auto& cameraPos = camera->GetTransform().Position;
                     camera->SetAspect(rtWidth, rtHeight);
                     shader->SetParam(Uniform::Type::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
-                    shader->SetParam(Uniform::Type::CAMERA_POSITION, camera->GetTransform().Position);
+                    shader->SetParam(Uniform::Type::CAMERA_POSITION, Vector4(cameraPos.x(), cameraPos.y(), cameraPos.z(), 0));
                 }
             }
 
@@ -198,7 +201,7 @@ namespace OpenDemo
                 const auto& material = renderElement.material;
 
                 shader->SetParam(Uniform::Type::MODEL_MATRIX, renderElement.modelMatrix);
-                // shader->SetParam(Uniform::Type::MATERIAL, vec4(renderElement.material.roughness,1,1,1));
+                // shader->SetParam(Uniform::Type::MATERIAL, Vector4(renderElement.material.roughness,1,1,1));
 
                 if (material.albedoMap)
                     material.albedoMap->Bind(Sampler::ALBEDO);

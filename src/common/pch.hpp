@@ -10,4 +10,6 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
+
+using namespace OpenDemo::Common;
 #endif // __cplusplus

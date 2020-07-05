@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 namespace OpenDemo
 {
@@ -9,12 +9,12 @@ namespace OpenDemo
 #pragma pack(push, 1)
         struct Vertex
         {
-            Common::vec3 position;
-            Common::vec2 texCoord;
-            Common::vec3 normal;
-            Common::vec3 tangent;
-            Common::vec3 binormal;
-            Common::vec4 color;
+            Common::Vector3 position;
+            Common::Vector2 texCoord;
+            Common::Vector3 normal;
+            Common::Vector3 tangent;
+            Common::Vector3 binormal;
+            Common::Vector4 color;
         };
 #pragma pack(pop)
 

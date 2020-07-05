@@ -6,6 +6,7 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
+#include "gapi/CommandClear.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi_dx12/Device.hpp"
 
@@ -36,7 +37,7 @@ namespace OpenDemo
         Render::Device::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
-        presentOptions.rect = RectU(0, 0, width, height);
+        presentOptions.rect = AlignedBox2i(Vector2i(0,0), Vector2i(width, height));
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
@@ -56,14 +57,14 @@ namespace OpenDemo
         auto alloc = cmdList->GetAllocator();
         for (int i = 0; i < 100; i++)
         {
-            alloc->emplace_back<Render::Command>();
+            alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedConstPtr(nullptr));
         }
 
         _device->Init();
         Render::Device::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
-        presentOptions.rect = RectU(0, 0, 100, 100);
+        presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
         _device->Reset(presentOptions);

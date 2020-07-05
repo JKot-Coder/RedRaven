@@ -1,6 +1,6 @@
 #include "Scene_1.hpp"
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "resource_manager/ResourceManager.hpp"
 
@@ -26,21 +26,20 @@ namespace OpenDemo
             cameraDescription.isOrtho = false;
 
             _camera = std::make_shared<Rendering::Camera>(cameraDescription);
-            _camera->LookAt(vec3(-3, -20, 0), vec3(0, -20, 0));
+            _camera->LookAt(Vector3(-3, -20, 0), Vector3(0, -20, 0));
 
             _sphereMesh = Rendering::Primitives::GetSphereMesh(23);
 
             for (int i = 0; i < 8; i++)
             {
-                mat4 modelMat;
-                modelMat.identity();
-                modelMat.translate(vec3(-8.0f + i * 2.2f, 0.0f, 0.0f));
-
+                Affine3 translate;
+                translate.translation() = Vector3(-8.0f + i * 2.2f, 0.0f, 0.0f);
+     
                 Rendering::Material material;
 
                 Rendering::RenderElement element;
                 element.mesh = _sphereMesh;
-                element.modelMatrix = modelMat;
+                element.modelMatrix = translate.matrix();
                 element.material = material;
 
                 _renderElements.push_back(element);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "rendering/BlendingDescription.hpp"
 #include "rendering/DepthDescription.hpp"
@@ -35,7 +35,7 @@ namespace OpenDemo
             inline void SetCamera(const std::shared_ptr<Camera>& value) { _camera = value; }
             inline void SetRenderTarget(const std::shared_ptr<RenderTargetContext>& value) { _renderTargetContext = value; }
             inline void SetShader(const std::shared_ptr<Shader>& value) { _shader = value; }
-            inline void SetLightDirection(const vec3& value) { _lightDirection = value; }
+            inline void SetLightDirection(const Vector3& value) { _lightDirection = value; }
 
             inline bool GetDepthWrite() const { return _depthWrite; }
             inline DepthTestFunction GetDepthTestFunction() const { return _depthTestFunction; }
@@ -47,7 +47,7 @@ namespace OpenDemo
             inline std::shared_ptr<RenderTargetContext> GetRenderTarget() const { return _renderTargetContext; }
             inline std::shared_ptr<Shader> GetShader() const { return _shader; }
             inline RenderQuery& GetRenderQuery() const { return *_renderQuery; }
-            inline vec3 GetLightDirection() const { return _lightDirection; }
+            inline Vector3 GetLightDirection() const { return _lightDirection; }
 
         private:
             bool _depthWrite = true;
@@ -56,7 +56,7 @@ namespace OpenDemo
             bool _blending = false;
             BlendingDescription _blendingDescription;
 
-            vec3 _lightDirection;
+            Vector3 _lightDirection;
             std::unique_ptr<RenderQuery> _renderQuery;
             std::shared_ptr<Camera> _camera;
             std::shared_ptr<RenderTargetContext> _renderTargetContext;

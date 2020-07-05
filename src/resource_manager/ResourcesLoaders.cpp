@@ -9,7 +9,7 @@
 #include <assimp/scene.h>
 
 #include "common/Stream.hpp"
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 #include "filesystem/FileSystem.hpp"
 
 #include "rendering/Material.hpp"
@@ -27,14 +27,14 @@ namespace OpenDemo
     namespace ResourceManager
     {
 
-        const vec3 ConvertVector(const aiVector3D& vector)
+        const Vector3 ConvertVector(const aiVector3D& vector)
         {
-            return vec3(vector.x, vector.y, vector.z);
+            return Vector3(vector.x, vector.y, vector.z);
         }
 
-        const vec2 ConvertVector(const aiVector2D& vector)
+        const Vector2 ConvertVector(const aiVector2D& vector)
         {
-            return vec2(vector.x, vector.y);
+            return Vector2(vector.x, vector.y);
         }
 
         const std::shared_ptr<Rendering::CommonTexture> LoadMaterialTexture(const U8String& path, const aiMaterial* material, aiTextureType type)
@@ -94,7 +94,7 @@ namespace OpenDemo
                 {
                     Rendering::Vertex vertex;
 
-                    vec3 texCoord(0, 0, 0);
+                    Vector3 texCoord(0, 0, 0);
 
                     if (mesh->mNumUVComponents[0] == 2)
                         texCoord = ConvertVector(mesh->mTextureCoords[0][j]);
@@ -103,7 +103,7 @@ namespace OpenDemo
                     vertex.normal = ConvertVector(mesh->mNormals[j]);
                     vertex.tangent = ConvertVector(mesh->mTangents[j]);
                     vertex.binormal = ConvertVector(mesh->mBitangents[j]);
-                    vertex.texCoord = vec2(texCoord.x, texCoord.y);
+                    vertex.texCoord = Vector2(texCoord.x(), texCoord.y());
 
                     vertices.push_back(vertex);
                 }
@@ -114,7 +114,7 @@ namespace OpenDemo
 
                 Rendering::RenderElement renderElement;
                 renderElement.mesh = renderMesh;
-                renderElement.modelMatrix.identity();
+                renderElement.modelMatrix.setIdentity();
                 renderElement.material = renderMaterials[mesh->mMaterialIndex];
 
                 renderElements.push_back(renderElement);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
 struct SDL_Window;

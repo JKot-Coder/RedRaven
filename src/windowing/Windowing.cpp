@@ -4,7 +4,7 @@
 #include <SDL_syswm.h>
 
 #include "common/Exception.hpp"
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "windowing/Window.hpp"
 
@@ -69,8 +69,8 @@ namespace OpenDemo
                         const auto* window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
 
                         listener->OnMouseMotion(*window,
-                            vec2(static_cast<float>(motionEvent.x), static_cast<float>(motionEvent.y)),
-                            vec2(static_cast<float>(motionEvent.xrel), static_cast<float>(motionEvent.yrel)));
+                            Vector2i(motionEvent.x, motionEvent.y),
+                            Vector2i(motionEvent.xrel, motionEvent.yrel));
                     }
                     case SDL_MOUSEBUTTONDOWN:
                     case SDL_MOUSEBUTTONUP:

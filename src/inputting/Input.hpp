@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "windowing/InputtingWindow.hpp"
 
@@ -79,7 +79,7 @@ namespace OpenDemo
         class IMouseListener
         {
         public:
-            virtual void OnMouseMove(const Common::vec2& position, const Common::vec2& relative)
+            virtual void OnMouseMove(const Vector2i& position, const Vector2i& relative)
             {
                 (void)position;
                 (void)relative;
@@ -93,11 +93,11 @@ namespace OpenDemo
         public:
             struct Mouse
             {
-                Common::vec2 pos;
-                Common::vec2 relative;
+                Vector2i pos;
+                Vector2i relative;
                 struct
                 {
-                    Common::vec2 L, R, M;
+                    Vector2i L, R, M;
                 } start;
             } Mouse;
 
@@ -133,12 +133,12 @@ namespace OpenDemo
             virtual void OnKeyUp(InputKey inputKey) override;
             virtual void OnKeyDown(InputKey inputKey) override;
 
-            virtual void OnMouseMove(const Common::vec2& position, const Common::vec2& relative) override;
+            virtual void OnMouseMove(const Vector2i& position, const Vector2i& relative) override;
             virtual void OnButtonUp(InputKey inputKey) override;
             virtual void OnButtonDown(InputKey inputKey) override;
 
             void SetDown(InputKey key, bool value);
-            void SetPos(InputKey key, const Common::vec2& pos);
+            void SetPos(InputKey key, const Vector2i& pos);
         };
 
         inline static const std::unique_ptr<Input>& Instance()

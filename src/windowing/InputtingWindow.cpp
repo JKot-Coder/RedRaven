@@ -178,7 +178,7 @@ namespace OpenDemo
                 listener->OnKeyDown(it->second);
         }
 
-        void InputtingWindow::OnMouseMotion(const Window& window_, const Common::vec2& position, const Common::vec2& relative)
+        void InputtingWindow::OnMouseMotion(const Window& window_, const Vector2i& position, const Vector2i& relative)
         {
             if (&window_ != this)
                 return;

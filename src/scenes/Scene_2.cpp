@@ -1,7 +1,7 @@
 #include "Scene_2.hpp"
 
 #include "common/Time.hpp"
-#include "common/VecMath.h"
+#include "common/Math.hpp"
 
 #include "inputting/Input.hpp"
 
@@ -24,7 +24,7 @@ namespace OpenDemo
             const auto& resourceManager = ResourceManager::Instance();
             const auto scene = resourceManager->LoadScene("../../assets/sponza.obj");
 
-            _lookAngle = vec2(0, 0);
+            _lookAngle = Vector2(0, 0);
 
             Rendering::Camera::Description cameraDescription;
             cameraDescription.zNear = 80;
@@ -34,7 +34,7 @@ namespace OpenDemo
             cameraDescription.isOrtho = false;
 
             _camera = std::make_shared<Rendering::Camera>(cameraDescription);
-            _camera->LookAt(vec3(-3, -20, 0), vec3(0, -20, 0));
+            _camera->LookAt(Vector3(-3, -20, 0), Vector3(0, -20, 0));
 
             _renderElements = scene;
         }
@@ -59,27 +59,30 @@ namespace OpenDemo
 
             if (inputting->IsDown(Inputting::ikW))
             {
-                camTransform.Position += camTransform.Rotation * vec3(0, 0, -1) * speed * dt;
+                camTransform.Position += camTransform.Rotation * Vector3(0, 0, -1) * speed * dt;
             }
             else if (inputting->IsDown(Inputting::ikS))
             {
-                camTransform.Position += camTransform.Rotation * vec3(0, 0, 1) * speed * dt;
+                camTransform.Position += camTransform.Rotation * Vector3(0, 0, 1) * speed * dt;
             }
 
             if (inputting->IsDown(Inputting::ikD))
             {
-                camTransform.Position += camTransform.Rotation * vec3(1, 0, 0) * speed * dt;
+                camTransform.Position += camTransform.Rotation * Vector3(1, 0, 0) * speed * dt;
             }
             else if (inputting->IsDown(Inputting::ikA))
             {
-                camTransform.Position += camTransform.Rotation * vec3(-1, 0, 0) * speed * dt;
+                camTransform.Position += camTransform.Rotation * Vector3(-1, 0, 0) * speed * dt;
             }
 
-            _lookAngle = _lookAngle - inputting->Mouse.relative * 0.001f;
-            _lookAngle.y = clamp(_lookAngle.y, -PI / 2 + 0.1f, +PI / 2 - 0.1f);
+            _lookAngle = _lookAngle - inputting->Mouse.relative.cast<float>() * 0.001f;
+            _lookAngle.y() = Clamp(_lookAngle.y(), -PI / 2 + 0.1f, +PI / 2 - 0.1f);
 
-            vec3 dir = vec3(_lookAngle.y, _lookAngle.x) * 2.0;
-            camTransform.Rotation = quat(dir, vec3(0, 1, 0));
+               ASSERT(false);
+            Vector3 dir;//           = Vector3(_lookAngle.y(), _lookAngle.x()) * 2.0;
+           
+         
+            // camTransform.Rotation = Quaternion(dir, Vector3(0, 1, 0));
 
             _camera->SetTransform(camTransform);
         }
