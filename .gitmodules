@@ -7,6 +7,6 @@
 [submodule "src/dependencies/utfcpp"]
 	path = src/dependencies/utfcpp
 	url = https://github.com/nemtrif/utfcpp.git
-[submodule "src/dependencies/glm"]
-	path = src/dependencies/glm
-	url = https://github.com/g-truc/glm.git
+[submodule "src/dependencies/eigen"]
+	path = src/dependencies/eigen
+	url = https://gitlab.com/libeigen/eigen.git
