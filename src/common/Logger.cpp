@@ -19,7 +19,7 @@ namespace OpenDemo
 #elif _MSC_VER && !__INTEL_COMPILER
             __debugbreak();
 #else
-            _asm { int 3 }
+            __asm__("int3");
 #endif
         }
 

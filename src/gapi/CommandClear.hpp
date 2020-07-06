@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/Math.hpp"
 #include "gapi/Command.hpp"
 #include "gapi/ResourceViews.hpp"
 
@@ -11,10 +12,16 @@ namespace OpenDemo
         class CommandClearRenderTarget : public Command
         {
         public:
-            CommandClearRenderTarget(RenderTargetView::SharedConstPtr rtv)
+            CommandClearRenderTarget(RenderTargetView::ConstSharedPtrRef rtv, const Vector4& color)
                 : Command(Type::CLEAR_RENDER_TARGET)
+                //, rtv_(rtv)
+                , color_(color)
             {
             }
+
+        private:
+            // RenderTargetView::SharedConstPtr rtv_;
+            Vector4 color_;
         };
 
     }

@@ -9,7 +9,7 @@ namespace OpenDemo
         class Exception : public std::exception
         {
         public:
-            Exception::Exception(const U8String& msg) noexcept
+            Exception::Exception(const U8String& msg)
                 : _message(msg)
             {
             }

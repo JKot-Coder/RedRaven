@@ -57,7 +57,7 @@ namespace OpenDemo
         auto alloc = cmdList->GetAllocator();
         for (int i = 0; i < 100; i++)
         {
-            alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedConstPtr(nullptr));
+            alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
 
         _device->Init();
