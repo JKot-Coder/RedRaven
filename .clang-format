@@ -2,5 +2,6 @@
 BasedOnStyle: WebKit
 NamespaceIndentation: All
 BreakBeforeBraces: Allman
+BreakConstructorInitializers: BeforeColon
 
 ...

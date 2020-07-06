@@ -25,6 +25,12 @@ namespace OpenDemo
 {
     namespace Common
     {
+        //  Enum used for object construction specifying how the object should initialized.
+        enum Initialization
+        {
+            Identity
+        };
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Common
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,10 +119,22 @@ namespace OpenDemo
         public:
             using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
+            static const Vector<Len, T> ZERO;
+            static const Vector<Len, T> ONE;
+
             T& operator[](int index) const
             {
                 ASSERT(index >= 0 && index < Len)
                 return ((T*)this)[index];
+            }
+
+            const Vector<Len, T> Lerp(const Vector<Len, T>& v, const float t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return v;
+                return *this + (v - *this) * t;
             }
 
             FloatType Length2() const { return Dot(*this); }
@@ -136,25 +154,16 @@ namespace OpenDemo
         {
             Rect() = default;
             Rect(T rectLeft, T rectTop, T rectWidth, T rectHeight)
-                : left(rectLeft)
-                , top(rectTop)
-                , width(rectWidth)
-                , height(rectHeight) {};
+                : left(rectLeft), top(rectTop), width(rectWidth), height(rectHeight) {};
 
             Rect(const Vector<2, T>& position, const Vector<2, T>& size)
-                : left(position.x)
-                , top(position.y)
-                , width(size.x)
-                , height(size.y)
+                : left(position.x), top(position.y), width(size.x), height(size.y)
             {
             }
 
             template <typename U>
             explicit Rect(const Rect<U>& rectangle)
-                : left(static_cast<T>(rectangle.left))
-                , top(static_cast<T>(rectangle.top))
-                , width(static_cast<T>(rectangle.width))
-                , height(static_cast<T>(rectangle.height)) {};
+                : left(static_cast<T>(rectangle.left)), top(static_cast<T>(rectangle.top)), width(static_cast<T>(rectangle.width)), height(static_cast<T>(rectangle.height)) {};
 
             bool Contains(T x, T y) const;
             bool Contains(const Vector<2, T>& point) const;

@@ -10,7 +10,8 @@ namespace OpenDemo
             Vector2 bb(2, 2);
            
             Vector2 asd = cc + bb;
-            Vector2 norm = asd.normalized();
+            Vector2 norm = asd.Normal();
+            Vector2::ZERO;
         
         }
     }

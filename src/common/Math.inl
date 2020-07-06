@@ -4,6 +4,16 @@ namespace OpenDemo
     {
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Vector
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        template <size_t Len, typename T>
+        inline const Vector<Len, T> Vector<Len, T>::ZERO = Vector<Len, T>(0);
+
+        template <size_t Len, typename T>
+        inline const Vector<Len, T> Vector<Len, T>::ONE = Vector<Len, T>(1);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector2
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,24 +23,18 @@ namespace OpenDemo
             static inline constexpr size_t SIZE = 2;
             using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
-            Vector() = default;
+            static const Vector<SIZE, T> ZERO;
+            static const Vector<SIZE, T> ONE;
+            static const Vector<SIZE, T> UNIT_X;
+            static const Vector<SIZE, T> UNIT_Y;
 
-            Vector(T s)
-                : x(s)
-                , y(s)
-            {
-            }
-
-            Vector(T x, T y)
-                : x(x)
-                , y(y)
-            {
-            }
+            constexpr Vector() = default;
+            constexpr Vector(T s) : x(s), y(s) { }
+            constexpr Vector(T x, T y) : x(x), y(y) { }
 
             template <typename U>
-            Vector(const Vector<SIZE, U>& vector)
-                : x(static_cast<T>(vector.x))
-                , y(static_cast<T>(vector.y))
+            constexpr Vector(const Vector<SIZE, U>& vector) : x(static_cast<T>(vector.x)),
+                                                              y(static_cast<T>(vector.y))
             {
             }
 
@@ -133,6 +137,8 @@ namespace OpenDemo
             // Shared vectors functions
             T& operator[](int index) const;
 
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
+
             FloatType Length2() const;
             FloatType Length() const;
 
@@ -144,6 +150,12 @@ namespace OpenDemo
             T y;
         };
 
+        template <typename T>
+        inline const Vector<2, T> Vector<2, T>::UNIT_X = Vector<2, T>(1, 0);
+
+        template <typename T>
+        inline const Vector<2, T> Vector<2, T>::UNIT_Y = Vector<2, T>(0, 1);
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector3
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,43 +166,25 @@ namespace OpenDemo
             static inline constexpr size_t SIZE = 3;
             using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
-            Vector() = default;
+            static const Vector<SIZE, T> ZERO;
+            static const Vector<SIZE, T> ONE;
+            static const Vector<SIZE, T> UNIT_X;
+            static const Vector<SIZE, T> UNIT_Y;
+            static const Vector<SIZE, T> UNIT_Z;
 
-            Vector(T s)
-                : x(s)
-                , y(s)
-                , z(s)
-            {
-            }
-
-            Vector(T x, T y, T z)
-                : x(x)
-                , y(y)
-                , z(z)
-            {
-            }
+            constexpr Vector() = default;
+            constexpr Vector(T s) : x(s), y(s), z(s) { }
+            constexpr Vector(T x, T y, T z) : x(x), y(y), z(z) { }
 
             template <typename U>
-            Vector(const Vector<SIZE, U>& vector)
-                : x(static_cast<T>(vector.x))
-                , y(static_cast<T>(vector.y))
-                , z(static_cast<T>(vector.z))
+            constexpr Vector(const Vector<SIZE, U>& vector) : x(static_cast<T>(vector.x)),
+                                                              y(static_cast<T>(vector.y)),
+                                                              z(static_cast<T>(vector.z))
             {
             }
 
-            Vector(const Vector<SIZE - 1, T>& xy, float z)
-                : x(xy.x)
-                , y(xy.y)
-                , z(z)
-            {
-            }
-
-            Vector(float lng, float lat)
-                : x(sinf(lat) * cosf(lng))
-                , y(-sinf(lng))
-                , z(cosf(lat) * cosf(lng))
-            {
-            }
+            constexpr Vector(const Vector<SIZE - 1, T>& xy, float z) : x(xy.x), y(xy.y), z(z) { }
+            constexpr Vector(float lng, float lat) : x(sinf(lat) * cosf(lng)), y(-sinf(lng)), z(cosf(lat) * cosf(lng)) { }
 
             Vector<SIZE - 1, T>& xy() const { return *((Vector<SIZE - 1, T>*)&x); }
             Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
@@ -283,15 +277,6 @@ namespace OpenDemo
             Vector<SIZE, T> AxisXZ() const { return (fabsf(x) > fabsf(z)) ? Vector<SIZE, T>(float(Sign(x)), 0, 0) : Vector<SIZE, T>(0, 0, float(Sign(z))); }
             Vector<SIZE, T> Reflect(const Vector<SIZE, T>& n) const { return *this - n * (Dot(n) * 2.0f); }
 
-            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
-            {
-                if (t <= 0.0f)
-                    return *this;
-                if (t >= 1.0f)
-                    return v;
-                return *this + (v - *this) * t;
-            }
-
             const Vector<SIZE, T> RotateY(float angle) const
             {
                 float s, c;
@@ -311,6 +296,8 @@ namespace OpenDemo
             // Shared vectors functions
             T& operator[](int index) const;
 
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
+
             FloatType Length2() const;
             FloatType Length() const;
 
@@ -323,6 +310,15 @@ namespace OpenDemo
             T z;
         };
 
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::UNIT_X = Vector<3, T>(1, 0, 0);
+
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::UNIT_Y = Vector<3, T>(0, 1, 0);
+
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::UNIT_Z = Vector<3, T>(0, 0, 1);
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector4
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,51 +329,27 @@ namespace OpenDemo
             static inline constexpr size_t SIZE = 4;
             using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
-            Vector() = default;
+            static const Vector<SIZE, T> ZERO;
+            static const Vector<SIZE, T> ONE;
+            static const Vector<SIZE, T> UNIT_X;
+            static const Vector<SIZE, T> UNIT_Y;
+            static const Vector<SIZE, T> UNIT_Z;
+            static const Vector<SIZE, T> UNIT_W;
 
-            Vector(T s)
-                : x(s)
-                , y(s)
-                , z(s)
-                , w(s)
-            {
-            }
-
-            Vector(T x, T y, T z, T w)
-                : x(x)
-                , y(y)
-                , z(z)
-                , w(w)
-            {
-            }
+            constexpr Vector() = default;
+            constexpr Vector(T s) : x(s), y(s), z(s), w(s) { }
+            constexpr Vector(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) { }
 
             template <typename U>
-            Vector(const Vector<SIZE, U>& vector)
-                : x(static_cast<T>(vector.x))
-                , y(static_cast<T>(vector.y))
-                , z(static_cast<T>(vector.z))
-                , w(static_cast<T>(vector.w))
+            constexpr Vector(const Vector<SIZE, U>& vector) : x(static_cast<T>(vector.x)),
+                                                              y(static_cast<T>(vector.y)),
+                                                              z(static_cast<T>(vector.z)),
+                                                              w(static_cast<T>(vector.w))
             {
             }
 
-            Vector(const vec3& xyz, float w)
-                : x(xyz.x)
-                , y(xyz.y)
-                , z(xyz.z)
-                , w(w)
-            {
-            }
-
-            Vector(const Vector<SIZE - 2, T>& xy, const Vector<SIZE - 2, T>& zw)
-                : x(xy.x)
-                , y(xy.y)
-                , z(zw.x)
-                , w(zw.y)
-            {
-            }
-
-            Vector<SIZE - 1, T>& xy() const { return *((Vector<SIZE - 1, T>*)&x); }
-            Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
+            constexpr Vector(const Vector<SIZE - 1, T>& xyz, float w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) { }
+            constexpr Vector(const Vector<SIZE - 2, T>& xy, const Vector<SIZE - 2, T>& zw) : x(xy.x), y(xy.y), z(zw.x), w(zw.y) { }
 
             bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
             bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
@@ -386,7 +358,7 @@ namespace OpenDemo
             bool operator<(const Vector<SIZE, T>& v) const { return x < v.x && y < v.y && z < v.z && w < v.w; }
             bool operator>(const Vector<SIZE, T>& v) const { return x > v.x && y > v.y && z > v.z && w > v.w; }
 
-            Vector<SIZE, T> operator-() const { return Vector<SIZE, T>(-x, -y, -z); }
+            Vector<SIZE, T> operator-() const { return Vector<SIZE, T>(-x, -y, -z, -w); }
 
             Vector<SIZE, T>& operator+=(const Vector<SIZE, T>& v)
             {
@@ -470,42 +442,17 @@ namespace OpenDemo
             Vector<SIZE, T> operator/(T s) const { return Vector<SIZE, T>(x / s, y / s, z / s, w / s); }
 
             T Dot(const Vector<SIZE, T>& v) const { return x * v.x + y * v.y + z * v.z + w * v.w; }
-            Vector<SIZE, T> Cross(const Vector<SIZE, T>& v) const { return Vector<SIZE, T>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
-            Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y), fabsf(z)); }
-            Vector<SIZE, T> AxisXZ() const { return (fabsf(x) > fabsf(z)) ? Vector<SIZE, T>(float(Sign(x)), 0, 0) : Vector<SIZE, T>(0, 0, float(Sign(z))); }
-
-            Vector<SIZE, T> Reflect(const Vector<SIZE, T>& n) const
-            {
-                return *this - n * (Dot(n) * 2.0f);
-            }
-
-            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
-            {
-                if (t <= 0.0f)
-                    return *this;
-                if (t >= 1.0f)
-                    return v;
-                return *this + (v - *this) * t;
-            }
-
-            const Vector<SIZE, T> RotateY(float angle) const
-            {
-                float s, c;
-                sincos(angle, &s, &c);
-                return vec3(x * c - z * s, y, x * s + z * c);
-            }
+            Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y), fabsf(z), fabsf(w)); }
 
             float Angle(const Vector<SIZE, T>& v) const
             {
                 return Dot(v) / (Length() * v.Length());
             }
 
-            float AngleX() const { return atan2f(sqrtf(x * x + z * z), y); }
-
-            float AngleY() const { return atan2f(z, x); }
-
             // Shared vectors functions
             T& operator[](int index) const;
+
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
 
             FloatType Length2() const;
             FloatType Length() const;
@@ -517,7 +464,20 @@ namespace OpenDemo
             T x;
             T y;
             T z;
+            T w;
         };
+
+        template <typename T>
+        inline const Vector<4, T> Vector<4, T>::UNIT_X = Vector<4, T>(1, 0, 0, 0);
+
+        template <typename T>
+        inline const Vector<4, T> Vector<4, T>::UNIT_Y = Vector<4, T>(0, 1, 0, 0);
+
+        template <typename T>
+        inline const Vector<4, T> Vector<4, T>::UNIT_Z = Vector<4, T>(0, 0, 1, 0);
+
+        template <typename T>
+        inline const Vector<4, T> Vector<4, T>::UNIT_W = Vector<4, T>(0, 0, 0, 1);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Rect
