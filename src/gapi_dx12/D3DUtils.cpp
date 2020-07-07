@@ -35,14 +35,15 @@ namespace OpenDemo
 
                     DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect)
                     {
-                        ASSERT(presentOptions.rect.sizes().x() > 0);
-                        ASSERT(presentOptions.rect.sizes().y() > 0);
-                        ASSERT(presentOptions.rect.min() == Vector2i(0,0));
+                        ASSERT(presentOptions.rect.width > 0);
+                        ASSERT(presentOptions.rect.height > 0);
+                        ASSERT(presentOptions.rect.left == 0);
+                        ASSERT(presentOptions.rect.top == 0);
                         ASSERT(presentOptions.bufferCount > 0 && presentOptions.bufferCount <= MAX_BACK_BUFFER_COUNT);
 
                         DXGI_SWAP_CHAIN_DESC1 output;
-                        output.Width = presentOptions.rect.sizes().x();
-                        output.Height = presentOptions.rect.sizes().y();
+                        output.Width = presentOptions.rect.width;
+                        output.Height = presentOptions.rect.height;
                         output.Format = getDXGIFormat(presentOptions.resourceFormat);
                         output.Stereo = (presentOptions.isStereo) ? TRUE : FALSE;
                         output.SampleDesc = { 1, 0 };

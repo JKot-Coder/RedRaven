@@ -8,7 +8,7 @@ namespace OpenDemo
         {
         public:
             using SharedPtr = std::shared_ptr<RenderTargetView>;
-            using SharedConstPtr = std::shared_ptr<const RenderTargetView>;
+                    using SharedConstPtr = std::shared_ptr<const RenderTargetView>;
             using ConstSharedPtrRef = const SharedPtr&;
         };
     }
