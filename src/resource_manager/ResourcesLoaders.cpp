@@ -103,7 +103,7 @@ namespace OpenDemo
                     vertex.normal = ConvertVector(mesh->mNormals[j]);
                     vertex.tangent = ConvertVector(mesh->mTangents[j]);
                     vertex.binormal = ConvertVector(mesh->mBitangents[j]);
-                    vertex.texCoord = Vector2(texCoord.x(), texCoord.y());
+                    vertex.texCoord = Vector2(texCoord.x, texCoord.y);
 
                     vertices.push_back(vertex);
                 }
@@ -114,7 +114,7 @@ namespace OpenDemo
 
                 Rendering::RenderElement renderElement;
                 renderElement.mesh = renderMesh;
-                renderElement.modelMatrix.setIdentity();
+                renderElement.modelMatrix.Identity();
                 renderElement.material = renderMaterials[mesh->mMaterialIndex];
 
                 renderElements.push_back(renderElement);

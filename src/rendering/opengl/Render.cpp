@@ -184,14 +184,14 @@ namespace OpenDemo
                 const auto& lightDir = _renderContext->GetLightDirection();
 
                 shader->Bind();
-                shader->SetParam(Uniform::Type::LIGHT_DIR, Vector4(lightDir.x(), lightDir.y(), lightDir.z(), 0));
+                shader->SetParam(Uniform::Type::LIGHT_DIR, Vector4(lightDir, 0));
 
                 if (camera != nullptr)
                 {
                     const auto& cameraPos = camera->GetTransform().Position;
                     camera->SetAspect(rtWidth, rtHeight);
                     shader->SetParam(Uniform::Type::VIEW_PROJECTION_MATRIX, camera->GetViewProjectionMatrix());
-                    shader->SetParam(Uniform::Type::CAMERA_POSITION, Vector4(cameraPos.x(), cameraPos.y(), cameraPos.z(), 0));
+                    shader->SetParam(Uniform::Type::CAMERA_POSITION, Vector4(cameraPos, 0));
                 }
             }
 

@@ -1,7 +1,7 @@
 #include "Scene_2.hpp"
 
-#include "common/Time.hpp"
 #include "common/Math.hpp"
+#include "common/Time.hpp"
 
 #include "inputting/Input.hpp"
 
@@ -75,14 +75,11 @@ namespace OpenDemo
                 camTransform.Position += camTransform.Rotation * Vector3(-1, 0, 0) * speed * dt;
             }
 
-            _lookAngle = _lookAngle - inputting->Mouse.relative.cast<float>() * 0.001f;
-            _lookAngle.y() = Clamp(_lookAngle.y(), -PI / 2 + 0.1f, +PI / 2 - 0.1f);
+            _lookAngle = _lookAngle - inputting->Mouse.relative.Cast<float>() * 0.001f;
+            _lookAngle.y = Clamp(_lookAngle.y, -PI / 2 + 0.1f, +PI / 2 - 0.1f);
 
-               ASSERT(false);
-            Vector3 dir;//           = Vector3(_lookAngle.y(), _lookAngle.x()) * 2.0;
-           
-         
-            // camTransform.Rotation = Quaternion(dir, Vector3(0, 1, 0));
+            Vector3 dir = Vector3(_lookAngle.y, _lookAngle.x) * 2.0;
+            camTransform.Rotation = Quaternion(dir, Vector3::UP);
 
             _camera->SetTransform(camTransform);
         }

@@ -32,14 +32,14 @@ namespace OpenDemo
 
             for (int i = 0; i < 8; i++)
             {
-                Affine3 translate;
-                translate.translation() = Vector3(-8.0f + i * 2.2f, 0.0f, 0.0f);
+                Matrix4 modelMat(Identity);
+                modelMat.Translate(Vector3(-8.0f + i * 2.2f, 0.0f, 0.0f));
      
                 Rendering::Material material;
 
                 Rendering::RenderElement element;
                 element.mesh = _sphereMesh;
-                element.modelMatrix = translate.matrix();
+                element.modelMatrix = modelMat;
                 element.material = material;
 
                 _renderElements.push_back(element);

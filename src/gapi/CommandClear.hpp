@@ -17,6 +17,7 @@ namespace OpenDemo
                 //, rtv_(rtv)
                 , color_(color)
             {
+                std::ignore = rtv;
             }
 
         private:

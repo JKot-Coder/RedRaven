@@ -25,7 +25,7 @@ namespace OpenDemo
 
         template <typename T>
         inline constexpr T Sqr(T x) { return x * x; };
-        inline float FRandom(float x) { return (float)rand() / RAND_MAX; };
+        inline float FRandom() { return (float)rand() / RAND_MAX; };
 
         // Enum used for object construction specifying how the object should initialized.
         enum Initialization
@@ -401,6 +401,14 @@ namespace OpenDemo
             {
             }
 
+            template <typename U>
+            Vector<SIZE, U> Cast()
+            {
+                return Vector<SIZE, U>(
+                    static_cast<U>(x),
+                    static_cast<U>(y));
+            }
+
             bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y; }
             bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
             bool operator==(T s) const { return x == s && y == s; }
@@ -531,6 +539,8 @@ namespace OpenDemo
             static const Vector<SIZE, T> UNIT_X;
             static const Vector<SIZE, T> UNIT_Y;
             static const Vector<SIZE, T> UNIT_Z;
+            static const Vector<SIZE, T> UP;
+            static const Vector<SIZE, T> FORWARD;
 
             constexpr Vector() = default;
             constexpr Vector(T s) : x(s), y(s), z(s) { }
@@ -548,6 +558,15 @@ namespace OpenDemo
 
             Vector<SIZE - 1, T>& xy() const { return *((Vector<SIZE - 1, T>*)&x); }
             Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
+
+            template <typename U>
+            Vector<SIZE, U> Cast()
+            {
+                return Vector<SIZE, U>(
+                    static_cast<U>(x),
+                    static_cast<U>(y),
+                    static_cast<U>(z), );
+            }
 
             bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y && z == v.z; }
             bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
@@ -688,6 +707,12 @@ namespace OpenDemo
         template <typename T>
         inline const Vector<3, T> Vector<3, T>::UNIT_Z = Vector<3, T>(0, 0, 1);
 
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::UP = Vector<3, T>(0, 1, 0);
+
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::FORWARD = Vector<3, T>(0, 0, 1);
+
         using Vector3 = Vector<3, float>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -721,6 +746,18 @@ namespace OpenDemo
 
             constexpr Vector(const Vector<SIZE - 1, T>& xyz, float w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) { }
             constexpr Vector(const Vector<SIZE - 2, T>& xy, const Vector<SIZE - 2, T>& zw) : x(xy.x), y(xy.y), z(zw.x), w(zw.y) { }
+
+            Vector<SIZE - 1, T>& xyz() const { return *((Vector<SIZE - 1, T>*)&x); }
+
+            template <typename U>
+            Vector<SIZE, U> Cast()
+            {
+                return Vector<SIZE, U>(
+                    static_cast<U>(x),
+                    static_cast<U>(y),
+                    static_cast<U>(z),
+                    static_cast<U>(w));
+            }
 
             bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
             bool operator!=(const Vector<SIZE, T>& v) const { return !(*this == v); }
@@ -868,7 +905,7 @@ namespace OpenDemo
 
             Quaternion(const Vector<3, FloatFormat>& axis, Radian angle)
             {
-                FloatFormat s, c;
+                float s, c;
                 sincos(angle.Value() * 0.5f, &s, &c);
                 x = axis.x * s;
                 y = axis.y * s;
@@ -880,7 +917,7 @@ namespace OpenDemo
             {
                 Vector<3, FloatFormat> forward = lookAt.Normal();
                 Vector<3, FloatFormat> rotAxis = Vector<3, FloatFormat>::UNIT_Z.Cross(forward);
-                FloatFormat dot = Vector<3, FloatFormat>::UNIT_Z.Dot(forward);
+                float dot = Vector<3, FloatFormat>::UNIT_Z.Dot(forward);
 
                 x = rotAxis.x;
                 y = rotAxis.y;
@@ -897,11 +934,11 @@ namespace OpenDemo
                 Vector<3, FloatFormat> right = up.Cross(forward).Normal();
                 up = forward.Cross(right);
 
-                FloatFormat e00 = right.x, e10 = right.y, e20 = right.z;
-                FloatFormat e01 = up.x, e11 = up.y, e21 = up.z;
-                FloatFormat e02 = forward.x, e12 = forward.y, e22 = forward.z;
+                float e00 = right.x, e10 = right.y, e20 = right.z;
+                float e01 = up.x, e11 = up.y, e21 = up.z;
+                float e02 = forward.x, e12 = forward.y, e22 = forward.z;
 
-                FloatFormat t, s;
+                float t, s;
                 t = 1.0f + e00 + e11 + e22;
                 if (t > 0.0001f)
                 {
@@ -971,17 +1008,17 @@ namespace OpenDemo
                 return (*this * Quaternion(v.x, v.y, v.z, 0) * Inverse()).xyz();
             }
 
-            FloatFormat Dot(const Quaternion& q) const
+            float Dot(const Quaternion& q) const
             {
                 return x * q.x + y * q.y + z * q.z + w * q.w;
             }
 
-            FloatFormat Length2() const
+            float Length2() const
             {
                 return Dot(*this);
             }
 
-            FloatFormat Length() const
+            float Length() const
             {
                 return sqrtf(Length2());
             }
@@ -993,7 +1030,7 @@ namespace OpenDemo
 
             Quaternion Normal() const
             {
-                const FloatFormat l = Length();
+                const float l = Length();
                 return l == 0.0 ? (*this) : (*this) * (1.0f / l);
             }
 
@@ -1004,13 +1041,13 @@ namespace OpenDemo
 
             Quaternion Inverse() const
             {
-                const FloatFormat l2 = Length2();
-                const FloatFormat l2inv = l2 == 0.0f ? 0.0f : (1.0f / l2);
+                const float l2 = Length2();
+                const float l2inv = l2 == 0.0f ? 0.0f : (1.0f / l2);
 
                 return Conjugate() * l2inv;
             }
 
-            Quaternion Lerp(const Quaternion& q, FloatFormat t) const
+            Quaternion Lerp(const Quaternion& q, float t) const
             {
                 if (t <= 0.0f)
                     return *this;
@@ -1020,7 +1057,7 @@ namespace OpenDemo
                 return Dot(q) < 0 ? (*this - (q + *this) * t) : (*this + (q - *this) * t);
             }
 
-            Quaternion Slerp(const Quaternion& q, FloatFormat t) const
+            Quaternion Slerp(const Quaternion& q, float t) const
             {
                 if (t <= 0.0f)
                     return *this;
@@ -1028,7 +1065,7 @@ namespace OpenDemo
                     return q;
 
                 Quaternion temp;
-                FloatFormat omega, cosom, sinom, scale0, scale1;
+                float omega, cosom, sinom, scale0, scale1;
 
                 cosom = Dot(q);
                 if (cosom < 0.0f)
@@ -1057,6 +1094,465 @@ namespace OpenDemo
 
             FloatFormat x, y, z, w;
         };
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Matrix
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        template <size_t M, size_t K>
+        struct Matrix;
+
+        template <>
+        struct Matrix<4, 4>
+        {
+            static inline constexpr size_t M = 4;
+            static inline constexpr size_t K = 4;
+            using FloatFormat = float;
+            static_assert(std::is_floating_point<FloatFormat>::value, "Float point type assumed");
+            static_assert(std::is_same<FloatFormat, float>::value, "Only float are supported now");
+
+            enum ProjRange
+            {
+                PROJ_NEG_POS,
+                PROJ_ZERO_POS,
+            };
+
+            Vector<3, FloatFormat>& Right() const { return *((Vector<3, FloatFormat>*)&e00); }
+
+            Vector<3, FloatFormat>& Up() const { return *((Vector<3, FloatFormat>*)&e01); }
+
+            Vector<3, FloatFormat>& Forward() const { return *((Vector<3, FloatFormat>*)&e02); }
+
+            Vector<4, FloatFormat>& Offset() const { return *((Vector<4, FloatFormat>*)&e03); }
+
+            Matrix() = default;
+
+            Matrix(Initialization)
+            {
+                Identity();
+            }
+
+            Matrix(FloatFormat e00, FloatFormat e10, FloatFormat e20, FloatFormat e30,
+                FloatFormat e01, FloatFormat e11, FloatFormat e21, FloatFormat e31,
+                FloatFormat e02, FloatFormat e12, FloatFormat e22, FloatFormat e32,
+                FloatFormat e03, FloatFormat e13, FloatFormat e23, FloatFormat e33)
+                : e00(e00), e10(e10), e20(e20), e30(e30), e01(e01), e11(e11), e21(e21), e31(e31), e02(e02), e12(e12), e22(e22), e32(e32), e03(e03), e13(e13), e23(e23), e33(e33)
+            {
+            }
+
+            Matrix(const Quaternion& rotation, const Vector<3, FloatFormat>& position)
+            {
+                SetRot(rotation);
+                SetPos(position);
+                e30 = e31 = e32 = 0.0f;
+                e33 = 1.0f;
+            }
+
+            Matrix(ProjRange range, FloatFormat l, FloatFormat r, FloatFormat b, FloatFormat t, FloatFormat znear, FloatFormat zfar)
+            {
+                Identity();
+                e00 = 2.0f / (r - l);
+                e11 = 2.0f / (t - b);
+                e22 = 2.0f / (znear - zfar);
+                e03 = (l + r) / (l - r);
+                e13 = (t + b) / (b - t);
+                switch (range)
+                {
+                case PROJ_NEG_POS:
+                    e23 = (zfar + znear) / (znear - zfar);
+                    break;
+                case PROJ_ZERO_POS:
+                    e23 = znear / (znear - zfar);
+                    break;
+                }
+            }
+
+            Matrix(ProjRange range, Radian fov, FloatFormat aspect, FloatFormat znear, FloatFormat zfar)
+            {
+                FloatFormat k = 1.0f / tanf(fov.Value() * 0.5f);
+                Identity();
+                if (aspect >= 1.0f)
+                {
+                    e00 = k / aspect;
+                    e11 = k;
+                }
+                else
+                {
+                    e00 = k;
+                    e11 = k * aspect;
+                }
+                e33 = 0.0f;
+                e32 = -1.0f;
+                switch (range)
+                {
+                case PROJ_NEG_POS:
+                    e22 = (znear + zfar) / (znear - zfar);
+                    e23 = 2.0f * zfar * znear / (znear - zfar);
+                    break;
+                case PROJ_ZERO_POS:
+                    e22 = zfar / (znear - zfar);
+                    e23 = znear * e22;
+                    break;
+                }
+            }
+
+            Matrix(const Vector<3, FloatFormat>& from, const Vector<3, FloatFormat>& at, const Vector<3, FloatFormat>& up)
+            {
+                Vector<3, FloatFormat> r, u, d;
+                d = (from - at).Normal();
+                r = up.Cross(d).Normal();
+                u = d.Cross(r);
+
+                this->Right() = r;
+                this->Up() = u;
+                this->Forward() = d;
+                this->Offset() = Vector<4, FloatFormat>(from, 1.0f);
+                e30 = e31 = e32 = 0;
+            }
+
+            Matrix(const Vector<4, FloatFormat>& reflectPlane)
+            {
+                FloatFormat a = reflectPlane.x,
+                            b = reflectPlane.y,
+                            c = reflectPlane.z,
+                            d = reflectPlane.w;
+
+                Right() = Vector<3, FloatFormat>(1 - 2 * a * a, -2 * b * a, -2 * c * a);
+                Up() = Vector<3, FloatFormat>(-2 * a * b, 1 - 2 * b * b, -2 * c * b);
+                Forward() = Vector<3, FloatFormat>(-2 * a * c, -2 * b * c, 1 - 2 * c * c);
+                Offset() = Vector<4, FloatFormat>(-2 * a * d, -2 * b * d, -2 * c * d, 1);
+                e30 = e31 = e32 = 0;
+            }
+
+            void Identity()
+            {
+                e10 = e20 = e30 = e01 = e21 = e31 = e02 = e12 = e32 = e03 = e13 = e23 = 0.0f;
+                e00 = e11 = e22 = e33 = 1.0f;
+            }
+
+            Matrix<M, K> operator*(const Matrix<M, K>& m) const
+            {
+                Matrix<M, K> r;
+                r.e00 = e00 * m.e00 + e01 * m.e10 + e02 * m.e20 + e03 * m.e30;
+                r.e10 = e10 * m.e00 + e11 * m.e10 + e12 * m.e20 + e13 * m.e30;
+                r.e20 = e20 * m.e00 + e21 * m.e10 + e22 * m.e20 + e23 * m.e30;
+                r.e30 = e30 * m.e00 + e31 * m.e10 + e32 * m.e20 + e33 * m.e30;
+                r.e01 = e00 * m.e01 + e01 * m.e11 + e02 * m.e21 + e03 * m.e31;
+                r.e11 = e10 * m.e01 + e11 * m.e11 + e12 * m.e21 + e13 * m.e31;
+                r.e21 = e20 * m.e01 + e21 * m.e11 + e22 * m.e21 + e23 * m.e31;
+                r.e31 = e30 * m.e01 + e31 * m.e11 + e32 * m.e21 + e33 * m.e31;
+                r.e02 = e00 * m.e02 + e01 * m.e12 + e02 * m.e22 + e03 * m.e32;
+                r.e12 = e10 * m.e02 + e11 * m.e12 + e12 * m.e22 + e13 * m.e32;
+                r.e22 = e20 * m.e02 + e21 * m.e12 + e22 * m.e22 + e23 * m.e32;
+                r.e32 = e30 * m.e02 + e31 * m.e12 + e32 * m.e22 + e33 * m.e32;
+                r.e03 = e00 * m.e03 + e01 * m.e13 + e02 * m.e23 + e03 * m.e33;
+                r.e13 = e10 * m.e03 + e11 * m.e13 + e12 * m.e23 + e13 * m.e33;
+                r.e23 = e20 * m.e03 + e21 * m.e13 + e22 * m.e23 + e23 * m.e33;
+                r.e33 = e30 * m.e03 + e31 * m.e13 + e32 * m.e23 + e33 * m.e33;
+                return r;
+            }
+
+            Vector<3, FloatFormat> operator*(const Vector<3, FloatFormat>& v) const
+            {
+                return Vector<3, FloatFormat>(
+                    e00 * v.x + e01 * v.y + e02 * v.z + e03,
+                    e10 * v.x + e11 * v.y + e12 * v.z + e13,
+                    e20 * v.x + e21 * v.y + e22 * v.z + e23);
+            }
+
+            Vector<4, FloatFormat> operator*(const Vector<4, FloatFormat>& v) const
+            {
+                return Vector<4, FloatFormat>(
+                    e00 * v.x + e01 * v.y + e02 * v.z + e03 * v.w,
+                    e10 * v.x + e11 * v.y + e12 * v.z + e13 * v.w,
+                    e20 * v.x + e21 * v.y + e22 * v.z + e23 * v.w,
+                    e30 * v.x + e31 * v.y + e32 * v.z + e33 * v.w);
+            }
+
+            void Translate(const Vector<3, FloatFormat>& offset)
+            {
+                Matrix<M, K> m;
+                m.Identity();
+                m.SetPos(offset);
+                *this = *this * m;
+            };
+
+            void Scale(const Vector<3, FloatFormat>& factor)
+            {
+                Matrix<M, K> m;
+                m.Identity();
+                m.e00 = factor.x;
+                m.e11 = factor.y;
+                m.e22 = factor.z;
+                *this = *this * m;
+            }
+
+            void RotateX(Radian angle)
+            {
+                Matrix<M, K> m;
+                m.Identity();
+                FloatFormat s, c;
+                sincos(angle.Value(), &s, &c);
+                m.e11 = c;
+                m.e21 = s;
+                m.e12 = -s;
+                m.e22 = c;
+                *this = *this * m;
+            }
+
+            void RotateY(Radian angle)
+            {
+                Matrix<M, K> m;
+                m.Identity();
+                FloatFormat s, c;
+                sincos(angle.Value(), &s, &c);
+                m.e00 = c;
+                m.e20 = -s;
+                m.e02 = s;
+                m.e22 = c;
+                *this = *this * m;
+            }
+
+            void RotateZ(Radian angle)
+            {
+                Matrix<M, K> m;
+                m.Identity();
+                FloatFormat s, c;
+                sincos(angle.Value(), &s, &c);
+                m.e00 = c;
+                m.e01 = -s;
+                m.e10 = s;
+                m.e11 = c;
+                *this = *this * m;
+            }
+
+            void RotateYXZ(const Vector<3, FloatFormat>& angle)
+            {
+                FloatFormat s, c, a, b;
+
+                if (angle.y != 0.0f)
+                {
+                    sincos(angle.y, &s, &c);
+
+                    a = e00 * c - e02 * s;
+                    b = e02 * c + e00 * s;
+                    e00 = a;
+                    e02 = b;
+
+                    a = e10 * c - e12 * s;
+                    b = e12 * c + e10 * s;
+                    e10 = a;
+                    e12 = b;
+
+                    a = e20 * c - e22 * s;
+                    b = e22 * c + e20 * s;
+                    e20 = a;
+                    e22 = b;
+                }
+
+                if (angle.x != 0.0f)
+                {
+                    sincos(angle.x, &s, &c);
+
+                    a = e01 * c + e02 * s;
+                    b = e02 * c - e01 * s;
+                    e01 = a;
+                    e02 = b;
+
+                    a = e11 * c + e12 * s;
+                    b = e12 * c - e11 * s;
+                    e11 = a;
+                    e12 = b;
+
+                    a = e21 * c + e22 * s;
+                    b = e22 * c - e21 * s;
+                    e21 = a;
+                    e22 = b;
+                }
+
+                if (angle.z != 0.0f)
+                {
+                    sincos(angle.z, &s, &c);
+
+                    a = e00 * c + e01 * s;
+                    b = e01 * c - e00 * s;
+                    e00 = a;
+                    e01 = b;
+
+                    a = e10 * c + e11 * s;
+                    b = e11 * c - e10 * s;
+                    e10 = a;
+                    e11 = b;
+
+                    a = e20 * c + e21 * s;
+                    b = e21 * c - e20 * s;
+                    e20 = a;
+                    e21 = b;
+                }
+            }
+
+            void Lerp(const Matrix<M, K>& m, float t)
+            {
+                e00 += (m.e00 - e00) * t;
+                e01 += (m.e01 - e01) * t;
+                e02 += (m.e02 - e02) * t;
+                e03 += (m.e03 - e03) * t;
+
+                e10 += (m.e10 - e10) * t;
+                e11 += (m.e11 - e11) * t;
+                e12 += (m.e12 - e12) * t;
+                e13 += (m.e13 - e13) * t;
+
+                e20 += (m.e20 - e20) * t;
+                e21 += (m.e21 - e21) * t;
+                e22 += (m.e22 - e22) * t;
+                e23 += (m.e23 - e23) * t;
+            }
+
+            FloatFormat Det() const
+            {
+                return e00 * (e11 * (e22 * e33 - e32 * e23) - e21 * (e12 * e33 - e32 * e13) + e31 * (e12 * e23 - e22 * e13)) - e10 * (e01 * (e22 * e33 - e32 * e23) - e21 * (e02 * e33 - e32 * e03) + e31 * (e02 * e23 - e22 * e03)) + e20 * (e01 * (e12 * e33 - e32 * e13) - e11 * (e02 * e33 - e32 * e03) + e31 * (e02 * e13 - e12 * e03)) - e30 * (e01 * (e12 * e23 - e22 * e13) - e11 * (e02 * e23 - e22 * e03) + e21 * (e02 * e13 - e12 * e03));
+            }
+
+            Matrix<M, K> Inverse() const
+            {
+                FloatFormat idet = 1.0f / Det();
+                Matrix<M, K> r;
+                r.e00 = (e11 * (e22 * e33 - e32 * e23) - e21 * (e12 * e33 - e32 * e13) + e31 * (e12 * e23 - e22 * e13)) * idet;
+                r.e01 = -(e01 * (e22 * e33 - e32 * e23) - e21 * (e02 * e33 - e32 * e03) + e31 * (e02 * e23 - e22 * e03)) * idet;
+                r.e02 = (e01 * (e12 * e33 - e32 * e13) - e11 * (e02 * e33 - e32 * e03) + e31 * (e02 * e13 - e12 * e03)) * idet;
+                r.e03 = -(e01 * (e12 * e23 - e22 * e13) - e11 * (e02 * e23 - e22 * e03) + e21 * (e02 * e13 - e12 * e03)) * idet;
+                r.e10 = -(e10 * (e22 * e33 - e32 * e23) - e20 * (e12 * e33 - e32 * e13) + e30 * (e12 * e23 - e22 * e13)) * idet;
+                r.e11 = (e00 * (e22 * e33 - e32 * e23) - e20 * (e02 * e33 - e32 * e03) + e30 * (e02 * e23 - e22 * e03)) * idet;
+                r.e12 = -(e00 * (e12 * e33 - e32 * e13) - e10 * (e02 * e33 - e32 * e03) + e30 * (e02 * e13 - e12 * e03)) * idet;
+                r.e13 = (e00 * (e12 * e23 - e22 * e13) - e10 * (e02 * e23 - e22 * e03) + e20 * (e02 * e13 - e12 * e03)) * idet;
+                r.e20 = (e10 * (e21 * e33 - e31 * e23) - e20 * (e11 * e33 - e31 * e13) + e30 * (e11 * e23 - e21 * e13)) * idet;
+                r.e21 = -(e00 * (e21 * e33 - e31 * e23) - e20 * (e01 * e33 - e31 * e03) + e30 * (e01 * e23 - e21 * e03)) * idet;
+                r.e22 = (e00 * (e11 * e33 - e31 * e13) - e10 * (e01 * e33 - e31 * e03) + e30 * (e01 * e13 - e11 * e03)) * idet;
+                r.e23 = -(e00 * (e11 * e23 - e21 * e13) - e10 * (e01 * e23 - e21 * e03) + e20 * (e01 * e13 - e11 * e03)) * idet;
+                r.e30 = -(e10 * (e21 * e32 - e31 * e22) - e20 * (e11 * e32 - e31 * e12) + e30 * (e11 * e22 - e21 * e12)) * idet;
+                r.e31 = (e00 * (e21 * e32 - e31 * e22) - e20 * (e01 * e32 - e31 * e02) + e30 * (e01 * e22 - e21 * e02)) * idet;
+                r.e32 = -(e00 * (e11 * e32 - e31 * e12) - e10 * (e01 * e32 - e31 * e02) + e30 * (e01 * e12 - e11 * e02)) * idet;
+                r.e33 = (e00 * (e11 * e22 - e21 * e12) - e10 * (e01 * e22 - e21 * e02) + e20 * (e01 * e12 - e11 * e02)) * idet;
+                return r;
+            }
+
+            Matrix<M, K> InverseOrtho() const
+            {
+                Matrix<M, K> r;
+                r.e00 = e00;
+                r.e10 = e01;
+                r.e20 = e02;
+                r.e30 = 0;
+                r.e01 = e10;
+                r.e11 = e11;
+                r.e21 = e12;
+                r.e31 = 0;
+                r.e02 = e20;
+                r.e12 = e21;
+                r.e22 = e22;
+                r.e32 = 0;
+                r.e03 = -(e03 * e00 + e13 * e10 + e23 * e20); // -dot(pos, right)
+                r.e13 = -(e03 * e01 + e13 * e11 + e23 * e21); // -dot(pos, up)
+                r.e23 = -(e03 * e02 + e13 * e12 + e23 * e22); // -dot(pos, dir)
+                r.e33 = 1;
+                return r;
+            }
+
+            Matrix<M, K> Transpose() const
+            {
+                Matrix<M, K> r;
+                r.e00 = e00;
+                r.e10 = e01;
+                r.e20 = e02;
+                r.e30 = e03;
+                r.e01 = e10;
+                r.e11 = e11;
+                r.e21 = e12;
+                r.e31 = e13;
+                r.e02 = e20;
+                r.e12 = e21;
+                r.e22 = e22;
+                r.e32 = e23;
+                r.e03 = e30;
+                r.e13 = e31;
+                r.e23 = e32;
+                r.e33 = e33;
+                return r;
+            }
+
+            Quaternion GetRot() const
+            {
+                FloatFormat t, s;
+                t = 1.0f + e00 + e11 + e22;
+                if (t > 0.0001f)
+                {
+                    s = 0.5f / sqrtf(t);
+                    return Quaternion((e21 - e12) * s, (e02 - e20) * s, (e10 - e01) * s, 0.25f / s);
+                }
+                else if (e00 > e11 && e00 > e22)
+                {
+                    s = 0.5f / sqrtf(1.0f + e00 - e11 - e22);
+                    return Quaternion(0.25f / s, (e01 + e10) * s, (e02 + e20) * s, (e21 - e12) * s);
+                }
+                else if (e11 > e22)
+                {
+                    s = 0.5f / sqrtf(1.0f - e00 + e11 - e22);
+                    return Quaternion((e01 + e10) * s, 0.25f / s, (e12 + e21) * s, (e02 - e20) * s);
+                }
+                else
+                {
+                    s = 0.5f / sqrtf(1.0f - e00 - e11 + e22);
+                    return Quaternion((e02 + e20) * s, (e12 + e21) * s, 0.25f / s, (e10 - e01) * s);
+                }
+            }
+
+            void SetRot(const Quaternion& rot)
+            {
+                FloatFormat sx = rot.x * rot.x,
+                            sy = rot.y * rot.y,
+                            sz = rot.z * rot.z,
+                            sw = rot.w * rot.w,
+                            inv = 1.0f / (sx + sy + sz + sw);
+
+                e00 = (sx - sy - sz + sw) * inv;
+                e11 = (-sx + sy - sz + sw) * inv;
+                e22 = (-sx - sy + sz + sw) * inv;
+                inv *= 2.0f;
+
+                FloatFormat t1 = rot.x * rot.y;
+                FloatFormat t2 = rot.z * rot.w;
+                e10 = (t1 + t2) * inv;
+                e01 = (t1 - t2) * inv;
+
+                t1 = rot.x * rot.z;
+                t2 = rot.y * rot.w;
+                e20 = (t1 - t2) * inv;
+                e02 = (t1 + t2) * inv;
+
+                t1 = rot.y * rot.z;
+                t2 = rot.x * rot.w;
+                e21 = (t1 + t2) * inv;
+                e12 = (t1 - t2) * inv;
+            }
+
+            Vector<3, FloatFormat> getPos() const
+            {
+                return Offset().xyz();
+            }
+
+            void SetPos(const Vector<3, FloatFormat>& pos)
+            {
+                Offset().xyz() = pos;
+            }
+
+            FloatFormat e00, e10, e20, e30,
+                e01, e11, e21, e31,
+                e02, e12, e22, e32,
+                e03, e13, e23, e33;
+        };
+
+        using Matrix4 = Matrix<4, 4>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Rect

@@ -28,13 +28,7 @@ namespace OpenDemo
 
             inline Matrix4 GetMatrix() const
             {
-                Matrix4 result;
-
-                result.setIdentity();
-                result.block<3, 3>(0, 0) = Rotation.toRotationMatrix();
-                result.block<3, 1>(0, 3) = Position;
-
-                return result;
+                return Matrix4(Rotation, Position);
             }
         };
     }
