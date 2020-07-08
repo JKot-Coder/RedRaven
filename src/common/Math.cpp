@@ -13,6 +13,15 @@ namespace OpenDemo
             Vector2 norm = asd.Normal();
             Vector2::ZERO;
         
+
+            Radian pi = Radian(PI);
+            Degree c = pi;
+            c += 60.0f;
+            pi = c;
+            pi = pi - PI;
+            pi = pi.ToDegree();
+            c = pi.ToDegree();
+
         }
     }
 }

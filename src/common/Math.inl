@@ -1,7 +1,0 @@
-namespace OpenDemo
-{
-    namespace Common
-    {
-
- 
-}

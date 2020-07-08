@@ -13,13 +13,6 @@ namespace OpenDemo
 {
     namespace Common
     {
-
-        inline void sincos(float r, float* s, float* c)
-        {
-            *s = sinf(r);
-            *c = cosf(r);
-        }
-
         struct vec2
         {
             float x, y;

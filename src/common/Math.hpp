@@ -62,12 +62,19 @@ namespace OpenDemo
         template <AngleUnitType UT>
         struct AngleUnit;
 
-        using Radian = AngleUnit<UT::Degree>;
-        using Degree = AngleUnit<UT::Radian>;
+        using Radian = AngleUnit<UT::Radian>;
+        using Degree = AngleUnit<UT::Degree>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Common
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        inline void sincos(float r, float* s, float* c)
+        {
+            // Todo use real sincos
+            *s = sinf(r);
+            *c = cosf(r);
+        }
 
         template <typename T>
         inline constexpr T Min(const T a, const T b)
@@ -144,151 +151,58 @@ namespace OpenDemo
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Radian
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        /*
-        template <typename T>
-        struct TRadian final
-        {
-            static_assert(std::is_floating_point<T>::value, "Float point type assumed");
-
-            constexpr TRadian() = default;
-            constexpr TRadian(const TRadian&) = default;
-            constexpr TRadian& operator=(const TRadian&) = default;
-
-            constexpr explicit TRadian(T r) : rad_(r) { }
-            constexpr TRadian& operator=(const T& f)
-            {
-                rad_ = f;
-                return *this;
-            }
-
-            TRadian(const TDegree<T>& d) : rad_(d.Radians()) { }
-            TRadian& operator=(const TDegree<T>& d)
-            {
-                rad_ = d.Radians();
-                return *this;
-            }
-
-            constexpr TDegree<T> Degrees() const { return TDegree<T>(rad_ * 123123); }
-            constexpr T Value() const { return rad_; }
-
-            TRadian<T> Wrap()
-            {
-                T result = fmod(mDeg, static_cast<T>(360));
-
-                if (result < 0)
-                    result += static_cast<T>(360);
-
-                return TRadian<T>(result);
-            }
-
-            const TRadian<T>& operator+() const { return *this; }
-            TRadian<T> operator+(const TRadian<T>& r) const { return TRadian<T>(rad_ + r.rad_); }
-            TRadian<T> operator+(const TDegree<T>& d) const { return TRadian<T>(rad_ + d.Radians()); }
-            TRadian<T> operator-() const { return TRadian<T>(-rad_); }
-            TRadian<T> operator-(const TRadian<T>& r) const { return TRadian<T>(rad_ - r.rad_); }
-            TRadian<T> operator-(const TDegree<T>& d) const { return TRadian<T>(rad_ - d.Radians()); }
-            TRadian<T> operator*(T f) const { return TRadian<T>(rad_ * f); }
-            TRadian<T> operator/(T f) const { return TRadian<T>(rad_ / f); }
-
-            TRadian<T>& operator+=(const TRadian<T>& r)
-            {
-                rad_ += r.rad_;
-                return *this;
-            }
-
-            TRadian<T>& operator+=(const TDegree<T>& d)
-            {
-                rad_ += d.Radians();
-                return *this;
-            }
-
-            TRadian<T>& operator-=(const TRadian<T>& r)
-            {
-                rad_ -= r.rad_;
-                return *this;
-            }
-
-            TRadian<T>& operator-=(const TDegree<T>& d)
-            {
-                rad_ -= d.Radians();
-                return *this;
-            }
-
-            TRadian<T>& operator*=(T f)
-            {
-                rad_ *= f;
-                return *this;
-            }
-
-            TRadian<T>& operator/=(T f)
-            {
-                rad_ /= f;
-                return *this;
-            }
-
-            friend TRadian<T> operator*(T lhs, const TRadian<T>& rhs) { return TRadian<T>(lhs * rhs.rad_); }
-            friend TRadian<T> operator/(T lhs, const TRadian<T>& rhs) { return TRadian<T>(lhs / rhs.rad_); }
-            friend TRadian<T> operator+(TRadian<T>& lhs, T rhs) { return TRadian<T>(lhs.rad_ + rhs); }
-            friend TRadian<T> operator+(T lhs, const TRadian<T>& rhs) { return TRadian<T>(lhs + rhs.rad_); }
-            friend TRadian<T> operator-(const TRadian<T>& lhs, T rhs) { return TRadian<T>(lhs.rad_ - rhs); }
-            friend TRadian<T> operator-(const T lhs, const TRadian<T>& rhs) { return TRadian<T>(lhs - rhs.rad_); }
-
-            bool operator<(const TRadian<T>& r) const { return rad_ < r.rad_; }
-            bool operator<=(const TRadian<T>& r) const { return rad_ <= r.rad_; }
-            bool operator==(const TRadian<T>& r) const { return rad_ == r.rad_; }
-            bool operator!=(const TRadian<T>& r) const { return rad_ != r.rad_; }
-            bool operator>=(const TRadian<T>& r) const { return rad_ >= r.rad_; }
-            bool operator>(const TRadian<T>& r) const { return rad_ > r.rad_; }
-
-        private:
-            T rad_ = 0;
-    };
-    */
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Degree
+        // AngleUnit
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         template <AngleUnitType UT>
         struct AngleUnit final
         {
-            using Format = float;
-            static_assert(std::is_floating_point<Format>::value, "Float point type assumed");
+            using FloatFormat = float;
+            static_assert(std::is_floating_point<FloatFormat>::value, "Float point type assumed");
+            static_assert(std::is_same<FloatFormat, float>::value, "Only float are supported now");
 
             constexpr AngleUnit() = default;
             constexpr AngleUnit(const AngleUnit<UT>& value) = default;
             constexpr AngleUnit& operator=(const AngleUnit<UT>& valued) = default;
 
-            constexpr explicit AngleUnit(Format value) : value_(value) { }
-            constexpr AngleUnit& operator=(const Format& value)
+            constexpr explicit AngleUnit(FloatFormat value) : value_(value) { }
+            constexpr AngleUnit& operator=(const FloatFormat& value)
             {
                 value_ = value;
                 return *this;
             };
-            constexpr AngleUnit(const AngleUnit<UT::Radian>& radians) : value_(radians.ToDegrees()) { }
 
-            AngleUnit<UT::Degree>& operator=(const AngleUnit<UT::Radian>& radians)
+            template <AngleUnitType T, typename = std::enable_if<UT != T, void>::type>
+            constexpr AngleUnit(const AngleUnit<T>& d) : value_(cast<T, UT>(d.Value())) { }
+
+            template <AngleUnitType T, typename = std::enable_if<UT != T, void>::type>
+            AngleUnit<UT>& operator=(const AngleUnit<T>& d)
             {
-                value_ = radians.ToDegrees();
+                value_ = cast<T, UT>(d.Value());
                 return *this;
             }
 
-            inline constexpr AngleUnit<UT::Radian> ToRadians() const
+            template <typename = std::enable_if<UT == UT::Radian, void>::type>
+            inline constexpr AngleUnit<UT::Degree> ToDegree() const
             {
-                return AngleUnit<UT::Radian>(value_ * 123123);
+                return AngleUnit<UT::Degree>(cast<UT, UT::Degree>(value_));
             }
 
-            constexpr Format Value() const { return value_; }
+            template <typename = std::enable_if<UT == UT::Degree, void>::type>
+            inline constexpr AngleUnit<UT::Radian> ToRadian() const
+            {
+                return AngleUnit<UT::Radian>(cast<UT, UT::Radian>(value_));
+            }
+
+            constexpr FloatFormat Value() const { return value_; }
 
             /** Wraps the angle */
             AngleUnit<UT> Wrap()
             {
-                T result = fmod(mDeg, AngleUnitLimits<UT, Format>::MAX);
+                T result = fmod(mDeg, AngleUnitLimits<UT, FloatFormat>::MAX);
 
                 if (result < 0)
-                    result += static_cast<T>(AngleUnitLimits<UT, Format>::MAX);
+                    result += static_cast<T>(AngleUnitLimits<UT, FloatFormat>::MAX);
 
                 return AngleUnit<UT>(result);
             }
@@ -297,9 +211,9 @@ namespace OpenDemo
             AngleUnit<UT> operator+(const AngleUnit<UT>& d) const { return AngleUnit<UT>(value_ + d.value_); }
             AngleUnit<UT> operator-() const { return AngleUnit<UT>(-value_); }
             AngleUnit<UT> operator-(const AngleUnit<UT>& d) const { return AngleUnit<UT>(value_ - d.value_); }
-            AngleUnit<UT> operator*(Format f) const { return AngleUnit<UT>(value_ * f); }
+            AngleUnit<UT> operator*(FloatFormat f) const { return AngleUnit<UT>(value_ * f); }
             AngleUnit<UT> operator*(const AngleUnit<UT>& f) const { return AngleUnit<UT>(value_ * f.value_); }
-            AngleUnit<UT> operator/(Format f) const { return AngleUnit<UT>(value_ / f); }
+            AngleUnit<UT> operator/(FloatFormat f) const { return AngleUnit<UT>(value_ / f); }
 
             AngleUnit<UT>& operator+=(const AngleUnit<UT>& d)
             {
@@ -313,24 +227,55 @@ namespace OpenDemo
                 return *this;
             }
 
-            AngleUnit<UT>& operator*=(Format f)
+            AngleUnit<UT>& operator+=(FloatFormat f)
+            {
+                value_ += f;
+                return *this;
+            }
+
+            AngleUnit<UT>& operator-=(FloatFormat f)
+            {
+                value_ -= f;
+                return *this;
+            }
+
+            AngleUnit<UT>& operator*=(FloatFormat f)
             {
                 value_ *= f;
                 return *this;
             }
 
-            AngleUnit<UT>& operator/=(Format f)
+            AngleUnit<UT>& operator/=(FloatFormat f)
             {
                 value_ /= f;
                 return *this;
             }
 
-            friend AngleUnit<UT> operator*(Format lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs * rhs.value_); }
-            friend AngleUnit<UT> operator/(Format lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs / rhs.value_); }
-            friend AngleUnit<UT> operator+(AngleUnit<UT>& lhs, Format rhs) { return AngleUnit<UT>(lhs.value_ + rhs); }
-            friend AngleUnit<UT> operator+(Format lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs + rhs.value_); }
-            friend AngleUnit<UT> operator-(const AngleUnit<UT>& lhs, Format rhs) { return AngleUnit<UT>(lhs.value_ - rhs); }
-            friend AngleUnit<UT> operator-(const Format lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs - rhs.value_); }
+            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
+            AngleUnit<UT> operator+(const AngleUnit<T>& d) const { return AngleUnit<UT>(value_ + d.cast<UT>()); }
+            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
+            AngleUnit<UT> operator-(const AngleUnit<T>& d) const { return AngleUnit<UT>(value_ - d.cast<UT>()); }
+
+            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
+            AngleUnit<UT>& operator+=(const AngleUnit<T>& d)
+            {
+                value_ += d.cast<UT>();
+                return *this;
+            }
+
+            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
+            AngleUnit<UT>& operator-=(const AngleUnit<T>& d)
+            {
+                value_ -= d.cast<UT>();
+                return *this;
+            }
+
+            friend AngleUnit<UT> operator*(FloatFormat lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs * rhs.value_); }
+            friend AngleUnit<UT> operator/(FloatFormat lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs / rhs.value_); }
+            friend AngleUnit<UT> operator+(AngleUnit<UT>& lhs, FloatFormat rhs) { return AngleUnit<UT>(lhs.value_ + rhs); }
+            friend AngleUnit<UT> operator+(FloatFormat lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs + rhs.value_); }
+            friend AngleUnit<UT> operator-(const AngleUnit<UT>& lhs, FloatFormat rhs) { return AngleUnit<UT>(lhs.value_ - rhs); }
+            friend AngleUnit<UT> operator-(const FloatFormat lhs, const AngleUnit<UT>& rhs) { return AngleUnit<UT>(lhs - rhs.value_); }
 
             bool operator<(const AngleUnit<UT>& d) const { return value_ < d.value_; }
             bool operator<=(const AngleUnit<UT>& d) const { return value_ <= d.value_; }
@@ -341,64 +286,19 @@ namespace OpenDemo
 
         private:
             template <AngleUnitType From, AngleUnitType To>
-            static Format cast(AngleUnit<From> value);
+            static inline constexpr FloatFormat cast(FloatFormat value);
 
             template <>
-            static Format cast<UT::Degree, UT::Degree>(AngleUnit<UT::Degree> value) { return value; }
+            static inline constexpr FloatFormat cast<UT::Degree, UT::Radian>(FloatFormat value) { return value * DEG2RAD; }
 
             template <>
-            static Format cast<UT::Radian, UT::Radian>(AngleUnit<UT::Radian> value) { return value; }
+            static inline constexpr FloatFormat cast<UT::Radian, UT::Degree>(FloatFormat value) { return value * RAD2DEG; }
 
-            template <>
-            static Format cast<UT::Degree, UT::Radian>(AngleUnit<UT::Degree> value) { return value * 13; }
-
-            template <>
-            static Format cast<UT::Radian, UT::Degree>(AngleUnit<UT::Radian> value) { return value / 14; }
-
-            Format value_ = 0.0f;
+            FloatFormat value_ = 0.0f;
         };
-        /*
-        template <>
-        struct AngleUnit<UT::Degree>
-        {
-            AngleUnit(const AngleUnit<UT::Radian>& radians) : value_(radians.ToDegrees()) { }
-
-            AngleUnit<UT::Degree>& operator=(const AngleUnit<UT::Radian>& radians)
-            {
-                value_ = radians.ToDegrees();
-                return *this;
-            }
-
-            inline constexpr AngleUnit<UT::Radian> ToRadians() const
-            {
-                return AngleUnit<UT::Radian>(value_ * 123123);
-            }
-        };
-
-        template <>
-        struct AngleUnit<UT::Degree>
-        {
-            AngleUnit(const AngleUnit<UT::Radian>& radians) : value_(radians.ToDegrees()) { }
-
-            AngleUnit<UT::Degree>& operator=(const AngleUnit<UT::Radian>& radians)
-            {
-                value_ = radians.ToDegrees();
-                return *this;
-            }
-
-            inline constexpr AngleUnit<UT::Radian> ToRadians() const
-            {
-                return AngleUnit<UT::Radian>(value_ * 123123);
-            }
-
-            AngleUnit<UT::Degree> operator+(const AngleUnit<UT::Radian>& radians) const;
-            AngleUnit<UT::Degree>& operator-=(const AngleUnit<UT::Radian>& radians);
-            AngleUnit<UT::Degree>& operator+=(const AngleUnit<UT::Radian>& radians);
-            AngleUnit<UT::Degree> operator-(const AngleUnit<UT::Radian>& radians) const;
-        };*/
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Radian & Degree
+        // Acos & Asin
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
         inline constexpr Radian Acos(float val)
@@ -438,7 +338,7 @@ namespace OpenDemo
         template <size_t Len, typename T>
         struct Vector
         {
-            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
+            using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
             static const Vector<Len, T> ZERO;
             static const Vector<Len, T> ONE;
@@ -458,15 +358,15 @@ namespace OpenDemo
                 return *this + (v - *this) * t;
             }
 
-            FloatType Length2() const { return Dot(*this); }
+            FloatFormat Length2() const { return Dot(*this); }
 
-            FloatType Length() const { return sqrtf(Length2()); }
+            FloatFormat Length() const { return sqrtf(Length2()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<Len, T> Normal() const
             {
-                FloatType s = Length();
-                return s == 0.0 ? (*this) : (*this) * (FloatType(1.0) / s);
+                FloatFormat s = Length();
+                return s == 0.0 ? (*this) : (*this) * (FloatFormat(1.0) / s);
             }
         };
 
@@ -484,7 +384,7 @@ namespace OpenDemo
         struct Vector<2, T>
         {
             static inline constexpr size_t SIZE = 2;
-            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
+            using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
             static const Vector<SIZE, T> ZERO;
             static const Vector<SIZE, T> ONE;
@@ -579,20 +479,14 @@ namespace OpenDemo
             T Cross(const Vector<SIZE, T>& v) const { return x * v.y - y * v.x; }
             Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y)); }
 
-            Vector<SIZE, T>& Rotate(const Vector<SIZE, T>& cs)
-            {
-                *this = Vector<SIZE, T>(x * cs.x - y * cs.y, x * cs.y + y * cs.x);
-                return *this;
-            }
-
-            Vector<SIZE, T>& Rotate(T angle)
+            Vector<SIZE, T>& Rotate(Radian angle)
             {
                 Vector<SIZE, T> cs;
-                sincos(angle, &cs.y, &cs.x);
-                return rotate(cs);
+                sincos(angle.Value(), &cs.y, &cs.x);
+                return Vector<SIZE, T>(x * cs.x - y * cs.y, x * cs.y + y * cs.x);
             }
 
-            float Angle() const
+            Radian Angle() const
             {
                 return atan2f(y, x);
             }
@@ -602,8 +496,8 @@ namespace OpenDemo
 
             const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
 
-            FloatType Length2() const;
-            FloatType Length() const;
+            FloatFormat Length2() const;
+            FloatFormat Length() const;
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<SIZE, T> Normal() const;
@@ -620,6 +514,7 @@ namespace OpenDemo
         inline const Vector<2, T> Vector<2, T>::UNIT_Y = Vector<2, T>(0, 1);
 
         using Vector2 = Vector<2, float>;
+        using Vector2i = Vector<2, int32_t>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector3
@@ -629,7 +524,7 @@ namespace OpenDemo
         struct Vector<3, T>
         {
             static inline constexpr size_t SIZE = 3;
-            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
+            using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
             static const Vector<SIZE, T> ZERO;
             static const Vector<SIZE, T> ONE;
@@ -742,10 +637,10 @@ namespace OpenDemo
             Vector<SIZE, T> AxisXZ() const { return (fabsf(x) > fabsf(z)) ? Vector<SIZE, T>(float(Sign(x)), 0, 0) : Vector<SIZE, T>(0, 0, float(Sign(z))); }
             Vector<SIZE, T> Reflect(const Vector<SIZE, T>& n) const { return *this - n * (Dot(n) * 2.0f); }
 
-            const Vector<SIZE, T> RotateY(float angle) const
+            const Vector<SIZE, T> RotateY(Radian angle) const
             {
                 float s, c;
-                sincos(angle, &s, &c);
+                sincos(angle.Value(), &s, &c);
                 return vec3(x * c - z * s, y, x * s + z * c);
             }
 
@@ -763,17 +658,17 @@ namespace OpenDemo
                 return Math::acos(f);
             }
 
-            float AngleX() const { return atan2f(sqrtf(x * x + z * z), y); }
+            Radian AngleX() const { return atan2f(sqrtf(x * x + z * z), y); }
 
-            float AngleY() const { return atan2f(z, x); }
+            Radian AngleY() const { return atan2f(z, x); }
 
             // Shared vectors functions
             T& operator[](int index) const;
 
             const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
 
-            FloatType Length2() const;
-            FloatType Length() const;
+            FloatFormat Length2() const;
+            FloatFormat Length() const;
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<SIZE, T> Normal() const;
@@ -803,7 +698,7 @@ namespace OpenDemo
         struct Vector<4, T>
         {
             static inline constexpr size_t SIZE = 4;
-            using FloatType = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
+            using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
 
             static const Vector<SIZE, T> ZERO;
             static const Vector<SIZE, T> ONE;
@@ -925,8 +820,8 @@ namespace OpenDemo
 
             const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
 
-            FloatType Length2() const;
-            FloatType Length() const;
+            FloatFormat Length2() const;
+            FloatFormat Length() const;
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<SIZE, T> Normal() const;
@@ -951,6 +846,217 @@ namespace OpenDemo
         inline const Vector<4, T> Vector<4, T>::UNIT_W = Vector<4, T>(0, 0, 0, 1);
 
         using Vector4 = Vector<4, float>;
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Quaternion
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        struct Quaternion
+        {
+            using FloatFormat = float;
+            static_assert(std::is_floating_point<FloatFormat>::value, "Float point type assumed");
+            static_assert(std::is_same<FloatFormat, float>::value, "Only float are supported now");
+
+            Vector<3, FloatFormat>& xyz() const { return *((Vector<3, FloatFormat>*)&x); }
+
+            Quaternion() { }
+
+            Quaternion(FloatFormat x, FloatFormat y, FloatFormat z, FloatFormat w)
+                : x(x), y(y), z(z), w(w)
+            {
+            }
+
+            Quaternion(const Vector<3, FloatFormat>& axis, Radian angle)
+            {
+                FloatFormat s, c;
+                sincos(angle.Value() * 0.5f, &s, &c);
+                x = axis.x * s;
+                y = axis.y * s;
+                z = axis.z * s;
+                w = c;
+            }
+
+            Quaternion(const Vector<3, FloatFormat>& lookAt)
+            {
+                Vector<3, FloatFormat> forward = lookAt.Normal();
+                Vector<3, FloatFormat> rotAxis = Vector<3, FloatFormat>::UNIT_Z.Cross(forward);
+                FloatFormat dot = Vector<3, FloatFormat>::UNIT_Z.Dot(forward);
+
+                x = rotAxis.x;
+                y = rotAxis.y;
+                z = rotAxis.z;
+                w = dot + 1;
+
+                Normalize();
+            }
+
+            Quaternion(const Vector<3, FloatFormat>& lookAt, const Vector<3, FloatFormat>& upVector)
+            {
+                Vector<3, FloatFormat> up = upVector.Normal();
+                Vector<3, FloatFormat> forward = lookAt.Normal();
+                Vector<3, FloatFormat> right = up.Cross(forward).Normal();
+                up = forward.Cross(right);
+
+                FloatFormat e00 = right.x, e10 = right.y, e20 = right.z;
+                FloatFormat e01 = up.x, e11 = up.y, e21 = up.z;
+                FloatFormat e02 = forward.x, e12 = forward.y, e22 = forward.z;
+
+                FloatFormat t, s;
+                t = 1.0f + e00 + e11 + e22;
+                if (t > 0.0001f)
+                {
+                    s = 0.5f / sqrtf(t);
+                    x = (e21 - e12) * s;
+                    y = (e02 - e20) * s;
+                    z = (e10 - e01) * s;
+                    w = 0.25f / s;
+                }
+                else if (e00 > e11 && e00 > e22)
+                {
+                    s = 0.5f / sqrtf(1.0f + e00 - e11 - e22);
+                    x = 0.25f / s;
+                    y = (e01 + e10) * s;
+                    z = (e02 + e20) * s;
+                    w = (e21 - e12) * s;
+                }
+                else if (e11 > e22)
+                {
+                    s = 0.5f / sqrtf(1.0f - e00 + e11 - e22);
+                    x = (e01 + e10) * s;
+                    y = 0.25f / s;
+                    z = (e12 + e21) * s;
+                    w = (e02 - e20) * s;
+                }
+                else
+                {
+                    s = 0.5f / sqrtf(1.0f - e00 - e11 + e22);
+                    x = (e02 + e20) * s;
+                    y = (e12 + e21) * s;
+                    z = 0.25f / s;
+                    w = (e10 - e01) * s;
+                }
+            }
+
+            Quaternion operator-() const
+            {
+                return Quaternion(-x, -y, -z, -w);
+            }
+
+            Quaternion operator+(const Quaternion& q) const
+            {
+                return Quaternion(x + q.x, y + q.y, z + q.z, w + q.w);
+            }
+
+            Quaternion operator-(const Quaternion& q) const
+            {
+                return Quaternion(x - q.x, y - q.y, z - q.z, w - q.w);
+            }
+
+            Quaternion operator*(const FloatFormat s) const
+            {
+                return Quaternion(x * s, y * s, z * s, w * s);
+            }
+
+            Quaternion operator*(const Quaternion& q) const
+            {
+                return Quaternion(w * q.x + x * q.w + y * q.z - z * q.y,
+                    w * q.y + y * q.w + z * q.x - x * q.z,
+                    w * q.z + z * q.w + x * q.y - y * q.x,
+                    w * q.w - x * q.x - y * q.y - z * q.z);
+            }
+
+            Vector<3, FloatFormat> operator*(const Vector<3, FloatFormat>& v) const
+            {
+                //return v + xyz.cross(xyz.cross(v) + v * w) * 2.0f;
+                return (*this * Quaternion(v.x, v.y, v.z, 0) * Inverse()).xyz();
+            }
+
+            FloatFormat Dot(const Quaternion& q) const
+            {
+                return x * q.x + y * q.y + z * q.z + w * q.w;
+            }
+
+            FloatFormat Length2() const
+            {
+                return Dot(*this);
+            }
+
+            FloatFormat Length() const
+            {
+                return sqrtf(Length2());
+            }
+
+            void Normalize()
+            {
+                *this = Normal();
+            }
+
+            Quaternion Normal() const
+            {
+                const FloatFormat l = Length();
+                return l == 0.0 ? (*this) : (*this) * (1.0f / l);
+            }
+
+            Quaternion Conjugate() const
+            {
+                return Quaternion(-x, -y, -z, w);
+            }
+
+            Quaternion Inverse() const
+            {
+                const FloatFormat l2 = Length2();
+                const FloatFormat l2inv = l2 == 0.0f ? 0.0f : (1.0f / l2);
+
+                return Conjugate() * l2inv;
+            }
+
+            Quaternion Lerp(const Quaternion& q, FloatFormat t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return q;
+
+                return Dot(q) < 0 ? (*this - (q + *this) * t) : (*this + (q - *this) * t);
+            }
+
+            Quaternion Slerp(const Quaternion& q, FloatFormat t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return q;
+
+                Quaternion temp;
+                FloatFormat omega, cosom, sinom, scale0, scale1;
+
+                cosom = Dot(q);
+                if (cosom < 0.0f)
+                {
+                    temp = -q;
+                    cosom = -cosom;
+                }
+                else
+                    temp = q;
+
+                if (1.0f - cosom > EPS)
+                {
+                    omega = acosf(cosom);
+                    sinom = 1.0f / sinf(omega);
+                    scale0 = sinf((1.0f - t) * omega) * sinom;
+                    scale1 = sinf(t * omega) * sinom;
+                }
+                else
+                {
+                    scale0 = 1.0f - t;
+                    scale1 = t;
+                }
+
+                return *this * scale0 + temp * scale1;
+            }
+
+            FloatFormat x, y, z, w;
+        };
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Rect

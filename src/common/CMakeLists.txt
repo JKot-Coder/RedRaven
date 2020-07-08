@@ -3,7 +3,6 @@ project (common)
 set(COMMON_SRC
         pch.hpp
         Math.hpp  
-        Math.inl
         Math.cpp
         Config.hpp
         VecMath.h
