@@ -335,39 +335,13 @@ namespace OpenDemo
         // Vector
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        #define SHARED_VECTOR_FUNCTIONS = 
+
         template <size_t Len, typename T>
         struct Vector
         {
-            using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
-
             static const Vector<Len, T> ZERO;
             static const Vector<Len, T> ONE;
-
-            T& operator[](int index) const
-            {
-                ASSERT(index >= 0 && index < Len)
-                return ((T*)this)[index];
-            }
-
-            const Vector<Len, T> Lerp(const Vector<Len, T>& v, const float t) const
-            {
-                if (t <= 0.0f)
-                    return *this;
-                if (t >= 1.0f)
-                    return v;
-                return *this + (v - *this) * t;
-            }
-
-            FloatFormat Length2() const { return Dot(*this); }
-
-            FloatFormat Length() const { return sqrtf(Length2()); }
-
-            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
-            Vector<Len, T> Normal() const
-            {
-                FloatFormat s = Length();
-                return s == 0.0 ? (*this) : (*this) * (FloatFormat(1.0) / s);
-            }
         };
 
         template <size_t Len, typename T>
@@ -500,15 +474,31 @@ namespace OpenDemo
             }
 
             // Shared vectors functions
-            T& operator[](int index) const;
+            T& operator[](int index) const
+            {
+                ASSERT(index >= 0 && index < Len)
+                return ((T*)this)[index];
+            }
 
-            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return v;
+                return *this + (v - *this) * t;
+            }
 
-            FloatFormat Length2() const;
-            FloatFormat Length() const;
+            FloatFormat Length2() const { return Dot(*this); }
+
+            FloatFormat Length() const { return sqrtf(Length2()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
-            Vector<SIZE, T> Normal() const;
+            Vector<SIZE, T> Normal() const
+            {
+                FloatFormat s = Length();
+                return s == 0.0 ? (*this) : (*this) * (FloatFormat(1.0) / s);
+            }
             ////////////////////////////////
 
             T x;
@@ -682,15 +672,31 @@ namespace OpenDemo
             Radian AngleY() const { return atan2f(z, x); }
 
             // Shared vectors functions
-            T& operator[](int index) const;
+            T& operator[](int index) const
+            {
+                ASSERT(index >= 0 && index < Len)
+                return ((T*)this)[index];
+            }
 
-            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return v;
+                return *this + (v - *this) * t;
+            }
 
-            FloatFormat Length2() const;
-            FloatFormat Length() const;
+            FloatFormat Length2() const { return Dot(*this); }
+
+            FloatFormat Length() const { return sqrtf(Length2()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
-            Vector<SIZE, T> Normal() const;
+            Vector<SIZE, T> Normal() const
+            {
+                FloatFormat s = Length();
+                return s == 0.0 ? (*this) : (*this) * (FloatFormat(1.0) / s);
+            }
             ////////////////////////////////
 
             T x;
@@ -853,15 +859,31 @@ namespace OpenDemo
             Vector<SIZE, T> Abs() const { return Vector<SIZE, T>(fabsf(x), fabsf(y), fabsf(z), fabsf(w)); }
 
             // Shared vectors functions
-            T& operator[](int index) const;
+            T& operator[](int index) const
+            {
+                ASSERT(index >= 0 && index < SIZE)
+                return ((T*)this)[index];
+            }
 
-            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const;
+            const Vector<SIZE, T> Lerp(const Vector<SIZE, T>& v, const float t) const
+            {
+                if (t <= 0.0f)
+                    return *this;
+                if (t >= 1.0f)
+                    return v;
+                return *this + (v - *this) * t;
+            }
 
-            FloatFormat Length2() const;
-            FloatFormat Length() const;
+            FloatFormat Length2() const { return Dot(*this); }
+
+            FloatFormat Length() const { return sqrtf(Length2()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
-            Vector<SIZE, T> Normal() const;
+            Vector<SIZE, T> Normal() const
+            {
+                FloatFormat s = Length();
+                return s == 0.0 ? (*this) : (*this) * (FloatFormat(1.0) / s);
+            }
             ////////////////////////////////
 
             T x;

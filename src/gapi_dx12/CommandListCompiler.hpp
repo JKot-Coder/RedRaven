@@ -9,30 +9,28 @@ namespace OpenDemo
 {
     namespace Render
     {
-        namespace Device
+
+        namespace DX12
         {
-            namespace DX12
+            class CommandListImpl;
+
+            struct CommandListCompilerContext
             {
-                class CommandListImpl;
+                CommandListCompilerContext() = delete;
+                CommandListCompilerContext(ID3D12Device* device, CommandList* commandList);
 
-                struct CommandListCompilerContext
-                {
-                    CommandListCompilerContext() = delete;
-                    CommandListCompilerContext(ID3D12Device* device, CommandList* commandList);
+            private:
+                ID3D12Device* device_;
+                CommandList* commandList_;
+                CommandListImpl* commandListImpl_;
+                ID3D12CommandList* d3dCommandList_;
+            };
 
-                private:
-                    ID3D12Device* device_;
-                    CommandList* commandList_;
-                    CommandListImpl* commandListImpl_;
-                    ID3D12CommandList* d3dCommandList_;
-                };
-
-                namespace CommandListCompiler
-                {
-                    GAPIStatus Compile(const CommandListCompilerContext& context);
-                }
-
+            namespace CommandListCompiler
+            {
+                GAPIStatus Compile(const CommandListCompilerContext& context);
             }
+
         }
     }
 }

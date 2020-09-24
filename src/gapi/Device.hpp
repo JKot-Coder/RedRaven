@@ -26,46 +26,40 @@ namespace OpenDemo
             Unknown
         };
 
-        namespace Device
+        struct PresentOptions
         {
-            struct PresentOptions
-            {
-                AlignedBox2i rect;
+            AlignedBox2i rect;
 
-                Common::NativeWindowHandle windowHandle;
+            Common::NativeWindowHandle windowHandle;
 
-                ResourceFormat resourceFormat;
-                uint32_t bufferCount;
-                bool isStereo;
-            };
+            ResourceFormat resourceFormat;
+            uint32_t bufferCount;
+            bool isStereo;
+        };
 
-            class SingleThreadDeviceInterface
-            {
-            public:
-                virtual GAPIStatus Init() = 0;
+        class SingleThreadDeviceInterface
+        {
+        public:
+            virtual GAPIStatus Init() = 0;
 
-                virtual GAPIStatus Reset(const PresentOptions& presentOptions) = 0;
+            virtual GAPIStatus Reset(const PresentOptions& presentOptions) = 0;
 
-                virtual GAPIStatus Present() = 0;
-            };
+            virtual GAPIStatus Present() = 0;
+        };
 
-            class MultiThreadDeviceInterface
-            {
-            public:
-                virtual GAPIStatus CompileCommandList(CommandList& commandList) const = 0;
-                virtual GAPIStatus SubmitCommandList(CommandList& commandList) const = 0;
+        class MultiThreadDeviceInterface
+        {
+        public:
+            virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
 
-                virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
+            virtual GAPIStatus InitResource(CommandList& commandList) const = 0;
+        };
 
-                virtual GAPIStatus InitResource(CommandList& commandList) const = 0;
-            };
-
-            class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface
-            {
-            public:
-                virtual ~Device() = default;
-            };
-
-        }
+        class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface
+        {
+        public:
+            virtual ~Device() = default;
+        };
+        
     }
 }

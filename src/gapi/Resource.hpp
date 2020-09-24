@@ -15,7 +15,8 @@ namespace OpenDemo
             enum class Type
             {
                 Buffer,
-                CommandList
+                CommandList,
+                RenderContext
             };
 
             Resource() = delete;

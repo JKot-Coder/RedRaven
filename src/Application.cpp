@@ -6,8 +6,6 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
-#include "gapi/CommandClear.hpp"
-#include "gapi/CommandList.hpp"
 #include "gapi_dx12/Device.hpp"
 
 #include "rendering/Mesh.hpp"
@@ -34,7 +32,7 @@ namespace OpenDemo
         int width = window_.GetWidth();
         int height = window_.GetHeight();
 
-        Render::Device::PresentOptions presentOptions;
+        Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0,0), Vector2i(width, height));
@@ -48,10 +46,10 @@ namespace OpenDemo
     {
         init();
         // loadResouces();
-        _device.reset(new Render::Device::DX12::Device());
+        _device.reset(new Render::DX12::Device());
         // TODO REMOVE IT
 
-        const auto cmdList = new Render::CommandList("asd");
+    /*    const auto cmdList = new Render::CommandList("asd");
         std::ignore = cmdList;
 
         auto alloc = cmdList->GetAllocator();
@@ -59,9 +57,9 @@ namespace OpenDemo
         {
             alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
-
+        */
         _device->Init();
-        Render::Device::PresentOptions presentOptions;
+        Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));

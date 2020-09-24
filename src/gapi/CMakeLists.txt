@@ -4,8 +4,6 @@ set(GAPI_SRC
         Frame.hpp
         Limits.hpp
         Resource.hpp
-        Command.hpp
-        CommandClear.hpp
         ResourceViews.hpp
         LinearAllocator.hpp
         LinearAllocator.cpp
@@ -16,7 +14,9 @@ set(GAPI_SRC
         GAPIStatus.hpp
         GAPIStatus.cpp
         Device.hpp
-        Device.cpp)
+        Device.cpp
+        RenderContext.hpp
+        RenderContext.cpp )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 target_link_libraries(${PROJECT_NAME} common)
