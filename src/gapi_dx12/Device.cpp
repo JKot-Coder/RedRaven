@@ -68,6 +68,7 @@ namespace OpenDemo
 
                 std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::COUNT)> commandQueues_;
                 std::array<ComSharedPtr<ID3D12Resource>, MAX_BACK_BUFFER_COUNT> renderTargets_;
+                std::array<DescriptorHeap::Allocation, MAX_BACK_BUFFER_COUNT> rtvs_;
 
                 D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
 
@@ -78,22 +79,11 @@ namespace OpenDemo
 
                 std::unique_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 // TEMPORARY
-                ComSharedPtr<ID3D12DescriptorHeap>
-                    rtvDescriptorHeap_;
-
                 std::unique_ptr<RenderContext> renderContext_;
                 std::shared_ptr<FenceImpl> fence_;
                 std::array<uint64_t, GPU_FRAMES_BUFFERED> fenceValues_;
                 winrt::handle fenceEvent_;
-                uint32_t rtvDescriptorSize_;
                 // TEMPORARY END
-
-                CD3DX12_CPU_DESCRIPTOR_HANDLE getRenderTargetView(uint32_t backBufferIndex)
-                {
-                    return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-                        rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
-                        static_cast<INT>(backBufferIndex), rtvDescriptorSize_);
-                }
 
                 ComSharedPtr<ID3D12CommandQueue> getCommandQueue(CommandQueueType commandQueueType)
                 {
@@ -137,27 +127,6 @@ namespace OpenDemo
 
                     commandQueue.as(commandQueues_[static_cast<size_t>(CommandQueueType::GRAPHICS)]);
                 }
-
-                // Create descriptor heaps for render target views and depth stencil views.
-                D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
-                rtvDescriptorHeapDesc.NumDescriptors = MAX_BACK_BUFFER_COUNT;
-                rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-
-                D3DCallMsg(d3dDevice_->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(rtvDescriptorHeap_.put())), "CreateDescriptorHeap");
-                D3DUtils::SetAPIName(rtvDescriptorHeap_.get(), u8"DescriptorHead");
-
-                rtvDescriptorSize_ = d3dDevice_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-                /*
-                if (m_depthBufferFormat != DXGI_FORMAT_UNKNOWN)
-                {
-                    D3D12_DESCRIPTOR_HEAP_DESC dsvDescriptorHeapDesc = {};
-                    dsvDescriptorHeapDesc.NumDescriptors = 1;
-                    dsvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-
-                    ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&dsvDescriptorHeapDesc, IID_PPV_ARGS(m_dsvDescriptorHeap.ReleaseAndGetAddressOf())));
-
-                    m_dsvDescriptorHeap->SetName(L"DeviceResources");
-                }*/
 
                 // Create a fence for tracking GPU execution progress.
                 fence_.reset(new FenceImpl());
@@ -293,11 +262,6 @@ namespace OpenDemo
                     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
                     rtvDesc.Format = currentSwapChainDesc.Format;
                     rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
-                    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvDescriptor(
-                        rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
-                        static_cast<INT>(index), rtvDescriptorSize_);
-                    d3dDevice_->CreateRenderTargetView(renderTargets_[index].get(), &rtvDesc, rtvDescriptor);
                 }
 
                 backBufferIndex_ = 0;
@@ -333,7 +297,7 @@ namespace OpenDemo
                         std::rand() / static_cast<float>(RAND_MAX),
                         std::rand() / static_cast<float>(RAND_MAX), 1);
 
-                    //renderContext_->ClearRenderTargetView(getRenderTargetView(backBufferIndex_), color);
+                  //  renderContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
                 }
 
                 //HRESULT hr;

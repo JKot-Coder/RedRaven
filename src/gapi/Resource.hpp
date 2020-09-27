@@ -11,13 +11,15 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<Resource>;
             using SharedConstPtr = std::shared_ptr<const Resource>;
             using ConstSharedPtrRef = const SharedPtr&;
+            using ResourceWeakPtr = std::weak_ptr<Resource>;
 
             enum class Type
             {
                 Buffer,
+                Texture,
                 CommandList,
                 RenderQueue,
-                RenderTargetView
+                ResourceView
             };
 
             Resource() = delete;

@@ -9,7 +9,7 @@ namespace OpenDemo
 
             GAPIResult DescriptorHeapSet::Init(ID3D12Device* device)
             {
-                rtvDescriptorHeap_ = std::make_unique<DescriptorHeap>();
+                rtvDescriptorHeap_ = std::make_shared<DescriptorHeap>();
 
                 DescriptorHeap::DescriptorHeapDesc desc;
                 desc.numDescriptors_ = 1000;
