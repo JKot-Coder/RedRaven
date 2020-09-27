@@ -19,7 +19,7 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                GAPIStatus InitResource(ResourceCreatorContext& context, Resource& resource);
+                GAPIResult InitResource(ResourceCreatorContext& context, Resource& resource);
             }
         }
     }

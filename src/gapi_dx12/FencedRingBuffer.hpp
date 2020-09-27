@@ -14,7 +14,7 @@ namespace OpenDemo
             class FencedFrameRingBuffer
             {
             public:
-                using NewObjectFunc = std::function<ObjectType(int index)>;
+                using NewObjectFunc = std::function<GAPIResult(int, ObjectType&)>;
 
                 FencedFrameRingBuffer()
                 {
@@ -31,31 +31,27 @@ namespace OpenDemo
                             _ringBuffer[index].object->Release();
                 }
 
-                GAPIStatus Init(ID3D12Device* device, NewObjectFunc newFunc, const U8String& name)
+                GAPIResult Init(ID3D12Device* device, NewObjectFunc newObject, const U8String& name)
                 {
-                    ASSERT(device && newFunc);
-
-                    GAPIStatus result = GAPIStatus::OK;
+                    ASSERT(device && newObject);
 
                     for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
                     {
-                        const auto& object = newFunc(index);
+                        ObjectType object;
+
+                        D3DCallMsg(newObject(index, object), "Fail to create object in FencedFrameRingBuffer");
+
                         _ringBuffer[index].object = object;
-                        if (!object)
-                        {
-                            Log::Print::Error("Fail to create object in FencedFrameRingBuffer");
-                            return GAPIStatus::FAIL;
-                        }
 #ifdef ENABLE_FENCE_SYNC_CHECK
                         _ringBuffer[index].frameStamp = 0;
 #endif
                     }
 
 #ifdef ENABLE_FENCE_SYNC_CHECK
-                    if (GAPIStatusU::Failure(result = _fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}", name))))
-                        return result;
+                    D3DCall(_fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}", name)));
+
 #endif
-                    return result;
+                    return GAPIResult::OK;
                 }
 
                 ObjectType CurrentObject()
@@ -81,12 +77,12 @@ namespace OpenDemo
                     return CurrentObject();
                 }
 
-                GAPIStatus MoveToNextFrame(ID3D12CommandQueue* commandQueue)
+                GAPIResult MoveToNextFrame(ID3D12CommandQueue* commandQueue)
                 {
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
 #else
-                    return GAPIStatus::OK;
+                    return GAPIResult::OK;
 #endif
                 }
 

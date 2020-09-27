@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/GAPIStatus.hpp"
+#include "gapi/GAPIResult.hpp"
 
 #include "gapi/Resource.hpp"
 

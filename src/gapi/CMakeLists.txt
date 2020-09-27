@@ -11,8 +11,8 @@ set(GAPI_SRC
 	    CommandList.hpp
         Fence.hpp
         FencedPool.hpp
-        GAPIStatus.hpp
-        GAPIStatus.cpp
+        GAPIResult.hpp
+        GAPIResult.cpp
         DeviceInterface.hpp
         RenderContextInterface.hpp
         RenderQueue.hpp )

@@ -5,7 +5,7 @@
 
 #include "gapi/Fence.hpp"
 
-#include "gapi/GAPIStatus.hpp"
+#include "gapi/GAPIResult.hpp"
 
 namespace OpenDemo
 {
@@ -40,11 +40,11 @@ namespace OpenDemo
         class SingleThreadDeviceInterface
         {
         public:
-            virtual GAPIStatus Init() = 0;
+            virtual GAPIResult Init() = 0;
 
-            virtual GAPIStatus Reset(const PresentOptions& presentOptions) = 0;
+            virtual GAPIResult Reset(const PresentOptions& presentOptions) = 0;
 
-            virtual GAPIStatus Present() = 0;
+            virtual GAPIResult Present() = 0;
         };
 
         class MultiThreadDeviceInterface
@@ -52,7 +52,7 @@ namespace OpenDemo
         public:
             virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
 
-            virtual GAPIStatus InitResource(Resource& resource) = 0;
+            virtual GAPIResult InitResource(Resource& resource) = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

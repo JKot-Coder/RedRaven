@@ -17,7 +17,7 @@ namespace OpenDemo
             public:
                 RenderContext();
 
-                GAPIStatus Init(ID3D12Device* device, const U8String& name);
+                GAPIResult Init(ID3D12Device* device, const U8String& name);
 
                 void Reset() override;
 

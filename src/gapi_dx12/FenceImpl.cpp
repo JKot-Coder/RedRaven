@@ -6,51 +6,35 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            GAPIStatus FenceImpl::Init(ID3D12Device* device, uint64_t initialValue, const U8String& name)
+            GAPIResult FenceImpl::Init(ID3D12Device* device, uint64_t initialValue, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(_fence.get() == nullptr)
 
-                GAPIStatus result = GAPIStatus::OK;
-
-                if (GAPIStatusU::Failure(result = GAPIStatus(device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_fence.put())))))
-                {
-                    LOG_ERROR("Failure create CreateFence with HRESULT of 0x%08X", result);
-                    return result;
-                }
-
+                D3DCallMsg(device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_fence.put())), "CreateFence");
                 D3DUtils::SetAPIName(_fence.get(), name);
 
                 _cpu_value = initialValue;
-                return result;
+                return GAPIResult::OK;
             }
 
-            GAPIStatus FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
+            GAPIResult FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
             {
                 ASSERT(_fence.get())
 
-                GAPIStatus result = GAPIStatus(commandQueue->Signal(_fence.get(), value));
-
-                if (GAPIStatusU::Failure(result))
-                {
-                    LOG_ERROR("Failure signal fence with HRESULT of 0x%08X", result);
-                    return result;
-                }
+                D3DCallMsg(commandQueue->Signal(_fence.get(), value), "Signal");
 
                 _cpu_value = value;
-                return result;
+                return GAPIResult::OK;
             }
 
-            GAPIStatus FenceImpl::SetEventOnCompletion(uint64_t value, HANDLE event) const
+            GAPIResult FenceImpl::SetEventOnCompletion(uint64_t value, HANDLE event) const
             {
                 ASSERT(_fence.get())
 
-                GAPIStatus result = GAPIStatus(_fence->SetEventOnCompletion(value, event));
+                D3DCallMsg(_fence->SetEventOnCompletion(value, event), "SetEventOnCompletion");
 
-                if (GAPIStatusU::Failure(result))
-                    LOG_ERROR("Failure SetEventOnCompletion fence with HRESULT of 0x%08X", result);
-
-                return result;
+                return GAPIResult::OK;
             }
 
             uint64_t FenceImpl::GetGpuValue() const
@@ -58,6 +42,6 @@ namespace OpenDemo
                 ASSERT(_fence.get())
                 return _fence->GetCompletedValue();
             }
-        }       
+        }
     }
 }

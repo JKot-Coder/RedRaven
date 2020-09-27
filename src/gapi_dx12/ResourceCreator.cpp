@@ -14,32 +14,29 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            GAPIStatus InitResource(ResourceCreatorContext& context, RenderQueue& resource)
+            GAPIResult InitResource(ResourceCreatorContext& context, RenderQueue& resource)
             {
                 auto impl = new RenderQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
 
-                GAPIStatus result;
-                if (GAPIStatusU::Failure(result = GAPIStatus(impl->Init(context.device, resource.GetName()))))
-                    return result;
-
+                D3DCall(impl->Init(context.device, resource.GetName()));
                 resource.SetPrivateImpl(impl);
+
+                return GAPIResult::OK;
             }
 
-            GAPIStatus InitResource(ResourceCreatorContext& context, RenderTargetView& resource)
+            GAPIResult InitResource(ResourceCreatorContext& context, RenderTargetView& resource)
             {
                 auto allocation = new DescriptorHeap::Allocation();
-
                 auto descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
 
-                GAPIStatus result;
-
-                if (GAPIStatusU::Failure(result = descriptorHeap->Alloc(*allocation)))
-                    return result;
+                D3DCall(descriptorHeap->Alloc(*allocation));
 
                 resource.SetPrivateImpl(allocation);
+
+                return GAPIResult::OK;
             }
 
-            GAPIStatus ResourceCreator::InitResource(ResourceCreatorContext& context, Resource& resource)
+            GAPIResult ResourceCreator::InitResource(ResourceCreatorContext& context, Resource& resource)
             {
                 ASSERT(!resource.GetPrivateImpl<void*>())
 

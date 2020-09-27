@@ -15,7 +15,7 @@ namespace OpenDemo
             public:
                 RenderTargetViewImpl() = default;
 
-                GAPIStatus Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHeap::Allocation& handle)
+                GAPIResult Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHeap::Allocation& handle)
                 {
                    // handle_()
                 }

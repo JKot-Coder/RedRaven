@@ -7,6 +7,7 @@
 
 #include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
+#include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/RenderContext.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
@@ -38,9 +39,9 @@ namespace OpenDemo
             public:
                 DeviceImplementation();
 
-                GAPIStatus Init();
-                GAPIStatus Reset(const PresentOptions& presentOptions);
-                GAPIStatus Present();
+                GAPIResult Init();
+                GAPIResult Reset(const PresentOptions& presentOptions);
+                GAPIResult Present();
 
                 ID3D12Device* GetDevice() const
                 {
@@ -49,7 +50,7 @@ namespace OpenDemo
 
                 void WaitForGpu();
 
-                GAPIStatus InitResource(Resource& resource);
+                GAPIResult InitResource(Resource& resource);
 
             private:
                 bool enableDebug_ = true;
@@ -99,9 +100,9 @@ namespace OpenDemo
                     return commandQueues_[static_cast<std::underlying_type<CommandQueueType>::type>(commandQueueType)];
                 }
 
-                GAPIStatus createDevice();
+                GAPIResult createDevice();
 
-                GAPIStatus handleDeviceLost();
+                GAPIResult handleDeviceLost();
 
                 void moveToNextFrame();
             };
@@ -111,7 +112,7 @@ namespace OpenDemo
             {
             }
 
-            GAPIStatus DeviceImplementation::Init()
+            GAPIResult DeviceImplementation::Init()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(inited_ == false);
@@ -121,13 +122,7 @@ namespace OpenDemo
                 // TODO Take from parameters. Check by assert;
                 backBufferCount_ = 2;
 
-                GAPIStatus result = GAPIStatus::OK;
-
-                if (GAPIStatusU::Failure(result = createDevice()))
-                {
-                    LOG_ERROR("Failed CreateDevice");
-                    return result;
-                }
+                D3DCallMsg(createDevice(), "CreateDevice");
 
                 // Create the command queue.
                 D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -136,12 +131,9 @@ namespace OpenDemo
 
                 {
                     ComSharedPtr<ID3D12CommandQueue> commandQueue;
-                    if (GAPIStatusU::Failure(result = GAPIStatus(d3dDevice_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(commandQueue.put())))))
-                    {
-                        LOG_ERROR("Failure create CommandQueue with HRESULT of 0x%08X", result);
-                        return result;
-                    }
-                    commandQueue->SetName(L"MainCommandQueue");
+
+                    D3DCallMsg(d3dDevice_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(commandQueue.put())), "CreateCommandQueue");
+                    D3DUtils::SetAPIName(commandQueue.get(), u8"MainCommandQueue");
 
                     commandQueue.as(commandQueues_[static_cast<size_t>(CommandQueueType::GRAPHICS)]);
                 }
@@ -151,13 +143,8 @@ namespace OpenDemo
                 rtvDescriptorHeapDesc.NumDescriptors = MAX_BACK_BUFFER_COUNT;
                 rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 
-                if (GAPIStatusU::Failure(result = GAPIStatus(d3dDevice_->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(rtvDescriptorHeap_.put())))))
-                {
-                    LOG_ERROR("Failure create DescriptorHeap with HRESULT of 0x%08X", result);
-                    return result;
-                }
-
-                rtvDescriptorHeap_->SetName(L"DescriptorHead");
+                D3DCallMsg(d3dDevice_->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(rtvDescriptorHeap_.put())), "CreateDescriptorHeap");
+                D3DUtils::SetAPIName(rtvDescriptorHeap_.get(), u8"DescriptorHead");
 
                 rtvDescriptorSize_ = d3dDevice_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
                 /*
@@ -174,16 +161,10 @@ namespace OpenDemo
 
                 // Create a fence for tracking GPU execution progress.
                 fence_.reset(new FenceImpl());
-                if (GAPIStatusU::Failure(result = fence_->Init(d3dDevice_.get(), 1, "FrameSync")))
-                {
-                    return result;
-                }
+                D3DCall(fence_->Init(d3dDevice_.get(), 1, "FrameSync"));
 
                 renderContext_.reset(new RenderContext());
-                if (GAPIStatusU::Failure(renderContext_->Init(d3dDevice_.get(), "Main")))
-                {
-                    return result;
-                }
+                D3DCall(renderContext_->Init(d3dDevice_.get(), "Main"));
 
                 for (int i = 0; i < GPU_FRAMES_BUFFERED; i++)
                 {
@@ -196,21 +177,17 @@ namespace OpenDemo
                 if (!bool { fenceEvent_ })
                 {
                     LOG_ERROR("Failure create fence Event");
-                    return GAPIStatus::FAIL;
+                    return GAPIResult::FAIL;
                 }
 
                 descriptorHeapSet_ = std::make_unique<DescriptorHeapSet>();
-                if (GAPIStatusU::Failure(descriptorHeapSet_->Init(d3dDevice_.get())))
-                {
-                    LOG_ERROR("Failure create descriptor pool");
-                    return result;
-                }
+                D3DCall(descriptorHeapSet_->Init(d3dDevice_.get()));
 
                 resourceCreatorContext_.device = d3dDevice_.get();
                 resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_.get();
 
-                inited_ = GAPIStatusU::Success(result);
-                return result;
+                inited_ = true;
+                return GAPIResult::OK;
             }
 
             void DeviceImplementation::WaitForGpu()
@@ -218,13 +195,13 @@ namespace OpenDemo
                 ASSERT_IS_DEVICE_INITED;
             }
 
-            GAPIStatus DeviceImplementation::InitResource(Resource& resource)
+            GAPIResult DeviceImplementation::InitResource(Resource& resource)
             {
                 return ResourceCreator::InitResource(resourceCreatorContext_, resource);
             }
 
             // These resources need to be recreated every time the window size is changed.
-            GAPIStatus DeviceImplementation::Reset(const PresentOptions& presentOptions)
+            GAPIResult DeviceImplementation::Reset(const PresentOptions& presentOptions)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -248,17 +225,12 @@ namespace OpenDemo
                     // m_fenceValues[n] = m_fenceValues[m_frameIndex];
                 }
 
-                GAPIStatus result = GAPIStatus::OK;
-
                 // If the swap chain already exists, resize it, otherwise create one.
                 if (swapChain_)
                 {
                     DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
-                    if (GAPIStatusU::Failure(result = GAPIStatus(swapChain_->GetDesc1(&currentSwapChainDesc))))
-                    {
-                        LOG_ERROR("Failure get swapChain Desc");
-                        return result;
-                    }
+
+                    D3DCallMsg(swapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
 
                     const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(presentOptions, DXGI_SWAP_EFFECT_FLIP_DISCARD);
                     const auto swapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
@@ -266,7 +238,7 @@ namespace OpenDemo
                     if (!swapChainCompatable)
                     {
                         LOG_ERROR("SwapChains incompatible");
-                        return GAPIStatus::FAIL;
+                        return GAPIResult::FAIL;
                     }
 
                     // If the swap chain already exists, resize it.
@@ -287,11 +259,8 @@ namespace OpenDemo
                         // and correctly set up the new device.
                         return handleDeviceLost();
                     }
-                    else if (GAPIStatusU::Failure(result = GAPIStatus(hr)))
-                    {
-                        LOG_ERROR("Failed ResizeBuffers")
-                        return GAPIStatus(result);
-                    }
+                    else
+                        D3DCallMsg(hr, "ResizeBuffers");
                 }
                 else
                 {
@@ -300,28 +269,21 @@ namespace OpenDemo
 
                     ComSharedPtr<IDXGISwapChain1> swapChain2;
                     // Create a swap chain for the window.
-                    if (GAPIStatusU::Failure(result = GAPIStatus(dxgiFactory_->CreateSwapChainForHwnd(
-                                                 graphicsCommandQueue.get(),
-                                                 presentOptions.windowHandle,
-                                                 &targetSwapChainDesc,
-                                                 nullptr,
-                                                 nullptr,
-                                                 swapChain2.put()))))
-                    {
-                        LOG_ERROR("Failure CreateSwapChainForHwnd");
-                        return result;
-                    }
+                    D3DCallMsg(dxgiFactory_->CreateSwapChainForHwnd(
+                                   graphicsCommandQueue.get(),
+                                   presentOptions.windowHandle,
+                                   &targetSwapChainDesc,
+                                   nullptr,
+                                   nullptr,
+                                   swapChain2.put()),
+                        "CreateSwapChainForHwnd");
 
                     swapChain2.as(swapChain_);
                 }
 
                 // Update backbuffers.
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
-                if (GAPIStatusU::Failure(result = GAPIStatus(swapChain_->GetDesc1(&currentSwapChainDesc))))
-                {
-                    LOG_ERROR("Failure get swapChain Desc");
-                    return result;
-                }
+                D3DCallMsg(swapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
 
                 for (int index = 0; index < backBufferCount_; index++)
                 {
@@ -341,17 +303,17 @@ namespace OpenDemo
                 backBufferIndex_ = 0;
 
                 // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
-                //   if (GAPIStatusU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
+                //   if (GAPIResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
                 // {
                 // }*/
+
+                return GAPIResult::OK;
             }
 
-            GAPIStatus DeviceImplementation::Present()
+            GAPIResult DeviceImplementation::Present()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
-
-                GAPIStatus result = GAPIStatus::OK;
 
                 const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
 
@@ -407,39 +369,33 @@ namespace OpenDemo
                 }
                 else
                 {
-                    if (GAPIStatusU::Failure(result = GAPIStatus(hr)))
-                    {
-                        LOG_ERROR("Fail on Present");
-                        return result;
-                    }
+                    D3DCallMsg(hr, "Present1");
 
                     moveToNextFrame();
 
                     if (!dxgiFactory_->IsCurrent())
                     {
                         LOG_ERROR("Dxgi is not current");
-                        return GAPIStatus::FAIL;
+                        return GAPIResult::FAIL;
 
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
                 }
 
-                return result;
+                return GAPIResult::OK;
             }
 
-            GAPIStatus DeviceImplementation::handleDeviceLost()
+            GAPIResult DeviceImplementation::handleDeviceLost()
             {
                 // Todo implement properly Device lost event processing
                 Log::Print::Fatal("Device was lost.");
-                return GAPIStatus::OK;
+                return GAPIResult::OK;
             }
 
-            GAPIStatus DeviceImplementation::createDevice()
+            GAPIResult DeviceImplementation::createDevice()
             {
                 ASSERT_IS_CREATION_THREAD;
-
-                GAPIStatus result = GAPIStatus::OK;
 
                 UINT dxgiFactoryFlags = 0;
                 // Enable the debug layer (requires the Graphics Tools "optional feature").
@@ -467,33 +423,24 @@ namespace OpenDemo
                     }
                 }
 
-                if (GAPIStatusU::Failure(result = GAPIStatus(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(dxgiFactory_.put())))))
-                {
-                    LOG_ERROR("Failure create DXGIFactory with HRESULT of 0x%08X", result);
-                    return result;
-                }
+                D3DCallMsg(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(dxgiFactory_.put())), "CreateDXGIFactory2");
 
                 D3D_FEATURE_LEVEL minimumFeatureLevel = D3D_FEATURE_LEVEL_11_0;
-                if (GAPIStatusU::Failure(result = GAPIStatus(D3DUtils::GetAdapter(dxgiFactory_, minimumFeatureLevel, dxgiAdapter_))))
-                {
-                    LOG_ERROR("Failure create Adapter with HRESULT of 0x%08X", result);
-                    return result;
-                }
+
+                D3DCallMsg(D3DUtils::GetAdapter(dxgiFactory_, minimumFeatureLevel, dxgiAdapter_), "GetAdapter");
 
                 // Create the DX12 API device object.
-                if (GAPIStatusU::Failure(result = GAPIStatus(D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put())))))
-                {
-                    LOG_ERROR("Failure create Device with HRESULT of 0x%08X", result);
-                    return result;
-                }
+                D3DCallMsg(D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put())), "D3D12CreateDevice");
 
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
+
                 if (enableDebug_)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
 
-                    if (GAPIStatusU::Success(result = GAPIStatus(
+                    GAPIResult result;
+                    if (GAPIResultU::Success(result = GAPIResult(
                                                  d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put())))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
@@ -529,7 +476,7 @@ namespace OpenDemo
                     d3dFeatureLevel_ = minimumFeatureLevel;
                 }
 
-                return result;
+                return GAPIResult::OK;
             }
 
             void DeviceImplementation::moveToNextFrame()
@@ -568,17 +515,17 @@ namespace OpenDemo
 
             Device::~Device() { }
 
-            GAPIStatus Device::Init()
+            GAPIResult Device::Init()
             {
                 return _impl->Init();
             }
 
-            GAPIStatus Device::Reset(const PresentOptions& presentOptions)
+            GAPIResult Device::Reset(const PresentOptions& presentOptions)
             {
                 return _impl->Reset(presentOptions);
             }
 
-            GAPIStatus Device::Present()
+            GAPIResult Device::Present()
             {
                 return _impl->Present();
             }
@@ -593,7 +540,7 @@ namespace OpenDemo
                 return 0;
             }
 
-            GAPIStatus Device::InitResource(Resource& resource)
+            GAPIResult Device::InitResource(Resource& resource)
             {
                 return _impl->InitResource(resource);
             }

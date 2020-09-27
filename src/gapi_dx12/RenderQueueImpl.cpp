@@ -11,7 +11,7 @@ namespace OpenDemo
             {
             }
 
-            GAPIStatus RenderQueueImpl::Init(ID3D12Device* device, const U8String& name)
+            GAPIResult RenderQueueImpl::Init(ID3D12Device* device, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(D3DCommandQueue_.get() == nullptr)
@@ -20,20 +20,13 @@ namespace OpenDemo
                 desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
                 desc.Type = type_;
 
-                GAPIStatus result = GAPIStatus::OK;
-
-                if (GAPIStatusU::Failure(result = GAPIStatus(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())))))
-                {
-                    LOG_ERROR("Failure create CommandQueue with HRESULT of 0x%08X", result);
-                    return result;
-                }
-
+                D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
 
-                return result;
+                return GAPIResult::OK;
             }
 
-            //    GAPIStatus RenderQueueImpl::Submit(RenderContextInterface& renderContext)
+            //    GAPIResult RenderQueueImpl::Submit(RenderContextInterface& renderContext)
             //  {
             //   }
         };
