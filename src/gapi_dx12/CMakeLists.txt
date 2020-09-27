@@ -15,7 +15,19 @@ set(GAPI_SRC
         FenceImpl.hpp
         FenceImpl.cpp
         CommandListImpl.hpp
-        CommandListImpl.cpp)
+        CommandListImpl.cpp
+        RenderContext.hpp
+        RenderContext.cpp
+        RenderQueueImpl.hpp
+        RenderQueueImpl.cpp 
+        ResourceCreator.hpp
+        ResourceCreator.cpp
+        ResourceViewsImpl.hpp
+        ResourceViewsImpl.cpp
+        DescriptorHeap.hpp
+        DescriptorHeap.cpp
+        DescriptorHeapSet.hpp
+        DescriptorHeapSet.cpp )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 target_link_libraries(${PROJECT_NAME} common gapi d3d12.lib dxgi.lib dxguid.lib WindowsApp.lib)

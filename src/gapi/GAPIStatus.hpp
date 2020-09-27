@@ -10,6 +10,8 @@ namespace OpenDemo
             OK = 0,
             FALSE_CODE = 1,
 
+            OUT_OF_MEMORY = 0x8007000E,
+
             FAIL = 0x80004005
         };
 

@@ -11,7 +11,7 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class CommandList;
+        class Resource;
 
         enum class CommandQueueType
         {
@@ -52,7 +52,7 @@ namespace OpenDemo
         public:
             virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
 
-            virtual GAPIStatus InitResource(CommandList& commandList) const = 0;
+            virtual GAPIStatus InitResource(Resource& resource) = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface
@@ -60,6 +60,6 @@ namespace OpenDemo
         public:
             virtual ~Device() = default;
         };
-        
+
     }
 }

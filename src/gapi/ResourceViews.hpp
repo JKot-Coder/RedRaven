@@ -18,9 +18,6 @@ namespace OpenDemo
             }
 
             virtual ~RenderTargetView() = default;
-
-        private:
-
         };
 
 

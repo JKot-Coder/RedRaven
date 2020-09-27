@@ -2,7 +2,7 @@
 
 #include "common/Logger.hpp"
 
-#include "gapi/Device.hpp"
+#include "gapi/DeviceInterface.hpp"
 
 namespace OpenDemo
 {

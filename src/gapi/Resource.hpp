@@ -16,7 +16,8 @@ namespace OpenDemo
             {
                 Buffer,
                 CommandList,
-                RenderContext
+                RenderQueue,
+                RenderTargetView
             };
 
             Resource() = delete;

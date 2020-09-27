@@ -26,6 +26,8 @@ namespace OpenDemo
                 U8String D3D12TypeName<ID3D12GraphicsCommandList>::name = "CommandList";
                 U8String D3D12TypeName<ID3D12CommandAllocator>::name = "Allocator";
                 U8String D3D12TypeName<ID3D12Resource>::name = "Resource";
+                U8String D3D12TypeName<ID3D12DescriptorHeap>::name = "DescriptorHeap";
+                U8String D3D12TypeName<ID3D12CommandQueue>::name = "CommandQueue";
 
                 template <typename T>
                 inline void SetAPIName(const T& apiObject, const U8String& name)

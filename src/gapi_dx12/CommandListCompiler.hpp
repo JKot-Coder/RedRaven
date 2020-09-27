@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Device.hpp"
+#include "gapi/DeviceInterface.hpp"
 
 struct ID3D12Device;
 struct ID3D12CommandList;
@@ -17,11 +17,10 @@ namespace OpenDemo
             struct CommandListCompilerContext
             {
                 CommandListCompilerContext() = delete;
-                CommandListCompilerContext(ID3D12Device* device, CommandList* commandList);
+                CommandListCompilerContext(ID3D12Device* device);
 
             private:
                 ID3D12Device* device_;
-                CommandList* commandList_;
                 CommandListImpl* commandListImpl_;
                 ID3D12CommandList* d3dCommandList_;
             };

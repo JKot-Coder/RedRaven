@@ -13,10 +13,9 @@ set(GAPI_SRC
         FencedPool.hpp
         GAPIStatus.hpp
         GAPIStatus.cpp
-        Device.hpp
-        Device.cpp
-        RenderContext.hpp
-        RenderContext.cpp )
+        DeviceInterface.hpp
+        RenderContextInterface.hpp
+        RenderQueue.hpp )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 target_link_libraries(${PROJECT_NAME} common)

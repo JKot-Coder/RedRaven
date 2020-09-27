@@ -8,8 +8,8 @@
 #include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-
-#include "gapi_dx12/d3dx12.h"
+#include "gapi_dx12/RenderContext.hpp"
+#include "gapi_dx12/ResourceCreator.hpp"
 
 #include <chrono>
 #include <thread>
@@ -42,13 +42,22 @@ namespace OpenDemo
                 GAPIStatus Reset(const PresentOptions& presentOptions);
                 GAPIStatus Present();
 
+                ID3D12Device* GetDevice() const
+                {
+                    return d3dDevice_.get();
+                }
+
                 void WaitForGpu();
+
+                GAPIStatus InitResource(Resource& resource);
 
             private:
                 bool enableDebug_ = true;
 
                 std::thread::id creationThreadID_;
                 bool inited_ = false;
+
+                ResourceCreatorContext resourceCreatorContext_;
 
                 ComSharedPtr<ID3D12Debug1> debugController_;
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
@@ -66,9 +75,12 @@ namespace OpenDemo
                 uint32_t backBufferIndex_ = 0;
                 uint32_t backBufferCount_ = 0;
 
+                std::unique_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 // TEMPORARY
-                ComSharedPtr<ID3D12DescriptorHeap> rtvDescriptorHeap_;
-                std::unique_ptr<CommandListImpl> commandList_;
+                ComSharedPtr<ID3D12DescriptorHeap>
+                    rtvDescriptorHeap_;
+
+                std::unique_ptr<RenderContext> renderContext_;
                 std::shared_ptr<FenceImpl> fence_;
                 std::array<uint64_t, GPU_FRAMES_BUFFERED> fenceValues_;
                 winrt::handle fenceEvent_;
@@ -167,8 +179,8 @@ namespace OpenDemo
                     return result;
                 }
 
-                commandList_.reset(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT));
-                if (GAPIStatusU::Failure(commandList_->Init(d3dDevice_.get(), "Main")))
+                renderContext_.reset(new RenderContext());
+                if (GAPIStatusU::Failure(renderContext_->Init(d3dDevice_.get(), "Main")))
                 {
                     return result;
                 }
@@ -187,6 +199,16 @@ namespace OpenDemo
                     return GAPIStatus::FAIL;
                 }
 
+                descriptorHeapSet_ = std::make_unique<DescriptorHeapSet>();
+                if (GAPIStatusU::Failure(descriptorHeapSet_->Init(d3dDevice_.get())))
+                {
+                    LOG_ERROR("Failure create descriptor pool");
+                    return result;
+                }
+
+                resourceCreatorContext_.device = d3dDevice_.get();
+                resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_.get();
+
                 inited_ = GAPIStatusU::Success(result);
                 return result;
             }
@@ -194,6 +216,11 @@ namespace OpenDemo
             void DeviceImplementation::WaitForGpu()
             {
                 ASSERT_IS_DEVICE_INITED;
+            }
+
+            GAPIStatus DeviceImplementation::InitResource(Resource& resource)
+            {
+                return ResourceCreator::InitResource(resourceCreatorContext_, resource);
             }
 
             // These resources need to be recreated every time the window size is changed.
@@ -274,12 +301,12 @@ namespace OpenDemo
                     ComSharedPtr<IDXGISwapChain1> swapChain2;
                     // Create a swap chain for the window.
                     if (GAPIStatusU::Failure(result = GAPIStatus(dxgiFactory_->CreateSwapChainForHwnd(
-                                                    graphicsCommandQueue.get(),
-                                                    presentOptions.windowHandle,
-                                                    &targetSwapChainDesc,
-                                                    nullptr,
-                                                    nullptr,
-                                                    swapChain2.put()))))
+                                                 graphicsCommandQueue.get(),
+                                                 presentOptions.windowHandle,
+                                                 &targetSwapChainDesc,
+                                                 nullptr,
+                                                 nullptr,
+                                                 swapChain2.put()))))
                     {
                         LOG_ERROR("Failure CreateSwapChainForHwnd");
                         return result;
@@ -337,24 +364,15 @@ namespace OpenDemo
                 }
 
                 D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets_[backBufferIndex_].get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-                const auto& commandList = commandList_->GetCommandList();
 
-                commandList->ResourceBarrier(1, &barrier);
                 for (int i = 0; i < 100000; i++)
                 {
-                    float color[4] = { std::rand() / static_cast<float>(RAND_MAX),
+                    Vector4 color(std::rand() / static_cast<float>(RAND_MAX),
                         std::rand() / static_cast<float>(RAND_MAX),
-                        std::rand() / static_cast<float>(RAND_MAX), 1 };
+                        std::rand() / static_cast<float>(RAND_MAX), 1);
 
-                    commandList->ClearRenderTargetView(getRenderTargetView(backBufferIndex_), color, 0, nullptr);
+                    //renderContext_->ClearRenderTargetView(getRenderTargetView(backBufferIndex_), color);
                 }
-                barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets_[backBufferIndex_].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-                commandList->ResourceBarrier(1, &barrier);
-                // Send the command list off to the GPU for processing.
-                commandList->Close();
-
-                //  TODO Check correct fence work.
-                commandList_->Submit(commandQueue.get());
 
                 //HRESULT hr;
                 /*if (m_options & c_AllowTearing)
@@ -476,7 +494,7 @@ namespace OpenDemo
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
 
                     if (GAPIStatusU::Success(result = GAPIStatus(
-                                                    d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put())))))
+                                                 d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put())))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
                         d3dInfoQueue->ClearStorageFilter();
@@ -575,11 +593,10 @@ namespace OpenDemo
                 return 0;
             }
 
-            GAPIStatus Device::InitResource(CommandList& commandList) const
+            GAPIStatus Device::InitResource(Resource& resource)
             {
-                return GAPIStatus::OK;
+                return _impl->InitResource(resource);
             }
         }
-        
     }
 }

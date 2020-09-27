@@ -6,9 +6,21 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class RenderContext final : public Resource
+        class RenderTargetView;
+
+        class RenderContextInterface
         {
         public:
+            virtual void Reset() = 0;
+
+            virtual void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) = 0;
+        };
+    }
+}
+
+/*
+
+   public:
             RenderContext() = delete;
             RenderContext(const RenderContext&) = delete;
             RenderContext& operator=(const RenderContext&) = delete;
@@ -20,6 +32,5 @@ namespace OpenDemo
             virtual ~RenderContext() = default;
 
         private:
-        };
-    }
-}
+
+*/

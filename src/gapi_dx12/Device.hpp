@@ -1,4 +1,4 @@
-#include "gapi/Device.hpp"
+#include "gapi/DeviceInterface.hpp"
 
 namespace OpenDemo
 {
@@ -18,7 +18,7 @@ namespace OpenDemo
 
                 uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const override;
 
-                GAPIStatus InitResource(CommandList& commandList) const override;
+                GAPIStatus InitResource(Resource& resource) override;
 
                 void WaitForGpu();
 
