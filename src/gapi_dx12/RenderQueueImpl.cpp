@@ -11,7 +11,7 @@ namespace OpenDemo
             {
             }
 
-            GAPIResult RenderQueueImpl::Init(ID3D12Device* device, const U8String& name)
+            Result RenderQueueImpl::Init(ID3D12Device* device, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(D3DCommandQueue_.get() == nullptr)
@@ -23,10 +23,10 @@ namespace OpenDemo
                 D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            //    GAPIResult RenderQueueImpl::Submit(RenderContextInterface& renderContext)
+            //    Result RenderQueueImpl::Submit(RenderContextInterface& renderContext)
             //  {
             //   }
         };

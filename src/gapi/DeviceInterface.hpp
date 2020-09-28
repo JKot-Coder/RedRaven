@@ -5,13 +5,13 @@
 
 #include "gapi/Fence.hpp"
 
-#include "gapi/GAPIResult.hpp"
+#include "gapi/Result.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        class Resource;
+        class Object;
 
         enum class CommandQueueType
         {
@@ -40,11 +40,11 @@ namespace OpenDemo
         class SingleThreadDeviceInterface
         {
         public:
-            virtual GAPIResult Init() = 0;
+            virtual Result Init() = 0;
 
-            virtual GAPIResult Reset(const PresentOptions& presentOptions) = 0;
+            virtual Result Reset(const PresentOptions& presentOptions) = 0;
 
-            virtual GAPIResult Present() = 0;
+            virtual Result Present() = 0;
         };
 
         class MultiThreadDeviceInterface
@@ -52,7 +52,7 @@ namespace OpenDemo
         public:
             virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
 
-            virtual GAPIResult InitResource(Resource& resource) = 0;
+            virtual Result InitResource(Object& resource) = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

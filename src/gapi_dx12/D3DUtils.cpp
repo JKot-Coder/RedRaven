@@ -69,7 +69,7 @@ namespace OpenDemo
                     }
                 }
 
-                // Todo replace to GAPIResult
+                // Todo replace to Result
                 HRESULT GetAdapter(const ComSharedPtr<IDXGIFactory1>& dxgiFactory, D3D_FEATURE_LEVEL minimumFeatureLevel, ComSharedPtr<IDXGIAdapter1>& adapter)
                 {
                     HRESULT result = E_FAIL;

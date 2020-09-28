@@ -14,7 +14,7 @@ namespace OpenDemo
             class FencedFrameRingBuffer
             {
             public:
-                using NewObjectFunc = std::function<GAPIResult(int, ObjectType&)>;
+                using NewObjectFunc = std::function<Result(int, ObjectType&)>;
 
                 FencedFrameRingBuffer()
                 {
@@ -31,7 +31,7 @@ namespace OpenDemo
                             _ringBuffer[index].object->Release();
                 }
 
-                GAPIResult Init(ID3D12Device* device, NewObjectFunc newObject, const U8String& name)
+                Result Init(ID3D12Device* device, NewObjectFunc newObject, const U8String& name)
                 {
                     ASSERT(device && newObject);
 
@@ -51,7 +51,7 @@ namespace OpenDemo
                     D3DCall(_fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}", name)));
 
 #endif
-                    return GAPIResult::OK;
+                    return Result::OK;
                 }
 
                 ObjectType CurrentObject()
@@ -77,12 +77,12 @@ namespace OpenDemo
                     return CurrentObject();
                 }
 
-                GAPIResult MoveToNextFrame(ID3D12CommandQueue* commandQueue)
+                Result MoveToNextFrame(ID3D12CommandQueue* commandQueue)
                 {
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
 #else
-                    return GAPIResult::OK;
+                    return Result::OK;
 #endif
                 }
 

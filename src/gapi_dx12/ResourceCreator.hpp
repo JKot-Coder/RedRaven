@@ -6,7 +6,7 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class Resource;
+        class Object;
 
         namespace DX12
         {
@@ -19,7 +19,7 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                GAPIResult InitResource(ResourceCreatorContext& context, Resource& resource);
+                Result InitResource(ResourceCreatorContext& context, Object& resource);
             }
         }
     }

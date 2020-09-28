@@ -12,13 +12,13 @@ namespace OpenDemo
                 Device();
                 ~Device() override;
 
-                GAPIResult Init() override;
-                GAPIResult Reset(const PresentOptions& presentOptions) override;
-                GAPIResult Present() override;
+                Result Init() override;
+                Result Reset(const PresentOptions& presentOptions) override;
+                Result Present() override;
 
                 uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const override;
 
-                GAPIResult InitResource(Resource& resource) override;
+                Result InitResource(Object& resource) override;
 
                 void WaitForGpu();
 

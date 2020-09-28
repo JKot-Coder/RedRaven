@@ -7,19 +7,19 @@ namespace OpenDemo
         namespace DX12
         {
 
-            GAPIResult CommandListImpl::Init(ID3D12Device* device, const U8String& name)
+            Result CommandListImpl::Init(ID3D12Device* device, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(_commandList.get() == nullptr)
 
                 const auto& commandListType = _type;
 
-                auto newCommandAllocator = [name, device, commandListType](int index, ID3D12CommandAllocator* &allocator) -> GAPIResult {
+                auto newCommandAllocator = [name, device, commandListType](int index, ID3D12CommandAllocator* &allocator) -> Result {
                     D3DCallMsg(device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(&allocator)), "CreateCommandAllocator");
 
                     D3DUtils::SetAPIName(allocator, name, index);
 
-                    return GAPIResult::OK;
+                    return Result::OK;
                 };
 
                 _allocatorsRB.reset(new FencedFrameRingBuffer<ID3D12CommandAllocator*>());
@@ -30,10 +30,10 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(_commandList.get(), name);
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            GAPIResult CommandListImpl::Submit(ID3D12CommandQueue* queue)
+            Result CommandListImpl::Submit(ID3D12CommandQueue* queue)
             {
                 ASSERT(queue)
                 ASSERT(_commandList.get())
@@ -46,7 +46,7 @@ namespace OpenDemo
                 D3DCall(_commandList->Reset(allocator, nullptr));
                 D3DCall(_allocatorsRB->MoveToNextFrame(queue));
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
         }
     }

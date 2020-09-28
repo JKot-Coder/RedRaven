@@ -14,8 +14,8 @@ namespace OpenDemo
                 RenderQueueImpl() = delete;
                 RenderQueueImpl(D3D12_COMMAND_LIST_TYPE type);
 
-                GAPIResult Init(ID3D12Device* device, const U8String& name);
-//                GAPIResult Submit(RenderContextInterface& renderContext) override;
+                Result Init(ID3D12Device* device, const U8String& name);
+//                Result Submit(RenderContextInterface& renderContext) override;
 
             private:
                 D3D12_COMMAND_LIST_TYPE type_;

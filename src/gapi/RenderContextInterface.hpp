@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Resource.hpp"
+#include "gapi/Object.hpp"
 
 namespace OpenDemo
 {

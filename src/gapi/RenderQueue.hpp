@@ -1,8 +1,8 @@
 #pragma once
 
-#include "gapi/GAPIResult.hpp"
+#include "gapi/Result.hpp"
 
-#include "gapi/Resource.hpp"
+#include "gapi/Object.hpp"
 
 namespace OpenDemo
 {
@@ -10,14 +10,14 @@ namespace OpenDemo
     {
         class RenderContextInterface;
 
-        class RenderQueue final : public Resource
+        class RenderQueue final : public Object
         {
         public:
             RenderQueue() = delete;
             RenderQueue(const RenderQueue&) = delete;
             RenderQueue& operator=(const RenderQueue&) = delete;
             RenderQueue(const U8String& name)
-                : Resource(Resource::Type::RenderQueue, name)
+                : Object(Object::Type::RenderQueue, name)
             {
             }
 

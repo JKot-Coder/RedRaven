@@ -27,7 +27,7 @@ namespace OpenDemo
 
             namespace CommandListCompiler
             {
-                GAPIResult Compile(const CommandListCompilerContext& context);
+                Result Compile(const CommandListCompilerContext& context);
             }
 
         }

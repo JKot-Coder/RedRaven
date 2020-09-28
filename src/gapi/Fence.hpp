@@ -1,13 +1,13 @@
 #pragma once
 
-#include "gapi/Resource.hpp"
+#include "gapi/Object.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
 
-        class Fence final : public Resource, public std::enable_shared_from_this<Fence>
+        class Fence final : public Object, public std::enable_shared_from_this<Fence>
         {
         public:
             using SharedPtr = std::shared_ptr<Fence>;

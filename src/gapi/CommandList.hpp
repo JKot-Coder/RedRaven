@@ -3,21 +3,21 @@
 #include "gapi/Command.hpp"
 #include "gapi/Frame.hpp"
 #include "gapi/LinearAllocator.hpp"
-#include "gapi/Resource.hpp"
+#include "gapi/Object.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
 
-        class CommandList final : public Resource
+        class CommandList final : public Object
         {
         public:
             CommandList() = delete;
             CommandList(const CommandList&) = delete;
             CommandList& operator=(const CommandList&) = delete;
             CommandList(const U8String& name)
-                : Resource(Resource::Type::CommandList, name)
+                : Object(Resource::Type::CommandList, name)
             {
             }
 

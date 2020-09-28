@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Resource.hpp"
+#include "gapi/Object.hpp"
 #include "gapi/Texture.hpp"
 
 namespace OpenDemo
@@ -8,7 +8,7 @@ namespace OpenDemo
     namespace Render
     {
 
-        class ResourceView : public Resource
+        class ResourceView : public Object
         {
         public:
             enum class Type
@@ -25,7 +25,7 @@ namespace OpenDemo
 
         protected:
             ResourceView(Type type, const ResourceWeakPtr& resource, const U8String& name)
-                : Resource(Resource::Type::ResourceView, name),
+                : Object(Object::Type::ResourceView, name),
                   resource_(resource),
                   type_(type)
             {

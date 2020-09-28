@@ -21,16 +21,16 @@ namespace OpenDemo
 
                 DescriptorHeap() = default;
 
-                GAPIResult Init(ID3D12Device* device, const DescriptorHeapDesc& desc);
+                Result Init(ID3D12Device* device, const DescriptorHeapDesc& desc);
 
-                GAPIResult Alloc(Allocation& allocation)
+                Result Alloc(Allocation& allocation)
                 {
                     ASSERT(d3d12Heap_)
 
                     if (allocated_ >= numDescriptors_)
                     {
                         LOG_ERROR("Not enough memory in descriptorHeap: %s", name_)
-                        return GAPIResult::OUT_OF_MEMORY;
+                        return Result::OUT_OF_MEMORY;
                     }
 
                     ASSERT(!freeChunks_.empty())
@@ -48,7 +48,7 @@ namespace OpenDemo
 
                     allocated_++;
 
-                    return GAPIResult::OK;
+                    return Result::OK;
                 }
 
                 void Free(uint32_t indexInHeap)

@@ -6,7 +6,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            GAPIResult FenceImpl::Init(ID3D12Device* device, uint64_t initialValue, const U8String& name)
+            Result FenceImpl::Init(ID3D12Device* device, uint64_t initialValue, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(_fence.get() == nullptr)
@@ -15,26 +15,26 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(_fence.get(), name);
 
                 _cpu_value = initialValue;
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            GAPIResult FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
+            Result FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
             {
                 ASSERT(_fence.get())
 
                 D3DCallMsg(commandQueue->Signal(_fence.get(), value), "Signal");
 
                 _cpu_value = value;
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            GAPIResult FenceImpl::SetEventOnCompletion(uint64_t value, HANDLE event) const
+            Result FenceImpl::SetEventOnCompletion(uint64_t value, HANDLE event) const
             {
                 ASSERT(_fence.get())
 
                 D3DCallMsg(_fence->SetEventOnCompletion(value, event), "SetEventOnCompletion");
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
             uint64_t FenceImpl::GetGpuValue() const

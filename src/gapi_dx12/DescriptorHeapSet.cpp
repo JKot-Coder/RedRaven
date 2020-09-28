@@ -7,7 +7,7 @@ namespace OpenDemo
         namespace DX12
         {
 
-            GAPIResult DescriptorHeapSet::Init(ID3D12Device* device)
+            Result DescriptorHeapSet::Init(ID3D12Device* device)
             {
                 rtvDescriptorHeap_ = std::make_shared<DescriptorHeap>();
 
@@ -19,7 +19,7 @@ namespace OpenDemo
 
                 D3DCall(rtvDescriptorHeap_->Init(device, desc));
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
         }

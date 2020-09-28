@@ -7,7 +7,7 @@ namespace OpenDemo
         namespace DX12
         {
 
-            GAPIResult DescriptorHeap::Init(ID3D12Device* device, const DescriptorHeapDesc& desc)
+            Result DescriptorHeap::Init(ID3D12Device* device, const DescriptorHeapDesc& desc)
             {
                 ASSERT(!d3d12Heap_)
                 ASSERT(desc.numDescriptors_ > 0)
@@ -34,7 +34,7 @@ namespace OpenDemo
                     freeChunks_.emplace_back(&chunks_[i]);
                 }
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
         }

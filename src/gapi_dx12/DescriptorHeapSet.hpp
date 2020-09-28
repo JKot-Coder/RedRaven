@@ -13,7 +13,7 @@ namespace OpenDemo
             public:
                 DescriptorHeapSet() = default;
 
-                GAPIResult Init(ID3D12Device* device);
+                Result Init(ID3D12Device* device);
 
                 DescriptorHeap::SharedPtr GetRtvDescriptorHeap() 
                 { 

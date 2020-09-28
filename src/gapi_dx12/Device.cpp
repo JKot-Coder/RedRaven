@@ -39,9 +39,9 @@ namespace OpenDemo
             public:
                 DeviceImplementation();
 
-                GAPIResult Init();
-                GAPIResult Reset(const PresentOptions& presentOptions);
-                GAPIResult Present();
+                Result Init();
+                Result Reset(const PresentOptions& presentOptions);
+                Result Present();
 
                 ID3D12Device* GetDevice() const
                 {
@@ -50,7 +50,7 @@ namespace OpenDemo
 
                 void WaitForGpu();
 
-                GAPIResult InitResource(Resource& resource);
+                Result InitResource(Object& resource);
 
             private:
                 bool enableDebug_ = true;
@@ -90,9 +90,9 @@ namespace OpenDemo
                     return commandQueues_[static_cast<std::underlying_type<CommandQueueType>::type>(commandQueueType)];
                 }
 
-                GAPIResult createDevice();
+                Result createDevice();
 
-                GAPIResult handleDeviceLost();
+                Result handleDeviceLost();
 
                 void moveToNextFrame();
             };
@@ -102,7 +102,7 @@ namespace OpenDemo
             {
             }
 
-            GAPIResult DeviceImplementation::Init()
+            Result DeviceImplementation::Init()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(inited_ == false);
@@ -146,7 +146,7 @@ namespace OpenDemo
                 if (!bool { fenceEvent_ })
                 {
                     LOG_ERROR("Failure create fence Event");
-                    return GAPIResult::FAIL;
+                    return Result::FAIL;
                 }
 
                 descriptorHeapSet_ = std::make_unique<DescriptorHeapSet>();
@@ -156,7 +156,7 @@ namespace OpenDemo
                 resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_.get();
 
                 inited_ = true;
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
             void DeviceImplementation::WaitForGpu()
@@ -164,13 +164,13 @@ namespace OpenDemo
                 ASSERT_IS_DEVICE_INITED;
             }
 
-            GAPIResult DeviceImplementation::InitResource(Resource& resource)
+            Result DeviceImplementation::InitResource(Object& resource)
             {
                 return ResourceCreator::InitResource(resourceCreatorContext_, resource);
             }
 
             // These resources need to be recreated every time the window size is changed.
-            GAPIResult DeviceImplementation::Reset(const PresentOptions& presentOptions)
+            Result DeviceImplementation::Reset(const PresentOptions& presentOptions)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -207,7 +207,7 @@ namespace OpenDemo
                     if (!swapChainCompatable)
                     {
                         LOG_ERROR("SwapChains incompatible");
-                        return GAPIResult::FAIL;
+                        return Result::FAIL;
                     }
 
                     // If the swap chain already exists, resize it.
@@ -267,14 +267,14 @@ namespace OpenDemo
                 backBufferIndex_ = 0;
 
                 // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
-                //   if (GAPIResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
+                //   if (ResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
                 // {
                 // }*/
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            GAPIResult DeviceImplementation::Present()
+            Result DeviceImplementation::Present()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -340,24 +340,24 @@ namespace OpenDemo
                     if (!dxgiFactory_->IsCurrent())
                     {
                         LOG_ERROR("Dxgi is not current");
-                        return GAPIResult::FAIL;
+                        return Result::FAIL;
 
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
                 }
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            GAPIResult DeviceImplementation::handleDeviceLost()
+            Result DeviceImplementation::handleDeviceLost()
             {
                 // Todo implement properly Device lost event processing
                 Log::Print::Fatal("Device was lost.");
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
-            GAPIResult DeviceImplementation::createDevice()
+            Result DeviceImplementation::createDevice()
             {
                 ASSERT_IS_CREATION_THREAD;
 
@@ -403,8 +403,8 @@ namespace OpenDemo
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
 
-                    GAPIResult result;
-                    if (GAPIResultU::Success(result = GAPIResult(
+                    Result result;
+                    if (ResultU::Success(result = Result(
                                                  d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put())))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
@@ -440,7 +440,7 @@ namespace OpenDemo
                     d3dFeatureLevel_ = minimumFeatureLevel;
                 }
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
             void DeviceImplementation::moveToNextFrame()
@@ -479,17 +479,17 @@ namespace OpenDemo
 
             Device::~Device() { }
 
-            GAPIResult Device::Init()
+            Result Device::Init()
             {
                 return _impl->Init();
             }
 
-            GAPIResult Device::Reset(const PresentOptions& presentOptions)
+            Result Device::Reset(const PresentOptions& presentOptions)
             {
                 return _impl->Reset(presentOptions);
             }
 
-            GAPIResult Device::Present()
+            Result Device::Present()
             {
                 return _impl->Present();
             }
@@ -504,7 +504,7 @@ namespace OpenDemo
                 return 0;
             }
 
-            GAPIResult Device::InitResource(Resource& resource)
+            Result Device::InitResource(Object& resource)
             {
                 return _impl->InitResource(resource);
             }

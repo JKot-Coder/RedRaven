@@ -18,14 +18,14 @@ namespace OpenDemo
                     : _type(type)
                 {
                 }
-                GAPIResult Init(ID3D12Device* device, const U8String& name);
+                Result Init(ID3D12Device* device, const U8String& name);
 
                 ComSharedPtr<ID3D12GraphicsCommandList> GetCommandList()
                 {
                     return _commandList;
                 };
 
-                GAPIResult Submit(ID3D12CommandQueue* queue);
+                Result Submit(ID3D12CommandQueue* queue);
 
             private:
                 D3D12_COMMAND_LIST_TYPE _type;

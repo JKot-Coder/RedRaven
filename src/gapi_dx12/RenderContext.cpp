@@ -16,13 +16,13 @@ namespace OpenDemo
             {
             }
 
-            GAPIResult RenderContext::Init(ID3D12Device* device, const U8String& name)
+            Result RenderContext::Init(ID3D12Device* device, const U8String& name)
             {
                 D3DCall(commandList_->Init(device, name));
 
                 D3DCommandList_ = commandList_->GetCommandList();
 
-                return GAPIResult::OK;
+                return Result::OK;
             }
 
             void RenderContext::Reset()

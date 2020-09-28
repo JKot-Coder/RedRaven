@@ -3,6 +3,7 @@ project (gapi)
 set(GAPI_SRC
         Frame.hpp
         Limits.hpp
+        Object.hpp
         Resource.hpp
         ResourceViews.hpp
         LinearAllocator.hpp
@@ -12,8 +13,8 @@ set(GAPI_SRC
         Fence.hpp
         FencedPool.hpp
         Texture.hpp
-        GAPIResult.hpp
-        GAPIResult.cpp
+        Result.hpp
+        Result.cpp
         DeviceInterface.hpp
         RenderContextInterface.hpp
         RenderQueue.hpp )

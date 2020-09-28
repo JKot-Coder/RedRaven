@@ -20,6 +20,14 @@ namespace OpenDemo
                 : Resource(Resource::Type::Texture, name)
             {
             }
+
+        private:
+            uint32_t width_ = 0;
+            uint32_t height_ = 0;
+            uint32_t depth_ = 0;
+            uint32_t mipLevels_ = 0;
+            uint32_t sampleCount_ = 0;
+            uint32_t arraySize_ = 0;
         };
 
     }

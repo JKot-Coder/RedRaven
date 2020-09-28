@@ -8,23 +8,23 @@ namespace OpenDemo
 #define D3DCall(exp, ...)                                                                                                                               \
     {                                                                                                                                                   \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
-        GAPIResult result;                                                                                                                              \
-        if (GAPIResultU::Failure(result = GAPIResult(exp)))                                                                                             \
+        Result result;                                                                                                                                  \
+        if (ResultU::Failure(result = Result(exp)))                                                                                                     \
             return result;                                                                                                                              \
     }
 
 #define D3DCallMsg(exp, msg, ...)                                                                                 \
     {                                                                                                             \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
-        GAPIResult result;                                                                                        \
-        if (GAPIResultU::Failure(result = GAPIResult(exp)))                                                       \
+        Result result;                                                                                            \
+        if (ResultU::Failure(result = Result(exp)))                                                               \
         {                                                                                                         \
-            LOG_ERROR("%s Code: 0x%08X Error: %s", msg, result, GAPIResultU::ToString(result))                    \
+            LOG_ERROR("%s Code: 0x%08X Error: %s", msg, result, ResultU::ToString(result))                        \
             return result;                                                                                        \
         }                                                                                                         \
     }
 
-        enum class GAPIResult : uint32_t
+        enum class Result : uint32_t
         {
             OK = 0,
             FALSE_CODE = 1,
@@ -34,16 +34,16 @@ namespace OpenDemo
             FAIL = 0x80004005
         };
 
-        namespace GAPIResultU
+        namespace ResultU
         {
-            U8String ToString(GAPIResult status);
+            U8String ToString(Result status);
 
-            inline bool Success(GAPIResult status)
+            inline bool Success(Result status)
             {
                 return static_cast<int32_t>(status) >= 0;
             }
 
-            inline bool Failure(GAPIResult status)
+            inline bool Failure(Result status)
             {
                 return static_cast<int32_t>(status) < 0;
             }
