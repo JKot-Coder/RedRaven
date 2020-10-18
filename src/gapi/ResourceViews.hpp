@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 #include "gapi/Texture.hpp"
 
 namespace OpenDemo
@@ -24,7 +25,7 @@ namespace OpenDemo
             ResourceView& operator=(const ResourceView&) = delete;
 
         protected:
-            ResourceView(Type type, const ResourceWeakPtr& resource, const U8String& name)
+            ResourceView(Type type, const Resource::WeakPtr& resource, const U8String& name)
                 : Object(Object::Type::ResourceView, name),
                   resource_(resource),
                   type_(type)
@@ -34,7 +35,7 @@ namespace OpenDemo
 
         private:
             Type type_;
-            ResourceWeakPtr resource_;
+            Resource::WeakPtr resource_;
         };
 
         class RenderTargetView final : public ResourceView
@@ -53,7 +54,7 @@ namespace OpenDemo
             }
 
         private:
-            RenderTargetView(const ResourceWeakPtr& resource, const U8String& name)
+            RenderTargetView(const Resource::WeakPtr& resource, const U8String& name)
                 : ResourceView(ResourceView::Type::RenderTargetView, resource, name) { }
         };
 

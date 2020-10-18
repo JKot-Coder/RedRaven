@@ -160,7 +160,7 @@ namespace OpenDemo
                     inline void Free(uint32_t index)
                     {
                         ASSERT(index < Chunk::SIZE)
-                        indices_[--cursor_] == static_cast<uint8_t>(index);
+                        indices_[--cursor_] = static_cast<uint8_t>(index);
                     }
 
                     inline uint32_t GetNumAvailable() const

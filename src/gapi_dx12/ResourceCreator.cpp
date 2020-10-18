@@ -139,8 +139,10 @@ namespace OpenDemo
 
                 ASSERT_MSG(false, "Unsuported resource type");
 #undef CASE_RESOURCE
-            }
 
+                return Result::OK;
+            }
+            
         }
     }
 }

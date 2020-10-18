@@ -188,7 +188,7 @@ namespace OpenDemo
                 WaitForGpu();
 
                 // Release resources that are tied to the swap chain and update fence values.
-                for (int n = 0; n < backBufferCount_; n++)
+                for (uint32_t n = 0; n < backBufferCount_; n++)
                 {
                     renderTargets_[n] = nullptr;
                     // m_fenceValues[n] = m_fenceValues[m_frameIndex];
@@ -254,7 +254,7 @@ namespace OpenDemo
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
                 D3DCallMsg(swapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
 
-                for (int index = 0; index < backBufferCount_; index++)
+                for (uint32_t index = 0; index < backBufferCount_; index++)
                 {
                     ThrowIfFailed(swapChain_->GetBuffer(index, IID_PPV_ARGS(renderTargets_[index].put())));
                     D3DUtils::SetAPIName(renderTargets_[index].get(), "BackBuffer", index);

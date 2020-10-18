@@ -13,6 +13,7 @@ set(GAPI_SRC
         Fence.hpp
         FencedPool.hpp
         Texture.hpp
+        Texture.cpp
         Result.hpp
         Result.cpp
         DeviceInterface.hpp

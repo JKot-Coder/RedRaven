@@ -7,6 +7,7 @@ set(COMMON_SRC
         Config.hpp
         VecMath.h
         Check.cpp
+        AccessGuard.hpp
         NativeWindowHandle.hpp
         String.hpp
         Logger.hpp
