@@ -8,6 +8,7 @@ set(COMMON_SRC
         VecMath.h
         Check.cpp
         AccessGuard.hpp
+        CircularBuffer.hpp
         NativeWindowHandle.hpp
         String.hpp
         Logger.hpp

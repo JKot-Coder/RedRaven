@@ -9,6 +9,8 @@ set(GAPI_SRC
         LinearAllocator.hpp
         LinearAllocator.cpp
         LinearAllocator.inl
+        Submission.hpp
+        Submission.cpp
 	    CommandList.hpp
         Fence.hpp
         FencedPool.hpp
