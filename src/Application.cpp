@@ -21,6 +21,8 @@
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
 
+#include "gapi/Submission.hpp"
+
 namespace OpenDemo
 {
     using namespace Common;
@@ -49,6 +51,10 @@ namespace OpenDemo
         _device.reset(new Render::DX12::Device());
         // TODO REMOVE IT
 
+        Render::Submission submission;
+        submission.Start();
+
+
     /*    const auto cmdList = new Render::CommandList("asd");
         std::ignore = cmdList;
 
@@ -58,6 +64,8 @@ namespace OpenDemo
             alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
         */
+
+
         _device->Init();
         Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;

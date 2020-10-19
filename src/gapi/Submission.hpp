@@ -5,6 +5,7 @@
 
 #include "gapi/DeviceInterface.hpp"
 
+#include <atomic>
 #include <optional>
 #include <queue>
 
@@ -12,30 +13,86 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class Submission
+        class Submission final
         {
             // Queue of 64 work should be enough.
             static constexpr inline size_t WorkBufferSize = 64;
 
         public:
-            Submission();
+            struct Work final
+            {
+            public:
+                Work() = default;
+
+                enum class Type
+                {
+                    Udefined,
+                    InitDevice,
+                    Terminate
+                };
+
+                template <Work::Type type>
+                static inline Work Create();
+
+                template <>
+                static inline Work Create<Work::Type::InitDevice>()
+                {
+                    return Work(InitWorkData {});
+                }
+
+                template <>
+                static inline Work Create<Work::Type::Terminate>()
+                {
+                    return Work(TerminateWorkData {});
+                }
+
+                Type GetType() const { return type_; }
+
+            private:
+                struct InitWorkData
+                {
+                };
+
+                struct TerminateWorkData
+                {
+                };
+
+            private:
+                Work(const InitWorkData& data) : type_(Work::Type::InitDevice), initWorkData_(data) {};
+                Work(const TerminateWorkData& data) : type_(Work::Type::Terminate), terminateWordData_(data) {};
+
+            private:
+                Type type_ = Type::Udefined;
+
+                union
+                {
+                    InitWorkData initWorkData_;
+                    TerminateWorkData terminateWordData_;
+                };
+            };
+
+        public:
+            Submission() = default;
 
             void Start();
 
         private:
-            void ThreadFunc();
+            template <Work::Type type>
+            void PutWork();
 
-        private:
+        public:
             template <typename T, std::size_t BufferSize>
             class BufferedChannel
             {
             public:
+                static_assert(std::is_trivially_move_constructible<T>::value);
+
                 BufferedChannel() = default;
                 ~BufferedChannel() = default;
 
                 inline void Put(const T& obj)
                 {
-                    if (!closed_)
+                    if (closed_)
                         return;
 
                     std::unique_lock lock(mutex_);
@@ -47,11 +104,11 @@ namespace OpenDemo
                             return;
                     }
 
-                    buffer_.push(T);
+                    buffer_.push(obj);
                     inputWait_.notify_one();
                 }
 
-                inline std::optional<T> GetNext() const
+                inline std::optional<T> GetNext()
                 {
                     std::unique_lock lock(mutex_);
 
@@ -66,15 +123,12 @@ namespace OpenDemo
                             return std::nullopt;
                     }
 
-                    T temp;
-                    std::swap(temp, buffer.front());
-
-                    std::optional<T> item = buffer_.pop_front();
+                    const auto& item = buffer_.pop_front();
                     outputWait_.notify_one();
-                    return temp;
+                    return item;
                 }
 
-                inline std::optional<T> TryGetNext() const
+                inline std::optional<T> TryGetNext()
                 {
                     std::unique_lock lock(mutex_);
 
@@ -96,7 +150,7 @@ namespace OpenDemo
                 inline bool IsClosed() const { return closed_; }
 
             private:
-                std::atomic_bool closed_ = false;
+                std::atomic<bool> closed_ = false;
                 std::condition_variable inputWait_;
                 std::condition_variable outputWait_;
                 std::mutex mutex_;
@@ -104,9 +158,15 @@ namespace OpenDemo
             };
 
         private:
+            template <Work::Type type>
+            void process();
+
+            void threadFunc();
+
+        private:
             std::unique_ptr<AccessGuard<Render::Device>> device_;
             std::thread submissionThread_;
-            BufferedChannel<int, WorkBufferSize> inputWorkChannel_;
+            BufferedChannel<Work, WorkBufferSize> inputWorkChannel_;
         };
 
     }

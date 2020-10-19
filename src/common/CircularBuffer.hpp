@@ -12,6 +12,8 @@ namespace OpenDemo
         {
             using Pointer = T*;
 
+            static_assert(Capacity > 0);
+
         public:
             CircularBuffer() : front_(&buffer_[0]), back_(&buffer_[0]), size_(0) { }
 
@@ -79,12 +81,12 @@ namespace OpenDemo
             inline bool full() const { return size_ == Capacity; }
 
         private:
-            void increment(Pointer& ptr) const
+            void increment(Pointer& ptr)
             {
                 ++ptr;
 
                 if (ptr == &buffer_[0] + Capacity)
-                    ptr = &m_buffer[0];
+                    ptr = &buffer_[0];
             }
 
         private:
