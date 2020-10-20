@@ -1,5 +1,7 @@
 #include "Submission.hpp"
 
+#include "gapi_dx12/Device.hpp"
+
 #include <chrono>
 #include <thread>
 
@@ -9,38 +11,71 @@ namespace OpenDemo
 {
     namespace Render
     {
-        template <>
-        void Submission::PutWork<Submission::Work::Type::InitDevice>()
+        Submission::Submission()
         {
-            inputWorkChannel_.Put(Work::Create<Submission::Work::Type::InitDevice>());
-        }
-
-        template <>
-        void Submission::PutWork<Submission::Work::Type::Terminate>()
-        {
-            inputWorkChannel_.Put(Work::Create<Submission::Work::Type::Terminate>());
         }
 
         void Submission::Start()
         {
             submissionThread_ = std::thread([this] { this->threadFunc(); });
-            PutWork<Work::Type::InitDevice>();
         }
 
-        template <>
-        void Submission::process<Submission::Work::Type::InitDevice>()
+        template <typename T>
+        void Submission::PutWork(const T& data)
         {
-            Log::Print::Info("InitDevice \n");
+            const Work work(data);
+            inputWorkChannel_.Put(work);
         }
 
-        template <>
-        void Submission::process<Submission::Work::Type::Terminate>()
+        Render::Result Submission::InitDevice()
         {
-            Log::Print::Info("Terminate \n");
+            Render::Result result;
 
-            inputWorkChannel_.Close();
-            submissionThread_.join();
+            ExecuteOnSubmission([this, &result] {
+                device_.reset(new Render::DX12::Device());
+                result = device_->Init();
+            },
+                true);
+
+            return result;
         }
+
+        void Submission::ExecuteOnSubmission(const std::function<void()>& function, bool waitForExcecution)
+        {
+            Work::CallbackData data;
+
+            std::condition_variable condition;
+
+            if (!waitForExcecution)
+            {
+                data.function = function;
+                PutWork(data);
+                return;
+            }
+
+            std::mutex mutex;
+            std::unique_lock<std::mutex> lock(mutex);
+
+            data.function = [&condition, &function, &mutex] {
+                std::unique_lock<std::mutex> lock(mutex);
+                function();
+                condition.notify_one();
+            };
+
+            PutWork(data);
+
+            condition.wait(lock);
+        }
+
+        // helper type for the visitor
+        template <class... Ts>
+        struct overloaded : Ts...
+        {
+            using Ts::operator()...;
+        };
+        // explicit deduction guide (not needed as of C++20)
+        template <class... Ts>
+        overloaded(Ts...) -> overloaded<Ts...>;
 
         void Submission::threadFunc()
         {
@@ -51,26 +86,20 @@ namespace OpenDemo
                 if (!inputWorkOptional.has_value())
                     return;
 
-#define CASE_WORK(type)              \
-    case Work::Type::type:           \
-        process<Work::Type::type>(); \
-        break;
-
                 const auto& inputWork = inputWorkOptional.value();
-                switch (inputWork.GetType())
-                {
-                    CASE_WORK(InitDevice)
-                    CASE_WORK(Terminate)
-                default:
-                    ASSERT_MSG(false, "Unsupported work type");
-                    break;
-                }
-#undef CASE_WORK
 
-                // Log::Print::Info("%d\n", inputWork);
+                std::visit(overloaded {
+                               [](const Submission::Work::InitData& data) { Log::Print::Info("InitDevice \n"); },
+                               [](const Submission::Work::CallbackData& data) { data.function(); },
+                               [this](const Submission::Work::TerminateData& data) {
+                                   inputWorkChannel_.Close();
+                                   submissionThread_.join();
+                               },
+                               [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },
+                    inputWork.data);
+
                 std::this_thread::sleep_for(50ms);
             }
         }
-
     }
 };

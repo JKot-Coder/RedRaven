@@ -33,7 +33,6 @@ namespace OpenDemo
 
         std::shared_ptr<Windowing::InputtingWindow> _window;
         std::shared_ptr<Rendering::SceneGraph> _scene;
-        std::unique_ptr<Render::Device> _device;
 
         void init();
         void terminate();

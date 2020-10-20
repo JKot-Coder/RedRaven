@@ -6,8 +6,6 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
-#include "gapi_dx12/Device.hpp"
-
 #include "rendering/Mesh.hpp"
 #include "rendering/Primitives.hpp"
 #include "rendering/Render.hpp"
@@ -29,7 +27,9 @@ namespace OpenDemo
 
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
-        if (!_device)
+        std::ignore = window_;
+
+        /*if (!_device)
             return;
         int width = window_.GetWidth();
         int height = window_.GetHeight();
@@ -42,20 +42,17 @@ namespace OpenDemo
         presentOptions.windowHandle = _window->GetNativeHandle();
 
         _device->Reset(presentOptions);
+   */
     }
 
     void Application::Start()
     {
         init();
-        // loadResouces();
-        _device.reset(new Render::DX12::Device());
-        // TODO REMOVE IT
 
         Render::Submission submission;
         submission.Start();
-
-
-    /*    const auto cmdList = new Render::CommandList("asd");
+        submission.InitDevice();
+        /*    const auto cmdList = new Render::CommandList("asd");
         std::ignore = cmdList;
 
         auto alloc = cmdList->GetAllocator();
@@ -64,16 +61,14 @@ namespace OpenDemo
             alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
         */
-
-
-        _device->Init();
+        /*
         Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
-        _device->Reset(presentOptions);
+        _device->Reset(presentOptions);*/
 
         //  const auto& input = Inputting::Instance();
         const auto& time = Time::Instance();
@@ -90,7 +85,7 @@ namespace OpenDemo
             //    renderPipeline->Draw();
 
             //   _scene->Update();
-            _device->Present();
+            //device->Present();
             //    render->SwapBuffers();
             //  input->Update();
 

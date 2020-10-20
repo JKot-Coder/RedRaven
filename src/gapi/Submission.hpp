@@ -8,6 +8,7 @@
 #include <atomic>
 #include <optional>
 #include <queue>
+#include <variant>
 
 namespace OpenDemo
 {
@@ -22,71 +23,42 @@ namespace OpenDemo
             struct Work final
             {
             public:
+                struct InitData
+                {
+                };
+
+                struct TerminateData
+                {
+                };
+
+                struct CallbackData
+                {
+                    std::function<void()> function;
+                };
+
+            public:
                 Work() = default;
+                Work(const std::variant<InitData, TerminateData, CallbackData>& data) : data(data) { }
 
-                enum class Type
-                {
-                    Udefined,
-                    InitDevice,
-                    Terminate
-                };
-
-                template <Work::Type type>
-                static inline Work Create();
-
-                template <>
-                static inline Work Create<Work::Type::InitDevice>()
-                {
-                    return Work(InitWorkData {});
-                }
-
-                template <>
-                static inline Work Create<Work::Type::Terminate>()
-                {
-                    return Work(TerminateWorkData {});
-                }
-
-                Type GetType() const { return type_; }
-
-            private:
-                struct InitWorkData
-                {
-                };
-
-                struct TerminateWorkData
-                {
-                };
-
-            private:
-                Work(const InitWorkData& data) : type_(Work::Type::InitDevice), initWorkData_(data) {};
-                Work(const TerminateWorkData& data) : type_(Work::Type::Terminate), terminateWordData_(data) {};
-
-            private:
-                Type type_ = Type::Udefined;
-
-                union
-                {
-                    InitWorkData initWorkData_;
-                    TerminateWorkData terminateWordData_;
-                };
+                std::variant<InitData, TerminateData, CallbackData> data;
             };
 
         public:
-            Submission() = default;
+            Submission();
 
             void Start();
+            Render::Result InitDevice();
+            void ExecuteOnSubmission(const std::function<void()>& function, bool waitForExcecution);
 
         private:
-            template <Work::Type type>
-            void PutWork();
+            template <typename T>
+            void PutWork(const T& data);
 
         public:
             template <typename T, std::size_t BufferSize>
             class BufferedChannel
             {
             public:
-                static_assert(std::is_trivially_move_constructible<T>::value);
-
                 BufferedChannel() = default;
                 ~BufferedChannel() = default;
 
@@ -158,13 +130,11 @@ namespace OpenDemo
             };
 
         private:
-            template <Work::Type type>
-            void process();
-
             void threadFunc();
 
         private:
-            std::unique_ptr<AccessGuard<Render::Device>> device_;
+            std::unique_ptr<Render::Device> device_;
+            //   std::unique_ptr<AccessGuard<Render::Device>> device_;
             std::thread submissionThread_;
             BufferedChannel<Work, WorkBufferSize> inputWorkChannel_;
         };
