@@ -15,15 +15,29 @@ namespace OpenDemo
         {
         }
 
+        Submission::~Submission()
+        {
+            ASSERT(!device_)
+            ASSERT(!submissionThread_.joinable())
+            ASSERT(inputWorkChannel_.IsClosed())
+        }
+
         void Submission::Start()
         {
-            submissionThread_ = std::thread([this] { this->threadFunc(); });
+            ASSERT(!submissionThread_.joinable())
+            ASSERT(!inputWorkChannel_.IsClosed())
+
+            submissionThread_ = std::thread([this] {
+                device_.reset(new Render::DX12::Device());
+                this->threadFunc();
+            });
         }
 
         template <typename T>
-        void Submission::PutWork(const T& data)
+        void Submission::PutWork(const T& work)
         {
-            const Work work(data);
+            ASSERT(submissionThread_.joinable())
+
             inputWorkChannel_.Put(work);
         }
 
@@ -32,7 +46,6 @@ namespace OpenDemo
             Render::Result result;
 
             ExecuteOnSubmission([this, &result] {
-                device_.reset(new Render::DX12::Device());
                 result = device_->Init();
             },
                 true);
@@ -42,29 +55,40 @@ namespace OpenDemo
 
         void Submission::ExecuteOnSubmission(const std::function<void()>& function, bool waitForExcecution)
         {
-            Work::CallbackData data;
+            Work::Callback work;
 
             std::condition_variable condition;
 
             if (!waitForExcecution)
             {
-                data.function = function;
-                PutWork(data);
+                work.function = function;
+                PutWork(work);
                 return;
             }
 
             std::mutex mutex;
             std::unique_lock<std::mutex> lock(mutex);
 
-            data.function = [&condition, &function, &mutex] {
+            work.function = [&condition, &function, &mutex] {
                 std::unique_lock<std::mutex> lock(mutex);
                 function();
                 condition.notify_one();
             };
 
-            PutWork(data);
+            PutWork(work);
 
             condition.wait(lock);
+        }
+
+        void Submission::Terminate()
+        {
+            ASSERT(submissionThread_.joinable())
+
+            Work::Terminate work;
+            PutWork(work);
+
+            inputWorkChannel_.Close();
+            submissionThread_.join();
         }
 
         // helper type for the visitor
@@ -82,21 +106,22 @@ namespace OpenDemo
             while (true)
             {
                 auto inputWorkOptional = inputWorkChannel_.GetNext();
-                // Channel was closed
+                // Channel was closed and no work
                 if (!inputWorkOptional.has_value())
                     return;
 
                 const auto& inputWork = inputWorkOptional.value();
 
+                ASSERT(device_)
+
                 std::visit(overloaded {
-                               [](const Submission::Work::InitData& data) { Log::Print::Info("InitDevice \n"); },
-                               [](const Submission::Work::CallbackData& data) { data.function(); },
-                               [this](const Submission::Work::TerminateData& data) {
-                                   inputWorkChannel_.Close();
-                                   submissionThread_.join();
+                               [](const Work::Callback& work) { work.function(); },
+                               [this](const Work::Terminate& work) {
+                                   device_ == nullptr;
+                                   Log::Print::Info("Device terminated \n");
                                },
                                [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },
-                    inputWork.data);
+                    inputWork);
 
                 std::this_thread::sleep_for(50ms);
             }

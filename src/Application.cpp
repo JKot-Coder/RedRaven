@@ -19,8 +19,6 @@
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
 
-#include "gapi/Submission.hpp"
-
 namespace OpenDemo
 {
     using namespace Common;
@@ -49,9 +47,8 @@ namespace OpenDemo
     {
         init();
 
-        Render::Submission submission;
-        submission.Start();
-        submission.InitDevice();
+        submission_->Start();
+        submission_->InitDevice();
         /*    const auto cmdList = new Render::CommandList("asd");
         std::ignore = cmdList;
 
@@ -124,7 +121,10 @@ namespace OpenDemo
 
     void Application::terminate()
     {
+        submission_->Terminate();
         _scene->Terminate();
+
+    
 
         _window.reset();
         _window = nullptr;

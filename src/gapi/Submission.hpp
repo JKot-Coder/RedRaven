@@ -23,36 +23,30 @@ namespace OpenDemo
             struct Work final
             {
             public:
-                struct InitData
+                struct Terminate
                 {
                 };
 
-                struct TerminateData
-                {
-                };
-
-                struct CallbackData
+                struct Callback
                 {
                     std::function<void()> function;
                 };
-
-            public:
-                Work() = default;
-                Work(const std::variant<InitData, TerminateData, CallbackData>& data) : data(data) { }
-
-                std::variant<InitData, TerminateData, CallbackData> data;
             };
+
+            using WorkVariant = std::variant<Work::Terminate, Work::Callback>;
 
         public:
             Submission();
+            ~Submission();
 
             void Start();
             Render::Result InitDevice();
             void ExecuteOnSubmission(const std::function<void()>& function, bool waitForExcecution);
+            void Terminate();
 
         private:
             template <typename T>
-            void PutWork(const T& data);
+            void PutWork(const T& work);
 
         public:
             template <typename T, std::size_t BufferSize>
@@ -91,7 +85,7 @@ namespace OpenDemo
 
                         inputWait_.wait(lock, [&]() { return !buffer_.empty() || closed_; });
 
-                        if (closed_)
+                        if (buffer_.empty() && closed_)
                             return std::nullopt;
                     }
 
@@ -136,7 +130,7 @@ namespace OpenDemo
             std::unique_ptr<Render::Device> device_;
             //   std::unique_ptr<AccessGuard<Render::Device>> device_;
             std::thread submissionThread_;
-            BufferedChannel<Work, WorkBufferSize> inputWorkChannel_;
+            BufferedChannel<WorkVariant, WorkBufferSize> inputWorkChannel_;
         };
 
     }

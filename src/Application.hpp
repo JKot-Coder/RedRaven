@@ -1,6 +1,8 @@
 #pragma once
 
 #include "gapi/DeviceInterface.hpp"
+#include "gapi/Submission.hpp"
+
 #include "windowing/Windowing.hpp"
 
 namespace OpenDemo
@@ -23,6 +25,7 @@ namespace OpenDemo
         Application()
             : _quit(false)
         {
+            submission_.reset(new Render::Submission());
         }
 
         void Start();
@@ -31,6 +34,7 @@ namespace OpenDemo
     private:
         bool _quit;
 
+        std::unique_ptr<Render::Submission> submission_;
         std::shared_ptr<Windowing::InputtingWindow> _window;
         std::shared_ptr<Rendering::SceneGraph> _scene;
 
