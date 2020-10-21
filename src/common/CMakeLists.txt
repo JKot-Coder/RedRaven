@@ -10,6 +10,7 @@ SOURCE_GROUP( "Threading" FILES ${THREADING_SRC} )
 set(COMMON_SRC
         pch.hpp
         ${THREADING_SRC}
+         ${BACKWARD_ENABLE}
         Math.hpp  
         Math.cpp
         Config.hpp
@@ -29,3 +30,5 @@ add_library(${PROJECT_NAME} ${COMMON_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} fmt utf8cpp)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)
+
+add_backward(${PROJECT_NAME})

@@ -5,6 +5,14 @@
 #include "common/threading/BufferedChannel.hpp"
 #include "common/threading/Thread.hpp"
 
+#undef NOMINMAX
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4996)
+#include "dependencies/backward-cpp/backward.hpp"
+#pragma warning(pop)
+#define NOMINMAX
+
 #include <optional>
 #include <variant>
 
@@ -31,9 +39,16 @@ namespace OpenDemo
                 {
                     CallbackFunction function;
                 };
-            };
 
-            using WorkVariant = std::variant<Work::Terminate, Work::Callback>;
+                using WorkVariant = std::variant<Terminate, Callback>;
+
+            public:
+                WorkVariant workVariant;
+#ifdef DEBUG
+                backward::StackTrace stackTrace;
+                U8String label;
+#endif
+            };
 
         public:
             Submission();
@@ -57,7 +72,7 @@ namespace OpenDemo
             std::unique_ptr<Render::Device> device_;
             //   std::unique_ptr<AccessGuard<Render::Device>> device_;
             Common::Threading::Thread submissionThread_;
-            Common::Threading::BufferedChannel<WorkVariant, WorkBufferSize> inputWorkChannel_;
+            Common::Threading::BufferedChannel<Work, WorkBufferSize> inputWorkChannel_;
         };
 
     }

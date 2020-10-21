@@ -36,10 +36,18 @@ namespace OpenDemo
         }
 
         template <typename T>
-        void Submission::PutWork(const T& work)
+        void Submission::PutWork(const T& workVariant)
         {
             ASSERT(submissionThread_.IsJoinable())
 
+            Work work;
+            work.workVariant = workVariant;
+#ifdef DEBUG
+            constexpr int STACK_SIZE = 32;
+            work.stackTrace.load_here(STACK_SIZE);
+#endif
+            backward::Printer p;
+            p.print(work.stackTrace);
             inputWorkChannel_.Put(work);
         }
 
@@ -131,7 +139,7 @@ namespace OpenDemo
                                    Log::Print::Info("Device terminated \n");
                                },
                                [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },
-                    inputWork);
+                    inputWork.workVariant);
 
                 std::this_thread::sleep_for(50ms);
             }

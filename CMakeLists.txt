@@ -57,8 +57,11 @@ add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/eigen)
+add_subdirectory(src/dependencies/backward-cpp)
 
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
+set_property(TARGET backward PROPERTY FOLDER "Dependencies")
+set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)
