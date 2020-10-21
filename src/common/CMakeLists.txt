@@ -1,13 +1,20 @@
 project (common)
 
+SET( THREADING_SRC
+	threading/AccessGuard.hpp
+	threading/BufferedChannel.hpp
+    threading/Thread.hpp
+)
+SOURCE_GROUP( "Threading" FILES ${THREADING_SRC} )
+
 set(COMMON_SRC
         pch.hpp
+        ${THREADING_SRC}
         Math.hpp  
         Math.cpp
         Config.hpp
         VecMath.h
         Check.cpp
-        AccessGuard.hpp
         CircularBuffer.hpp
         NativeWindowHandle.hpp
         String.hpp

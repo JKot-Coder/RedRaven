@@ -25,30 +25,23 @@ namespace OpenDemo
 
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
-        std::ignore = window_;
-
-        /*if (!_device)
-            return;
         int width = window_.GetWidth();
         int height = window_.GetHeight();
 
         Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
-        presentOptions.rect = AlignedBox2i(Vector2i(0,0), Vector2i(width, height));
+        presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(width, height));
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
-        _device->Reset(presentOptions);
-   */
+        submission_->ResetDevice(presentOptions);
     }
 
     void Application::Start()
     {
         init();
 
-        submission_->Start();
-        submission_->InitDevice();
         /*    const auto cmdList = new Render::CommandList("asd");
         std::ignore = cmdList;
 
@@ -58,14 +51,14 @@ namespace OpenDemo
             alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
         */
-        /*
+
         Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
-        _device->Reset(presentOptions);*/
+        submission_->ResetDevice(presentOptions);
 
         //  const auto& input = Inputting::Instance();
         const auto& time = Time::Instance();
@@ -85,6 +78,11 @@ namespace OpenDemo
             //device->Present();
             //    render->SwapBuffers();
             //  input->Update();
+
+            submission_->ExecuteOnSubmission([](Render::Device& device) {
+                device.Present();
+            },
+                false);
 
             time->Update();
         }
@@ -115,6 +113,11 @@ namespace OpenDemo
         Inputting::Instance()->Init();
         Inputting::Instance()->SubscribeToWindow(_window);
 
+        submission_->Start();
+        const auto result = submission_->InitDevice();
+        if (result != Render::Result::OK)
+            Log::Print::Fatal("Render device init failed.");
+
         // auto& render = Rendering::Instance();
         // render->Init(_window);
     }
@@ -123,8 +126,6 @@ namespace OpenDemo
     {
         submission_->Terminate();
         _scene->Terminate();
-
-    
 
         _window.reset();
         _window = nullptr;

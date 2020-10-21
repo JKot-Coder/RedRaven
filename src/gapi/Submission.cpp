@@ -3,6 +3,8 @@
 #include "gapi_dx12/Device.hpp"
 
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 using namespace std::chrono;
@@ -18,16 +20,16 @@ namespace OpenDemo
         Submission::~Submission()
         {
             ASSERT(!device_)
-            ASSERT(!submissionThread_.joinable())
+            ASSERT(!submissionThread_.IsJoinable())
             ASSERT(inputWorkChannel_.IsClosed())
         }
 
         void Submission::Start()
         {
-            ASSERT(!submissionThread_.joinable())
+            ASSERT(!submissionThread_.IsJoinable())
             ASSERT(!inputWorkChannel_.IsClosed())
 
-            submissionThread_ = std::thread([this] {
+            submissionThread_ = Threading::Thread("Submission Thread", [this] {
                 device_.reset(new Render::DX12::Device());
                 this->threadFunc();
             });
@@ -36,7 +38,7 @@ namespace OpenDemo
         template <typename T>
         void Submission::PutWork(const T& work)
         {
-            ASSERT(submissionThread_.joinable())
+            ASSERT(submissionThread_.IsJoinable())
 
             inputWorkChannel_.Put(work);
         }
@@ -45,15 +47,15 @@ namespace OpenDemo
         {
             Render::Result result;
 
-            ExecuteOnSubmission([this, &result] {
-                result = device_->Init();
+            ExecuteOnSubmission([&result](Render::Device& device) {
+                result = device.Init();
             },
                 true);
 
             return result;
         }
 
-        void Submission::ExecuteOnSubmission(const std::function<void()>& function, bool waitForExcecution)
+        void Submission::ExecuteOnSubmission(const CallbackFunction& function, bool waitForExcecution)
         {
             Work::Callback work;
 
@@ -69,9 +71,9 @@ namespace OpenDemo
             std::mutex mutex;
             std::unique_lock<std::mutex> lock(mutex);
 
-            work.function = [&condition, &function, &mutex] {
+            work.function = [&condition, &function, &mutex](Render::Device& device) {
                 std::unique_lock<std::mutex> lock(mutex);
-                function();
+                function(device);
                 condition.notify_one();
             };
 
@@ -80,15 +82,23 @@ namespace OpenDemo
             condition.wait(lock);
         }
 
+        void Submission::ResetDevice(const PresentOptions& presentOptions)
+        {
+            ExecuteOnSubmission([&presentOptions](Render::Device& device) {
+                device.Reset(presentOptions);
+            },
+                true);
+        }
+
         void Submission::Terminate()
         {
-            ASSERT(submissionThread_.joinable())
+            ASSERT(submissionThread_.IsJoinable())
 
             Work::Terminate work;
             PutWork(work);
 
             inputWorkChannel_.Close();
-            submissionThread_.join();
+            submissionThread_.Join();
         }
 
         // helper type for the visitor
@@ -115,7 +125,7 @@ namespace OpenDemo
                 ASSERT(device_)
 
                 std::visit(overloaded {
-                               [](const Work::Callback& work) { work.function(); },
+                               [this](const Work::Callback& work) { work.function(*device_); },
                                [this](const Work::Terminate& work) {
                                    device_ == nullptr;
                                    Log::Print::Info("Device terminated \n");
