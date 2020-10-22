@@ -1,7 +1,5 @@
 #include "D3DUtils.hpp"
 
-#include "common/Logger.hpp"
-
 #include "gapi/DeviceInterface.hpp"
 
 namespace OpenDemo

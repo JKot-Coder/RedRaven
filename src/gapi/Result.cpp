@@ -1,7 +1,5 @@
 #include "Result.hpp"
 
-#include "common/Logger.hpp"
-
 namespace OpenDemo
 {
     namespace Render

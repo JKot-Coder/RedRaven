@@ -12,32 +12,34 @@ namespace OpenDemo
 {
     namespace Common
     {
-        void debugBreak()
+        namespace Debugging
         {
-#if defined(OS_LINUX) || defined(OS_APPLE)
-            raise(SIGTRAP);
-#elif _MSC_VER && !__INTEL_COMPILER
-            __debugbreak();
-#else
-            __asm__("int3");
-#endif
-        }
-
-        void Logger::Log(Level level, const U8String& msg)
-        {
-#if defined(OS_WINDOWS)
-            OutputDebugStringW(StringConversions::UTF8ToWString(msg).c_str());
-#else
-            fmt::print(msg);
-#endif
-            
-            if (level == Level::Fatal)
+            void debugBreak()
             {
-                //_CrtDbgReportW;
-                debugBreak();
-                exit(1);
+#if defined(OS_LINUX) || defined(OS_APPLE)
+                raise(SIGTRAP);
+#elif _MSC_VER && !__INTEL_COMPILER
+                __debugbreak();
+#else
+                __asm__("int3");
+#endif
             }
 
+            void Logger::Log(Level level, const U8String& msg)
+            {
+#if defined(OS_WINDOWS)
+                OutputDebugStringW(StringConversions::UTF8ToWString(msg).c_str());
+#else
+                fmt::print(msg);
+#endif
+
+                if (level == Level::Fatal)
+                {
+                    //_CrtDbgReportW;
+                    debugBreak();
+                    exit(1);
+                }
+            }
         }
     }
 }
