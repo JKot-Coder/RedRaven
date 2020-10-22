@@ -7,10 +7,14 @@ SET( THREADING_SRC
 )
 SOURCE_GROUP( "Threading" FILES ${THREADING_SRC} )
 
-set(COMMON_SRC
+SET( DEBUGGING_SRC
+	debugging/Logger.hpp
+    debugging/Logger.cpp
+)
+SOURCE_GROUP( "Debugging" FILES ${DEBUGGING_SRC} )
+
+SET( COMMON_SRC
         pch.hpp
-        ${THREADING_SRC}
-         ${BACKWARD_ENABLE}
         Math.hpp  
         Math.cpp
         Config.hpp
@@ -19,12 +23,19 @@ set(COMMON_SRC
         CircularBuffer.hpp
         NativeWindowHandle.hpp
         String.hpp
-        Logger.hpp
-        Logger.cpp
         Exception.hpp
         Stream.hpp
         Time.cpp
-        Time.hpp)
+        Time.hpp
+)
+SOURCE_GROUP( "" FILES ${COMMON_SRC} )
+
+set( COMMON_SRC
+        ${COMMON_SRC}
+        ${THREADING_SRC}
+        ${DEBUGGING_SRC}
+        ${BACKWARD_ENABLE}
+)
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
