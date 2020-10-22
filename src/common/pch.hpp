@@ -6,11 +6,11 @@
 
 #ifdef __cplusplus
 #include "common/String.hpp"
-#include "common/debugging/Logger.hpp"
+#include "common/Debug/Logger.hpp"
 #include <cstddef>
 #include <memory>
 #include <vector>
 
 using namespace OpenDemo::Common;
-using namespace OpenDemo::Common::Debugging;
+using namespace OpenDemo::Common::Debug;
 #endif // __cplusplus

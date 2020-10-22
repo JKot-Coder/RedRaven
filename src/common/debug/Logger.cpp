@@ -1,5 +1,7 @@
 #include "Logger.hpp"
 
+#include "common/debug/DebugStream.hpp"
+
 #if defined(OS_WINDOWS)
 #include <windows.h>
 #endif
@@ -12,7 +14,7 @@ namespace OpenDemo
 {
     namespace Common
     {
-        namespace Debugging
+        namespace Debug
         {
             void debugBreak()
             {
@@ -28,9 +30,10 @@ namespace OpenDemo
             void Logger::Log(Level level, const U8String& msg)
             {
 #if defined(OS_WINDOWS)
-                OutputDebugStringW(StringConversions::UTF8ToWString(msg).c_str());
+                // No utf-8 support;
+                Debug::WStream << StringConversions::UTF8ToWString(msg).c_str();
 #else
-                fmt::print(msg);
+                Debug::Stream << msg.c_str();
 #endif
 
                 if (level == Level::Fatal)

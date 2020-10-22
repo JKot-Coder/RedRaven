@@ -2,6 +2,8 @@
 
 #include "gapi_dx12/Device.hpp"
 
+#include "common/debug/DebugStream.hpp"
+
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -46,8 +48,8 @@ namespace OpenDemo
             constexpr int STACK_SIZE = 32;
             work.stackTrace.load_here(STACK_SIZE);
 #endif
-            backward::Printer p;
-            p.print(work.stackTrace);
+            throw std::exception();
+            
             inputWorkChannel_.Put(work);
         }
 

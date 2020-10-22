@@ -7,11 +7,13 @@ SET( THREADING_SRC
 )
 SOURCE_GROUP( "Threading" FILES ${THREADING_SRC} )
 
-SET( DEBUGGING_SRC
-	debugging/Logger.hpp
-    debugging/Logger.cpp
+SET( DEBUG_SRC
+	debug/Logger.hpp
+    debug/Logger.cpp
+    debug/DebugStream.hpp
+    debug/DebugStream.cpp
 )
-SOURCE_GROUP( "Debugging" FILES ${DEBUGGING_SRC} )
+SOURCE_GROUP( "Debug" FILES ${DEBUG_SRC} )
 
 SET( COMMON_SRC
         pch.hpp
@@ -33,13 +35,12 @@ SOURCE_GROUP( "" FILES ${COMMON_SRC} )
 set( COMMON_SRC
         ${COMMON_SRC}
         ${THREADING_SRC}
-        ${DEBUGGING_SRC}
-        ${BACKWARD_ENABLE}
+        ${DEBUG_SRC}
 )
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
-target_link_libraries(${PROJECT_NAME} fmt utf8cpp)
+target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)
 
 add_backward(${PROJECT_NAME})

@@ -8,32 +8,32 @@ namespace OpenDemo
 {
     namespace Common
     {
-        namespace Debugging
+        namespace Debug
         {
 #ifdef ENABLE_ASSERTS
 #define ASSERT(exp, ...)                                                                                                                        \
     static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "ASSERT takes only one argument use ASSET_MSG instead"); \
     if (!(exp))                                                                                                                                 \
-        Debugging::Log::Print::Fatal(fmt::format("ASSERT: {3}\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp));
+        Log::Print::Fatal(fmt::format("ASSERT: {3}\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp));
 
 #define ASSERT_MSG(exp, ...) \
     if (!(exp))              \
-        Debugging::Log::Print::Fatal(fmt::format("ASSERT: {3}\n  {0}({1}): {4}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp, fmt::sprintf(__VA_ARGS__)));
+        Log::Print::Fatal(fmt::format("ASSERT: {3}\n  {0}({1}): {4}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp, fmt::sprintf(__VA_ARGS__)));
 #else
 #define ASSERT(ignore) ((void)0);
 #endif
 
 #define LOG_INFO(...) \
-    Debugging::Log::Print::Info(fmt::format("INFO:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
+    Log::Print::Info(fmt::format("INFO:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
 
 #define LOG_WARNING(...) \
-    Debugging::Log::Print::Warning(fmt::format("WARNING:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
+    Log::Print::Warning(fmt::format("WARNING:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
 
 #define LOG_ERROR(...) \
-    Debugging::Log::Print::Error(fmt::format("ERROR:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
+    Log::Print::Error(fmt::format("ERROR:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
 
 #define LOG_FATAL(...) \
-    Debugging::Log::Print::Fatal(fmt::format("FATAL:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
+    Log::Print::Fatal(fmt::format("FATAL:\n  {0}({1}): {3}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, fmt::sprintf(__VA_ARGS__)));
 
             class Logger
             {
