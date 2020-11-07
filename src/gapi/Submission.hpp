@@ -25,12 +25,15 @@ namespace OpenDemo
             // Queue of 64 work should be enough.
             static constexpr inline size_t WorkBufferSize = 64;
 
-            using CallbackFunction = std::function<void(Render::Device& device)>;
+            using CallbackFunction = std::function<Render::Result(Render::Device& device)>;
 
         public:
             struct Work final
             {
             public:
+                Work() = default;
+                Work(Work&&) = default;
+
                 struct Terminate
                 {
                 };
@@ -55,15 +58,16 @@ namespace OpenDemo
             ~Submission();
 
             void Start();
+            void Terminate();
 
             Render::Result InitDevice();
-            void ExecuteOnSubmission(const CallbackFunction& function, bool waitForExcecution);
-            void ResetDevice(const PresentOptions& presentOptions);
-            void Terminate();
+            Render::Result ResetDevice(const PresentOptions& presentOptions);
+            void ExecuteAsync(CallbackFunction&& function);
+            Render::Result ExecuteAwait(const CallbackFunction&& function);
 
         private:
             template <typename T>
-            void PutWork(const T& work);
+            void putWork(T&& work);
 
         private:
             void threadFunc();

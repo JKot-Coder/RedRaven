@@ -79,10 +79,11 @@ namespace OpenDemo
             //    render->SwapBuffers();
             //  input->Update();
 
-            submission_->ExecuteOnSubmission([](Render::Device& device) {
-                device.Present();
-            },
-                false);
+
+            submission_->ExecuteAsync([](Render::Device& device) {
+                return device.Present();
+                
+            });
 
             time->Update();
         }

@@ -32,6 +32,7 @@ namespace OpenDemo
 #if defined(OS_WINDOWS)
                 // No utf-8 support;
                 Debug::WStream << StringConversions::UTF8ToWString(msg).c_str();
+                std::wcerr << StringConversions::UTF8ToWString(msg).c_str();
 #else
                 Debug::Stream << msg.c_str();
 #endif

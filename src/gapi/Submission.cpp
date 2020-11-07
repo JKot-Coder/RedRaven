@@ -38,66 +38,63 @@ namespace OpenDemo
         }
 
         template <typename T>
-        void Submission::PutWork(const T& workVariant)
+        void Submission::putWork(T&& workVariant)
         {
             ASSERT(submissionThread_.IsJoinable())
 
             Work work;
-            work.workVariant = workVariant;
+            work.workVariant = std::move(workVariant);
+
 #ifdef DEBUG
             constexpr int STACK_SIZE = 32;
             work.stackTrace.load_here(STACK_SIZE);
 #endif
-            throw std::exception();
-            
-            inputWorkChannel_.Put(work);
+            inputWorkChannel_.Put(std::move(work));
         }
 
         Render::Result Submission::InitDevice()
         {
-            Render::Result result;
+            return ExecuteAwait([](Render::Device& device) {
+                return device.Init();
+            });
+        }
 
-            ExecuteOnSubmission([&result](Render::Device& device) {
-                result = device.Init();
-            },
-                true);
+        void Submission::ExecuteAsync(CallbackFunction&& function)
+        {
+            Work::Callback work;
+            work.function = function;
+
+            putWork(work);
+        }
+
+        Render::Result Submission::ExecuteAwait(const CallbackFunction&& function)
+        {
+            Work::Callback work;
+
+            std::mutex mutex;
+            std::unique_lock<std::mutex> lock(mutex);
+            std::condition_variable condition;
+            Render::Result result = Render::Result::FAIL;
+
+            work.function = [&condition, &function, &mutex, &result](Render::Device& device) {
+                std::unique_lock<std::mutex> lock(mutex);
+                result = function(device);
+                condition.notify_one();
+                return result;
+            };
+
+            putWork(work);
+
+            condition.wait(lock);
 
             return result;
         }
 
-        void Submission::ExecuteOnSubmission(const CallbackFunction& function, bool waitForExcecution)
+        Render::Result Submission::ResetDevice(const PresentOptions& presentOptions)
         {
-            Work::Callback work;
-
-            std::condition_variable condition;
-
-            if (!waitForExcecution)
-            {
-                work.function = function;
-                PutWork(work);
-                return;
-            }
-
-            std::mutex mutex;
-            std::unique_lock<std::mutex> lock(mutex);
-
-            work.function = [&condition, &function, &mutex](Render::Device& device) {
-                std::unique_lock<std::mutex> lock(mutex);
-                function(device);
-                condition.notify_one();
-            };
-
-            PutWork(work);
-
-            condition.wait(lock);
-        }
-
-        void Submission::ResetDevice(const PresentOptions& presentOptions)
-        {
-            ExecuteOnSubmission([&presentOptions](Render::Device& device) {
-                device.Reset(presentOptions);
-            },
-                true);
+            return ExecuteAwait([&presentOptions](Render::Device& device) {
+                return device.Reset(presentOptions);
+            });
         }
 
         void Submission::Terminate()
@@ -105,7 +102,7 @@ namespace OpenDemo
             ASSERT(submissionThread_.IsJoinable())
 
             Work::Terminate work;
-            PutWork(work);
+            putWork(work);
 
             inputWorkChannel_.Close();
             submissionThread_.Join();
@@ -134,10 +131,13 @@ namespace OpenDemo
 
                 ASSERT(device_)
 
+                Render::Result result = Render::Result::FAIL;
+
                 std::visit(overloaded {
-                               [this](const Work::Callback& work) { work.function(*device_); },
-                               [this](const Work::Terminate& work) {
+                               [this, &result](const Work::Callback& work) { result = work.function(*device_); },
+                               [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;
+                                   result = Render::Result::OK;
                                    Log::Print::Info("Device terminated \n");
                                },
                                [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },

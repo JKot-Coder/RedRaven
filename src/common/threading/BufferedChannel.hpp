@@ -21,7 +21,7 @@ namespace OpenDemo
                 BufferedChannel() = default;
                 ~BufferedChannel() = default;
 
-                inline void Put(const T& obj)
+                inline void Put(T&& obj)
                 {
                     if (closed_)
                         return;
@@ -35,7 +35,7 @@ namespace OpenDemo
                             return;
                     }
 
-                    buffer_.push(obj);
+                    buffer_.push_back(std::forward<T>(obj));
                     inputWait_.notify_one();
                 }
 
@@ -54,9 +54,11 @@ namespace OpenDemo
                             return std::nullopt;
                     }
 
-                    const auto& item = buffer_.pop_front();
+                    auto temp = std::make_optional<T>(std::move(buffer_.front()));
+                    buffer_.pop_front();
                     outputWait_.notify_one();
-                    return item;
+
+                    return std::move(temp);
                 }
 
                 inline std::optional<T> TryGetNext()
@@ -66,9 +68,11 @@ namespace OpenDemo
                     if (buffer_.empty())
                         return std::nullopt;
 
-                    const auto& item = buffer_.pop_front();
+                    auto temp = std::make_optional<T>(std::move(buffer_.front()));
+                    buffer_.pop_front();
                     outputWait_.notify_one();
-                    return item;
+
+                    return std::move(temp);
                 }
 
                 inline void Close()

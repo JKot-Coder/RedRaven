@@ -17,14 +17,17 @@ namespace OpenDemo
         public:
             CircularBuffer() : front_(&buffer_[0]), back_(&buffer_[0]), size_(0) { }
 
-            void push(T item) { push_back(item); }
+            inline void push_back(const T& item)
+            {
+                push_back(std::move(item));
+            }
 
-            inline void push_back(T item)
+            inline void push_back(T&& item)
             {
                 if (full())
                     throw std::out_of_range("CircularBuffer is full");
 
-                *back_ = item;
+                new (back_) T(std::move(item));
                 increment(back_);
                 ++size_;
             }
@@ -35,24 +38,13 @@ namespace OpenDemo
                 push_back(T(std::forward<Args>(args)...));
             }
 
-            void pop()
+            void pop_front()
             {
                 if (empty())
                     throw std::out_of_range("CircularBuffer is empty");
 
                 --size_;
                 increment(front_);
-            }
-
-            T pop_front()
-            {
-                if (empty())
-                    throw std::out_of_range("CircularBuffer is empty");
-
-                --size_;
-                T temp = *front_;
-                increment(front_);
-                return temp;
             }
 
             T& front()
