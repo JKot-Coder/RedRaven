@@ -14,8 +14,6 @@ namespace OpenDemo
         {
         public:
             RenderQueue() = delete;
-            RenderQueue(const RenderQueue&) = delete;
-            RenderQueue& operator=(const RenderQueue&) = delete;
             RenderQueue(const U8String& name)
                 : Object(Object::Type::RenderQueue, name)
             {

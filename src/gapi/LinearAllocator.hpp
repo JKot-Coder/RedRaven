@@ -4,21 +4,17 @@ namespace OpenDemo
 {
     namespace Render
     {
-
         //#define CACHE_LINE_ALIGN
 
-        class LinearAllocator
+        class LinearAllocator : private NonCopyable
         {
         private:
             static constexpr inline size_t MAX_PAGE_SIZE = 1 << 28;
 
-            struct Page final
+            struct Page final : private NonCopyable
             {
                 Page() = delete;
                 ~Page() = default;
-
-                Page(const Page&) = delete;
-                Page& operator=(const Page&) = delete;
 
                 Page(size_t size)
                     : size_(size)
@@ -63,9 +59,6 @@ namespace OpenDemo
         public:
             LinearAllocator() = delete;
             virtual ~LinearAllocator() = default;
-
-            LinearAllocator(const LinearAllocator&) = delete;
-            LinearAllocator& operator=(const LinearAllocator&) = delete;
 
             LinearAllocator(
                 size_t baseSize,

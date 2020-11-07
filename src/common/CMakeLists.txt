@@ -4,6 +4,10 @@ SET( THREADING_SRC
 	threading/AccessGuard.hpp
 	threading/BufferedChannel.hpp
     threading/Thread.hpp
+    threading/Event.hpp
+    threading/Mutex.hpp
+    threading/ConditionVariable.hpp
+    threading/SpinLock.hpp
 )
 SOURCE_GROUP( "Threading" FILES ${THREADING_SRC} )
 
@@ -30,6 +34,7 @@ SET( COMMON_SRC
         Time.cpp
         Time.hpp
         OnScopeExit.hpp
+        NonCopyableMovable.hpp
 )
 SOURCE_GROUP( "" FILES ${COMMON_SRC} )
 

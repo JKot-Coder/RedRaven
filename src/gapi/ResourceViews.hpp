@@ -21,9 +21,6 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<ResourceView>;
             using SharedConstPtr = std::shared_ptr<const ResourceView>;
 
-            ResourceView(const ResourceView&) = delete;
-            ResourceView& operator=(const ResourceView&) = delete;
-
         protected:
             ResourceView(Type type, const Resource::WeakPtr& resource, const U8String& name)
                 : Object(Object::Type::ResourceView, name),

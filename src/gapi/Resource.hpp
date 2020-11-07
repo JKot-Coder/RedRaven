@@ -102,10 +102,6 @@ namespace OpenDemo
 
                 Count
             };
-
-            Resource(const Resource&) = delete;
-            Resource& operator=(const Resource&) = delete;
-
         protected:
             Resource(Resource::Type resourceType, const U8String& name)
                 : Object(Object::Type::Resource, name),

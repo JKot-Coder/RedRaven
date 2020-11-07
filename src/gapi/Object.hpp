@@ -5,7 +5,7 @@ namespace OpenDemo
     namespace Render
     {
 
-        class Object : public std::enable_shared_from_this<Object>
+        class Object : public std::enable_shared_from_this<Object>, private NonCopyable
         {
         public:
             using SharedPtr = std::shared_ptr<Object>;
@@ -21,8 +21,6 @@ namespace OpenDemo
             };
 
             Object() = delete;
-            Object(const Object&) = delete;
-            Object& operator=(const Object&) = delete;
 
             virtual ~Object() = default;
 

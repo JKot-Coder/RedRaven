@@ -68,6 +68,7 @@ namespace OpenDemo
                 return *back_;
             }
 
+            inline size_t capacity() const { return Capacity; }
             inline size_t size() const { return size_; }
             inline bool empty() const { return size_ == 0; }
             inline bool full() const { return size_ == Capacity; }

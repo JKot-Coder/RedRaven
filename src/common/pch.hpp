@@ -7,6 +7,7 @@
 #ifdef __cplusplus
 #include "common/String.hpp"
 #include "common/Debug/Logger.hpp"
+#include "common/NonCopyableMovable.hpp"
 #include <cstddef>
 #include <memory>
 #include <vector>

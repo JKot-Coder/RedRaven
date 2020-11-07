@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             class CommandListImpl final
             {
             public:

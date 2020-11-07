@@ -1,10 +1,10 @@
 #pragma once
 
 #include "common/CircularBuffer.hpp"
+#include "common/threading/ConditionVariable.hpp"
+#include "common/threading/Mutex.hpp"
 
 #include <atomic>
-#include <condition_variable>
-#include <mutex>
 #include <optional>
 
 namespace OpenDemo
@@ -86,9 +86,9 @@ namespace OpenDemo
 
             private:
                 std::atomic<bool> closed_ = false;
-                std::condition_variable inputWait_;
-                std::condition_variable outputWait_;
-                std::mutex mutex_;
+                Threading::ConditionVariable inputWait_;
+                Threading::ConditionVariable outputWait_;
+                Threading::Mutex mutex_;
                 CircularBuffer<T, BufferSize> buffer_;
             };
 

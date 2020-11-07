@@ -4,6 +4,8 @@
 
 #include "inputting/Input.hpp"
 
+#include "common/OnScopeExit.hpp"
+#include "common/threading/Event.hpp"
 #include "resource_manager/ResourceManager.hpp"
 
 #include "rendering/Mesh.hpp"
@@ -79,11 +81,23 @@ namespace OpenDemo
             //    render->SwapBuffers();
             //  input->Update();
 
+            auto& presentData = presentData_[presentIndex_];
+            // This will limit count of main thread frames ahead.
+            presentData.event->Wait();
+           
+            ASSERT(presentData.result);
 
-            submission_->ExecuteAsync([](Render::Device& device) {
-                return device.Present();
-                
+            submission_->ExecuteAsync([&presentData](Render::Device& device) {
+                const auto result = device.Present();
+
+                presentData.result = result;
+                presentData.event->Notify();
+
+                return result;
             });
+
+            if (++presentIndex_ == presentData_.size())
+                presentIndex_ = 0;
 
             time->Update();
         }
@@ -118,6 +132,12 @@ namespace OpenDemo
         const auto result = submission_->InitDevice();
         if (result != Render::Result::OK)
             Log::Print::Fatal("Render device init failed.");
+
+        for (int i = 0; i < presentData_.size(); i++)
+            presentData_[i] = PresentData {
+                std::make_unique<Threading::Event>(false, true),
+                Render::Result::OK
+            };
 
         // auto& render = Rendering::Instance();
         // render->Init(_window);

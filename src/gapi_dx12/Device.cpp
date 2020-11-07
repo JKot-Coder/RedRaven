@@ -297,7 +297,7 @@ namespace OpenDemo
                         std::rand() / static_cast<float>(RAND_MAX),
                         std::rand() / static_cast<float>(RAND_MAX), 1);
 
-                  //  renderContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
+                    //  renderContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
                 }
 
                 //HRESULT hr;
@@ -404,8 +404,7 @@ namespace OpenDemo
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
 
                     Result result;
-                    if (ResultU::Success(result = Result(
-                                                 d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put())))))
+                    if (result = Result(d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
                         d3dInfoQueue->ClearStorageFilter();

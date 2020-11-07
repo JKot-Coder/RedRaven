@@ -3,10 +3,10 @@
 #include "gapi_dx12/Device.hpp"
 
 #include "common/debug/DebugStream.hpp"
+#include "common/threading/Mutex.hpp"
+#include "common/threading/ConditionVariable.hpp"
 
 #include <chrono>
-#include <condition_variable>
-#include <mutex>
 #include <thread>
 
 using namespace std::chrono;
@@ -71,13 +71,13 @@ namespace OpenDemo
         {
             Work::Callback work;
 
-            std::mutex mutex;
-            std::unique_lock<std::mutex> lock(mutex);
-            std::condition_variable condition;
+            Threading::Mutex mutex;
+            std::unique_lock<Threading::Mutex> lock(mutex);
+            Threading::ConditionVariable condition;
             Render::Result result = Render::Result::FAIL;
 
             work.function = [&condition, &function, &mutex, &result](Render::Device& device) {
-                std::unique_lock<std::mutex> lock(mutex);
+                std::unique_lock<Threading::Mutex> lock(mutex);
                 result = function(device);
                 condition.notify_one();
                 return result;
@@ -132,7 +132,7 @@ namespace OpenDemo
                 ASSERT(device_)
 
                 Render::Result result = Render::Result::FAIL;
-
+               
                 std::visit(overloaded {
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
@@ -142,6 +142,8 @@ namespace OpenDemo
                                },
                                [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },
                     inputWork.workVariant);
+
+                ASSERT(result)
 
                 std::this_thread::sleep_for(50ms);
             }

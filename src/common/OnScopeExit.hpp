@@ -9,16 +9,11 @@ namespace OpenDemo
     namespace Common
     {
         template <typename F>
-        class OnScopeExit
+        class OnScopeExit final : private NonCopyable, NonMovable
         {
         public:
             explicit OnScopeExit(F&& function) : function_(function) { }
             ~OnScopeExit() { function_(); }
-
-            OnScopeExit(const OnScopeExit& other) = delete;
-            OnScopeExit(OnScopeExit&& other) = delete;
-            OnScopeExit& operator=(const OnScopeExit&) = delete;
-
         private:
             F function_;
         };

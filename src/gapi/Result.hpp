@@ -8,45 +8,66 @@ namespace OpenDemo
 #define D3DCall(exp, ...)                                                                                                                               \
     {                                                                                                                                                   \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
-        Result result;                                                                                                                                  \
-        if (ResultU::Failure(result = Result(exp)))                                                                                                     \
+        Result result = Result(exp);                                                                                                                    \
+        if (!result)                                                                                                                                    \
             return result;                                                                                                                              \
     }
 
 #define D3DCallMsg(exp, msg, ...)                                                                                 \
     {                                                                                                             \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
-        Result result;                                                                                            \
-        if (ResultU::Failure(result = Result(exp)))                                                               \
+        Result result = Result(exp);                                                                              \
+        if (!result)                                                                                              \
         {                                                                                                         \
-            LOG_ERROR("%s Code: 0x%08X Error: %s", msg, result, ResultU::ToString(result))                        \
+            LOG_ERROR("%s Code: 0x%08X Error: %s", msg, result, result.ToString())                                \
             return result;                                                                                        \
         }                                                                                                         \
     }
 
-        enum class Result : uint32_t
+        class Result
         {
-            OK = 0,
-            FALSE_CODE = 1,
+        public:
+            enum Value : uint32_t
+            {
+                OK = 0,
+                FALSE_CODE = 1,
 
-            OUT_OF_MEMORY = 0x8007000E,
+                OUT_OF_MEMORY = 0x8007000E,
 
-            FAIL = 0x80004005
+                FAIL = 0x80004005
+            };
+
+            Result() = default;
+
+            constexpr Result(uint32_t value) : value_(static_cast<Value>(value))
+            {
+            }
+
+            constexpr Result(Value value) : value_(value)
+            {
+            }
+
+            operator Value() const
+            {
+                return value_;
+            } // Allow switch and comparisons.
+            // note: Putting constexpr here causes
+            // clang to stop warning on incomplete
+            // case handling.
+
+            explicit operator bool() const
+            {
+                return static_cast<int32_t>(value_) >= 0;
+            }
+
+        public:
+            U8String ToString();
+
+            inline bool IsSuccess() const { return static_cast<int32_t>(value_) >= 0; }
+            inline bool IsFailure() const { return static_cast<int32_t>(value_) < 0; }
+
+        private:
+            Value value_;
         };
-
-        namespace ResultU
-        {
-            U8String ToString(Result status);
-
-            inline bool Success(Result status)
-            {
-                return static_cast<int32_t>(status) >= 0;
-            }
-
-            inline bool Failure(Result status)
-            {
-                return static_cast<int32_t>(status) < 0;
-            }
-        }
     }
 }

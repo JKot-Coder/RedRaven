@@ -12,14 +12,12 @@ namespace OpenDemo
     {
         namespace Threading
         {
-            class Thread
+            class Thread : NonCopyable
             {
             public:
                 Thread() = default;
                 ~Thread() = default;
                 Thread(Thread&& other) noexcept : thread_(std::move(other.thread_)) {};
-                Thread(const Thread&) = delete;
-                Thread& operator=(const Thread&) = delete;
 
                 template <class Function, class... Args>
                 explicit Thread(const U8String& threadName, Function&& f, Args&&... args) : thread_(f, args...) { SetName(threadName); }

@@ -14,8 +14,6 @@ namespace OpenDemo
         {
         public:
             CommandList() = delete;
-            CommandList(const CommandList&) = delete;
-            CommandList& operator=(const CommandList&) = delete;
             CommandList(const U8String& name)
                 : Object(Resource::Type::CommandList, name)
             {
