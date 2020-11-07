@@ -29,6 +29,7 @@ SET( COMMON_SRC
         Stream.hpp
         Time.cpp
         Time.hpp
+        OnScopeExit.hpp
 )
 SOURCE_GROUP( "" FILES ${COMMON_SRC} )
 
