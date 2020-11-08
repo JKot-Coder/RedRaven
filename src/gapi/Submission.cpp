@@ -21,7 +21,7 @@ namespace OpenDemo
 
         Submission::~Submission()
         {
-            ASSERT(!device_)
+            ASSERT(device_)
             ASSERT(!submissionThread_.IsJoinable())
             ASSERT(inputWorkChannel_.IsClosed())
         }

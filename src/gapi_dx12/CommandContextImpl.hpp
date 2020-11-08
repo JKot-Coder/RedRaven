@@ -2,7 +2,7 @@
 
 #include "common/Math.hpp"
 
-//#include "gapi/CommandContextInterface.hpp"
+#include "gapi/CommandContextInterface.hpp"
 
 #include "gapi_dx12/CommandListImpl.hpp"
 
@@ -12,11 +12,11 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            /*
-            class CommandContext final : public CommandContextInterface
+
+            class CommandContextImpl final : public CommandContextInterface
             {
             public:
-                CommandContext();
+                CommandContextImpl();
 
                 Result Init(ID3D12Device* device, const U8String& name);
 
@@ -27,7 +27,8 @@ namespace OpenDemo
             private:
                 std::unique_ptr<CommandListImpl> commandList_;
                 ComSharedPtr<ID3D12GraphicsCommandList> D3DCommandList_ = nullptr;
-            };*/
+            };
+
         };
     }
 }

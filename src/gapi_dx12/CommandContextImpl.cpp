@@ -1,4 +1,4 @@
-#include "CommandContext.hpp"
+#include "CommandContextImpl.hpp"
 
 #include "gapi/ResourceViews.hpp"
 
@@ -11,12 +11,12 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            /*
-            CommandContext::CommandContext() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
+           
+            CommandContextImpl::CommandContextImpl() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
             {
             }
 
-            Result CommandContext::Init(ID3D12Device* device, const U8String& name)
+            Result CommandContextImpl::Init(ID3D12Device* device, const U8String& name)
             {
                 D3DCall(commandList_->Init(device, name));
 
@@ -25,13 +25,13 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            void CommandContext::Reset()
+            void CommandContextImpl::Reset()
             {
                 ASSERT(D3DCommandList_);
                 //     commandList_->Submit();
             }
 
-            void CommandContext::ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color)
+            void CommandContextImpl::ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color)
             {
                 ASSERT(D3DCommandList_);
 

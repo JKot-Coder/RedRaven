@@ -5,7 +5,7 @@
 
 #include "gapi/Frame.hpp"
 
-#include "gapi_dx12/CommandContext.hpp"
+#include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"

@@ -8,6 +8,7 @@
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/RenderQueueImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
+#include "gapi_dx12/CommandContextImpl.hpp"
 
 namespace OpenDemo
 {
