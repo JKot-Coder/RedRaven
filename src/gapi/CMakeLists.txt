@@ -18,6 +18,8 @@ set(GAPI_SRC
         Texture.cpp
         Result.hpp
         Result.cpp
+        RenderContext.hpp
+        RenderContext.cpp
         DeviceInterface.hpp
         CommandContextInterface.hpp
         RenderQueue.hpp )
