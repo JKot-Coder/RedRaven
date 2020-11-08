@@ -18,7 +18,7 @@ namespace OpenDemo
 
                 uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const override;
 
-                Result InitResource(Object& resource) override;
+                Result InitResource(Object::ConstSharedPtrRef resource) override;
 
                 void WaitForGpu();
 

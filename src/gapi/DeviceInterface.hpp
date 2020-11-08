@@ -52,7 +52,7 @@ namespace OpenDemo
         public:
             virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
 
-            virtual Result InitResource(Object& resource) = 0;
+            virtual Result InitResource(Object::ConstSharedPtrRef resource) = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

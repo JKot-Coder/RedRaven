@@ -33,7 +33,7 @@ namespace OpenDemo
 
             void Present();
             Result ResetDevice(const PresentOptions& presentOptions);
-            Result CreateRenderCommandContext();
+            Result CreateRenderCommandContext(const U8String& name);
 
         private:
             Render::Result initDevice();

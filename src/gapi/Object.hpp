@@ -15,6 +15,7 @@ namespace OpenDemo
             enum class Type
             {
                 RenderQueue,
+                CommandContext,
                 CommandList,                
                 Resource,                
                 ResourceView
@@ -49,8 +50,8 @@ namespace OpenDemo
             {
             }
 
-        private:
-            void* privateImpl_;
+        protected:
+            void* privateImpl_ = nullptr;
             Type _type;
             U8String _name;
         };

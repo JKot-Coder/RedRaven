@@ -1,5 +1,6 @@
 #include "RenderContext.hpp"
 
+#include "gapi/CommandContext.hpp"
 #include "gapi/DeviceInterface.hpp"
 #include "gapi/Submission.hpp"
 
@@ -78,26 +79,16 @@ namespace OpenDemo
             return resetDevice(presentOptions);
         }
 
-        Render::Result RenderContext::CreateRenderCommandContext()
+        Render::Result RenderContext::CreateRenderCommandContext(const U8String& name)
         {
             ASSERT(inited_)
 
-                CommandContext::
-                	auto result = std::make_unique<BW::Render::ShaderResourceView>(
-                texture,
-                format,
-                firstElementIndex,
-                numResourceElements,
-                isRawView,
-                allocator);
+            auto& resource = CommandContext::Create(name);
 
-            const BW::Render::OpStatus status = gpuDeviceSubmission_->getFreeThreadInterface()->initResourceView(*result);
-
-            ren
+            return submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource);
         }
 
-        Render::Result
-        RenderContext::initDevice()
+        Render::Result RenderContext::initDevice()
         {
             return submission_->ExecuteAwait([](Render::Device& device) {
                 return device.Init();

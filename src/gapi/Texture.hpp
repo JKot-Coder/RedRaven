@@ -77,6 +77,8 @@ namespace OpenDemo
                 }
             };
 
+            Texture() = delete;
+
             static SharedPtr Create(const TextureDesc& desc, const U8String& name, BindFlags bindFlags = BindFlags::ShaderResource)
             {
                 return SharedPtr(new Texture(desc, name, bindFlags));

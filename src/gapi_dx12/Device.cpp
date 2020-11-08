@@ -5,11 +5,11 @@
 
 #include "gapi/Frame.hpp"
 
+#include "gapi_dx12/CommandContext.hpp"
 #include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/CommandContext.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 
 #include <chrono>
@@ -50,7 +50,7 @@ namespace OpenDemo
 
                 void WaitForGpu();
 
-                Result InitResource(Object& resource);
+                Result InitResource(Object::ConstSharedPtrRef resource);
 
             private:
                 bool enableDebug_ = true;
@@ -79,7 +79,7 @@ namespace OpenDemo
 
                 std::unique_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 // TEMPORARY
-                std::unique_ptr<CommandContext> CommandContext_;
+                // std::unique_ptr<CommandContext> CommandContext_;
                 std::shared_ptr<FenceImpl> fence_;
                 std::array<uint64_t, GPU_FRAMES_BUFFERED> fenceValues_;
                 winrt::handle fenceEvent_;
@@ -132,8 +132,8 @@ namespace OpenDemo
                 fence_.reset(new FenceImpl());
                 D3DCall(fence_->Init(d3dDevice_.get(), 1, "FrameSync"));
 
-                CommandContext_.reset(new CommandContext());
-                D3DCall(CommandContext_->Init(d3dDevice_.get(), "Main"));
+                //   CommandContext_.reset(new CommandContext());
+                //    D3DCall(CommandContext_->Init(d3dDevice_.get(), "Main"));
 
                 for (int i = 0; i < GPU_FRAMES_BUFFERED; i++)
                 {
@@ -164,7 +164,7 @@ namespace OpenDemo
                 ASSERT_IS_DEVICE_INITED;
             }
 
-            Result DeviceImplementation::InitResource(Object& resource)
+            Result DeviceImplementation::InitResource(Object::ConstSharedPtrRef resource)
             {
                 return ResourceCreator::InitResource(resourceCreatorContext_, resource);
             }
@@ -503,7 +503,7 @@ namespace OpenDemo
                 return 0;
             }
 
-            Result Device::InitResource(Object& resource)
+            Result Device::InitResource(Object::ConstSharedPtrRef resource)
             {
                 return _impl->InitResource(resource);
             }

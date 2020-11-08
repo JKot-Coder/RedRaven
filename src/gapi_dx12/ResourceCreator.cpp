@@ -1,8 +1,9 @@
 #include "ResourceCreator.hpp"
 
-#include "gapi/RenderQueue.hpp"
 #include "gapi/Object.hpp"
+#include "gapi/RenderQueue.hpp"
 #include "gapi/ResourceViews.hpp"
+#include "gapi/CommandContext.hpp"
 
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/RenderQueueImpl.hpp"
@@ -107,7 +108,7 @@ namespace OpenDemo
             }
 
             Result InitResource(ResourceCreatorContext& context, ResourceView& resource)
-            {/*
+            { /*
                 auto allocation = new DescriptorHeap::Allocation();
                 auto descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
           
@@ -123,18 +124,30 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result ResourceCreator::InitResource(ResourceCreatorContext& context, Object& resource)
+            Result InitResource(ResourceCreatorContext& context, CommandContext& resource)
             {
-                ASSERT(!resource.GetPrivateImpl<void*>())
+                auto impl = new CommandContextImpl();
 
-#define CASE_RESOURCE(T)    \
+                D3DCall(impl->Init(context.device, resource.GetName()));
+                resource.SetPrivateImpl(impl);
+
+                return Result::Ok;
+            }
+
+            Result ResourceCreator::InitResource(ResourceCreatorContext& context, Object::ConstSharedPtrRef resource)
+            {
+                ASSERT(resource)
+                ASSERT(!resource->GetPrivateImpl<void*>())
+
+#define CASE_RESOURCE(T)  \
     case Object::Type::T: \
-        return InitResource(context, dynamic_cast<T&>(resource));
+        return InitResource(context, dynamic_cast<T&>(*resource));
 
-                switch (resource.GetType())
+                switch (resource->GetType())
                 {
                     CASE_RESOURCE(RenderQueue)
                     CASE_RESOURCE(ResourceView)
+                    CASE_RESOURCE(CommandContext)
                 }
 
                 ASSERT_MSG(false, "Unsuported resource type");
@@ -142,7 +155,7 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
-            
+
         }
     }
 }

@@ -1,19 +1,42 @@
 #pragma once
 
+#include "gapi/CommandContextInterface.hpp"
 #include "gapi/Object.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        class RenderTargetView;
-
-        class CommandContextInterface
+        class CommandContext final : public Object, public CommandContextInterface
         {
         public:
-            virtual void Reset() = 0;
+            using SharedPtr = std::shared_ptr<CommandContext>;
+            using SharedConstPtr = std::shared_ptr<const CommandContext>;
+            using ConstSharedPtrRef = const SharedPtr&;
 
-            virtual void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) = 0;
+            CommandContext() = delete;
+
+            inline void Reset() override { getImplementation().Reset(); }
+
+            inline void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
+
+            static SharedPtr Create(const U8String& name)
+            {
+                return SharedPtr(new CommandContext(name));
+            }
+
+        private:
+            CommandContext(const U8String& name)
+                : Object(Object::Type::CommandContext, name)
+            {
+            }
+
+            CommandContextInterface& getImplementation()
+            {
+                ASSERT(privateImpl_);
+
+                return *(static_cast<CommandContextInterface*>(privateImpl_));
+            }
         };
     }
 }
@@ -21,13 +44,6 @@ namespace OpenDemo
 /*
 
    public:
-            CommandContext() = delete;
-            CommandContext(const CommandContext&) = delete;
-            CommandContext& operator=(const CommandContext&) = delete;
-            CommandContext(const U8String& name)
-                : Resource(Resource::Type::CommandList, name)
-            {
-            }
 
             virtual ~CommandContext() = default;
 

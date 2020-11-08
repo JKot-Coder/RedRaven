@@ -22,6 +22,7 @@ set(GAPI_SRC
         RenderContext.cpp
         DeviceInterface.hpp
         CommandContext.hpp
+        CommandContextInterface.hpp
         RenderQueue.hpp )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})

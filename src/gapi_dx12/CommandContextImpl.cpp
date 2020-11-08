@@ -11,7 +11,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
+            /*
             CommandContext::CommandContext() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
             {
             }

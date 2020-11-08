@@ -63,6 +63,9 @@ namespace OpenDemo
 
         time->Init();
 
+        auto& renderContext = Render::RenderContext::Instance();
+        const auto result = renderContext.CreateRenderCommandContext(u8"qwew");
+
         while (!_quit)
         {
             Windowing::Windowing::PoolEvents();
@@ -123,7 +126,7 @@ namespace OpenDemo
     void Application::terminate()
     {
         Render::RenderContext::Instance().Terminate();
-        
+
         //_scene->Terminate();
 
         _window.reset();

@@ -1,12 +1,12 @@
 #pragma once
 
+#include "gapi/Object.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        class Object;
 
         namespace DX12
         {
@@ -19,7 +19,7 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                Result InitResource(ResourceCreatorContext& context, Object& resource);
+                Result InitResource(ResourceCreatorContext& context, Object::ConstSharedPtrRef resource);
             }
         }
     }
