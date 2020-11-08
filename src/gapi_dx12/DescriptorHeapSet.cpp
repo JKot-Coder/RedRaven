@@ -19,7 +19,7 @@ namespace OpenDemo
 
                 D3DCall(rtvDescriptorHeap_->Init(device, desc));
 
-                return Result::OK;
+                return Result::Ok;
             }
 
         }

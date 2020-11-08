@@ -23,7 +23,7 @@ namespace OpenDemo
                 D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             //    Result RenderQueueImpl::Submit(CommandContextInterface& CommandContext)

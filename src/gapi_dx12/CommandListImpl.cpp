@@ -19,7 +19,7 @@ namespace OpenDemo
 
                     D3DUtils::SetAPIName(allocator, name, index);
 
-                    return Result::OK;
+                    return Result::Ok;
                 };
 
                 _allocatorsRB.reset(new FencedFrameRingBuffer<ID3D12CommandAllocator*>());
@@ -30,7 +30,7 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(_commandList.get(), name);
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result CommandListImpl::Submit(ID3D12CommandQueue* queue)
@@ -46,7 +46,7 @@ namespace OpenDemo
                 D3DCall(_commandList->Reset(allocator, nullptr));
                 D3DCall(_allocatorsRB->MoveToNextFrame(queue));
 
-                return Result::OK;
+                return Result::Ok;
             }
         }
     }

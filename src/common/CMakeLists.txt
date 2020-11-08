@@ -35,6 +35,7 @@ SET( COMMON_SRC
         Time.hpp
         OnScopeExit.hpp
         NonCopyableMovable.hpp
+        Singleton.hpp
 )
 SOURCE_GROUP( "" FILES ${COMMON_SRC} )
 

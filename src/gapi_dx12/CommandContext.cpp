@@ -22,7 +22,7 @@ namespace OpenDemo
 
                 D3DCommandList_ = commandList_->GetCommandList();
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             void CommandContext::Reset()

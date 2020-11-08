@@ -1,5 +1,6 @@
 #pragma once
 
+#include "comdef.h"
 namespace OpenDemo
 {
     namespace Render
@@ -19,7 +20,7 @@ namespace OpenDemo
         Result result = Result(exp);                                                                              \
         if (!result)                                                                                              \
         {                                                                                                         \
-            LOG_ERROR("%s Code: 0x%08X Error: %s", msg, result, result.ToString())                                \
+            LOG_ERROR("%s Error: %s", msg, result.ToString())                                                     \
             return result;                                                                                        \
         }                                                                                                         \
     }
@@ -29,12 +30,19 @@ namespace OpenDemo
         public:
             enum Value : uint32_t
             {
-                OK = 0,
-                FALSE_CODE = 1,
+                Ok = 0,
+                False = 1,
 
-                OUT_OF_MEMORY = 0x8007000E,
-
-                FAIL = 0x80004005
+                Abort = 0x80004004,
+                AccessDenied = 0x80070005,
+                Fail = 0x80004005,
+                Handle = 0x80070006,
+                InvalidArgument = 0x80070057,
+                NoInterface = 0x80004002,
+                NotImplemented = 0x80004001,        
+                OutOfMemory = 0x8007000E,
+                Pointer = 0x80004003,
+                Unexpected = 0x8000FFFF,
             };
 
             Result() = default;
@@ -61,7 +69,7 @@ namespace OpenDemo
             }
 
         public:
-            U8String ToString();
+            U8String ToString() const;
 
             inline bool IsSuccess() const { return static_cast<int32_t>(value_) >= 0; }
             inline bool IsFailure() const { return static_cast<int32_t>(value_) < 0; }

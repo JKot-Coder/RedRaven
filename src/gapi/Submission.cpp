@@ -52,12 +52,6 @@ namespace OpenDemo
             inputWorkChannel_.Put(std::move(work));
         }
 
-        Render::Result Submission::InitDevice()
-        {
-            return ExecuteAwait([](Render::Device& device) {
-                return device.Init();
-            });
-        }
 
         void Submission::ExecuteAsync(CallbackFunction&& function)
         {
@@ -74,7 +68,7 @@ namespace OpenDemo
             Threading::Mutex mutex;
             std::unique_lock<Threading::Mutex> lock(mutex);
             Threading::ConditionVariable condition;
-            Render::Result result = Render::Result::FAIL;
+            Render::Result result = Render::Result::Fail;
 
             work.function = [&condition, &function, &mutex, &result](Render::Device& device) {
                 std::unique_lock<Threading::Mutex> lock(mutex);
@@ -88,13 +82,6 @@ namespace OpenDemo
             condition.wait(lock);
 
             return result;
-        }
-
-        Render::Result Submission::ResetDevice(const PresentOptions& presentOptions)
-        {
-            return ExecuteAwait([&presentOptions](Render::Device& device) {
-                return device.Reset(presentOptions);
-            });
         }
 
         void Submission::Terminate()
@@ -131,19 +118,21 @@ namespace OpenDemo
 
                 ASSERT(device_)
 
-                Render::Result result = Render::Result::FAIL;
+                Render::Result result = Render::Result::Fail;
                
                 std::visit(overloaded {
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;
-                                   result = Render::Result::OK;
-                                   Log::Print::Info("Device terminated \n");
+                                   result = Render::Result::Ok;
+                                   Log::Print::Info("Device terminated.\n");
                                },
                                [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },
                     inputWork.workVariant);
 
-                ASSERT(result)
+                // Todo: Add work label in message
+                if (!result)
+                    Log::Print::Fatal(u8"Fatal error on SubmissionThread with result: %s\n", result.ToString());
 
                 std::this_thread::sleep_for(50ms);
             }

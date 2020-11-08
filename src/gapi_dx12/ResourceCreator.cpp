@@ -103,7 +103,7 @@ namespace OpenDemo
                 D3DCall(impl->Init(context.device, resource.GetName()));
                 resource.SetPrivateImpl(impl);
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result InitResource(ResourceCreatorContext& context, ResourceView& resource)
@@ -120,7 +120,7 @@ namespace OpenDemo
 
                     resource.SetPrivateImpl(allocation);*/
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result ResourceCreator::InitResource(ResourceCreatorContext& context, Object& resource)
@@ -140,7 +140,7 @@ namespace OpenDemo
                 ASSERT_MSG(false, "Unsuported resource type");
 #undef CASE_RESOURCE
 
-                return Result::OK;
+                return Result::Ok;
             }
             
         }

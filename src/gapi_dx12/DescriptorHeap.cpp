@@ -34,7 +34,7 @@ namespace OpenDemo
                     freeChunks_.emplace_back(&chunks_[i]);
                 }
 
-                return Result::OK;
+                return Result::Ok;
             }
 
         }

@@ -15,7 +15,7 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(_fence.get(), name);
 
                 _cpu_value = initialValue;
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
@@ -25,7 +25,7 @@ namespace OpenDemo
                 D3DCallMsg(commandQueue->Signal(_fence.get(), value), "Signal");
 
                 _cpu_value = value;
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result FenceImpl::SetEventOnCompletion(uint64_t value, HANDLE event) const
@@ -34,7 +34,7 @@ namespace OpenDemo
 
                 D3DCallMsg(_fence->SetEventOnCompletion(value, event), "SetEventOnCompletion");
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             uint64_t FenceImpl::GetGpuValue() const

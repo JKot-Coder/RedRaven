@@ -30,7 +30,7 @@ namespace OpenDemo
                     if (allocated_ >= numDescriptors_)
                     {
                         LOG_ERROR("Not enough memory in descriptorHeap: %s", name_)
-                        return Result::OUT_OF_MEMORY;
+                        return Result::OutOfMemory;
                     }
 
                     ASSERT(!freeChunks_.empty())
@@ -48,7 +48,7 @@ namespace OpenDemo
 
                     allocated_++;
 
-                    return Result::OK;
+                    return Result::Ok;
                 }
 
                 void Free(uint32_t indexInHeap)

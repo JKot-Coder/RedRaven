@@ -51,7 +51,7 @@ namespace OpenDemo
                     D3DCall(_fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}", name)));
 
 #endif
-                    return Result::OK;
+                    return Result::Ok;
                 }
 
                 ObjectType CurrentObject()
@@ -82,7 +82,7 @@ namespace OpenDemo
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
 #else
-                    return Result::OK;
+                    return Result::Ok;
 #endif
                 }
 

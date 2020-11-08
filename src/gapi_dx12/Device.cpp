@@ -146,7 +146,7 @@ namespace OpenDemo
                 if (!bool { fenceEvent_ })
                 {
                     LOG_ERROR("Failure create fence Event");
-                    return Result::FAIL;
+                    return Result::Fail;
                 }
 
                 descriptorHeapSet_ = std::make_unique<DescriptorHeapSet>();
@@ -156,7 +156,7 @@ namespace OpenDemo
                 resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_.get();
 
                 inited_ = true;
-                return Result::OK;
+                return Result::Ok;
             }
 
             void DeviceImplementation::WaitForGpu()
@@ -207,7 +207,7 @@ namespace OpenDemo
                     if (!swapChainCompatable)
                     {
                         LOG_ERROR("SwapChains incompatible");
-                        return Result::FAIL;
+                        return Result::Fail;
                     }
 
                     // If the swap chain already exists, resize it.
@@ -271,7 +271,7 @@ namespace OpenDemo
                 // {
                 // }*/
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result DeviceImplementation::Present()
@@ -340,21 +340,21 @@ namespace OpenDemo
                     if (!dxgiFactory_->IsCurrent())
                     {
                         LOG_ERROR("Dxgi is not current");
-                        return Result::FAIL;
+                        return Result::Fail;
 
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
                 }
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             Result DeviceImplementation::handleDeviceLost()
             {
                 // Todo implement properly Device lost event processing
-                Log::Print::Fatal("Device was lost.");
-                return Result::OK;
+                Log::Print::Fatal("Device was lost.\n");
+                return Result::Ok;
             }
 
             Result DeviceImplementation::createDevice()
@@ -439,7 +439,7 @@ namespace OpenDemo
                     d3dFeatureLevel_ = minimumFeatureLevel;
                 }
 
-                return Result::OK;
+                return Result::Ok;
             }
 
             void DeviceImplementation::moveToNextFrame()

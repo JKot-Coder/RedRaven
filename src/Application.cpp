@@ -4,9 +4,9 @@
 
 #include "inputting/Input.hpp"
 
-#include "common/OnScopeExit.hpp"
-#include "common/threading/Event.hpp"
 #include "resource_manager/ResourceManager.hpp"
+
+#include "gapi/RenderContext.hpp"
 
 #include "rendering/Mesh.hpp"
 #include "rendering/Primitives.hpp"
@@ -27,9 +27,10 @@ namespace OpenDemo
 
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
-        int width = window_.GetWidth();
+        std::ignore = window_;
+        /* int width = window_.GetWidth();
         int height = window_.GetHeight();
-
+       
         Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
@@ -37,7 +38,7 @@ namespace OpenDemo
         presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
-        submission_->ResetDevice(presentOptions);
+        submission_->ResetDevice(presentOptions);*/
     }
 
     void Application::Start()
@@ -53,14 +54,6 @@ namespace OpenDemo
             alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
         */
-
-        Render::PresentOptions presentOptions;
-        presentOptions.bufferCount = 2;
-        presentOptions.isStereo = false;
-        presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
-        presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
-        presentOptions.windowHandle = _window->GetNativeHandle();
-        submission_->ResetDevice(presentOptions);
 
         //  const auto& input = Inputting::Instance();
         const auto& time = Time::Instance();
@@ -80,24 +73,6 @@ namespace OpenDemo
             //device->Present();
             //    render->SwapBuffers();
             //  input->Update();
-
-            auto& presentData = presentData_[presentIndex_];
-            // This will limit count of main thread frames ahead.
-            presentData.event->Wait();
-           
-            ASSERT(presentData.result);
-
-            submission_->ExecuteAsync([&presentData](Render::Device& device) {
-                const auto result = device.Present();
-
-                presentData.result = result;
-                presentData.event->Notify();
-
-                return result;
-            });
-
-            if (++presentIndex_ == presentData_.size())
-                presentIndex_ = 0;
 
             time->Update();
         }
@@ -128,16 +103,18 @@ namespace OpenDemo
         Inputting::Instance()->Init();
         Inputting::Instance()->SubscribeToWindow(_window);
 
-        submission_->Start();
-        const auto result = submission_->InitDevice();
-        if (result != Render::Result::OK)
-            Log::Print::Fatal("Render device init failed.");
+        Render::PresentOptions presentOptions;
+        presentOptions.bufferCount = 2;
+        presentOptions.isStereo = false;
+        presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
+        presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
+        presentOptions.windowHandle = _window->GetNativeHandle();
 
-        for (int i = 0; i < presentData_.size(); i++)
-            presentData_[i] = PresentData {
-                std::make_unique<Threading::Event>(false, true),
-                Render::Result::OK
-            };
+        auto& renderContext = Render::RenderContext::Instance();
+        const auto result = renderContext.Init(presentOptions);
+
+        if (!result)
+            Log::Print::Fatal("Fatal error initialize render context with error: %s\n", result.ToString());
 
         // auto& render = Rendering::Instance();
         // render->Init(_window);
@@ -145,8 +122,9 @@ namespace OpenDemo
 
     void Application::terminate()
     {
-        submission_->Terminate();
-        _scene->Terminate();
+        Render::RenderContext::Instance().Terminate();
+        
+        //_scene->Terminate();
 
         _window.reset();
         _window = nullptr;

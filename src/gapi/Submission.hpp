@@ -60,12 +60,10 @@ namespace OpenDemo
             void Start();
             void Terminate();
 
-            Render::Result InitDevice();
-            Render::Result ResetDevice(const PresentOptions& presentOptions);
             void ExecuteAsync(CallbackFunction&& function);
             Render::Result ExecuteAwait(const CallbackFunction&& function);
 
-           inline std::weak_ptr<Render::MultiThreadDeviceInterface> getMultiThreadDeviceInterface() { return device_; }
+            inline std::weak_ptr<Render::MultiThreadDeviceInterface> getMultiThreadDeviceInterface() { return device_; }
 
         private:
             template <typename T>
