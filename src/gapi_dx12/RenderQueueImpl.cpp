@@ -26,7 +26,7 @@ namespace OpenDemo
                 return Result::OK;
             }
 
-            //    Result RenderQueueImpl::Submit(RenderContextInterface& renderContext)
+            //    Result RenderQueueImpl::Submit(RenderCommandContextInterface& RenderCommandContext)
             //  {
             //   }
         };

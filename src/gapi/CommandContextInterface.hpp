@@ -8,7 +8,7 @@ namespace OpenDemo
     {
         class RenderTargetView;
 
-        class RenderContextInterface
+        class RenderCommandContextInterface
         {
         public:
             virtual void Reset() = 0;
@@ -21,15 +21,15 @@ namespace OpenDemo
 /*
 
    public:
-            RenderContext() = delete;
-            RenderContext(const RenderContext&) = delete;
-            RenderContext& operator=(const RenderContext&) = delete;
-            RenderContext(const U8String& name)
+            RenderCommandContext() = delete;
+            RenderCommandContext(const RenderCommandContext&) = delete;
+            RenderCommandContext& operator=(const RenderCommandContext&) = delete;
+            RenderCommandContext(const U8String& name)
                 : Resource(Resource::Type::CommandList, name)
             {
             }
 
-            virtual ~RenderContext() = default;
+            virtual ~RenderCommandContext() = default;
 
         private:
 

@@ -34,7 +34,7 @@ namespace OpenDemo
                 virtual void ClearColor(const Common::Vector4& color) const override;
                 virtual void ClearDepthStencil(float depth) const override;
 
-                virtual void Begin(const std::shared_ptr<RenderContext>& renderContext) override;
+                virtual void Begin(const std::shared_ptr<RenderCommandContext>& RenderCommandContext) override;
                 virtual void DrawElement(const RenderElement& renderElement) const override;
                 virtual void End() const override;
 
@@ -47,7 +47,7 @@ namespace OpenDemo
                 void ApplyBlending(bool blending, const BlendingDescription& description) const;
 
                 std::shared_ptr<Windowing::Window> _window;
-                std::shared_ptr<RenderContext> _renderContext;
+                std::shared_ptr<RenderCommandContext> _RenderCommandContext;
                 SDL_GLContext _context;
             };
 

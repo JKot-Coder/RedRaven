@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rendering/RenderContext.hpp"
+#include "rendering/RenderCommandContext.hpp"
 
 #include <tuple>
 
@@ -13,7 +13,7 @@ namespace OpenDemo
         class SceneGraph;
         class Shader;
         class Texture2D;
-        class RenderContext;
+        class RenderCommandContext;
         class Mesh;
 
         enum class RenderPassType
@@ -40,7 +40,7 @@ namespace OpenDemo
         private:
             Render* _render;
             std::shared_ptr<RenderTargetContext> _hdrRenderTargetContext;
-            std::shared_ptr<RenderContext> _renderContext;
+            std::shared_ptr<RenderCommandContext> _RenderCommandContext;
             std::shared_ptr<Shader> _pbrShader;
         };
 
@@ -55,7 +55,7 @@ namespace OpenDemo
         private:
             Render* _render;
             std::shared_ptr<Texture2D> _hdrTexture;
-            std::shared_ptr<RenderContext> _renderContext;
+            std::shared_ptr<RenderCommandContext> _RenderCommandContext;
             std::shared_ptr<Shader> _postProcessShader;
             std::shared_ptr<Mesh> _fullScreenQuad;
         };

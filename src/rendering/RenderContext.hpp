@@ -21,10 +21,10 @@ namespace OpenDemo
 
         typedef std::vector<RenderElement> RenderQuery;
 
-        class RenderContext
+        class RenderCommandContext
         {
         public:
-            RenderContext();
+            RenderCommandContext();
 
             inline void SetDepthWrite(bool value) { _depthWrite = value; }
             inline void SetDepthTestFunction(DepthTestFunction value) { _depthTestFunction = value; }

@@ -16,8 +16,8 @@ set(GAPI_SRC
         FenceImpl.cpp
         CommandListImpl.hpp
         CommandListImpl.cpp
-        RenderCommandContext.hpp
-        RenderCommandContext.cpp
+        CommandContext.hpp
+        CommandContext.cpp
         RenderQueueImpl.hpp
         RenderQueueImpl.cpp 
         ResourceCreator.hpp

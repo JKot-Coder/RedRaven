@@ -7,7 +7,7 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-        class RenderContext;
+        class RenderCommandContext;
         class Mesh;
         class Camera;
         struct RenderElement;
@@ -22,7 +22,7 @@ namespace OpenDemo
             virtual void Terminate() override;
             virtual void Update() override;
 
-            virtual void Collect(Rendering::RenderContext& renderContext) override;
+            virtual void Collect(Rendering::RenderCommandContext& RenderCommandContext) override;
             virtual std::shared_ptr<Rendering::Camera> GetMainCamera() override;
 
         private:

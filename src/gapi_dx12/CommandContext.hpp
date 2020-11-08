@@ -2,7 +2,7 @@
 
 #include "common/Math.hpp"
 
-#include "gapi/RenderContextInterface.hpp"
+#include "gapi/RenderCommandContextInterface.hpp"
 
 #include "gapi_dx12/CommandListImpl.hpp"
 
@@ -12,10 +12,10 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class RenderContext final : public RenderContextInterface
+            class RenderCommandContext final : public RenderCommandContextInterface
             {
             public:
-                RenderContext();
+                RenderCommandContext();
 
                 Result Init(ID3D12Device* device, const U8String& name);
 

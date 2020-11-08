@@ -1,4 +1,4 @@
-#include "RenderContext.hpp"
+#include "RenderCommandContext.hpp"
 
 #include "gapi/ResourceViews.hpp"
 
@@ -12,11 +12,11 @@ namespace OpenDemo
         namespace DX12
         {
 
-            RenderContext::RenderContext() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
+            RenderCommandContext::RenderCommandContext() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
             {
             }
 
-            Result RenderContext::Init(ID3D12Device* device, const U8String& name)
+            Result RenderCommandContext::Init(ID3D12Device* device, const U8String& name)
             {
                 D3DCall(commandList_->Init(device, name));
 
@@ -25,13 +25,13 @@ namespace OpenDemo
                 return Result::OK;
             }
 
-            void RenderContext::Reset()
+            void RenderCommandContext::Reset()
             {
                 ASSERT(D3DCommandList_);
                 //     commandList_->Submit();
             }
 
-            void RenderContext::ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color)
+            void RenderCommandContext::ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color)
             {
                 ASSERT(D3DCommandList_);
 
@@ -48,7 +48,7 @@ namespace OpenDemo
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
             /*
-            void RenderContext::Close()
+            void RenderCommandContext::Close()
             {
                 commandList_->Close();
             }*/
