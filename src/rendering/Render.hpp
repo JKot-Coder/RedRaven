@@ -17,7 +17,7 @@ namespace OpenDemo
         class Texture2D;
         class Shader;
         class Mesh;
-        class RenderCommandContext;
+        class RenderContext;
         class RenderTargetContext;
 
         enum PixelFormat : int
@@ -72,7 +72,7 @@ namespace OpenDemo
             virtual void ClearColor(const Common::Vector4& color) const = 0;
             virtual void ClearDepthStencil(float depth) const = 0;
 
-            virtual void Begin(const std::shared_ptr<RenderCommandContext>& RenderCommandContext) = 0;
+            virtual void Begin(const std::shared_ptr<RenderContext>& CommandContext) = 0;
             virtual void DrawElement(const RenderElement& renderElement) const = 0;
             virtual void End() const = 0;
 

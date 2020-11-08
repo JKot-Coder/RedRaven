@@ -7,7 +7,7 @@
 #include "rendering/Camera.hpp"
 #include "rendering/Primitives.hpp"
 #include "rendering/Render.hpp"
-#include "rendering/RenderCommandContext.hpp"
+#include "rendering/RenderContext.hpp"
 
 namespace OpenDemo
 {
@@ -46,9 +46,9 @@ namespace OpenDemo
             }
         }
 
-        void Scenes::Scene_1::Collect(Rendering::RenderCommandContext& RenderCommandContext)
+        void Scenes::Scene_1::Collect(Rendering::RenderContext& renderContext)
         {
-            RenderCommandContext.GetRenderQuery() = _renderElements;
+            renderContext.GetRenderQuery() = _renderElements;
         }
 
         std::shared_ptr<Rendering::Camera> Scene_1::GetMainCamera()

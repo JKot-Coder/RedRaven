@@ -1,4 +1,4 @@
-#include "RenderCommandContext.hpp"
+#include "RenderContext.hpp"
 
 #include "rendering/Render.hpp"
 
@@ -7,7 +7,7 @@ namespace OpenDemo
     namespace Rendering
     {
 
-        RenderCommandContext::RenderCommandContext()
+        RenderContext::RenderContext()
             : _depthWrite(true)
             , _depthTestFunction(DepthTestFunction::LEQUAL)
             , _renderQuery(new RenderQuery())

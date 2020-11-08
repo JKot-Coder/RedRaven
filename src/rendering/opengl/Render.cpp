@@ -10,7 +10,7 @@
 
 #include "rendering/Camera.hpp"
 #include "rendering/Render.hpp"
-#include "rendering/RenderCommandContext.hpp"
+#include "rendering/RenderContext.hpp"
 
 #include "rendering/opengl/Mesh.hpp"
 #include "rendering/opengl/Render.hpp"
@@ -139,13 +139,13 @@ namespace OpenDemo
                 glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             }
 
-            void Render::Begin(const std::shared_ptr<RenderCommandContext>& RenderCommandContext)
+            void Render::Begin(const std::shared_ptr<RenderContext>& renderContext)
             {
-                _RenderCommandContext = RenderCommandContext;
+                _renderContext = renderContext;
 
-                const auto& camera = _RenderCommandContext->GetCamera();
-                const auto& shader = _RenderCommandContext->GetShader();
-                const auto& renderTarget = _RenderCommandContext->GetRenderTarget();
+                const auto& camera = _renderContext->GetCamera();
+                const auto& shader = _renderContext->GetShader();
+                const auto& renderTarget = _renderContext->GetRenderTarget();
 
                 int rtWidth, rtHeight;
                 if (renderTarget == nullptr)
@@ -165,9 +165,9 @@ namespace OpenDemo
                 glViewport(0, 0, rtWidth, rtHeight);
                 glScissor(0, 0, rtWidth, rtHeight);
 
-                glDepthMask(_RenderCommandContext->GetDepthWrite());
+                glDepthMask(_renderContext->GetDepthWrite());
 
-                const auto depthTestFunction = _RenderCommandContext->GetDepthTestFunction();
+                const auto depthTestFunction = _renderContext->GetDepthTestFunction();
                 if (depthTestFunction == ALWAYS)
                 {
                     glDisable(GL_DEPTH_TEST);
@@ -179,9 +179,9 @@ namespace OpenDemo
 
                 glDepthFunc(GetOpenGLDepthTestFunction(depthTestFunction));
 
-                ApplyBlending(_RenderCommandContext->GetBlending(), _RenderCommandContext->GetBlendingDescription());
+                ApplyBlending(_renderContext->GetBlending(), _renderContext->GetBlendingDescription());
 
-                const auto& lightDir = _RenderCommandContext->GetLightDirection();
+                const auto& lightDir = _renderContext->GetLightDirection();
 
                 shader->Bind();
                 shader->SetParam(Uniform::Type::LIGHT_DIR, Vector4(lightDir, 0));
@@ -197,7 +197,7 @@ namespace OpenDemo
 
             void Render::DrawElement(const RenderElement& renderElement) const
             {
-                const auto& shader = _RenderCommandContext->GetShader();
+                const auto& shader = _renderContext->GetShader();
                 const auto& material = renderElement.material;
 
                 shader->SetParam(Uniform::Type::MODEL_MATRIX, renderElement.modelMatrix);

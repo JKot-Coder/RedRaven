@@ -10,7 +10,7 @@
 #include "rendering/Camera.hpp"
 #include "rendering/Primitives.hpp"
 #include "rendering/Render.hpp"
-#include "rendering/RenderCommandContext.hpp"
+#include "rendering/RenderContext.hpp"
 
 namespace OpenDemo
 {
@@ -39,9 +39,9 @@ namespace OpenDemo
             _renderElements = scene;
         }
 
-        void Scenes::Scene_2::Collect(Rendering::RenderCommandContext& RenderCommandContext)
+        void Scenes::Scene_2::Collect(Rendering::RenderContext& renderContext)
         {
-            RenderCommandContext.GetRenderQuery() = _renderElements;
+            renderContext.GetRenderQuery() = _renderElements;
         }
 
         void Scene_2::Update()

@@ -8,7 +8,7 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class RenderCommandContextInterface;
+        class CommandContextInterface;
 
         class RenderQueue final : public Object
         {

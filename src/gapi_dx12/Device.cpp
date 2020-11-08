@@ -9,7 +9,7 @@
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/RenderCommandContext.hpp"
+#include "gapi_dx12/CommandContext.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 
 #include <chrono>
@@ -79,7 +79,7 @@ namespace OpenDemo
 
                 std::unique_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 // TEMPORARY
-                std::unique_ptr<RenderCommandContext> RenderCommandContext_;
+                std::unique_ptr<CommandContext> CommandContext_;
                 std::shared_ptr<FenceImpl> fence_;
                 std::array<uint64_t, GPU_FRAMES_BUFFERED> fenceValues_;
                 winrt::handle fenceEvent_;
@@ -132,8 +132,8 @@ namespace OpenDemo
                 fence_.reset(new FenceImpl());
                 D3DCall(fence_->Init(d3dDevice_.get(), 1, "FrameSync"));
 
-                RenderCommandContext_.reset(new RenderCommandContext());
-                D3DCall(RenderCommandContext_->Init(d3dDevice_.get(), "Main"));
+                CommandContext_.reset(new CommandContext());
+                D3DCall(CommandContext_->Init(d3dDevice_.get(), "Main"));
 
                 for (int i = 0; i < GPU_FRAMES_BUFFERED; i++)
                 {
@@ -297,7 +297,7 @@ namespace OpenDemo
                         std::rand() / static_cast<float>(RAND_MAX),
                         std::rand() / static_cast<float>(RAND_MAX), 1);
 
-                    //  RenderCommandContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
+                    //  CommandContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
                 }
 
                 //HRESULT hr;
