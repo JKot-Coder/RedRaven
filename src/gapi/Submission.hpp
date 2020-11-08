@@ -65,6 +65,8 @@ namespace OpenDemo
             void ExecuteAsync(CallbackFunction&& function);
             Render::Result ExecuteAwait(const CallbackFunction&& function);
 
+           inline std::weak_ptr<Render::MultiThreadDeviceInterface> getMultiThreadDeviceInterface() { return device_; }
+
         private:
             template <typename T>
             void putWork(T&& work);
@@ -73,7 +75,7 @@ namespace OpenDemo
             void threadFunc();
 
         private:
-            std::unique_ptr<Render::Device> device_;
+            std::shared_ptr<Render::Device> device_;
             //   std::unique_ptr<AccessGuard<Render::Device>> device_;
             Common::Threading::Thread submissionThread_;
             Common::Threading::BufferedChannel<Work, WorkBufferSize> inputWorkChannel_;
