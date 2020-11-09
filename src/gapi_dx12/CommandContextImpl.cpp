@@ -47,11 +47,13 @@ namespace OpenDemo
                 barrier = CD3DX12_RESOURCE_BARRIER::Transition(nullptr, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
-            /*
-            void CommandContext::Close()
+        
+            void CommandContextImpl::Close()
             {
-                commandList_->Close();
-            }*/
+                // RESULT;
+                const auto result = D3DCommandList_->Close();
+                std::ignore = result;
+            }
         };
     }
 }

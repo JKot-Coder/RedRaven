@@ -21,6 +21,7 @@ namespace OpenDemo
                 Result Init(ID3D12Device* device, const U8String& name);
 
                 void Reset() override;
+                void Close() override;
 
                 void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) override;
 

@@ -2,6 +2,11 @@
 
 #include "gapi/Result.hpp"
 
+#include "gapi/CommandContext.hpp"
+#include "gapi/Resource.hpp"
+#include "gapi/ResourceViews.hpp"
+#include "gapi/Texture.hpp"
+
 #include "common/Singleton.hpp"
 
 #include <array>
@@ -33,11 +38,16 @@ namespace OpenDemo
 
             void Present();
             Result ResetDevice(const PresentOptions& presentOptions);
-            Result CreateRenderCommandContext(const U8String& name);
+
+            CommandContext::SharedPtr CreateRenderCommandContext(const U8String& name) const;
+            Texture::SharedPtr CreateTexture(const Texture::TextureDesc& desc, Texture::BindFlags bindFlags, const U8String& name = "") const;
+
+            RenderTargetView::SharedPtr CreateRenderTargetView(
+                Texture::ConstSharedPtrRef texture) const;
 
         private:
             Render::Result initDevice();
-            Render::Result resetDevice(const PresentOptions& presentOptions);
+            Render::Result resetDevice(const PresentOptions& presentOptions);           
 
         private:
             static constexpr int SubmissionThreadAheadFrames = 4;

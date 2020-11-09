@@ -7,7 +7,7 @@ namespace OpenDemo
     namespace Render
     {
 
-        Texture::Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags) 
+        Texture::Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags)
             : Resource(Resource::Type::Texture, name),
               desc_(desc)
         {
@@ -42,6 +42,11 @@ namespace OpenDemo
                 ASSERT_MSG(false, "Wrong texture type");
             }
         }
-       
+
+        RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t arraySize) 
+        {
+            return RenderTargetView::Create(std::dynamic_pointer_cast<Resource>(shared_from_this()), name_);
+        }
+
     }
 }

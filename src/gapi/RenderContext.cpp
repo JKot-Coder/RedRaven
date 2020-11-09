@@ -79,13 +79,39 @@ namespace OpenDemo
             return resetDevice(presentOptions);
         }
 
-        Render::Result RenderContext::CreateRenderCommandContext(const U8String& name)
+        CommandContext::SharedPtr RenderContext::CreateRenderCommandContext(const U8String& name) const
         {
             ASSERT(inited_)
 
             auto& resource = CommandContext::Create(name);
+            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
 
-            return submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource);
+            return resource;
+        }
+
+        Texture ::SharedPtr RenderContext::CreateTexture(const Texture::TextureDesc& desc, Texture::BindFlags bindFlags, const U8String& name) const
+        {
+            ASSERT(inited_)
+
+            auto& resource = Texture::Create(desc, name);
+            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
+        RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(
+            Texture::ConstSharedPtrRef texture) const
+        {
+            ASSERT(inited_)
+
+            // Todo name?
+            auto& resource = RenderTargetView::Create(texture, "");
+            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
         }
 
         Render::Result RenderContext::initDevice()

@@ -58,17 +58,31 @@ namespace OpenDemo
         //  const auto& input = Inputting::Instance();
         const auto& time = Time::Instance();
         //   const auto& render = Rendering::Instance();
-        //  auto* renderPipeline = new Rendering::RenderPipeline(_window);
+        //  auto* renderPipeline = new Rendering::`(_window);
         //  renderPipeline->Init();
 
         time->Init();
 
         auto& renderContext = Render::RenderContext::Instance();
-        const auto result = renderContext.CreateRenderCommandContext(u8"qwew");
+        auto rcc = renderContext.CreateRenderCommandContext(u8"qwew");
+        ASSERT(rcc)
+
+        const auto& desc = Render::Texture::TextureDesc::Create2D(100, 100, Render::Resource::Format::R8Unorm);
+
+        auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource);
+        ASSERT(texture)
+
+        auto rtv = texture->GetRTV();
+
 
         while (!_quit)
         {
             Windowing::Windowing::PoolEvents();
+
+            rcc->Reset();
+         //   rcc->ClearRenderTargetView(rtv, Vector4(1, 1, 1, 1));
+            rcc->Close();
+
             //  renderPipeline->Collect(_scene);
             //    renderPipeline->Draw();
 
@@ -76,6 +90,8 @@ namespace OpenDemo
             //device->Present();
             //    render->SwapBuffers();
             //  input->Update();
+
+           // renderContext->Present();
 
             time->Update();
         }

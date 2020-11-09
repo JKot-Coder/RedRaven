@@ -102,6 +102,7 @@ namespace OpenDemo
 
                 Count
             };
+
         protected:
             Resource(Resource::Type resourceType, const U8String& name)
                 : Object(Object::Type::Resource, name),

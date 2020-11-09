@@ -25,8 +25,8 @@ namespace OpenDemo
 
             virtual ~Object() = default;
 
-            inline Type GetType() const { return _type; }
-            inline U8String GetName() const { return _name; }
+            inline Type GetType() const { return type_; }
+            inline U8String GetName() const { return name_; }
 
             template <typename T>
             T GetPrivateImpl()
@@ -45,15 +45,15 @@ namespace OpenDemo
 
         protected:
             Object(Type type, const U8String& name)
-                : _type(type)
-                , _name(name)
+                : type_(type)
+                , name_(name)
             {
             }
 
         protected:
             void* privateImpl_ = nullptr;
-            Type _type;
-            U8String _name;
+            Type type_;
+            U8String name_;
         };
 
     }

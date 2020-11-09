@@ -1,13 +1,13 @@
 #pragma once
 
 #include "gapi/Object.hpp"
-#include "gapi/Resource.hpp"
-#include "gapi/Texture.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
+        class Resource;
+        using ResourceWeakPtr = std::weak_ptr<Resource>;
 
         class ResourceView : public Object
         {
@@ -22,7 +22,7 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<const ResourceView>;
 
         protected:
-            ResourceView(Type type, const Resource::WeakPtr& resource, const U8String& name)
+            ResourceView(Type type, const ResourceWeakPtr& resource, const U8String& name)
                 : Object(Object::Type::ResourceView, name),
                   resource_(resource),
                   type_(type)
@@ -32,7 +32,7 @@ namespace OpenDemo
 
         private:
             Type type_;
-            Resource::WeakPtr resource_;
+            ResourceWeakPtr resource_;
         };
 
         class RenderTargetView final : public ResourceView
@@ -41,17 +41,13 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<RenderTargetView>;
             using SharedConstPtr = std::shared_ptr<const RenderTargetView>;
 
-            RenderTargetView(const RenderTargetView&) = delete;
-            RenderTargetView& operator=(const RenderTargetView&) = delete;
-
-            static SharedPtr create(Texture::ConstSharedPtrRef texture, const U8String& name)
+            static SharedPtr Create(const ResourceWeakPtr& resource, const U8String& name)
             {
-                ASSERT(texture)
-                return SharedPtr(new RenderTargetView(texture, name));
+                return SharedPtr(new RenderTargetView(resource, name));
             }
 
         private:
-            RenderTargetView(const Resource::WeakPtr& resource, const U8String& name)
+            RenderTargetView(const ResourceWeakPtr& resource, const U8String& name)
                 : ResourceView(ResourceView::Type::RenderTargetView, resource, name) { }
         };
 

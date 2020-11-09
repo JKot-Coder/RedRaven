@@ -18,6 +18,7 @@ namespace OpenDemo
         {
         public:
             virtual void Reset() = 0;
+            virtual void Close() = 0;
 
             virtual void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) = 0;
         };
