@@ -11,7 +11,7 @@ namespace OpenDemo
             {
             }
 
-            Result RenderQueueImpl::Init(ID3D12Device* device, const U8String& name)
+            Result RenderQueueImpl::Init(ComSharedPtr<ID3D12Device> device, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(D3DCommandQueue_.get() == nullptr)

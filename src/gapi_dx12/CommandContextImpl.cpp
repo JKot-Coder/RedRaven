@@ -11,12 +11,12 @@ namespace OpenDemo
     {
         namespace DX12
         {
-           
+
             CommandContextImpl::CommandContextImpl() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
             {
             }
 
-            Result CommandContextImpl::Init(ID3D12Device* device, const U8String& name)
+            Result CommandContextImpl::Init(ComSharedPtr<ID3D12Device> device, const U8String& name)
             {
                 D3DCall(commandList_->Init(device, name));
 
@@ -28,6 +28,7 @@ namespace OpenDemo
             void CommandContextImpl::Reset()
             {
                 ASSERT(D3DCommandList_);
+                //D3DCommandList_->Reset()
                 //     commandList_->Submit();
             }
 
@@ -47,7 +48,7 @@ namespace OpenDemo
                 barrier = CD3DX12_RESOURCE_BARRIER::Transition(nullptr, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
-        
+
             void CommandContextImpl::Close()
             {
                 // RESULT;

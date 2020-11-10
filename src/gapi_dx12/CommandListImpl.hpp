@@ -17,7 +17,7 @@ namespace OpenDemo
                     : _type(type)
                 {
                 }
-                Result Init(ID3D12Device* device, const U8String& name);
+                Result Init(ComSharedPtr<ID3D12Device> device, const U8String& name);
 
                 ComSharedPtr<ID3D12GraphicsCommandList> GetCommandList()
                 {

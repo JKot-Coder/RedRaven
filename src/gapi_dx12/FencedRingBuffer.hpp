@@ -31,9 +31,9 @@ namespace OpenDemo
                             _ringBuffer[index].object->Release();
                 }
 
-                Result Init(ID3D12Device* device, NewObjectFunc newObject, const U8String& name)
+                Result Init(ComSharedPtr<ID3D12Device> device, NewObjectFunc newObject, const U8String& name)
                 {
-                    ASSERT(device && newObject);
+                    ASSERT(newObject);
 
                     for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
                     {

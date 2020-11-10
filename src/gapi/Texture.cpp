@@ -41,6 +41,8 @@ namespace OpenDemo
             default:
                 ASSERT_MSG(false, "Wrong texture type");
             }
+            
+            // TODO add mipLevels calculation;
         }
 
         RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t arraySize) 

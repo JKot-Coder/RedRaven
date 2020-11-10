@@ -14,7 +14,7 @@ namespace OpenDemo
                 RenderQueueImpl() = delete;
                 RenderQueueImpl(D3D12_COMMAND_LIST_TYPE type);
 
-                Result Init(ID3D12Device* device, const U8String& name);
+                Result Init(ComSharedPtr<ID3D12Device> device, const U8String& name);
 //                Result Submit(CommandContextInterface& CommandContext) override;
 
             private:

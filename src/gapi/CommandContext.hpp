@@ -32,7 +32,7 @@ namespace OpenDemo
             {
             }
 
-            CommandContextInterface& getImplementation()
+            inline CommandContextInterface& getImplementation()
             {
                 ASSERT(privateImpl_);
 

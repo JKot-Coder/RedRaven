@@ -1,14 +1,17 @@
 #include "ResourceCreator.hpp"
 
-#include "gapi/Object.hpp"
-#include "gapi/RenderQueue.hpp"
-#include "gapi/ResourceViews.hpp"
-#include "gapi/CommandContext.hpp"
-
+#include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/RenderQueueImpl.hpp"
+#include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
-#include "gapi_dx12/CommandContextImpl.hpp"
+
+#include "gapi/CommandContext.hpp"
+#include "gapi/Object.hpp"
+#include "gapi/RenderQueue.hpp"
+#include "gapi/Resource.hpp"
+#include "gapi/ResourceViews.hpp"
+#include "gapi/Texture.hpp"
 
 namespace OpenDemo
 {
@@ -98,7 +101,37 @@ namespace OpenDemo
                 return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(pResource);
             }
             */
-            Result InitResource(ResourceCreatorContext& context, RenderQueue& resource)
+
+            Result InitResource(const ResourceCreatorContext& context, Resource& resource)
+            {
+                auto impl = new ResourceImpl();
+
+                switch (resource.GetResourceType())
+                {
+                    case Resource::Type::Texture:
+                    {
+
+                        const Texture& texture = resource.GetTyped<Texture>();
+
+                        const auto& descr = texture.GetDescription();
+
+                        D3DCall(impl->Init(context.device, descr, resource.GetName()));
+                    }
+                    break;
+                    //    case Resource::Type::Buffer:
+                    //  D3DCall(impl->Init(context.device, resource.GetName()));
+                    //       break;
+                default:
+                    ASSERT_MSG(false, "Wrong resource type")
+                    return Result::NotImplemented;
+                }
+
+                resource.SetPrivateImpl(impl);
+
+                return Result::Ok;
+            }
+
+            Result InitResource(const ResourceCreatorContext& context, RenderQueue& resource)
             {
                 auto impl = new RenderQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
 
@@ -108,7 +141,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result InitResource(ResourceCreatorContext& context, ResourceView& resource)
+            Result InitResource(const ResourceCreatorContext& context, ResourceView& resource)
             { /*
                 auto allocation = new DescriptorHeap::Allocation();
                 auto descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
@@ -125,7 +158,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result InitResource(ResourceCreatorContext& context, CommandContext& resource)
+            Result InitResource(const ResourceCreatorContext& context, CommandContext& resource)
             {
                 auto impl = new CommandContextImpl();
 
@@ -135,7 +168,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result ResourceCreator::InitResource(ResourceCreatorContext& context, Object::ConstSharedPtrRef resource)
+            Result ResourceCreator::InitResource(const ResourceCreatorContext& context, Object::ConstSharedPtrRef resource)
             {
                 ASSERT(resource)
                 ASSERT(!resource->GetPrivateImpl<void*>())
@@ -146,15 +179,16 @@ namespace OpenDemo
 
                 switch (resource->GetType())
                 {
-                    CASE_RESOURCE(RenderQueue)
-                    CASE_RESOURCE(ResourceView)
                     CASE_RESOURCE(CommandContext)
+                    CASE_RESOURCE(RenderQueue)
+                    CASE_RESOURCE(Resource)
+                    CASE_RESOURCE(ResourceView)
                 }
 
                 ASSERT_MSG(false, "Unsuported resource type");
 #undef CASE_RESOURCE
 
-                return Result::Ok;
+                return Result::NotImplemented;
             }
 
         }

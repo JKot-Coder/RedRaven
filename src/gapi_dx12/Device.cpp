@@ -77,7 +77,7 @@ namespace OpenDemo
                 uint32_t backBufferIndex_ = 0;
                 uint32_t backBufferCount_ = 0;
 
-                std::unique_ptr<DescriptorHeapSet> descriptorHeapSet_;
+                std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 // TEMPORARY
                 // std::unique_ptr<CommandContext> CommandContext_;
                 std::shared_ptr<FenceImpl> fence_;
@@ -130,7 +130,7 @@ namespace OpenDemo
 
                 // Create a fence for tracking GPU execution progress.
                 fence_.reset(new FenceImpl());
-                D3DCall(fence_->Init(d3dDevice_.get(), 1, "FrameSync"));
+                D3DCall(fence_->Init(d3dDevice_, 1, "FrameSync"));
 
                 //   CommandContext_.reset(new CommandContext());
                 //    D3DCall(CommandContext_->Init(d3dDevice_.get(), "Main"));
@@ -149,11 +149,11 @@ namespace OpenDemo
                     return Result::Fail;
                 }
 
-                descriptorHeapSet_ = std::make_unique<DescriptorHeapSet>();
-                D3DCall(descriptorHeapSet_->Init(d3dDevice_.get()));
+                descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
+                D3DCall(descriptorHeapSet_->Init(d3dDevice_));
 
-                resourceCreatorContext_.device = d3dDevice_.get();
-                resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_.get();
+                resourceCreatorContext_.device = d3dDevice_;
+                resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_;
 
                 inited_ = true;
                 return Result::Ok;

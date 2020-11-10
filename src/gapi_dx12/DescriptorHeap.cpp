@@ -7,8 +7,9 @@ namespace OpenDemo
         namespace DX12
         {
 
-            Result DescriptorHeap::Init(ID3D12Device* device, const DescriptorHeapDesc& desc)
+            Result DescriptorHeap::Init(ComSharedPtr<ID3D12Device> device, const DescriptorHeapDesc& desc)
             {
+                ASSERT(device)
                 ASSERT(!d3d12Heap_)
                 ASSERT(desc.numDescriptors_ > 0)
 

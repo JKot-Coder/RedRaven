@@ -5,6 +5,7 @@ set(GAPI_SRC
         Limits.hpp
         Object.hpp
         Resource.hpp
+        Resource.cpp
         ResourceViews.hpp
         LinearAllocator.hpp
         LinearAllocator.cpp

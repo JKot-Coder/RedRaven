@@ -6,7 +6,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            Result FenceImpl::Init(ID3D12Device* device, uint64_t initialValue, const U8String& name)
+            Result FenceImpl::Init(ComSharedPtr<ID3D12Device> device, uint64_t initialValue, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(_fence.get() == nullptr)

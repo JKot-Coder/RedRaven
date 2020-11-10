@@ -6,6 +6,8 @@ namespace OpenDemo
 {
     namespace Render
     {
+        class Texture;
+        class Buffer;
 
         class Resource : public Object
         {
@@ -103,6 +105,11 @@ namespace OpenDemo
                 Count
             };
 
+        public:
+            Resource::Type inline GetResourceType() const { return resourceType_; }
+
+            template <typename Type>
+            Type& GetTyped();
         protected:
             Resource(Resource::Type resourceType, const U8String& name)
                 : Object(Object::Type::Resource, name),
@@ -113,5 +120,10 @@ namespace OpenDemo
             Resource::Type resourceType_;
         };
 
+        template <>
+        Texture& Resource::GetTyped<Texture>();
+        /*
+        template <>
+        Buffer& Resource::GetTyped<Buffer>();*/
     }
 }

@@ -21,7 +21,7 @@ namespace OpenDemo
 
                 DescriptorHeap() = default;
 
-                Result Init(ID3D12Device* device, const DescriptorHeapDesc& desc);
+                Result Init(ComSharedPtr<ID3D12Device> device, const DescriptorHeapDesc& desc);
 
                 Result Alloc(Allocation& allocation)
                 {

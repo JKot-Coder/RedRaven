@@ -18,7 +18,7 @@ namespace OpenDemo
             public:
                 CommandContextImpl();
 
-                Result Init(ID3D12Device* device, const U8String& name);
+                Result Init(ComSharedPtr<ID3D12Device> device, const U8String& name);
 
                 void Reset() override;
                 void Close() override;

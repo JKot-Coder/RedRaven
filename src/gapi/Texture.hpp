@@ -79,6 +79,7 @@ namespace OpenDemo
                 }
             };
 
+        public:
             Texture() = delete;
 
             static SharedPtr Create(const TextureDesc& desc, const U8String& name, BindFlags bindFlags = BindFlags::ShaderResource)
@@ -86,7 +87,6 @@ namespace OpenDemo
                 return SharedPtr(new Texture(desc, name, bindFlags));
             }
 
-        public:
             //      ShaderResourceView::SharedPtr getSRV(uint32_t mostDetailedMip, uint32_t mipCount = kMaxPossible, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
             RenderTargetView::SharedPtr GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t arraySize = FullMipChain);
@@ -94,6 +94,8 @@ namespace OpenDemo
             // DepthStencilView::SharedPtr getDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
             //   UnorderedAccessView::SharedPtr getUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
+
+            const TextureDesc& GetDescription() const { return desc_; }
 
         private:
             Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags = BindFlags::ShaderResource);
