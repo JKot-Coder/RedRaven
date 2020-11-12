@@ -13,35 +13,7 @@ namespace OpenDemo
             {
                 ASSERT(device)
 
-                ASSERT(resourceDesc.width > 0)
-                ASSERT(resourceDesc.height > 0)
-                ASSERT(resourceDesc.depth > 0)
-
-                ASSERT(resourceDesc.mipLevels > 0)
-                ASSERT(resourceDesc.sampleCount > 0)
-                ASSERT(resourceDesc.arraySize > 0)
-
-                ASSERT(
-                    (resourceDesc.sampleCount > 1 && resourceDesc.type == Texture::Type::Texture2DMS)
-                    || (resourceDesc.sampleCount == 1 && resourceDesc.type != Texture::Type::Texture2DMS));
-
-                switch (resourceDesc.type)
-                {
-                case Texture::Type::Texture1D:
-                    ASSERT(resourceDesc.height == 1)
-                    ASSERT(resourceDesc.depth == 1)
-                    break;
-                case Texture::Type::Texture2D:
-                case Texture::Type::Texture2DMS:
-                case Texture::Type::TextureCube:
-                    ASSERT(resourceDesc.depth == 1)
-                    break;
-                case Texture::Type::Texture3D:
-                    ASSERT(resourceDesc.arraySize == 1)
-                    break;
-                default:
-                    LOG_FATAL("Unsupported texture type");
-                }
+                // TextureDesc ASSERT checks done on Texture initialization;
 
                 D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
                 D3D12_RESOURCE_STATES initialResourceState;
