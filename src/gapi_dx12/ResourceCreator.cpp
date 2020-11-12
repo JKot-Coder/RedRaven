@@ -115,7 +115,7 @@ namespace OpenDemo
 
                         const auto& descr = texture.GetDescription();
 
-                        D3DCall(impl->Init(context.device, descr, resource.GetName()));
+                        D3DCall(impl->Init(context.device, descr, texture.GetBindFlags(), resource.GetName()));
                     }
                     break;
                     //    case Resource::Type::Buffer:

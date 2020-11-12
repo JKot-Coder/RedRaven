@@ -1,6 +1,7 @@
 #include "D3DUtils.hpp"
 
 #include "gapi/DeviceInterface.hpp"
+#include "gapi_dx12/TypeConversions.hpp"
 
 namespace OpenDemo
 {
@@ -10,15 +11,6 @@ namespace OpenDemo
         {
             namespace D3DUtils
             {
-
-                DXGI_FORMAT getDXGIFormat(ResourceFormat resourceFormat)
-                {
-                    // Check it's not implemented yet;
-                    ASSERT(resourceFormat == ResourceFormat::Unknown)
-
-                    return DXGI_FORMAT_B8G8R8A8_UNORM;
-                }
-
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right)
                 {
                     return (left.Stereo == right.Stereo
@@ -40,7 +32,7 @@ namespace OpenDemo
                     DXGI_SWAP_CHAIN_DESC1 output;
                     output.Width = presentOptions.rect.width;
                     output.Height = presentOptions.rect.height;
-                    output.Format = getDXGIFormat(presentOptions.resourceFormat);
+                    output.Format = TypeConversions::ResourceFormat(presentOptions.resourceFormat);
                     output.Stereo = (presentOptions.isStereo) ? TRUE : FALSE;
                     output.SampleDesc = { 1, 0 };
                     output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -99,7 +91,7 @@ namespace OpenDemo
                 }
 
             }
-            
+
         }
     }
 }

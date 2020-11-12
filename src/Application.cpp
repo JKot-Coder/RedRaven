@@ -35,7 +35,7 @@ namespace OpenDemo
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(width, height));
-        presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
+        presentOptions.Resource::Format = Render::Resource::Format::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
         submission_->ResetDevice(presentOptions);*/
@@ -126,7 +126,7 @@ namespace OpenDemo
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
-        presentOptions.resourceFormat = Render::ResourceFormat::Unknown;
+        presentOptions.resourceFormat = Render::Resource::Format::BGRA8Unorm;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
         auto& renderContext = Render::RenderContext::Instance();

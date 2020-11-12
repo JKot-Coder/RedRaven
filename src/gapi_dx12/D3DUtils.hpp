@@ -13,6 +13,25 @@ namespace OpenDemo
             namespace D3DUtils
             {
 
+#define D3DCall(exp, ...)                                                                                                                               \
+    {                                                                                                                                                   \
+        static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
+        Result result = Result(exp);                                                                                                                    \
+        if (!result)                                                                                                                                    \
+            return result;                                                                                                                              \
+    }
+
+#define D3DCallMsg(exp, msg, ...)                                                                                 \
+    {                                                                                                             \
+        static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
+        Result result = Result(exp);                                                                              \
+        if (!result)                                                                                              \
+        {                                                                                                         \
+            LOG_ERROR("%s Error: %s", msg, result.ToString())                                                     \
+            return result;                                                                                        \
+        }                                                                                                         \
+    }
+
 #ifdef ENABLE_API_OBJECT_NAMES
                 template <typename T>
                 struct D3D12TypeName

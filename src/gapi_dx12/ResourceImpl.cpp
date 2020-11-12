@@ -1,6 +1,7 @@
 #include "ResourceImpl.hpp"
 
-#include "ResourceCreator.hpp"
+#include "gapi_dx12/ResourceCreator.hpp"
+#include "gapi_dx12/TypeConversions.hpp"
 
 namespace OpenDemo
 {
@@ -8,8 +9,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device> device, const Texture::TextureDesc& resourceDesc, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device> device, const Texture::TextureDesc& resourceDesc, const Texture::BindFlags bindFlags, const U8String& name)
             {
                 ASSERT(device)
 
@@ -24,7 +24,9 @@ namespace OpenDemo
                 D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
                 D3D12_RESOURCE_STATES initialResourceState;
                 D3D12_CLEAR_VALUE optimizedClearValue;
-                DXGI_FORMAT format;
+                DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
+
+                ASSERT(format != DXGI_FORMAT_UNKNOWN)
 
                 D3D12_RESOURCE_DESC desc;
                 switch (resourceDesc.type)
@@ -60,6 +62,8 @@ namespace OpenDemo
                 default:
                     LOG_FATAL("Unsupported texture type");
                 }
+
+                desc.Flags = TypeConversions::ResourceFlags(bindFlags);
 
                 D3DCallMsg(
                     device->CreateCommittedResource(

@@ -5,27 +5,7 @@ namespace OpenDemo
 {
     namespace Render
     {
-
-#define D3DCall(exp, ...)                                                                                                                               \
-    {                                                                                                                                                   \
-        static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
-        Result result = Result(exp);                                                                                                                    \
-        if (!result)                                                                                                                                    \
-            return result;                                                                                                                              \
-    }
-
-#define D3DCallMsg(exp, msg, ...)                                                                                 \
-    {                                                                                                             \
-        static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
-        Result result = Result(exp);                                                                              \
-        if (!result)                                                                                              \
-        {                                                                                                         \
-            LOG_ERROR("%s Error: %s", msg, result.ToString())                                                     \
-            return result;                                                                                        \
-        }                                                                                                         \
-    }
-
-        class Result
+        struct Result final
         {
         public:
             enum Value : uint32_t
@@ -39,7 +19,7 @@ namespace OpenDemo
                 Handle = 0x80070006,
                 InvalidArgument = 0x80070057,
                 NoInterface = 0x80004002,
-                NotImplemented = 0x80004001,        
+                NotImplemented = 0x80004001,
                 OutOfMemory = 0x8007000E,
                 Pointer = 0x80004003,
                 Unexpected = 0x8000FFFF,
@@ -59,9 +39,6 @@ namespace OpenDemo
             {
                 return value_;
             } // Allow switch and comparisons.
-            // note: Putting constexpr here causes
-            // clang to stop warning on incomplete
-            // case handling.
 
             explicit operator bool() const
             {

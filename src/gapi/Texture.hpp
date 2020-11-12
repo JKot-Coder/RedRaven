@@ -31,32 +31,32 @@ namespace OpenDemo
             struct TextureDesc
             {
 
-                static TextureDesc Create1D(uint32_t width, Format format, uint32_t arraySize = 1, uint32_t mipLevels = FullMipChain)
+                static TextureDesc Create1D(uint32_t width, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = FullMipChain)
                 {
                     return TextureDesc(Type::Texture1D, width, 1, 1, format, 1, arraySize, mipLevels);
                 }
 
-                static TextureDesc Create2D(uint32_t width, uint32_t height, Format format, uint32_t arraySize = 1, uint32_t mipLevels = FullMipChain)
+                static TextureDesc Create2D(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = FullMipChain)
                 {
                     return TextureDesc(Type::Texture2D, width, height, 1, format, 1, arraySize, mipLevels);
                 }
 
-                static TextureDesc Create2DMS(uint32_t width, uint32_t height, Format format, uint32_t sampleCount, uint32_t arraySize = 1)
+                static TextureDesc Create2DMS(uint32_t width, uint32_t height, Resource::Format format, uint32_t sampleCount, uint32_t arraySize = 1)
                 {
                     return TextureDesc(Type::Texture2DMS, width, height, 1, format, sampleCount, arraySize, 1);
                 }
 
-                static TextureDesc Create3D(uint32_t width, uint32_t height, uint32_t depth, Format format, uint32_t mipLevels = FullMipChain)
+                static TextureDesc Create3D(uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t mipLevels = FullMipChain)
                 {
                     return TextureDesc(Type::Texture3D, width, height, depth, format, 1, 1, mipLevels);
                 }
 
-                static TextureDesc CreateCube(uint32_t width, uint32_t height, Format format, uint32_t arraySize = 1, uint32_t mipLevels = FullMipChain)
+                static TextureDesc CreateCube(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = FullMipChain)
                 {
                     return TextureDesc(Type::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
                 }
 
-                Format format;
+                Resource::Format format;
                 Type type = Type::Unknown;
                 uint32_t width = 0;
                 uint32_t height = 0;
@@ -66,7 +66,7 @@ namespace OpenDemo
                 uint32_t arraySize = 0;
 
             private:
-                TextureDesc(Type type, uint32_t width, uint32_t height, uint32_t depth, Format format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
+                TextureDesc(Type type, uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
                     : type(type),
                       width(width),
                       height(height),
@@ -96,12 +96,14 @@ namespace OpenDemo
             //   UnorderedAccessView::SharedPtr getUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
             const TextureDesc& GetDescription() const { return desc_; }
+            BindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
             Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags = BindFlags::ShaderResource);
 
         private:
             TextureDesc desc_;
+            BindFlags bindFlags_;
         };
 
     }

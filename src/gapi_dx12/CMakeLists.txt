@@ -27,6 +27,8 @@ set(GAPI_SRC
         ComSharedPtr.hpp
         D3DUtils.hpp
         D3DUtils.cpp
+        TypeConversions.hpp
+        TypeConversions.cpp
         Device.hpp
         Device.cpp
         FencedRingBuffer.hpp

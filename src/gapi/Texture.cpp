@@ -9,7 +9,8 @@ namespace OpenDemo
 
         Texture::Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags)
             : Resource(Resource::Type::Texture, name),
-              desc_(desc)
+              desc_(desc),
+              bindFlags_(bindFlags)
         {
             ASSERT(desc_.type != Type::Unknown)
 

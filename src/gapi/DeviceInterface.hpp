@@ -3,8 +3,8 @@
 #include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
+#include "gapi/Resource.hpp"
 #include "gapi/Fence.hpp"
-
 #include "gapi/Result.hpp"
 
 namespace OpenDemo
@@ -21,18 +21,13 @@ namespace OpenDemo
             COUNT
         };
 
-        enum class ResourceFormat
-        {
-            Unknown
-        };
-
         struct PresentOptions
         {
             AlignedBox2i rect;
 
             Common::NativeWindowHandle windowHandle;
 
-            ResourceFormat resourceFormat;
+            Resource::Format resourceFormat;
             uint32_t bufferCount;
             bool isStereo;
         };
