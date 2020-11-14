@@ -36,6 +36,7 @@ SET( COMMON_SRC
         OnScopeExit.hpp
         NonCopyableMovable.hpp
         Singleton.hpp
+        EnumClassOperators.hpp
 )
 SOURCE_GROUP( "" FILES ${COMMON_SRC} )
 

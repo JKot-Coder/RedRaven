@@ -33,7 +33,7 @@ namespace OpenDemo
             {
                 uint32_t width;
                 uint32_t height;
-            } compressionRatio;
+            } compressionBlock;
 
             uint32_t channelBits[4];
 
@@ -44,7 +44,7 @@ namespace OpenDemo
 
         // clang-format off
         static FormatInfo formatInfo[] = {
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w] isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w] isDepth isStencil isCompressed
                 Resource::Format::Unknown,           u8"Unknown",           FormatType::Unknown,   0,         0,                      {1, 1},            0,   0,  0,  0,  false,  false,    false,
                 Resource::Format::RGBA32Float,       u8"RGBA32Float",       FormatType::Float,     16,        4,                      {1, 1},            32,  32, 32, 32, false,  false,    false,
                 Resource::Format::RGBA32Uint,        u8"RGBA32Uint",        FormatType::Uint,      16,        4,                      {1, 1},            32,  32, 32, 32, false,  false,    false,
@@ -60,7 +60,7 @@ namespace OpenDemo
                 Resource::Format::RG32Float,         u8"RG32Float",         FormatType::Float,     8,         2,                      {1, 1},            32,  32, 0,  0,  false,  false,    false,
                 Resource::Format::RG32Uint,          u8"RG32Uint",          FormatType::Uint,      8,         2,                      {1, 1},            32,  32, 0,  0,  false,  false,    false,
                 Resource::Format::RG32Sint,          u8"RG32Sint",          FormatType::Sint,      8,         2,                      {1, 1},            32,  32, 0,  0,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::RGB10A2Unorm,      u8"RGB10A2Unorm",      FormatType::Unorm,     4,         4,                      {1, 1},            10,  10, 10, 2,  false,  false,    false,
                 Resource::Format::RGB10A2Uint,       u8"RGB10A2Uint",       FormatType::Uint,      4,         4,                      {1, 1},            10,  10, 10, 2,  false,  false,    false,
                 Resource::Format::R11G11B10Float,    u8"R11G11B10Float",    FormatType::Float,     4,         3,                      {1, 1},            11,  11, 10, 0,  false,  false,    false,
@@ -74,16 +74,16 @@ namespace OpenDemo
                 Resource::Format::RG16Uint,          u8"RG16Uint",          FormatType::Uint,      4,         2,                      {1, 1},            16,  16, 0,  0,  false,  false,    false,
                 Resource::Format::RG16Snorm,         u8"RG16Snorm",         FormatType::Snorm,     4,         2,                      {1, 1},            16,  16, 0,  0,  false,  false,    false,
                 Resource::Format::RG16Sint,          u8"RG16Sint",          FormatType::Sint,      4,         2,                      {1, 1},            16,  16, 0,  0,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::R32Float,          u8"R32Float",          FormatType::Float,     4,         1,                      {1, 1},            32,  0,  0,  0,  false,  false,    false,
                 Resource::Format::R32Uint,           u8"R32Uint",           FormatType::Uint,      4,         1,                      {1, 1},            32,  0,  0,  0,  false,  false,    false,
                 Resource::Format::R32Sint,           u8"R32Sint",           FormatType::Sint,      4,         1,                      {1, 1},            32,  0,  0,  0,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::RG8Unorm,          u8"RG8Unorm",          FormatType::Unorm,     2,         2,                      {1, 1},            8,   8,  0,  0,  false,  false,    false,
                 Resource::Format::RG8Uint,           u8"RG8Uint",           FormatType::Uint,      2,         2,                      {1, 1},            8,   8,  0,  0,  false,  false,    false,
                 Resource::Format::RG8Snorm,          u8"RG8Snorm",          FormatType::Snorm,     2,         2,                      {1, 1},            8,   8,  0,  0,  false,  false,    false,
                 Resource::Format::RG8Sint,           u8"RG8Sint",           FormatType::Sint,      2,         2,                      {1, 1},            8,   8,  0,  0,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::R16Float,          u8"R16Float",          FormatType::Float,     2,         1,                      {1, 1},            16,  0,  0,  0,  false,  false,    false,
                 Resource::Format::R16Unorm,          u8"R16Unorm",          FormatType::Unorm,     2,         1,                      {1, 1},            16,  0,  0,  0,  false,  false,    false,
                 Resource::Format::R16Uint,           u8"R16Uint",           FormatType::Uint,      2,         1,                      {1, 1},            16,  0,  0,  0,  false,  false,    false,
@@ -94,12 +94,17 @@ namespace OpenDemo
                 Resource::Format::R8Snorm,           u8"R8Snorm",           FormatType::Snorm,     1,         1,                      {1, 1},            8,   0,  0,  0,  false,  false,    false,
                 Resource::Format::R8Sint,            u8"R8Sint",            FormatType::Sint,      1,         1,                      {1, 1},            8,   0,  0,  0,  false,  false,    false,
                 Resource::Format::A8Unorm,           u8"A8Unorm",           FormatType::Unorm,     1,         1,                      {1, 1},            0,   0,  0,  8,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::D32FloatS8X24Uint, u8"D32FloatS8X24Uint", FormatType::Float,     8,         2,                      {1, 1},            32,  8,  24, 0,  true,   true,     false,
                 Resource::Format::D32Float,          u8"D32Float",          FormatType::Float,     4,         1,                      {1, 1},            32,  0,  0,  0,  true,   false,    false,
                 Resource::Format::D24UnormS8Uint,    u8"D24UnormS8Uint",    FormatType::Unorm,     4,         2,                      {1, 1},            24,  8,  0,  0,  true,   true,     false,
                 Resource::Format::D16Unorm,          u8"D16Unorm",          FormatType::Unorm,     2,         1,                      {1, 1},            16,  0,  0,  0,  true,   false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                Resource::Format::R32FloatX8X24,     u8"R32FloatX8X24",     FormatType::Float,     8,         2,                      {1, 1},            32,  8, 24,  0,  false,  false,    false,
+                Resource::Format::X32G8Uint,         u8"X32G8Uint",         FormatType::Uint,      8,         2,                      {1, 1},            32,  8,  0,  0,  false,  false,    false,
+                Resource::Format::R24UnormX8,        u8"R24UnormX8",        FormatType::Unorm,     4,         2,                      {1, 1},            24,  8,  0,  0,  false,  false,    false,
+                Resource::Format::X24G8Uint,         u8"X24G8Uint",         FormatType::Uint,      4,         2,                      {1, 1},            24,  8,  0,  0,  false,  false,    false,
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::BC1Unorm,          u8"BC1Unorm",          FormatType::Unorm,     8,         3,                      {4, 4},            64,  0,  0,  0,  false,  false,    true,
                 Resource::Format::BC1UnormSrgb,      u8"BC1UnormSrgb",      FormatType::UnormSrgb, 8,         3,                      {4, 4},            64,  0,  0,  0,  false,  false,    true,
                 Resource::Format::BC2Unorm,          u8"BC2Unorm",          FormatType::Unorm,     16,        4,                      {4, 4},            128, 0,  0,  0,  false,  false,    true,
@@ -114,30 +119,75 @@ namespace OpenDemo
                 Resource::Format::BC6HS16,           u8"BC6HS16",           FormatType::Float,     16,        3,                      {4, 4},            128, 0,  0,  0,  false,  false,    true,
                 Resource::Format::BC7Unorm,          u8"BC7Unorm",          FormatType::Unorm,     16,        4,                      {4, 4},            128, 0,  0,  0,  false,  false,    true,
                 Resource::Format::BC7UnormSrgb,      u8"BC7UnormSrgb",      FormatType::UnormSrgb, 16,        4,                      {4, 4},            128, 0,  0,  0,  false,  false,    true,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::RGB16Float,        u8"RGB16Float",        FormatType::Float,     6,         3,                      {1, 1},            16,  16, 16, 0,  false,  false,    false,
                 Resource::Format::RGB16Unorm,        u8"RGB16Unorm",        FormatType::Unorm,     6,         3,                      {1, 1},            16,  16, 16, 0,  false,  false,    false,
                 Resource::Format::RGB16Uint,         u8"RGB16Uint",         FormatType::Uint,      6,         3,                      {1, 1},            16,  16, 16, 0,  false,  false,    false,
                 Resource::Format::RGB16Snorm,        u8"RGB16Snorm",        FormatType::Snorm,     6,         3,                      {1, 1},            16,  16, 16, 0,  false,  false,    false,
                 Resource::Format::RGB16Sint,         u8"RGB16Sint",         FormatType::Sint,      6,         3,                      {1, 1},            16,  16, 16, 0,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
-                Resource::Format::R32FloatX8X24,     u8"R32FloatX8X24",     FormatType::Float,     8,         2,                      {1, 1},            32,  8, 24,  0,  false,  false,    false,
-                Resource::Format::R24UnormX8,        u8"R24UnormX8",        FormatType::Unorm,     4,         2,                      {1, 1},            24,  8,  0,  0,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                 //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::RGB5A1Unorm,       u8"RGB5A1Unorm",       FormatType::Unorm,     2,         4,                      {1, 1},            5,   5,  5,  1,  false,  false,    false,
                 Resource::Format::RGB9E5Float,       u8"RGB9E5Float",       FormatType::Float,     4,         3,                      {1, 1},            9,   9,  9,  5,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed         
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed         
                 Resource::Format::BGRA8Unorm,        u8"BGRA8Unorm",        FormatType::Unorm,     4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
                 Resource::Format::BGRA8UnormSrgb,    u8"BGRA8UnormSrgb",    FormatType::UnormSrgb, 4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
                 Resource::Format::BGRX8Unorm,        u8"BGRX8Unorm",        FormatType::Unorm,     4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
                 Resource::Format::BGRX8UnormSrgb,    u8"BGRX8UnormSrgb",    FormatType::UnormSrgb, 4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
-                //Format                             Name                   Type               BlockSize ChannelCount CompressionRatio{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
+                //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 Resource::Format::R5G6B5Unorm,       u8"R5G6B5Unorm",       FormatType::Unorm,     2,         3,                      {1, 1},            5,   6,  5,  0,  false,  false,    false,
                 Resource::Format::Alpha32Float,      u8"Alpha32Float",      FormatType::Float,     4,         1,                      {1, 1},            0,   0,  0,  32, false,  false,    false,
         };
         // clang-format on
 
         static_assert(std::size(formatInfo) == Resource::Format::Count);
+
+        bool Resource::Format::IsDepth() const
+        {
+            ASSERT(IsValid())
+            ASSERT(value_ == formatInfo[value_].format)
+
+            return formatInfo[value_].isDepth;
+        }
+
+        bool Resource::Format::IsStencil() const
+        {
+            ASSERT(IsValid())
+            ASSERT(value_ == formatInfo[value_].format)
+
+            return formatInfo[value_].isStencil;
+        }
+
+        bool Resource::Format::IsCompressed() const
+        {
+            ASSERT(IsValid())
+            ASSERT(value_ == formatInfo[value_].format)
+
+            return formatInfo[value_].isCompressed;
+        }
+
+        uint32_t Resource::Format::GetBlockSize() const
+        {
+            ASSERT(IsValid())
+            ASSERT(value_ == formatInfo[value_].format)
+
+            return formatInfo[value_].blockSize;
+        }
+
+        uint32_t Resource::Format::GetCompressionBlockWidth() const
+        {
+            ASSERT(IsValid())
+            ASSERT(value_ == formatInfo[value_].format)
+
+            return formatInfo[value_].compressionBlock.width;
+        }
+
+        uint32_t Resource::Format::GetCompressionBlockHeight() const
+        {
+            ASSERT(IsValid())
+            ASSERT(value_ == formatInfo[value_].format)
+
+            return formatInfo[value_].compressionBlock.height;
+        }
 
         U8String Resource::Format::ToString() const
         {

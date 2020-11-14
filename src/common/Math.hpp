@@ -27,6 +27,9 @@ namespace OpenDemo
         inline constexpr T Sqr(T x) { return x * x; };
         inline float FRandom() { return (float)rand() / RAND_MAX; };
 
+        using std::log;
+        using std::log2;
+
         // Enum used for object construction specifying how the object should initialized.
         enum Initialization
         {
@@ -69,9 +72,9 @@ namespace OpenDemo
         // Common
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        inline void sincos(float r, float* s, float* c)
+        inline void SinCos(float r, float* s, float* c)
         {
-            // Todo use real sincos
+            // Todo use real SinCos
             *s = sinf(r);
             *c = cosf(r);
         }
@@ -335,7 +338,7 @@ namespace OpenDemo
         // Vector
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        #define SHARED_VECTOR_FUNCTIONS = 
+#define SHARED_VECTOR_FUNCTIONS =
 
         template <size_t Len, typename T>
         struct Vector
@@ -464,7 +467,7 @@ namespace OpenDemo
             Vector<SIZE, T>& Rotate(Radian angle)
             {
                 Vector<SIZE, T> cs;
-                sincos(angle.Value(), &cs.y, &cs.x);
+                SinCos(angle.Value(), &cs.y, &cs.x);
                 return Vector<SIZE, T>(x * cs.x - y * cs.y, x * cs.y + y * cs.x);
             }
 
@@ -649,7 +652,7 @@ namespace OpenDemo
             const Vector<SIZE, T> RotateY(Radian angle) const
             {
                 float s, c;
-                sincos(angle.Value(), &s, &c);
+                SinCos(angle.Value(), &s, &c);
                 return vec3(x * c - z * s, y, x * s + z * c);
             }
 
@@ -928,7 +931,7 @@ namespace OpenDemo
             Quaternion(const Vector<3, FloatFormat>& axis, Radian angle)
             {
                 float s, c;
-                sincos(angle.Value() * 0.5f, &s, &c);
+                SinCos(angle.Value() * 0.5f, &s, &c);
                 x = axis.x * s;
                 y = axis.y * s;
                 z = axis.z * s;
@@ -1314,7 +1317,7 @@ namespace OpenDemo
                 Matrix<M, K> m;
                 m.Identity();
                 FloatFormat s, c;
-                sincos(angle.Value(), &s, &c);
+                SinCos(angle.Value(), &s, &c);
                 m.e11 = c;
                 m.e21 = s;
                 m.e12 = -s;
@@ -1327,7 +1330,7 @@ namespace OpenDemo
                 Matrix<M, K> m;
                 m.Identity();
                 FloatFormat s, c;
-                sincos(angle.Value(), &s, &c);
+                SinCos(angle.Value(), &s, &c);
                 m.e00 = c;
                 m.e20 = -s;
                 m.e02 = s;
@@ -1340,7 +1343,7 @@ namespace OpenDemo
                 Matrix<M, K> m;
                 m.Identity();
                 FloatFormat s, c;
-                sincos(angle.Value(), &s, &c);
+                SinCos(angle.Value(), &s, &c);
                 m.e00 = c;
                 m.e01 = -s;
                 m.e10 = s;
@@ -1354,7 +1357,7 @@ namespace OpenDemo
 
                 if (angle.y != 0.0f)
                 {
-                    sincos(angle.y, &s, &c);
+                    SinCos(angle.y, &s, &c);
 
                     a = e00 * c - e02 * s;
                     b = e02 * c + e00 * s;
@@ -1374,7 +1377,7 @@ namespace OpenDemo
 
                 if (angle.x != 0.0f)
                 {
-                    sincos(angle.x, &s, &c);
+                    SinCos(angle.x, &s, &c);
 
                     a = e01 * c + e02 * s;
                     b = e02 * c - e01 * s;
@@ -1394,7 +1397,7 @@ namespace OpenDemo
 
                 if (angle.z != 0.0f)
                 {
-                    sincos(angle.z, &s, &c);
+                    SinCos(angle.z, &s, &c);
 
                     a = e00 * c + e01 * s;
                     b = e01 * c - e00 * s;
@@ -1701,6 +1704,17 @@ namespace OpenDemo
         }
 
         using AlignedBox2i = Rect<uint32_t>;
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // AlignTo
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        template <typename T>
+        inline constexpr T AlignTo(T value, size_t alignment)
+        {
+            static_assert(std::is_integral<T>::value, "Expect integral types.");
+            return static_cast<T>(value + alignment - 1) / (alignment * alignment);
+        }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // PointerMath

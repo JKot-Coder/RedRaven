@@ -150,7 +150,7 @@ namespace OpenDemo
             vec2& rotate(float angle)
             {
                 vec2 cs;
-                sincos(angle, &cs.y, &cs.x);
+                SinCos(angle, &cs.y, &cs.x);
                 return rotate(cs);
             }
         };
@@ -328,7 +328,7 @@ namespace OpenDemo
             vec3 rotateY(float angle) const
             {
                 float s, c;
-                sincos(angle, &s, &c);
+                SinCos(angle, &s, &c);
                 return vec3(x * c - z * s, y, x * s + z * c);
             }
 
@@ -438,7 +438,7 @@ namespace OpenDemo
             quat(const vec3& axis, float angle)
             {
                 float s, c;
-                sincos(angle * 0.5f, &s, &c);
+                SinCos(angle * 0.5f, &s, &c);
                 x = axis.x * s;
                 y = axis.y * s;
                 z = axis.z * s;
@@ -819,7 +819,7 @@ namespace OpenDemo
                 mat4 m;
                 m.identity();
                 float s, c;
-                sincos(angle, &s, &c);
+                SinCos(angle, &s, &c);
                 m.e11 = c;
                 m.e21 = s;
                 m.e12 = -s;
@@ -832,7 +832,7 @@ namespace OpenDemo
                 mat4 m;
                 m.identity();
                 float s, c;
-                sincos(angle, &s, &c);
+                SinCos(angle, &s, &c);
                 m.e00 = c;
                 m.e20 = -s;
                 m.e02 = s;
@@ -845,7 +845,7 @@ namespace OpenDemo
                 mat4 m;
                 m.identity();
                 float s, c;
-                sincos(angle, &s, &c);
+                SinCos(angle, &s, &c);
                 m.e00 = c;
                 m.e01 = -s;
                 m.e10 = s;
@@ -859,7 +859,7 @@ namespace OpenDemo
 
                 if (angle.y != 0.0f)
                 {
-                    sincos(angle.y, &s, &c);
+                    SinCos(angle.y, &s, &c);
 
                     a = e00 * c - e02 * s;
                     b = e02 * c + e00 * s;
@@ -879,7 +879,7 @@ namespace OpenDemo
 
                 if (angle.x != 0.0f)
                 {
-                    sincos(angle.x, &s, &c);
+                    SinCos(angle.x, &s, &c);
 
                     a = e01 * c + e02 * s;
                     b = e02 * c - e01 * s;
@@ -899,7 +899,7 @@ namespace OpenDemo
 
                 if (angle.z != 0.0f)
                 {
-                    sincos(angle.z, &s, &c);
+                    SinCos(angle.z, &s, &c);
 
                     a = e00 * c + e01 * s;
                     b = e01 * c - e00 * s;

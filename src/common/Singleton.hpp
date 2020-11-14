@@ -2,17 +2,20 @@
 
 namespace OpenDemo
 {
-    template <class T>
-    class Singleton : private NonCopyable, NonMovable
+    namespace Common
     {
-    public:
-        static T& Instance()
+        template <class T>
+        class Singleton : private NonCopyable, NonMovable
         {
-            static T instance;
-            return instance;
-        }
+        public:
+            static T& Instance()
+            {
+                static T instance;
+                return instance;
+            }
 
-    protected:
-        Singleton() = default;
-    };
+        protected:
+            Singleton() = default;
+        };
+    }
 }

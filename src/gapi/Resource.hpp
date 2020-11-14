@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/EnumClassOperators.hpp"
+
 #include "gapi/Object.hpp"
 
 namespace OpenDemo
@@ -79,6 +81,12 @@ namespace OpenDemo
                     D24UnormS8Uint,
                     D16Unorm,
 
+                    // SRV formats for depth/stencil binding
+                    R32FloatX8X24,
+                    X32G8Uint,
+                    R24UnormX8,
+                    X24G8Uint,
+
                     // Compressed
                     BC1Unorm,
                     BC1UnormSrgb,
@@ -100,9 +108,6 @@ namespace OpenDemo
                     RGB16Uint,
                     RGB16Snorm,
                     RGB16Sint,
-
-                    R32FloatX8X24,
-                    R24UnormX8,
 
                     RGB5A1Unorm,
                     RGB9E5Float,
@@ -130,6 +135,15 @@ namespace OpenDemo
 
             public:
                 inline bool IsValid() const { return value_ > 0 && value_ < Count; };
+
+                bool IsDepth() const;
+                bool IsStencil() const;
+                bool IsCompressed() const;
+
+                uint32_t GetBlockSize() const;
+                uint32_t GetCompressionBlockWidth() const;
+                uint32_t GetCompressionBlockHeight() const;
+
                 U8String ToString() const;
 
             private:
@@ -167,10 +181,14 @@ namespace OpenDemo
             Resource::Type resourceType_;
         };
 
+        ENUM_CLASS_OPERATORS(Resource::BindFlags)
+
         template <>
         Texture& Resource::GetTyped<Texture>();
         /*
         template <>
         Buffer& Resource::GetTyped<Buffer>();*/
+
     }
+
 }

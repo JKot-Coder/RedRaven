@@ -71,6 +71,11 @@ namespace OpenDemo
                     { Resource::Format::D24UnormS8Uint,    DXGI_FORMAT_D24_UNORM_S8_UINT },
                     { Resource::Format::D16Unorm,          DXGI_FORMAT_D16_UNORM },
 
+                    { Resource::Format::R32FloatX8X24,     DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS },
+                    { Resource::Format::X32G8Uint,         DXGI_FORMAT_X32_TYPELESS_G8X24_UINT },
+                    { Resource::Format::R24UnormX8,        DXGI_FORMAT_R24_UNORM_X8_TYPELESS },
+                    { Resource::Format::X24G8Uint,         DXGI_FORMAT_X24_TYPELESS_G8_UINT },
+
                     { Resource::Format::BC1Unorm,          DXGI_FORMAT_BC1_UNORM },
                     { Resource::Format::BC1UnormSrgb,      DXGI_FORMAT_BC1_UNORM_SRGB },
                     { Resource::Format::BC2Unorm,          DXGI_FORMAT_BC2_UNORM },
@@ -91,9 +96,6 @@ namespace OpenDemo
                     { Resource::Format::RGB16Uint,         DXGI_FORMAT_UNKNOWN },
                     { Resource::Format::RGB16Snorm,        DXGI_FORMAT_UNKNOWN },
                     { Resource::Format::RGB16Sint,         DXGI_FORMAT_UNKNOWN },
-
-                    { Resource::Format::R32FloatX8X24,     DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS },
-                    { Resource::Format::R24UnormX8,        DXGI_FORMAT_R24_UNORM_X8_TYPELESS },
 
                     { Resource::Format::RGB5A1Unorm,       DXGI_FORMAT_B5G5R5A1_UNORM },
                     { Resource::Format::RGB9E5Float,       DXGI_FORMAT_R9G9B9E5_SHAREDEXP },
@@ -120,12 +122,12 @@ namespace OpenDemo
                 D3D12_RESOURCE_FLAGS ResourceFlags(Resource::BindFlags flags)
                 {
                     D3D12_RESOURCE_FLAGS d3d = D3D12_RESOURCE_FLAG_NONE;
-                    /*
-                d3d |= is_set(flags, Resource::BindFlags::UnorderedAccess) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
-                d3d |= !is_set(flags, Resource::BindFlags::ShaderResource) ? D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE : D3D12_RESOURCE_FLAG_NONE;
-                d3d |= is_set(flags, Resource::BindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
-                d3d |= is_set(flags, Resource::BindFlags::RenderTarget) ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE;
-                */
+
+                    d3d |= IsSet(flags, Resource::BindFlags::UnorderedAccess) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+                    d3d |= IsSet(flags, Resource::BindFlags::ShaderResource) ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+                    d3d |= IsSet(flags, Resource::BindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
+                    d3d |= IsSet(flags, Resource::BindFlags::RenderTarget) ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE;
+
                     return d3d;
                 }
             }
