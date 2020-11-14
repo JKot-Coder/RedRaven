@@ -19,7 +19,7 @@ namespace OpenDemo
             inline void Reset() override { getImplementation().Reset(); }
             inline void Close() override { getImplementation().Close(); }
 
-            inline void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
+         //   inline void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
 
             static SharedPtr Create(const U8String& name)
             {

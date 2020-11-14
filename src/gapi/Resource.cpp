@@ -7,42 +7,44 @@ namespace OpenDemo
 {
     namespace Render
     {
-
-        enum class FormatType
+        namespace
         {
-            Unknown, ///< Unknown format Type
-            Float, ///< Floating-point formats
-            Unorm, ///< Unsigned normalized formats
-            UnormSrgb, ///< Unsigned normalized SRGB formats
-            Snorm, ///< Signed normalized formats
-            Uint, ///< Unsigned integer formats
-            Sint ///< Signed integer formats
-        };
 
-        struct FormatInfo
-        {
-            Resource::Format format;
-            U8String name;
-
-            FormatType type;
-
-            uint32_t blockSize;
-            uint32_t channelCount;
-
-            struct
+            enum class FormatType
             {
-                uint32_t width;
-                uint32_t height;
-            } compressionBlock;
+                Unknown, ///< Unknown format Type
+                Float, ///< Floating-point formats
+                Unorm, ///< Unsigned normalized formats
+                UnormSrgb, ///< Unsigned normalized SRGB formats
+                Snorm, ///< Signed normalized formats
+                Uint, ///< Unsigned integer formats
+                Sint ///< Signed integer formats
+            };
 
-            uint32_t channelBits[4];
+            struct FormatInfo
+            {
+                Resource::Format format;
+                U8String name;
 
-            bool isDepth;
-            bool isStencil;
-            bool isCompressed;
-        };
+                FormatType type;
 
-        // clang-format off
+                uint32_t blockSize;
+                uint32_t channelCount;
+
+                struct
+                {
+                    uint32_t width;
+                    uint32_t height;
+                } compressionBlock;
+
+                uint32_t channelBits[4];
+
+                bool isDepth;
+                bool isStencil;
+                bool isCompressed;
+            };
+
+            // clang-format off
         static FormatInfo formatInfo[] = {
                 //Format                             Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w] isDepth isStencil isCompressed
                 Resource::Format::Unknown,           u8"Unknown",           FormatType::Unknown,   0,         0,                      {1, 1},            0,   0,  0,  0,  false,  false,    false,
@@ -137,64 +139,69 @@ namespace OpenDemo
                 Resource::Format::R5G6B5Unorm,       u8"R5G6B5Unorm",       FormatType::Unorm,     2,         3,                      {1, 1},            5,   6,  5,  0,  false,  false,    false,
                 Resource::Format::Alpha32Float,      u8"Alpha32Float",      FormatType::Float,     4,         1,                      {1, 1},            0,   0,  0,  32, false,  false,    false,
         };
-        // clang-format on
+            // clang-format on
 
-        static_assert(std::size(formatInfo) == Resource::Format::Count);
-
-        bool Resource::Format::IsDepth() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
-
-            return formatInfo[value_].isDepth;
+            static_assert(std::size(formatInfo) == Resource::Format::Count);
         }
 
-        bool Resource::Format::IsStencil() const
+        namespace Private
         {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            bool ResourceFormat::IsDepth() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
 
-            return formatInfo[value_].isStencil;
-        }
+                return formatInfo[value_].isDepth;
+            }
 
-        bool Resource::Format::IsCompressed() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            bool ResourceFormat::IsStencil() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
 
-            return formatInfo[value_].isCompressed;
-        }
+                return formatInfo[value_].isStencil;
+            }
 
-        uint32_t Resource::Format::GetBlockSize() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            bool Resource::Format::IsCompressed() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
 
-            return formatInfo[value_].blockSize;
-        }
+                return formatInfo[value_].isCompressed;
+            }
 
-        uint32_t Resource::Format::GetCompressionBlockWidth() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            uint32_t Resource::Format::GetBlockSize() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
 
-            return formatInfo[value_].compressionBlock.width;
-        }
+                return formatInfo[value_].blockSize;
+            }
 
-        uint32_t Resource::Format::GetCompressionBlockHeight() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            uint32_t ResourceFormat::GetCompressionBlockWidth() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
 
-            return formatInfo[value_].compressionBlock.height;
-        }
+                return formatInfo[value_].compressionBlock.width;
+            }
 
-        U8String Resource::Format::ToString() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            uint32_t ResourceFormat::GetCompressionBlockHeight() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
 
-            return formatInfo[value_].name;
+                return formatInfo[value_].compressionBlock.height;
+            }
+
+            U8String ResourceFormat::ToString() const
+            {
+                ASSERT(IsValid())
+                ASSERT(value_ == formatInfo[value_].format)
+
+                return formatInfo[value_].name;
+            }
+
         }
 
         template <>
@@ -210,5 +217,6 @@ namespace OpenDemo
             ASSERT(resourceType_ == Type::Buffer)
             return std::dynamic_pointer_cast<Buffer>(shared_from_this());
         }*/
+
     }
 }

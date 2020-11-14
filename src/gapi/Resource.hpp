@@ -11,15 +11,9 @@ namespace OpenDemo
         class Texture;
         class Buffer;
 
-        class Resource : public Object
+        namespace Private
         {
-        public:
-            using SharedPtr = std::shared_ptr<Resource>;
-            using SharedConstPtr = std::shared_ptr<const Resource>;
-            using ConstSharedPtrRef = const SharedPtr&;
-            using WeakPtr = std::weak_ptr<Resource>;
-
-            struct Format final
+            struct ResourceFormat final
             {
             public:
                 enum Value : uint32_t
@@ -122,9 +116,9 @@ namespace OpenDemo
 
                     Count
                 };
-                Format() = default;
+                ResourceFormat() = default;
 
-                constexpr Format(Value value) : value_(value)
+                constexpr ResourceFormat(Value value) : value_(value)
                 {
                 }
 
@@ -149,6 +143,17 @@ namespace OpenDemo
             private:
                 Value value_ = Unknown;
             };
+        }
+
+        class Resource : public Object
+        {
+        public:
+            using SharedPtr = std::shared_ptr<Resource>;
+            using SharedConstPtr = std::shared_ptr<const Resource>;
+            using ConstSharedPtrRef = const SharedPtr&;
+            using WeakPtr = std::weak_ptr<Resource>;
+
+            using Format = Private::ResourceFormat;
 
             enum class BindFlags : uint32_t
             {

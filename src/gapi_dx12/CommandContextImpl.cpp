@@ -31,7 +31,7 @@ namespace OpenDemo
                 //D3DCommandList_->Reset()
                 //     commandList_->Submit();
             }
-
+            /*
             void CommandContextImpl::ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color)
             {
                 ASSERT(D3DCommandList_);
@@ -48,7 +48,7 @@ namespace OpenDemo
                 barrier = CD3DX12_RESOURCE_BARRIER::Transition(nullptr, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
-
+            */
             void CommandContextImpl::Close()
             {
                 // RESULT;

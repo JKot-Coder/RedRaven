@@ -6,7 +6,7 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class RenderTargetView;
+        //class RenderTargetView;
 
         namespace DX12
         { /*

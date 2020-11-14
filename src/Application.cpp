@@ -67,8 +67,7 @@ namespace OpenDemo
         auto rcc = renderContext.CreateRenderCommandContext(u8"qwew");
         ASSERT(rcc)
 
-        const auto& desc = Render::Texture::TextureDesc::Create2D(100, 100, Render::Resource::Format::R8Unorm);
-
+        const auto& desc = Render::Texture::Description::Create2D(100, 100, Render::Resource::Format::R8Unorm);
         auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource);
         ASSERT(texture)
 

@@ -21,58 +21,60 @@ namespace OpenDemo
 {
     namespace Render
     {
-        Texture::Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags)
+        Texture::Texture(const Description& desc, const U8String& name, BindFlags bindFlags)
             : Resource(Resource::Type::Texture, name),
-              desc_(desc),
+              description_(desc),
               bindFlags_(bindFlags)
         {
-            ASSERT(desc_.type != Type::Unknown)
+            ASSERT(description_.dimesion != Dimension::Unknown)
 
-            ASSERT(desc_.width > 0)
-            ASSERT(desc_.height > 0)
-            ASSERT(desc_.depth > 0)
+            ASSERT(description_.width > 0)
+            ASSERT(description_.height > 0)
+            ASSERT(description_.depth > 0)
 
-            ASSERT(desc_.mipLevels > 0)
-            ASSERT(desc_.sampleCount > 0)
-            ASSERT(desc_.arraySize > 0)
+            ASSERT(description_.mipLevels > 0)
+            ASSERT(description_.sampleCount > 0)
+            ASSERT(description_.arraySize > 0)
 
             ASSERT(
-                (desc_.sampleCount > 1 && desc_.type == Type::Texture2DMS)
-                || (desc_.sampleCount == 1 && desc_.type != Type::Texture2DMS));
+                (description_.sampleCount > 1 && description_.dimesion == Dimension::Texture2DMS)
+                || (description_.sampleCount == 1 && description_.dimesion != Dimension::Texture2DMS));
 
-            switch (desc_.type)
+            switch (description_.dimesion)
             {
-            case Type::Texture1D:
-                ASSERT(desc_.height == 1)
-                ASSERT(desc_.depth == 1)
+            case Dimension::Texture1D:
+                ASSERT(description_.height == 1)
+                ASSERT(description_.depth == 1)
                 break;
-            case Type::Texture2D:
-            case Type::Texture2DMS:
-            case Type::TextureCube:
-                ASSERT(desc_.depth == 1)
+            case Dimension::Texture2D:
+            case Dimension::Texture2DMS:
+            case Dimension::TextureCube:
+                ASSERT(description_.depth == 1)
                 break;
-            case Type::Texture3D:
-                ASSERT(desc_.arraySize == 1)
+            case Dimension::Texture3D:
+                ASSERT(description_.arraySize == 1)
                 break;
             default:
                 LOG_FATAL("Unsupported texture type");
             }
 
-            if (desc_.format.IsCompressed())
+            if (description_.format.IsCompressed())
             {
-                ASSERT(desc_.depth == 1)
+                ASSERT(description_.depth == 1)
                 // Size is aligned to CompressionBlock
-                ASSERT(AlignTo(desc_.width, desc_.format.GetCompressionBlockWidth()) == desc_.width)
-                ASSERT(AlignTo(desc_.height, desc_.format.GetCompressionBlockHeight()) == desc_.height)
+                ASSERT(AlignTo(description_.width, description_.format.GetCompressionBlockWidth()) == description_.width)
+                ASSERT(AlignTo(description_.height, description_.format.GetCompressionBlockHeight()) == description_.height)
             }
 
             // Limit/Calc maximum mips count
-            desc_.mipLevels = std::min(getMaxMipLevels(desc_.width, desc_.height, desc_.depth), desc_.mipLevels);
+            description_.mipLevels = std::min(getMaxMipLevels(description_.width, description_.height, description_.depth), description_.mipLevels);
         }
 
         RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t arraySize)
         {
-            return RenderTargetView::Create(std::dynamic_pointer_cast<Resource>(shared_from_this()), name_);
+            const ResourceView::Description desc(mipLevel, firstArraySlice, arraySize);
+
+            return RenderTargetView::Create(std::dynamic_pointer_cast<Texture>(shared_from_this()), desc, name_);
         }
 
     }

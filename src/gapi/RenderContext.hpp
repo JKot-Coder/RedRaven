@@ -40,14 +40,13 @@ namespace OpenDemo
             Result ResetDevice(const PresentOptions& presentOptions);
 
             CommandContext::SharedPtr CreateRenderCommandContext(const U8String& name) const;
-            Texture::SharedPtr CreateTexture(const Texture::TextureDesc& desc, Texture::BindFlags bindFlags, const U8String& name = "") const;
+            Texture::SharedPtr CreateTexture(const Texture::Description& desc, Resource::BindFlags bindFlags, const U8String& name = "") const;
 
-            RenderTargetView::SharedPtr CreateRenderTargetView(
-                Texture::ConstSharedPtrRef texture) const;
+            RenderTargetView::SharedPtr CreateRenderTargetView(Texture::ConstSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name) const;
 
         private:
             Render::Result initDevice();
-            Render::Result resetDevice(const PresentOptions& presentOptions);           
+            Render::Result resetDevice(const PresentOptions& presentOptions);
 
         private:
             static constexpr int SubmissionThreadAheadFrames = 4;
