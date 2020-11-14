@@ -4,21 +4,23 @@
 
 #include "common/Math.hpp"
 
+namespace
+{
+    uint32_t getMaxMipLevels(uint32_t width, uint32_t height, uint32_t depth)
+    {
+        ASSERT(width > 0)
+        ASSERT(height > 0)
+        ASSERT(depth > 0)
+
+        const uint32_t maxDimension = std::max(width, std::max(height, depth));
+        return 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
+    }
+}
+
 namespace OpenDemo
 {
     namespace Render
     {
-
-        uint32_t getMaxMipLevels(uint32_t width, uint32_t height, uint32_t depth)
-        {
-            ASSERT(width > 0)
-            ASSERT(height > 0)
-            ASSERT(depth > 0)
-
-            const uint32_t maxDimension = std::max(width, std::max(height, depth));
-            return 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
-        }
-
         Texture::Texture(const TextureDesc& desc, const U8String& name, BindFlags bindFlags)
             : Resource(Resource::Type::Texture, name),
               desc_(desc),

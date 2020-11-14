@@ -9,64 +9,66 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
-            void GetOptimizedClearValue(Resource::BindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
+            namespace
             {
-                if (!IsAny(bindFlags, Resource::BindFlags::RenderTarget | Resource::BindFlags::DepthStencil))
+                void GetOptimizedClearValue(Resource::BindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
                 {
-                    value = nullptr;
-                    return;
+                    if (!IsAny(bindFlags, Resource::BindFlags::RenderTarget | Resource::BindFlags::DepthStencil))
+                    {
+                        value = nullptr;
+                        return;
+                    }
+
+                    if (IsSet(bindFlags, Resource::BindFlags::RenderTarget))
+                    {
+                        value->Format = format;
+
+                        value->Color[0] = 0.0f;
+                        value->Color[1] = 0.0f;
+                        value->Color[2] = 0.0f;
+                        value->Color[3] = 0.0f;
+                    }
+
+                    if (IsSet(bindFlags, Resource::BindFlags::DepthStencil))
+                    {
+                        value->Format = format;
+
+                        value->DepthStencil.Depth = 1.0f;
+                    }
                 }
 
-                if (IsSet(bindFlags, Resource::BindFlags::RenderTarget))
+                D3D12_RESOURCE_DESC GetResourceDesc(const Texture::TextureDesc& resourceDesc, Resource::BindFlags bindFlags)
                 {
-                    value->Format = format;
+                    DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
 
-                    value->Color[0] = 0.0f;
-                    value->Color[1] = 0.0f;
-                    value->Color[2] = 0.0f;
-                    value->Color[3] = 0.0f;
+                    D3D12_RESOURCE_DESC desc;
+                    switch (resourceDesc.type)
+                    {
+                    case Texture::Type::Texture1D:
+                        desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels);
+                        break;
+                    case Texture::Type::Texture2D:
+                    case Texture::Type::Texture2DMS:
+                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize, resourceDesc.mipLevels, resourceDesc.sampleCount);
+                        break;
+                    case Texture::Type::Texture3D:
+                        desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.width, resourceDesc.height, resourceDesc.depth, resourceDesc.mipLevels);
+                        break;
+                    case Texture::Type::TextureCube:
+                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize * 6, resourceDesc.mipLevels);
+                        break;
+                    default:
+                        LOG_FATAL("Unsupported texture type");
+                    }
+
+                    desc.Flags = TypeConversions::ResourceFlags(bindFlags);
+
+                    if (resourceDesc.format.IsDepth() && IsAny(bindFlags, Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess))
+                        format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
+
+                    desc.Format = format;
+                    return desc;
                 }
-
-                if (IsSet(bindFlags, Resource::BindFlags::DepthStencil))
-                {
-                    value->Format = format;
-
-                    value->DepthStencil.Depth = 1.0f;
-                }
-            }
-
-            D3D12_RESOURCE_DESC GetResourceDesc(const Texture::TextureDesc& resourceDesc, Resource::BindFlags bindFlags)
-            {
-                DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
-
-                D3D12_RESOURCE_DESC desc;
-                switch (resourceDesc.type)
-                {
-                case Texture::Type::Texture1D:
-                    desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels);
-                    break;
-                case Texture::Type::Texture2D:
-                case Texture::Type::Texture2DMS:
-                    desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize, resourceDesc.mipLevels, resourceDesc.sampleCount);
-                    break;
-                case Texture::Type::Texture3D:
-                    desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.width, resourceDesc.height, resourceDesc.depth, resourceDesc.mipLevels);
-                    break;
-                case Texture::Type::TextureCube:
-                    desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize * 6, resourceDesc.mipLevels);
-                    break;
-                default:
-                    LOG_FATAL("Unsupported texture type");
-                }
-
-                desc.Flags = TypeConversions::ResourceFlags(bindFlags);
-
-                if (resourceDesc.format.IsDepth() && IsAny(bindFlags, Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess))
-                    format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
-
-                desc.Format = format;
-                return desc;
             }
 
             Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device> device, const Texture::TextureDesc& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
