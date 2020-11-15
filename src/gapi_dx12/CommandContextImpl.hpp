@@ -18,12 +18,14 @@ namespace OpenDemo
             public:
                 CommandContextImpl();
 
-                Result Init(ComSharedPtr<ID3D12Device> device, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 void Reset() override;
                 void Close() override;
 
-                //void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) override;
+                void ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color) override;
+
+                const ComSharedPtr<ID3D12GraphicsCommandList>& getD3DCommandList() const { return D3DCommandList_; }
 
             private:
                 std::unique_ptr<CommandListImpl> commandList_;

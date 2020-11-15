@@ -7,7 +7,7 @@ namespace OpenDemo
         namespace DX12
         {
 
-            Result CommandListImpl::Init(ComSharedPtr<ID3D12Device> device, const U8String& name)
+            Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(_commandList.get() == nullptr)
@@ -29,6 +29,18 @@ namespace OpenDemo
                 D3DCallMsg(device->CreateCommandList(0, commandListType, allocator, nullptr, IID_PPV_ARGS(_commandList.put())), "CreateCommandList");
 
                 D3DUtils::SetAPIName(_commandList.get(), name);
+
+                return Result::Ok;
+            }
+
+            Result CommandListImpl::Reset()
+            {
+                ASSERT(_commandList.get())
+                const auto& allocator = _allocatorsRB->GetNextObject();
+
+                D3DCall(allocator->Reset());
+                D3DCall(_commandList->Reset(allocator, nullptr));
+              //  D3DCall(_allocatorsRB->MoveToNextFrame(queue));
 
                 return Result::Ok;
             }

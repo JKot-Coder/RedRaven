@@ -11,7 +11,7 @@ namespace OpenDemo
             public:
                 // _commandList->SetName(L"CommandList");
                 FenceImpl() = default;
-                Result Init(ComSharedPtr<ID3D12Device> device, uint64_t initialValue, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, uint64_t initialValue, const U8String& name);
 
                 Result Signal(ID3D12CommandQueue* commandQueue, uint64_t value);
                 Result SetEventOnCompletion(uint64_t value, HANDLE event) const;

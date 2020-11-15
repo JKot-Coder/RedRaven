@@ -13,6 +13,7 @@
 #include "gapi_dx12/ResourceCreator.hpp"
 
 #include <chrono>
+#include <iterator>
 #include <thread>
 
 #ifdef ENABLE_ASSERTS
@@ -41,6 +42,8 @@ namespace OpenDemo
 
                 Result Init();
                 Result Reset(const PresentOptions& presentOptions);
+
+                Result Submit(const CommandContext::SharedPtr& commandContext);
                 Result Present();
 
                 ID3D12Device* GetDevice() const
@@ -50,7 +53,7 @@ namespace OpenDemo
 
                 void WaitForGpu();
 
-                Result InitResource(Object::ConstSharedPtrRef resource);
+                Result InitResource(const Object::SharedPtr& resource);
 
             private:
                 bool enableDebug_ = true;
@@ -104,8 +107,8 @@ namespace OpenDemo
 
             Result DeviceImplementation::Init()
             {
-                ASSERT_IS_CREATION_THREAD;
-                ASSERT(inited_ == false);
+                ASSERT_IS_CREATION_THREAD
+                ASSERT(inited_ == false)
 
                 auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
 
@@ -164,7 +167,7 @@ namespace OpenDemo
                 ASSERT_IS_DEVICE_INITED;
             }
 
-            Result DeviceImplementation::InitResource(Object::ConstSharedPtrRef resource)
+            Result DeviceImplementation::InitResource(const Object::SharedPtr& resource)
             {
                 return ResourceCreator::InitResource(resourceCreatorContext_, resource);
             }
@@ -274,6 +277,26 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
+            Result DeviceImplementation::Submit(const CommandContext::SharedPtr& commandContext)
+            {
+                ASSERT_IS_CREATION_THREAD;
+                ASSERT_IS_DEVICE_INITED;
+                ASSERT(commandContext)
+
+                const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
+
+                const auto commandContextImpl = commandContext->GetPrivateImpl<CommandContextImpl*>();
+                ASSERT(commandContextImpl)
+
+                const auto D3DCommandList = commandContextImpl->getD3DCommandList();
+                ASSERT(D3DCommandList)
+
+                ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
+                commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
+
+                return Result::Ok;
+            }
+
             Result DeviceImplementation::Present()
             {
                 ASSERT_IS_CREATION_THREAD;
@@ -359,7 +382,7 @@ namespace OpenDemo
 
             Result DeviceImplementation::createDevice()
             {
-                ASSERT_IS_CREATION_THREAD;
+                ASSERT_IS_CREATION_THREAD
 
                 UINT dxgiFactoryFlags = 0;
                 // Enable the debug layer (requires the Graphics Tools "optional feature").
@@ -444,8 +467,8 @@ namespace OpenDemo
 
             void DeviceImplementation::moveToNextFrame()
             {
-                ASSERT_IS_CREATION_THREAD;
-                ASSERT_IS_DEVICE_INITED;
+                ASSERT_IS_CREATION_THREAD
+                ASSERT_IS_DEVICE_INITED
 
                 const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
 
@@ -493,17 +516,22 @@ namespace OpenDemo
                 return _impl->Present();
             }
 
+            Result Device::Submit(const CommandContext::SharedPtr& commandContext)
+            {
+                return _impl->Submit(commandContext);
+            }
+
             void Device::WaitForGpu()
             {
                 return _impl->WaitForGpu();
             }
 
-            uint64_t Device::GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const
+            uint64_t Device::GetGpuFenceValue(const Fence::SharedPtr& fence) const
             {
                 return 0;
             }
 
-            Result Device::InitResource(Object::ConstSharedPtrRef resource)
+            Result Device::InitResource(const Object::SharedPtr& resource)
             {
                 return _impl->InitResource(resource);
             }

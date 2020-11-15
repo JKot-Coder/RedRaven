@@ -52,6 +52,13 @@ namespace OpenDemo
             inited_ = false;
         }
 
+        void RenderContext::Submit(const CommandContext::SharedPtr& commandContext)
+        {
+            ASSERT(inited_)
+
+            submission_->Submit(commandContext);
+        }
+
         void RenderContext::Present()
         {
             ASSERT(inited_)
@@ -90,22 +97,21 @@ namespace OpenDemo
             return resource;
         }
 
-        Texture ::SharedPtr RenderContext::CreateTexture(const Texture::Description& desc, Texture::BindFlags bindFlags, const U8String& name) const
+        Texture::SharedPtr RenderContext::CreateTexture(const Texture::Description& desc, Texture::BindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = Texture::Create(desc, name);
+            auto& resource = Texture::Create(desc, bindFlags, name);
             if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(Texture::ConstSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name) const
+        RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const Texture::SharedPtr& texture, const ResourceView::Description& desc, const U8String& name) const
         {
             ASSERT(inited_)
 
-            // Todo name?
             auto& resource = RenderTargetView::Create(texture, desc, name);
             if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;

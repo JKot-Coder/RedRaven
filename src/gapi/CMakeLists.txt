@@ -7,6 +7,7 @@ set(GAPI_SRC
         Resource.hpp
         Resource.cpp
         ResourceViews.hpp
+        ResourceViews.cpp
         LinearAllocator.hpp
         LinearAllocator.cpp
         LinearAllocator.inl

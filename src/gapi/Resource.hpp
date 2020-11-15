@@ -150,7 +150,6 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<Resource>;
             using SharedConstPtr = std::shared_ptr<const Resource>;
-            using ConstSharedPtrRef = const SharedPtr&;
             using WeakPtr = std::weak_ptr<Resource>;
 
             using Format = Private::ResourceFormat;
@@ -164,32 +163,32 @@ namespace OpenDemo
                 DepthStencil = 0x08,
             };
 
-            enum class Type
+            enum class ResourceType
             {
                 Buffer,
                 Texture
             };
 
         public:
-            Resource::Type inline GetResourceType() const { return resourceType_; }
+            Resource::ResourceType inline GetResourceType() const { return resourceType_; }
 
             template <typename Type>
-            Type& GetTyped();
+            std::shared_ptr<Type> GetTyped();
 
         protected:
-            Resource(Resource::Type resourceType, const U8String& name)
+            Resource(Resource::ResourceType resourceType, const U8String& name)
                 : Object(Object::Type::Resource, name),
                   resourceType_(resourceType)
             {
             }
 
-            Resource::Type resourceType_;
+            Resource::ResourceType resourceType_;
         };
 
         ENUM_CLASS_OPERATORS(Resource::BindFlags)
 
         template <>
-        Texture& Resource::GetTyped<Texture>();
+        std::shared_ptr<Texture> Resource::GetTyped<Texture>();
         /*
         template <>
         Buffer& Resource::GetTyped<Buffer>();*/

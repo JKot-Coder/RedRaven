@@ -41,7 +41,7 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                Result InitResource(const ResourceCreatorContext& context, Object::ConstSharedPtrRef resource);
+                Result InitResource(const ResourceCreatorContext& context, const Object::SharedPtr& resource);
             }
         }
     }

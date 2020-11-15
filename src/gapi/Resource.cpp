@@ -205,10 +205,10 @@ namespace OpenDemo
         }
 
         template <>
-        Texture& Resource::GetTyped<Texture>()
+        std::shared_ptr<Texture> Resource::GetTyped<Texture>()
         {
-            ASSERT(resourceType_ == Type::Texture)
-            return dynamic_cast<Texture&>(*this);
+            ASSERT(resourceType_ == ResourceType::Texture)
+            return std::static_pointer_cast<Texture>(shared_from_this());
         }
         /*
         template <>

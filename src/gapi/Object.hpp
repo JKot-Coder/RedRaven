@@ -10,7 +10,6 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<Object>;
             using SharedConstPtr = std::shared_ptr<const Object>;
-            using ConstSharedPtrRef = const SharedPtr&;
 
             enum class Type
             {

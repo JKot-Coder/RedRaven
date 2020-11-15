@@ -7,7 +7,7 @@ namespace OpenDemo
         namespace DX12
         {
 
-            Result DescriptorHeap::Init(ComSharedPtr<ID3D12Device> device, const DescriptorHeapDesc& desc)
+            Result DescriptorHeap::Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc)
             {
                 ASSERT(device)
                 ASSERT(!d3d12Heap_)
@@ -31,8 +31,8 @@ namespace OpenDemo
                 for (uint32_t i = 0; i < chunkCount; i++)
                 {
                     uint32_t offset = i * Chunk::SIZE;
-                    chunks_.emplace_back(offset);
-                    freeChunks_.emplace_back(&chunks_[i]);
+                    chunks_.emplace_back(std::make_unique<Chunk>(offset));
+                    freeChunks_.emplace_back(chunks_[i].get());
                 }
 
                 return Result::Ok;

@@ -17,12 +17,14 @@ namespace OpenDemo
                     : _type(type)
                 {
                 }
-                Result Init(ComSharedPtr<ID3D12Device> device, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 ComSharedPtr<ID3D12GraphicsCommandList> GetCommandList()
                 {
                     return _commandList;
                 };
+
+                Result Reset();
 
                 Result Submit(ID3D12CommandQueue* queue);
 

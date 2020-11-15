@@ -2,6 +2,7 @@
 
 #include "gapi/CommandContextInterface.hpp"
 #include "gapi/Object.hpp"
+#include "gapi/ResourceViews.hpp"
 
 namespace OpenDemo
 {
@@ -12,14 +13,13 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<CommandContext>;
             using SharedConstPtr = std::shared_ptr<const CommandContext>;
-            using ConstSharedPtrRef = const SharedPtr&;
 
             CommandContext() = delete;
 
             inline void Reset() override { getImplementation().Reset(); }
             inline void Close() override { getImplementation().Close(); }
 
-         //   inline void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
+            inline void ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
 
             static SharedPtr Create(const U8String& name)
             {

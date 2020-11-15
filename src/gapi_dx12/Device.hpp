@@ -12,20 +12,22 @@ namespace OpenDemo
                 Device();
                 ~Device() override;
 
+                // Todo separate freeThread / Multithread
                 Result Init() override;
                 Result Reset(const PresentOptions& presentOptions) override;
                 Result Present() override;
 
-                uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const override;
+                Result Submit(const CommandContext::SharedPtr& commandContext) override;         
 
-                Result InitResource(Object::ConstSharedPtrRef resource) override;
+                uint64_t GetGpuFenceValue(const Fence::SharedPtr& fence) const override;
+
+                Result InitResource(const Object::SharedPtr& resource) override;
 
                 void WaitForGpu();
 
             private:
-
                 std::unique_ptr<class DeviceImplementation> _impl;
             };
-        }        
+        }
     }
 }

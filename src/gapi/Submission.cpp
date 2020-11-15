@@ -1,10 +1,12 @@
 #include "Submission.hpp"
 
+
+
 #include "gapi_dx12/Device.hpp"
 
 #include "common/debug/DebugStream.hpp"
-#include "common/threading/Mutex.hpp"
 #include "common/threading/ConditionVariable.hpp"
+#include "common/threading/Mutex.hpp"
 
 #include <chrono>
 #include <thread>
@@ -52,6 +54,13 @@ namespace OpenDemo
             inputWorkChannel_.Put(std::move(work));
         }
 
+        void Submission::Submit(const CommandContext::SharedPtr& commandContext)
+        {
+            Work::Submit work;
+            work.commandContext = commandContext;
+
+            putWork(work);
+        }
 
         void Submission::ExecuteAsync(CallbackFunction&& function)
         {
@@ -119,8 +128,9 @@ namespace OpenDemo
                 ASSERT(device_)
 
                 Render::Result result = Render::Result::Fail;
-               
+
                 std::visit(overloaded {
+                               [this, &result](const Work::Submit& work) { result = device_->Submit(work.commandContext); },
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;

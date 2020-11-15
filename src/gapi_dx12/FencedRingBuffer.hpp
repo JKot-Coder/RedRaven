@@ -31,7 +31,7 @@ namespace OpenDemo
                             _ringBuffer[index].object->Release();
                 }
 
-                Result Init(ComSharedPtr<ID3D12Device> device, NewObjectFunc newObject, const U8String& name)
+                Result Init(const ComSharedPtr<ID3D12Device>& device, NewObjectFunc newObject, const U8String& name)
                 {
                     ASSERT(newObject);
 
@@ -72,7 +72,7 @@ namespace OpenDemo
 
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     auto fenceGpuValue = _fence->GetGpuValue();
-                    ASSERT(_ringBuffer[_frameIndex].frameStamp < fenceGpuValue);
+//                    ASSERT(_ringBuffer[_frameIndex].frameStamp < fenceGpuValue);
 #endif
                     return CurrentObject();
                 }

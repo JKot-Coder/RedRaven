@@ -3,8 +3,9 @@
 #include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
-#include "gapi/Resource.hpp"
+#include "gapi/CommandContext.hpp"
 #include "gapi/Fence.hpp"
+#include "gapi/Resource.hpp"
 #include "gapi/Result.hpp"
 
 namespace OpenDemo
@@ -39,15 +40,17 @@ namespace OpenDemo
 
             virtual Result Reset(const PresentOptions& presentOptions) = 0;
 
+            virtual Result Submit(const CommandContext::SharedPtr& commandContext) = 0;
+
             virtual Result Present() = 0;
         };
 
         class MultiThreadDeviceInterface
         {
         public:
-            virtual uint64_t GetGpuFenceValue(Fence::ConstSharedPtrRef fence) const = 0;
+            virtual uint64_t GetGpuFenceValue(const Fence::SharedPtr& fence) const = 0;
 
-            virtual Result InitResource(Object::ConstSharedPtrRef resource) = 0;
+            virtual Result InitResource(const Object::SharedPtr& resource) = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

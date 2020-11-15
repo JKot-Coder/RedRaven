@@ -50,7 +50,7 @@ namespace OpenDemo
                 }
 
                 Resource::Format format;
-                TextureDimension dimesion = TextureDimension::Unknown;
+                TextureDimension dimension = TextureDimension::Unknown;
                 uint32_t width = 0;
                 uint32_t height = 0;
                 uint32_t depth = 0;
@@ -60,7 +60,7 @@ namespace OpenDemo
 
             private:
                 TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
-                    : dimesion(dimension),
+                    : dimension(dimension),
                       width(width),
                       height(height),
                       depth(depth),
@@ -78,7 +78,6 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<Texture>;
             using SharedConstPtr = std::shared_ptr<const Texture>;
-            using ConstSharedPtrRef = const SharedPtr&;
 
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
@@ -87,11 +86,6 @@ namespace OpenDemo
 
         public:
             Texture() = delete;
-
-            static SharedPtr Create(const Description& description, const U8String& name, BindFlags bindFlags = BindFlags::ShaderResource)
-            {
-                return SharedPtr(new Texture(description, name, bindFlags));
-            }
 
             //      ShaderResourceView::SharedPtr getSRV(uint32_t mostDetailedMip, uint32_t mipCount = kMaxPossible, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
@@ -105,7 +99,14 @@ namespace OpenDemo
             BindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
-            Texture(const Description& description, const U8String& name, BindFlags bindFlags = BindFlags::ShaderResource);
+            friend class RenderContext;
+
+            static SharedPtr Create(const Description& description, BindFlags bindFlags, const U8String& name)
+            {
+                return SharedPtr(new Texture(description, bindFlags, name));
+            }
+
+            Texture(const Description& description, BindFlags bindFlags, const U8String& name);
 
         private:
             Description description_;

@@ -2,6 +2,8 @@
 
 #include "Texture.hpp"
 
+#include "gapi/RenderContext.hpp"
+
 #include "common/Math.hpp"
 
 namespace
@@ -21,12 +23,12 @@ namespace OpenDemo
 {
     namespace Render
     {
-        Texture::Texture(const Description& desc, const U8String& name, BindFlags bindFlags)
-            : Resource(Resource::Type::Texture, name),
+        Texture::Texture(const Description& desc, BindFlags bindFlags, const U8String& name)
+            : Resource(Resource::ResourceType::Texture, name),
               description_(desc),
               bindFlags_(bindFlags)
         {
-            ASSERT(description_.dimesion != Dimension::Unknown)
+            ASSERT(description_.dimension != Dimension::Unknown)
 
             ASSERT(description_.width > 0)
             ASSERT(description_.height > 0)
@@ -37,10 +39,10 @@ namespace OpenDemo
             ASSERT(description_.arraySize > 0)
 
             ASSERT(
-                (description_.sampleCount > 1 && description_.dimesion == Dimension::Texture2DMS)
-                || (description_.sampleCount == 1 && description_.dimesion != Dimension::Texture2DMS));
+                (description_.sampleCount > 1 && description_.dimension == Dimension::Texture2DMS)
+                || (description_.sampleCount == 1 && description_.dimension != Dimension::Texture2DMS));
 
-            switch (description_.dimesion)
+            switch (description_.dimension)
             {
             case Dimension::Texture1D:
                 ASSERT(description_.height == 1)
@@ -72,9 +74,13 @@ namespace OpenDemo
 
         RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t arraySize)
         {
-            const ResourceView::Description desc(mipLevel, firstArraySlice, arraySize);
+            ASSERT(firstArraySlice < description_.arraySize)
+            ASSERT(IsSet(bindFlags_, BindFlags::RenderTarget))
 
-            return RenderTargetView::Create(std::dynamic_pointer_cast<Texture>(shared_from_this()), desc, name_);
+            const ResourceView::Description desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
+
+            auto& renderContext = RenderContext::Instance();
+            return renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), desc, name_);
         }
 
     }

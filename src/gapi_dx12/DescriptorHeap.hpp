@@ -21,7 +21,7 @@ namespace OpenDemo
 
                 DescriptorHeap() = default;
 
-                Result Init(ComSharedPtr<ID3D12Device> device, const DescriptorHeapDesc& desc);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc);
 
                 Result Alloc(Allocation& allocation)
                 {
@@ -35,7 +35,7 @@ namespace OpenDemo
 
                     ASSERT(!freeChunks_.empty())
 
-                    auto& currentChunk = freeChunks_.front();
+                    Chunk* currentChunk = freeChunks_.front();
 
                     const auto indexInChunk = currentChunk->Alloc();
                     const auto indexInHeap = indexInChunk + currentChunk->Offset;
@@ -51,22 +51,20 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                void Free(uint32_t indexInHeap)
+                void Free(uint32_t index)
                 {
                     ASSERT(d3d12Heap_)
 
-                    const auto chunkIndex = indexInHeap / Chunk::SIZE;
+                    const auto chunkIndex = index / Chunk::SIZE;
                     ASSERT(chunkIndex < chunks_.size())
 
                     auto& chunk = chunks_[chunkIndex];
-                    ASSERT(indexInHeap > chunk.Offset)
 
-                    const auto indexInChunk = indexInHeap - chunk.Offset;
-                    chunk.Free(indexInChunk);
+                    chunk->Free(index);
 
                     // Chunk was exhausted
-                    if (chunk.GetNumAvailable() == 1)
-                        freeChunks_.push_back(&chunk);
+                    if (chunk->GetNumAvailable() == 1)
+                        freeChunks_.push_back(chunk.get());
 
                     allocated_--;
                 }
@@ -160,7 +158,10 @@ namespace OpenDemo
                     inline void Free(uint32_t index)
                     {
                         ASSERT(index < Chunk::SIZE)
-                        indices_[--cursor_] = static_cast<uint8_t>(index);
+                        ASSERT(index > Offset && index < Offset + Chunk::SIZE)
+                        const uint8_t indexInChunk = static_cast<uint8_t>(index - Offset);
+
+                        indices_[--cursor_] = indexInChunk;
                     }
 
                     inline uint32_t GetNumAvailable() const
@@ -170,7 +171,7 @@ namespace OpenDemo
 
                 private:
                     std::array<uint8_t, SIZE> indices_;
-                    uint32_t cursor_;
+                    uint32_t cursor_ = 0;
                 };
 
                 CD3DX12_CPU_DESCRIPTOR_HANDLE getCpuHandle(uint32_t index) const
@@ -186,7 +187,7 @@ namespace OpenDemo
                 uint32_t descriptorSize_ = 0;
                 uint32_t allocated_ = 0;
 
-                std::vector<Chunk> chunks_;
+                std::vector<std::unique_ptr<Chunk>> chunks_;
                 std::deque<Chunk*> freeChunks_;
 
                 ComSharedPtr<ID3D12DescriptorHeap> d3d12Heap_;

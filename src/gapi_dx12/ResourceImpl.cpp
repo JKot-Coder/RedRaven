@@ -42,7 +42,7 @@ namespace OpenDemo
                     DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
 
                     D3D12_RESOURCE_DESC desc;
-                    switch (resourceDesc.dimesion)
+                    switch (resourceDesc.dimension)
                     {
                     case Texture::Dimension::Texture1D:
                         desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels);
@@ -71,7 +71,7 @@ namespace OpenDemo
                 }
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device> device, const Texture::Description& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const Texture::Description& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
             {
                 ASSERT(device)
                 // TextureDesc ASSERT checks done on Texture initialization;

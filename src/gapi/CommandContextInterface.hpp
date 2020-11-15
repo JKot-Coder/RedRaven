@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gapi/ResourceViews.hpp"
+
 namespace OpenDemo
 {
     namespace Common
@@ -12,15 +14,13 @@ namespace OpenDemo
 
     namespace Render
     {
-       // class RenderTargetView;
-
         class CommandContextInterface
         {
         public:
             virtual void Reset() = 0;
             virtual void Close() = 0;
 
-           // virtual void ClearRenderTargetView(const RenderTargetView& renderTargetView, const Vector4& color) = 0;
+            virtual void ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color) = 0;
         };
     }
 }

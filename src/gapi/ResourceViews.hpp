@@ -13,7 +13,7 @@ namespace OpenDemo
         using ConstTextureSharedPtrRef = const std::shared_ptr<Texture>&;
         using ConstBufferSharedPtrRef = const std::shared_ptr<Buffer>&;
 
-        namespace
+        namespace Private
         {
             struct ResourceViewDescription
             {
@@ -22,25 +22,26 @@ namespace OpenDemo
                     struct
                     {
                         uint32_t mipLevel;
+                        uint32_t mipsCount;
                         uint32_t firstArraySlice;
-                        uint32_t numArraySlices;
+                        uint32_t arraySlicesCount;
                     } texture;
 
                     struct
                     {
                         uint32_t firstElement;
-                        uint32_t numElements;
+                        uint32_t elementsCount;
                     } buffer;
                 };
 
             public:
-                ResourceViewDescription(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices)
-                    : texture({ mipLevel, firstArraySlice, numArraySlices })
+                ResourceViewDescription(uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
+                    : texture({ mipLevel, mipsCount, firstArraySlice, arraySlicesCount })
                 {
                 }
 
-                ResourceViewDescription(uint32_t firstElement, uint32_t numElements)
-                    : buffer({ firstElement, numElements })
+                ResourceViewDescription(uint32_t firstElement, uint32_t elementsCount)
+                    : buffer({ firstElement, elementsCount })
                 {
                 }
             };
@@ -51,14 +52,19 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<ResourceView>;
             using SharedConstPtr = std::shared_ptr<const ResourceView>;
-            using Description = ResourceViewDescription;
+            using Description = Private::ResourceViewDescription;
 
             enum class ViewType
             {
                 RenderTargetView,
                 ShaderResourceView,
-                UnorderedResourceView,
+                DepthStencilView,
+                UnorderedAccessView,
             };
+
+            ViewType GetViewType() const { return viewType_; }
+            const Description& GetDescription() const { return description_; }
+            const ResourceWeakPtr& GetResource() const { return resource_; } 
 
         protected:
             ResourceView(ViewType viewType, const ResourceWeakPtr& resource, const Description& description, const U8String& name)
@@ -76,76 +82,33 @@ namespace OpenDemo
             ResourceWeakPtr resource_;
         };
 
-        template <typename type>
+        template <ResourceView::ViewType type>
         class ResourceViewTemplate final : public ResourceView
         {
         public:
             using SharedPtr = std::shared_ptr<ResourceViewTemplate<type>>;
             using SharedConstPtr = std::shared_ptr<const ResourceViewTemplate<type>>;
 
-            static SharedPtr Create(ConstTextureSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name)
-            {
-                return SharedPtr(new ResourceViewTemplate<type>(texture, desc, name));
-            }
-
+            friend class RenderContext;
         private:
+            static SharedPtr Create(ConstTextureSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name);
+
             ResourceViewTemplate(const ResourceWeakPtr& resource, const ResourceView::Description& desc, const U8String& name)
                 : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
         };
 
-        using RenderTargetView = ResourceViewTemplate<void>;
-        using DepthStencilView = ResourceViewTemplate<void>;
-        using ShaderResourceView = ResourceViewTemplate<void>;
-        using UnorderedAccessView = ResourceViewTemplate<void>;
-
+        using RenderTargetView = ResourceViewTemplate<ResourceView::ViewType::RenderTargetView>;
+        using DepthStencilView = ResourceViewTemplate<ResourceView::ViewType::DepthStencilView>;
+        using ShaderResourceView = ResourceViewTemplate<ResourceView::ViewType::ShaderResourceView>;
+        using UnorderedAccessView = ResourceViewTemplate<ResourceView::ViewType::UnorderedAccessView>;
         /*
-        class RenderTargetView final : public ResourceView
-        {
-        public:
-            using SharedPtr = std::shared_ptr<RenderTargetView>;
-            using SharedConstPtr = std::shared_ptr<const RenderTargetView>;
+        template <>
+        RenderTargetView::SharedPtr RenderTargetView::Create(ConstTextureSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name);
 
-            static SharedPtr Create(const Texture::ConstSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name)
-            {
-                return SharedPtr(new RenderTargetView(texture, desc, name));
-            }
+        template <>
+        static DepthStencilView::SharedPtr DepthStencilView::Create(ConstTextureSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name);
 
-        private:
-            RenderTargetView(const ResourceWeakPtr& resource, const ResourceView::Description& desc, const U8String& name)
-                : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
-        };
-
-        class ShaderResourceView final : public ResourceView
-        {
-        public:
-            using SharedPtr = std::shared_ptr<ShaderResourceView>;
-            using SharedConstPtr = std::shared_ptr<const ShaderResourceView>;
-
-            static SharedPtr Create(const Texture::ConstSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name)
-            {
-                return SharedPtr(new ShaderResourceView(texture, desc, name));
-            }
-
-        private:
-            ShaderResourceView(const ResourceWeakPtr& resource, const ResourceView::Description& desc, const U8String& name)
-                : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
-        };
-
-        class DepthStencilView final : public ResourceView
-        {
-        public:
-            using SharedPtr = std::shared_ptr<RenderTargetView>;
-            using SharedConstPtr = std::shared_ptr<const RenderTargetView>;
-
-            static SharedPtr Create(const Texture::ConstSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name)
-            {
-                return SharedPtr(new RenderTargetView(texture, desc, name));
-            }
-
-        private:
-            RenderTargetView(const ResourceWeakPtr& resource, const ResourceView::Description& desc, const U8String& name)
-                : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
-        };*/
-
+        template <>
+        static ShaderResourceView::SharedPtr ShaderResourceView::Create(ConstTextureSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name);*/
     }
 }

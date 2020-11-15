@@ -66,21 +66,24 @@ namespace OpenDemo
         auto& renderContext = Render::RenderContext::Instance();
         auto rcc = renderContext.CreateRenderCommandContext(u8"qwew");
         ASSERT(rcc)
+        rcc->Close();
 
         const auto& desc = Render::Texture::Description::Create2D(100, 100, Render::Resource::Format::R8Unorm);
-        auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource);
+        auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource | Render::Texture::BindFlags::RenderTarget);
         ASSERT(texture)
 
         auto rtv = texture->GetRTV();
-
+        ASSERT(rtv)
 
         while (!_quit)
         {
             Windowing::Windowing::PoolEvents();
 
             rcc->Reset();
-         //   rcc->ClearRenderTargetView(rtv, Vector4(1, 1, 1, 1));
+            rcc->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
             rcc->Close();
+
+            renderContext.Submit(rcc);
 
             //  renderPipeline->Collect(_scene);
             //    renderPipeline->Draw();
@@ -90,7 +93,7 @@ namespace OpenDemo
             //    render->SwapBuffers();
             //  input->Update();
 
-           // renderContext->Present();
+            renderContext.Present();
 
             time->Update();
         }

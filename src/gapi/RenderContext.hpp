@@ -36,13 +36,15 @@ namespace OpenDemo
             Result Init(const PresentOptions& presentOptions);
             void Terminate();
 
+
+            void Submit(const CommandContext::SharedPtr& commandContext);
             void Present();
             Result ResetDevice(const PresentOptions& presentOptions);
 
             CommandContext::SharedPtr CreateRenderCommandContext(const U8String& name) const;
             Texture::SharedPtr CreateTexture(const Texture::Description& desc, Resource::BindFlags bindFlags, const U8String& name = "") const;
 
-            RenderTargetView::SharedPtr CreateRenderTargetView(Texture::ConstSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name) const;
+            RenderTargetView::SharedPtr CreateRenderTargetView(const Texture::SharedPtr& texture, const ResourceView::Description& desc, const U8String& name) const;
 
         private:
             Render::Result initDevice();

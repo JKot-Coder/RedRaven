@@ -13,13 +13,9 @@ namespace OpenDemo
             public:
                 DescriptorHeapSet() = default;
 
-                Result Init(ComSharedPtr<ID3D12Device> device);
+                Result Init(const ComSharedPtr<ID3D12Device>& device);
 
-                DescriptorHeap::SharedPtr GetRtvDescriptorHeap() 
-                { 
-                    return rtvDescriptorHeap_;
-                }
-
+                const DescriptorHeap::SharedPtr& GetRtvDescriptorHeap() const { return rtvDescriptorHeap_; }
             private:
                 DescriptorHeap::SharedPtr rtvDescriptorHeap_;
             };

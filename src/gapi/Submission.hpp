@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gapi/CommandContext.hpp"
 #include "gapi/DeviceInterface.hpp"
 
 #include "common/threading/BufferedChannel.hpp"
@@ -43,7 +44,12 @@ namespace OpenDemo
                     CallbackFunction function;
                 };
 
-                using WorkVariant = std::variant<Terminate, Callback>;
+                struct Submit
+                {
+                    CommandContext::SharedPtr commandContext;
+                };
+
+                using WorkVariant = std::variant<Terminate, Callback, Submit>;
 
             public:
                 WorkVariant workVariant;
@@ -59,6 +65,8 @@ namespace OpenDemo
 
             void Start();
             void Terminate();
+
+            void Submit(const CommandContext::SharedPtr& commandContext);
 
             void ExecuteAsync(CallbackFunction&& function);
             Render::Result ExecuteAwait(const CallbackFunction&& function);
