@@ -3,6 +3,8 @@
 #include "gapi/CommandContext.hpp"
 #include "gapi/DeviceInterface.hpp"
 #include "gapi/Submission.hpp"
+#include "gapi/Texture.hpp"
+
 
 #include "common/threading/Event.hpp"
 

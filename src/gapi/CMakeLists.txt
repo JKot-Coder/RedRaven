@@ -1,6 +1,7 @@
 project (gapi)
 
 set(GAPI_SRC
+        ForwardDeclarations.hpp
         Frame.hpp
         Limits.hpp
         Object.hpp

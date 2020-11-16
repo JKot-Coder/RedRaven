@@ -15,8 +15,8 @@ namespace OpenDemo
             {
                 RenderQueue,
                 CommandContext,
-                CommandList,                
-                Resource,                
+                CommandList,
+                Resource,
                 ResourceView
             };
 
@@ -44,8 +44,7 @@ namespace OpenDemo
 
         protected:
             Object(Type type, const U8String& name)
-                : type_(type)
-                , name_(name)
+                : type_(type), name_(name)
             {
             }
 

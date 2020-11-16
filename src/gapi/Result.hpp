@@ -1,6 +1,5 @@
 #pragma once
 
-#include "comdef.h"
 namespace OpenDemo
 {
     namespace Render

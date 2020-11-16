@@ -2,17 +2,26 @@
 
 #include "common/EnumClassOperators.hpp"
 
+#include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Object.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        class Texture;
-        class Buffer;
-
         namespace Private
         {
+            enum class ResourceBindFlags : uint32_t
+            {
+                None = 0x0,
+                ShaderResource = 0x01,
+                UnorderedAccess = 0x02,
+                RenderTarget = 0x04,
+                DepthStencil = 0x08,
+            };
+
+            ENUM_CLASS_OPERATORS(ResourceBindFlags)
+
             struct ResourceFormat final
             {
             public:
@@ -153,15 +162,7 @@ namespace OpenDemo
             using WeakPtr = std::weak_ptr<Resource>;
 
             using Format = Private::ResourceFormat;
-
-            enum class BindFlags : uint32_t
-            {
-                None = 0x0,
-                ShaderResource = 0x01,
-                UnorderedAccess = 0x02,
-                RenderTarget = 0x04,
-                DepthStencil = 0x08,
-            };
+            using BindFlags = Private::ResourceBindFlags;
 
             enum class ResourceType
             {
@@ -184,8 +185,6 @@ namespace OpenDemo
 
             Resource::ResourceType resourceType_;
         };
-
-        ENUM_CLASS_OPERATORS(Resource::BindFlags)
 
         template <>
         std::shared_ptr<Texture> Resource::GetTyped<Texture>();

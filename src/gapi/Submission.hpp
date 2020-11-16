@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gapi/CommandContext.hpp"
 #include "gapi/DeviceInterface.hpp"
+#include "gapi/ForwardDeclarations.hpp"
 
 #include "common/threading/BufferedChannel.hpp"
 #include "common/threading/Thread.hpp"
@@ -46,7 +46,7 @@ namespace OpenDemo
 
                 struct Submit
                 {
-                    CommandContext::SharedPtr commandContext;
+                    std::shared_ptr<CommandContext> commandContext;
                 };
 
                 using WorkVariant = std::variant<Terminate, Callback, Submit>;
@@ -66,7 +66,7 @@ namespace OpenDemo
             void Start();
             void Terminate();
 
-            void Submit(const CommandContext::SharedPtr& commandContext);
+            void Submit(const std::shared_ptr<CommandContext>& commandContext);
 
             void ExecuteAsync(CallbackFunction&& function);
             Render::Result ExecuteAwait(const CallbackFunction&& function);

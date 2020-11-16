@@ -1,6 +1,7 @@
 #include "Submission.hpp"
 
-
+#include "gapi/CommandContext.hpp"
+#include "gapi/Result.hpp"
 
 #include "gapi_dx12/Device.hpp"
 

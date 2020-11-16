@@ -6,7 +6,10 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
+#include "gapi/CommandContext.hpp"
 #include "gapi/RenderContext.hpp"
+#include "gapi/Texture.hpp"
+#include "gapi/ResourceViews.hpp"
 
 #include "rendering/Mesh.hpp"
 #include "rendering/Primitives.hpp"

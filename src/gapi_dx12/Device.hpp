@@ -17,11 +17,11 @@ namespace OpenDemo
                 Result Reset(const PresentOptions& presentOptions) override;
                 Result Present() override;
 
-                Result Submit(const CommandContext::SharedPtr& commandContext) override;         
+                Result Submit(const std::shared_ptr<CommandContext>& commandContext) override;
 
-                uint64_t GetGpuFenceValue(const Fence::SharedPtr& fence) const override;
+                uint64_t GetGpuFenceValue(const std::shared_ptr<Fence>& fence) const override;
 
-                Result InitResource(const Object::SharedPtr& resource) override;
+                Result InitResource(const std::shared_ptr<Object>& resource) override;
 
                 void WaitForGpu();
 

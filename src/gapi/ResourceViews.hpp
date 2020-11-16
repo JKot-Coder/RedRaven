@@ -2,17 +2,12 @@
 
 #include "gapi/Object.hpp"
 
+#include "gapi/ForwardDeclarations.hpp"
+
 namespace OpenDemo
 {
     namespace Render
     {
-        class Resource;
-        class Texture;
-        class Buffer;
-        using ResourceWeakPtr = std::weak_ptr<Resource>;
-        using ConstTextureSharedPtrRef = const std::shared_ptr<Texture>&;
-        using ConstBufferSharedPtrRef = const std::shared_ptr<Buffer>&;
-
         namespace Private
         {
             struct ResourceViewDescription
@@ -64,10 +59,10 @@ namespace OpenDemo
 
             ViewType GetViewType() const { return viewType_; }
             const Description& GetDescription() const { return description_; }
-            const ResourceWeakPtr& GetResource() const { return resource_; } 
+            std::weak_ptr<Resource> GetResource() const { return resource_; }
 
         protected:
-            ResourceView(ViewType viewType, const ResourceWeakPtr& resource, const Description& description, const U8String& name)
+            ResourceView(ViewType viewType, const std::weak_ptr<Resource>& resource, const Description& description, const U8String& name)
                 : Object(Object::Type::ResourceView, name),
                   viewType_(viewType),
                   resource_(resource),
@@ -79,7 +74,7 @@ namespace OpenDemo
         private:
             ViewType viewType_;
             Description description_;
-            ResourceWeakPtr resource_;
+            std::weak_ptr<Resource> resource_;
         };
 
         template <ResourceView::ViewType type>
@@ -90,10 +85,11 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<const ResourceViewTemplate<type>>;
 
             friend class RenderContext;
-        private:
-            static SharedPtr Create(ConstTextureSharedPtrRef texture, const ResourceView::Description& desc, const U8String& name);
 
-            ResourceViewTemplate(const ResourceWeakPtr& resource, const ResourceView::Description& desc, const U8String& name)
+        private:
+            static SharedPtr Create(const std::shared_ptr<Texture>& texture, const ResourceView::Description& desc, const U8String& name);
+
+            ResourceViewTemplate(const std::weak_ptr<Resource>& resource, const ResourceView::Description& desc, const U8String& name)
                 : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
         };
 

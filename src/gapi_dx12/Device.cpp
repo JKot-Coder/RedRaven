@@ -3,6 +3,8 @@
 // TODO temporary
 //#include "gapi/FencedRingBuffer.hpp"
 
+#include "gapi/CommandContext.hpp"
+#include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
 
 #include "gapi_dx12/CommandContextImpl.hpp"

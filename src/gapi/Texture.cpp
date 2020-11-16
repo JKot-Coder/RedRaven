@@ -3,6 +3,7 @@
 #include "Texture.hpp"
 
 #include "gapi/RenderContext.hpp"
+#include "gapi/ResourceViews.hpp"
 
 #include "common/Math.hpp"
 

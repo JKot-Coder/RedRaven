@@ -1,15 +1,11 @@
 #pragma once
 
-#include "gapi/Result.hpp"
-
 #include "gapi/Object.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        class CommandContextInterface;
-
         class RenderQueue final : public Object
         {
         public:

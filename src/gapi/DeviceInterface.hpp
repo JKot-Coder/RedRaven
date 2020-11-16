@@ -3,17 +3,13 @@
 #include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
-#include "gapi/CommandContext.hpp"
-#include "gapi/Fence.hpp"
+#include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
-#include "gapi/Result.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        class Object;
-
         enum class CommandQueueType
         {
             GRAPHICS,
@@ -26,7 +22,7 @@ namespace OpenDemo
         {
             AlignedBox2i rect;
 
-            Common::NativeWindowHandle windowHandle;
+            NativeWindowHandle windowHandle;
 
             Resource::Format resourceFormat;
             uint32_t bufferCount;
@@ -40,7 +36,7 @@ namespace OpenDemo
 
             virtual Result Reset(const PresentOptions& presentOptions) = 0;
 
-            virtual Result Submit(const CommandContext::SharedPtr& commandContext) = 0;
+            virtual Result Submit(const std::shared_ptr<CommandContext>& commandContext) = 0;
 
             virtual Result Present() = 0;
         };
@@ -48,9 +44,9 @@ namespace OpenDemo
         class MultiThreadDeviceInterface
         {
         public:
-            virtual uint64_t GetGpuFenceValue(const Fence::SharedPtr& fence) const = 0;
+            virtual uint64_t GetGpuFenceValue(const std::shared_ptr<Fence>& fence) const = 0;
 
-            virtual Result InitResource(const Object::SharedPtr& resource) = 0;
+            virtual Result InitResource(const std::shared_ptr<Object>& resource) = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface
@@ -58,6 +54,5 @@ namespace OpenDemo
         public:
             virtual ~Device() = default;
         };
-
     }
 }

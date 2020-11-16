@@ -1713,7 +1713,7 @@ namespace OpenDemo
         inline constexpr T AlignTo(T value, size_t alignment)
         {
             static_assert(std::is_integral<T>::value, "Expect integral types.");
-            return static_cast<T>(value + alignment - 1) / (alignment * alignment);
+            return static_cast<T>(value + alignment - 1) / static_cast<T>(alignment * alignment);
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////

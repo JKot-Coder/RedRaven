@@ -1,10 +1,9 @@
 #pragma once
 
-#include "gapi/Result.hpp"
-
-#include "gapi/CommandContext.hpp"
+#include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
 #include "gapi/ResourceViews.hpp"
+#include "gapi/Result.hpp"
 #include "gapi/Texture.hpp"
 
 #include "common/Singleton.hpp"
@@ -23,10 +22,9 @@ namespace OpenDemo
 
     namespace Render
     {
-        class Submission;
         struct PresentOptions;
 
-        // Todo thread safity?
+        // Todo thread safety?
         class RenderContext final : public Singleton<RenderContext>
         {
         public:
@@ -36,15 +34,13 @@ namespace OpenDemo
             Result Init(const PresentOptions& presentOptions);
             void Terminate();
 
-
-            void Submit(const CommandContext::SharedPtr& commandContext);
+            void Submit(const std::shared_ptr<CommandContext>& commandContext);
             void Present();
             Result ResetDevice(const PresentOptions& presentOptions);
 
-            CommandContext::SharedPtr CreateRenderCommandContext(const U8String& name) const;
-            Texture::SharedPtr CreateTexture(const Texture::Description& desc, Resource::BindFlags bindFlags, const U8String& name = "") const;
-
-            RenderTargetView::SharedPtr CreateRenderTargetView(const Texture::SharedPtr& texture, const ResourceView::Description& desc, const U8String& name) const;
+            std::shared_ptr<CommandContext> CreateRenderCommandContext(const U8String& name) const;
+            std::shared_ptr<Texture> CreateTexture(const Texture::Description& desc, Resource::BindFlags bindFlags, const U8String& name = "") const;
+            std::shared_ptr<RenderTargetView> CreateRenderTargetView(const std::shared_ptr<Texture>& texture, const ResourceView::Description& desc, const U8String& name) const;
 
         private:
             Render::Result initDevice();
