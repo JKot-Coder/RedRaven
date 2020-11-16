@@ -5,6 +5,7 @@
 #include "gapi_dx12/RenderQueueImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
+#include "gapi_dx12/SwapChainImpl.hpp"
 #include "gapi_dx12/TypeConversions.hpp"
 
 #include "gapi/CommandContext.hpp"
@@ -12,6 +13,7 @@
 #include "gapi/RenderQueue.hpp"
 #include "gapi/Resource.hpp"
 #include "gapi/ResourceViews.hpp"
+#include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
 namespace OpenDemo
@@ -108,7 +110,7 @@ namespace OpenDemo
                     default:
                         Log::Print::Fatal("Unsupported resource view type");
                     }
-                    result.Format = TypeConversions::ResourceFormat(textureDescription.format);
+                    result.Format = TypeConversions::GetResourceFormat(textureDescription.format);
 
                     return result;
                 }
@@ -236,6 +238,16 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
+            Result InitResource(const ResourceCreatorContext& context, SwapChain& resource)
+            {
+                auto impl = new SwapChainImpl();
+
+                D3DCall(impl->Init(context.device, context.graphicsCommandQueue, resource.GetName()));
+                resource.SetPrivateImpl(impl);
+
+                return Result::Ok;
+            }
+
             Result ResourceCreator::InitResource(const ResourceCreatorContext& context, const Object::SharedPtr& resource)
             {
                 ASSERT(resource)
@@ -251,6 +263,7 @@ namespace OpenDemo
                     CASE_RESOURCE(RenderQueue)
                     CASE_RESOURCE(Resource)
                     CASE_RESOURCE(ResourceView)
+                    CASE_RESOURCE(SwapChain)
                 }
 
                 ASSERT_MSG(false, "Unsuported resource type");

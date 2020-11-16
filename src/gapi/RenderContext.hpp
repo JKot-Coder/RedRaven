@@ -38,6 +38,7 @@ namespace OpenDemo
             std::shared_ptr<CommandContext> CreateRenderCommandContext(const U8String& name) const;
             std::shared_ptr<Texture> CreateTexture(const TextureDescription& desc, Resource::BindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<RenderTargetView> CreateRenderTargetView(const std::shared_ptr<Texture>& texture, const ResourceViewDescription& desc, const U8String& name) const;
+            std::shared_ptr<SwapChain> CreateSwapchain(const U8String& name = "") const;
 
         private:
             Render::Result initDevice();

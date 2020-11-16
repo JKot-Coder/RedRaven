@@ -5,8 +5,11 @@ namespace OpenDemo
     namespace Render
     {
         class Object;
-        class Fence;
         class Resource;
+
+        class Fence;
+        class CommandContext;
+        class SwapChain;
 
         class ResourceView;
         struct ResourceViewDescription;
@@ -17,8 +20,8 @@ namespace OpenDemo
         enum class TextureDimension : uint32_t;
 
         class Buffer;
+
         class Submission;
-        class CommandContext;
 
         struct Result;
     }

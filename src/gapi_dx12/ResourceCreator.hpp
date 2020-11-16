@@ -12,6 +12,7 @@ namespace OpenDemo
             struct ResourceCreatorContext
             {
                 ComSharedPtr<ID3D12Device> device;
+                ComSharedPtr<ID3D12CommandQueue> graphicsCommandQueue;
                 std::shared_ptr<DescriptorHeapSet> descriptorHeapSet;
             };
 

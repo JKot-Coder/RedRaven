@@ -21,32 +21,32 @@ namespace OpenDemo
         {
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static TextureDescription Create1D(uint32_t width, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static TextureDescription Create1D(uint32_t width, ResourceFormat format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
                 return TextureDescription(TextureDimension::Texture1D, width, 1, 1, format, 1, arraySize, mipLevels);
             }
 
-            static TextureDescription Create2D(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static TextureDescription Create2D(uint32_t width, uint32_t height, ResourceFormat format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
                 return TextureDescription(TextureDimension::Texture2D, width, height, 1, format, 1, arraySize, mipLevels);
             }
 
-            static TextureDescription Create2DMS(uint32_t width, uint32_t height, Resource::Format format, uint32_t sampleCount, uint32_t arraySize = 1)
+            static TextureDescription Create2DMS(uint32_t width, uint32_t height, ResourceFormat format, uint32_t sampleCount, uint32_t arraySize = 1)
             {
                 return TextureDescription(TextureDimension::Texture2DMS, width, height, 1, format, sampleCount, arraySize, 1);
             }
 
-            static TextureDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t mipLevels = MaxPossible)
+            static TextureDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, ResourceFormat format, uint32_t mipLevels = MaxPossible)
             {
                 return TextureDescription(TextureDimension::Texture3D, width, height, depth, format, 1, 1, mipLevels);
             }
 
-            static TextureDescription CreateCube(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static TextureDescription CreateCube(uint32_t width, uint32_t height, ResourceFormat format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
                 return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
             }
 
-            Resource::Format format;
+            ResourceFormat format;
             TextureDimension dimension = TextureDimension::Unknown;
             uint32_t width = 0;
             uint32_t height = 0;
@@ -56,7 +56,7 @@ namespace OpenDemo
             uint32_t arraySize = 0;
 
         private:
-            TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
+            TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, ResourceFormat format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
                 : dimension(dimension),
                   width(width),
                   height(height),
@@ -92,8 +92,6 @@ namespace OpenDemo
             BindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
-            friend class RenderContext;
-
             static SharedPtr Create(const TextureDescription& description, BindFlags bindFlags, const U8String& name)
             {
                 return SharedPtr(new Texture(description, bindFlags, name));
@@ -104,6 +102,8 @@ namespace OpenDemo
         private:
             TextureDescription description_;
             BindFlags bindFlags_;
+
+            friend class RenderContext;
         };
 
     }

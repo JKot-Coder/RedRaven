@@ -39,7 +39,7 @@ namespace OpenDemo
 
                 D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, Resource::BindFlags bindFlags)
                 {
-                    DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
+                    DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
 
                     D3D12_RESOURCE_DESC desc;
                     switch (resourceDesc.dimension)
@@ -61,7 +61,7 @@ namespace OpenDemo
                         LOG_FATAL("Unsupported texture dimension");
                     }
 
-                    desc.Flags = TypeConversions::ResourceFlags(bindFlags);
+                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
 
                     if (resourceDesc.format.IsDepth() && IsAny(bindFlags, Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess))
                         format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
@@ -76,7 +76,7 @@ namespace OpenDemo
                 ASSERT(device)
                 // TextureDesc ASSERT checks done on Texture initialization;
 
-                const DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
+                const DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
                 ASSERT(format != DXGI_FORMAT_UNKNOWN)
 
                 D3D12_CLEAR_VALUE optimizedClearValue;

@@ -5,6 +5,7 @@
 #include "gapi/ResourceViews.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/Submission.hpp"
+#include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
 #include "common/threading/Event.hpp"
@@ -116,6 +117,17 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = RenderTargetView::Create(texture, desc, name);
+            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
+        SwapChain::SharedPtr RenderContext::CreateSwapchain(const U8String& name) const
+        {
+            ASSERT(inited_)
+
+            auto& resource = SwapChain::Create(name);
             if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 

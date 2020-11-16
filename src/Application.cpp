@@ -39,7 +39,7 @@ namespace OpenDemo
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(width, height));
-        presentOptions.Resource::Format = Render::Resource::Format::Unknown;
+        presentOptions.ResourceFormat = Render::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
         submission_->ResetDevice(presentOptions);*/
@@ -72,7 +72,7 @@ namespace OpenDemo
         ASSERT(rcc)
         rcc->Close();
 
-        const auto& desc = Render::TextureDescription::Create2D(100, 100, Render::Resource::Format::R8Unorm);
+        const auto& desc = Render::TextureDescription::Create2D(100, 100, Render::ResourceFormat::R8Unorm);
         auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource | Render::Texture::BindFlags::RenderTarget);
         ASSERT(texture)
 
@@ -132,7 +132,7 @@ namespace OpenDemo
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
-        presentOptions.resourceFormat = Render::Resource::Format::BGRA8Unorm;
+        presentOptions.resourceFormat = Render::ResourceFormat::BGRA8Unorm;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
         auto& renderContext = Render::RenderContext::Instance();
@@ -141,6 +141,7 @@ namespace OpenDemo
         if (!result)
             Log::Print::Fatal("Fatal error initialize render context with error: %s\n", result.ToString());
 
+        renderContext.CreateSwapchain("Primary");
         // auto& render = Rendering::Instance();
         // render->Init(_window);
     }

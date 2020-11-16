@@ -24,7 +24,7 @@ namespace OpenDemo
 
             NativeWindowHandle windowHandle;
 
-            Resource::Format resourceFormat;
+            ResourceFormat resourceFormat;
             uint32_t bufferCount;
             bool isStereo;
         };

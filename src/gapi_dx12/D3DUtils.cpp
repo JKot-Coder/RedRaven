@@ -32,7 +32,7 @@ namespace OpenDemo
                     DXGI_SWAP_CHAIN_DESC1 output;
                     output.Width = presentOptions.rect.width;
                     output.Height = presentOptions.rect.height;
-                    output.Format = TypeConversions::ResourceFormat(presentOptions.resourceFormat);
+                    output.Format = TypeConversions::GetResourceFormat(presentOptions.resourceFormat);
                     output.Stereo = (presentOptions.isStereo) ? TRUE : FALSE;
                     output.SampleDesc = { 1, 0 };
                     output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;

@@ -10,27 +10,27 @@ namespace OpenDemo
         {
             namespace TypeConversions
             {
-                ::DXGI_FORMAT ResourceFormat(Resource::Format format);
+                ::DXGI_FORMAT GetResourceFormat(ResourceFormat format);
 
-                inline ::DXGI_FORMAT GetTypelessFormatFromDepthFormat(Resource::Format format)
+                inline ::DXGI_FORMAT GetTypelessFormatFromDepthFormat(ResourceFormat format)
                 {
                     switch (format)
                     {
-                    case Resource::Format::D16Unorm:
+                    case ResourceFormat::D16Unorm:
                         return DXGI_FORMAT_R16_TYPELESS;
-                    case Resource::Format::D32FloatS8X24Uint:
+                    case ResourceFormat::D32FloatS8X24Uint:
                         return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-                    case Resource::Format::D24UnormS8Uint:
+                    case ResourceFormat::D24UnormS8Uint:
                         return DXGI_FORMAT_R24G8_TYPELESS;
-                    case Resource::Format::D32Float:
+                    case ResourceFormat::D32Float:
                         return DXGI_FORMAT_R32_TYPELESS;
                     default:
                         ASSERT(!format.IsDepth());
-                        return ResourceFormat(format);
+                        return GetResourceFormat(format);
                     }
                 }
 
-                D3D12_RESOURCE_FLAGS ResourceFlags(Resource::BindFlags flags);
+                D3D12_RESOURCE_FLAGS GetResourceFlags(Resource::BindFlags flags);
             }
         }
     }

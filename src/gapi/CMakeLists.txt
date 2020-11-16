@@ -1,32 +1,34 @@
 project (gapi)
 
 set(GAPI_SRC
+        CommandContext.hpp
+        CommandContextInterface.hpp
+        CommandList.hpp
+        DeviceInterface.hpp
+        Fence.hpp
+        FencedPool.hpp
         ForwardDeclarations.hpp
         Frame.hpp
         Limits.hpp
-        Object.hpp
-        Resource.hpp
-        Resource.cpp
-        ResourceViews.hpp
-        ResourceViews.cpp
-        LinearAllocator.hpp
         LinearAllocator.cpp
+        LinearAllocator.hpp
         LinearAllocator.inl
-        Submission.hpp
-        Submission.cpp
-	    CommandList.hpp
-        Fence.hpp
-        FencedPool.hpp
-        Texture.hpp
-        Texture.cpp
-        Result.hpp
-        Result.cpp
-        RenderContext.hpp
+        Object.hpp
         RenderContext.cpp
-        DeviceInterface.hpp
-        CommandContext.hpp
-        CommandContextInterface.hpp
-        RenderQueue.hpp )
+        RenderContext.hpp
+        RenderQueue.hpp
+        Resource.cpp
+        Resource.hpp
+        ResourceViews.cpp
+        ResourceViews.hpp
+        Result.cpp
+        Result.hpp
+        Submission.cpp
+        Submission.hpp
+        SwapChain.cpp
+        SwapChain.hpp
+        Texture.cpp
+        Texture.hpp )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 target_link_libraries(${PROJECT_NAME} common)

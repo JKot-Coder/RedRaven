@@ -6,18 +6,20 @@ set(MS_SRC
 SOURCE_GROUP( "Ms" FILES ${MS_SRC} )
 
 set(IMPL_SRC
-        FenceImpl.hpp
-        FenceImpl.cpp
-        CommandListImpl.hpp
-        CommandListImpl.cpp
-        CommandContextImpl.hpp
         CommandContextImpl.cpp
-        RenderQueueImpl.hpp
+        CommandContextImpl.hpp
+        CommandListImpl.cpp
+        CommandListImpl.hpp
+        FenceImpl.cpp
+        FenceImpl.hpp
         RenderQueueImpl.cpp
-        ResourceImpl.hpp
+        RenderQueueImpl.hpp
         ResourceImpl.cpp
-        ResourceViewsImpl.hpp
+        ResourceImpl.hpp
         ResourceViewsImpl.cpp
+        ResourceViewsImpl.hpp
+        SwapChainImpl.cpp
+        SwapChainImpl.hpp
 )
 SOURCE_GROUP( "Implementations" FILES ${IMPL_SRC} )
 
@@ -39,7 +41,8 @@ set(GAPI_SRC
         DescriptorHeap.hpp
         DescriptorHeap.cpp
         DescriptorHeapSet.hpp
-        DescriptorHeapSet.cpp )
+        DescriptorHeapSet.cpp 
+        )
 SOURCE_GROUP( "" FILES ${GAPI_SRC} )
 
 set( GAPI_SRC

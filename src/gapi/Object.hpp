@@ -13,11 +13,12 @@ namespace OpenDemo
 
             enum class Type
             {
-                RenderQueue,
                 CommandContext,
                 CommandList,
+                RenderQueue,
                 Resource,
-                ResourceView
+                ResourceView,
+                SwapChain,
             };
 
             Object() = delete;
