@@ -10,7 +10,7 @@ namespace OpenDemo
             {
                 struct ResourceFormatConversion
                 {
-                    ResourceFormat::Value from;
+                    ResourceFormat from;
                     ::DXGI_FORMAT to;
                 };
 
@@ -109,14 +109,14 @@ namespace OpenDemo
                     { ResourceFormat::Alpha32Float,      DXGI_FORMAT_UNKNOWN },
                 }; // clang-format on
 
-                static_assert(std::size(formatsConversion) == ResourceFormat::Count);
+                static_assert(std::is_same<std::underlying_type<ResourceFormat>::type, uint32_t>::value);
+                static_assert(std::size(formatsConversion) == static_cast<uint32_t>(ResourceFormat::Count));
 
                 ::DXGI_FORMAT GetResourceFormat(ResourceFormat format)
                 {
-                    ASSERT(format.IsValid())
-                    ASSERT(formatsConversion[format].from == format)
-                    ASSERT(formatsConversion[format].to != DXGI_FORMAT_UNKNOWN)
-                    return formatsConversion[format].to;
+                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format)
+                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].to != DXGI_FORMAT_UNKNOWN)
+                    return formatsConversion[static_cast<uint32_t>(format)].to;
                 }
 
                 D3D12_RESOURCE_FLAGS GetResourceFlags(Resource::BindFlags flags)

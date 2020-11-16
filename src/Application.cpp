@@ -10,6 +10,7 @@
 #include "gapi/RenderContext.hpp"
 #include "gapi/ResourceViews.hpp"
 #include "gapi/Result.hpp"
+#include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
 #include "rendering/Mesh.hpp"
@@ -141,7 +142,16 @@ namespace OpenDemo
         if (!result)
             Log::Print::Fatal("Fatal error initialize render context with error: %s\n", result.ToString());
 
-        renderContext.CreateSwapchain("Primary");
+        Render::SwapChainDescription desciption;
+        desciption.width = 100;
+        desciption.height = 100;
+        desciption.bufferCount = 2;
+        desciption.isStereo = false;
+        desciption.resourceFormat = Render::ResourceFormat::BGRA8Unorm;
+        desciption.windowHandle = _window->GetNativeHandle();
+
+
+            renderContext.CreateSwapchain(desciption, "Primary");
         // auto& render = Rendering::Instance();
         // render->Init(_window);
     }

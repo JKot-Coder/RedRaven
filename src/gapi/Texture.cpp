@@ -61,12 +61,12 @@ namespace OpenDemo
                 LOG_FATAL("Unsupported texture type");
             }
 
-            if (description_.format.IsCompressed())
+            if (ResourceFormatInfo::IsCompressed(description_.format))
             {
                 ASSERT(description_.depth == 1)
                 // Size is aligned to CompressionBlock
-                ASSERT(AlignTo(description_.width, description_.format.GetCompressionBlockWidth()) == description_.width)
-                ASSERT(AlignTo(description_.height, description_.format.GetCompressionBlockHeight()) == description_.height)
+                ASSERT(AlignTo(description_.width, ResourceFormatInfo::GetCompressionBlockWidth(description_.format)) == description_.width)
+                ASSERT(AlignTo(description_.height, ResourceFormatInfo::GetCompressionBlockHeight(description_.format)) == description_.height)
             }
 
             // Limit/Calc maximum mips count

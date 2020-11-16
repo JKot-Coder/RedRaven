@@ -242,7 +242,7 @@ namespace OpenDemo
             {
                 auto impl = new SwapChainImpl();
 
-                D3DCall(impl->Init(context.device, context.graphicsCommandQueue, resource.GetName()));
+                D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue, resource.GetDescription(), resource.GetName()));
                 resource.SetPrivateImpl(impl);
 
                 return Result::Ok;

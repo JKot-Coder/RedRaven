@@ -5,11 +5,15 @@ namespace OpenDemo
     namespace Render
     {
         class Object;
-        class Resource;
 
         class Fence;
         class CommandContext;
+
         class SwapChain;
+        struct SwapChainDescription;
+
+        class Resource;
+        enum class ResourceFormat : uint32_t;
 
         class ResourceView;
         struct ResourceViewDescription;

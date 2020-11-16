@@ -25,7 +25,7 @@ namespace OpenDemo
                     case ResourceFormat::D32Float:
                         return DXGI_FORMAT_R32_TYPELESS;
                     default:
-                        ASSERT(!format.IsDepth());
+                        ASSERT(!ResourceFormatInfo::IsDepth(format));
                         return GetResourceFormat(format);
                     }
                 }

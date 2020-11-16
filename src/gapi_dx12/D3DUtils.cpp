@@ -1,6 +1,8 @@
 #include "D3DUtils.hpp"
 
 #include "gapi/DeviceInterface.hpp"
+#include "gapi/SwapChain.hpp"
+
 #include "gapi_dx12/TypeConversions.hpp"
 
 namespace OpenDemo
@@ -37,6 +39,27 @@ namespace OpenDemo
                     output.SampleDesc = { 1, 0 };
                     output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
                     output.BufferCount = presentOptions.bufferCount;
+                    output.Scaling = DXGI_SCALING_STRETCH;
+                    output.SwapEffect = swapEffect;
+                    output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+                    output.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+                    return output;
+                }
+
+                DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect)
+                {
+                    ASSERT(description.width > 0);
+                    ASSERT(description.height > 0);
+                    ASSERT(description.bufferCount > 0 && description.bufferCount <= MAX_BACK_BUFFER_COUNT);
+
+                    DXGI_SWAP_CHAIN_DESC1 output;
+                    output.Width = description.width;
+                    output.Height = description.height;
+                    output.Format = TypeConversions::GetResourceFormat(description.resourceFormat);
+                    output.Stereo = (description.isStereo) ? TRUE : FALSE;
+                    output.SampleDesc = { 1, 0 };
+                    output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+                    output.BufferCount = description.bufferCount;
                     output.Scaling = DXGI_SCALING_STRETCH;
                     output.SwapEffect = swapEffect;
                     output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;

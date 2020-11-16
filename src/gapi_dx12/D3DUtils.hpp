@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gapi/ForwardDeclarations.hpp"
+
 using HRESULT = long;
 
 namespace OpenDemo
@@ -77,6 +79,7 @@ namespace OpenDemo
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right);
 
                 DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect);
+                DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect);
 
                 DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format);
 

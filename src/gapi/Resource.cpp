@@ -141,63 +141,60 @@ namespace OpenDemo
         };
             // clang-format on
 
-            static_assert(std::size(formatInfo) == ResourceFormat::Count);
+            static_assert(std::is_same<std::underlying_type<ResourceFormat>::type, uint32_t>::value);
+            static_assert(std::size(formatInfo) == static_cast<uint32_t>(ResourceFormat::Count));
         }
 
-        bool ResourceFormat::IsDepth() const
+        namespace ResourceFormatInfo
         {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            bool IsDepth(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].isDepth;
-        }
+                return formatInfo[static_cast<uint32_t>(format)].isDepth;
+            }
 
-        bool ResourceFormat::IsStencil() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            bool IsStencil(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].isStencil;
-        }
+                return formatInfo[static_cast<uint32_t>(format)].isStencil;
+            }
 
-        bool ResourceFormat::IsCompressed() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            bool IsCompressed(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].isCompressed;
-        }
+                return formatInfo[static_cast<uint32_t>(format)].isCompressed;
+            }
 
-        uint32_t ResourceFormat::GetBlockSize() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            uint32_t GetBlockSize(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].blockSize;
-        }
+                return formatInfo[static_cast<uint32_t>(format)].blockSize;
+            }
 
-        uint32_t ResourceFormat::GetCompressionBlockWidth() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            uint32_t GetCompressionBlockWidth(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].compressionBlock.width;
-        }
+                return formatInfo[static_cast<uint32_t>(format)].compressionBlock.width;
+            }
 
-        uint32_t ResourceFormat::GetCompressionBlockHeight() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            uint32_t GetCompressionBlockHeight(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].compressionBlock.height;
-        }
+                return formatInfo[static_cast<uint32_t>(format)].compressionBlock.height;
+            }
 
-        U8String ResourceFormat::ToString() const
-        {
-            ASSERT(IsValid())
-            ASSERT(value_ == formatInfo[value_].format)
+            U8String ToString(ResourceFormat format)
+            {
+                ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format)
 
-            return formatInfo[value_].name;
+                return formatInfo[static_cast<uint32_t>(format)].name;
+            }
         }
 
         template <>

@@ -123,11 +123,11 @@ namespace OpenDemo
             return resource;
         }
 
-        SwapChain::SharedPtr RenderContext::CreateSwapchain(const U8String& name) const
+        SwapChain::SharedPtr RenderContext::CreateSwapchain(const SwapChainDescription& description, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = SwapChain::Create(name);
+            auto& resource = SwapChain::Create(description, name);
             if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 

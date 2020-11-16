@@ -63,7 +63,7 @@ namespace OpenDemo
 
                     desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
 
-                    if (resourceDesc.format.IsDepth() && IsAny(bindFlags, Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess))
+                    if (ResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess))
                         format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
 
                     desc.Format = format;

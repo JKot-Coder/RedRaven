@@ -63,7 +63,7 @@ namespace OpenDemo
                 std::thread::id creationThreadID_;
                 bool inited_ = false;
 
-                ResourceCreatorContext resourceCreatorContext_;
+                std::unique_ptr<ResourceCreatorContext> resourceCreatorContext_;
 
                 ComSharedPtr<ID3D12Debug1> debugController_;
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
@@ -157,10 +157,14 @@ namespace OpenDemo
                 descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
                 D3DCall(descriptorHeapSet_->Init(d3dDevice_));
 
-                resourceCreatorContext_.device = d3dDevice_;
-                resourceCreatorContext_.descriptorHeapSet = descriptorHeapSet_;
+                resourceCreatorContext_ = std::make_unique<ResourceCreatorContext>(
+                    d3dDevice_,
+                    dxgiFactory_,
+                    getCommandQueue(CommandQueueType::GRAPHICS),
+                    descriptorHeapSet_);
 
                 inited_ = true;
+
                 return Result::Ok;
             }
 
@@ -171,7 +175,8 @@ namespace OpenDemo
 
             Result DeviceImplementation::InitResource(const Object::SharedPtr& resource)
             {
-                return ResourceCreator::InitResource(resourceCreatorContext_, resource);
+                ASSERT(resourceCreatorContext_);
+                return ResourceCreator::InitResource(*resourceCreatorContext_.get(), resource);
             }
 
             // These resources need to be recreated every time the window size is changed.
