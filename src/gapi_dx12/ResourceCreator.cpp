@@ -23,23 +23,23 @@ namespace OpenDemo
             namespace
             {
                 template <typename DescType>
-                DescType getViewDimension(Texture::Dimension dimension, bool isTextureArray);
+                DescType getViewDimension(TextureDimension dimension, bool isTextureArray);
 
                 template <>
-                D3D12_RTV_DIMENSION getViewDimension(Texture::Dimension dimension, bool isTextureArray)
+                D3D12_RTV_DIMENSION getViewDimension(TextureDimension dimension, bool isTextureArray)
                 {
                     switch (dimension)
                     {
-                    case Texture::Dimension::Texture1D:
+                    case TextureDimension::Texture1D:
                         return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE1DARRAY : D3D12_RTV_DIMENSION_TEXTURE1D;
-                    case Texture::Dimension::Texture2D:
+                    case TextureDimension::Texture2D:
                         return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DARRAY : D3D12_RTV_DIMENSION_TEXTURE2D;
-                    case Texture::Dimension::Texture3D:
+                    case TextureDimension::Texture3D:
                         ASSERT(isTextureArray == false);
                         return D3D12_RTV_DIMENSION_TEXTURE3D;
-                    case Texture::Dimension::Texture2DMS:
+                    case TextureDimension::Texture2DMS:
                         return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DMS;
-                    case Texture::Dimension::TextureCube:
+                    case TextureDimension::TextureCube:
                         return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
                     default:
                         ASSERT_MSG(false, "Wrong texture dimension")
@@ -48,17 +48,17 @@ namespace OpenDemo
                 }
 
                 template <>
-                D3D12_DSV_DIMENSION getViewDimension(Texture::Dimension dimension, bool isTextureArray)
+                D3D12_DSV_DIMENSION getViewDimension(TextureDimension dimension, bool isTextureArray)
                 {
                     switch (dimension)
                     {
-                    case Texture::Dimension::Texture1D:
+                    case TextureDimension::Texture1D:
                         return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE1DARRAY : D3D12_DSV_DIMENSION_TEXTURE1D;
-                    case Texture::Dimension::Texture2D:
+                    case TextureDimension::Texture2D:
                         return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DARRAY : D3D12_DSV_DIMENSION_TEXTURE2D;
-                    case Texture::Dimension::Texture2DMS:
+                    case TextureDimension::Texture2DMS:
                         return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DMS;
-                    case Texture::Dimension::TextureCube:
+                    case TextureDimension::TextureCube:
                         return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
                     default:
                         ASSERT_MSG(false, "Wrong texture dimension")
@@ -67,17 +67,17 @@ namespace OpenDemo
                 }
 
                 template <typename DescType>
-                DescType CreateDsvRtvUavDescCommon(const Texture::Description& textureDescription, const ResourceView::Description& description)
+                DescType CreateDsvRtvUavDescCommon(const TextureDescription& textureDescription, const ResourceViewDescription& description)
                 {
                     DescType result = {};
                     result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(textureDescription.dimension, textureDescription.arraySize > 1);
 
-                    const uint32_t arrayMultiplier = (textureDescription.dimension == Texture::Dimension::TextureCube) ? 6 : 1;
+                    const uint32_t arrayMultiplier = (textureDescription.dimension == TextureDimension::TextureCube) ? 6 : 1;
                     ASSERT((description.texture.firstArraySlice + description.texture.arraySlicesCount) * arrayMultiplier <= textureDescription.arraySize)
 
                     switch (textureDescription.dimension)
                     {
-                    case Texture::Dimension::Texture1D:
+                    case TextureDimension::Texture1D:
                         if (description.texture.arraySlicesCount > 1)
                         {
                             result.Texture1DArray.ArraySize = description.texture.arraySlicesCount;
@@ -89,8 +89,8 @@ namespace OpenDemo
                             result.Texture1D.MipSlice = description.texture.firstArraySlice;
                         }
                         break;
-                    case Texture::Dimension::Texture2D:
-                    case Texture::Dimension::TextureCube:
+                    case TextureDimension::Texture2D:
+                    case TextureDimension::TextureCube:
                         if (description.texture.firstArraySlice * arrayMultiplier > 1)
                         {
                             result.Texture2DArray.ArraySize = description.texture.arraySlicesCount * arrayMultiplier;
@@ -102,7 +102,7 @@ namespace OpenDemo
                             result.Texture2D.MipSlice = description.texture.mipLevel;
                         }
                         break;
-                    case Texture::Dimension::Texture2DMS:
+                    case TextureDimension::Texture2DMS:
                         //ASSERT(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value)
                         break;
                     default:
@@ -114,13 +114,13 @@ namespace OpenDemo
                 }
 
                 template <typename DescType>
-                DescType CreateDsvRtvDesc(const Texture::Description& textureDescription, const ResourceView::Description& description)
+                DescType CreateDsvRtvDesc(const TextureDescription& textureDescription, const ResourceViewDescription& description)
                 {
                     static_assert(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value);
 
                     DescType result = CreateDsvRtvUavDescCommon<DescType>(textureDescription, description);
 
-                    if (textureDescription.dimension == Texture::Dimension::Texture2DMS)
+                    if (textureDescription.dimension == TextureDimension::Texture2DMS)
                     {
                         if (textureDescription.arraySize > 1)
                         {
@@ -132,7 +132,7 @@ namespace OpenDemo
                     return result;
                 }
 
-                D3D12_DEPTH_STENCIL_VIEW_DESC CreateDsvDesc(const Resource::SharedPtr& resource, const ResourceView::Description& description)
+                D3D12_DEPTH_STENCIL_VIEW_DESC CreateDsvDesc(const Resource::SharedPtr& resource, const ResourceViewDescription& description)
                 {
                     ASSERT(resource->GetResourceType() == Resource::ResourceType::Texture)
                     const auto& texture = resource->GetTyped<Texture>();
@@ -141,7 +141,7 @@ namespace OpenDemo
                     return CreateDsvRtvDesc<D3D12_DEPTH_STENCIL_VIEW_DESC>(textureDescription, description);
                 }
 
-                D3D12_RENDER_TARGET_VIEW_DESC CreateRtvDesc(const Resource::SharedPtr& resource, const ResourceView::Description& description)
+                D3D12_RENDER_TARGET_VIEW_DESC CreateRtvDesc(const Resource::SharedPtr& resource, const ResourceViewDescription& description)
                 {
                     ASSERT(resource->GetResourceType() == Resource::ResourceType::Texture)
                     const auto& texture = resource->GetTyped<Texture>();

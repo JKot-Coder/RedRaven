@@ -37,24 +37,24 @@ namespace OpenDemo
                     }
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const Texture::Description& resourceDesc, Resource::BindFlags bindFlags)
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, Resource::BindFlags bindFlags)
                 {
                     DXGI_FORMAT format = TypeConversions::ResourceFormat(resourceDesc.format);
 
                     D3D12_RESOURCE_DESC desc;
                     switch (resourceDesc.dimension)
                     {
-                    case Texture::Dimension::Texture1D:
+                    case TextureDimension::Texture1D:
                         desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels);
                         break;
-                    case Texture::Dimension::Texture2D:
-                    case Texture::Dimension::Texture2DMS:
+                    case TextureDimension::Texture2D:
+                    case TextureDimension::Texture2DMS:
                         desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize, resourceDesc.mipLevels, resourceDesc.sampleCount);
                         break;
-                    case Texture::Dimension::Texture3D:
+                    case TextureDimension::Texture3D:
                         desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.width, resourceDesc.height, resourceDesc.depth, resourceDesc.mipLevels);
                         break;
-                    case Texture::Dimension::TextureCube:
+                    case TextureDimension::TextureCube:
                         desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize * 6, resourceDesc.mipLevels);
                         break;
                     default:
@@ -71,7 +71,7 @@ namespace OpenDemo
                 }
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const Texture::Description& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
             {
                 ASSERT(device)
                 // TextureDesc ASSERT checks done on Texture initialization;

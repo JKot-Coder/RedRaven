@@ -2,9 +2,10 @@
 
 #include "gapi/CommandContext.hpp"
 #include "gapi/DeviceInterface.hpp"
+#include "gapi/ResourceViews.hpp"
+#include "gapi/Result.hpp"
 #include "gapi/Submission.hpp"
 #include "gapi/Texture.hpp"
-
 
 #include "common/threading/Event.hpp"
 
@@ -99,7 +100,7 @@ namespace OpenDemo
             return resource;
         }
 
-        Texture::SharedPtr RenderContext::CreateTexture(const Texture::Description& desc, Texture::BindFlags bindFlags, const U8String& name) const
+        Texture::SharedPtr RenderContext::CreateTexture(const TextureDescription& desc, Texture::BindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
 
@@ -110,7 +111,7 @@ namespace OpenDemo
             return resource;
         }
 
-        RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const Texture::SharedPtr& texture, const ResourceView::Description& desc, const U8String& name) const
+        RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const Texture::SharedPtr& texture, const ResourceViewDescription& desc, const U8String& name) const
         {
             ASSERT(inited_)
 

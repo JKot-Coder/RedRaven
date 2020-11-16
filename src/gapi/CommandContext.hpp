@@ -1,8 +1,8 @@
 #pragma once
 
 #include "gapi/CommandContextInterface.hpp"
+#include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Object.hpp"
-#include "gapi/ResourceViews.hpp"
 
 namespace OpenDemo
 {
@@ -19,7 +19,7 @@ namespace OpenDemo
             inline void Reset() override { getImplementation().Reset(); }
             inline void Close() override { getImplementation().Close(); }
 
-            inline void ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
+            inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
 
             static SharedPtr Create(const U8String& name)
             {
@@ -41,13 +41,3 @@ namespace OpenDemo
         };
     }
 }
-
-/*
-
-   public:
-
-            virtual ~CommandContext() = default;
-
-        private:
-
-*/

@@ -7,7 +7,7 @@ namespace OpenDemo
     namespace Render
     {
 
-        class Fence final : public Object, public std::enable_shared_from_this<Fence>
+        class Fence final : public Object
         {
         public:
             using SharedPtr = std::shared_ptr<Fence>;

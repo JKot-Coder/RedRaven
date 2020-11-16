@@ -24,12 +24,12 @@ namespace OpenDemo
 {
     namespace Render
     {
-        Texture::Texture(const Description& desc, BindFlags bindFlags, const U8String& name)
+        Texture::Texture(const TextureDescription& desc, BindFlags bindFlags, const U8String& name)
             : Resource(Resource::ResourceType::Texture, name),
               description_(desc),
               bindFlags_(bindFlags)
         {
-            ASSERT(description_.dimension != Dimension::Unknown)
+            ASSERT(description_.dimension != TextureDimension::Unknown)
 
             ASSERT(description_.width > 0)
             ASSERT(description_.height > 0)
@@ -40,21 +40,21 @@ namespace OpenDemo
             ASSERT(description_.arraySize > 0)
 
             ASSERT(
-                (description_.sampleCount > 1 && description_.dimension == Dimension::Texture2DMS)
-                || (description_.sampleCount == 1 && description_.dimension != Dimension::Texture2DMS));
+                (description_.sampleCount > 1 && description_.dimension == TextureDimension::Texture2DMS)
+                || (description_.sampleCount == 1 && description_.dimension != TextureDimension::Texture2DMS));
 
             switch (description_.dimension)
             {
-            case Dimension::Texture1D:
+            case TextureDimension::Texture1D:
                 ASSERT(description_.height == 1)
                 ASSERT(description_.depth == 1)
                 break;
-            case Dimension::Texture2D:
-            case Dimension::Texture2DMS:
-            case Dimension::TextureCube:
+            case TextureDimension::Texture2D:
+            case TextureDimension::Texture2DMS:
+            case TextureDimension::TextureCube:
                 ASSERT(description_.depth == 1)
                 break;
-            case Dimension::Texture3D:
+            case TextureDimension::Texture3D:
                 ASSERT(description_.arraySize == 1)
                 break;
             default:
@@ -78,7 +78,7 @@ namespace OpenDemo
             ASSERT(firstArraySlice < description_.arraySize)
             ASSERT(IsSet(bindFlags_, BindFlags::RenderTarget))
 
-            const ResourceView::Description desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
+            const ResourceViewDescription desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
 
             auto& renderContext = RenderContext::Instance();
             return renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), desc, name_);

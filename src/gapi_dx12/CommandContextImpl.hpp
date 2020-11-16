@@ -23,7 +23,7 @@ namespace OpenDemo
                 void Reset() override;
                 void Close() override;
 
-                void ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color) override;
+                void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
                 const ComSharedPtr<ID3D12GraphicsCommandList>& getD3DCommandList() const { return D3DCommandList_; }
 

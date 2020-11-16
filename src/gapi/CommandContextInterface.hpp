@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/ResourceViews.hpp"
+#include "gapi/ForwardDeclarations.hpp"
 
 namespace OpenDemo
 {
@@ -20,7 +20,7 @@ namespace OpenDemo
             virtual void Reset() = 0;
             virtual void Close() = 0;
 
-            virtual void ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color) = 0;
+            virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
     }
 }

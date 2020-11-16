@@ -1,77 +1,73 @@
 #pragma once
 
 #include "gapi/Resource.hpp"
-#include "gapi/ResourceViews.hpp"
 
 namespace OpenDemo
 {
     namespace Render
     {
-        namespace Private
+        enum class TextureDimension : uint32_t
         {
-            enum class TextureDimension : uint32_t
+            Unknown,
+
+            Texture1D,
+            Texture2D,
+            Texture2DMS,
+            Texture3D,
+            TextureCube
+        };
+
+        struct TextureDescription
+        {
+            static constexpr uint32_t MaxPossible = 0xFFFFFF;
+
+            static TextureDescription Create1D(uint32_t width, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                Unknown,
+                return TextureDescription(TextureDimension::Texture1D, width, 1, 1, format, 1, arraySize, mipLevels);
+            }
 
-                Texture1D,
-                Texture2D,
-                Texture2DMS,
-                Texture3D,
-                TextureCube
-            };
-
-            struct TextureDescription
+            static TextureDescription Create2D(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                static constexpr uint32_t MaxPossible = 0xFFFFFF;
+                return TextureDescription(TextureDimension::Texture2D, width, height, 1, format, 1, arraySize, mipLevels);
+            }
 
-                static TextureDescription Create1D(uint32_t width, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
-                {
-                    return TextureDescription(TextureDimension::Texture1D, width, 1, 1, format, 1, arraySize, mipLevels);
-                }
+            static TextureDescription Create2DMS(uint32_t width, uint32_t height, Resource::Format format, uint32_t sampleCount, uint32_t arraySize = 1)
+            {
+                return TextureDescription(TextureDimension::Texture2DMS, width, height, 1, format, sampleCount, arraySize, 1);
+            }
 
-                static TextureDescription Create2D(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
-                {
-                    return TextureDescription(TextureDimension::Texture2D, width, height, 1, format, 1, arraySize, mipLevels);
-                }
+            static TextureDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t mipLevels = MaxPossible)
+            {
+                return TextureDescription(TextureDimension::Texture3D, width, height, depth, format, 1, 1, mipLevels);
+            }
 
-                static TextureDescription Create2DMS(uint32_t width, uint32_t height, Resource::Format format, uint32_t sampleCount, uint32_t arraySize = 1)
-                {
-                    return TextureDescription(TextureDimension::Texture2DMS, width, height, 1, format, sampleCount, arraySize, 1);
-                }
+            static TextureDescription CreateCube(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            {
+                return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
+            }
 
-                static TextureDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t mipLevels = MaxPossible)
-                {
-                    return TextureDescription(TextureDimension::Texture3D, width, height, depth, format, 1, 1, mipLevels);
-                }
+            Resource::Format format;
+            TextureDimension dimension = TextureDimension::Unknown;
+            uint32_t width = 0;
+            uint32_t height = 0;
+            uint32_t depth = 0;
+            uint32_t mipLevels = 0;
+            uint32_t sampleCount = 0;
+            uint32_t arraySize = 0;
 
-                static TextureDescription CreateCube(uint32_t width, uint32_t height, Resource::Format format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
-                {
-                    return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
-                }
-
-                Resource::Format format;
-                TextureDimension dimension = TextureDimension::Unknown;
-                uint32_t width = 0;
-                uint32_t height = 0;
-                uint32_t depth = 0;
-                uint32_t mipLevels = 0;
-                uint32_t sampleCount = 0;
-                uint32_t arraySize = 0;
-
-            private:
-                TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
-                    : dimension(dimension),
-                      width(width),
-                      height(height),
-                      depth(depth),
-                      format(format),
-                      sampleCount(sampleCount),
-                      arraySize(arraySize),
-                      mipLevels(mipLevels)
-                {
-                }
-            };
-        }
+        private:
+            TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, Resource::Format format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
+                : dimension(dimension),
+                  width(width),
+                  height(height),
+                  depth(depth),
+                  format(format),
+                  sampleCount(sampleCount),
+                  arraySize(arraySize),
+                  mipLevels(mipLevels)
+            {
+            }
+        };
 
         class Texture final : public Resource
         {
@@ -81,35 +77,32 @@ namespace OpenDemo
 
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            using Description = Private::TextureDescription;
-            using Dimension = Private::TextureDimension;
-
         public:
             Texture() = delete;
 
             //      ShaderResourceView::SharedPtr getSRV(uint32_t mostDetailedMip, uint32_t mipCount = kMaxPossible, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
-            RenderTargetView::SharedPtr GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
+            std::shared_ptr<RenderTargetView> GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
 
             // DepthStencilView::SharedPtr getDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
             //   UnorderedAccessView::SharedPtr getUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
-            const Description& GetDescription() const { return description_; }
+            const TextureDescription& GetDescription() const { return description_; }
             BindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
             friend class RenderContext;
 
-            static SharedPtr Create(const Description& description, BindFlags bindFlags, const U8String& name)
+            static SharedPtr Create(const TextureDescription& description, BindFlags bindFlags, const U8String& name)
             {
                 return SharedPtr(new Texture(description, bindFlags, name));
             }
 
-            Texture(const Description& description, BindFlags bindFlags, const U8String& name);
+            Texture(const TextureDescription& description, BindFlags bindFlags, const U8String& name);
 
         private:
-            Description description_;
+            TextureDescription description_;
             BindFlags bindFlags_;
         };
 

@@ -8,8 +8,9 @@
 
 #include "gapi/CommandContext.hpp"
 #include "gapi/RenderContext.hpp"
-#include "gapi/Texture.hpp"
 #include "gapi/ResourceViews.hpp"
+#include "gapi/Result.hpp"
+#include "gapi/Texture.hpp"
 
 #include "rendering/Mesh.hpp"
 #include "rendering/Primitives.hpp"
@@ -71,7 +72,7 @@ namespace OpenDemo
         ASSERT(rcc)
         rcc->Close();
 
-        const auto& desc = Render::Texture::Description::Create2D(100, 100, Render::Resource::Format::R8Unorm);
+        const auto& desc = Render::TextureDescription::Create2D(100, 100, Render::Resource::Format::R8Unorm);
         auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource | Render::Texture::BindFlags::RenderTarget);
         ASSERT(texture)
 
