@@ -15,6 +15,7 @@ namespace OpenDemo
                 // Todo separate freeThread / Multithread
                 Result Init() override;
                 Result Reset(const PresentOptions& presentOptions) override;
+                Result ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain) override;
                 Result Present() override;
 
                 Result Submit(const std::shared_ptr<CommandContext>& commandContext) override;

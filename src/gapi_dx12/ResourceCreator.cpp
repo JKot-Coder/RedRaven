@@ -194,7 +194,7 @@ namespace OpenDemo
                 const auto& resourceSharedPtr = object.GetResource().lock();
                 ASSERT(resourceSharedPtr);
 
-                const auto& resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl*>();
+                const auto& resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourcePrivateImpl);
 
                 const auto& d3dObject = resourcePrivateImpl->getD3DObject();

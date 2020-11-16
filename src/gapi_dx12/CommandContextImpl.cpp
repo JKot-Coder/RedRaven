@@ -39,14 +39,14 @@ namespace OpenDemo
                 ASSERT(renderTargetView);
                 ASSERT(D3DCommandList_);
 
-                const auto allocation = renderTargetView->GetPrivateImpl<DescriptorHeap::Allocation*>();
+                const auto allocation = renderTargetView->GetPrivateImpl<DescriptorHeap::Allocation>();
                 ASSERT(allocation);
 
                 const auto& resource = renderTargetView->GetResource().lock();
                 ASSERT(resource);
                 ASSERT(resource->GetResourceType() == Resource::ResourceType::Texture);
 
-                const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl*>();
+                const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
 
                 D3D12_RESOURCE_BARRIER barrier
                     = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->getD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);

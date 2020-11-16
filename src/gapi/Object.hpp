@@ -29,9 +29,9 @@ namespace OpenDemo
             inline U8String GetName() const { return name_; }
 
             template <typename T>
-            T GetPrivateImpl()
+            T* GetPrivateImpl()
             {
-                return reinterpret_cast<T>(privateImpl_);
+                return reinterpret_cast<T*>(privateImpl_);
             }
 
             template <typename T>

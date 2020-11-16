@@ -6,6 +6,7 @@
 #include "gapi/CommandContext.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
+#include "gapi/SwapChain.hpp"
 
 #include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/CommandListCompiler.hpp"
@@ -13,6 +14,7 @@
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
+#include "gapi_dx12/SwapChainImpl.hpp"
 
 #include <chrono>
 #include <iterator>
@@ -44,6 +46,7 @@ namespace OpenDemo
 
                 Result Init();
                 Result Reset(const PresentOptions& presentOptions);
+                Result ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain);
 
                 Result Submit(const CommandContext::SharedPtr& commandContext);
                 Result Present();
@@ -96,8 +99,6 @@ namespace OpenDemo
                 }
 
                 Result createDevice();
-
-                Result handleDeviceLost();
 
                 void moveToNextFrame();
             };
@@ -236,7 +237,9 @@ namespace OpenDemo
                         // If the device was removed for any reason, a new device and swap chain will need to be created.
                         // Everything is set up now. Do not continue execution of this method. HandleDeviceLost will reenter this method
                         // and correctly set up the new device.
-                        return handleDeviceLost();
+                        //  return handleDeviceLost();
+
+                        ASSERT(false);
                     }
                     else
                         D3DCallMsg(hr, "ResizeBuffers");
@@ -284,6 +287,27 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
+            Result DeviceImplementation::ResetSwapchain(const std::shared_ptr<SwapChain>& currentSwapChain, const std::shared_ptr<SwapChain>& newSwapChain)
+            {
+                ASSERT_IS_CREATION_THREAD;
+                ASSERT_IS_DEVICE_INITED;
+                ASSERT(currentSwapChain)
+                ASSERT(currentSwapChain->GetPrivateImpl<void*>())
+                ASSERT(newSwapChain)
+                ASSERT(!newSwapChain->GetPrivateImpl<void*>())
+                ASSERT(currentSwapChain.use_count() == 1)
+
+                const auto& currentSwapChainImpl = currentSwapChain->GetPrivateImpl<SwapChainImpl>();
+
+                D3DCall(currentSwapChainImpl->Reset(newSwapChain->GetDescription()));
+
+                // Swap implementations
+                newSwapChain->SetPrivateImpl<void>(currentSwapChain->GetPrivateImpl<void>());
+                currentSwapChain->SetPrivateImpl<void>(nullptr);
+
+                return Result::Ok;
+            }
+
             Result DeviceImplementation::Submit(const CommandContext::SharedPtr& commandContext)
             {
                 ASSERT_IS_CREATION_THREAD;
@@ -292,7 +316,7 @@ namespace OpenDemo
 
                 const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
 
-                const auto commandContextImpl = commandContext->GetPrivateImpl<CommandContextImpl*>();
+                const auto commandContextImpl = commandContext->GetPrivateImpl<CommandContextImpl>();
                 ASSERT(commandContextImpl)
 
                 const auto D3DCommandList = commandContextImpl->getD3DCommandList();
@@ -358,8 +382,9 @@ namespace OpenDemo
                 {
                     Log::Print::Warning("Device Lost on Present: Reason code 0x%08X\n", static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : hr));
 
+                    ASSERT(false);
                     // Todo error check
-                    handleDeviceLost();
+                    //handleDeviceLost();
                 }
                 else
                 {
@@ -377,13 +402,6 @@ namespace OpenDemo
                     }
                 }
 
-                return Result::Ok;
-            }
-
-            Result DeviceImplementation::handleDeviceLost()
-            {
-                // Todo implement properly Device lost event processing
-                Log::Print::Fatal("Device was lost.\n");
                 return Result::Ok;
             }
 
@@ -516,6 +534,11 @@ namespace OpenDemo
             Result Device::Reset(const PresentOptions& presentOptions)
             {
                 return _impl->Reset(presentOptions);
+            }
+
+            Result Device::ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain)
+            {
+                return _impl->ResetSwapchain(oldSwapChain, newSwapChain);
             }
 
             Result Device::Present()
