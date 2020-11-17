@@ -2,8 +2,8 @@
 
 #include "gapi/DeviceInterface.hpp"
 #include "gapi/ForwardDeclarations.hpp"
+#include "gapi/SwapChain.hpp"
 
-#include "common/threading/BufferedChannel.hpp"
 #include "common/threading/Thread.hpp"
 
 #undef NOMINMAX
@@ -14,77 +14,56 @@
 #pragma warning(pop)
 #define NOMINMAX
 
-#include <optional>
-#include <variant>
-
 namespace OpenDemo
 {
+    namespace Common
+    {
+        namespace Threading
+        {
+            template <typename T, std::size_t BufferSize>
+            class BufferedChannel;
+        }
+    }
     namespace Render
     {
+
+        namespace
+        {
+            struct Work;
+        }
+
         class Submission final
         {
-            // Queue of 64 work should be enough.
-            static constexpr inline size_t WorkBufferSize = 64;
-
+        public:
             using CallbackFunction = std::function<Render::Result(Render::Device& device)>;
 
-        public:
-            struct Work final
-            {
-            public:
-                Work() = default;
-                Work(Work&&) = default;
-
-                struct Terminate
-                {
-                };
-
-                struct Callback
-                {
-                    CallbackFunction function;
-                };
-
-                struct Submit
-                {
-                    std::shared_ptr<CommandContext> commandContext;
-                };
-
-                using WorkVariant = std::variant<Terminate, Callback, Submit>;
-
-            public:
-                WorkVariant workVariant;
-#ifdef DEBUG
-                backward::StackTrace stackTrace;
-                U8String label;
-#endif
-            };
-
-        public:
             Submission();
             ~Submission();
 
             void Start();
             void Terminate();
-
             void Submit(const std::shared_ptr<CommandContext>& commandContext);
 
             void ExecuteAsync(CallbackFunction&& function);
             Render::Result ExecuteAwait(const CallbackFunction&& function);
 
-            inline std::weak_ptr<Render::MultiThreadDeviceInterface> getMultiThreadDeviceInterface() { return device_; }
+            inline std::weak_ptr<Render::MultiThreadDeviceInterface> GetMultiThreadDeviceInterface() { return device_; }
 
         private:
             template <typename T>
             void putWork(T&& work);
 
-        private:
             void threadFunc();
 
         private:
+            // Queue of 64 work should be enough.
+            static constexpr size_t WorkBufferSize = 64;
+            using BufferedChannel = Threading::BufferedChannel<Work, WorkBufferSize>;
+
             std::shared_ptr<Render::Device> device_;
             //   std::unique_ptr<AccessGuard<Render::Device>> device_;
-            Common::Threading::Thread submissionThread_;
-            Common::Threading::BufferedChannel<Work, WorkBufferSize> inputWorkChannel_;
+            Threading::Thread submissionThread_;
+            std::unique_ptr<BufferedChannel> inputWorkChannel_;
         };
 
     }

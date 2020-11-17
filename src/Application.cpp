@@ -32,10 +32,16 @@ namespace OpenDemo
 
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
-        std::ignore = window_;
-        /* int width = window_.GetWidth();
-        int height = window_.GetHeight();
-       
+
+        Render::SwapChainDescription desc = swapChain_->GetDescription();
+        desc.width = window_.GetWidth();
+        desc.height = window_.GetHeight();
+
+        auto& renderContext = Render::RenderContext::Instance();
+        const auto result = renderContext.ResetSwapChain(swapChain_, desc);
+        ASSERT(result)
+
+        /*
         Render::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
@@ -150,8 +156,7 @@ namespace OpenDemo
         desciption.resourceFormat = Render::ResourceFormat::BGRA8Unorm;
         desciption.windowHandle = _window->GetNativeHandle();
 
-
-            renderContext.CreateSwapchain(desciption, "Primary");
+        swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
         // auto& render = Rendering::Instance();
         // render->Init(_window);
     }

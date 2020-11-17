@@ -1,14 +1,13 @@
 #pragma once
 
-#include "gapi/Object.hpp"
-#include "gapi_dx12/DescriptorHeapSet.hpp"
-
 namespace OpenDemo
 {
     namespace Render
     {
         namespace DX12
         {
+            class DescriptorHeapSet;
+
             struct ResourceCreatorContext
             {
                 ComSharedPtr<ID3D12Device> device;
@@ -61,7 +60,8 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                Result InitResource(const ResourceCreatorContext& context, const Object::SharedPtr& resource);
+                Result InitResource(const ResourceCreatorContext& context, const std::shared_ptr<Object>& resource);
+                Result InitResource(const ResourceCreatorContext& context, uint64_t initialValue, const std::shared_ptr<Fence>& resource);
             }
         }
     }

@@ -2,6 +2,7 @@
 
 #include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
+#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/RenderQueueImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -9,6 +10,7 @@
 #include "gapi_dx12/TypeConversions.hpp"
 
 #include "gapi/CommandContext.hpp"
+#include "gapi/Fence.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/RenderQueue.hpp"
 #include "gapi/Resource.hpp"
@@ -151,101 +153,111 @@ namespace OpenDemo
 
                     return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(textureDescription, description);
                 }
-            }
 
-            Result InitResource(const ResourceCreatorContext& context, Resource& resource)
-            {
-                auto impl = new ResourceImpl();
-
-                switch (resource.GetResourceType())
+                Result initResource(const ResourceCreatorContext& context, Resource& resource)
                 {
-                case Resource::ResourceType::Texture:
-                {
-                    const auto& texture = resource.GetTyped<Texture>();
+                    auto impl = new ResourceImpl();
 
-                    D3DCall(impl->Init(context.device, texture->GetDescription(), texture->GetBindFlags(), resource.GetName()));
+                    switch (resource.GetResourceType())
+                    {
+                    case Resource::ResourceType::Texture:
+                    {
+                        const auto& texture = resource.GetTyped<Texture>();
+
+                        D3DCall(impl->Init(context.device, texture->GetDescription(), texture->GetBindFlags(), resource.GetName()));
+                    }
+                    break;
+                        //    case Resource::Type::Buffer:
+                        //  D3DCall(impl->Init(context.device, resource.GetName()));
+                        //       break;
+                    default:
+                        ASSERT_MSG(false, "Wrong resource type")
+                        return Result::NotImplemented;
+                    }
+
+                    resource.SetPrivateImpl(impl);
+
+                    return Result::Ok;
                 }
-                break;
-                    //    case Resource::Type::Buffer:
-                    //  D3DCall(impl->Init(context.device, resource.GetName()));
-                    //       break;
-                default:
-                    ASSERT_MSG(false, "Wrong resource type")
-                    return Result::NotImplemented;
+
+                Result initResource(const ResourceCreatorContext& context, RenderQueue& resource)
+                {
+                    auto impl = new RenderQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
+
+                    D3DCall(impl->Init(context.device, resource.GetName()));
+                    resource.SetPrivateImpl(impl);
+
+                    return Result::Ok;
                 }
 
-                resource.SetPrivateImpl(impl);
-
-                return Result::Ok;
-            }
-
-            Result InitResource(const ResourceCreatorContext& context, RenderQueue& resource)
-            {
-                auto impl = new RenderQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
-
-                D3DCall(impl->Init(context.device, resource.GetName()));
-                resource.SetPrivateImpl(impl);
-
-                return Result::Ok;
-            }
-
-            Result InitResource(const ResourceCreatorContext& context, ResourceView& object)
-            {
-                const auto& resourceSharedPtr = object.GetResource().lock();
-                ASSERT(resourceSharedPtr);
-
-                const auto& resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl>();
-                ASSERT(resourcePrivateImpl);
-
-                const auto& d3dObject = resourcePrivateImpl->getD3DObject();
-                ASSERT(d3dObject);
-
-                auto allocation = new DescriptorHeap::Allocation();
-                switch (object.GetViewType())
+                Result initResource(const ResourceCreatorContext& context, ResourceView& object)
                 {
-                case ResourceView::ViewType::RenderTargetView:
-                {
-                    const auto& descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
-                    ASSERT(descriptorHeap);
+                    const auto& resourceSharedPtr = object.GetResource().lock();
+                    ASSERT(resourceSharedPtr);
 
-                    D3DCall(descriptorHeap->Alloc(*allocation));
+                    const auto& resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl>();
+                    ASSERT(resourcePrivateImpl);
 
-                    D3D12_RENDER_TARGET_VIEW_DESC desc = CreateRtvDesc(resourceSharedPtr, object.GetDescription());
-                    context.device->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
-                }
-                break;
-                    /*     case ResourceView::ViewType::RShaderResourceView:
+                    const auto& d3dObject = resourcePrivateImpl->getD3DObject();
+                    ASSERT(d3dObject);
+
+                    auto allocation = new DescriptorHeap::Allocation();
+                    switch (object.GetViewType())
+                    {
+                    case ResourceView::ViewType::RenderTargetView:
+                    {
+                        const auto& descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
+                        ASSERT(descriptorHeap);
+
+                        D3DCall(descriptorHeap->Alloc(*allocation));
+
+                        D3D12_RENDER_TARGET_VIEW_DESC desc = CreateRtvDesc(resourceSharedPtr, object.GetDescription());
+                        context.device->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
+                    }
+                    break;
+                        /*     case ResourceView::ViewType::RShaderResourceView:
                     break;
                 case ResourceView::ViewType::RDepthStencilView:
                     break;
                 case ResourceView::ViewType::RUnorderedAccessView:
                     break;*/
-                default:
-                    LOG_FATAL("Unsupported resource view type");
+                    default:
+                        LOG_FATAL("Unsupported resource view type");
+                    }
+                    object.SetPrivateImpl(allocation);
+
+                    return Result::Ok;
                 }
-                object.SetPrivateImpl(allocation);
 
-                return Result::Ok;
-            }
+                Result initResource(const ResourceCreatorContext& context, CommandContext& resource)
+                {
+                    auto impl = new CommandContextImpl();
 
-            Result InitResource(const ResourceCreatorContext& context, CommandContext& resource)
-            {
-                auto impl = new CommandContextImpl();
+                    D3DCall(impl->Init(context.device, resource.GetName()));
+                    resource.SetPrivateImpl(impl);
 
-                D3DCall(impl->Init(context.device, resource.GetName()));
-                resource.SetPrivateImpl(impl);
+                    return Result::Ok;
+                }
 
-                return Result::Ok;
-            }
+                Result initResource(const ResourceCreatorContext& context, uint64_t initialValue, Fence& resource)
+                {
+                    auto impl = new FenceImpl();
 
-            Result InitResource(const ResourceCreatorContext& context, SwapChain& resource)
-            {
-                auto impl = new SwapChainImpl();
+                    D3DCall(impl->Init(context.device, initialValue, resource.GetName()));
+                    resource.SetPrivateImpl(impl);
 
-                D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue, resource.GetDescription(), resource.GetName()));
-                resource.SetPrivateImpl(impl);
+                    return Result::Ok;
+                }
 
-                return Result::Ok;
+                Result initResource(const ResourceCreatorContext& context, SwapChain& resource)
+                {
+                    auto impl = new SwapChainImpl();
+
+                    D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue, resource.GetDescription(), resource.GetName()));
+                    resource.SetPrivateImpl(impl);
+
+                    return Result::Ok;
+                }
             }
 
             Result ResourceCreator::InitResource(const ResourceCreatorContext& context, const Object::SharedPtr& resource)
@@ -253,9 +265,12 @@ namespace OpenDemo
                 ASSERT(resource)
                 ASSERT(!resource->GetPrivateImpl<void*>())
 
-#define CASE_RESOURCE(T)  \
-    case Object::Type::T: \
-        return InitResource(context, dynamic_cast<T&>(*resource));
+#define CASE_RESOURCE(T)                                             \
+    case Object::Type::T:                                            \
+        result = initResource(context, dynamic_cast<T&>(*resource)); \
+        break;
+
+                Result result = Result::NotImplemented;
 
                 switch (resource->GetType())
                 {
@@ -264,12 +279,28 @@ namespace OpenDemo
                     CASE_RESOURCE(Resource)
                     CASE_RESOURCE(ResourceView)
                     CASE_RESOURCE(SwapChain)
+                default:
+                    ASSERT_MSG(false, "Unsuported resource type");
                 }
-
-                ASSERT_MSG(false, "Unsuported resource type");
 #undef CASE_RESOURCE
 
-                return Result::NotImplemented;
+                if (!result)
+                    Log::Print::Error("Error creating resource with eror: %s", result.ToString());
+
+                return result;
+            }
+
+            Result ResourceCreator::InitResource(const ResourceCreatorContext& context, uint64_t initialValue, const Fence::SharedPtr& resource)
+            {
+                ASSERT(resource)
+                ASSERT(!resource->GetPrivateImpl<void*>())
+
+                Result result = initResource(context, initialValue, static_cast<Fence&>(*resource));
+
+                if (!result)
+                    Log::Print::Error("Error creating fence with eror: %s", result.ToString());
+
+                return Result::Ok;
             }
 
         }

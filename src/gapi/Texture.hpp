@@ -78,8 +78,6 @@ namespace OpenDemo
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
         public:
-            Texture() = delete;
-
             //      ShaderResourceView::SharedPtr getSRV(uint32_t mostDetailedMip, uint32_t mipCount = kMaxPossible, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
             std::shared_ptr<RenderTargetView> GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);

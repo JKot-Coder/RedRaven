@@ -2,15 +2,19 @@
 
 #include "gapi/CommandContext.hpp"
 #include "gapi/Result.hpp"
+#include "gapi/SwapChain.hpp"
 
 #include "gapi_dx12/Device.hpp"
 
 #include "common/debug/DebugStream.hpp"
+#include "common/threading/BufferedChannel.hpp"
 #include "common/threading/ConditionVariable.hpp"
 #include "common/threading/Mutex.hpp"
 
 #include <chrono>
+#include <optional>
 #include <thread>
+#include <variant>
 
 using namespace std::chrono;
 
@@ -18,7 +22,41 @@ namespace OpenDemo
 {
     namespace Render
     {
+        namespace
+        {
+            struct Work final
+            {
+            public:
+                Work() = default;
+                Work(Work&&) = default;
+
+                struct Terminate
+                {
+                };
+
+                struct Callback
+                {
+                    Submission::CallbackFunction function;
+                };
+
+                struct Submit
+                {
+                    std::shared_ptr<CommandContext> commandContext;
+                };
+
+                using WorkVariant = std::variant<Terminate, Callback, Submit>;
+
+            public:
+                WorkVariant workVariant;
+#ifdef DEBUG
+                backward::StackTrace stackTrace;
+                U8String label;
+#endif
+            };
+        }
+
         Submission::Submission()
+            : inputWorkChannel_(std::make_unique<BufferedChannel>())
         {
         }
 
@@ -26,13 +64,13 @@ namespace OpenDemo
         {
             ASSERT(device_)
             ASSERT(!submissionThread_.IsJoinable())
-            ASSERT(inputWorkChannel_.IsClosed())
+            ASSERT(inputWorkChannel_->IsClosed())
         }
 
         void Submission::Start()
         {
             ASSERT(!submissionThread_.IsJoinable())
-            ASSERT(!inputWorkChannel_.IsClosed())
+            ASSERT(!inputWorkChannel_->IsClosed())
 
             submissionThread_ = Threading::Thread("Submission Thread", [this] {
                 device_.reset(new Render::DX12::Device());
@@ -52,7 +90,7 @@ namespace OpenDemo
             constexpr int STACK_SIZE = 32;
             work.stackTrace.load_here(STACK_SIZE);
 #endif
-            inputWorkChannel_.Put(std::move(work));
+            inputWorkChannel_->Put(std::move(work));
         }
 
         void Submission::Submit(const CommandContext::SharedPtr& commandContext)
@@ -101,7 +139,7 @@ namespace OpenDemo
             Work::Terminate work;
             putWork(work);
 
-            inputWorkChannel_.Close();
+            inputWorkChannel_->Close();
             submissionThread_.Join();
         }
 
@@ -119,7 +157,7 @@ namespace OpenDemo
         {
             while (true)
             {
-                auto inputWorkOptional = inputWorkChannel_.GetNext();
+                auto inputWorkOptional = inputWorkChannel_->GetNext();
                 // Channel was closed and no work
                 if (!inputWorkOptional.has_value())
                     return;
@@ -145,7 +183,7 @@ namespace OpenDemo
                 if (!result)
                     Log::Print::Fatal(u8"Fatal error on SubmissionThread with result: %s\n", result.ToString());
 
-                std::this_thread::sleep_for(50ms);
+                std::this_thread::sleep_for(510ms);
             }
         }
     }

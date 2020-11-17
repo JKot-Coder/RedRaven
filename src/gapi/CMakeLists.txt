@@ -3,6 +3,7 @@ project (gapi)
 set(GAPI_SRC
         CommandContext.hpp
         CommandContextInterface.hpp
+        CommandQueue.hpp
         CommandList.hpp
         DeviceInterface.hpp
         Fence.hpp
@@ -28,7 +29,7 @@ set(GAPI_SRC
         SwapChain.cpp
         SwapChain.hpp
         Texture.cpp
-        Texture.hpp )
+        Texture.hpp        )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 target_link_libraries(${PROJECT_NAME} common)

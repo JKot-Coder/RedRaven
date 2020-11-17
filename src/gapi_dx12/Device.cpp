@@ -12,6 +12,8 @@
 #include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"
+#include "gapi_dx12/DescriptorHeap.hpp"
+#include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
@@ -46,7 +48,7 @@ namespace OpenDemo
 
                 Result Init();
                 Result Reset(const PresentOptions& presentOptions);
-                Result ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain);
+                Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description);
 
                 Result Submit(const CommandContext::SharedPtr& commandContext);
                 Result Present();
@@ -58,7 +60,8 @@ namespace OpenDemo
 
                 void WaitForGpu();
 
-                Result InitResource(const Object::SharedPtr& resource);
+                Result InitResource(const Object::SharedPtr& resource) const;
+                Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const;
 
             private:
                 bool enableDebug_ = true;
@@ -72,7 +75,7 @@ namespace OpenDemo
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
                 ComSharedPtr<ID3D12Device> d3dDevice_;
-                ComSharedPtr<IDXGISwapChain3> swapChain_;
+                // ComSharedPtr<IDXGISwapChain3> swapChain_;
 
                 std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::COUNT)> commandQueues_;
                 std::array<ComSharedPtr<ID3D12Resource>, MAX_BACK_BUFFER_COUNT> renderTargets_;
@@ -174,10 +177,16 @@ namespace OpenDemo
                 ASSERT_IS_DEVICE_INITED;
             }
 
-            Result DeviceImplementation::InitResource(const Object::SharedPtr& resource)
+            Result DeviceImplementation::InitResource(const Object::SharedPtr& resource) const
             {
                 ASSERT(resourceCreatorContext_);
                 return ResourceCreator::InitResource(*resourceCreatorContext_.get(), resource);
+            }
+
+            Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const
+            {
+                ASSERT(resourceCreatorContext_);
+                return ResourceCreator::InitResource(*resourceCreatorContext_.get(), initialValue, resource);
             }
 
             // These resources need to be recreated every time the window size is changed.
@@ -206,7 +215,7 @@ namespace OpenDemo
                 }
 
                 // If the swap chain already exists, resize it, otherwise create one.
-                if (swapChain_)
+                /*   if (swapChain_)
                 {
                     DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
 
@@ -275,7 +284,7 @@ namespace OpenDemo
                     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
                     rtvDesc.Format = currentSwapChainDesc.Format;
                     rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-                }
+                }*/
 
                 backBufferIndex_ = 0;
 
@@ -287,23 +296,17 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::ResetSwapchain(const std::shared_ptr<SwapChain>& currentSwapChain, const std::shared_ptr<SwapChain>& newSwapChain)
+            Result DeviceImplementation::ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
-                ASSERT(currentSwapChain)
-                ASSERT(currentSwapChain->GetPrivateImpl<void*>())
-                ASSERT(newSwapChain)
-                ASSERT(!newSwapChain->GetPrivateImpl<void*>())
-                ASSERT(currentSwapChain.use_count() == 1)
+                ASSERT(swapChain)
+                ASSERT(swapChain->GetPrivateImpl<void*>())
 
-                const auto& currentSwapChainImpl = currentSwapChain->GetPrivateImpl<SwapChainImpl>();
+                // Wait For gpu
 
-                D3DCall(currentSwapChainImpl->Reset(newSwapChain->GetDescription()));
-
-                // Swap implementations
-                newSwapChain->SetPrivateImpl<void>(currentSwapChain->GetPrivateImpl<void>());
-                currentSwapChain->SetPrivateImpl<void>(nullptr);
+                const auto& currentSwapChainImpl = swapChain->GetPrivateImpl<SwapChainImpl>();
+                D3DCall(currentSwapChainImpl->Reset(swapChain->GetDescription()));
 
                 return Result::Ok;
             }
@@ -314,6 +317,7 @@ namespace OpenDemo
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(commandContext)
 
+                Log::Print::Info("submit\n");
                 const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
 
                 const auto commandContextImpl = commandContext->GetPrivateImpl<CommandContextImpl>();
@@ -342,7 +346,7 @@ namespace OpenDemo
                     // D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_backBufferIndex].Get(), beforeState, D3D12_RESOURCE_STATE_PRESENT);
                     //commandList->ResourceBarrier(1, &barrier);
                 }
-
+                /*
                 D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets_[backBufferIndex_].get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
                 for (int i = 0; i < 100000; i++)
@@ -352,7 +356,7 @@ namespace OpenDemo
                         std::rand() / static_cast<float>(RAND_MAX), 1);
 
                     //  CommandContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
-                }
+                }*/
 
                 //HRESULT hr;
                 /*if (m_options & c_AllowTearing)
@@ -375,10 +379,10 @@ namespace OpenDemo
                 DXGI_PRESENT_PARAMETERS parameters
                     = {};
                 //  std::this_thread::sleep_for(10ms);
-                HRESULT hr = swapChain_->Present1(0, 0, &parameters);
+                //  HRESULT hr = swapChain_->Present1(0, 0, &parameters);
 
                 // If the device was reset we must completely reinitialize the renderer.
-                if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+                /*  if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
                 {
                     Log::Print::Warning("Device Lost on Present: Reason code 0x%08X\n", static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : hr));
 
@@ -400,7 +404,8 @@ namespace OpenDemo
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
-                }
+                }*/
+                moveToNextFrame();
 
                 return Result::Ok;
             }
@@ -504,7 +509,7 @@ namespace OpenDemo
                 fence_->Signal(commandQueue.get(), currentFenceValue);
 
                 // Update the back buffer index.
-                backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
+                //backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
                 frameIndex_ = (frameIndex_++ % GPU_FRAMES_BUFFERED);
 
                 // If the next frame is not ready to be rendered yet, wait until it is ready.
@@ -536,9 +541,9 @@ namespace OpenDemo
                 return _impl->Reset(presentOptions);
             }
 
-            Result Device::ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain)
+            Result Device::ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description)
             {
-                return _impl->ResetSwapchain(oldSwapChain, newSwapChain);
+                return _impl->ResetSwapchain(swapChain, description);
             }
 
             Result Device::Present()
@@ -561,9 +566,14 @@ namespace OpenDemo
                 return 0;
             }
 
-            Result Device::InitResource(const Object::SharedPtr& resource)
+            Result Device::InitResource(const Object::SharedPtr& resource) const
             {
                 return _impl->InitResource(resource);
+            }
+
+            Result Device::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const
+            {
+                return _impl->InitResource(resource, initialValue);
             }
         }
     }

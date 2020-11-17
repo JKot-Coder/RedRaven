@@ -36,7 +36,7 @@ namespace OpenDemo
 
             virtual Result Reset(const PresentOptions& presentOptions) = 0;
 
-            virtual Result ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain) = 0;
+            virtual Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) = 0;
 
             virtual Result Submit(const std::shared_ptr<CommandContext>& commandContext) = 0;
 
@@ -48,7 +48,8 @@ namespace OpenDemo
         public:
             virtual uint64_t GetGpuFenceValue(const std::shared_ptr<Fence>& fence) const = 0;
 
-            virtual Result InitResource(const std::shared_ptr<Object>& resource) = 0;
+            virtual Result InitResource(const std::shared_ptr<Object>& resource) const = 0;
+            virtual Result InitResource(const std::shared_ptr<Fence>& fence, uint64_t initialValue) const = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

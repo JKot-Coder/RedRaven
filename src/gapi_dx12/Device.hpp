@@ -15,14 +15,15 @@ namespace OpenDemo
                 // Todo separate freeThread / Multithread
                 Result Init() override;
                 Result Reset(const PresentOptions& presentOptions) override;
-                Result ResetSwapchain(const std::shared_ptr<SwapChain>& oldSwapChain, const std::shared_ptr<SwapChain>& newSwapChain) override;
+                Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) override;
                 Result Present() override;
 
                 Result Submit(const std::shared_ptr<CommandContext>& commandContext) override;
 
                 uint64_t GetGpuFenceValue(const std::shared_ptr<Fence>& fence) const override;
 
-                Result InitResource(const std::shared_ptr<Object>& resource) override;
+                Result InitResource(const std::shared_ptr<Object>& resource) const override;
+                Result InitResource(const std::shared_ptr<Fence>& fence, uint64_t initialValue) const override;
 
                 void WaitForGpu();
 

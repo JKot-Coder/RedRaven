@@ -4,7 +4,6 @@ namespace OpenDemo
 {
     namespace Render
     {
-
         class Object : public std::enable_shared_from_this<Object>, private NonCopyable
         {
         public:
@@ -15,6 +14,7 @@ namespace OpenDemo
             {
                 CommandContext,
                 CommandList,
+                Fence,
                 RenderQueue,
                 Resource,
                 ResourceView,
@@ -54,6 +54,5 @@ namespace OpenDemo
             Type type_;
             U8String name_;
         };
-
     }
 }

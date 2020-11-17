@@ -2,6 +2,7 @@
 
 #include "gapi/CommandContext.hpp"
 #include "gapi/DeviceInterface.hpp"
+#include "gapi/Fence.hpp"
 #include "gapi/ResourceViews.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/Submission.hpp"
@@ -27,15 +28,15 @@ namespace OpenDemo
 
             submission_->Start();
 
-            auto result = initDevice();
-            if (!result)
+            Result result = Result::Ok;
+            if (!(result = initDevice()))
             {
                 Log::Print::Error("Render device init failed.\n");
                 return result;
             }
 
-            result = resetDevice(presentOptions);
-            if (!result)
+            ;
+            if (!(result = resetDevice(presentOptions)))
             {
                 Log::Print::Error("Render device reset failed.\n");
                 return result;
@@ -45,7 +46,16 @@ namespace OpenDemo
                 presentEvents_[i] = std::make_unique<Threading::Event>(false, true);
 
             inited_ = true;
-            return Result::Ok;
+
+            fence_ = CreateFence(0, "Frame sync fence");
+            if (!fence_)
+            {
+                inited_ = false;
+                Log::Print::Error("Failed init fence.\n");
+                return result;
+            }
+
+            return result;
         }
 
         void RenderContext::Terminate()
@@ -67,20 +77,22 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& presentEvent = presentEvents_[presentIndex_];
+          //  auto& presentEvent = presentEvents_[presentIndex_];
             // This will limit count of main thread frames ahead.
-            presentEvent->Wait();
+           // presentEvent->Wait();
 
             submission_->ExecuteAsync([&presentEvent](Render::Device& device) {
                 const auto result = device.Present();
 
-                presentEvent->Notify();
-
+            //    presentEvent->Notify();
+             
                 return result;
             });
 
-            if (++presentIndex_ == presentEvents_.size())
-                presentIndex_ = 0;
+            fence_->
+
+            //if (++presentIndex_ == presentEvents_.size())
+             //   presentIndex_ = 0;
         }
 
         Render::Result RenderContext::ResetDevice(const PresentOptions& presentOptions)
@@ -90,12 +102,32 @@ namespace OpenDemo
             return resetDevice(presentOptions);
         }
 
+        Result RenderContext::ResetSwapChain(const std::shared_ptr<SwapChain>& swapchain, SwapChainDescription& description)
+        {
+            ASSERT(inited_)
+
+            return submission_->ExecuteAwait([&swapchain, &description](Render::Device& device) {
+                return device.ResetSwapchain(swapchain, description);
+            });
+        }
+
         CommandContext::SharedPtr RenderContext::CreateRenderCommandContext(const U8String& name) const
         {
             ASSERT(inited_)
 
             auto& resource = CommandContext::Create(name);
-            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
+        Fence::SharedPtr RenderContext::CreateFence(uint64_t initialValue, const U8String& name) const
+        {
+            ASSERT(inited_)
+
+            auto& resource = Fence::Create(name);
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource, initialValue))
                 resource = nullptr;
 
             return resource;
@@ -106,7 +138,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = Texture::Create(desc, bindFlags, name);
-            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -117,7 +149,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = RenderTargetView::Create(texture, desc, name);
-            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -128,7 +160,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = SwapChain::Create(description, name);
-            if (!submission_->getMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;

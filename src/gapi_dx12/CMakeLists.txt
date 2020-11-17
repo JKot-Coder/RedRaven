@@ -25,23 +25,23 @@ SOURCE_GROUP( "Implementations" FILES ${IMPL_SRC} )
 
 set(GAPI_SRC
         pch.hpp
-        Config.hpp
-        ComSharedPtr.hpp
-        D3DUtils.hpp
-        D3DUtils.cpp
-        TypeConversions.hpp
-        TypeConversions.cpp
-        Device.hpp
-        Device.cpp
-        FencedRingBuffer.hpp
-        CommandListCompiler.hpp
         CommandListCompiler.cpp     
-        ResourceCreator.hpp
-        ResourceCreator.cpp
-        DescriptorHeap.hpp
+        CommandListCompiler.hpp
+        ComSharedPtr.hpp
+        Config.hpp
+        D3DUtils.cpp
+        D3DUtils.hpp
         DescriptorHeap.cpp
-        DescriptorHeapSet.hpp
+        DescriptorHeap.hpp
         DescriptorHeapSet.cpp 
+        DescriptorHeapSet.hpp
+        Device.cpp
+        Device.hpp
+        FencedRingBuffer.hpp
+        ResourceCreator.cpp
+        ResourceCreator.hpp
+        TypeConversions.cpp
+        TypeConversions.hpp
         )
 SOURCE_GROUP( "" FILES ${GAPI_SRC} )
 

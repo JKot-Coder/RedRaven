@@ -45,11 +45,13 @@ namespace OpenDemo
                                swapChain1.put()),
                     "CreateSwapChainForHwnd");
 
-                if (swapChain1.try_as(D3DSwapChain_))
+                if (!swapChain1.try_as(D3DSwapChain_))
                 {
-                    ASSERT(false)
+                    ASSERT_MSG(false, "Failed to cast swapchain")
                     return Result::Fail;
                 }
+
+                swapChain1.as(D3DSwapChain_);
 
                 return Result::Ok;
             }

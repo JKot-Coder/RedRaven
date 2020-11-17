@@ -14,7 +14,7 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<CommandContext>;
             using SharedConstPtr = std::shared_ptr<const CommandContext>;
 
-            CommandContext() = delete;
+            CommandContext() = delete;   
 
             inline void Reset() override { getImplementation().Reset(); }
             inline void Close() override { getImplementation().Close(); }
