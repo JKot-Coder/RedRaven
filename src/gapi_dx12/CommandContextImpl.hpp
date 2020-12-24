@@ -1,9 +1,7 @@
 #pragma once
 
 #include "common/Math.hpp"
-
-#include "gapi/CommandContextInterface.hpp"
-
+#include "gapi/CommandContext.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
 
 namespace OpenDemo
