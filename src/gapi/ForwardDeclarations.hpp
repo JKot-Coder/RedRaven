@@ -6,6 +6,7 @@ namespace OpenDemo
     {
         class Buffer;
         class CommandContext;
+        class CommandQueue;
         class Fence;
         class Object;
 

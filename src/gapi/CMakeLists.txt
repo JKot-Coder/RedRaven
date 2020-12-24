@@ -3,7 +3,6 @@ project (gapi)
 set(GAPI_SRC
         CommandContext.hpp
         CommandContextInterface.hpp
-        CommandQueue.hpp
         CommandList.hpp
         DeviceInterface.hpp
         Fence.hpp
