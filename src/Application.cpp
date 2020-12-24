@@ -6,7 +6,7 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
-#include "gapi/CommandContext.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/RenderContext.hpp"
 #include "gapi/ResourceViews.hpp"
 #include "gapi/Result.hpp"

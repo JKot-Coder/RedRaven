@@ -2,7 +2,7 @@
 
 #include "common/Math.hpp"
 
-#include "gapi/CommandContext.hpp"
+#include "gapi/CommandList.hpp"
 
 #include "gapi_dx12/CommandListImpl.hpp"
 

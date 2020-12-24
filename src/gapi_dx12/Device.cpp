@@ -3,7 +3,7 @@
 // TODO temporary
 //#include "gapi/FencedRingBuffer.hpp"
 
-#include "gapi/CommandContext.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
 #include "gapi/SwapChain.hpp"

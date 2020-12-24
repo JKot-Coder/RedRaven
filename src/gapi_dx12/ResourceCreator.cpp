@@ -9,7 +9,7 @@
 #include "gapi_dx12/SwapChainImpl.hpp"
 #include "gapi_dx12/TypeConversions.hpp"
 
-#include "gapi/CommandContext.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/RenderQueue.hpp"
