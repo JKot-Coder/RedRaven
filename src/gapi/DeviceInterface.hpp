@@ -38,7 +38,7 @@ namespace OpenDemo
 
             virtual Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) = 0;
 
-            virtual Result Submit(const std::shared_ptr<CommandContext>& commandContext) = 0;
+            virtual Result Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
 
             virtual Result Present() = 0;
         };

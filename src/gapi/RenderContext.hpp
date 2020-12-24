@@ -31,12 +31,12 @@ namespace OpenDemo
             Result Init(const PresentOptions& presentOptions);
             void Terminate();
 
-            void Submit(const std::shared_ptr<CommandContext>& commandContext);
+            void Submit(const std::shared_ptr<CommandList>& CommandList);
             void Present();
             Result ResetDevice(const PresentOptions& presentOptions);
             Result ResetSwapChain(const std::shared_ptr<SwapChain>& swapchain, SwapChainDescription& description);
 
-            std::shared_ptr<CommandContext> CreateRenderCommandContext(const U8String& name) const;
+            std::shared_ptr<CommandList> CreateCommandList(const U8String& name) const;
             std::shared_ptr<Fence> RenderContext::CreateFence(uint64_t initialValue, const U8String& name = "") const;
             std::shared_ptr<Texture> CreateTexture(const TextureDescription& desc, Resource::BindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<RenderTargetView> CreateRenderTargetView(const std::shared_ptr<Texture>& texture, const ResourceViewDescription& desc, const U8String& name = "") const;

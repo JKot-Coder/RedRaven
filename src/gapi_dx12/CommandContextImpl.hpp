@@ -13,7 +13,7 @@ namespace OpenDemo
         namespace DX12
         {
 
-            class CommandContextImpl final : public CommandContextInterface
+            class CommandContextImpl final : public CommandListInterface
             {
             public:
                 CommandContextImpl();

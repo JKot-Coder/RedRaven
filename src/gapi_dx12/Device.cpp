@@ -8,9 +8,9 @@
 #include "gapi/Frame.hpp"
 #include "gapi/SwapChain.hpp"
 
-#include "gapi_dx12/CommandContextImpl.hpp"
-#include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
+#include "gapi_dx12/CommandListCompiler.hpp"
+#include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
@@ -50,7 +50,7 @@ namespace OpenDemo
                 Result Reset(const PresentOptions& presentOptions);
                 Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description);
 
-                Result Submit(const CommandContext::SharedPtr& commandContext);
+                Result Submit(const CommandList::SharedPtr& CommandList);
                 Result Present();
 
                 ID3D12Device* GetDevice() const
@@ -90,7 +90,7 @@ namespace OpenDemo
 
                 std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 // TEMPORARY
-                // std::unique_ptr<CommandContext> CommandContext_;
+                // std::unique_ptr<CommandList> CommandList_;
                 std::shared_ptr<FenceImpl> fence_;
                 std::array<uint64_t, GPU_FRAMES_BUFFERED> fenceValues_;
                 winrt::handle fenceEvent_;
@@ -141,8 +141,8 @@ namespace OpenDemo
                 fence_.reset(new FenceImpl());
                 D3DCall(fence_->Init(d3dDevice_, 1, "FrameSync"));
 
-                //   CommandContext_.reset(new CommandContext());
-                //    D3DCall(CommandContext_->Init(d3dDevice_.get(), "Main"));
+                //   CommandList_.reset(new CommandList());
+                //    D3DCall(CommandList_->Init(d3dDevice_.get(), "Main"));
 
                 for (int i = 0; i < GPU_FRAMES_BUFFERED; i++)
                 {
@@ -311,19 +311,19 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::Submit(const CommandContext::SharedPtr& commandContext)
+            Result DeviceImplementation::Submit(const CommandList::SharedPtr& CommandList)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
-                ASSERT(commandContext)
+                ASSERT(CommandList)
 
                 Log::Print::Info("submit\n");
                 const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
 
-                const auto commandContextImpl = commandContext->GetPrivateImpl<CommandContextImpl>();
-                ASSERT(commandContextImpl)
+                const auto commandListImpl = CommandList->GetPrivateImpl<CommandContextImpl>();
+                ASSERT(commandListImpl)
 
-                const auto D3DCommandList = commandContextImpl->getD3DCommandList();
+                const auto D3DCommandList = commandListImpl->getD3DCommandList();
                 ASSERT(D3DCommandList)
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
@@ -355,7 +355,7 @@ namespace OpenDemo
                         std::rand() / static_cast<float>(RAND_MAX),
                         std::rand() / static_cast<float>(RAND_MAX), 1);
 
-                    //  CommandContext_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
+                    //  CommandList_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
                 }*/
 
                 //HRESULT hr;
@@ -551,9 +551,9 @@ namespace OpenDemo
                 return _impl->Present();
             }
 
-            Result Device::Submit(const CommandContext::SharedPtr& commandContext)
+            Result Device::Submit(const CommandList::SharedPtr& CommandList)
             {
-                return _impl->Submit(commandContext);
+                return _impl->Submit(CommandList);
             }
 
             void Device::WaitForGpu()

@@ -75,7 +75,7 @@ namespace OpenDemo
         time->Init();
 
         auto& renderContext = Render::RenderContext::Instance();
-        auto rcc = renderContext.CreateRenderCommandContext(u8"qwew");
+        auto rcc = renderContext.CreateCommandList(u8"qwew");
         ASSERT(rcc)
         rcc->Close();
 

@@ -229,7 +229,7 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, CommandContext& resource)
+                Result initResource(const ResourceCreatorContext& context, CommandList& resource)
                 {
                     auto impl = new CommandContextImpl();
 
@@ -274,7 +274,7 @@ namespace OpenDemo
 
                 switch (resource->GetType())
                 {
-                    CASE_RESOURCE(CommandContext)
+                    CASE_RESOURCE(CommandList)
                     CASE_RESOURCE(CommandQueue)
                     CASE_RESOURCE(Resource)
                     CASE_RESOURCE(ResourceView)

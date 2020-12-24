@@ -18,7 +18,7 @@ namespace OpenDemo
                 Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) override;
                 Result Present() override;
 
-                Result Submit(const std::shared_ptr<CommandContext>& commandContext) override;
+                Result Submit(const std::shared_ptr<CommandList>& CommandList) override;
 
                 uint64_t GetGpuFenceValue(const std::shared_ptr<Fence>& fence) const override;
 

@@ -41,7 +41,7 @@ namespace OpenDemo
 
                 struct Submit
                 {
-                    std::shared_ptr<CommandContext> commandContext;
+                    std::shared_ptr<CommandList> CommandList;
                 };
 
                 using WorkVariant = std::variant<Terminate, Callback, Submit>;
@@ -93,10 +93,10 @@ namespace OpenDemo
             inputWorkChannel_->Put(std::move(work));
         }
 
-        void Submission::Submit(const CommandContext::SharedPtr& commandContext)
+        void Submission::Submit(const CommandList::SharedPtr& CommandList)
         {
             Work::Submit work;
-            work.commandContext = commandContext;
+            work.CommandList = CommandList;
 
             putWork(work);
         }
@@ -169,7 +169,7 @@ namespace OpenDemo
                 Render::Result result = Render::Result::Fail;
 
                 std::visit(overloaded {
-                               [this, &result](const Work::Submit& work) { result = device_->Submit(work.commandContext); },
+                               [this, &result](const Work::Submit& work) { result = device_->Submit(work.CommandList); },
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;

@@ -5,7 +5,7 @@ namespace OpenDemo
     namespace Render
     {
         class Buffer;
-        class CommandContext;
+        class CommandList;
         class CommandQueue;
         class Fence;
         class Object;

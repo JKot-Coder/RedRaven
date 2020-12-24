@@ -66,11 +66,11 @@ namespace OpenDemo
             inited_ = false;
         }
 
-        void RenderContext::Submit(const CommandContext::SharedPtr& commandContext)
+        void RenderContext::Submit(const CommandList::SharedPtr& CommandList)
         {
             ASSERT(inited_)
 
-            submission_->Submit(commandContext);
+            submission_->Submit(CommandList);
         }
 
         void RenderContext::Present()
@@ -111,11 +111,11 @@ namespace OpenDemo
             });
         }
 
-        CommandContext::SharedPtr RenderContext::CreateRenderCommandContext(const U8String& name) const
+        CommandList::SharedPtr RenderContext::CreateCommandList(const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = CommandContext::Create(name);
+            auto& resource = CommandList::Create(name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 

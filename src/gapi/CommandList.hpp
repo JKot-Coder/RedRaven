@@ -16,7 +16,7 @@ namespace OpenDemo
     namespace Render
     {
 
-        class CommandContextInterface
+        class CommandListInterface
         {
         public:
             virtual void Reset() = 0;
@@ -25,13 +25,13 @@ namespace OpenDemo
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandContext final : public Object, public CommandContextInterface
+        class CommandList final : public Object, public CommandListInterface
         {
         public:
-            using SharedPtr = std::shared_ptr<CommandContext>;
-            using SharedConstPtr = std::shared_ptr<const CommandContext>;
+            using SharedPtr = std::shared_ptr<CommandList>;
+            using SharedConstPtr = std::shared_ptr<const CommandList>;
 
-            CommandContext() = delete;
+            CommandList() = delete;
 
             inline void Reset() override { getImplementation().Reset(); }
             inline void Close() override { getImplementation().Close(); }
@@ -40,20 +40,20 @@ namespace OpenDemo
 
             static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new CommandContext(name));
+                return SharedPtr(new CommandList(name));
             }
 
         private:
-            CommandContext(const U8String& name)
-                : Object(Object::Type::CommandContext, name)
+            CommandList(const U8String& name)
+                : Object(Object::Type::CommandList, name)
             {
             }
 
-            inline CommandContextInterface& getImplementation()
+            inline CommandListInterface& getImplementation()
             {
                 ASSERT(privateImpl_);
 
-                return *(static_cast<CommandContextInterface*>(privateImpl_));
+                return *(static_cast<CommandListInterface*>(privateImpl_));
             }
         };
     }

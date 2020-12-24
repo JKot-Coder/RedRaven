@@ -15,7 +15,7 @@ namespace OpenDemo
                 CommandQueueImpl(D3D12_COMMAND_LIST_TYPE type);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
-//                Result Submit(CommandContextInterface& CommandContext) override;
+//                Result Submit(CommandListInterface& CommandContext) override;
 
             private:
                 D3D12_COMMAND_LIST_TYPE type_;
