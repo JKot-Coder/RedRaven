@@ -10,14 +10,6 @@ namespace OpenDemo
 {
     namespace Render
     {
-        enum class CommandQueueType
-        {
-            GRAPHICS,
-            COMPUTE,
-            COPY,
-            COUNT
-        };
-
         struct PresentOptions
         {
             AlignedBox2i rect;

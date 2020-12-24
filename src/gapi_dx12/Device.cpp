@@ -3,6 +3,7 @@
 // TODO temporary
 //#include "gapi/FencedRingBuffer.hpp"
 
+#include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
@@ -50,7 +51,7 @@ namespace OpenDemo
                 Result Reset(const PresentOptions& presentOptions);
                 Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description);
 
-                Result Submit(const CommandList::SharedPtr& CommandList);
+                Result Submit(const CommandList::SharedPtr& commandList);
                 Result Present();
 
                 ID3D12Device* GetDevice() const
@@ -77,7 +78,7 @@ namespace OpenDemo
                 ComSharedPtr<ID3D12Device> d3dDevice_;
                 // ComSharedPtr<IDXGISwapChain3> swapChain_;
 
-                std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::COUNT)> commandQueues_;
+                std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::Count)> commandQueues_;
                 std::array<ComSharedPtr<ID3D12Resource>, MAX_BACK_BUFFER_COUNT> renderTargets_;
                 std::array<DescriptorHeap::Allocation, MAX_BACK_BUFFER_COUNT> rtvs_;
 
@@ -116,7 +117,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD
                 ASSERT(inited_ == false)
 
-                auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
+                auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 // TODO Take from parameters. Check by assert;
                 backBufferCount_ = 2;
@@ -134,7 +135,7 @@ namespace OpenDemo
                     D3DCallMsg(d3dDevice_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(commandQueue.put())), "CreateCommandQueue");
                     D3DUtils::SetAPIName(commandQueue.get(), u8"MainCommandQueue");
 
-                    commandQueue.as(commandQueues_[static_cast<size_t>(CommandQueueType::GRAPHICS)]);
+                    commandQueue.as(commandQueues_[static_cast<size_t>(CommandQueueType::Graphics)]);
                 }
 
                 // Create a fence for tracking GPU execution progress.
@@ -164,7 +165,7 @@ namespace OpenDemo
                 resourceCreatorContext_ = std::make_unique<ResourceCreatorContext>(
                     d3dDevice_,
                     dxgiFactory_,
-                    getCommandQueue(CommandQueueType::GRAPHICS),
+                    getCommandQueue(CommandQueueType::Graphics),
                     descriptorHeapSet_);
 
                 inited_ = true;
@@ -318,7 +319,7 @@ namespace OpenDemo
                 ASSERT(CommandList)
 
                 Log::Print::Info("submit\n");
-                const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
+                const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 const auto commandListImpl = CommandList->GetPrivateImpl<CommandContextImpl>();
                 ASSERT(commandListImpl)
@@ -337,7 +338,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
 
-                const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
+                const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 const UINT64 currentFenceValue = fenceValues_[frameIndex_];
 
@@ -500,7 +501,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD
                 ASSERT_IS_DEVICE_INITED
 
-                const auto& commandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
+                const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 // Schedule a Signal command in the queue.
                 const UINT64 currentFenceValue = fenceValues_[frameIndex_];

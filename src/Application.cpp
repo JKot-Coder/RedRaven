@@ -6,6 +6,7 @@
 
 #include "resource_manager/ResourceManager.hpp"
 
+#include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/RenderContext.hpp"
 #include "gapi/ResourceViews.hpp"
@@ -75,9 +76,11 @@ namespace OpenDemo
         time->Init();
 
         auto& renderContext = Render::RenderContext::Instance();
-        auto rcc = renderContext.CreateCommandList(u8"qwew");
-        ASSERT(rcc)
-        rcc->Close();
+
+        auto commandQueue = renderContext.CreteCommandQueue(Render::CommandQueueType::Graphics, u8"Primary"); 
+        auto commandList = renderContext.CreateCommandList(u8"qwew");
+        ASSERT(commandList)
+        commandList->Close();
 
         const auto& desc = Render::TextureDescription::Create2D(100, 100, Render::ResourceFormat::R8Unorm);
         auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource | Render::Texture::BindFlags::RenderTarget);
@@ -90,11 +93,11 @@ namespace OpenDemo
         {
             Windowing::Windowing::PoolEvents();
 
-            rcc->Reset();
-            rcc->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
-            rcc->Close();
+            commandList->Reset();
+            commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
+            commandList->Close();
 
-            renderContext.Submit(rcc);
+            renderContext.Submit(commandQueue, commandList);
 
             //  renderPipeline->Collect(_scene);
             //    renderPipeline->Draw();

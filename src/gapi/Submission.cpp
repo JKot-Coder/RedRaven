@@ -1,6 +1,7 @@
 #include "Submission.hpp"
 
 #include "gapi/CommandList.hpp"
+#include "gapi/CommandQueue.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 
@@ -41,7 +42,8 @@ namespace OpenDemo
 
                 struct Submit
                 {
-                    std::shared_ptr<CommandList> CommandList;
+                    std::shared_ptr<CommandQueue> commandQueue;
+                    std::shared_ptr<CommandList> commandList;
                 };
 
                 using WorkVariant = std::variant<Terminate, Callback, Submit>;
@@ -93,10 +95,11 @@ namespace OpenDemo
             inputWorkChannel_->Put(std::move(work));
         }
 
-        void Submission::Submit(const CommandList::SharedPtr& CommandList)
+        void Submission::Submit(const CommandQueue::SharedPtr& commandQueue, const CommandList::SharedPtr& commandList)
         {
             Work::Submit work;
-            work.CommandList = CommandList;
+            work.commandQueue = commandQueue;
+            work.commandList = commandList;
 
             putWork(work);
         }
@@ -169,7 +172,7 @@ namespace OpenDemo
                 Render::Result result = Render::Result::Fail;
 
                 std::visit(overloaded {
-                               [this, &result](const Work::Submit& work) { result = device_->Submit(work.CommandList); },
+                               [this, &result](const Work::Submit& work) { result = device_->Submit(work.commandList); },
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;

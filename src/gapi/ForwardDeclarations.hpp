@@ -7,6 +7,7 @@ namespace OpenDemo
         class Buffer;
         class CommandList;
         class CommandQueue;
+        enum class CommandQueueType : uint32_t;
         class Fence;
         class Object;
 

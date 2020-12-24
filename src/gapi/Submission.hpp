@@ -42,7 +42,7 @@ namespace OpenDemo
 
             void Start();
             void Terminate();
-            void Submit(const std::shared_ptr<CommandList>& CommandList);
+            void Submit(const std::shared_ptr<CommandQueue>& commandQueue, const std::shared_ptr<CommandList>& commandList);
 
             void ExecuteAsync(CallbackFunction&& function);
             Render::Result ExecuteAwait(const CallbackFunction&& function);

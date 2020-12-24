@@ -10,9 +10,9 @@
 #include "gapi_dx12/TypeConversions.hpp"
 
 #include "gapi/CommandList.hpp"
+#include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Object.hpp"
-#include "gapi/RenderQueue.hpp"
 #include "gapi/Resource.hpp"
 #include "gapi/ResourceViews.hpp"
 #include "gapi/SwapChain.hpp"

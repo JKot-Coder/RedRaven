@@ -1,6 +1,7 @@
 #include "RenderContext.hpp"
 
 #include "gapi/CommandList.hpp"
+#include "gapi/CommandQueue.hpp"
 #include "gapi/DeviceInterface.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/ResourceViews.hpp"
@@ -66,33 +67,33 @@ namespace OpenDemo
             inited_ = false;
         }
 
-        void RenderContext::Submit(const CommandList::SharedPtr& CommandList)
+        void RenderContext::Submit(const CommandQueue::SharedPtr& commandQueue, const CommandList::SharedPtr& commandList)
         {
             ASSERT(inited_)
 
-            submission_->Submit(CommandList);
+            submission_->Submit(commandQueue, commandList);
         }
 
         void RenderContext::Present()
         {
             ASSERT(inited_)
 
-          //  auto& presentEvent = presentEvents_[presentIndex_];
+            //  auto& presentEvent = presentEvents_[presentIndex_];
             // This will limit count of main thread frames ahead.
-           // presentEvent->Wait();
+            // presentEvent->Wait();
 
             submission_->ExecuteAsync([](Render::Device& device) {
                 const auto result = device.Present();
 
-            //    presentEvent->Notify();
-             
+                //    presentEvent->Notify();
+
                 return result;
             });
 
             //fence_-
 
             //if (++presentIndex_ == presentEvents_.size())
-             //   presentIndex_ = 0;
+            //   presentIndex_ = 0;
         }
 
         Render::Result RenderContext::ResetDevice(const PresentOptions& presentOptions)
@@ -116,6 +117,17 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = CommandList::Create(name);
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
+        CommandQueue::SharedPtr RenderContext::CreteCommandQueue(CommandQueueType type, const U8String& name) const
+        {
+            ASSERT(inited_)
+
+            auto& resource = CommandQueue::Create(type, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
