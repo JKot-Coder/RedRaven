@@ -4,6 +4,7 @@ set(GAPI_SRC
         CommandContext.hpp
         CommandContextInterface.hpp
         CommandList.hpp
+        CommandQueue.hpp
         DeviceInterface.hpp
         Fence.hpp
         FencedPool.hpp
@@ -16,7 +17,6 @@ set(GAPI_SRC
         Object.hpp
         RenderContext.cpp
         RenderContext.hpp
-        RenderQueue.hpp
         Resource.cpp
         Resource.hpp
         ResourceViews.cpp
