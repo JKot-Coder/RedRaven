@@ -172,7 +172,7 @@ namespace OpenDemo
                 Render::Result result = Render::Result::Fail;
 
                 std::visit(overloaded {
-                               [this, &result](const Work::Submit& work) { result = device_->Submit(work.commandList); },
+                               [this, &result](const Work::Submit& work) { result = work.commandQueue->Submit(work.commandList); },
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;

@@ -19,10 +19,7 @@ namespace OpenDemo
                 }
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
-                ComSharedPtr<ID3D12GraphicsCommandList> GetCommandList()
-                {
-                    return _commandList;
-                };
+                const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; } 
 
                 Result Reset();
 
@@ -30,7 +27,7 @@ namespace OpenDemo
 
             private:
                 D3D12_COMMAND_LIST_TYPE _type;
-                ComSharedPtr<ID3D12GraphicsCommandList> _commandList;
+                ComSharedPtr<ID3D12GraphicsCommandList> D3DCommandList_;
                 std::unique_ptr<FencedFrameRingBuffer<ID3D12CommandAllocator*>> _allocatorsRB;
             };
         }

@@ -22,7 +22,7 @@ namespace OpenDemo
             {
                 D3DCall(commandList_->Init(device, name));
 
-                D3DCommandList_ = commandList_->GetCommandList();
+                D3DCommandList_ = commandList_->GetD3DObject();
 
                 return Result::Ok;
             }

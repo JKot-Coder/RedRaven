@@ -1,6 +1,8 @@
 #include "CommandQueueImpl.hpp"
 
-#include "gapi/CommandQueue.hpp"
+#include "gapi/CommandList.hpp"
+
+#include "gapi_dx12/CommandListImpl.hpp"
 
 namespace OpenDemo
 {
@@ -34,7 +36,7 @@ namespace OpenDemo
                     break;
                 default:
                     ASSERT_MSG(false, "Unsuported command queue type");
-                    break;
+                    return Result::NotImplemented;
                 }
 
                 D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
@@ -43,9 +45,19 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            //    Result CommandQueueImpl::Submit(CommandListInterface& CommandContext)
-            //  {
-            //   }
+            Result CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
+            {
+                ASSERT(D3DCommandQueue_);
+
+                const auto commandListImpl = commandList->GetPrivateImpl<CommandListImpl>();
+                ASSERT(commandListImpl);
+
+                ID3D12CommandList* commandLists[] = { commandListImpl->GetD3DObject().get() };
+                D3DCommandQueue_->ExecuteCommandLists(1, commandLists);
+
+                return Result::Ok;
+            }
+
         };
     }
 }

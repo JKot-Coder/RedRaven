@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gapi/CommandQueue.hpp"
+
 namespace OpenDemo
 {
     namespace Render
@@ -8,14 +10,14 @@ namespace OpenDemo
         {
             class CommandListImpl;
 
-            class CommandQueueImpl final
+            class CommandQueueImpl final : public CommandQueueInterface
             {
             public:
                 CommandQueueImpl() = delete;
                 CommandQueueImpl(CommandQueueType type);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
-//                Result Submit(CommandListInterface& CommandContext) override;
+                Result Submit(const std::shared_ptr<CommandList>& commandList) override;
 
             private:
                 CommandQueueType type_;

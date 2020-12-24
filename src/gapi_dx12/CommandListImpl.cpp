@@ -10,7 +10,7 @@ namespace OpenDemo
             Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device)
-                ASSERT(_commandList.get() == nullptr)
+                ASSERT(D3DCommandList_.get() == nullptr)
 
                 const auto& commandListType = _type;
 
@@ -26,20 +26,20 @@ namespace OpenDemo
                 D3DCall(_allocatorsRB->Init(device, newCommandAllocator, fmt::format("CommandList::{}", name)));
 
                 const auto& allocator = _allocatorsRB->CurrentObject();
-                D3DCallMsg(device->CreateCommandList(0, commandListType, allocator, nullptr, IID_PPV_ARGS(_commandList.put())), "CreateCommandList");
+                D3DCallMsg(device->CreateCommandList(0, commandListType, allocator, nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
 
-                D3DUtils::SetAPIName(_commandList.get(), name);
+                D3DUtils::SetAPIName(D3DCommandList_.get(), name);
 
                 return Result::Ok;
             }
 
             Result CommandListImpl::Reset()
             {
-                ASSERT(_commandList.get())
+                ASSERT(D3DCommandList_.get())
                 const auto& allocator = _allocatorsRB->GetNextObject();
 
                 D3DCall(allocator->Reset());
-                D3DCall(_commandList->Reset(allocator, nullptr));
+                D3DCall(D3DCommandList_->Reset(allocator, nullptr));
               //  D3DCall(_allocatorsRB->MoveToNextFrame(queue));
 
                 return Result::Ok;
@@ -48,14 +48,14 @@ namespace OpenDemo
             Result CommandListImpl::Submit(ID3D12CommandQueue* queue)
             {
                 ASSERT(queue)
-                ASSERT(_commandList.get())
+                ASSERT(D3DCommandList_.get())
                 const auto& allocator = _allocatorsRB->GetNextObject();
 
-                ID3D12CommandList* commandLists[] = { _commandList.get() };
+                ID3D12CommandList* commandLists[] = { D3DCommandList_.get() };
                 queue->ExecuteCommandLists(1, commandLists);
 
                 D3DCall(allocator->Reset());
-                D3DCall(_commandList->Reset(allocator, nullptr));
+                D3DCall(D3DCommandList_->Reset(allocator, nullptr));
                 D3DCall(_allocatorsRB->MoveToNextFrame(queue));
 
                 return Result::Ok;
