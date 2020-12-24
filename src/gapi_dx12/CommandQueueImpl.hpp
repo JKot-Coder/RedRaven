@@ -12,13 +12,13 @@ namespace OpenDemo
             {
             public:
                 CommandQueueImpl() = delete;
-                CommandQueueImpl(D3D12_COMMAND_LIST_TYPE type);
+                CommandQueueImpl(CommandQueueType type);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 //                Result Submit(CommandListInterface& CommandContext) override;
 
             private:
-                D3D12_COMMAND_LIST_TYPE type_;
+                CommandQueueType type_;
                 ComSharedPtr<ID3D12CommandQueue> D3DCommandQueue_ = nullptr;
             };
         };

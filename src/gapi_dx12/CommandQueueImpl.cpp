@@ -1,5 +1,7 @@
 #include "CommandQueueImpl.hpp"
 
+#include "gapi/CommandQueue.hpp"
+
 namespace OpenDemo
 {
     namespace Render
@@ -7,7 +9,7 @@ namespace OpenDemo
         namespace DX12
         {
 
-            CommandQueueImpl::CommandQueueImpl(D3D12_COMMAND_LIST_TYPE type) : type_(type)
+            CommandQueueImpl::CommandQueueImpl(CommandQueueType type) : type_(type)
             {
             }
 
@@ -18,7 +20,22 @@ namespace OpenDemo
 
                 D3D12_COMMAND_QUEUE_DESC desc = {};
                 desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-                desc.Type = type_;
+
+                switch (type_)
+                {
+                case CommandQueueType::Graphics:
+                    desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+                    break;
+                case CommandQueueType::Compute:
+                    desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+                    break;
+                case CommandQueueType::Copy:
+                    desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+                    break;
+                default:
+                    ASSERT_MSG(false, "Unsuported command queue type");
+                    break;
+                }
 
                 D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);

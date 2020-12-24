@@ -182,7 +182,7 @@ namespace OpenDemo
 
                 Result initResource(const ResourceCreatorContext& context, CommandQueue& resource)
                 {
-                    auto impl = new CommandQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
+                    auto impl = new CommandQueueImpl(resource.GetType());
 
                     D3DCall(impl->Init(context.device, resource.GetName()));
                     resource.SetPrivateImpl(impl);
