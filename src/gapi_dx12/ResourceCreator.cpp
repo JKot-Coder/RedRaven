@@ -1,9 +1,9 @@
 #include "ResourceCreator.hpp"
 
 #include "gapi_dx12/CommandContextImpl.hpp"
+#include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/RenderQueueImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
@@ -180,9 +180,9 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, RenderQueue& resource)
+                Result initResource(const ResourceCreatorContext& context, CommandQueue& resource)
                 {
-                    auto impl = new RenderQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
+                    auto impl = new CommandQueueImpl(D3D12_COMMAND_LIST_TYPE_DIRECT);
 
                     D3DCall(impl->Init(context.device, resource.GetName()));
                     resource.SetPrivateImpl(impl);
@@ -275,7 +275,7 @@ namespace OpenDemo
                 switch (resource->GetType())
                 {
                     CASE_RESOURCE(CommandContext)
-                    CASE_RESOURCE(RenderQueue)
+                    CASE_RESOURCE(CommandQueue)
                     CASE_RESOURCE(Resource)
                     CASE_RESOURCE(ResourceView)
                     CASE_RESOURCE(SwapChain)

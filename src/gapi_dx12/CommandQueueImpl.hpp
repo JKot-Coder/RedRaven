@@ -8,11 +8,11 @@ namespace OpenDemo
         {
             class CommandListImpl;
 
-            class RenderQueueImpl final
+            class CommandQueueImpl final
             {
             public:
-                RenderQueueImpl() = delete;
-                RenderQueueImpl(D3D12_COMMAND_LIST_TYPE type);
+                CommandQueueImpl() = delete;
+                CommandQueueImpl(D3D12_COMMAND_LIST_TYPE type);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 //                Result Submit(CommandContextInterface& CommandContext) override;

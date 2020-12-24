@@ -81,7 +81,7 @@ namespace OpenDemo
             // This will limit count of main thread frames ahead.
            // presentEvent->Wait();
 
-            submission_->ExecuteAsync([&presentEvent](Render::Device& device) {
+            submission_->ExecuteAsync([](Render::Device& device) {
                 const auto result = device.Present();
 
             //    presentEvent->Notify();
@@ -89,7 +89,7 @@ namespace OpenDemo
                 return result;
             });
 
-            fence_->
+            //fence_-
 
             //if (++presentIndex_ == presentEvents_.size())
              //   presentIndex_ = 0;

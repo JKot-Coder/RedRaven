@@ -1,4 +1,4 @@
-#include "RenderQueueImpl.hpp"
+#include "CommandQueueImpl.hpp"
 
 namespace OpenDemo
 {
@@ -7,11 +7,11 @@ namespace OpenDemo
         namespace DX12
         {
 
-            RenderQueueImpl::RenderQueueImpl(D3D12_COMMAND_LIST_TYPE type) : type_(type)
+            CommandQueueImpl::CommandQueueImpl(D3D12_COMMAND_LIST_TYPE type) : type_(type)
             {
             }
 
-            Result RenderQueueImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
+            Result CommandQueueImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(D3DCommandQueue_.get() == nullptr)
@@ -26,7 +26,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            //    Result RenderQueueImpl::Submit(CommandContextInterface& CommandContext)
+            //    Result CommandQueueImpl::Submit(CommandContextInterface& CommandContext)
             //  {
             //   }
         };
