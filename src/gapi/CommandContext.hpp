@@ -1,6 +1,5 @@
 #pragma once
 
-#include "gapi/CommandContextInterface.hpp"
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Object.hpp"
 
