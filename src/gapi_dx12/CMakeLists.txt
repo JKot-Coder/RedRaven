@@ -10,10 +10,10 @@ set(IMPL_SRC
         CommandContextImpl.hpp
         CommandListImpl.cpp
         CommandListImpl.hpp
+        CommandQueueImpl.cpp
+        CommandQueueImpl.hpp
         FenceImpl.cpp
         FenceImpl.hpp
-        RenderQueueImpl.cpp
-        RenderQueueImpl.hpp
         ResourceImpl.cpp
         ResourceImpl.hpp
         ResourceViewsImpl.cpp

@@ -12,10 +12,10 @@ namespace OpenDemo
 
             enum class Type
             {
+                CommandQueue,
                 CommandContext,
-                CommandList,
+                CommandList,                
                 Fence,
-                RenderQueue,
                 Resource,
                 ResourceView,
                 SwapChain,
