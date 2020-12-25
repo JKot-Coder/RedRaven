@@ -1,6 +1,8 @@
 project (render)
 
 set(Render_SRC
+      RenderContext.cpp
+      RenderContext.hpp
       Submission.hpp
       Submission.cpp)
         

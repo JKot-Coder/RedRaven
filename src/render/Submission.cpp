@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 namespace OpenDemo
 {
-    namespace GAPI
+    namespace Render
     {
         namespace
         {

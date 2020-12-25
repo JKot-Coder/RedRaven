@@ -24,9 +24,9 @@ namespace OpenDemo
             class BufferedChannel;
         }
     }
-    namespace GAPI
-    {
 
+    namespace Render
+    {
         namespace
         {
             struct Work;
@@ -42,7 +42,7 @@ namespace OpenDemo
 
             void Start();
             void Terminate();
-            void Submit(const std::shared_ptr<CommandQueue>& commandQueue, const std::shared_ptr<CommandList>& commandList);
+            void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList);
 
             void ExecuteAsync(CallbackFunction&& function);
             GAPI::Result ExecuteAwait(const CallbackFunction&& function);

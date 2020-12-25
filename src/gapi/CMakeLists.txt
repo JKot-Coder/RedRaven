@@ -13,8 +13,6 @@ set(GAPI_SRC
         LinearAllocator.hpp
         LinearAllocator.inl
         Object.hpp
-        RenderContext.cpp
-        RenderContext.hpp
         Resource.cpp
         Resource.hpp
         ResourceViews.cpp
