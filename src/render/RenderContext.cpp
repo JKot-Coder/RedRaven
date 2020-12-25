@@ -46,7 +46,7 @@ namespace OpenDemo
 
             inited_ = true;
 
-            fence_ = CreateFence(0, "Frame sync fence");
+            fence_ = CreateFence("Frame sync fence");
             if (!fence_)
             {
                 inited_ = false;
@@ -80,17 +80,25 @@ namespace OpenDemo
                 const auto result = device.Present();
                 return result;
             });
+        }
+
+        GAPI::Result RenderContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
+        {
+            ASSERT(inited_)
+
+            GAPI::Result result = GAPI::Result::Ok;
 
             // Schedule a Signal command in the queue.
-            const uint64_t currentFenceValue = fence_->GetCpuValue();
-            // fence_->Signal();
+            if (!(result = fence_->Signal(commandQueue)))
+                return result;
 
-            // This will limit count of main thread frames ahead.
-            frameIndex_ = (frameIndex_++ % SubmissionThreadAheadFrames);
-            fence_->SyncCPU(fenceValues_[frameIndex_], INFINITE);
+            if (fence_->GetCpuValue() >= SubmissionThreadAheadFrames)
+            {
+                  if (!(fence_->SyncCPU(fence_->GetCpuValue() - SubmissionThreadAheadFrames, INFINITE)))
+                    return result;
+            }
 
-            // Set the fence value for the next time.
-            fenceValues_[frameIndex_] = currentFenceValue + 1;
+            return result;
         }
 
         GAPI::Result RenderContext::ResetDevice(const GAPI::PresentOptions& presentOptions)
@@ -153,12 +161,12 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Fence::SharedPtr RenderContext::CreateFence(uint64_t initialValue, const U8String& name) const
+        GAPI::Fence::SharedPtr RenderContext::CreateFence(const U8String& name) const
         {
             ASSERT(inited_)
 
             auto& resource = GAPI::Fence::Create(name);
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource, initialValue))
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;

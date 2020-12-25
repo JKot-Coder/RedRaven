@@ -11,6 +11,8 @@ namespace OpenDemo
         class FenceInterface
         {
         public:
+            virtual Result Signal(const std::shared_ptr<CommandQueue>& queue) = 0;
+
             virtual Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const = 0;
             virtual Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const = 0;
 
@@ -23,6 +25,11 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<Fence>;
             using SharedConstPtr = std::shared_ptr<const Fence>;
+
+            inline Result Signal(const std::shared_ptr<CommandQueue>& queue)
+            {
+                return getImplementation().Signal(queue);
+            }
 
             inline Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const override
             {

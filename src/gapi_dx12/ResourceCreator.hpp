@@ -61,7 +61,6 @@ namespace OpenDemo
             namespace ResourceCreator
             {
                 Result InitResource(const ResourceCreatorContext& context, const std::shared_ptr<Object>& resource);
-                Result InitResource(const ResourceCreatorContext& context, uint64_t initialValue, const std::shared_ptr<Fence>& resource);
             }
         }
     }

@@ -19,8 +19,8 @@ namespace OpenDemo
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 Result Submit(const std::shared_ptr<CommandList>& commandList) override;
-                Result Signal(const std::shared_ptr<Fence>& fence, uint64_t value) override;
 
+                Result Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
                 Result Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
 
             private:

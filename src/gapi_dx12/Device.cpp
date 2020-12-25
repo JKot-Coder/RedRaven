@@ -140,7 +140,7 @@ namespace OpenDemo
 
                 // Create a fence for tracking GPU execution progress.
                 fence_.reset(new FenceImpl());
-                D3DCall(fence_->Init(d3dDevice_, 1, "FrameSync"));
+                D3DCall(fence_->Init(d3dDevice_, "FrameSync"));
 
                 //   CommandList_.reset(new CommandList());
                 //    D3DCall(CommandList_->Init(d3dDevice_.get(), "Main"));
@@ -182,12 +182,6 @@ namespace OpenDemo
             {
                 ASSERT(resourceCreatorContext_);
                 return ResourceCreator::InitResource(*resourceCreatorContext_.get(), resource);
-            }
-
-            Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const
-            {
-                ASSERT(resourceCreatorContext_);
-                return ResourceCreator::InitResource(*resourceCreatorContext_.get(), initialValue, resource);
             }
 
             // These resources need to be recreated every time the window size is changed.
@@ -567,10 +561,6 @@ namespace OpenDemo
                 return _impl->InitResource(resource);
             }
 
-            Result Device::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const
-            {
-                return _impl->InitResource(resource, initialValue);
-            }
         }
     }
 }

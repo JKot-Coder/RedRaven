@@ -12,7 +12,9 @@ namespace OpenDemo
             {
             public:
                 FenceImpl() = default;
-                Result Init(const ComSharedPtr<ID3D12Device>& device, uint64_t initialValue, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
+
+                Result Signal(const std::shared_ptr<CommandQueue>& queue) override;
 
                 Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const override;
                 Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;

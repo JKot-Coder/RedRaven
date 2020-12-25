@@ -80,8 +80,8 @@ namespace OpenDemo
 
         auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
         auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
-        ASSERT(commandList)
-        commandList->Close();
+      //  ASSERT(commandList)
+       // commandList->Close();
 
         const auto& desc = GAPI::TextureDescription::Create2D(100, 100, GAPI::ResourceFormat::R8Unorm);
         auto texture = renderContext.CreateTexture(desc, GAPI::Texture::BindFlags::ShaderResource | GAPI::Texture::BindFlags::RenderTarget);
@@ -94,9 +94,10 @@ namespace OpenDemo
         {
             Windowing::Windowing::PoolEvents();
 
-            commandList->Reset();
+      
             commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
             commandList->Close();
+            commandList->Reset();
 
             // renderContext.Submit(commandQueue, commandList);
 
@@ -109,6 +110,7 @@ namespace OpenDemo
             //  input->Update();
 
             renderContext.Present();
+            ASSERT(renderContext.MoveToNextFrame(commandQueue));
 
             time->Update();
         }

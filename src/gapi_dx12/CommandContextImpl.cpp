@@ -37,7 +37,7 @@ namespace OpenDemo
                 //     commandList_->Submit();
             }
 
-            void CommandContextImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)
+            void CommandContextImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)      
             {
                 ASSERT(renderTargetView);
                 ASSERT(D3DCommandList_);

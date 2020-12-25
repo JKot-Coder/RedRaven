@@ -21,7 +21,6 @@ namespace OpenDemo
               //  Result Submit(const std::shared_ptr<CommandList>& CommandList) override;
 
                 Result InitResource(const std::shared_ptr<Object>& resource) const override;
-                Result InitResource(const std::shared_ptr<Fence>& fence, uint64_t initialValue) const override;
 
                 void WaitForGpu();
 

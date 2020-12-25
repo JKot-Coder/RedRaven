@@ -39,7 +39,6 @@ namespace OpenDemo
         {
         public:
             virtual Result InitResource(const std::shared_ptr<Object>& resource) const = 0;
-            virtual Result InitResource(const std::shared_ptr<Fence>& fence, uint64_t initialValue) const = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

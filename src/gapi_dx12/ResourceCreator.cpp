@@ -239,11 +239,11 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, uint64_t initialValue, Fence& resource)
+                Result initResource(const ResourceCreatorContext& context, Fence& resource)
                 {
                     auto impl = new FenceImpl();
 
-                    D3DCall(impl->Init(context.device, initialValue, resource.GetName()));
+                    D3DCall(impl->Init(context.device, resource.GetName()));
                     resource.SetPrivateImpl(impl);
 
                     return Result::Ok;
@@ -262,6 +262,7 @@ namespace OpenDemo
 
             Result ResourceCreator::InitResource(const ResourceCreatorContext& context, const Object::SharedPtr& resource)
             {
+                // TODO ambigous naming Resource->Object
                 ASSERT(resource)
                 ASSERT(!resource->GetPrivateImpl<void*>())
 
@@ -276,6 +277,7 @@ namespace OpenDemo
                 {
                     CASE_RESOURCE(CommandList)
                     CASE_RESOURCE(CommandQueue)
+                    CASE_RESOURCE(Fence)
                     CASE_RESOURCE(Resource)
                     CASE_RESOURCE(ResourceView)
                     CASE_RESOURCE(SwapChain)
@@ -288,19 +290,6 @@ namespace OpenDemo
                     Log::Print::Error("Error creating resource with eror: %s", result.ToString());
 
                 return result;
-            }
-
-            Result ResourceCreator::InitResource(const ResourceCreatorContext& context, uint64_t initialValue, const Fence::SharedPtr& resource)
-            {
-                ASSERT(resource)
-                ASSERT(!resource->GetPrivateImpl<void*>())
-
-                Result result = initResource(context, initialValue, static_cast<Fence&>(*resource));
-
-                if (!result)
-                    Log::Print::Error("Error creating fence with eror: %s", result.ToString());
-
-                return Result::Ok;
             }
 
         }

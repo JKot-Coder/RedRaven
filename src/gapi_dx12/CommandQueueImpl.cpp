@@ -63,17 +63,10 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result CommandQueueImpl::Signal(const std::shared_ptr<Fence>& fence, uint64_t value)
+            Result CommandQueueImpl::Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
-
-                const auto& fenceImpl = fence->GetPrivateImpl<FenceImpl>();
-                ASSERT(fenceImpl);
-
-                const auto& d3dFence = fenceImpl->GetD3DObject();
-                ASSERT(d3dFence);
-
-                D3DCallMsg(D3DCommandQueue_->Signal(d3dFence.get(), value), "Signal");
+                D3DCallMsg(D3DCommandQueue_->Signal(fence.get(), value), "Signal");
 
                 return Result::Ok;
             }

@@ -21,8 +21,6 @@ namespace OpenDemo
         {
         public:
             virtual Result Submit(const std::shared_ptr<CommandList>& commandList) = 0;
-
-            virtual Result Signal(const std::shared_ptr<Fence>& fence, uint64_t value) = 0;
         };
 
         class CommandQueue final : public Object, public CommandQueueInterface
@@ -39,7 +37,6 @@ namespace OpenDemo
             }
 
             inline Result Submit(const std::shared_ptr<CommandList>& commandList) override { return getImplementation().Submit(commandList); }
-            inline Result Signal(const std::shared_ptr<Fence>& fence, uint64_t value) override { return getImplementation().Signal(fence, value); }
 
             inline CommandQueueType GetType() const
             {

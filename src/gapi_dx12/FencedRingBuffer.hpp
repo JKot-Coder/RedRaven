@@ -48,7 +48,7 @@ namespace OpenDemo
                     }
 
 #ifdef ENABLE_FENCE_SYNC_CHECK
-                    D3DCall(_fence->Init(device, 1, fmt::format("FencedFrameRingBuffer::{}", name)));
+                    D3DCall(_fence->Init(device, fmt::format("FencedFrameRingBuffer::{}", name)));
 
 #endif
                     return Result::Ok;
