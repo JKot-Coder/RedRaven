@@ -6,9 +6,10 @@
 #include "gapi/Fence.hpp"
 #include "gapi/ResourceViews.hpp"
 #include "gapi/Result.hpp"
-#include "gapi/Submission.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
+
+#include "render/Submission.hpp"
 
 #include "common/threading/Event.hpp"
 

@@ -19,6 +19,7 @@ set(OPEN_DEMO_LINK_LIBRARIES
         ${SDL2_LIBRARY}
         common
         gapi_dx12
+        render
         renderer
         STB
         ghc_filesystem

@@ -21,8 +21,6 @@ set(GAPI_SRC
         ResourceViews.hpp
         Result.cpp
         Result.hpp
-        Submission.cpp
-        Submission.hpp
         SwapChain.cpp
         SwapChain.hpp
         Texture.cpp
