@@ -15,7 +15,7 @@
 
 namespace OpenDemo
 {
-    namespace GAPI
+    namespace Render
     {
         RenderContext::RenderContext()
             : submission_(new Submission())
@@ -24,13 +24,13 @@ namespace OpenDemo
 
         RenderContext::~RenderContext() { }
 
-        Result RenderContext::Init(const GAPI::PresentOptions& presentOptions)
+        GAPI::Result RenderContext::Init(const GAPI::PresentOptions& presentOptions)
         {
             ASSERT(!inited_)
 
             submission_->Start();
 
-            Result result = Result::Ok;
+            GAPI::Result result = GAPI::Result::Ok;
             if (!(result = initDevice()))
             {
                 Log::Print::Error("Render device init failed.\n");
@@ -93,14 +93,14 @@ namespace OpenDemo
             fenceValues_[frameIndex_] = currentFenceValue + 1;
         }
 
-        GAPI::Result RenderContext::ResetDevice(const PresentOptions& presentOptions)
+        GAPI::Result RenderContext::ResetDevice(const GAPI::PresentOptions& presentOptions)
         {
             ASSERT(inited_)
 
             return resetDevice(presentOptions);
         }
 
-        Result RenderContext::ResetSwapChain(const std::shared_ptr<SwapChain>& swapchain, SwapChainDescription& description)
+        GAPI::Result RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
         {
             ASSERT(inited_)
 
@@ -109,88 +109,88 @@ namespace OpenDemo
             });
         }
 
-        CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
+        GAPI::CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = CopyCommandList::Create(name);
+            auto& resource = GAPI::CopyCommandList::Create(name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        ComputeCommandList::SharedPtr RenderContext::CreateComputeCommandList(const U8String& name) const
+        GAPI::ComputeCommandList::SharedPtr RenderContext::CreateComputeCommandList(const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = ComputeCommandList::Create(name);
+            auto& resource = GAPI::ComputeCommandList::Create(name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        GraphicsCommandList::SharedPtr RenderContext::CreateGraphicsCommandList(const U8String& name) const
+        GAPI::GraphicsCommandList::SharedPtr RenderContext::CreateGraphicsCommandList(const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = GraphicsCommandList::Create(name);
+            auto& resource = GAPI::GraphicsCommandList::Create(name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        CommandQueue::SharedPtr RenderContext::CreteCommandQueue(CommandQueueType type, const U8String& name) const
+        GAPI::CommandQueue::SharedPtr RenderContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = CommandQueue::Create(type, name);
+            auto& resource = GAPI::CommandQueue::Create(type, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        Fence::SharedPtr RenderContext::CreateFence(uint64_t initialValue, const U8String& name) const
+        GAPI::Fence::SharedPtr RenderContext::CreateFence(uint64_t initialValue, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = Fence::Create(name);
+            auto& resource = GAPI::Fence::Create(name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource, initialValue))
                 resource = nullptr;
 
             return resource;
         }
 
-        Texture::SharedPtr RenderContext::CreateTexture(const TextureDescription& desc, Texture::BindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::Texture::BindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = Texture::Create(desc, bindFlags, name);
+            auto& resource = GAPI::Texture::Create(desc, bindFlags, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const Texture::SharedPtr& texture, const ResourceViewDescription& desc, const U8String& name) const
+        GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const GAPI::Texture::SharedPtr& texture, const GAPI::ResourceViewDescription& desc, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = RenderTargetView::Create(texture, desc, name);
+            auto& resource = GAPI::RenderTargetView::Create(texture, desc, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        SwapChain::SharedPtr RenderContext::CreateSwapchain(const SwapChainDescription& description, const U8String& name) const
+        GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = SwapChain::Create(description, name);
+            auto& resource = GAPI::SwapChain::Create(description, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -204,7 +204,7 @@ namespace OpenDemo
             });
         }
 
-        GAPI::Result RenderContext::resetDevice(const PresentOptions& presentOptions)
+        GAPI::Result RenderContext::resetDevice(const GAPI::PresentOptions& presentOptions)
         {
             return submission_->ExecuteAwait([&presentOptions](GAPI::Device& device) {
                 return device.Reset(presentOptions);

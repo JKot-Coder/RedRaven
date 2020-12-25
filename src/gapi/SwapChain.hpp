@@ -54,7 +54,7 @@ namespace OpenDemo
         private:
             SwapChainDescription description_;
 
-            friend class RenderContext;
+            friend class Render::RenderContext;
         };
     }
 }

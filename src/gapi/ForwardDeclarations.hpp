@@ -10,6 +10,8 @@ namespace OpenDemo
         class ComputeCommandList;
         class GraphicsCommandList;
 
+        struct PresentOptions;
+
         class CommandQueue;
         enum class CommandQueueType : uint32_t;
         class Fence;
@@ -23,8 +25,6 @@ namespace OpenDemo
 
         class RenderTargetView;
 
-        class Submission;
-
         class SwapChain;
         struct SwapChainDescription;
 
@@ -32,6 +32,11 @@ namespace OpenDemo
         struct TextureDescription;
         enum class TextureDimension : uint32_t;
 
-        struct Result;     
+        struct Result;
+    }
+
+    namespace Render
+    {
+        class RenderContext;
     }
 }

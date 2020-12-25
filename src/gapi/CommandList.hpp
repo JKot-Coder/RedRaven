@@ -89,7 +89,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class RenderContext;
+            friend class Render::RenderContext;
         };
 
         class ComputeCommandList final : public CommandList, public CopyCommandListInterface, ComputeCommandListInterface
@@ -110,7 +110,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class RenderContext;
+            friend class Render::RenderContext;
         };
 
         class GraphicsCommandList final : public CommandList,
@@ -143,7 +143,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class RenderContext;
+            friend class Render::RenderContext;
         };
     }
 }

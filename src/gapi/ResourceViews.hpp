@@ -85,7 +85,7 @@ namespace OpenDemo
             RenderTargetView(const std::weak_ptr<Resource>& resource, const ResourceViewDescription& desc, const U8String& name)
                 : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
 
-            friend class RenderContext;
+            friend class Render::RenderContext;
         };
     }
 }

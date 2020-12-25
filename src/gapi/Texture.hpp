@@ -101,7 +101,7 @@ namespace OpenDemo
             TextureDescription description_;
             BindFlags bindFlags_;
 
-            friend class RenderContext;
+            friend class Render::RenderContext;
         };
 
     }

@@ -42,8 +42,8 @@ namespace OpenDemo
 
                 struct Submit
                 {
-                    std::shared_ptr<CommandQueue> commandQueue;
-                    std::shared_ptr<CommandList> commandList;
+                    std::shared_ptr<GAPI::CommandQueue> commandQueue;
+                    std::shared_ptr<GAPI::CommandList> commandList;
                 };
 
                 using WorkVariant = std::variant<Terminate, Callback, Submit>;

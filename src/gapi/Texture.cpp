@@ -2,8 +2,9 @@
 
 #include "Texture.hpp"
 
-#include "gapi/RenderContext.hpp"
 #include "gapi/ResourceViews.hpp"
+
+#include "render/RenderContext.hpp"
 
 #include "common/Math.hpp"
 
@@ -80,7 +81,7 @@ namespace OpenDemo
 
             const ResourceViewDescription desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
 
-            auto& renderContext = RenderContext::Instance();
+            auto& renderContext = Render::RenderContext::Instance();
             return renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), desc, name_);
         }
 
