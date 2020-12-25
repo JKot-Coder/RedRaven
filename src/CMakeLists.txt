@@ -11,6 +11,7 @@ endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/gapi)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/gapi_dx12)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/render)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/rendering)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/common)
 

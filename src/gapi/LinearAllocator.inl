@@ -2,7 +2,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         INLINE void* LinearAllocator::Page::Allocate(size_t size, size_t aligment,
 #ifdef CACHE_LINE_ALIGN

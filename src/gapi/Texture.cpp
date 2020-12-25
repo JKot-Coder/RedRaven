@@ -22,7 +22,7 @@ namespace
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         Texture::Texture(const TextureDescription& desc, BindFlags bindFlags, const U8String& name)
             : Resource(Resource::ResourceType::Texture, name),

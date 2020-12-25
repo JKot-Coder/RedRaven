@@ -20,7 +20,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
@@ -233,7 +233,7 @@ namespace OpenDemo
                 {
                     auto impl = new CommandContextImpl();
 
-                    D3DCall(impl->Init(context.device, resource.GetName()));
+                    D3DCall(impl->Init(context.device, resource.GetCommandListType(), resource.GetName()));
                     resource.SetPrivateImpl(impl);
 
                     return Result::Ok;

@@ -29,7 +29,7 @@ namespace OpenDemo
 
         std::shared_ptr<Windowing::InputtingWindow> _window;
         std::shared_ptr<Rendering::SceneGraph> _scene;
-        std::shared_ptr<Render::SwapChain> swapChain_;
+        std::shared_ptr<GAPI::SwapChain> swapChain_;
 
         void init();
         void terminate();

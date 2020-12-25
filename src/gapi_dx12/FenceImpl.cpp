@@ -1,47 +1,59 @@
 #include "FenceImpl.hpp"
 
+#include "gapi/CommandQueue.hpp"
+
+#include "gapi_dx12/CommandQueueImpl.hpp"
+
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
             Result FenceImpl::Init(const ComSharedPtr<ID3D12Device>& device, uint64_t initialValue, const U8String& name)
             {
                 ASSERT(device)
-                ASSERT(_fence.get() == nullptr)
+                ASSERT(!D3DFence_)
 
-                D3DCallMsg(device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_fence.put())), "CreateFence");
-                D3DUtils::SetAPIName(_fence.get(), name);
+                D3DCallMsg(device->CreateFence(initialValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(D3DFence_.put())), "CreateFence");
+                D3DUtils::SetAPIName(D3DFence_.get(), name);
 
-                _cpu_value = initialValue;
+                event_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+                ASSERT(event_);
+
+                cpuValue_ = initialValue;
                 return Result::Ok;
             }
 
-            Result FenceImpl::Signal(ID3D12CommandQueue* commandQueue, uint64_t value)
+            Result FenceImpl::SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const
             {
-                ASSERT(_fence.get())
+                ASSERT(!D3DFence_)
 
-                D3DCallMsg(commandQueue->Signal(_fence.get(), value), "Signal");
+                uint64_t syncVal = value ? value.value() : cpuValue_;
+                ASSERT(syncVal <= cpuValue_);
 
-                _cpu_value = value;
+                uint64_t gpuVal = GetGpuValue();
+                if (gpuVal < syncVal)
+                {
+                    D3DCallMsg(D3DFence_->SetEventOnCompletion(syncVal, event_), "SetEventOnCompletion");
+                    return Result(WaitForSingleObject(event_, timeout));
+                }
+
                 return Result::Ok;
             }
 
-            Result FenceImpl::SetEventOnCompletion(uint64_t value, HANDLE event) const
+            Result FenceImpl::SyncGPU(const std::shared_ptr<CommandQueue>& queue) const
             {
-                ASSERT(_fence.get())
+                ASSERT(!D3DFence_)
+                ASSERT(queue)
+                ASSERT(queue->GetPrivateImpl<void>())
 
-                D3DCallMsg(_fence->SetEventOnCompletion(value, event), "SetEventOnCompletion");
+                const auto& queueImpl = queue->GetPrivateImpl<CommandQueueImpl>();
+                D3DCall(queueImpl->Wait(D3DFence_, cpuValue_));
 
                 return Result::Ok;
             }
 
-            uint64_t FenceImpl::GetGpuValue() const
-            {
-                ASSERT(_fence.get())
-                return _fence->GetCompletedValue();
-            }
         }
     }
 }

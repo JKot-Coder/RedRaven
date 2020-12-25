@@ -2,7 +2,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         U8String Result::ToString() const
         {
@@ -33,6 +33,13 @@ namespace OpenDemo
                 return u8"Pointer that is not valid";
             case Result::Unexpected:
                 return u8"Unexpected failure";
+
+            case Result::WaitFailed:
+                return u8"The function has failed.";
+            case Result::WaitAbandoned:
+                return u8"The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated";
+            case Result::WaitTimeout:
+                return u8"The time-out interval elapsed";
             }
 
             return fmt::sprintf("Unknown error. Code: 0x%08X", value_);

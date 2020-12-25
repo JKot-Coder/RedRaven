@@ -1,12 +1,14 @@
 #include "CommandQueueImpl.hpp"
 
 #include "gapi/CommandList.hpp"
+#include "gapi/Fence.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
+#include "gapi_dx12/CommandContextImpl.hpp"
+#include "gapi_dx12/FenceImpl.hpp"
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
@@ -49,15 +51,40 @@ namespace OpenDemo
             {
                 ASSERT(D3DCommandQueue_);
 
-                const auto commandListImpl = commandList->GetPrivateImpl<CommandListImpl>();
+                const auto& commandListImpl = commandList->GetPrivateImpl<CommandContextImpl>();
                 ASSERT(commandListImpl);
 
-                ID3D12CommandList* commandLists[] = { commandListImpl->GetD3DObject().get() };
+                const auto& d3dCommandList = commandListImpl->GetD3DObject();
+                ASSERT(d3dCommandList);
+
+                ID3D12CommandList* commandLists[] = { d3dCommandList.get() };
                 D3DCommandQueue_->ExecuteCommandLists(1, commandLists);
 
                 return Result::Ok;
             }
 
+            Result CommandQueueImpl::Signal(const std::shared_ptr<Fence>& fence, uint64_t value)
+            {
+                ASSERT(D3DCommandQueue_);
+
+                const auto& fenceImpl = fence->GetPrivateImpl<FenceImpl>();
+                ASSERT(fenceImpl);
+
+                const auto& d3dFence = fenceImpl->GetD3DObject();
+                ASSERT(d3dFence);
+
+                D3DCallMsg(D3DCommandQueue_->Signal(d3dFence.get(), value), "Signal");
+
+                return Result::Ok;
+            }
+
+            Result CommandQueueImpl::Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
+            {
+                ASSERT(D3DCommandQueue_);
+                D3DCallMsg(D3DCommandQueue_->Wait(fence.get(), value), "Wait");
+
+                return Result::Ok;
+            }
         };
     }
 }

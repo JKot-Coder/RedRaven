@@ -2,7 +2,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {

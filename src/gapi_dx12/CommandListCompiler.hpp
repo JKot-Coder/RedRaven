@@ -7,7 +7,7 @@ struct ID3D12CommandList;
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
 
         namespace DX12

@@ -4,7 +4,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         enum class TextureDimension : uint32_t
         {

@@ -14,7 +14,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         RenderContext::RenderContext()
             : submission_(new Submission())
@@ -23,7 +23,7 @@ namespace OpenDemo
 
         RenderContext::~RenderContext() { }
 
-        Result RenderContext::Init(const Render::PresentOptions& presentOptions)
+        Result RenderContext::Init(const GAPI::PresentOptions& presentOptions)
         {
             ASSERT(!inited_)
 
@@ -42,9 +42,6 @@ namespace OpenDemo
                 Log::Print::Error("Render device reset failed.\n");
                 return result;
             }
-
-            for (int i = 0; i < presentEvents_.size(); i++)
-                presentEvents_[i] = std::make_unique<Threading::Event>(false, true);
 
             inited_ = true;
 
@@ -66,37 +63,36 @@ namespace OpenDemo
             submission_->Terminate();
             inited_ = false;
         }
-
+        /*
         void RenderContext::Submit(const CommandQueue::SharedPtr& commandQueue, const CommandList::SharedPtr& commandList)
         {
             ASSERT(inited_)
 
             submission_->Submit(commandQueue, commandList);
-        }
+        }*/
 
         void RenderContext::Present()
         {
             ASSERT(inited_)
 
-            //  auto& presentEvent = presentEvents_[presentIndex_];
-            // This will limit count of main thread frames ahead.
-            // presentEvent->Wait();
-
-            submission_->ExecuteAsync([](Render::Device& device) {
+            submission_->ExecuteAsync([](GAPI::Device& device) {
                 const auto result = device.Present();
-
-                //    presentEvent->Notify();
-
                 return result;
             });
 
-            //fence_-
+            // Schedule a Signal command in the queue.
+            const uint64_t currentFenceValue = fence_->GetCpuValue();
+            // fence_->Signal();
 
-            //if (++presentIndex_ == presentEvents_.size())
-            //   presentIndex_ = 0;
+            // This will limit count of main thread frames ahead.
+            frameIndex_ = (frameIndex_++ % SubmissionThreadAheadFrames);
+            fence_->SyncCPU(fenceValues_[frameIndex_], INFINITE);
+
+            // Set the fence value for the next time.
+            fenceValues_[frameIndex_] = currentFenceValue + 1;
         }
 
-        Render::Result RenderContext::ResetDevice(const PresentOptions& presentOptions)
+        GAPI::Result RenderContext::ResetDevice(const PresentOptions& presentOptions)
         {
             ASSERT(inited_)
 
@@ -107,16 +103,38 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            return submission_->ExecuteAwait([&swapchain, &description](Render::Device& device) {
+            return submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
                 return device.ResetSwapchain(swapchain, description);
             });
         }
 
-        CommandList::SharedPtr RenderContext::CreateCommandList(const U8String& name) const
+        CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = CommandList::Create(name);
+            auto& resource = CopyCommandList::Create(name);
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
+        ComputeCommandList::SharedPtr RenderContext::CreateComputeCommandList(const U8String& name) const
+        {
+            ASSERT(inited_)
+
+            auto& resource = ComputeCommandList::Create(name);
+            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
+        GraphicsCommandList::SharedPtr RenderContext::CreateGraphicsCommandList(const U8String& name) const
+        {
+            ASSERT(inited_)
+
+            auto& resource = GraphicsCommandList::Create(name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -178,16 +196,16 @@ namespace OpenDemo
             return resource;
         }
 
-        Render::Result RenderContext::initDevice()
+        GAPI::Result RenderContext::initDevice()
         {
-            return submission_->ExecuteAwait([](Render::Device& device) {
+            return submission_->ExecuteAwait([](GAPI::Device& device) {
                 return device.Init();
             });
         }
 
-        Render::Result RenderContext::resetDevice(const PresentOptions& presentOptions)
+        GAPI::Result RenderContext::resetDevice(const PresentOptions& presentOptions)
         {
-            return submission_->ExecuteAwait([&presentOptions](Render::Device& device) {
+            return submission_->ExecuteAwait([&presentOptions](GAPI::Device& device) {
                 return device.Reset(presentOptions);
             });
         }

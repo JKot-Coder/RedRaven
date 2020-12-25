@@ -4,7 +4,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         RenderTargetView::SharedPtr RenderTargetView::Create(const Texture::SharedPtr& texture, const ResourceViewDescription& desc, const U8String& name)
         {

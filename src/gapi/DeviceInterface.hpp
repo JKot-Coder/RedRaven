@@ -8,7 +8,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         struct PresentOptions
         {
@@ -30,7 +30,7 @@ namespace OpenDemo
 
             virtual Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) = 0;
 
-            virtual Result Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
+         //   virtual Result Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
 
             virtual Result Present() = 0;
         };
@@ -38,8 +38,6 @@ namespace OpenDemo
         class MultiThreadDeviceInterface
         {
         public:
-            virtual uint64_t GetGpuFenceValue(const std::shared_ptr<Fence>& fence) const = 0;
-
             virtual Result InitResource(const std::shared_ptr<Object>& resource) const = 0;
             virtual Result InitResource(const std::shared_ptr<Fence>& fence, uint64_t initialValue) const = 0;
         };

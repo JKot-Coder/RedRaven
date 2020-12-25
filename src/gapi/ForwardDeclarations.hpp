@@ -2,10 +2,14 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         class Buffer;
         class CommandList;
+        class CopyCommandList;
+        class ComputeCommandList;
+        class GraphicsCommandList;
+
         class CommandQueue;
         enum class CommandQueueType : uint32_t;
         class Fence;

@@ -5,7 +5,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace
         {

@@ -6,7 +6,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
@@ -80,7 +80,9 @@ namespace OpenDemo
                 Result MoveToNextFrame(ID3D12CommandQueue* commandQueue)
                 {
 #ifdef ENABLE_FENCE_SYNC_CHECK
-                    return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
+                    // TODO
+                  //  return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
+                    return Result::Ok;
 #else
                     return Result::Ok;
 #endif

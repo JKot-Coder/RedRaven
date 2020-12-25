@@ -9,7 +9,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
@@ -18,8 +18,10 @@ namespace OpenDemo
             {
             }
 
-            Result CommandContextImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
+            Result CommandContextImpl::Init(const ComSharedPtr<ID3D12Device>& device, const CommandListType commandListType, const U8String& name)
             {
+                // TODO
+                std::ignore = commandListType;
                 D3DCall(commandList_->Init(device, name));
 
                 D3DCommandList_ = commandList_->GetD3DObject();

@@ -6,7 +6,7 @@ using HRESULT = long;
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         struct PresentOptions;
 
@@ -18,7 +18,7 @@ namespace OpenDemo
 #define D3DCall(exp, ...)                                                                                                                               \
     {                                                                                                                                                   \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
-        Result result = Result(exp);                                                                                                                    \
+        const Result result = Result(exp);                                                                                                              \
         if (!result)                                                                                                                                    \
             return result;                                                                                                                              \
     }
@@ -26,7 +26,7 @@ namespace OpenDemo
 #define D3DCallMsg(exp, msg, ...)                                                                                 \
     {                                                                                                             \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
-        Result result = Result(exp);                                                                              \
+        const Result result = Result(exp);                                                                        \
         if (!result)                                                                                              \
         {                                                                                                         \
             LOG_ERROR("%s Error: %s", msg, result.ToString())                                                     \

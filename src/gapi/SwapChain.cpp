@@ -4,7 +4,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
 
         SwapChain::SwapChain(const SwapChainDescription& description, const U8String& name)

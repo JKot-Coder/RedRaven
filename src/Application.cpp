@@ -34,20 +34,20 @@ namespace OpenDemo
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
 
-        Render::SwapChainDescription desc = swapChain_->GetDescription();
+        GAPI::SwapChainDescription desc = swapChain_->GetDescription();
         desc.width = window_.GetWidth();
         desc.height = window_.GetHeight();
 
-        auto& renderContext = Render::RenderContext::Instance();
+        auto& renderContext = GAPI::RenderContext::Instance();
         const auto result = renderContext.ResetSwapChain(swapChain_, desc);
         ASSERT(result)
 
         /*
-        Render::PresentOptions presentOptions;
+        GAPI::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(width, height));
-        presentOptions.ResourceFormat = Render::ResourceFormat::Unknown;
+        presentOptions.ResourceFormat = GAPI::ResourceFormat::Unknown;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
         submission_->ResetDevice(presentOptions);*/
@@ -57,13 +57,13 @@ namespace OpenDemo
     {
         init();
 
-        /*    const auto cmdList = new Render::CommandList("asd");
+        /*    const auto cmdList = new GAPI::CommandList("asd");
         std::ignore = cmdList;
 
         auto alloc = cmdList->GetAllocator();
         for (int i = 0; i < 100; i++)
         {
-            alloc->emplace_back<Render::CommandClearRenderTarget>(Render::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
+            alloc->emplace_back<GAPI::CommandClearRenderTarget>(GAPI::RenderTargetView::SharedPtr(nullptr),Vector4(0,0,0,0));
         }
         */
 
@@ -75,15 +75,15 @@ namespace OpenDemo
 
         time->Init();
 
-        auto& renderContext = Render::RenderContext::Instance();
+        auto& renderContext = GAPI::RenderContext::Instance();
 
-        auto commandQueue = renderContext.CreteCommandQueue(Render::CommandQueueType::Graphics, u8"Primary"); 
-        auto commandList = renderContext.CreateCommandList(u8"qwew");
+        auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary"); 
+        auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
         ASSERT(commandList)
         commandList->Close();
 
-        const auto& desc = Render::TextureDescription::Create2D(100, 100, Render::ResourceFormat::R8Unorm);
-        auto texture = renderContext.CreateTexture(desc, Render::Texture::BindFlags::ShaderResource | Render::Texture::BindFlags::RenderTarget);
+        const auto& desc = GAPI::TextureDescription::Create2D(100, 100, GAPI::ResourceFormat::R8Unorm);
+        auto texture = renderContext.CreateTexture(desc, GAPI::Texture::BindFlags::ShaderResource | GAPI::Texture::BindFlags::RenderTarget);
         ASSERT(texture)
 
         auto rtv = texture->GetRTV();
@@ -97,7 +97,7 @@ namespace OpenDemo
             commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
             commandList->Close();
 
-            renderContext.Submit(commandQueue, commandList);
+           // renderContext.Submit(commandQueue, commandList);
 
             //  renderPipeline->Collect(_scene);
             //    renderPipeline->Draw();
@@ -138,25 +138,25 @@ namespace OpenDemo
         Inputting::Instance()->Init();
         Inputting::Instance()->SubscribeToWindow(_window);
 
-        Render::PresentOptions presentOptions;
+        GAPI::PresentOptions presentOptions;
         presentOptions.bufferCount = 2;
         presentOptions.isStereo = false;
         presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
-        presentOptions.resourceFormat = Render::ResourceFormat::BGRA8Unorm;
+        presentOptions.resourceFormat = GAPI::ResourceFormat::BGRA8Unorm;
         presentOptions.windowHandle = _window->GetNativeHandle();
 
-        auto& renderContext = Render::RenderContext::Instance();
+        auto& renderContext = GAPI::RenderContext::Instance();
         const auto result = renderContext.Init(presentOptions);
 
         if (!result)
             Log::Print::Fatal("Fatal error initialize render context with error: %s\n", result.ToString());
 
-        Render::SwapChainDescription desciption;
+        GAPI::SwapChainDescription desciption;
         desciption.width = 100;
         desciption.height = 100;
         desciption.bufferCount = 2;
         desciption.isStereo = false;
-        desciption.resourceFormat = Render::ResourceFormat::BGRA8Unorm;
+        desciption.resourceFormat = GAPI::ResourceFormat::BGRA8Unorm;
         desciption.windowHandle = _window->GetNativeHandle();
 
         swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
@@ -166,7 +166,7 @@ namespace OpenDemo
 
     void Application::terminate()
     {
-        Render::RenderContext::Instance().Terminate();
+        GAPI::RenderContext::Instance().Terminate();
 
         //_scene->Terminate();
 

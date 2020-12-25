@@ -3,15 +3,15 @@
 // TODO temporary
 //#include "gapi/FencedRingBuffer.hpp"
 
-#include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList.hpp"
+#include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
 #include "gapi/SwapChain.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
-#include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandContextImpl.hpp"
+#include "gapi_dx12/CommandListCompiler.hpp"
+#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
@@ -35,7 +35,7 @@ using namespace std::chrono_literals;
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
@@ -324,7 +324,7 @@ namespace OpenDemo
                 const auto commandListImpl = CommandList->GetPrivateImpl<CommandContextImpl>();
                 ASSERT(commandListImpl)
 
-                const auto D3DCommandList = commandListImpl->getD3DCommandList();
+                const auto D3DCommandList = commandListImpl->GetD3DObject();
                 ASSERT(D3DCommandList)
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
@@ -506,7 +506,7 @@ namespace OpenDemo
                 // Schedule a Signal command in the queue.
                 const UINT64 currentFenceValue = fenceValues_[frameIndex_];
                 // ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
-
+                /*
                 fence_->Signal(commandQueue.get(), currentFenceValue);
 
                 // Update the back buffer index.
@@ -522,7 +522,7 @@ namespace OpenDemo
                 }
 
                 // Set the fence value for the next frame.
-                fenceValues_[frameIndex_] = currentFenceValue + 1;
+                fenceValues_[frameIndex_] = currentFenceValue + 1;*/
             }
 
             Device::Device()
@@ -551,20 +551,15 @@ namespace OpenDemo
             {
                 return _impl->Present();
             }
-
+            /*
             Result Device::Submit(const CommandList::SharedPtr& CommandList)
             {
                 return _impl->Submit(CommandList);
-            }
+            }*/
 
             void Device::WaitForGpu()
             {
                 return _impl->WaitForGpu();
-            }
-
-            uint64_t Device::GetGpuFenceValue(const Fence::SharedPtr& fence) const
-            {
-                return 0;
             }
 
             Result Device::InitResource(const Object::SharedPtr& resource) const

@@ -24,7 +24,7 @@ namespace OpenDemo
             class BufferedChannel;
         }
     }
-    namespace Render
+    namespace GAPI
     {
 
         namespace
@@ -35,7 +35,7 @@ namespace OpenDemo
         class Submission final
         {
         public:
-            using CallbackFunction = std::function<Render::Result(Render::Device& device)>;
+            using CallbackFunction = std::function<GAPI::Result(GAPI::Device& device)>;
 
             Submission();
             ~Submission();
@@ -45,9 +45,9 @@ namespace OpenDemo
             void Submit(const std::shared_ptr<CommandQueue>& commandQueue, const std::shared_ptr<CommandList>& commandList);
 
             void ExecuteAsync(CallbackFunction&& function);
-            Render::Result ExecuteAwait(const CallbackFunction&& function);
+            GAPI::Result ExecuteAwait(const CallbackFunction&& function);
 
-            inline std::weak_ptr<Render::MultiThreadDeviceInterface> GetMultiThreadDeviceInterface() { return device_; }
+            inline std::weak_ptr<GAPI::MultiThreadDeviceInterface> GetMultiThreadDeviceInterface() { return device_; }
 
         private:
             template <typename T>
@@ -60,8 +60,8 @@ namespace OpenDemo
             static constexpr size_t WorkBufferSize = 64;
             using BufferedChannel = Threading::BufferedChannel<Work, WorkBufferSize>;
 
-            std::shared_ptr<Render::Device> device_;
-            //   std::unique_ptr<AccessGuard<Render::Device>> device_;
+            std::shared_ptr<GAPI::Device> device_;
+            //   std::unique_ptr<AccessGuard<GAPI::Device>> device_;
             Threading::Thread submissionThread_;
             std::unique_ptr<BufferedChannel> inputWorkChannel_;
         };

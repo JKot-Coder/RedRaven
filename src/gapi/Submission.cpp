@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace
         {
@@ -75,7 +75,7 @@ namespace OpenDemo
             ASSERT(!inputWorkChannel_->IsClosed())
 
             submissionThread_ = Threading::Thread("Submission Thread", [this] {
-                device_.reset(new Render::DX12::Device());
+                device_.reset(new GAPI::DX12::Device());
                 this->threadFunc();
             });
         }
@@ -94,7 +94,7 @@ namespace OpenDemo
 #endif
             inputWorkChannel_->Put(std::move(work));
         }
-
+        /*
         void Submission::Submit(const CommandQueue::SharedPtr& commandQueue, const CommandList::SharedPtr& commandList)
         {
             Work::Submit work;
@@ -102,7 +102,7 @@ namespace OpenDemo
             work.commandList = commandList;
 
             putWork(work);
-        }
+        }*/
 
         void Submission::ExecuteAsync(CallbackFunction&& function)
         {
@@ -112,16 +112,16 @@ namespace OpenDemo
             putWork(work);
         }
 
-        Render::Result Submission::ExecuteAwait(const CallbackFunction&& function)
+        GAPI::Result Submission::ExecuteAwait(const CallbackFunction&& function)
         {
             Work::Callback work;
 
             Threading::Mutex mutex;
             std::unique_lock<Threading::Mutex> lock(mutex);
             Threading::ConditionVariable condition;
-            Render::Result result = Render::Result::Fail;
+            GAPI::Result result = GAPI::Result::Fail;
 
-            work.function = [&condition, &function, &mutex, &result](Render::Device& device) {
+            work.function = [&condition, &function, &mutex, &result](GAPI::Device& device) {
                 std::unique_lock<Threading::Mutex> lock(mutex);
                 result = function(device);
                 condition.notify_one();
@@ -169,14 +169,14 @@ namespace OpenDemo
 
                 ASSERT(device_)
 
-                Render::Result result = Render::Result::Fail;
+                GAPI::Result result = GAPI::Result::Fail;
 
                 std::visit(overloaded {
                                [this, &result](const Work::Submit& work) { result = work.commandQueue->Submit(work.commandList); },
                                [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;
-                                   result = Render::Result::Ok;
+                                   result = GAPI::Result::Ok;
                                    Log::Print::Info("Device terminated.\n");
                                },
                                [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },

@@ -2,7 +2,7 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         struct Result final
         {
@@ -22,6 +22,11 @@ namespace OpenDemo
                 OutOfMemory = 0x8007000E,
                 Pointer = 0x80004003,
                 Unexpected = 0x8000FFFF,
+
+                WaitFailed = 0xFFFFFFFF,
+                WaitAbandoned = 0x00000080,
+                WaitTimeout = 0x00000102,
+
             };
 
             Result() = default;

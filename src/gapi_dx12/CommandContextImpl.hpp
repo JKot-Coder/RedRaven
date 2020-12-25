@@ -8,24 +8,27 @@
 
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
 
-            class CommandContextImpl final : public CommandListInterface
+            class CommandContextImpl final : public CommandListInterface,
+                                             public CopyCommandListInterface,
+                                             public ComputeCommandListInterface,
+                                             public GraphicsCommandListInterface
             {
             public:
                 CommandContextImpl();
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const CommandListType commandListType, const U8String& name);
 
                 void Reset() override;
                 void Close() override;
 
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
-                const ComSharedPtr<ID3D12GraphicsCommandList>& getD3DCommandList() const { return D3DCommandList_; }
+                const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
 
             private:
                 std::unique_ptr<CommandListImpl> commandList_;

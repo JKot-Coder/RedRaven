@@ -1,27 +1,35 @@
 #pragma once
 
+#include "gapi/Fence.hpp"
+
 namespace OpenDemo
 {
-    namespace Render
+    namespace GAPI
     {
         namespace DX12
         {
-            class FenceImpl final
+            class FenceImpl final : public FenceInterface
             {
             public:
-                // _commandList->SetName(L"CommandList");
                 FenceImpl() = default;
                 Result Init(const ComSharedPtr<ID3D12Device>& device, uint64_t initialValue, const U8String& name);
 
-                Result Signal(ID3D12CommandQueue* commandQueue, uint64_t value);
-                Result SetEventOnCompletion(uint64_t value, HANDLE event) const;
+                Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const override;
+                Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;
 
-                uint64_t GetGpuValue() const;
-                uint64_t GetCpuValue() const { return _cpu_value; }
+                uint64_t GetGpuValue() const override
+                {
+                    ASSERT(D3DFence_)
+                    return D3DFence_->GetCompletedValue();
+                }
+                uint64_t GetCpuValue() const override { return cpuValue_; }
+
+                const ComSharedPtr<ID3D12Fence>& GetD3DObject() const { return D3DFence_; }
 
             private:
-                ComSharedPtr<ID3D12Fence> _fence;
-                uint64_t _cpu_value;
+                HANDLE event_ = 0;
+                ComSharedPtr<ID3D12Fence> D3DFence_ = nullptr;
+                uint64_t cpuValue_ = 0;
             };
         }
     }
