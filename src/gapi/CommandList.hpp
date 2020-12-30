@@ -45,25 +45,20 @@ namespace OpenDemo
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandList : public Object, public CommandListInterface
+        class CommandList : public InterfaceImplemementedObject<CommandListInterface>, public CommandListInterface
         {
         public:
-            inline void Reset() override { getImplementation().Reset(); }
-            inline void Close() override { getImplementation().Close(); }
+            using SharedPtr = std::shared_ptr<CommandList>;
+            using SharedConstPtr = std::shared_ptr<const CommandList>;
+
+            inline void Reset() override { GetInterface()->Reset(); }
+            inline void Close() override { GetInterface()->Close(); }
 
             inline CommandListType GetCommandListType() const { return type_; };
 
-        private:
-            inline CommandListInterface& getImplementation()
-            {
-                ASSERT(privateImpl_);
-
-                return *(static_cast<CommandListInterface*>(privateImpl_));
-            }
-
         protected:
             CommandList(CommandListType type, const U8String& name)
-                : Object(Object::Type::CommandList, name),
+                : InterfaceImplemementedObject(Object::Type::CommandList, name),
                   type_(type)
             {
             }

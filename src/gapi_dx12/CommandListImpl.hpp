@@ -9,7 +9,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class CommandListImpl final
+            class CommandListImpl final 
             {
             public:
                 CommandListImpl() = delete;

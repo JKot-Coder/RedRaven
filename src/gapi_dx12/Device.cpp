@@ -7,6 +7,7 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
+#include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
 
 #include "gapi_dx12/CommandContextImpl.hpp"
@@ -296,7 +297,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(swapChain)
-                ASSERT(swapChain->GetPrivateImpl<void*>())
+                ASSERT(swapChain->GetPrivateImpl<void>());
 
                 // Wait For gpu
 
@@ -306,17 +307,17 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::Submit(const CommandList::SharedPtr& CommandList)
+            Result DeviceImplementation::Submit(const CommandList::SharedPtr& commandList)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
-                ASSERT(CommandList)
+                ASSERT(commandList)
 
                 Log::Print::Info("submit\n");
                 const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
-                const auto commandListImpl = CommandList->GetPrivateImpl<CommandContextImpl>();
-                ASSERT(commandListImpl)
+                ASSERT(dynamic_cast<CommandListImpl*>(commandList->GetInterface()));
+                const auto commandListImpl = static_cast<CommandListImpl*>(commandList->GetInterface());
 
                 const auto D3DCommandList = commandListImpl->GetD3DObject();
                 ASSERT(D3DCommandList)

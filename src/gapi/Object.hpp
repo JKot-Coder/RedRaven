@@ -14,7 +14,7 @@ namespace OpenDemo
             {
                 CommandQueue,
                 CommandContext,
-                CommandList,                
+                CommandList,
                 Fence,
                 Resource,
                 ResourceView,
@@ -29,19 +29,22 @@ namespace OpenDemo
             inline U8String GetName() const { return name_; }
 
             template <typename T>
-            T* GetPrivateImpl()
+            inline T* GetPrivateImpl()
             {
-                return reinterpret_cast<T*>(privateImpl_);
+                return static_cast<T*>(privateImpl_);
             }
 
             template <typename T>
             const T* GetPrivateImpl() const
             {
-                return reinterpret_cast<T*>(privateImpl_);
+                return static_cast<T*>(privateImpl_);
             }
 
             template <typename T>
-            void SetPrivateImpl(T* privateImpl) { privateImpl_ = privateImpl; }
+            inline void SetPrivateImpl(T* impl)
+            {
+                privateImpl_ = impl;
+            }
 
         protected:
             Object(Type type, const U8String& name)
@@ -53,6 +56,29 @@ namespace OpenDemo
             void* privateImpl_ = nullptr;
             Type type_;
             U8String name_;
+        };
+
+        template <typename T>
+        class InterfaceImplemementedObject : public Object
+        {
+        public:
+            inline T* GetInterface()
+            {
+                return static_cast<T*>(privateImpl_);
+            }
+
+            const T* GetInterface() const
+            {
+                return static_cast<T*>(privateImpl_);
+            }
+
+            inline void SetInterface(T* impl)
+            {
+                privateImpl_ = impl;
+            }
+
+        protected:
+            InterfaceImplemementedObject(Type type, const U8String& name) : Object(type, name) {};
         };
     }
 }
