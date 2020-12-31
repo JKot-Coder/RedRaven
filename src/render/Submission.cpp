@@ -94,7 +94,7 @@ namespace OpenDemo
 #endif
             inputWorkChannel_->Put(std::move(work));
         }
-   
+
         void Submission::Submit(const GAPI::CommandQueue::SharedPtr& commandQueue, const GAPI::CommandList::SharedPtr& commandList)
         {
             Work::Submit work;
@@ -172,8 +172,8 @@ namespace OpenDemo
                 GAPI::Result result = GAPI::Result::Fail;
 
                 std::visit(overloaded {
-                               [this, &result](const Work::Submit& work) { Log::Print::Info("submit.\n"); result = work.commandQueue->Submit(work.commandList); },
-                               [this, &result](const Work::Callback& work) { Log::Print::Info("calback.\n"); result = work.function(*device_); },
+                               [this, &result](const Work::Submit& work) { result = work.commandQueue->Submit(work.commandList); },
+                               [this, &result](const Work::Callback& work) { result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;
                                    result = GAPI::Result::Ok;
