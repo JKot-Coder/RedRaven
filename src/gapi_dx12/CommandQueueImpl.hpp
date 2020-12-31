@@ -17,11 +17,11 @@ namespace OpenDemo
                 CommandQueueImpl(CommandQueueType type);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
-
                 Result Submit(const std::shared_ptr<CommandList>& commandList) override;
-
                 Result Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
                 Result Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
+
+                const ComSharedPtr<ID3D12CommandQueue>& GetD3DObject() const { return D3DCommandQueue_; }
 
             private:
                 CommandQueueType type_;

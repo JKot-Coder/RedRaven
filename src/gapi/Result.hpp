@@ -23,10 +23,12 @@ namespace OpenDemo
                 Pointer = 0x80004003,
                 Unexpected = 0x8000FFFF,
 
+                DeviceRemoved = 0x887A0005,
+                DeviceReset = 0x887A0007,
+
                 WaitFailed = 0xFFFFFFFF,
                 WaitAbandoned = 0x00000080,
                 WaitTimeout = 0x00000102,
-
             };
 
             Result() = default;

@@ -198,7 +198,7 @@ namespace OpenDemo
                     const auto& resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl>();
                     ASSERT(resourcePrivateImpl);
 
-                    const auto& d3dObject = resourcePrivateImpl->getD3DObject();
+                    const auto& d3dObject = resourcePrivateImpl->GetD3DObject();
                     ASSERT(d3dObject);
 
                     auto allocation = new DescriptorHeap::Allocation();
@@ -253,8 +253,14 @@ namespace OpenDemo
                 {
                     auto impl = new SwapChainImpl();
 
-                    D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue, resource.GetDescription(), resource.GetName()));
-                    resource.SetPrivateImpl(impl);
+                    auto commandQueue = resource.GetCommandQueue().lock();
+                    ASSERT(commandQueue);
+
+                    ASSERT(dynamic_cast<CommandQueueImpl*>(commandQueue->GetInterface()));
+                    auto commandQueueImpl = static_cast<CommandQueueImpl*>(commandQueue->GetInterface());
+
+                    D3DCall(impl->Init(context.device, context.dxgiFactory, commandQueueImpl->GetD3DObject(), resource.GetDescription(), resource.GetName()));
+                    resource.SetInterface(impl);
 
                     return Result::Ok;
                 }

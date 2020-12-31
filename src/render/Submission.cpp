@@ -94,15 +94,15 @@ namespace OpenDemo
 #endif
             inputWorkChannel_->Put(std::move(work));
         }
-        /*
-        void Submission::Submit(const CommandQueue::SharedPtr& commandQueue, const CommandList::SharedPtr& commandList)
+   
+        void Submission::Submit(const GAPI::CommandQueue::SharedPtr& commandQueue, const GAPI::CommandList::SharedPtr& commandList)
         {
             Work::Submit work;
             work.commandQueue = commandQueue;
             work.commandList = commandList;
 
             putWork(work);
-        }*/
+        }
 
         void Submission::ExecuteAsync(CallbackFunction&& function)
         {
@@ -172,8 +172,8 @@ namespace OpenDemo
                 GAPI::Result result = GAPI::Result::Fail;
 
                 std::visit(overloaded {
-                               [this, &result](const Work::Submit& work) { result = work.commandQueue->Submit(work.commandList); },
-                               [this, &result](const Work::Callback& work) { result = work.function(*device_); },
+                               [this, &result](const Work::Submit& work) { Log::Print::Info("submit.\n"); result = work.commandQueue->Submit(work.commandList); },
+                               [this, &result](const Work::Callback& work) { Log::Print::Info("calback.\n"); result = work.function(*device_); },
                                [this, &result](const Work::Terminate& work) {
                                    device_ == nullptr;
                                    result = GAPI::Result::Ok;
@@ -186,7 +186,7 @@ namespace OpenDemo
                 if (!result)
                     Log::Print::Fatal(u8"Fatal error on SubmissionThread with result: %s\n", result.ToString());
 
-                std::this_thread::sleep_for(510ms);
+                std::this_thread::sleep_for(50ms);
             }
         }
     }

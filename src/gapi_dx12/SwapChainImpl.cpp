@@ -3,6 +3,8 @@
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 
+#include "gapi_dx12/ResourceImpl.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -94,6 +96,40 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
+
+            Result SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource)
+            {
+                ASSERT(resource);
+                ASSERT(!resource->GetPrivateImpl<void>());
+                ASSERT(D3DSwapChain_);
+
+#ifdef ENABLE_ASSERTS
+                DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
+                D3DCallMsg(D3DSwapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
+                ASSERT(backBufferIndex <= currentSwapChainDesc.BufferCount);
+#endif
+
+                ComSharedPtr<ID3D12Resource> backBuffer_;
+                D3DCallMsg(D3DSwapChain_->GetBuffer(backBufferIndex, IID_PPV_ARGS(backBuffer_.put())), "GetBuffer");
+                ASSERT(backBuffer_);
+
+                auto impl = new ResourceImpl();
+                D3DCall(impl->Init(backBuffer_, resource->GetDescription(), resource->GetBindFlags(), resource->GetName()));
+                resource->SetPrivateImpl(impl);
+
+                return Result::Ok;
+            }
+
+            Result SwapChainImpl::Present(uint32_t interval)
+            {
+                ASSERT(D3DSwapChain_);
+
+                DXGI_PRESENT_PARAMETERS params = {};
+                D3DCallMsg(D3DSwapChain_->Present1(interval, 0, &params), "Present1");
+
+                return Result::Ok;
+            }
+
         }
     }
 }

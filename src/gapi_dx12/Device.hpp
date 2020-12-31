@@ -16,7 +16,7 @@ namespace OpenDemo
                 Result Init() override;
                 Result Reset(const PresentOptions& presentOptions) override;
                 Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) override;
-                Result Present() override;
+                Result Present(const std::shared_ptr<SwapChain>& swapChain) override;
 
                 //  Result Submit(const std::shared_ptr<CommandList>& CommandList) override;
 

@@ -26,6 +26,7 @@ namespace OpenDemo
         {
         public:
             virtual void Reset() = 0;
+            // TODO result;
             virtual void Close() = 0;
         };
 

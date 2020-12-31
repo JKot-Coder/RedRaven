@@ -64,20 +64,20 @@ namespace OpenDemo
             submission_->Terminate();
             inited_ = false;
         }
-        /*
-        void RenderContext::Submit(const CommandQueue::SharedPtr& commandQueue, const CommandList::SharedPtr& commandList)
+
+        void RenderContext::Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {
             ASSERT(inited_)
 
             submission_->Submit(commandQueue, commandList);
-        }*/
+        }
 
-        void RenderContext::Present()
+        void RenderContext::Present(const std::shared_ptr<GAPI::SwapChain>& swapChain)
         {
             ASSERT(inited_)
 
-            submission_->ExecuteAsync([](GAPI::Device& device) {
-                const auto result = device.Present();
+            submission_->ExecuteAsync([&swapChain](GAPI::Device& device) {
+                const auto result = device.Present(swapChain);
                 return result;
             });
         }
@@ -102,16 +102,32 @@ namespace OpenDemo
             return result;
         }
 
+        void RenderContext::ExecuteAsync(const Submission::CallbackFunction&& function)
+        {
+            ASSERT(inited_);
+
+            // Todo optimize
+            submission_->ExecuteAsync([function](GAPI::Device& device) { return function(device); });
+        }
+
+        GAPI::Result RenderContext::ExecuteAwait(const Submission::CallbackFunction&& function)
+        {
+            ASSERT(inited_);
+
+            // Todo optimize
+            return submission_->ExecuteAwait([function](GAPI::Device& device) { return function(device); }); 
+        }
+
         GAPI::Result RenderContext::ResetDevice(const GAPI::PresentOptions& presentOptions)
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             return resetDevice(presentOptions);
         }
 
         GAPI::Result RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             return submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
                 return device.ResetSwapchain(swapchain, description);
@@ -184,6 +200,18 @@ namespace OpenDemo
             return resource;
         }
 
+        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::Texture::BindFlags bindFlags, const U8String& name) const
+        {
+            ASSERT(inited_)
+            ASSERT(swapchain)
+
+            auto& resource = GAPI::Texture::Create(desc, bindFlags, name);
+            if (!swapchain->InitBackBufferTexture(backBufferIndex, resource))
+                resource = nullptr;
+
+            return resource;
+        }
+
         GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const GAPI::Texture::SharedPtr& texture, const GAPI::ResourceViewDescription& desc, const U8String& name) const
         {
             ASSERT(inited_)
@@ -195,11 +223,11 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
+        GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::CommandQueue::SharedPtr& commandQueue, const GAPI::SwapChainDescription& description, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::SwapChain::Create(description, name);
+            auto& resource = GAPI::SwapChain::Create(commandQueue, description, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 

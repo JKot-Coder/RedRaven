@@ -30,9 +30,9 @@ namespace OpenDemo
 
             virtual Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) = 0;
 
-         //   virtual Result Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
+            //   virtual Result Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
 
-            virtual Result Present() = 0;
+            virtual Result Present(const std::shared_ptr<SwapChain>& swapChain) = 0;
         };
 
         class MultiThreadDeviceInterface

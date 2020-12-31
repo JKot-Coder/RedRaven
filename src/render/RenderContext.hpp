@@ -3,9 +3,10 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
 
-#include "common/Singleton.hpp"
+// TODO remove
+#include "render/Submission.hpp"
 
-#include <array>
+#include "common/Singleton.hpp"
 
 namespace OpenDemo
 {
@@ -31,9 +32,12 @@ namespace OpenDemo
             GAPI::Result Init(const GAPI::PresentOptions& presentOptions);
             void Terminate();
 
-            // void Submit(const std::shared_ptr<CommandQueue>& commandQueue, const std::shared_ptr<CommandList>& CommandList);
-            void Present();
+            void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& CommandList);
+            void Present(const std::shared_ptr<GAPI::SwapChain>& swapChain);
             GAPI::Result MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue);
+
+            void ExecuteAsync(const Submission::CallbackFunction&& function);
+            GAPI::Result ExecuteAwait(const Submission::CallbackFunction&& function);
 
             GAPI::Result ResetDevice(const GAPI::PresentOptions& presentOptions);
             GAPI::Result ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description);
@@ -44,8 +48,9 @@ namespace OpenDemo
             std::shared_ptr<GAPI::CommandQueue> RenderContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
             std::shared_ptr<GAPI::Fence> RenderContext::CreateFence(const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::TextureDescription& desc, GAPI::Resource::BindFlags bindFlags, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::Resource::BindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::ResourceViewDescription& desc, const U8String& name = "") const;
-            std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
+            std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const GAPI::SwapChainDescription& description, const U8String& name = "") const;
 
         private:
             GAPI::Result initDevice();

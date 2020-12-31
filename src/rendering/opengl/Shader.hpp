@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-
 #include "common/Math.hpp"
 
 #include "rendering/Shader.hpp"

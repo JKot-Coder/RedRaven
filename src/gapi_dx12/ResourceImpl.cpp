@@ -99,6 +99,24 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
+
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
+            {
+                ASSERT(resource);
+                // TextureDesc ASSERT checks done on Texture initialization;
+
+                const DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
+                ASSERT(format != DXGI_FORMAT_UNKNOWN);
+
+                const D3D12_RESOURCE_DESC& desc = resource->GetDesc();
+                ASSERT(desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+                ASSERT(desc.Format == format);
+
+                D3DResource_ = resource;
+                D3DUtils::SetAPIName(D3DResource_.get(), name);
+
+                return Result::Ok;
+            }
         }
     }
 }

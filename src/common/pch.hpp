@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
+#include <array>
 
 using namespace OpenDemo::Common;
 using namespace OpenDemo::Common::Debug;

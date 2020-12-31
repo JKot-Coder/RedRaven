@@ -1,7 +1,5 @@
 #include "Primitives.hpp"
 
-#include <array>
-
 #include "common/Math.hpp"
 
 #include "rendering/Mesh.hpp"

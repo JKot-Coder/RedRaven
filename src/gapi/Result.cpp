@@ -34,6 +34,11 @@ namespace OpenDemo
             case Result::Unexpected:
                 return u8"Unexpected failure";
 
+            case Result::DeviceRemoved:
+                return u8"Device was removed";
+            case Result::DeviceReset:
+                return u8"Device was reset";
+
             case Result::WaitFailed:
                 return u8"The function has failed.";
             case Result::WaitAbandoned:

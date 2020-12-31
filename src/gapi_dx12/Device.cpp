@@ -53,7 +53,7 @@ namespace OpenDemo
                 Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description);
 
                 Result Submit(const CommandList::SharedPtr& commandList);
-                Result Present();
+                Result Present(const SwapChain::SharedPtr& swapChain);
 
                 ID3D12Device* GetDevice() const
                 {
@@ -79,7 +79,7 @@ namespace OpenDemo
                 ComSharedPtr<ID3D12Device> d3dDevice_;
                 // ComSharedPtr<IDXGISwapChain3> swapChain_;
 
-                std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::Count)> commandQueues_;
+               // std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::Count)> commandQueues_;
                 std::array<ComSharedPtr<ID3D12Resource>, MAX_BACK_BUFFER_COUNT> renderTargets_;
                 std::array<DescriptorHeap::Allocation, MAX_BACK_BUFFER_COUNT> rtvs_;
 
@@ -98,10 +98,10 @@ namespace OpenDemo
                 winrt::handle fenceEvent_;
                 // TEMPORARY END
 
-                ComSharedPtr<ID3D12CommandQueue> getCommandQueue(CommandQueueType commandQueueType)
+             /*   ComSharedPtr<ID3D12CommandQueue> getCommandQueue(CommandQueueType commandQueueType)
                 {
                     return commandQueues_[static_cast<std::underlying_type<CommandQueueType>::type>(commandQueueType)];
-                }
+                }*/
 
                 Result createDevice();
 
@@ -118,7 +118,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD
                 ASSERT(inited_ == false)
 
-                auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
+             //   auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 // TODO Take from parameters. Check by assert;
                 backBufferCount_ = 2;
@@ -129,7 +129,7 @@ namespace OpenDemo
                 D3D12_COMMAND_QUEUE_DESC queueDesc = {};
                 queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
                 queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
+                /*
                 {
                     ComSharedPtr<ID3D12CommandQueue> commandQueue;
 
@@ -137,7 +137,7 @@ namespace OpenDemo
                     D3DUtils::SetAPIName(commandQueue.get(), u8"MainCommandQueue");
 
                     commandQueue.as(commandQueues_[static_cast<size_t>(CommandQueueType::Graphics)]);
-                }
+                }*/
 
                 // Create a fence for tracking GPU execution progress.
                 fence_.reset(new FenceImpl());
@@ -166,7 +166,6 @@ namespace OpenDemo
                 resourceCreatorContext_ = std::make_unique<ResourceCreatorContext>(
                     d3dDevice_,
                     dxgiFactory_,
-                    getCommandQueue(CommandQueueType::Graphics),
                     descriptorHeapSet_);
 
                 inited_ = true;
@@ -209,6 +208,8 @@ namespace OpenDemo
                     renderTargets_[n] = nullptr;
                     // m_fenceValues[n] = m_fenceValues[m_frameIndex];
                 }
+
+                IDXGISwapChain1* swapChain_;
 
                 // If the swap chain already exists, resize it, otherwise create one.
                 /*   if (swapChain_)
@@ -297,11 +298,12 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(swapChain)
-                ASSERT(swapChain->GetPrivateImpl<void>());
+                ASSERT(swapChain->GetInterface());
 
                 // Wait For gpu
 
-                const auto& currentSwapChainImpl = swapChain->GetPrivateImpl<SwapChainImpl>();
+                ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetInterface()));
+                const auto currentSwapChainImpl = reinterpret_cast<SwapChainImpl*>(swapChain->GetInterface());
                 D3DCall(currentSwapChainImpl->Reset(swapChain->GetDescription()));
 
                 return Result::Ok;
@@ -309,7 +311,7 @@ namespace OpenDemo
 
             Result DeviceImplementation::Submit(const CommandList::SharedPtr& commandList)
             {
-                ASSERT_IS_CREATION_THREAD;
+               /* ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(commandList)
 
@@ -324,38 +326,22 @@ namespace OpenDemo
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
                 commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
-
+                */
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::Present()
+            Result DeviceImplementation::Present(const SwapChain::SharedPtr& swapChain)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
+                ASSERT(swapChain);
 
-                const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
+              //  const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 const UINT64 currentFenceValue = fenceValues_[frameIndex_];
 
-                {
-                    // Transition the render target to the state that allows it to be presented to the display.
-                    // D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_backBufferIndex].Get(), beforeState, D3D12_RESOURCE_STATE_PRESENT);
-                    //commandList->ResourceBarrier(1, &barrier);
-                }
-                /*
-                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets_[backBufferIndex_].get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-                for (int i = 0; i < 100000; i++)
-                {
-                    Vector4 color(std::rand() / static_cast<float>(RAND_MAX),
-                        std::rand() / static_cast<float>(RAND_MAX),
-                        std::rand() / static_cast<float>(RAND_MAX), 1);
-
-                    //  CommandList_->ClearRenderTargetView(rtvs_[backBufferIndex_], color);
-                }*/
-
-                //HRESULT hr;
-                /*if (m_options & c_AllowTearing)
+                HRESULT hr;
+                /*  if (m_options & c_AllowTearing)
                 {
                     // Recommended to always use tearing if supported when using a sync interval of 0.
                     // Note this will fail if in true 'fullscreen' mode.
@@ -372,26 +358,26 @@ namespace OpenDemo
                 // The first argument instructs DXGI to block until VSync, putting the application
                 // to sleep until the next VSync. This ensures we don't waste any cycles rendering
                 // frames that will never be displayed to the screen.
-                DXGI_PRESENT_PARAMETERS parameters
-                    = {};
-                //  std::this_thread::sleep_for(10ms);
-                //  HRESULT hr = swapChain_->Present1(0, 0, &parameters);
+                DXGI_PRESENT_PARAMETERS parameters = {};
+
+                ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetInterface()));
+                auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetInterface());
+                Result result = swapChainImpl->Present(0);
 
                 // If the device was reset we must completely reinitialize the renderer.
-                /*  if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+                if (result == Result::DeviceRemoved || result == Result::DeviceReset)
                 {
-                    Log::Print::Warning("Device Lost on Present: Reason code 0x%08X\n", static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : hr));
+                    result = (result == Result::DeviceRemoved) ? Result(d3dDevice_->GetDeviceRemovedReason()) : result;
+                    Log::Print::Warning("Device Lost on Present. Error: %s\n", result.ToString());
 
-                    ASSERT(false);
                     // Todo error check
                     //handleDeviceLost();
+                    ASSERT(false);
+
+                    return Result::Fail;
                 }
                 else
                 {
-                    D3DCallMsg(hr, "Present1");
-
-                    moveToNextFrame();
-
                     if (!dxgiFactory_->IsCurrent())
                     {
                         LOG_ERROR("Dxgi is not current");
@@ -400,8 +386,7 @@ namespace OpenDemo
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
-                }*/
-                moveToNextFrame();
+                }
 
                 return Result::Ok;
             }
@@ -496,7 +481,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD
                 ASSERT_IS_DEVICE_INITED
 
-                const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
+           //     const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 // Schedule a Signal command in the queue.
                 const UINT64 currentFenceValue = fenceValues_[frameIndex_];
@@ -542,9 +527,9 @@ namespace OpenDemo
                 return _impl->ResetSwapchain(swapChain, description);
             }
 
-            Result Device::Present()
+            Result Device::Present(const std::shared_ptr<SwapChain>& swapChain)
             {
-                return _impl->Present();
+                return _impl->Present(swapChain);
             }
             /*
             Result Device::Submit(const CommandList::SharedPtr& CommandList)

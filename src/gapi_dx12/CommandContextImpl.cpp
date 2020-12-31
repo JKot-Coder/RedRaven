@@ -52,13 +52,13 @@ namespace OpenDemo
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
 
                 D3D12_RESOURCE_BARRIER barrier
-                    = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->getD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+                    = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
                 D3DCommandList_->ResourceBarrier(1, &barrier);
 
                 D3DCommandList_->ClearRenderTargetView(allocation->GetCPUHandle(), &color.x, 0, nullptr);
 
-                barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->getD3DObject().get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+                barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
