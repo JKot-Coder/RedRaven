@@ -86,20 +86,24 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            GAPI::Result result = GAPI::Result::Ok;
+            submission_->ExecuteAsync([this, &commandQueue](GAPI::Device& device) {
+                GAPI::Result result = GAPI::Result::Ok;
 
-            // Schedule a Signal command in the queue.
-            if (!(result = fence_->Signal(commandQueue)))
-                return result;
-
-            if (fence_->GetCpuValue() >= SubmissionThreadAheadFrames)
-            {
-                // GPU ahead. Throttle cpu.
-                if (!(fence_->SyncCPU(fence_->GetCpuValue() - SubmissionThreadAheadFrames, INFINITE)))
+                // Schedule a Signal command in the queue.
+                if (!(result = fence_->Signal(commandQueue)))
                     return result;
-            }
 
-            return result;
+                if (fence_->GetCpuValue() >= SubmissionThreadAheadFrames)
+                {
+                    // GPU ahead. Throttle cpu.
+                    if (!(fence_->SyncCPU(fence_->GetCpuValue() - SubmissionThreadAheadFrames, INFINITE)))
+                        return result;
+                }
+
+                return result;
+            });
+
+            return GAPI::Result::Ok;
         }
 
         void RenderContext::ExecuteAsync(const Submission::CallbackFunction&& function)
@@ -115,7 +119,7 @@ namespace OpenDemo
             ASSERT(inited_);
 
             // Todo optimize
-            return submission_->ExecuteAwait([function](GAPI::Device& device) { return function(device); }); 
+            return submission_->ExecuteAwait([function](GAPI::Device& device) { return function(device); });
         }
 
         GAPI::Result RenderContext::ResetDevice(const GAPI::PresentOptions& presentOptions)

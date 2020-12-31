@@ -77,31 +77,15 @@ namespace OpenDemo
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
                 ComSharedPtr<ID3D12Device> d3dDevice_;
-                // ComSharedPtr<IDXGISwapChain3> swapChain_;
-
-               // std::array<ComSharedPtr<ID3D12CommandQueue>, static_cast<size_t>(CommandQueueType::Count)> commandQueues_;
-                std::array<ComSharedPtr<ID3D12Resource>, MAX_BACK_BUFFER_COUNT> renderTargets_;
-                std::array<DescriptorHeap::Allocation, MAX_BACK_BUFFER_COUNT> rtvs_;
 
                 D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
 
-                uint32_t frameIndex_ = UNDEFINED_FRAME_INDEX;
+                //uint32_t frameIndex_ = UNDEFINED_FRAME_INDEX;
 
-                uint32_t backBufferIndex_ = 0;
+                // uint32_t backBufferIndex_ = 0;
                 uint32_t backBufferCount_ = 0;
 
                 std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
-                // TEMPORARY
-                // std::unique_ptr<CommandList> CommandList_;
-                std::shared_ptr<FenceImpl> fence_;
-                std::array<uint64_t, GPU_FRAMES_BUFFERED> fenceValues_;
-                winrt::handle fenceEvent_;
-                // TEMPORARY END
-
-             /*   ComSharedPtr<ID3D12CommandQueue> getCommandQueue(CommandQueueType commandQueueType)
-                {
-                    return commandQueues_[static_cast<std::underlying_type<CommandQueueType>::type>(commandQueueType)];
-                }*/
 
                 Result createDevice();
 
@@ -118,8 +102,6 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD
                 ASSERT(inited_ == false)
 
-             //   auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
-
                 // TODO Take from parameters. Check by assert;
                 backBufferCount_ = 2;
 
@@ -129,36 +111,6 @@ namespace OpenDemo
                 D3D12_COMMAND_QUEUE_DESC queueDesc = {};
                 queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
                 queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-                /*
-                {
-                    ComSharedPtr<ID3D12CommandQueue> commandQueue;
-
-                    D3DCallMsg(d3dDevice_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(commandQueue.put())), "CreateCommandQueue");
-                    D3DUtils::SetAPIName(commandQueue.get(), u8"MainCommandQueue");
-
-                    commandQueue.as(commandQueues_[static_cast<size_t>(CommandQueueType::Graphics)]);
-                }*/
-
-                // Create a fence for tracking GPU execution progress.
-                fence_.reset(new FenceImpl());
-                D3DCall(fence_->Init(d3dDevice_, "FrameSync"));
-
-                //   CommandList_.reset(new CommandList());
-                //    D3DCall(CommandList_->Init(d3dDevice_.get(), "Main"));
-
-                for (int i = 0; i < GPU_FRAMES_BUFFERED; i++)
-                {
-                    fenceValues_[i] = 0;
-                }
-                fenceValues_[frameIndex_] = 1;
-                //_fence->SetName(L"DeviceResources");
-
-                fenceEvent_.attach(CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
-                if (!bool { fenceEvent_ })
-                {
-                    LOG_ERROR("Failure create fence Event");
-                    return Result::Fail;
-                }
 
                 descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
                 D3DCall(descriptorHeapSet_->Init(d3dDevice_));
@@ -201,15 +153,6 @@ namespace OpenDemo
 
                 // Wait until all previous GPU work is complete.
                 WaitForGpu();
-
-                // Release resources that are tied to the swap chain and update fence values.
-                for (uint32_t n = 0; n < backBufferCount_; n++)
-                {
-                    renderTargets_[n] = nullptr;
-                    // m_fenceValues[n] = m_fenceValues[m_frameIndex];
-                }
-
-                IDXGISwapChain1* swapChain_;
 
                 // If the swap chain already exists, resize it, otherwise create one.
                 /*   if (swapChain_)
@@ -283,7 +226,7 @@ namespace OpenDemo
                     rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
                 }*/
 
-                backBufferIndex_ = 0;
+                // backBufferIndex_ = 0;
 
                 // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
                 //   if (ResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
@@ -302,6 +245,8 @@ namespace OpenDemo
 
                 // Wait For gpu
 
+                WaitForGpu();
+
                 ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetInterface()));
                 const auto currentSwapChainImpl = reinterpret_cast<SwapChainImpl*>(swapChain->GetInterface());
                 D3DCall(currentSwapChainImpl->Reset(swapChain->GetDescription()));
@@ -311,7 +256,7 @@ namespace OpenDemo
 
             Result DeviceImplementation::Submit(const CommandList::SharedPtr& commandList)
             {
-               /* ASSERT_IS_CREATION_THREAD;
+                /* ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(commandList)
 
@@ -335,10 +280,6 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(swapChain);
-
-              //  const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
-
-                const UINT64 currentFenceValue = fenceValues_[frameIndex_];
 
                 HRESULT hr;
                 /*  if (m_options & c_AllowTearing)
@@ -478,31 +419,8 @@ namespace OpenDemo
 
             void DeviceImplementation::moveToNextFrame()
             {
-                ASSERT_IS_CREATION_THREAD
-                ASSERT_IS_DEVICE_INITED
-
-           //     const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
-
-                // Schedule a Signal command in the queue.
-                const UINT64 currentFenceValue = fenceValues_[frameIndex_];
-                // ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
-                /*
-                fence_->Signal(commandQueue.get(), currentFenceValue);
-
-                // Update the back buffer index.
-                //backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
-                frameIndex_ = (frameIndex_++ % GPU_FRAMES_BUFFERED);
-
-                // If the next frame is not ready to be rendered yet, wait until it is ready.
-                if (fence_->GetGpuValue() < fenceValues_[frameIndex_])
-                {
-                    fence_->SetEventOnCompletion(fenceValues_[frameIndex_], fenceEvent_.get());
-                    //   ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent.Get()));
-                    WaitForSingleObjectEx(fenceEvent_.get(), INFINITE, FALSE);
-                }
-
-                // Set the fence value for the next frame.
-                fenceValues_[frameIndex_] = currentFenceValue + 1;*/
+                ASSERT_IS_CREATION_THREAD;
+                ASSERT_IS_DEVICE_INITED;
             }
 
             Device::Device()

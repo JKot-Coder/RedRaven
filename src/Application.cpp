@@ -99,10 +99,6 @@ namespace OpenDemo
         {
             Windowing::Windowing::PoolEvents();
 
-            auto texture = swapChain_->GetTexture(index);
-            ASSERT(texture)
-
-            Log::Print::Info("Texture %s\n", texture->GetName());
 
             // renderContext.Submit(commandQueue, commandList);
 
@@ -115,9 +111,16 @@ namespace OpenDemo
             //  input->Update();
 
             // renderContext.Present();
+
+            auto index2 = index;
+            auto swapChain2 = swapChain_;
             renderContext.ExecuteAsync(
-                [&commandList, &texture](GAPI::Device& device) {
+                [&commandList, index2, &swapChain2](GAPI::Device& device) {
                     std::ignore = device;
+
+                    auto texture = swapChain2->GetTexture(index2);
+                    ASSERT(texture)
+                    Log::Print::Info("Texture %s\n", texture->GetName());
 
                     auto rtv = texture->GetRTV();
                     ASSERT(rtv)
