@@ -39,7 +39,7 @@ namespace OpenDemo
             }
         };
 
-        class ResourceView : public Object
+        class ResourceView : public PrivateImplementedObject
         {
         public:
             using SharedPtr = std::shared_ptr<ResourceView>;
@@ -59,7 +59,7 @@ namespace OpenDemo
 
         protected:
             ResourceView(ViewType viewType, const std::weak_ptr<Resource>& resource, const ResourceViewDescription& description, const U8String& name)
-                : Object(Object::Type::ResourceView, name),
+                : PrivateImplementedObject(Object::Type::ResourceView, name),
                   viewType_(viewType),
                   resource_(resource),
                   description_(description)

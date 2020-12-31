@@ -33,7 +33,7 @@ namespace OpenDemo
             }
         };
 
-        class SwapChain final : public Object
+        class SwapChain final : public PrivateImplementedObject
         {
         public:
             using SharedPtr = std::shared_ptr<SwapChain>;

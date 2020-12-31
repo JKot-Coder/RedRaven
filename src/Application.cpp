@@ -93,7 +93,6 @@ namespace OpenDemo
         while (!_quit)
         {
             Windowing::Windowing::PoolEvents();
-
       
             commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
             commandList->Close();

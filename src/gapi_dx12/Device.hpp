@@ -6,7 +6,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class Device : public GAPI::Device
+            class Device final : public GAPI::Device
             {
             public:
                 Device();
@@ -18,7 +18,7 @@ namespace OpenDemo
                 Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) override;
                 Result Present() override;
 
-              //  Result Submit(const std::shared_ptr<CommandList>& CommandList) override;
+                //  Result Submit(const std::shared_ptr<CommandList>& CommandList) override;
 
                 Result InitResource(const std::shared_ptr<Object>& resource) const override;
 

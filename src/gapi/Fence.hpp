@@ -20,29 +20,18 @@ namespace OpenDemo
             virtual uint64_t GetCpuValue() const = 0;
         };
 
-        class Fence final : public Object, public FenceInterface
+        class Fence final : public InterfaceWrapObject<FenceInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<Fence>;
             using SharedConstPtr = std::shared_ptr<const Fence>;
 
-            inline Result Signal(const std::shared_ptr<CommandQueue>& queue)
-            {
-                return getImplementation().Signal(queue);
-            }
+            inline Result Signal(const std::shared_ptr<CommandQueue>& queue) { return GetInterface()->Signal(queue); }
+            inline Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const { return GetInterface()->SyncCPU(value, timeout); }
+            inline Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const { return GetInterface()->SyncGPU(queue); }
 
-            inline Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const override
-            {
-                return getImplementation().SyncCPU(value, timeout);
-            }
-            
-            inline Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override
-            {
-                return getImplementation().SyncGPU(queue);
-            }
-
-            inline uint64_t GetGpuValue() const override { return getImplementation().GetGpuValue(); }
-            inline uint64_t GetCpuValue() const override { return getImplementation().GetCpuValue(); }
+            inline uint64_t GetGpuValue() const { return GetInterface()->GetGpuValue(); }
+            inline uint64_t GetCpuValue() const { return GetInterface()->GetCpuValue(); }
 
         private:
             static SharedPtr Create(const U8String& name)
@@ -51,15 +40,8 @@ namespace OpenDemo
             }
 
             Fence(const U8String& name)
-                : Object(Object::Type::Fence, name)
+                : InterfaceWrapObject(Object::Type::Fence, name)
             {
-            }
-
-            inline FenceInterface& getImplementation() const
-            {
-                ASSERT(privateImpl_);
-
-                return *(static_cast<FenceInterface*>(privateImpl_));
             }
 
         private:

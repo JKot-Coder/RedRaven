@@ -94,7 +94,8 @@ namespace OpenDemo
 
             if (fence_->GetCpuValue() >= SubmissionThreadAheadFrames)
             {
-                  if (!(fence_->SyncCPU(fence_->GetCpuValue() - SubmissionThreadAheadFrames, INFINITE)))
+                // GPU ahead. Throttle cpu.
+                if (!(fence_->SyncCPU(fence_->GetCpuValue() - SubmissionThreadAheadFrames, INFINITE)))
                     return result;
             }
 

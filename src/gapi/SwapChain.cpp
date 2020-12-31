@@ -8,7 +8,7 @@ namespace OpenDemo
     {
 
         SwapChain::SwapChain(const SwapChainDescription& description, const U8String& name)
-            : Object(Object::Type::SwapChain, name),
+            : PrivateImplementedObject(Object::Type::SwapChain, name),
               description_(description)
         {
             ASSERT(description.width > 0)

@@ -28,6 +28,23 @@ namespace OpenDemo
             inline Type GetType() const { return type_; }
             inline U8String GetName() const { return name_; }
 
+            inline bool IsPrivateImplNull() const { return privateImpl_ == nullptr; };
+
+        protected:
+            Object(Type type, const U8String& name)
+                : type_(type), name_(name)
+            {
+            }
+
+        protected:
+            void* privateImpl_ = nullptr;
+            Type type_;
+            U8String name_;
+        };
+
+        class PrivateImplementedObject : public Object
+        {
+        public:
             template <typename T>
             inline T* GetPrivateImpl()
             {
@@ -47,19 +64,11 @@ namespace OpenDemo
             }
 
         protected:
-            Object(Type type, const U8String& name)
-                : type_(type), name_(name)
-            {
-            }
-
-        protected:
-            void* privateImpl_ = nullptr;
-            Type type_;
-            U8String name_;
+            PrivateImplementedObject(Type type, const U8String& name) : Object(type, name) {};
         };
 
         template <typename T>
-        class InterfaceImplemementedObject : public Object
+        class InterfaceWrapObject : public Object
         {
         public:
             inline T* GetInterface()
@@ -78,7 +87,7 @@ namespace OpenDemo
             }
 
         protected:
-            InterfaceImplemementedObject(Type type, const U8String& name) : Object(type, name) {};
+            InterfaceWrapObject(Type type, const U8String& name) : Object(type, name) {};
         };
     }
 }

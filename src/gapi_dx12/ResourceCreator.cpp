@@ -185,7 +185,7 @@ namespace OpenDemo
                     auto impl = new CommandQueueImpl(resource.GetType());
 
                     D3DCall(impl->Init(context.device, resource.GetName()));
-                    resource.SetPrivateImpl(impl);
+                    resource.SetInterface(impl);
 
                     return Result::Ok;
                 }
@@ -234,7 +234,7 @@ namespace OpenDemo
                     auto impl = new CommandContextImpl();
 
                     D3DCall(impl->Init(context.device, resource.GetCommandListType(), resource.GetName()));
-                    resource.SetPrivateImpl(impl);
+                    resource.SetInterface(static_cast<GraphicsCommandListInterface*>(impl));
 
                     return Result::Ok;
                 }
@@ -244,7 +244,7 @@ namespace OpenDemo
                     auto impl = new FenceImpl();
 
                     D3DCall(impl->Init(context.device, resource.GetName()));
-                    resource.SetPrivateImpl(impl);
+                    resource.SetInterface(impl);
 
                     return Result::Ok;
                 }
@@ -264,7 +264,7 @@ namespace OpenDemo
             {
                 // TODO ambigous naming Resource->Object
                 ASSERT(resource)
-                ASSERT(!resource->GetPrivateImpl<void*>())
+                ASSERT(resource->IsPrivateImplNull())
 
 #define CASE_RESOURCE(T)                                             \
     case Object::Type::T:                                            \

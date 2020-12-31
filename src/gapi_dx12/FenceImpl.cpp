@@ -30,11 +30,11 @@ namespace OpenDemo
             {
                 ASSERT(D3DFence_);
                 ASSERT(queue);
-                ASSERT(queue->GetPrivateImpl<void>());
+                ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetInterface()));
 
                 cpuValue_++;
 
-                const auto& queueImpl = queue->GetPrivateImpl<CommandQueueImpl>();
+                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetInterface());
                 D3DCall(queueImpl->Signal(D3DFence_, cpuValue_));
 
                 return Result::Ok;
@@ -61,9 +61,9 @@ namespace OpenDemo
             {
                 ASSERT(D3DFence_);
                 ASSERT(queue);
-                ASSERT(queue->GetPrivateImpl<void>());
+                ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetInterface()));
 
-                const auto& queueImpl = queue->GetPrivateImpl<CommandQueueImpl>();
+                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetInterface());
                 D3DCall(queueImpl->Wait(D3DFence_, cpuValue_));
 
                 return Result::Ok;

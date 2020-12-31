@@ -23,7 +23,7 @@ namespace OpenDemo
             virtual Result Submit(const std::shared_ptr<CommandList>& commandList) = 0;
         };
 
-        class CommandQueue final : public Object, public CommandQueueInterface
+        class CommandQueue final : public InterfaceWrapObject<CommandQueueInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandQueue>;
@@ -36,7 +36,7 @@ namespace OpenDemo
                 return SharedPtr(new CommandQueue(type, name));
             }
 
-            inline Result Submit(const std::shared_ptr<CommandList>& commandList) override { return getImplementation().Submit(commandList); }
+            inline Result Submit(const std::shared_ptr<CommandList>& commandList) { return GetInterface()->Submit(commandList); }
 
             inline CommandQueueType GetType() const
             {
@@ -45,16 +45,9 @@ namespace OpenDemo
 
         private:
             CommandQueue(CommandQueueType type, const U8String& name)
-                : Object(Object::Type::CommandQueue, name),
+                : InterfaceWrapObject(Object::Type::CommandQueue, name),
                   type_(type)
             {
-            }
-
-            inline CommandQueueInterface& getImplementation()
-            {
-                ASSERT(privateImpl_);
-
-                return *(static_cast<CommandQueueInterface*>(privateImpl_));
             }
 
             CommandQueueType type_;

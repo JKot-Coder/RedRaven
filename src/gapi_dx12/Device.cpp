@@ -317,7 +317,7 @@ namespace OpenDemo
                 const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
                 ASSERT(dynamic_cast<CommandListImpl*>(commandList->GetInterface()));
-                const auto commandListImpl = static_cast<CommandListImpl*>(commandList->GetInterface());
+                const auto commandListImpl = reinterpret_cast<const CommandListImpl*>(commandList->GetInterface());
 
                 const auto D3DCommandList = commandListImpl->GetD3DObject();
                 ASSERT(D3DCommandList)

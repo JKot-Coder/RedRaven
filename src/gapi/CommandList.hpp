@@ -29,36 +29,36 @@ namespace OpenDemo
             virtual void Close() = 0;
         };
 
-        class CopyCommandListInterface
+        class CopyCommandListInterface : public CommandListInterface
         {
         public:
         };
 
-        class ComputeCommandListInterface
+        class ComputeCommandListInterface : public CopyCommandListInterface
         {
         public:
         };
 
-        class GraphicsCommandListInterface
+        class GraphicsCommandListInterface : public ComputeCommandListInterface
         {
         public:
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandList : public InterfaceImplemementedObject<CommandListInterface>, public CommandListInterface
+        class CommandList : public InterfaceWrapObject<GraphicsCommandListInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandList>;
             using SharedConstPtr = std::shared_ptr<const CommandList>;
 
-            inline void Reset() override { GetInterface()->Reset(); }
-            inline void Close() override { GetInterface()->Close(); }
-
             inline CommandListType GetCommandListType() const { return type_; };
+
+            inline void Reset() { GetInterface()->Reset(); }
+            inline void Close() { GetInterface()->Close(); }
 
         protected:
             CommandList(CommandListType type, const U8String& name)
-                : InterfaceImplemementedObject(Object::Type::CommandList, name),
+                : InterfaceWrapObject(Object::Type::CommandList, name),
                   type_(type)
             {
             }
@@ -66,7 +66,7 @@ namespace OpenDemo
             CommandListType type_;
         };
 
-        class CopyCommandList final : public CommandList, public CopyCommandListInterface
+        class CopyCommandList : public CommandList
         {
         public:
             using SharedPtr = std::shared_ptr<CopyCommandList>;
@@ -75,11 +75,12 @@ namespace OpenDemo
         private:
             static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new CopyCommandList(name));
+                return SharedPtr(new CopyCommandList(CommandListType::Copy, name));
             }
 
-            CopyCommandList(const U8String& name)
-                : CommandList(CommandListType::Copy, name)
+        protected:
+            CopyCommandList(CommandListType type, const U8String& name)
+                : CommandList(type, name)
             {
             }
 
@@ -87,7 +88,7 @@ namespace OpenDemo
             friend class Render::RenderContext;
         };
 
-        class ComputeCommandList final : public CommandList, public CopyCommandListInterface, ComputeCommandListInterface
+        class ComputeCommandList : public CopyCommandList
         {
         public:
             using SharedPtr = std::shared_ptr<ComputeCommandList>;
@@ -96,11 +97,12 @@ namespace OpenDemo
         private:
             static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new ComputeCommandList(name));
+                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name));
             }
 
-            ComputeCommandList(const U8String& name)
-                : CommandList(CommandListType::Compute, name)
+        protected:
+            ComputeCommandList(CommandListType type, const U8String& name)
+                : CopyCommandList(type, name)
             {
             }
 
@@ -108,16 +110,13 @@ namespace OpenDemo
             friend class Render::RenderContext;
         };
 
-        class GraphicsCommandList final : public CommandList,
-                                          public CopyCommandListInterface,
-                                          public ComputeCommandListInterface,
-                                          public GraphicsCommandListInterface
+        class GraphicsCommandList final : public ComputeCommandList
         {
         public:
             using SharedPtr = std::shared_ptr<GraphicsCommandList>;
             using SharedConstPtr = std::shared_ptr<const GraphicsCommandList>;
 
-            inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override { getImplementation().ClearRenderTargetView(renderTargetView, color); }
+            inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetInterface()->ClearRenderTargetView(renderTargetView, color); }
 
         private:
             static SharedPtr Create(const U8String& name)
@@ -125,16 +124,10 @@ namespace OpenDemo
                 return SharedPtr(new GraphicsCommandList(name));
             }
 
+        protected:
             GraphicsCommandList(const U8String& name)
-                : CommandList(CommandListType::Graphics, name)
+                : ComputeCommandList(CommandListType::Graphics, name)
             {
-            }
-
-            inline GraphicsCommandListInterface& getImplementation()
-            {
-                ASSERT(privateImpl_);
-
-                return *(static_cast<GraphicsCommandListInterface*>(privateImpl_));
             }
 
         private:

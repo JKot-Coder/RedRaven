@@ -137,7 +137,7 @@ namespace OpenDemo
             U8String ToString(ResourceFormat format);
         };
 
-        class Resource : public Object
+        class Resource : public PrivateImplementedObject
         {
         public:
             using SharedPtr = std::shared_ptr<Resource>;
@@ -160,7 +160,7 @@ namespace OpenDemo
 
         protected:
             Resource(Resource::ResourceType resourceType, const U8String& name)
-                : Object(Object::Type::Resource, name),
+                : PrivateImplementedObject(Object::Type::Resource, name),
                   resourceType_(resourceType)
             {
             }
