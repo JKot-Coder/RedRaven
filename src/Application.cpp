@@ -8,6 +8,7 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/Fence.hpp"
 #include "gapi/ResourceViews.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
@@ -86,6 +87,10 @@ namespace OpenDemo
         desciption.windowHandle = _window->GetNativeHandle();
 
         swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
+        auto fence = renderContext.CreateFence("qwe");
+
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(10s);
 
         while (!_quit)
         {
@@ -104,12 +109,11 @@ namespace OpenDemo
             // renderContext.Present();
 
             auto index2 = index;
-            auto swapChain2 = swapChain_;
             renderContext.ExecuteAsync(
-                [&commandList, index2, &swapChain2](GAPI::Device& device) {
+                [this, index2, &commandList](GAPI::Device& device) {
                     std::ignore = device;
 
-                    auto texture = swapChain2->GetTexture(index2);
+                    auto texture = swapChain_->GetTexture(index2);
                     ASSERT(texture)
                     //Log::Print::Info("Texture %s\n", texture->GetName());
 
@@ -127,10 +131,28 @@ namespace OpenDemo
             renderContext.Present(swapChain_);
             ASSERT(renderContext.MoveToNextFrame(commandQueue));
 
+            uint64_t cpu = 0;
+            uint64_t gpu = 0;
+
             renderContext.ExecuteAsync(
-                [&commandList](GAPI::Device& device) {
+                [&commandList, &fence, &commandQueue, &cpu, &gpu](GAPI::Device& device) {
                     std::ignore = device;
-                 //   device.WaitForGpu();
+                    //   device.WaitForGpu();
+
+                    // Schedule a Signal command in the queue.
+                    fence->Signal(commandQueue);
+
+
+                    if (fence->GetCpuValue() >= 2)
+                    {
+                        // GPU ahead. Throttle cpu.
+                        // TODO SubmissionThreadAheadFrames rename/replace
+                        fence->SyncCPU(fence->GetCpuValue() - 2, INFINITE);
+                    }
+
+                    cpu = fence->GetCpuValue();
+                    gpu = fence->GetGpuValue();
+
                     commandList->Reset();
 
                     return GAPI::Result::Ok;

@@ -6,7 +6,7 @@
 
 #include "common/threading/Thread.hpp"
 
-#define ENABLE_SUBMISSION_THREAD false
+#define ENABLE_SUBMISSION_THREAD true
 
 namespace OpenDemo
 {

@@ -21,6 +21,7 @@ namespace OpenDemo
         Log::Print::Fatal(fmt::format("ASSERT: {3}\n  {0}({1}): {4}\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp, fmt::sprintf(__VA_ARGS__)));
 #else
 #define ASSERT(ignore) ((void)0);
+#define ASSERT_MSG(ignore) ((void)0);
 #endif
 
 #define LOG_INFO(...) \

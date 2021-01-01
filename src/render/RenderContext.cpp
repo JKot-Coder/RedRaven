@@ -85,6 +85,7 @@ namespace OpenDemo
                 GAPI::Result result = GAPI::Result::Ok;
 
                 submissionFrame++;
+
                 const auto currentFenceValue = fence_->GetCpuValue();
 
                 // Schedule a Signal command in the queue.
@@ -95,7 +96,7 @@ namespace OpenDemo
                 {
                     // GPU ahead. Throttle cpu.
                     // TODO SubmissionThreadAheadFrames rename/replace
-                    if (!(fence_->SyncCPU(currentFenceValue - SubmissionThreadAheadFrames, INFINITE)))
+                    if (!(fence_->SyncCPU(currentFenceValue - 2, INFINITE)))
                         return result;
                 }
 

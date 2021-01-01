@@ -46,7 +46,7 @@ namespace OpenDemo
                     case TextureDimension::TextureCube:
                         return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
                     default:
-                        ASSERT_MSG(false, "Wrong texture dimension")
+                        ASSERT_MSG(false, "Wrong texture dimension");
                         return D3D12_RTV_DIMENSION_UNKNOWN;
                     }
                 }

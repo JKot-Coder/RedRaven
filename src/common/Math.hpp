@@ -138,10 +138,10 @@ namespace OpenDemo
                 return 1;
 
 #ifdef ENABLE_ASSERTS
-            ASSERT(value < MaxPowerOfTwo<T>())
+            ASSERT(value < MaxPowerOfTwo<T>());
 #else
             // TODO add warning?
-            value = min(value, MaxPowerOfTwo<T>())
+            value = std::min(value, MaxPowerOfTwo<T>());
 #endif
 
             --value;
