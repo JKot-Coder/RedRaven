@@ -201,6 +201,7 @@ namespace OpenDemo
         std::shared_ptr<Texture> Resource::GetTyped<Texture>()
         {
             ASSERT(resourceType_ == ResourceType::Texture)
+                //TODO inherit_shared_from_this
             return std::static_pointer_cast<Texture>(shared_from_this());
         }
         /*

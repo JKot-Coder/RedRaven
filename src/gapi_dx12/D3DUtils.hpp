@@ -15,6 +15,7 @@ namespace OpenDemo
             namespace D3DUtils
             {
 
+                // TODO likely, unlikely
 #define D3DCall(exp, ...)                                                                                                                               \
     {                                                                                                                                                   \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \

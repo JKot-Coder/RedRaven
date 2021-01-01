@@ -7,11 +7,13 @@ namespace OpenDemo
         namespace DX12
         {
             class DescriptorHeapSet;
+            class CommandQueueImpl;
 
             struct ResourceCreatorContext
             {
                 ComSharedPtr<ID3D12Device> device;
                 ComSharedPtr<IDXGIFactory2> dxgiFactory;
+                std::shared_ptr<CommandQueueImpl> graphicsCommandQueue;
                 std::shared_ptr<DescriptorHeapSet> descriptorHeapSet;
 
                 ResourceCreatorContext() = delete;
@@ -19,14 +21,17 @@ namespace OpenDemo
                 ResourceCreatorContext(
                     const ComSharedPtr<ID3D12Device>& device,
                     const ComSharedPtr<IDXGIFactory2>& dxgiFactory,
+                    const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
                     const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet)
                     : device(device),
                       dxgiFactory(dxgiFactory),
+                      graphicsCommandQueue(graphicsCommandQueue),
                       descriptorHeapSet(descriptorHeapSet)
                 {
                     ASSERT(device)
                     ASSERT(dxgiFactory)
                     ASSERT(descriptorHeapSet)
+                    ASSERT(graphicsCommandQueue)
                 }
             };
 

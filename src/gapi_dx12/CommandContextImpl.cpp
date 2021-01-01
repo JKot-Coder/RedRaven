@@ -31,7 +31,7 @@ namespace OpenDemo
 
             void CommandContextImpl::Reset()
             {
-                Log::Print::Info("Reset\n");
+              //  Log::Print::Info("Reset\n");
                 ASSERT(D3DCommandList_);
                 commandList_->Reset();
                 //     commandList_->Submit();
@@ -64,7 +64,7 @@ namespace OpenDemo
 
             void CommandContextImpl::Close()
             {
-                Log::Print::Info("Close\n");
+                //Log::Print::Info("Close\n");
                 // RESULT;
                 const auto result = D3DCommandList_->Close();
                 std::ignore = result;

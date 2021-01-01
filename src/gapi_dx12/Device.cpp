@@ -9,15 +9,18 @@
 #include "gapi/Frame.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
+#include "gapi/Texture.hpp"
 
 #include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/CommandListCompiler.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
+#include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
+#include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
 
 #include <chrono>
@@ -49,9 +52,6 @@ namespace OpenDemo
                 DeviceImplementation();
 
                 Result Init();
-                Result Reset(const PresentOptions& presentOptions);
-                Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description);
-
                 Result Submit(const CommandList::SharedPtr& commandList);
                 Result Present(const SwapChain::SharedPtr& swapChain);
 
@@ -60,7 +60,7 @@ namespace OpenDemo
                     return d3dDevice_.get();
                 }
 
-                void WaitForGpu();
+                Result WaitForGpu();
 
                 Result InitResource(const Object::SharedPtr& resource) const;
                 Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const;
@@ -79,6 +79,9 @@ namespace OpenDemo
                 ComSharedPtr<ID3D12Device> d3dDevice_;
 
                 D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
+                std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
+
+                std::unique_ptr<FenceImpl> gpuWaitFence_;
 
                 //uint32_t frameIndex_ = UNDEFINED_FRAME_INDEX;
 
@@ -107,17 +110,19 @@ namespace OpenDemo
 
                 D3DCallMsg(createDevice(), "CreateDevice");
 
-                // Create the command queue.
-                D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-                queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-                queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
                 descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
                 D3DCall(descriptorHeapSet_->Init(d3dDevice_));
+
+                gpuWaitFence_ = std::make_unique<FenceImpl>();
+                D3DCall(gpuWaitFence_->Init(d3dDevice_, "GpuWait"));
+
+                graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
+                D3DCall(graphicsCommandQueue_->Init(d3dDevice_, "Primary"));
 
                 resourceCreatorContext_ = std::make_unique<ResourceCreatorContext>(
                     d3dDevice_,
                     dxgiFactory_,
+                    graphicsCommandQueue_,
                     descriptorHeapSet_);
 
                 inited_ = true;
@@ -125,133 +130,20 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            void DeviceImplementation::WaitForGpu()
+            Result DeviceImplementation::WaitForGpu()
             {
                 ASSERT_IS_DEVICE_INITED;
+
+                D3DCall(gpuWaitFence_->Signal(*graphicsCommandQueue_.get()));
+                D3DCall(gpuWaitFence_->SyncCPU(std::nullopt));
+
+                return Result::Ok;
             }
 
             Result DeviceImplementation::InitResource(const Object::SharedPtr& resource) const
             {
                 ASSERT(resourceCreatorContext_);
                 return ResourceCreator::InitResource(*resourceCreatorContext_.get(), resource);
-            }
-
-            // These resources need to be recreated every time the window size is changed.
-            Result DeviceImplementation::Reset(const PresentOptions& presentOptions)
-            {
-                ASSERT_IS_CREATION_THREAD;
-                ASSERT_IS_DEVICE_INITED;
-                ASSERT(presentOptions.windowHandle);
-                ASSERT(presentOptions.isStereo == false);
-
-                if (!backBufferCount_)
-                    backBufferCount_ = presentOptions.bufferCount;
-
-                ASSERT_MSG(presentOptions.bufferCount == backBufferCount_, "Changing backbuffer count should work, but this is untested")
-
-                const HWND windowHandle = presentOptions.windowHandle;
-
-                // Wait until all previous GPU work is complete.
-                WaitForGpu();
-
-                // If the swap chain already exists, resize it, otherwise create one.
-                /*   if (swapChain_)
-                {
-                    DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
-
-                    D3DCallMsg(swapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
-
-                    const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(presentOptions, DXGI_SWAP_EFFECT_FLIP_DISCARD);
-                    const auto swapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
-
-                    if (!swapChainCompatable)
-                    {
-                        LOG_ERROR("SwapChains incompatible");
-                        return Result::Fail;
-                    }
-
-                    // If the swap chain already exists, resize it.
-                    HRESULT hr = swapChain_->ResizeBuffers(
-                        targetSwapChainDesc.BufferCount,
-                        targetSwapChainDesc.Width,
-                        targetSwapChainDesc.Height,
-                        targetSwapChainDesc.Format,
-                        targetSwapChainDesc.Flags);
-
-                    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
-                    {
-                        LOG_ERROR("Device Lost on ResizeBuffers: Reason code 0x%08X\n",
-                            static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : hr))
-
-                        // If the device was removed for any reason, a new device and swap chain will need to be created.
-                        // Everything is set up now. Do not continue execution of this method. HandleDeviceLost will reenter this method
-                        // and correctly set up the new device.
-                        //  return handleDeviceLost();
-
-                        ASSERT(false);
-                    }
-                    else
-                        D3DCallMsg(hr, "ResizeBuffers");
-                }
-                else
-                {
-                    const auto& graphicsCommandQueue = getCommandQueue(CommandQueueType::GRAPHICS);
-                    const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(presentOptions, DXGI_SWAP_EFFECT_FLIP_DISCARD);
-
-                    ComSharedPtr<IDXGISwapChain1> swapChain2;
-                    // Create a swap chain for the window.
-                    D3DCallMsg(dxgiFactory_->CreateSwapChainForHwnd(
-                                   graphicsCommandQueue.get(),
-                                   presentOptions.windowHandle,
-                                   &targetSwapChainDesc,
-                                   nullptr,
-                                   nullptr,
-                                   swapChain2.put()),
-                        "CreateSwapChainForHwnd");
-
-                    swapChain2.as(swapChain_);
-                }
-
-                // Update backbuffers.
-                DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
-                D3DCallMsg(swapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
-
-                for (uint32_t index = 0; index < backBufferCount_; index++)
-                {
-                    ThrowIfFailed(swapChain_->GetBuffer(index, IID_PPV_ARGS(renderTargets_[index].put())));
-                    D3DUtils::SetAPIName(renderTargets_[index].get(), "BackBuffer", index);
-
-                    D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-                    rtvDesc.Format = currentSwapChainDesc.Format;
-                    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-                }*/
-
-                // backBufferIndex_ = 0;
-
-                // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
-                //   if (ResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
-                // {
-                // }*/
-
-                return Result::Ok;
-            }
-
-            Result DeviceImplementation::ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description)
-            {
-                ASSERT_IS_CREATION_THREAD;
-                ASSERT_IS_DEVICE_INITED;
-                ASSERT(swapChain)
-                ASSERT(swapChain->GetInterface());
-
-                // Wait For gpu
-
-                WaitForGpu();
-
-                ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetInterface()));
-                const auto currentSwapChainImpl = reinterpret_cast<SwapChainImpl*>(swapChain->GetInterface());
-                D3DCall(currentSwapChainImpl->Reset(swapChain->GetDescription()));
-
-                return Result::Ok;
             }
 
             Result DeviceImplementation::Submit(const CommandList::SharedPtr& commandList)
@@ -435,16 +327,6 @@ namespace OpenDemo
                 return _impl->Init();
             }
 
-            Result Device::Reset(const PresentOptions& presentOptions)
-            {
-                return _impl->Reset(presentOptions);
-            }
-
-            Result Device::ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description)
-            {
-                return _impl->ResetSwapchain(swapChain, description);
-            }
-
             Result Device::Present(const std::shared_ptr<SwapChain>& swapChain)
             {
                 return _impl->Present(swapChain);
@@ -455,7 +337,7 @@ namespace OpenDemo
                 return _impl->Submit(CommandList);
             }*/
 
-            void Device::WaitForGpu()
+            Result Device::WaitForGpu()
             {
                 return _impl->WaitForGpu();
             }

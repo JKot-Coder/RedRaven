@@ -23,29 +23,6 @@ namespace OpenDemo
                         && left.Flags == right.Flags);
                 }
 
-                DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect)
-                {
-                    ASSERT(presentOptions.rect.width > 0);
-                    ASSERT(presentOptions.rect.height > 0);
-                    ASSERT(presentOptions.rect.left == 0);
-                    ASSERT(presentOptions.rect.top == 0);
-                    ASSERT(presentOptions.bufferCount > 0 && presentOptions.bufferCount <= MAX_BACK_BUFFER_COUNT);
-
-                    DXGI_SWAP_CHAIN_DESC1 output;
-                    output.Width = presentOptions.rect.width;
-                    output.Height = presentOptions.rect.height;
-                    output.Format = TypeConversions::GetResourceFormat(presentOptions.resourceFormat);
-                    output.Stereo = (presentOptions.isStereo) ? TRUE : FALSE;
-                    output.SampleDesc = { 1, 0 };
-                    output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-                    output.BufferCount = presentOptions.bufferCount;
-                    output.Scaling = DXGI_SCALING_STRETCH;
-                    output.SwapEffect = swapEffect;
-                    output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-                    output.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-                    return output;
-                }
-
                 DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect)
                 {
                     ASSERT(description.width > 0);

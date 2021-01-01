@@ -14,15 +14,13 @@ namespace OpenDemo
 
                 // Todo separate freeThread / Multithread
                 Result Init() override;
-                Result Reset(const PresentOptions& presentOptions) override;
-                Result ResetSwapchain(const std::shared_ptr<SwapChain>& swapChain, const SwapChainDescription& description) override;
                 Result Present(const std::shared_ptr<SwapChain>& swapChain) override;
 
                 //  Result Submit(const std::shared_ptr<CommandList>& CommandList) override;
 
                 Result InitResource(const std::shared_ptr<Object>& resource) const override;
 
-                void WaitForGpu();
+                Result WaitForGpu() override;
 
             private:
                 std::unique_ptr<class DeviceImplementation> _impl;

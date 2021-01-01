@@ -186,7 +186,7 @@ namespace OpenDemo
                 if (!result)
                     Log::Print::Fatal(u8"Fatal error on SubmissionThread with result: %s\n", result.ToString());
 
-                std::this_thread::sleep_for(50ms);
+                //std::this_thread::sleep_for(50ms);
             }
         }
     }

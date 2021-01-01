@@ -39,6 +39,8 @@ namespace OpenDemo
         {
         public:
             virtual Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
+
+            virtual Result Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
         class SwapChain final : public InterfaceWrapObject<SwapChainInterface>
@@ -47,25 +49,25 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<SwapChain>;
             using SharedConstPtr = std::shared_ptr<const SwapChain>;
 
-            inline Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetInterface()->InitBackBufferTexture(backBufferIndex, resource); }
-
             std::shared_ptr<Texture> GetTexture(uint32_t backBufferIndex);
-            std::weak_ptr<CommandQueue> GetCommandQueue() { return commandQueue_; }
 
             const SwapChainDescription& GetDescription() const { return description_; }
 
         private:
-            static SharedPtr Create(const std::shared_ptr<CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
+            static SharedPtr Create(const SwapChainDescription& description, const U8String& name)
             {
-                return SharedPtr(new SwapChain(commandQueue, description, name));
+                return SharedPtr(new SwapChain(description, name));
             }
 
-            SwapChain(const std::shared_ptr<CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name);
+            SwapChain(const SwapChainDescription& description, const U8String& name);
+
+            Result Reset(const SwapChainDescription& description);
+
+            inline Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetInterface()->InitBackBufferTexture(backBufferIndex, resource); }
 
         private:
             SwapChainDescription description_;
             std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
-            std::weak_ptr<CommandQueue> commandQueue_;
 
             friend class Render::RenderContext;
         };

@@ -32,9 +32,10 @@ namespace OpenDemo
 {
     using namespace Common;
 
+    static uint32_t index = 0;
+
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
-
         GAPI::SwapChainDescription desc = swapChain_->GetDescription();
         desc.width = window_.GetWidth();
         desc.height = window_.GetHeight();
@@ -43,15 +44,7 @@ namespace OpenDemo
         const auto result = renderContext.ResetSwapChain(swapChain_, desc);
         ASSERT(result)
 
-        /*
-        GAPI::PresentOptions presentOptions;
-        presentOptions.bufferCount = 2;
-        presentOptions.isStereo = false;
-        presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(width, height));
-        presentOptions.ResourceFormat = GAPI::ResourceFormat::Unknown;
-        presentOptions.windowHandle = _window->GetNativeHandle();
-
-        submission_->ResetDevice(presentOptions);*/
+        index = 0;
     }
 
     void Application::Start()
@@ -83,7 +76,7 @@ namespace OpenDemo
         //  ASSERT(commandList)
         // commandList->Close();
 
-        GAPI::SwapChainDescription desciption;
+        GAPI::SwapChainDescription desciption = {};
         desciption.width = 100;
         desciption.height = 100;
         desciption.bufferCount = 2;
@@ -91,14 +84,11 @@ namespace OpenDemo
         desciption.resourceFormat = GAPI::ResourceFormat::BGRA8Unorm;
         desciption.windowHandle = _window->GetNativeHandle();
 
-        swapChain_ = renderContext.CreateSwapchain(commandQueue, desciption, "Primary");
-
-        static uint32_t index = 0;
+        swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
 
         while (!_quit)
         {
             Windowing::Windowing::PoolEvents();
-
 
             // renderContext.Submit(commandQueue, commandList);
 
@@ -120,10 +110,10 @@ namespace OpenDemo
 
                     auto texture = swapChain2->GetTexture(index2);
                     ASSERT(texture)
-                    Log::Print::Info("Texture %s\n", texture->GetName());
+                    //Log::Print::Info("Texture %s\n", texture->GetName());
 
                     auto rtv = texture->GetRTV();
-                    ASSERT(rtv)
+                    ASSERT(rtv);
 
                     commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
                     commandList->Close();
@@ -133,17 +123,17 @@ namespace OpenDemo
 
             renderContext.Submit(commandQueue, commandList);
 
+            renderContext.Present(swapChain_);
+            ASSERT(renderContext.MoveToNextFrame(commandQueue));
+
             renderContext.ExecuteAsync(
                 [&commandList](GAPI::Device& device) {
                     std::ignore = device;
-
+                 //   device.WaitForGpu();
                     commandList->Reset();
 
                     return GAPI::Result::Ok;
                 });
-
-            renderContext.Present(swapChain_);
-            ASSERT(renderContext.MoveToNextFrame(commandQueue));
 
             index = (++index % swapChain_->GetDescription().bufferCount);
 
@@ -176,15 +166,8 @@ namespace OpenDemo
         Inputting::Instance()->Init();
         Inputting::Instance()->SubscribeToWindow(_window);
 
-        GAPI::PresentOptions presentOptions;
-        presentOptions.bufferCount = 2;
-        presentOptions.isStereo = false;
-        presentOptions.rect = AlignedBox2i(Vector2i(0, 0), Vector2i(100, 100));
-        presentOptions.resourceFormat = GAPI::ResourceFormat::BGRA8Unorm;
-        presentOptions.windowHandle = _window->GetNativeHandle();
-
         auto& renderContext = Render::RenderContext::Instance();
-        const auto result = renderContext.Init(presentOptions);
+        const auto result = renderContext.Init();
 
         if (!result)
             Log::Print::Fatal("Fatal error initialize render context with error: %s\n", result.ToString());

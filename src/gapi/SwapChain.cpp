@@ -10,12 +10,10 @@ namespace OpenDemo
     namespace GAPI
     {
 
-        SwapChain::SwapChain(const std::shared_ptr<CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
+        SwapChain::SwapChain(const SwapChainDescription& description, const U8String& name)
             : InterfaceWrapObject(Object::Type::SwapChain, name),
-              description_(description),
-              commandQueue_(commandQueue)
+              description_(description)
         {
-            ASSERT(commandQueue);
             ASSERT(description.width > 0);
             ASSERT(description.height > 0);
             ASSERT(description.isStereo == false);
@@ -23,6 +21,29 @@ namespace OpenDemo
             ASSERT(description.resourceFormat != ResourceFormat::Unknown);
             //TODO fix it
             ASSERT(description.windowHandle != 0);
+        }
+
+        Result SwapChain::Reset(const SwapChainDescription& description)
+        {
+            ASSERT(description.isStereo == description_.isStereo);
+            ASSERT(description.bufferCount == description_.bufferCount);
+            ASSERT(description.resourceFormat == description_.resourceFormat);
+            ASSERT(description.windowHandle == description_.windowHandle);
+
+            Result result = GetInterface()->Reset(description, backBuffers_);
+
+            if (result == Result::Ok)
+            {
+                description_ = description;
+
+                for (auto& backBuffer : backBuffers_)
+                {
+                    //TODO assert
+                    backBuffer = nullptr;
+                }
+            }
+
+            return result;
         }
 
         Texture::SharedPtr SwapChain::GetTexture(uint32_t backBufferIndex)
@@ -40,7 +61,7 @@ namespace OpenDemo
                 backBufferIndex,
                 desc,
                 Resource::BindFlags::RenderTarget | Resource::BindFlags::ShaderResource,
-                fmt::sprintf("%s BackBufferTexture:%d", name_, backBufferIndex));
+                fmt::sprintf("%s BackBufferTexture:%d", name_, backBufferIndex)); //TODO move it
 
             return backBuffers_[backBufferIndex];
         }

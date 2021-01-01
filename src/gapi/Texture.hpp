@@ -101,6 +101,9 @@ namespace OpenDemo
             TextureDescription description_;
             BindFlags bindFlags_;
 
+            // TODO remove this
+            std::shared_ptr<RenderTargetView> rtv = nullptr;
+
             friend class Render::RenderContext;
         };
 

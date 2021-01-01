@@ -182,9 +182,23 @@ namespace OpenDemo
 
                 Result initResource(const ResourceCreatorContext& context, CommandQueue& resource)
                 {
-                    auto impl = new CommandQueueImpl(resource.GetType());
+                    CommandQueueImpl* impl = nullptr;
 
-                    D3DCall(impl->Init(context.device, resource.GetName()));
+                    if (resource.GetType() == CommandQueueType::Graphics)
+                    {
+                        static bool alreadyInited = false;
+                        ASSERT(!alreadyInited); // Only one graphics command queue are alloved.
+                        alreadyInited = true;
+
+                        // Graphics command queue already initialized internally in device, so just use it.
+                        impl = context.graphicsCommandQueue.get();
+                    }
+                    else
+                    {
+                        impl = new CommandQueueImpl(resource.GetType());
+                        D3DCall(impl->Init(context.device, resource.GetName()));
+                    }
+
                     resource.SetInterface(impl);
 
                     return Result::Ok;
@@ -253,13 +267,9 @@ namespace OpenDemo
                 {
                     auto impl = new SwapChainImpl();
 
-                    auto commandQueue = resource.GetCommandQueue().lock();
-                    ASSERT(commandQueue);
+                    ASSERT(context.graphicsCommandQueue->GetD3DObject());
 
-                    ASSERT(dynamic_cast<CommandQueueImpl*>(commandQueue->GetInterface()));
-                    auto commandQueueImpl = static_cast<CommandQueueImpl*>(commandQueue->GetInterface());
-
-                    D3DCall(impl->Init(context.device, context.dxgiFactory, commandQueueImpl->GetD3DObject(), resource.GetDescription(), resource.GetName()));
+                    D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue->GetD3DObject(), resource.GetDescription(), resource.GetName()));
                     resource.SetInterface(impl);
 
                     return Result::Ok;

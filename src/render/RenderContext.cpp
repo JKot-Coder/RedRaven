@@ -24,7 +24,7 @@ namespace OpenDemo
 
         RenderContext::~RenderContext() { }
 
-        GAPI::Result RenderContext::Init(const GAPI::PresentOptions& presentOptions)
+        GAPI::Result RenderContext::Init()
         {
             ASSERT(!inited_)
 
@@ -34,13 +34,6 @@ namespace OpenDemo
             if (!(result = initDevice()))
             {
                 Log::Print::Error("Render device init failed.\n");
-                return result;
-            }
-
-            ;
-            if (!(result = resetDevice(presentOptions)))
-            {
-                Log::Print::Error("Render device reset failed.\n");
                 return result;
             }
 
@@ -122,19 +115,22 @@ namespace OpenDemo
             return submission_->ExecuteAwait([function](GAPI::Device& device) { return function(device); });
         }
 
-        GAPI::Result RenderContext::ResetDevice(const GAPI::PresentOptions& presentOptions)
-        {
-            ASSERT(inited_);
-
-            return resetDevice(presentOptions);
-        }
-
         GAPI::Result RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
         {
             ASSERT(inited_);
 
             return submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
-                return device.ResetSwapchain(swapchain, description);
+                GAPI::Result result = GAPI::Result::Ok;
+            
+                result = device.WaitForGpu();
+                if (!result)
+                    return result;
+
+                result = swapchain->Reset(description);
+                if (!result)
+                    return result;
+
+                return result;
             });
         }
 
@@ -227,11 +223,11 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::CommandQueue::SharedPtr& commandQueue, const GAPI::SwapChainDescription& description, const U8String& name) const
+        GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::SwapChain::Create(commandQueue, description, name);
+            auto& resource = GAPI::SwapChain::Create(description, name);
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -242,13 +238,6 @@ namespace OpenDemo
         {
             return submission_->ExecuteAwait([](GAPI::Device& device) {
                 return device.Init();
-            });
-        }
-
-        GAPI::Result RenderContext::resetDevice(const GAPI::PresentOptions& presentOptions)
-        {
-            return submission_->ExecuteAwait([&presentOptions](GAPI::Device& device) {
-                return device.Reset(presentOptions);
             });
         }
     }

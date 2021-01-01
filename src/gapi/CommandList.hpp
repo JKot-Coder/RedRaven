@@ -25,6 +25,7 @@ namespace OpenDemo
         class CommandListInterface
         {
         public:
+             // TODO result;
             virtual void Reset() = 0;
             // TODO result;
             virtual void Close() = 0;

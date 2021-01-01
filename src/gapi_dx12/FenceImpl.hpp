@@ -8,6 +8,8 @@ namespace OpenDemo
     {
         namespace DX12
         {
+            class CommandQueueImpl;
+
             class FenceImpl final : public FenceInterface
             {
             public:
@@ -15,8 +17,10 @@ namespace OpenDemo
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 Result Signal(const std::shared_ptr<CommandQueue>& queue) override;
+                Result Signal(CommandQueueImpl& queue);
 
-                Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const override;
+                // TODO infinity
+                Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout = 0xFFFFFF) const override;
                 Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;
 
                 uint64_t GetGpuValue() const override

@@ -58,7 +58,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result SwapChainImpl::Reset(const SwapChainDescription& description)
+            Result SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
             {
                 ASSERT(D3DSwapChain_)
                 ASSERT(CheckSwapchainDescription(description))
@@ -75,6 +75,21 @@ namespace OpenDemo
                     return Result::Fail;
                 }
 
+                // Clear api references
+                for (const auto& backBuffer : backBuffers)
+                {
+                    if (!backBuffer)
+                        continue;
+
+                    auto resourceImpl = backBuffer->GetPrivateImpl<ResourceImpl>();
+
+                    if (resourceImpl)
+                    {
+                        delete resourceImpl;
+                        backBuffer->SetPrivateImpl<void>(nullptr);
+                    }
+                }
+
                 HRESULT hr = D3DSwapChain_->ResizeBuffers(
                     targetSwapChainDesc.BufferCount,
                     targetSwapChainDesc.Width,
@@ -82,17 +97,10 @@ namespace OpenDemo
                     targetSwapChainDesc.Format,
                     targetSwapChainDesc.Flags);
 
-                if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
-                {
-                    /*
-                    LOG_ERROR("Device Lost on ResizeBuffers: Reason code 0x%08X\n",
-                        static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : hr))
-                        */
-
-                    return Result::Fail;
-                }
-                else
-                    D3DCallMsg(hr, "ResizeBuffers");
+                // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
+                //   if (ResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
+                // {
+                // }*/
 
                 return Result::Ok;
             }

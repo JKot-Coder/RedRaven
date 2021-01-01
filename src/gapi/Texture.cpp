@@ -81,8 +81,13 @@ namespace OpenDemo
 
             const ResourceViewDescription desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
 
-            auto& renderContext = Render::RenderContext::Instance();
-            return renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), desc, name_);
+            if (!rtv)
+            {
+                auto& renderContext = Render::RenderContext::Instance();
+                rtv = renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), desc, name_);
+            }
+
+            return rtv;
         }
 
     }

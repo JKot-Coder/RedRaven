@@ -28,14 +28,21 @@ namespace OpenDemo
 
             Result FenceImpl::Signal(const std::shared_ptr<CommandQueue>& queue)
             {
-                ASSERT(D3DFence_);
-                ASSERT(queue);
                 ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetInterface()));
+                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetInterface());         
 
+                ASSERT(queueImpl);   
+
+                return Signal(*queueImpl);
+            }
+
+            Result FenceImpl::Signal(CommandQueueImpl& queue)
+            {
+                ASSERT(D3DFence_);
+                             
                 cpuValue_++;
 
-                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetInterface());
-                D3DCall(queueImpl->Signal(D3DFence_, cpuValue_));
+                D3DCall(queue.Signal(D3DFence_, cpuValue_));
 
                 return Result::Ok;
             }

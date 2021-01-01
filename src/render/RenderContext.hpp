@@ -29,9 +29,10 @@ namespace OpenDemo
             RenderContext();
             ~RenderContext();
 
-            GAPI::Result Init(const GAPI::PresentOptions& presentOptions);
+            GAPI::Result Init();
             void Terminate();
 
+            // TODO No error returns
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& CommandList);
             void Present(const std::shared_ptr<GAPI::SwapChain>& swapChain);
             GAPI::Result MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue);
@@ -39,7 +40,6 @@ namespace OpenDemo
             void ExecuteAsync(const Submission::CallbackFunction&& function);
             GAPI::Result ExecuteAwait(const Submission::CallbackFunction&& function);
 
-            GAPI::Result ResetDevice(const GAPI::PresentOptions& presentOptions);
             GAPI::Result ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description);
 
             std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
@@ -50,11 +50,10 @@ namespace OpenDemo
             std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::TextureDescription& desc, GAPI::Resource::BindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::Resource::BindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::ResourceViewDescription& desc, const U8String& name = "") const;
-            std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const GAPI::SwapChainDescription& description, const U8String& name = "") const;
+            std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
 
         private:
             GAPI::Result initDevice();
-            GAPI::Result resetDevice(const GAPI::PresentOptions& presentOptions);
 
         private:
             static constexpr int SubmissionThreadAheadFrames = 4;
