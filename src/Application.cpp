@@ -33,6 +33,7 @@ namespace OpenDemo
     using namespace Common;
 
     static uint32_t index = 0;
+    static uint32_t frame = 0;
 
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
@@ -136,6 +137,7 @@ namespace OpenDemo
                 });
 
             index = (++index % swapChain_->GetDescription().bufferCount);
+            frame++;
 
             time->Update();
         }

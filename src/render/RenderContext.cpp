@@ -79,17 +79,23 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
+            static uint32_t submissionFrame = 0;
+
             submission_->ExecuteAsync([this, &commandQueue](GAPI::Device& device) {
                 GAPI::Result result = GAPI::Result::Ok;
+
+                submissionFrame++;
+                const auto currentFenceValue = fence_->GetCpuValue();
 
                 // Schedule a Signal command in the queue.
                 if (!(result = fence_->Signal(commandQueue)))
                     return result;
 
-                if (fence_->GetCpuValue() >= SubmissionThreadAheadFrames)
+                if (currentFenceValue >= SubmissionThreadAheadFrames)
                 {
                     // GPU ahead. Throttle cpu.
-                    if (!(fence_->SyncCPU(fence_->GetCpuValue() - SubmissionThreadAheadFrames, INFINITE)))
+                    // TODO SubmissionThreadAheadFrames rename/replace
+                    if (!(fence_->SyncCPU(currentFenceValue - SubmissionThreadAheadFrames, INFINITE)))
                         return result;
                 }
 
@@ -121,7 +127,7 @@ namespace OpenDemo
 
             return submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
                 GAPI::Result result = GAPI::Result::Ok;
-            
+
                 result = device.WaitForGpu();
                 if (!result)
                     return result;

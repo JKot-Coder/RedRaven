@@ -17,6 +17,14 @@
 #include <thread>
 #include <variant>
 
+#undef NOMINMAX
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4996)
+#include "dependencies/backward-cpp/backward.hpp"
+#pragma warning(pop)
+#define NOMINMAX
+
 using namespace std::chrono;
 
 namespace OpenDemo
@@ -25,11 +33,11 @@ namespace OpenDemo
     {
         namespace
         {
-            struct Work final
+            struct Task final
             {
             public:
-                Work() = default;
-                Work(Work&&) = default;
+                Task() = default;
+                Task(Task&&) = default;
 
                 struct Terminate
                 {
@@ -46,10 +54,10 @@ namespace OpenDemo
                     std::shared_ptr<GAPI::CommandList> commandList;
                 };
 
-                using WorkVariant = std::variant<Terminate, Callback, Submit>;
+                using TaskVariant = std::variant<Terminate, Callback, Submit>;
 
             public:
-                WorkVariant workVariant;
+                TaskVariant taskVariant;
 #ifdef DEBUG
                 backward::StackTrace stackTrace;
                 U8String label;
@@ -58,92 +66,138 @@ namespace OpenDemo
         }
 
         Submission::Submission()
-            : inputWorkChannel_(std::make_unique<BufferedChannel>())
+            : inputTaskChannel_(std::make_unique<BufferedChannel>())
         {
         }
 
         Submission::~Submission()
         {
             ASSERT(device_)
+#if ENABLE_SUBMISSION_THREAD
             ASSERT(!submissionThread_.IsJoinable())
-            ASSERT(inputWorkChannel_->IsClosed())
+#endif
+            ASSERT(inputTaskChannel_->IsClosed())
         }
 
         void Submission::Start()
         {
+            ASSERT(!inputTaskChannel_->IsClosed())
+
+#if ENABLE_SUBMISSION_THREAD
             ASSERT(!submissionThread_.IsJoinable())
-            ASSERT(!inputWorkChannel_->IsClosed())
 
             submissionThread_ = Threading::Thread("Submission Thread", [this] {
                 device_.reset(new GAPI::DX12::Device());
                 this->threadFunc();
             });
+#else
+            device_.reset(new GAPI::DX12::Device());
+#endif
         }
 
         template <typename T>
-        void Submission::putWork(T&& workVariant)
+        void Submission::putTask(T&& taskVariant)
         {
+#if ENABLE_SUBMISSION_THREAD
             ASSERT(submissionThread_.IsJoinable())
 
-            Work work;
-            work.workVariant = std::move(workVariant);
+            Task task;
+            task.taskVariant = std::move(taskVariant);
 
 #ifdef DEBUG
             constexpr int STACK_SIZE = 32;
-            work.stackTrace.load_here(STACK_SIZE);
+            task.stackTrace.load_here(STACK_SIZE);
 #endif
-            inputWorkChannel_->Put(std::move(work));
+
+            inputTaskChannel_->Put(std::move(task));
+#else
+            ASSERT(device_);
+            doTask(taskVariant);
+#endif
         }
 
         void Submission::Submit(const GAPI::CommandQueue::SharedPtr& commandQueue, const GAPI::CommandList::SharedPtr& commandList)
         {
-            Work::Submit work;
-            work.commandQueue = commandQueue;
-            work.commandList = commandList;
+            Task::Submit task;
+            task.commandQueue = commandQueue;
+            task.commandList = commandList;
 
-            putWork(work);
+            putTask(task);
         }
 
         void Submission::ExecuteAsync(CallbackFunction&& function)
         {
-            Work::Callback work;
-            work.function = function;
+            Task::Callback task;
+            task.function = function;
 
-            putWork(work);
+            putTask(task);
         }
 
         GAPI::Result Submission::ExecuteAwait(const CallbackFunction&& function)
         {
-            Work::Callback work;
+            Task::Callback task;
 
+#if ENABLE_SUBMISSION_THREAD
             Threading::Mutex mutex;
             std::unique_lock<Threading::Mutex> lock(mutex);
             Threading::ConditionVariable condition;
             GAPI::Result result = GAPI::Result::Fail;
 
-            work.function = [&condition, &function, &mutex, &result](GAPI::Device& device) {
+            task.function = [&condition, &function, &mutex, &result](GAPI::Device& device) {
                 std::unique_lock<Threading::Mutex> lock(mutex);
                 result = function(device);
                 condition.notify_one();
                 return result;
             };
 
-            putWork(work);
+            putTask(task);
 
             condition.wait(lock);
+#else
+            GAPI::Result result = GAPI::Result::Fail;
+
+            task.function = [&function, &result](GAPI::Device& device) {
+                result = function(device);
+                return result;
+            };
+
+            putTask(task);
+#endif
 
             return result;
         }
 
         void Submission::Terminate()
         {
+            Task::Terminate task;
+            putTask(task);
+
+            inputTaskChannel_->Close();
+
+#if ENABLE_SUBMISSION_THREAD
             ASSERT(submissionThread_.IsJoinable())
-
-            Work::Terminate work;
-            putWork(work);
-
-            inputWorkChannel_->Close();
             submissionThread_.Join();
+#endif
+        }
+
+        template <>
+        inline GAPI::Result Submission::doTask(const Task::Submit& task)
+        {
+            return task.commandQueue->Submit(task.commandList);
+        }
+
+        template <>
+        inline GAPI::Result Submission::doTask(const Task::Callback& task)
+        {
+            return task.function(*device_);
+        }
+
+        template <>
+        inline GAPI::Result Submission::doTask(const Task::Terminate& task)
+        {
+            device_ == nullptr;
+            Log::Print::Info("Device terminated.\n");
+            return GAPI::Result::Ok;
         }
 
         // helper type for the visitor
@@ -156,38 +210,36 @@ namespace OpenDemo
         template <class... Ts>
         overloaded(Ts...) -> overloaded<Ts...>;
 
+#if ENABLE_SUBMISSION_THREAD
         void Submission::threadFunc()
         {
             while (true)
             {
-                auto inputWorkOptional = inputWorkChannel_->GetNext();
-                // Channel was closed and no work
-                if (!inputWorkOptional.has_value())
+                auto inputTaskOptional = inputTaskChannel_->GetNext();
+                // Channel was closed and no task
+                if (!inputTaskOptional.has_value())
                     return;
 
-                const auto& inputWork = inputWorkOptional.value();
+                const auto& inputTask = inputTaskOptional.value();
 
                 ASSERT(device_)
 
                 GAPI::Result result = GAPI::Result::Fail;
 
                 std::visit(overloaded {
-                               [this, &result](const Work::Submit& work) { result = work.commandQueue->Submit(work.commandList); },
-                               [this, &result](const Work::Callback& work) { result = work.function(*device_); },
-                               [this, &result](const Work::Terminate& work) {
-                                   device_ == nullptr;
-                                   result = GAPI::Result::Ok;
-                                   Log::Print::Info("Device terminated.\n");
-                               },
-                               [](auto&& arg) { ASSERT_MSG(false, "Unsupported work type"); } },
-                    inputWork.workVariant);
+                               [this, &result](const Task::Submit& task) { result = doTask(task); },
+                               [this, &result](const Task::Callback& task) { result = doTask(task); },
+                               [this, &result](const Task::Terminate& task) { result = doTask(task); },
+                               [](auto&& arg) { ASSERT_MSG(false, "Unsupported task type"); } },
+                    inputTask.taskVariant);
 
-                // Todo: Add work label in message
+                // Todo: Add task label in message
                 if (!result)
                     Log::Print::Fatal(u8"Fatal error on SubmissionThread with result: %s\n", result.ToString());
 
                 //std::this_thread::sleep_for(50ms);
             }
         }
+#endif
     }
 };

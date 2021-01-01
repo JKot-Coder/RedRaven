@@ -56,7 +56,7 @@ namespace OpenDemo
             GAPI::Result initDevice();
 
         private:
-            static constexpr int SubmissionThreadAheadFrames = 4;
+            static constexpr int SubmissionThreadAheadFrames = 3;
 
             bool inited_ = false;
 

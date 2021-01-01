@@ -6,13 +6,7 @@
 
 #include "common/threading/Thread.hpp"
 
-#undef NOMINMAX
-#pragma warning(push)
-#pragma warning(disable : 4267)
-#pragma warning(disable : 4996)
-#include "dependencies/backward-cpp/backward.hpp"
-#pragma warning(pop)
-#define NOMINMAX
+#define ENABLE_SUBMISSION_THREAD false
 
 namespace OpenDemo
 {
@@ -29,7 +23,7 @@ namespace OpenDemo
     {
         namespace
         {
-            struct Work;
+            struct Task;
         }
 
         class Submission final
@@ -51,19 +45,25 @@ namespace OpenDemo
 
         private:
             template <typename T>
-            void putWork(T&& work);
+            void putTask(T&& task);
 
+            template <typename T>
+            inline GAPI::Result doTask(const T& task);
+
+#if ENABLE_SUBMISSION_THREAD
             void threadFunc();
-
+#endif
         private:
-            // Queue of 64 work should be enough.
-            static constexpr size_t WorkBufferSize = 64;
-            using BufferedChannel = Threading::BufferedChannel<Work, WorkBufferSize>;
+            // Queue of 64 task should be enough.
+            static constexpr size_t TaskBufferSize = 64;
+            using BufferedChannel = Threading::BufferedChannel<Task, TaskBufferSize>;
 
             std::shared_ptr<GAPI::Device> device_;
             //   std::unique_ptr<AccessGuard<GAPI::Device>> device_;
+#if ENABLE_SUBMISSION_THREAD
             Threading::Thread submissionThread_;
-            std::unique_ptr<BufferedChannel> inputWorkChannel_;
+#endif
+            std::unique_ptr<BufferedChannel> inputTaskChannel_;
         };
 
     }
