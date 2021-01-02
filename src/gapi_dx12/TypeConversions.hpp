@@ -30,7 +30,7 @@ namespace OpenDemo
                     }
                 }
 
-                D3D12_RESOURCE_FLAGS GetResourceFlags(Resource::BindFlags flags);
+                D3D12_RESOURCE_FLAGS GetResourceFlags(ResourceBindFlags flags);
             }
         }
     }

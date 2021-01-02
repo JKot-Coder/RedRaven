@@ -60,7 +60,7 @@ namespace OpenDemo
                 std::static_pointer_cast<SwapChain>(shared_from_this()),
                 backBufferIndex,
                 desc,
-                Resource::BindFlags::RenderTarget | Resource::BindFlags::ShaderResource,
+                ResourceBindFlags::RenderTarget | ResourceBindFlags::ShaderResource,
                 fmt::sprintf("%s BackBufferTexture:%d", name_, backBufferIndex)); //TODO move it
 
             return backBuffers_[backBufferIndex];

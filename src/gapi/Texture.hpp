@@ -87,19 +87,19 @@ namespace OpenDemo
             //   UnorderedAccessView::SharedPtr getUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
 
             const TextureDescription& GetDescription() const { return description_; }
-            BindFlags GetBindFlags() const { return bindFlags_; }
+            ResourceBindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
-            static SharedPtr Create(const TextureDescription& description, BindFlags bindFlags, const U8String& name)
+            static SharedPtr Create(const TextureDescription& description, ResourceBindFlags bindFlags, const U8String& name)
             {
                 return SharedPtr(new Texture(description, bindFlags, name));
             }
 
-            Texture(const TextureDescription& description, BindFlags bindFlags, const U8String& name);
+            Texture(const TextureDescription& description, ResourceBindFlags bindFlags, const U8String& name);
 
         private:
             TextureDescription description_;
-            BindFlags bindFlags_;
+            ResourceBindFlags bindFlags_;
 
             // TODO remove this
             std::shared_ptr<RenderTargetView> rtv = nullptr;

@@ -11,15 +11,15 @@ namespace OpenDemo
         {
             namespace
             {
-                void GetOptimizedClearValue(Resource::BindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
+                void GetOptimizedClearValue(ResourceBindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
                 {
-                    if (!IsAny(bindFlags, Resource::BindFlags::RenderTarget | Resource::BindFlags::DepthStencil))
+                    if (!IsAny(bindFlags, ResourceBindFlags::RenderTarget | ResourceBindFlags::DepthStencil))
                     {
                         value = nullptr;
                         return;
                     }
 
-                    if (IsSet(bindFlags, Resource::BindFlags::RenderTarget))
+                    if (IsSet(bindFlags, ResourceBindFlags::RenderTarget))
                     {
                         value->Format = format;
 
@@ -29,7 +29,7 @@ namespace OpenDemo
                         value->Color[3] = 0.0f;
                     }
 
-                    if (IsSet(bindFlags, Resource::BindFlags::DepthStencil))
+                    if (IsSet(bindFlags, ResourceBindFlags::DepthStencil))
                     {
                         value->Format = format;
 
@@ -37,7 +37,7 @@ namespace OpenDemo
                     }
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, Resource::BindFlags bindFlags)
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, ResourceBindFlags bindFlags)
                 {
                     DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
 
@@ -63,7 +63,7 @@ namespace OpenDemo
 
                     desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
 
-                    if (ResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess))
+                    if (ResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess))
                         format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
 
                     desc.Format = format;
@@ -71,7 +71,7 @@ namespace OpenDemo
                 }
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, ResourceBindFlags bindFlags, const U8String& name)
             {
                 ASSERT(device)
                 // TextureDesc ASSERT checks done on Texture initialization;
@@ -100,7 +100,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, Resource::BindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, ResourceBindFlags bindFlags, const U8String& name)
             {
                 ASSERT(resource);
                 // TextureDesc ASSERT checks done on Texture initialization;

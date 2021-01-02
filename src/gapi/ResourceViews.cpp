@@ -11,7 +11,7 @@ namespace OpenDemo
             ASSERT(texture);
             ASSERT(desc.texture.mipLevel + desc.texture.mipsCount <= texture->GetDescription().mipLevels)
             ASSERT(desc.texture.firstArraySlice + desc.texture.arraySlicesCount <= texture->GetDescription().arraySize)
-            ASSERT(IsSet(texture->GetBindFlags(), Texture::BindFlags::RenderTarget))
+            ASSERT(IsSet(texture->GetBindFlags(), ResourceBindFlags::RenderTarget))
 
             return RenderTargetView::SharedPtr(new RenderTargetView(texture, desc, name));
         }

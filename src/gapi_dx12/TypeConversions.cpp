@@ -119,14 +119,14 @@ namespace OpenDemo
                     return formatsConversion[static_cast<uint32_t>(format)].to;
                 }
 
-                D3D12_RESOURCE_FLAGS GetResourceFlags(Resource::BindFlags flags)
+                D3D12_RESOURCE_FLAGS GetResourceFlags(ResourceBindFlags flags)
                 {
                     D3D12_RESOURCE_FLAGS d3d = D3D12_RESOURCE_FLAG_NONE;
 
-                    d3d |= IsSet(flags, Resource::BindFlags::UnorderedAccess) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
-                    d3d |= IsSet(flags, Resource::BindFlags::ShaderResource) ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
-                    d3d |= IsSet(flags, Resource::BindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
-                    d3d |= IsSet(flags, Resource::BindFlags::RenderTarget) ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE;
+                    d3d |= IsSet(flags, ResourceBindFlags::UnorderedAccess) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+                    d3d |= IsSet(flags, ResourceBindFlags::ShaderResource) ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+                    d3d |= IsSet(flags, ResourceBindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
+                    d3d |= IsSet(flags, ResourceBindFlags::RenderTarget) ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE;
 
                     return d3d;
                 }

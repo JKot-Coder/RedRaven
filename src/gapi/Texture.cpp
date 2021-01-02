@@ -25,7 +25,7 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        Texture::Texture(const TextureDescription& desc, BindFlags bindFlags, const U8String& name)
+        Texture::Texture(const TextureDescription& desc, ResourceBindFlags bindFlags, const U8String& name)
             : Resource(Resource::ResourceType::Texture, name),
               description_(desc),
               bindFlags_(bindFlags)
@@ -77,7 +77,7 @@ namespace OpenDemo
         RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t arraySize)
         {
             ASSERT(firstArraySlice < description_.arraySize)
-            ASSERT(IsSet(bindFlags_, BindFlags::RenderTarget))
+            ASSERT(IsSet(bindFlags_, ResourceBindFlags::RenderTarget))
 
             const ResourceViewDescription desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
 

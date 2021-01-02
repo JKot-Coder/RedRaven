@@ -38,7 +38,7 @@ namespace OpenDemo
             void Terminate();
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList);
 
-            void ExecuteAsync(CallbackFunction&& function);
+            void ExecuteAsync(const CallbackFunction&& function);
             GAPI::Result ExecuteAwait(const CallbackFunction&& function);
 
             inline std::weak_ptr<GAPI::MultiThreadDeviceInterface> GetMultiThreadDeviceInterface() { return device_; }

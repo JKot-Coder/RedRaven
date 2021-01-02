@@ -51,7 +51,7 @@ namespace OpenDemo
             public:
                 DeviceImplementation();
 
-                Result Init();
+                Result Init(const Device::Description& description);
                 Result Submit(const CommandList::SharedPtr& commandList);
                 Result Present(const SwapChain::SharedPtr& swapChain);
 
@@ -66,10 +66,16 @@ namespace OpenDemo
                 Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const;
 
             private:
-                bool enableDebug_ = true;
+                Result createDevice();
+
+                void moveToNextFrame();
+
+            private:
+                Device::Description description_ = {};
+
+                bool inited_ = false;
 
                 std::thread::id creationThreadID_;
-                bool inited_ = false;
 
                 std::unique_ptr<ResourceCreatorContext> resourceCreatorContext_;
 
@@ -80,19 +86,8 @@ namespace OpenDemo
 
                 D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
                 std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
-
                 std::unique_ptr<FenceImpl> gpuWaitFence_;
-
-                //uint32_t frameIndex_ = UNDEFINED_FRAME_INDEX;
-
-                // uint32_t backBufferIndex_ = 0;
-                uint32_t backBufferCount_ = 0;
-
                 std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
-
-                Result createDevice();
-
-                void moveToNextFrame();
             };
 
             DeviceImplementation::DeviceImplementation()
@@ -100,13 +95,14 @@ namespace OpenDemo
             {
             }
 
-            Result DeviceImplementation::Init()
+            Result DeviceImplementation::Init(const Device::Description& description)
             {
-                ASSERT_IS_CREATION_THREAD
-                ASSERT(inited_ == false)
+                ASSERT_IS_CREATION_THREAD;
+                ASSERT(inited_ == false);
 
-                // TODO Take from parameters. Check by assert;
-                backBufferCount_ = 2;
+                ASSERT(description.gpuFramesBuffered <= MAX_BACK_BUFFER_COUNT);
+
+                description_ = description;
 
                 D3DCallMsg(createDevice(), "CreateDevice");
 
@@ -229,15 +225,21 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD
 
                 UINT dxgiFactoryFlags = 0;
+
                 // Enable the debug layer (requires the Graphics Tools "optional feature").
                 // NOTE: Enabling the debug layer after device creation will invalidate the active device.
-                if (enableDebug_)
+                if (description_.debugMode == Device::DebugMode::Debug
+                    || description_.debugMode == Device::DebugMode::Instrumented)
                 {
                     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController_.put()))))
                     {
                         debugController_->EnableDebugLayer();
                         debugController_->SetEnableGPUBasedValidation(true);
-                        debugController_->SetEnableSynchronizedCommandQueueValidation(true);
+
+                        if (description_.debugMode == Device::DebugMode::Debug)
+                        {
+                            debugController_->SetEnableSynchronizedCommandQueueValidation(true);
+                        }
                     }
                     else
                     {
@@ -257,15 +259,14 @@ namespace OpenDemo
                 D3DCallMsg(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(dxgiFactory_.put())), "CreateDXGIFactory2");
 
                 D3D_FEATURE_LEVEL minimumFeatureLevel = D3D_FEATURE_LEVEL_11_0;
-
                 D3DCallMsg(D3DUtils::GetAdapter(dxgiFactory_, minimumFeatureLevel, dxgiAdapter_), "GetAdapter");
 
                 // Create the DX12 API device object.
                 D3DCallMsg(D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put())), "D3D12CreateDevice");
-
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
 
-                if (enableDebug_)
+                if (description_.debugMode == Device::DebugMode::Debug
+                    || description_.debugMode == Device::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
@@ -322,9 +323,9 @@ namespace OpenDemo
 
             Device::~Device() { }
 
-            Result Device::Init()
+            Result Device::Init(const Description& description)
             {
-                return _impl->Init();
+                return _impl->Init(description);
             }
 
             Result Device::Present(const std::shared_ptr<SwapChain>& swapChain)

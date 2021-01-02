@@ -35,7 +35,7 @@ namespace OpenDemo
 
     static uint32_t index = 0;
     static uint32_t frame = 0;
-
+    
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
         GAPI::SwapChainDescription desc = swapChain_->GetDescription();
@@ -43,8 +43,7 @@ namespace OpenDemo
         desc.height = window_.GetHeight();
 
         auto& renderContext = Render::RenderContext::Instance();
-        const auto result = renderContext.ResetSwapChain(swapChain_, desc);
-        ASSERT(result)
+        renderContext.ResetSwapChain(swapChain_, desc);
 
         index = 0;
     }
@@ -89,9 +88,6 @@ namespace OpenDemo
         swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
         auto fence = renderContext.CreateFence("qwe");
 
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(10s);
-
         while (!_quit)
         {
             Windowing::Windowing::PoolEvents();
@@ -129,29 +125,11 @@ namespace OpenDemo
             renderContext.Submit(commandQueue, commandList);
 
             renderContext.Present(swapChain_);
-            ASSERT(renderContext.MoveToNextFrame(commandQueue));
-
-            uint64_t cpu = 0;
-            uint64_t gpu = 0;
+            renderContext.MoveToNextFrame(commandQueue);
 
             renderContext.ExecuteAsync(
-                [&commandList, &fence, &commandQueue, &cpu, &gpu](GAPI::Device& device) {
+                [&commandList](GAPI::Device& device) {
                     std::ignore = device;
-                    //   device.WaitForGpu();
-
-                    // Schedule a Signal command in the queue.
-                    fence->Signal(commandQueue);
-
-
-                    if (fence->GetCpuValue() >= 2)
-                    {
-                        // GPU ahead. Throttle cpu.
-                        // TODO SubmissionThreadAheadFrames rename/replace
-                        fence->SyncCPU(fence->GetCpuValue() - 2, INFINITE);
-                    }
-
-                    cpu = fence->GetCpuValue();
-                    gpu = fence->GetGpuValue();
 
                     commandList->Reset();
 

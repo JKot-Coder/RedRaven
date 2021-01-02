@@ -125,7 +125,7 @@ namespace OpenDemo
             putTask(task);
         }
 
-        void Submission::ExecuteAsync(CallbackFunction&& function)
+        void Submission::ExecuteAsync(const CallbackFunction&& function)
         {
             Task::Callback task;
             task.function = function;

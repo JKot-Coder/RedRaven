@@ -18,6 +18,7 @@ namespace OpenDemo
         class Object;
 
         class Resource;
+        enum class ResourceBindFlags : uint32_t;
         enum class ResourceFormat : uint32_t;
 
         class ResourceView;

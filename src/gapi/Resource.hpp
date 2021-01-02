@@ -9,19 +9,16 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        namespace Private
-        {
-            enum class ResourceBindFlags : uint32_t
-            {
-                None = 0x0,
-                ShaderResource = 0x01,
-                UnorderedAccess = 0x02,
-                RenderTarget = 0x04,
-                DepthStencil = 0x08,
-            };
 
-            ENUM_CLASS_OPERATORS(ResourceBindFlags)
-        }
+        enum class ResourceBindFlags : uint32_t
+        {
+            None = 0x0,
+            ShaderResource = 0x01,
+            UnorderedAccess = 0x02,
+            RenderTarget = 0x04,
+            DepthStencil = 0x08,
+        };
+        ENUM_CLASS_OPERATORS(ResourceBindFlags)
 
         enum class ResourceFormat : uint32_t
         {
@@ -143,8 +140,6 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<Resource>;
             using SharedConstPtr = std::shared_ptr<const Resource>;
             using WeakPtr = std::weak_ptr<Resource>;
-
-            using BindFlags = Private::ResourceBindFlags;
 
             enum class ResourceType
             {

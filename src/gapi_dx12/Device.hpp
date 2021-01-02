@@ -13,7 +13,7 @@ namespace OpenDemo
                 ~Device() override;
 
                 // Todo separate freeThread / Multithread
-                Result Init() override;
+                Result Init(const Description& description) override;
                 Result Present(const std::shared_ptr<SwapChain>& swapChain) override;
 
                 //  Result Submit(const std::shared_ptr<CommandList>& CommandList) override;

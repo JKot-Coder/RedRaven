@@ -4,7 +4,6 @@
 #include "common/NativeWindowHandle.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
-#include "gapi/Resource.hpp"
 
 namespace OpenDemo
 {
@@ -13,7 +12,31 @@ namespace OpenDemo
         class SingleThreadDeviceInterface
         {
         public:
-            virtual Result Init() = 0;
+            enum class DebugMode : uint32_t
+            {
+                Retail,
+                Instrumented,
+                Debug
+            };
+
+            struct Description final
+            {
+            public:
+                Description() = default;	
+
+                Description(uint32_t gpuFramesBuffered, DebugMode debugMode)
+                    : gpuFramesBuffered(gpuFramesBuffered),
+                      debugMode(debugMode)
+                {
+                }
+
+            public:
+                uint32_t gpuFramesBuffered = 0;
+                DebugMode debugMode = DebugMode::Retail;
+            };
+
+        public:
+            virtual Result Init(const Description& description) = 0;
 
             //   virtual Result Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
 

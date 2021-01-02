@@ -26,12 +26,22 @@ namespace OpenDemo
 
         GAPI::Result RenderContext::Init()
         {
-            ASSERT(!inited_)
+            ASSERT(!inited_);
 
             submission_->Start();
 
             GAPI::Result result = GAPI::Result::Ok;
-            if (!(result = initDevice()))
+
+            auto debugMode = GAPI::Device::DebugMode::Retail;
+
+#ifdef DEBUG
+            debugMode = GAPI::Device::DebugMode::Debug;
+#endif
+
+            GAPI::Device::Description description(GpuFramesBuffered, debugMode);
+           
+            result = initDevice(description);
+            if (!result)
             {
                 Log::Print::Error("Render device init failed.\n");
                 return result;
@@ -75,7 +85,7 @@ namespace OpenDemo
             });
         }
 
-        GAPI::Result RenderContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
+        void RenderContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
             ASSERT(inited_)
 
@@ -86,52 +96,48 @@ namespace OpenDemo
 
                 submissionFrame++;
 
-                const auto currentFenceValue = fence_->GetCpuValue();
-
                 // Schedule a Signal command in the queue.
                 if (!(result = fence_->Signal(commandQueue)))
                     return result;
 
-                if (currentFenceValue >= SubmissionThreadAheadFrames)
+                if (fence_->GetCpuValue() >= GpuFramesBuffered)
                 {
-                    // GPU ahead. Throttle cpu.
-                    // TODO SubmissionThreadAheadFrames rename/replace
-                    if (!(fence_->SyncCPU(currentFenceValue - 2, INFINITE)))
+                    uint64_t syncFenceValue = fence_->GetCpuValue() - GpuFramesBuffered;
+
+                    // We shoud had at least one completed frame in ringbuffer.
+                    syncFenceValue++;
+
+                    // Throttle cpu if gpu behind
+                    if (!(fence_->SyncCPU(syncFenceValue, INFINITE)))
                         return result;
                 }
 
                 return result;
             });
 
-            return GAPI::Result::Ok;
+            // Todo throttle main thread?
         }
 
         void RenderContext::ExecuteAsync(const Submission::CallbackFunction&& function)
         {
             ASSERT(inited_);
 
-            // Todo optimize
-            submission_->ExecuteAsync([function](GAPI::Device& device) { return function(device); });
+            submission_->ExecuteAsync(std::move(function));
         }
 
         GAPI::Result RenderContext::ExecuteAwait(const Submission::CallbackFunction&& function)
         {
             ASSERT(inited_);
 
-            // Todo optimize
-            return submission_->ExecuteAwait([function](GAPI::Device& device) { return function(device); });
+            return submission_->ExecuteAwait(std::move(function));
         }
 
-        GAPI::Result RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
+        void  RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
         {
             ASSERT(inited_);
 
-            return submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
+            auto result = submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
                 GAPI::Result result = GAPI::Result::Ok;
-
-                result = device.WaitForGpu();
-                if (!result)
-                    return result;
 
                 result = swapchain->Reset(description);
                 if (!result)
@@ -139,6 +145,8 @@ namespace OpenDemo
 
                 return result;
             });
+
+            ASSERT(result);
         }
 
         GAPI::CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
@@ -196,7 +204,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::Texture::BindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::ResourceBindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
 
@@ -207,7 +215,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::Texture::BindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::ResourceBindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
             ASSERT(swapchain)
@@ -241,10 +249,10 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Result RenderContext::initDevice()
+        GAPI::Result RenderContext::initDevice(const GAPI::Device::Description& description)
         {
-            return submission_->ExecuteAwait([](GAPI::Device& device) {
-                return device.Init();
+            return submission_->ExecuteAwait([&description](GAPI::Device& device) {
+                return device.Init(description);
             });
         }
     }
