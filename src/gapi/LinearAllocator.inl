@@ -90,6 +90,5 @@ namespace OpenDemo
 
             pages_.push_back(std::move(std::make_unique<Page>(size)));
         }
-
     }
 }

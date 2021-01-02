@@ -6,7 +6,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device)
@@ -40,7 +39,7 @@ namespace OpenDemo
 
                 D3DCall(allocator->Reset());
                 D3DCall(D3DCommandList_->Reset(allocator, nullptr));
-              //  D3DCall(_allocatorsRB->MoveToNextFrame(queue));
+                //  D3DCall(_allocatorsRB->MoveToNextFrame(queue));
 
                 return Result::Ok;
             }

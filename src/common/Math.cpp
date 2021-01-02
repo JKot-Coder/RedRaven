@@ -8,11 +8,10 @@ namespace OpenDemo
         {
             Vector2 cc(1);
             Vector2 bb(2, 2);
-           
+
             Vector2 asd = cc + bb;
             Vector2 norm = asd.Normal();
             Vector2::ZERO;
-        
 
             Radian pi = Radian(PI);
             Degree c = pi;
@@ -21,7 +20,6 @@ namespace OpenDemo
             pi = pi - PI;
             pi = pi.ToDegree();
             c = pi.ToDegree();
-
         }
     }
 }

@@ -6,7 +6,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             Result DescriptorHeap::Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc)
             {
                 ASSERT(device)
@@ -37,7 +36,6 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
-
         }
     }
 }

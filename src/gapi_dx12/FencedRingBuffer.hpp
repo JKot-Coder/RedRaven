@@ -81,7 +81,7 @@ namespace OpenDemo
                 {
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     // TODO
-                  //  return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
+                    //  return _fence->Signal(commandQueue, _fence->GetCpuValue() + 1);
                     return Result::Ok;
 #else
                     return Result::Ok;

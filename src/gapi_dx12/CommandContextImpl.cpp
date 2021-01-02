@@ -13,7 +13,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             CommandContextImpl::CommandContextImpl() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
             {
             }
@@ -31,13 +30,13 @@ namespace OpenDemo
 
             void CommandContextImpl::Reset()
             {
-              //  Log::Print::Info("Reset\n");
+                //  Log::Print::Info("Reset\n");
                 ASSERT(D3DCommandList_);
                 commandList_->Reset();
                 //     commandList_->Submit();
             }
 
-            void CommandContextImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)      
+            void CommandContextImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)
             {
                 ASSERT(renderTargetView);
                 ASSERT(D3DCommandList_);

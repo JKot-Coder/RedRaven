@@ -9,7 +9,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class CommandListImpl final 
+            class CommandListImpl final
             {
             public:
                 CommandListImpl() = delete;
@@ -19,7 +19,7 @@ namespace OpenDemo
                 }
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
-                const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; } 
+                const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
 
                 Result Reset();
 

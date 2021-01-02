@@ -9,7 +9,6 @@ namespace OpenDemo
 {
     namespace Windowing
     {
-
         struct WindowSettings;
         class Window;
 
@@ -69,6 +68,5 @@ namespace OpenDemo
             static std::vector<IListener*> _listeners;
             static std::unique_ptr<Windowing> _windowingInstance;
         };
-
     }
 }

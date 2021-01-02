@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace Threading
         {
-
             class SpinLock final : private NonCopyable, NonMovable
             {
             public:
@@ -44,7 +43,6 @@ namespace OpenDemo
             {
                 return !flag_.test_and_set(std::memory_order_acquire);
             }
-
         }
     }
 }

@@ -20,14 +20,12 @@ namespace OpenDemo
             vec2() { }
 
             vec2(float s)
-                : x(s)
-                , y(s)
+                : x(s), y(s)
             {
             }
 
             vec2(float x, float y)
-                : x(x)
-                , y(y)
+                : x(x), y(y)
             {
             }
 
@@ -162,30 +160,22 @@ namespace OpenDemo
             vec3() { }
 
             vec3(float s)
-                : x(s)
-                , y(s)
-                , z(s)
+                : x(s), y(s), z(s)
             {
             }
 
             vec3(float x, float y, float z)
-                : x(x)
-                , y(y)
-                , z(z)
+                : x(x), y(y), z(z)
             {
             }
 
             vec3(const vec2& xy, float z = 0.0f)
-                : x(xy.x)
-                , y(xy.y)
-                , z(z)
+                : x(xy.x), y(xy.y), z(z)
             {
             }
 
             vec3(float lng, float lat)
-                : x(sinf(lat) * cosf(lng))
-                , y(-sinf(lng))
-                , z(cosf(lat) * cosf(lng))
+                : x(sinf(lat) * cosf(lng)), y(-sinf(lng)), z(cosf(lat) * cosf(lng))
             {
             }
 
@@ -351,42 +341,27 @@ namespace OpenDemo
             vec4() { }
 
             vec4(float s)
-                : x(s)
-                , y(s)
-                , z(s)
-                , w(s)
+                : x(s), y(s), z(s), w(s)
             {
             }
 
             vec4(float x, float y, float z, float w)
-                : x(x)
-                , y(y)
-                , z(z)
-                , w(w)
+                : x(x), y(y), z(z), w(w)
             {
             }
 
             vec4(const vec3& xyz)
-                : x(xyz.x)
-                , y(xyz.y)
-                , z(xyz.z)
-                , w(0)
+                : x(xyz.x), y(xyz.y), z(xyz.z), w(0)
             {
             }
 
             vec4(const vec3& xyz, float w)
-                : x(xyz.x)
-                , y(xyz.y)
-                , z(xyz.z)
-                , w(w)
+                : x(xyz.x), y(xyz.y), z(xyz.z), w(w)
             {
             }
 
             vec4(const vec2& xy, const vec2& zw)
-                : x(xy.x)
-                , y(xy.y)
-                , z(zw.x)
-                , w(zw.y)
+                : x(xy.x), y(xy.y), z(zw.x), w(zw.y)
             {
             }
 
@@ -428,10 +403,7 @@ namespace OpenDemo
             quat() { }
 
             quat(float x, float y, float z, float w)
-                : x(x)
-                , y(y)
-                , z(z)
-                , w(w)
+                : x(x), y(y), z(z), w(w)
             {
             }
 
@@ -648,22 +620,7 @@ namespace OpenDemo
                 float e01, float e11, float e21, float e31,
                 float e02, float e12, float e22, float e32,
                 float e03, float e13, float e23, float e33)
-                : e00(e00)
-                , e10(e10)
-                , e20(e20)
-                , e30(e30)
-                , e01(e01)
-                , e11(e11)
-                , e21(e21)
-                , e31(e31)
-                , e02(e02)
-                , e12(e12)
-                , e22(e22)
-                , e32(e32)
-                , e03(e03)
-                , e13(e13)
-                , e23(e23)
-                , e33(e33)
+                : e00(e00), e10(e10), e20(e20), e30(e30), e01(e01), e11(e11), e21(e21), e31(e31), e02(e02), e12(e12), e22(e22), e32(e32), e03(e03), e13(e13), e23(e23), e33(e33)
             {
             }
 
@@ -1083,16 +1040,12 @@ namespace OpenDemo
             Basis() { }
 
             Basis(const quat& rot, const vec3& pos)
-                : rot(rot)
-                , pos(pos)
-                , w(1.0f)
+                : rot(rot), pos(pos), w(1.0f)
             {
             }
 
             Basis(const mat4& matrix)
-                : rot(matrix.getRot())
-                , pos(matrix.getPos())
-                , w(1.0f)
+                : rot(matrix.getRot()), pos(matrix.getPos()), w(1.0f)
             {
             }
 

@@ -11,7 +11,6 @@ namespace OpenDemo
 
     namespace Rendering
     {
-
         class Mesh;
         class Shader;
         class Camera;

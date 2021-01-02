@@ -6,7 +6,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         struct Transform;
 
         class Camera
@@ -23,13 +22,7 @@ namespace OpenDemo
             };
 
             Camera(const Description& description)
-                : _isOrtho(description.isOrtho)
-                , _aspect(description.aspect)
-                , _fov(description.fow)
-                , _orthoSize(description.orthoSize)
-                , _zNear(description.zNear)
-                , _zFar(description.zFar)
-                , _transform()
+                : _isOrtho(description.isOrtho), _aspect(description.aspect), _fov(description.fow), _orthoSize(description.orthoSize), _zNear(description.zNear), _zFar(description.zFar), _transform()
             {
                 calcProjectionMatrix();
             }
@@ -103,7 +96,7 @@ namespace OpenDemo
             {
                 ASSERT(false)
                 return GetProjectionMatrix();
-               // *GetViewMatrix().inverseOrtho();
+                // *GetViewMatrix().inverseOrtho();
             }
 
             inline Matrix4 GetProjectionMatrix() const { return _projectionMatrix; }
@@ -113,7 +106,7 @@ namespace OpenDemo
                 std::ignore = targetPosition;
                 _transform.Position = eyePosition;
                 ASSERT(false)
-               // use quatLookAt
+                // use quatLookAt
                 //_transform.Rotation = Quaternion(targetPosition - eyePosition);
             }
 
@@ -128,8 +121,7 @@ namespace OpenDemo
             Transform _transform;
             Matrix4 _projectionMatrix;
 
-            inline void calcProjectionMatrix()
-            {
+            inline void calcProjectionMatrix() {
                 ASSERT(false)
                 /*
                     if (_isOrtho)
@@ -145,6 +137,5 @@ namespace OpenDemo
                 }*/
             };
         };
-
     }
 }

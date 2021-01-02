@@ -7,7 +7,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         class RenderTarget
         {
         public:
@@ -35,6 +34,5 @@ namespace OpenDemo
             //        bool isDepthTarget;
             //        std::shared_ptr<CommonTexture> texture;
         };
-
     }
 }

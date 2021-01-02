@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace
         {
-
             enum class FormatType
             {
                 Unknown, ///< Unknown format Type
@@ -57,7 +56,7 @@ namespace OpenDemo
                 ResourceFormat::RGBA16Float,       u8"RGBA16Float",       FormatType::Float,     8,         4,                      {1, 1},            16,  16, 16, 16, false,  false,    false,
                 ResourceFormat::RGBA16Unorm,       u8"RGBA16Unorm",       FormatType::Unorm,     8,         4,                      {1, 1},            16,  16, 16, 16, false,  false,    false,
                 ResourceFormat::RGBA16Uint,        u8"RGBA16Uint",        FormatType::Uint,      8,         4,                      {1, 1},            16,  16, 16, 16, false,  false,    false,
-                ResourceFormat::RGBA16Snorm,       u8"RGBA16Snorm",       FormatType::Snorm,     8,         4,                      {1, 1},            16,  16, 16, 16, false,  false,    false,  
+                ResourceFormat::RGBA16Snorm,       u8"RGBA16Snorm",       FormatType::Snorm,     8,         4,                      {1, 1},            16,  16, 16, 16, false,  false,    false,
                 ResourceFormat::RGBA16Sint,        u8"RGBA16Sint",        FormatType::Sint,      8,         4,                      {1, 1},            16,  16, 16, 16, false,  false,    false,
                 ResourceFormat::RG32Float,         u8"RG32Float",         FormatType::Float,     8,         2,                      {1, 1},            32,  32, 0,  0,  false,  false,    false,
                 ResourceFormat::RG32Uint,          u8"RG32Uint",          FormatType::Uint,      8,         2,                      {1, 1},            32,  32, 0,  0,  false,  false,    false,
@@ -130,7 +129,7 @@ namespace OpenDemo
                  //Format                          Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 ResourceFormat::RGB5A1Unorm,       u8"RGB5A1Unorm",       FormatType::Unorm,     2,         4,                      {1, 1},            5,   5,  5,  1,  false,  false,    false,
                 ResourceFormat::RGB9E5Float,       u8"RGB9E5Float",       FormatType::Float,     4,         3,                      {1, 1},            9,   9,  9,  5,  false,  false,    false,
-                //Format                           Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed         
+                //Format                           Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                 ResourceFormat::BGRA8Unorm,        u8"BGRA8Unorm",        FormatType::Unorm,     4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
                 ResourceFormat::BGRA8UnormSrgb,    u8"BGRA8UnormSrgb",    FormatType::UnormSrgb, 4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
                 ResourceFormat::BGRX8Unorm,        u8"BGRX8Unorm",        FormatType::Unorm,     4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
@@ -201,7 +200,7 @@ namespace OpenDemo
         std::shared_ptr<Texture> Resource::GetTyped<Texture>()
         {
             ASSERT(resourceType_ == ResourceType::Texture)
-                //TODO inherit_shared_from_this
+            //TODO inherit_shared_from_this
             return std::static_pointer_cast<Texture>(shared_from_this());
         }
         /*
@@ -211,6 +210,5 @@ namespace OpenDemo
             ASSERT(resourceType_ == Type::Buffer)
             return std::dynamic_pointer_cast<Buffer>(shared_from_this());
         }*/
-
     }
 }

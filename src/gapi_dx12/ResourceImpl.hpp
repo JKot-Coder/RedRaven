@@ -12,11 +12,11 @@ namespace OpenDemo
             {
             public:
                 ResourceImpl() = default;
-                
+
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& desc, const ResourceBindFlags bindFlags, const U8String& name);
                 Result Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& desc, const ResourceBindFlags bindFlags, const U8String& name);
 
-                const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; } 
+                const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
             private:
                 ComSharedPtr<ID3D12Resource> D3DResource_;

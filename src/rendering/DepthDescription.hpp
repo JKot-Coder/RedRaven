@@ -4,7 +4,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         enum DepthTestFunction : int
         {
             NEVER,
@@ -17,6 +16,5 @@ namespace OpenDemo
             ALWAYS,
             DEPTH_TEST_FUNC_MAX
         };
-
     }
 }

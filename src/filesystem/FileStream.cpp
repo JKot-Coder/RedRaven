@@ -10,11 +10,8 @@ namespace OpenDemo
 {
     namespace FileSystem
     {
-
         FileStream::FileStream(const U8String& fileName)
-            : _fileName(fileName)
-            , _fileStream()
-            , _mode(Mode::CLOSED)
+            : _fileName(fileName), _fileStream(), _mode(Mode::CLOSED)
         {
         }
 
@@ -117,7 +114,6 @@ namespace OpenDemo
 
             if (_fileStream.fail())
             {
-
                 throw Common::Exception(fmt::format(FMT_STRING("Error while reading file {}"), _fileName.c_str()));
             }
 

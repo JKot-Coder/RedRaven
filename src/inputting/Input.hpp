@@ -10,7 +10,6 @@ namespace OpenDemo
 {
     namespace Inputting
     {
-
         enum InputKey
         {
             ikNone,

@@ -8,7 +8,6 @@ namespace OpenDemo
 {
     namespace FileSystem
     {
-
         enum class Mode : int8_t;
 
         class FileStream final : public Common::Stream
@@ -40,6 +39,5 @@ namespace OpenDemo
             std::fstream _fileStream;
             Mode _mode;
         };
-
     }
 }

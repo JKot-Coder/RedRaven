@@ -8,10 +8,8 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             Texture2D::Texture2D()
-                : _width(0)
-                , _height(0)
+                : _width(0), _height(0)
             {
                 glGenTextures(1, &_id);
             }
@@ -23,7 +21,6 @@ namespace OpenDemo
 
             Texture2D::OpenGlPixelFormatDescription Texture2D::GetOpenGlPixelFormatDescription(PixelFormat pixelFormat) const
             {
-
                 static const OpenGlPixelFormatDescription formats[PIXEL_FORMAT_MAX] = {
                     { GL_R8, GL_RED, GL_UNSIGNED_BYTE }, // R8
                     { GL_RG8, GL_RG, GL_UNSIGNED_BYTE }, // RG8
@@ -70,7 +67,6 @@ namespace OpenDemo
                 Bind(0);
                 glTexImage2D(GL_TEXTURE_2D, 0, _pixelFormatDescription.internalFormat, _width, _height, 0, _pixelFormatDescription.format, _pixelFormatDescription.type, nullptr);
             };
-
         }
     }
 }

@@ -8,7 +8,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         class Render;
         class SceneGraph;
         class Shader;
@@ -59,6 +58,5 @@ namespace OpenDemo
             std::shared_ptr<Shader> _postProcessShader;
             std::shared_ptr<Mesh> _fullScreenQuad;
         };
-
     }
 }

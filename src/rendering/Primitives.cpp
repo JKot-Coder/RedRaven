@@ -131,6 +131,5 @@ namespace OpenDemo
 
             return fullScreenQuad;
         }
-
     }
 }

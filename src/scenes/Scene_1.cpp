@@ -15,7 +15,6 @@ namespace OpenDemo
 
     namespace Scenes
     {
-
         void Scene_1::Init()
         {
             Rendering::Camera::Description cameraDescription;
@@ -34,7 +33,7 @@ namespace OpenDemo
             {
                 Matrix4 modelMat(Identity);
                 modelMat.Translate(Vector3(-8.0f + i * 2.2f, 0.0f, 0.0f));
-     
+
                 Rendering::Material material;
 
                 Rendering::RenderElement element;
@@ -62,6 +61,5 @@ namespace OpenDemo
 
             _renderElements.clear();
         }
-
     }
 }

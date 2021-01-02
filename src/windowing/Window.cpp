@@ -13,7 +13,6 @@ namespace OpenDemo
 {
     namespace Windowing
     {
-
         Window::Window()
         {
         }
@@ -124,6 +123,5 @@ namespace OpenDemo
                 break;
             }
         }
-
     }
 }

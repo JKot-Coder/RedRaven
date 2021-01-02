@@ -35,7 +35,7 @@ namespace OpenDemo
 
     static uint32_t index = 0;
     static uint32_t frame = 0;
-    
+
     void Application::OnWindowResize(const Windowing::Window& window_)
     {
         GAPI::SwapChainDescription desc = swapChain_->GetDescription();

@@ -17,7 +17,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             class Shader final : public Rendering::Shader
             {
             public:
@@ -36,7 +35,6 @@ namespace OpenDemo
                 std::array<GLint, Uniform::UNIFORM_MAX> _uniformID = {};
                 bool checkLink() const;
             };
-
         }
     }
 }

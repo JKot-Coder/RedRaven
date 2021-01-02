@@ -65,6 +65,5 @@ namespace OpenDemo
 #endif
             std::unique_ptr<BufferedChannel> inputTaskChannel_;
         };
-
     }
 }

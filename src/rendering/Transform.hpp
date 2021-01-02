@@ -8,7 +8,6 @@ namespace OpenDemo
 
     namespace Rendering
     {
-
         struct Transform
         {
         public:

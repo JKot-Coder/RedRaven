@@ -1,11 +1,9 @@
 #pragma once
 
-
 namespace OpenDemo
 {
     namespace Rendering
     {
-
         class Mesh;
 
         class Primitives
@@ -14,6 +12,5 @@ namespace OpenDemo
             static std::shared_ptr<Mesh> GetSphereMesh(unsigned int segments);
             static std::shared_ptr<Mesh> GetFullScreenQuad();
         };
-
     }
 }

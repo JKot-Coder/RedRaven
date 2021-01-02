@@ -1,7 +1,7 @@
 #pragma once
 
-#include "windowing\Windowing.hpp"
 #include "windowing\Window.hpp"
+#include "windowing\Windowing.hpp"
 
 namespace OpenDemo
 {
@@ -13,7 +13,6 @@ namespace OpenDemo
 
     namespace Windowing
     {
-
         class InputtingWindow final : public Window, IListener
         {
         public:

@@ -9,7 +9,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-
         SwapChain::SwapChain(const SwapChainDescription& description, const U8String& name)
             : InterfaceWrapObject(Object::Type::SwapChain, name),
               description_(description)
@@ -65,6 +64,5 @@ namespace OpenDemo
 
             return backBuffers_[backBufferIndex];
         }
-
     }
 }

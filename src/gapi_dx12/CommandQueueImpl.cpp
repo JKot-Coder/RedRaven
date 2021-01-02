@@ -12,7 +12,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             CommandQueueImpl::CommandQueueImpl(CommandQueueType type) : type_(type)
             {
             }

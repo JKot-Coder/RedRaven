@@ -7,7 +7,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-
         class FenceInterface
         {
         public:
@@ -47,6 +46,5 @@ namespace OpenDemo
         private:
             friend class Render::RenderContext;
         };
-
     }
 }

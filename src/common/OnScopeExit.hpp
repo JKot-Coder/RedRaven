@@ -14,6 +14,7 @@ namespace OpenDemo
         public:
             explicit OnScopeExit(F&& function) : function_(function) { }
             ~OnScopeExit() { function_(); }
+
         private:
             F function_;
         };

@@ -13,7 +13,6 @@ namespace OpenDemo
     {
         namespace Threading
         {
-
             template <typename T, std::size_t BufferSize>
             class BufferedChannel
             {
@@ -91,7 +90,6 @@ namespace OpenDemo
                 Threading::Mutex mutex_;
                 CircularBuffer<T, BufferSize> buffer_;
             };
-
         }
     }
 }

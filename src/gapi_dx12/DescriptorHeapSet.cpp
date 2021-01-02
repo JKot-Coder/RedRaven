@@ -6,7 +6,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             Result DescriptorHeapSet::Init(const ComSharedPtr<ID3D12Device>& device)
             {
                 rtvDescriptorHeap_ = std::make_shared<DescriptorHeap>();
@@ -21,7 +20,6 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
-
         }
     }
 }

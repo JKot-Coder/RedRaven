@@ -14,7 +14,6 @@ namespace OpenDemo
         {
             namespace D3DUtils
             {
-
                 // TODO likely, unlikely
 #define D3DCall(exp, ...)                                                                                                                               \
     {                                                                                                                                                   \
@@ -85,7 +84,6 @@ namespace OpenDemo
                 DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format);
 
                 HRESULT GetAdapter(const ComSharedPtr<IDXGIFactory1>& dxgiFactory, D3D_FEATURE_LEVEL minimumFeatureLevel, ComSharedPtr<IDXGIAdapter1>& Adapter);
-
             }
         }
     }

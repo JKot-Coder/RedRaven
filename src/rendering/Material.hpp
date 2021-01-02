@@ -1,11 +1,9 @@
 #pragma once
 
-
 namespace OpenDemo
 {
     namespace Rendering
     {
-
         class CommonTexture;
 
         struct Material
@@ -15,6 +13,5 @@ namespace OpenDemo
             std::shared_ptr<Rendering::CommonTexture> metallicMap;
             std::shared_ptr<Rendering::CommonTexture> roughnessMap;
         };
-
     }
 }

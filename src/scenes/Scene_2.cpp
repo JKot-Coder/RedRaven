@@ -18,7 +18,6 @@ namespace OpenDemo
 
     namespace Scenes
     {
-
         void Scene_2::Init()
         {
             const auto& resourceManager = ResourceManager::Instance();

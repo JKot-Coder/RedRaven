@@ -12,7 +12,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             class CommandContextImpl final : public GraphicsCommandListInterface
             {
             public:
@@ -31,7 +30,6 @@ namespace OpenDemo
                 std::unique_ptr<CommandListImpl> commandList_;
                 ComSharedPtr<ID3D12GraphicsCommandList> D3DCommandList_ = nullptr;
             };
-
         };
     }
 }

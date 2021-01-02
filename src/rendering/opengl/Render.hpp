@@ -15,7 +15,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             typedef int GLint;
             typedef uint32_t GLuint;
             typedef uint32_t GLenum;
@@ -50,7 +49,6 @@ namespace OpenDemo
                 std::shared_ptr<RenderContext> _renderContext;
                 SDL_GLContext _context;
             };
-
         }
     }
 }

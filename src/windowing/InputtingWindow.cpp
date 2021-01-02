@@ -12,7 +12,6 @@ namespace OpenDemo
 {
     namespace Windowing
     {
-
         static const std::map<SDL_Scancode, Inputting::InputKey> SDLToInputKeyMap = {
             { SDL_SCANCODE_A, Inputting::ikA },
             { SDL_SCANCODE_B, Inputting::ikB },
@@ -264,6 +263,5 @@ namespace OpenDemo
             SDL_SetWindowGrab(GetSDLWindow(), SDL_FALSE);
             SDL_SetRelativeMouseMode(SDL_FALSE);
         }
-
     }
 }

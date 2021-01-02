@@ -1,11 +1,9 @@
 #pragma once
 
-
 namespace OpenDemo
 {
     namespace Rendering
     {
-
         class RenderContext;
         class Camera;
 
@@ -19,6 +17,5 @@ namespace OpenDemo
             virtual void Collect(RenderContext& renderContext) = 0;
             virtual std::shared_ptr<Camera> GetMainCamera() = 0;
         };
-
     }
 }

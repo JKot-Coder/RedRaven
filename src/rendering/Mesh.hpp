@@ -32,6 +32,5 @@ namespace OpenDemo
             virtual void Bind() const = 0;
             virtual void Draw() const = 0; //TODO: remove
         };
-
     }
 }

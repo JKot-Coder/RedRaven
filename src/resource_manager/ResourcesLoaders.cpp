@@ -8,8 +8,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include "common/Stream.hpp"
 #include "common/Math.hpp"
+#include "common/Stream.hpp"
 #include "filesystem/FileSystem.hpp"
 
 #include "rendering/Material.hpp"
@@ -26,7 +26,6 @@ namespace OpenDemo
 
     namespace ResourceManager
     {
-
         const Vector3 ConvertVector(const aiVector3D& vector)
         {
             return Vector3(vector.x, vector.y, vector.z);

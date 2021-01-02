@@ -4,7 +4,6 @@ namespace OpenDemo
 {
     namespace Common
     {
-
         std::unique_ptr<Time> Time::_instance = std::unique_ptr<Time>(new Time());
 
         void Time::Update()

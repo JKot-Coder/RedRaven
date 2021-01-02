@@ -14,7 +14,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         RenderPipeline::RenderPipeline(const std::shared_ptr<Windowing::Window>& window)
             : _window(window)
         {

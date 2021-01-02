@@ -4,7 +4,6 @@ namespace OpenDemo
 {
     namespace Common
     {
-
         template <typename T, std::size_t Capacity>
         class CircularBuffer
         {

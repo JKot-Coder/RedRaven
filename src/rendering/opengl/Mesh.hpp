@@ -8,7 +8,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             typedef uint32_t GLuint;
 
             class Mesh final : public Rendering::Mesh
@@ -35,7 +34,6 @@ namespace OpenDemo
 
                 void SetupAttributes();
             };
-
         }
     }
 }

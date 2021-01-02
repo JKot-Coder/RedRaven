@@ -9,7 +9,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-
         namespace DX12
         {
             class CommandListImpl;
@@ -29,7 +28,6 @@ namespace OpenDemo
             {
                 Result Compile(const CommandListCompilerContext& context);
             }
-
         }
     }
 }

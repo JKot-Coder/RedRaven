@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             class RenderTargetContext final : public Rendering::RenderTargetContext
             {
             public:
@@ -24,7 +23,6 @@ namespace OpenDemo
             private:
                 GLuint _id;
             };
-
         }
     }
 }

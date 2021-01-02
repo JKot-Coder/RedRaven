@@ -8,11 +8,8 @@
 
 namespace backward
 {
-
     backward::SignalHandling sh;
-
 } // namespace backward
-
 
 namespace OpenDemo
 {

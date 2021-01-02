@@ -6,7 +6,6 @@ namespace OpenDemo
 {
     namespace FileSystem
     {
-
         std::unique_ptr<FileSystem> FileSystem::instance = std::unique_ptr<FileSystem>(new FileSystem());
 
         std::shared_ptr<Common::Stream> FileSystem::Open(const U8String& fileName, Mode RW) const
@@ -17,6 +16,5 @@ namespace OpenDemo
 
             return std::shared_ptr<Common::Stream>(fileStream);
         }
-
     }
 }

@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace Threading
         {
-
             template <typename T>
             class AccessGuard
             {
@@ -58,7 +57,6 @@ namespace OpenDemo
                 std::shared_ptr<SharedMutex> mutex_;
                 std::shared_ptr<T> ptr_;
             };
-
         }
     }
 }

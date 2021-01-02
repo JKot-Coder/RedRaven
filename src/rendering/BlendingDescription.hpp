@@ -4,7 +4,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         enum class BlendingParameters
         {
             ZERO,
@@ -71,6 +70,5 @@ namespace OpenDemo
             BlendingParameters alphaSrc, alphaDest;
             BlendingOperation colorOperation, alphaOperation;
         };
-
     }
 }

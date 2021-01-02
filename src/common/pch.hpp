@@ -5,13 +5,13 @@
 #include "common/Config.hpp"
 
 #ifdef __cplusplus
-#include "common/String.hpp"
 #include "common/Debug/Logger.hpp"
 #include "common/NonCopyableMovable.hpp"
+#include "common/String.hpp"
+#include <array>
 #include <cstddef>
 #include <memory>
 #include <vector>
-#include <array>
 
 using namespace OpenDemo::Common;
 using namespace OpenDemo::Common::Debug;

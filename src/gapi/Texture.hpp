@@ -106,6 +106,5 @@ namespace OpenDemo
 
             friend class Render::RenderContext;
         };
-
     }
 }

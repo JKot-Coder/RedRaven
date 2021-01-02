@@ -11,7 +11,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             Mesh::Mesh()
             {
                 glGenBuffers(2, _vboId);
@@ -104,7 +103,6 @@ namespace OpenDemo
 
                 glBindVertexArray(0);
             }
-
         }
     }
 }

@@ -12,7 +12,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             Shader::Shader()
                 : _id(glCreateProgram())
             {

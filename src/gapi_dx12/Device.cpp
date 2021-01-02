@@ -347,7 +347,6 @@ namespace OpenDemo
             {
                 return _impl->InitResource(resource);
             }
-
         }
     }
 }

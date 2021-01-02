@@ -11,7 +11,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             namespace
             {
                 bool CheckSwapchainDescription(const SwapChainDescription& desc)
@@ -137,7 +136,6 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
-
         }
     }
 }

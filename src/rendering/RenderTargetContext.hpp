@@ -1,13 +1,11 @@
 #pragma once
 
-
 #include "rendering/RenderTarget.hpp"
 
 namespace OpenDemo
 {
     namespace Rendering
     {
-
         enum RenderTargetIndex
         {
             INDEX_0,
@@ -79,6 +77,5 @@ namespace OpenDemo
             RenderTarget::RenderTargetDescription _depthStencil;
             RenderTarget::RenderTargetDescription _colorTargets[RenderTargetIndex::INDEX_MAX];
         };
-
     }
 }

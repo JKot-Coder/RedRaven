@@ -21,9 +21,7 @@ namespace OpenDemo
     namespace Rendering
     {
         RenderPassOpaque::RenderPassOpaque(Rendering::Render& render, const std::shared_ptr<RenderTargetContext>& hdrRenderTargetContext)
-            : _render(&render)
-            , _hdrRenderTargetContext(hdrRenderTargetContext)
-            , _renderContext(new RenderContext())
+            : _render(&render), _hdrRenderTargetContext(hdrRenderTargetContext), _renderContext(new RenderContext())
         {
             auto* resourceManager = ResourceManager::Instance().get();
             _pbrShader = resourceManager->LoadShader("../../assets/shaders/pbr.shader");
@@ -61,8 +59,7 @@ namespace OpenDemo
             Vector3 result(
                 sinphi * (float)cos(theta),
                 sinphi * (float)sin(theta),
-                cosphi
-            );
+                cosphi);
 
             return result;
         }
@@ -90,9 +87,7 @@ namespace OpenDemo
         }
 
         RenderPassPostProcess::RenderPassPostProcess(Rendering::Render& render, const std::shared_ptr<Texture2D>& hdrTexture)
-            : _render(&render)
-            , _hdrTexture(hdrTexture)
-            , _renderContext(new RenderContext())
+            : _render(&render), _hdrTexture(hdrTexture), _renderContext(new RenderContext())
         {
             (void)render;
             auto* resourceManager = ResourceManager::Instance().get();

@@ -14,7 +14,6 @@ namespace OpenDemo
 
     namespace Scenes
     {
-
         class Scene_1 final : public Rendering::SceneGraph
         {
         public:

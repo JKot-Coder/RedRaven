@@ -10,7 +10,6 @@ namespace OpenDemo
         { /*
             Result RenderTargetViewImpl::Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHandle& handle)
             {
-               
                 if (DSVDesc.Format == TEX_FORMAT_UNKNOWN)
                 {
                     DSVDesc.Format = m_Desc.Format;

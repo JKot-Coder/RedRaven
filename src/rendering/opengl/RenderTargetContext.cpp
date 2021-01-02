@@ -11,7 +11,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             RenderTargetContext::RenderTargetContext()
             {
                 glGenFramebuffers(1, &_id);

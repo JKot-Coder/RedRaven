@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             class DescriptorHeap : public std::enable_shared_from_this<DescriptorHeap>
             {
             public:

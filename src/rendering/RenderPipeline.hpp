@@ -7,7 +7,6 @@ namespace OpenDemo
 {
     namespace Rendering
     {
-
         class RenderPipeline final : Windowing::IListener
         {
         public:

@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace Debug
         {
-
 #if defined(OS_WINDOWS)
             template <class CharT, class TraitsT = std::char_traits<CharT>>
             class DebugStream : public std::basic_ostream<CharT, TraitsT>

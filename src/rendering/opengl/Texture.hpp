@@ -9,7 +9,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             class Texture2D final : public Rendering::Texture2D
             {
             public:
@@ -39,7 +38,6 @@ namespace OpenDemo
 
                 OpenGlPixelFormatDescription GetOpenGlPixelFormatDescription(PixelFormat pixelFormat) const;
             };
-
         }
     }
 }

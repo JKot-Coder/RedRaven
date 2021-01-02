@@ -14,7 +14,6 @@ namespace OpenDemo
 
     namespace Windowing
     {
-
         std::unique_ptr<Windowing> Windowing::Windowing::_windowingInstance = std::unique_ptr<Windowing>(new Windowing());
         std::vector<IListener*> Windowing::Windowing::_listeners = std::vector<IListener*>();
 
@@ -142,6 +141,5 @@ namespace OpenDemo
                 ++it;
             }
         }
-
     }
 }

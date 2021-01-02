@@ -31,7 +31,6 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-
             const auto gluErrorU8String = [](GLenum errorCode) -> const char* {
                 switch (errorCode)
                 {
@@ -256,7 +255,6 @@ namespace OpenDemo
                 glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
                 glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
             }
-
         }
     }
 }

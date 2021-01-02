@@ -9,7 +9,6 @@ namespace OpenDemo
 {
     namespace Windowing
     {
-
         struct WindowSettings;
 
         class Window

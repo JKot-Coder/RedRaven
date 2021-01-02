@@ -13,7 +13,6 @@ namespace OpenDemo
 
     namespace Rendering
     {
-
         class Texture2D;
         class Shader;
         class Mesh;

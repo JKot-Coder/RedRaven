@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/threading/Mutex.hpp"
 #include "common/threading/ConditionVariable.hpp"
+#include "common/threading/Mutex.hpp"
 
 namespace OpenDemo
 {
@@ -62,7 +62,6 @@ namespace OpenDemo
                 bool state_ = false;
                 bool manualReset_ = true;
             };
-
         }
     }
 }

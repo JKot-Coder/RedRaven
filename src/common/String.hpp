@@ -1,18 +1,18 @@
 #pragma once
 
-#include <string>
 #include "dependencies/fmt/include/fmt/format.h"
 #include "dependencies/fmt/include/fmt/printf.h"
 #include "dependencies/utfcpp/source/utf8.h"
+#include <string>
 
 namespace OpenDemo
 {
-    #if __cplusplus > 201703L
+#if __cplusplus > 201703L
     // C++20
     using U8String = std::u8string;
-    #else
+#else
     using U8String = std::string;
-    #endif
+#endif
 
     namespace StringConversions
     {
@@ -45,6 +45,5 @@ namespace OpenDemo
 #endif
             return result;
         }
-    
     }
 }

@@ -9,7 +9,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-
         enum class ResourceBindFlags : uint32_t
         {
             None = 0x0,
@@ -168,7 +167,5 @@ namespace OpenDemo
         /*
         template <>
         Buffer& Resource::GetTyped<Buffer>();*/
-
     }
-
 }

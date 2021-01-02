@@ -39,7 +39,7 @@ namespace OpenDemo
 #endif
 
             GAPI::Device::Description description(GpuFramesBuffered, debugMode);
-           
+
             result = initDevice(description);
             if (!result)
             {
@@ -132,7 +132,7 @@ namespace OpenDemo
             return submission_->ExecuteAwait(std::move(function));
         }
 
-        void  RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
+        void RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
         {
             ASSERT(inited_);
 

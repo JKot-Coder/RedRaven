@@ -29,9 +29,9 @@ namespace OpenDemo
             Result FenceImpl::Signal(const std::shared_ptr<CommandQueue>& queue)
             {
                 ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetInterface()));
-                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetInterface());         
+                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetInterface());
 
-                ASSERT(queueImpl);   
+                ASSERT(queueImpl);
 
                 return Signal(*queueImpl);
             }
@@ -39,7 +39,7 @@ namespace OpenDemo
             Result FenceImpl::Signal(CommandQueueImpl& queue)
             {
                 ASSERT(D3DFence_);
-                             
+
                 cpuValue_++;
 
                 D3DCall(queue.Signal(D3DFence_, cpuValue_));
@@ -75,7 +75,6 @@ namespace OpenDemo
 
                 return Result::Ok;
             }
-
         }
     }
 }

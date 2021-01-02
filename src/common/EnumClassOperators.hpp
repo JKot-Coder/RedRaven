@@ -32,7 +32,6 @@ namespace OpenDemo
 {
     namespace Common
     {
-
         template <typename EnumT>
         bool IsSet(EnumT value, EnumT flag)
         {
@@ -50,6 +49,5 @@ namespace OpenDemo
             static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected.");
             return ((static_cast<UnderlyingType>(value) & static_cast<UnderlyingType>(flag)) != static_cast<UnderlyingType>(0));
         }
-
     }
 }

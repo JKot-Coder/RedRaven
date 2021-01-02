@@ -17,7 +17,6 @@ namespace OpenDemo
 
     namespace FileSystem
     {
-
         class FileStream;
 
         enum class Mode : int8_t
@@ -47,5 +46,4 @@ namespace OpenDemo
             return FileSystem::Instance();
         }
     }
-
 }
