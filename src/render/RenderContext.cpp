@@ -4,7 +4,7 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/DeviceInterface.hpp"
 #include "gapi/Fence.hpp"
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResourceViews.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -207,7 +207,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::ResourceBindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
 
@@ -218,7 +218,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::ResourceBindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name) const
         {
             ASSERT(inited_)
             ASSERT(swapchain)
@@ -230,7 +230,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const GAPI::Texture::SharedPtr& texture, const GAPI::ResourceViewDescription& desc, const U8String& name) const
+        GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(const GAPI::Texture::SharedPtr& texture, const GAPI::GpuResourceViewDescription& desc, const U8String& name) const
         {
             ASSERT(inited_)
 

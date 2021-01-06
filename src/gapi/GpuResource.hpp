@@ -3,13 +3,13 @@
 #include "common/EnumClassOperators.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 
 namespace OpenDemo
 {
     namespace GAPI
     {
-        enum class ResourceBindFlags : uint32_t
+        enum class GpuResourceBindFlags : uint32_t
         {
             None = 0x0,
             ShaderResource = 0x01,
@@ -17,9 +17,9 @@ namespace OpenDemo
             RenderTarget = 0x04,
             DepthStencil = 0x08,
         };
-        ENUM_CLASS_OPERATORS(ResourceBindFlags)
+        ENUM_CLASS_OPERATORS(GpuResourceBindFlags)
 
-        enum class ResourceFormat : uint32_t
+        enum class GpuResourceFormat : uint32_t
         {
             Unknown,
 
@@ -120,58 +120,58 @@ namespace OpenDemo
             Count
         };
 
-        namespace ResourceFormatInfo
+        namespace GpuResourceFormatInfo
         {
-            bool IsDepth(ResourceFormat format);
-            bool IsStencil(ResourceFormat format);
-            bool IsCompressed(ResourceFormat format);
+            bool IsDepth(GpuResourceFormat format);
+            bool IsStencil(GpuResourceFormat format);
+            bool IsCompressed(GpuResourceFormat format);
 
-            uint32_t GetBlockSize(ResourceFormat format);
-            uint32_t GetCompressionBlockWidth(ResourceFormat format);
-            uint32_t GetCompressionBlockHeight(ResourceFormat format);
+            uint32_t GetBlockSize(GpuResourceFormat format);
+            uint32_t GetCompressionBlockWidth(GpuResourceFormat format);
+            uint32_t GetCompressionBlockHeight(GpuResourceFormat format);
 
-            U8String ToString(ResourceFormat format);
+            U8String ToString(GpuResourceFormat format);
         };
 
-        class ResourceInterface
+        class GpuResourceInterface
         {
         public:
-            virtual ~ResourceInterface() {};
+            virtual ~GpuResourceInterface() {};
         };
 
-        class Resource : public PrivateImplementedObject<ResourceInterface>
+        class GpuResource : public Resource<GpuResourceInterface>
         {
         public:
-            using SharedPtr = std::shared_ptr<Resource>;
-            using SharedConstPtr = std::shared_ptr<const Resource>;
-            using WeakPtr = std::weak_ptr<Resource>;
+            using SharedPtr = std::shared_ptr<GpuResource>;
+            using SharedConstPtr = std::shared_ptr<const GpuResource>;
+            using WeakPtr = std::weak_ptr<GpuResource>;
 
-            enum class ResourceType
+            enum class Type
             {
                 Buffer,
                 Texture
             };
 
         public:
-            Resource::ResourceType inline GetResourceType() const { return resourceType_; }
+            GpuResource::Type inline GetGpuResourceType() const { return type_; }
 
             template <typename Type>
             std::shared_ptr<Type> GetTyped();
 
         protected:
-            Resource(Resource::ResourceType resourceType, const U8String& name)
-                : PrivateImplementedObject(Object::Type::Resource, name),
-                  resourceType_(resourceType)
+            GpuResource(GpuResource::Type type, const U8String& name)
+                : Resource(Object::Type::GpuResource, name),
+                  type_(type)
             {
             }
 
-            Resource::ResourceType resourceType_;
+            GpuResource::Type type_;
         };
 
         template <>
-        std::shared_ptr<Texture> Resource::GetTyped<Texture>();
+        std::shared_ptr<Texture> GpuResource::GetTyped<Texture>();
         /*
         template <>
-        Buffer& Resource::GetTyped<Buffer>();*/
+        Buffer& GpuResource::GetTyped<Buffer>();*/
     }
 }

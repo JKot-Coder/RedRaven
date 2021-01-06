@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 #include <optional>
 
 namespace OpenDemo
@@ -21,7 +21,7 @@ namespace OpenDemo
             virtual uint64_t GetCpuValue() const = 0;
         };
 
-        class Fence final : public PrivateImplementedObject<FenceInterface>
+        class Fence final : public Resource<FenceInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<Fence>;
@@ -41,7 +41,7 @@ namespace OpenDemo
             }
 
             Fence(const U8String& name)
-                : PrivateImplementedObject(Object::Type::Fence, name)
+                : Resource(Object::Type::Fence, name)
             {
             }
 

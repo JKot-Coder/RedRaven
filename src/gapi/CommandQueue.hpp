@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 #include "gapi/Result.hpp"
 
 namespace OpenDemo
@@ -25,7 +25,7 @@ namespace OpenDemo
             virtual Result Submit(const std::shared_ptr<CommandList>& commandList) = 0;
         };
 
-        class CommandQueue final : public PrivateImplementedObject<CommandQueueInterface>
+        class CommandQueue final : public Resource<CommandQueueInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandQueue>;
@@ -47,7 +47,7 @@ namespace OpenDemo
 
         private:
             CommandQueue(CommandQueueType type, const U8String& name)
-                : PrivateImplementedObject(Object::Type::CommandQueue, name),
+                : Resource(Object::Type::CommandQueue, name),
                   type_(type)
             {
             }

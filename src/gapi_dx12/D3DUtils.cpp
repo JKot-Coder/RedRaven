@@ -32,7 +32,7 @@ namespace OpenDemo
                     DXGI_SWAP_CHAIN_DESC1 output;
                     output.Width = description.width;
                     output.Height = description.height;
-                    output.Format = TypeConversions::GetResourceFormat(description.resourceFormat);
+                    output.Format = TypeConversions::GetGpuResourceFormat(description.gpuResourceFormat);
                     output.Stereo = (description.isStereo) ? TRUE : FALSE;
                     output.SampleDesc = { 1, 0 };
                     output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;

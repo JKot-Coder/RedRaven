@@ -11,15 +11,15 @@ namespace OpenDemo
         {
             namespace
             {
-                void GetOptimizedClearValue(ResourceBindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
+                void GetOptimizedClearValue(GpuResourceBindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
                 {
-                    if (!IsAny(bindFlags, ResourceBindFlags::RenderTarget | ResourceBindFlags::DepthStencil))
+                    if (!IsAny(bindFlags, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::DepthStencil))
                     {
                         value = nullptr;
                         return;
                     }
 
-                    if (IsSet(bindFlags, ResourceBindFlags::RenderTarget))
+                    if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
                     {
                         value->Format = format;
 
@@ -29,7 +29,7 @@ namespace OpenDemo
                         value->Color[3] = 0.0f;
                     }
 
-                    if (IsSet(bindFlags, ResourceBindFlags::DepthStencil))
+                    if (IsSet(bindFlags, GpuResourceBindFlags::DepthStencil))
                     {
                         value->Format = format;
 
@@ -37,9 +37,9 @@ namespace OpenDemo
                     }
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, ResourceBindFlags bindFlags)
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags)
                 {
-                    DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
+                    DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
 
                     D3D12_RESOURCE_DESC desc;
                     switch (resourceDesc.dimension)
@@ -63,7 +63,7 @@ namespace OpenDemo
 
                     desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
 
-                    if (ResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess))
+                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
                         format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
 
                     desc.Format = format;
@@ -71,12 +71,12 @@ namespace OpenDemo
                 }
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, ResourceBindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags, const U8String& name)
             {
                 ASSERT(device)
                 // TextureDesc ASSERT checks done on Texture initialization;
 
-                const DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
+                const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
                 ASSERT(format != DXGI_FORMAT_UNKNOWN)
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
@@ -100,12 +100,12 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, ResourceBindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags, const U8String& name)
             {
                 ASSERT(resource);
                 // TextureDesc ASSERT checks done on Texture initialization;
 
-                const DXGI_FORMAT format = TypeConversions::GetResourceFormat(resourceDesc.format);
+                const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
                 ASSERT(format != DXGI_FORMAT_UNKNOWN);
 
                 const D3D12_RESOURCE_DESC& desc = resource->GetDesc();

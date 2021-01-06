@@ -13,6 +13,7 @@ set(GAPI_SRC
         LinearAllocator.hpp
         LinearAllocator.inl
         Object.hpp
+        Resource.hpp
         GpuResource.cpp
         GpuResource.hpp
         GpuResourceViews.cpp

@@ -3,7 +3,7 @@
 #include <deque>
 #include <limits>
 
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResourceViews.hpp"
 
 namespace OpenDemo
 {
@@ -79,7 +79,7 @@ namespace OpenDemo
                     D3D12_DESCRIPTOR_HEAP_FLAGS flags;
                 };
 
-                struct Allocation final : public ResourceViewInterface
+                struct Allocation final : public GpuResourceViewInterface
                 {
                     Allocation() = default;
 

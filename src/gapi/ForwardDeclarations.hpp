@@ -17,12 +17,15 @@ namespace OpenDemo
         class Fence;
         class Object;
 
+        template <typename T>
         class Resource;
-        enum class ResourceBindFlags : uint32_t;
-        enum class ResourceFormat : uint32_t;
 
-        class ResourceView;
-        struct ResourceViewDescription;
+        class GpuResource;
+        enum class GpuResourceBindFlags : uint32_t;
+        enum class GpuResourceFormat : uint32_t;
+
+        class GpuResourceView;
+        struct GpuResourceViewDescription;
 
         class RenderTargetView;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gapi/ForwardDeclarations.hpp"
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 
 namespace OpenDemo
 {
@@ -49,7 +49,7 @@ namespace OpenDemo
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandList : public PrivateImplementedObject<GraphicsCommandListInterface>
+        class CommandList : public Resource<GraphicsCommandListInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandList>;
@@ -62,7 +62,7 @@ namespace OpenDemo
 
         protected:
             CommandList(CommandListType type, const U8String& name)
-                : PrivateImplementedObject(Object::Type::CommandList, name),
+                : Resource(Object::Type::CommandList, name),
                   type_(type)
             {
             }

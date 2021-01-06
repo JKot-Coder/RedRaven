@@ -1,7 +1,7 @@
 #include "CommandContextImpl.hpp"
 
-#include "gapi/Resource.hpp"
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResource.hpp"
+#include "gapi/GpuResourceViews.hpp"
 
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
@@ -44,9 +44,9 @@ namespace OpenDemo
                 ASSERT(dynamic_cast<DescriptorHeap::Allocation*>(renderTargetView->GetPrivateImpl()));
                 const auto& allocation = static_cast<DescriptorHeap::Allocation*>(renderTargetView->GetPrivateImpl());
 
-                const auto& resource = renderTargetView->GetResource().lock();
+                const auto& resource = renderTargetView->GetGpuResource().lock();
                 ASSERT(resource);
-                ASSERT(resource->GetResourceType() == Resource::ResourceType::Texture);
+                ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture);
 
                 ASSERT(dynamic_cast<ResourceImpl*>(resource->GetPrivateImpl()));
                 const auto resourceImpl = static_cast<ResourceImpl*>(resource->GetPrivateImpl());

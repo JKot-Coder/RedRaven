@@ -2,7 +2,7 @@
 
 #include "Texture.hpp"
 
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResourceViews.hpp"
 
 #include "render/RenderContext.hpp"
 
@@ -25,8 +25,8 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        Texture::Texture(const TextureDescription& desc, ResourceBindFlags bindFlags, const U8String& name)
-            : Resource(Resource::ResourceType::Texture, name),
+        Texture::Texture(const TextureDescription& desc, GpuResourceBindFlags bindFlags, const U8String& name)
+            : GpuResource(GpuResource::Type::Texture, name),
               description_(desc),
               bindFlags_(bindFlags)
         {
@@ -62,12 +62,12 @@ namespace OpenDemo
                 LOG_FATAL("Unsupported texture type");
             }
 
-            if (ResourceFormatInfo::IsCompressed(description_.format))
+            if (GpuResourceFormatInfo::IsCompressed(description_.format))
             {
                 ASSERT(description_.depth == 1)
                 // Size is aligned to CompressionBlock
-                ASSERT(AlignTo(description_.width, ResourceFormatInfo::GetCompressionBlockWidth(description_.format)) == description_.width)
-                ASSERT(AlignTo(description_.height, ResourceFormatInfo::GetCompressionBlockHeight(description_.format)) == description_.height)
+                ASSERT(AlignTo(description_.width, GpuResourceFormatInfo::GetCompressionBlockWidth(description_.format)) == description_.width)
+                ASSERT(AlignTo(description_.height, GpuResourceFormatInfo::GetCompressionBlockHeight(description_.format)) == description_.height)
             }
 
             // Limit/Calc maximum mips count
@@ -77,9 +77,9 @@ namespace OpenDemo
         RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t arraySize)
         {
             ASSERT(firstArraySlice < description_.arraySize)
-            ASSERT(IsSet(bindFlags_, ResourceBindFlags::RenderTarget))
+            ASSERT(IsSet(bindFlags_, GpuResourceBindFlags::RenderTarget))
 
-            const ResourceViewDescription desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
+            const GpuResourceViewDescription desc(mipLevel, 1, firstArraySlice, std::min(arraySize, description_.arraySize - firstArraySlice));
 
             if (!rtv)
             {

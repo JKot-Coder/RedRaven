@@ -5,7 +5,7 @@ namespace OpenDemo
     namespace GAPI
     {
         template <typename T>
-        class PrivateImplementedObject;
+        class Resource;
 
         class Object : public std::enable_shared_from_this<Object>, private NonCopyable
         {
@@ -16,8 +16,8 @@ namespace OpenDemo
                 CommandContext,
                 CommandList,
                 Fence,
-                Resource,
-                ResourceView,
+                GpuResource,
+                GpuResourceView,
                 SwapChain,
             };
 
@@ -37,41 +37,11 @@ namespace OpenDemo
             {
             }
             template <class T>
-            friend class PrivateImplementedObject;
+            friend class Resource;
 
         protected:
             Type type_;
             U8String name_;
         };
-
-        template <typename T>
-        class PrivateImplementedObject : public Object
-        {
-        public:
-            inline T* GetPrivateImpl()
-            {
-                return privateImpl_.get();
-            }
-
-            inline const T* GetPrivateImpl() const
-            {
-                return privateImpl_.get();
-            }
-
-            inline void SetPrivateImpl(T* impl)
-            {
-                privateImpl_.reset(impl);
-            }
-
-        protected:
-            PrivateImplementedObject(Type type, const U8String& name)
-                : Object(type, name)
-            {
-            }
-
-        protected:
-            std::unique_ptr<T> privateImpl_ = nullptr;
-        };
-
     }
 }

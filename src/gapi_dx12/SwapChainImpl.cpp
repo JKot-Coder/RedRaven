@@ -26,7 +26,7 @@ namespace OpenDemo
 
             SwapChainImpl::~SwapChainImpl()
             {      
-                Device::ReleaseResource
+               // Device::ReleaseResource
             }
 
             Result SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)

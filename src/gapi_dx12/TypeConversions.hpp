@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Resource.hpp"
+#include "gapi/GpuResource.hpp"
 
 namespace OpenDemo
 {
@@ -10,27 +10,27 @@ namespace OpenDemo
         {
             namespace TypeConversions
             {
-                ::DXGI_FORMAT GetResourceFormat(ResourceFormat format);
+                ::DXGI_FORMAT GetGpuResourceFormat(GpuResourceFormat format);
 
-                inline ::DXGI_FORMAT GetTypelessFormatFromDepthFormat(ResourceFormat format)
+                inline ::DXGI_FORMAT GetTypelessFormatFromDepthFormat(GpuResourceFormat format)
                 {
                     switch (format)
                     {
-                    case ResourceFormat::D16Unorm:
+                    case GpuResourceFormat::D16Unorm:
                         return DXGI_FORMAT_R16_TYPELESS;
-                    case ResourceFormat::D32FloatS8X24Uint:
+                    case GpuResourceFormat::D32FloatS8X24Uint:
                         return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-                    case ResourceFormat::D24UnormS8Uint:
+                    case GpuResourceFormat::D24UnormS8Uint:
                         return DXGI_FORMAT_R24G8_TYPELESS;
-                    case ResourceFormat::D32Float:
+                    case GpuResourceFormat::D32Float:
                         return DXGI_FORMAT_R32_TYPELESS;
                     default:
-                        ASSERT(!ResourceFormatInfo::IsDepth(format));
-                        return GetResourceFormat(format);
+                        ASSERT(!GpuResourceFormatInfo::IsDepth(format));
+                        return GetGpuResourceFormat(format);
                     }
                 }
 
-                D3D12_RESOURCE_FLAGS GetResourceFlags(ResourceBindFlags flags);
+                D3D12_RESOURCE_FLAGS GetResourceFlags(GpuResourceBindFlags flags);
             }
         }
     }

@@ -9,7 +9,7 @@
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResourceViews.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -82,7 +82,7 @@ namespace OpenDemo
         desciption.height = 100;
         desciption.bufferCount = 2;
         desciption.isStereo = false;
-        desciption.resourceFormat = GAPI::ResourceFormat::BGRA8Unorm;
+        desciption.gpuResourceFormat = GAPI::GpuResourceFormat::BGRA8Unorm;
         desciption.windowHandle = _window->GetNativeHandle();
 
         swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");

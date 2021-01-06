@@ -13,8 +13,8 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Object.hpp"
-#include "gapi/Resource.hpp"
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResource.hpp"
+#include "gapi/GpuResourceViews.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
@@ -71,7 +71,7 @@ namespace OpenDemo
                 }
 
                 template <typename DescType>
-                DescType CreateDsvRtvUavDescCommon(const TextureDescription& textureDescription, const ResourceViewDescription& description)
+                DescType CreateDsvRtvUavDescCommon(const TextureDescription& textureDescription, const GpuResourceViewDescription& description)
                 {
                     DescType result = {};
                     result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(textureDescription.dimension, textureDescription.arraySize > 1);
@@ -112,13 +112,13 @@ namespace OpenDemo
                     default:
                         Log::Print::Fatal("Unsupported resource view type");
                     }
-                    result.Format = TypeConversions::GetResourceFormat(textureDescription.format);
+                    result.Format = TypeConversions::GetGpuResourceFormat(textureDescription.format);
 
                     return result;
                 }
 
                 template <typename DescType>
-                DescType CreateDsvRtvDesc(const TextureDescription& textureDescription, const ResourceViewDescription& description)
+                DescType CreateDsvRtvDesc(const TextureDescription& textureDescription, const GpuResourceViewDescription& description)
                 {
                     static_assert(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value);
 
@@ -136,31 +136,31 @@ namespace OpenDemo
                     return result;
                 }
 
-                D3D12_DEPTH_STENCIL_VIEW_DESC CreateDsvDesc(const Resource::SharedPtr& resource, const ResourceViewDescription& description)
+                D3D12_DEPTH_STENCIL_VIEW_DESC CreateDsvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
                 {
-                    ASSERT(resource->GetResourceType() == Resource::ResourceType::Texture)
+                    ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture)
                     const auto& texture = resource->GetTyped<Texture>();
                     const auto& textureDescription = texture->GetDescription();
 
                     return CreateDsvRtvDesc<D3D12_DEPTH_STENCIL_VIEW_DESC>(textureDescription, description);
                 }
 
-                D3D12_RENDER_TARGET_VIEW_DESC CreateRtvDesc(const Resource::SharedPtr& resource, const ResourceViewDescription& description)
+                D3D12_RENDER_TARGET_VIEW_DESC CreateRtvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
                 {
-                    ASSERT(resource->GetResourceType() == Resource::ResourceType::Texture)
+                    ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture)
                     const auto& texture = resource->GetTyped<Texture>();
                     const auto& textureDescription = texture->GetDescription();
 
                     return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(textureDescription, description);
                 }
 
-                Result initResource(const ResourceCreatorContext& context, Resource& resource)
+                Result initResource(const ResourceCreatorContext& context, GpuResource& resource)
                 {
                     auto impl = new ResourceImpl();
 
-                    switch (resource.GetResourceType())
+                    switch (resource.GetGpuResourceType())
                     {
-                    case Resource::ResourceType::Texture:
+                    case GpuResource::Type::Texture:
                     {
                         const auto& texture = resource.GetTyped<Texture>();
 
@@ -204,9 +204,9 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, ResourceView& object)
+                Result initResource(const ResourceCreatorContext& context, GpuResourceView& object)
                 {
-                    const auto& resourceSharedPtr = object.GetResource().lock();
+                    const auto& resourceSharedPtr = object.GetGpuResource().lock();
                     ASSERT(resourceSharedPtr);
 
                     ASSERT(dynamic_cast<ResourceImpl*>(resourceSharedPtr->GetPrivateImpl()));
@@ -218,7 +218,7 @@ namespace OpenDemo
                     auto allocation = new DescriptorHeap::Allocation();
                     switch (object.GetViewType())
                     {
-                    case ResourceView::ViewType::RenderTargetView:
+                    case GpuResourceView::ViewType::RenderTargetView:
                     {
                         const auto& descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
                         ASSERT(descriptorHeap);
@@ -295,8 +295,8 @@ namespace OpenDemo
                     CASE_RESOURCE(CommandList)
                     CASE_RESOURCE(CommandQueue)
                     CASE_RESOURCE(Fence)
-                    CASE_RESOURCE(Resource)
-                    CASE_RESOURCE(ResourceView)
+                    CASE_RESOURCE(GpuResource)
+                    CASE_RESOURCE(GpuResourceView)
                     CASE_RESOURCE(SwapChain)
                 default:
                     ASSERT_MSG(false, "Unsuported resource type");

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
 
@@ -8,7 +8,7 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        struct ResourceViewDescription
+        struct GpuResourceViewDescription
         {
             union
             {
@@ -28,68 +28,68 @@ namespace OpenDemo
             };
 
         public:
-            ResourceViewDescription(uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
+            GpuResourceViewDescription(uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
                 : texture({ mipLevel, mipsCount, firstArraySlice, arraySlicesCount })
             {
             }
 
-            ResourceViewDescription(uint32_t firstElement, uint32_t elementsCount)
+            GpuResourceViewDescription(uint32_t firstElement, uint32_t elementsCount)
                 : buffer({ firstElement, elementsCount })
             {
             }
         };
 
-        class ResourceViewInterface
+        class GpuResourceViewInterface
         {
         public:
-            virtual ~ResourceViewInterface() {};
+            virtual ~GpuResourceViewInterface() {};
         };
 
-        class ResourceView : public PrivateImplementedObject<ResourceViewInterface>
+        class GpuResourceView : public Resource<GpuResourceViewInterface>
         {
         public:
-            using SharedPtr = std::shared_ptr<ResourceView>;
-            using SharedConstPtr = std::shared_ptr<const ResourceView>;
+            using SharedPtr = std::shared_ptr<GpuResourceView>;
+            using SharedConstPtr = std::shared_ptr<const GpuResourceView>;
 
             enum class ViewType
             {
                 RenderTargetView,
-                ShaderResourceView,
+                ShaderGpuResourceView,
                 DepthStencilView,
                 UnorderedAccessView,
             };
 
             ViewType GetViewType() const { return viewType_; }
-            const ResourceViewDescription& GetDescription() const { return description_; }
-            std::weak_ptr<Resource> GetResource() const { return resource_; }
+            const GpuResourceViewDescription& GetDescription() const { return description_; }
+            std::weak_ptr<GpuResource> GetGpuResource() const { return gpuResource_; }
 
         protected:
-            ResourceView(ViewType viewType, const std::weak_ptr<Resource>& resource, const ResourceViewDescription& description, const U8String& name)
-                : PrivateImplementedObject(Object::Type::ResourceView, name),
+            GpuResourceView(ViewType viewType, const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& description, const U8String& name)
+                : Resource(Object::Type::GpuResourceView, name),
                   viewType_(viewType),
-                  resource_(resource),
+                  gpuResource_(gpuResource),
                   description_(description)
             {
-                ASSERT(!resource_.expired())
+                ASSERT(!gpuResource_.expired())
             }
 
         private:
             ViewType viewType_;
-            ResourceViewDescription description_;
-            std::weak_ptr<Resource> resource_;
+            GpuResourceViewDescription description_;
+            std::weak_ptr<GpuResource> gpuResource_;
         };
 
-        class RenderTargetView final : public ResourceView
+        class RenderTargetView final : public GpuResourceView
         {
         public:
             using SharedPtr = std::shared_ptr<RenderTargetView>;
             using SharedConstPtr = std::shared_ptr<RenderTargetView>;
 
         private:
-            static SharedPtr Create(const std::shared_ptr<Texture>& texture, const ResourceViewDescription& desc, const U8String& name);
+            static SharedPtr Create(const std::shared_ptr<Texture>& texture, const GpuResourceViewDescription& desc, const U8String& name);
 
-            RenderTargetView(const std::weak_ptr<Resource>& resource, const ResourceViewDescription& desc, const U8String& name)
-                : ResourceView(ResourceView::ViewType::RenderTargetView, resource, desc, name) { }
+            RenderTargetView(const std::weak_ptr<GpuResource>& GpuResource, const GpuResourceViewDescription& desc, const U8String& name)
+                : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, GpuResource, desc, name) { }
 
             friend class Render::RenderContext;
         };

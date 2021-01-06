@@ -1,6 +1,6 @@
 #include "ResourceViewsImpl.hpp"
 
-#include "gapi/ResourceViews.hpp"
+#include "gapi/GpuResourceViews.hpp"
 
 namespace OpenDemo
 {

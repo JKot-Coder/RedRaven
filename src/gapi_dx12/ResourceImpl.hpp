@@ -8,14 +8,14 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceImpl final : public ResourceInterface
+            class ResourceImpl final : public GpuResourceInterface
             {
             public:
                 ResourceImpl() = default;
                 ~ResourceImpl() = default;
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& desc, const ResourceBindFlags bindFlags, const U8String& name);
-                Result Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& desc, const ResourceBindFlags bindFlags, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& desc, const GpuResourceBindFlags bindFlags, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& desc, const GpuResourceBindFlags bindFlags, const U8String& name);
 
                 const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 

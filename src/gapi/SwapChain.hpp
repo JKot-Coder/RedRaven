@@ -2,7 +2,7 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Limits.hpp"
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 #include "gapi/Result.hpp"
 
 #include "common/NativeWindowHandle.hpp"
@@ -19,17 +19,17 @@ namespace OpenDemo
             uint32_t height;
             uint32_t bufferCount;
 
-            ResourceFormat resourceFormat;
+            GpuResourceFormat gpuResourceFormat;
             bool isStereo;
 
         public:
             SwapChainDescription() = default;
-            SwapChainDescription(NativeWindowHandle windowHandle, uint32_t width, uint32_t height, uint32_t bufferCount, ResourceFormat resourceFormat, bool isStereo = false)
+            SwapChainDescription(NativeWindowHandle windowHandle, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
                 : windowHandle(windowHandle),
                   width(width),
                   height(height),
                   bufferCount(bufferCount),
-                  resourceFormat(resourceFormat),
+                  gpuResourceFormat(gpuResourceFormat),
                   isStereo(isStereo)
             {
             }
@@ -45,7 +45,7 @@ namespace OpenDemo
             virtual Result Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
-        class SwapChain final : public PrivateImplementedObject<SwapChainInterface>
+        class SwapChain final : public Resource<SwapChainInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<SwapChain>;
