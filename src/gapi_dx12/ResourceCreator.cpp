@@ -199,7 +199,7 @@ namespace OpenDemo
                         D3DCall(impl->Init(context.device, resource.GetName()));
                     }
 
-                    resource.SetInterface(impl);
+                    resource.SetPrivateImpl(impl);
 
                     return Result::Ok;
                 }
@@ -209,8 +209,8 @@ namespace OpenDemo
                     const auto& resourceSharedPtr = object.GetResource().lock();
                     ASSERT(resourceSharedPtr);
 
-                    const auto& resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl>();
-                    ASSERT(resourcePrivateImpl);
+                    ASSERT(dynamic_cast<ResourceImpl*>(resourceSharedPtr->GetPrivateImpl()));
+                    const auto& resourcePrivateImpl = static_cast<ResourceImpl*>(resourceSharedPtr->GetPrivateImpl());
 
                     const auto& d3dObject = resourcePrivateImpl->GetD3DObject();
                     ASSERT(d3dObject);
@@ -248,7 +248,7 @@ namespace OpenDemo
                     auto impl = new CommandContextImpl();
 
                     D3DCall(impl->Init(context.device, resource.GetCommandListType(), resource.GetName()));
-                    resource.SetInterface(static_cast<GraphicsCommandListInterface*>(impl));
+                    resource.SetPrivateImpl(static_cast<GraphicsCommandListInterface*>(impl));
 
                     return Result::Ok;
                 }
@@ -258,7 +258,7 @@ namespace OpenDemo
                     auto impl = new FenceImpl();
 
                     D3DCall(impl->Init(context.device, resource.GetName()));
-                    resource.SetInterface(impl);
+                    resource.SetPrivateImpl(impl);
 
                     return Result::Ok;
                 }
@@ -270,7 +270,7 @@ namespace OpenDemo
                     ASSERT(context.graphicsCommandQueue->GetD3DObject());
 
                     D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue->GetD3DObject(), resource.GetDescription(), resource.GetName()));
-                    resource.SetInterface(impl);
+                    resource.SetPrivateImpl(impl);
 
                     return Result::Ok;
                 }
@@ -280,11 +280,12 @@ namespace OpenDemo
             {
                 // TODO ambigous naming Resource->Object
                 ASSERT(resource)
-                ASSERT(resource->IsPrivateImplNull())
 
-#define CASE_RESOURCE(T)                                             \
-    case Object::Type::T:                                            \
-        result = initResource(context, dynamic_cast<T&>(*resource)); \
+#define CASE_RESOURCE(T)                                                        \
+    case Object::Type::T:                                                       \
+        ASSERT(std::dynamic_pointer_cast<T>(resource));                         \
+        ASSERT(!std::static_pointer_cast<T>(resource)->GetPrivateImpl());       \
+        result = initResource(context, *std::static_pointer_cast<T>(resource)); \
         break;
 
                 Result result = Result::NotImplemented;

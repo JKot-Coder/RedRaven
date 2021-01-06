@@ -3,6 +3,7 @@
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 
+#include "gapi_dx12/Device.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 
 namespace OpenDemo
@@ -21,6 +22,11 @@ namespace OpenDemo
                         && (desc.windowHandle)
                         && (desc.isStereo == false);
                 }
+            }
+
+            SwapChainImpl::~SwapChainImpl()
+            {      
+                Device::ReleaseResource
             }
 
             Result SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
@@ -80,12 +86,12 @@ namespace OpenDemo
                     if (!backBuffer)
                         continue;
 
-                    auto resourceImpl = backBuffer->GetPrivateImpl<ResourceImpl>();
+                    auto resourceImpl = backBuffer->GetPrivateImpl();
 
                     if (resourceImpl)
                     {
                         delete resourceImpl;
-                        backBuffer->SetPrivateImpl<void>(nullptr);
+                        backBuffer->SetPrivateImpl(nullptr);
                     }
                 }
 
@@ -107,7 +113,7 @@ namespace OpenDemo
             Result SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource)
             {
                 ASSERT(resource);
-                ASSERT(!resource->GetPrivateImpl<void>());
+                ASSERT(!resource->GetPrivateImpl());
                 ASSERT(D3DSwapChain_);
 
 #ifdef ENABLE_ASSERTS

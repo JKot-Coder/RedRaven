@@ -44,10 +44,12 @@ namespace OpenDemo
         class GraphicsCommandListInterface : public ComputeCommandListInterface
         {
         public:
+            virtual ~GraphicsCommandListInterface() {};
+
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandList : public InterfaceWrapObject<GraphicsCommandListInterface>
+        class CommandList : public PrivateImplementedObject<GraphicsCommandListInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandList>;
@@ -55,12 +57,12 @@ namespace OpenDemo
 
             inline CommandListType GetCommandListType() const { return type_; };
 
-            inline void Reset() { GetInterface()->Reset(); }
-            inline void Close() { GetInterface()->Close(); }
+            inline void Reset() { GetPrivateImpl()->Reset(); }
+            inline void Close() { GetPrivateImpl()->Close(); }
 
         protected:
             CommandList(CommandListType type, const U8String& name)
-                : InterfaceWrapObject(Object::Type::CommandList, name),
+                : PrivateImplementedObject(Object::Type::CommandList, name),
                   type_(type)
             {
             }
@@ -118,7 +120,7 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<GraphicsCommandList>;
             using SharedConstPtr = std::shared_ptr<const GraphicsCommandList>;
 
-            inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetInterface()->ClearRenderTargetView(renderTargetView, color); }
+            inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:
             static SharedPtr Create(const U8String& name)

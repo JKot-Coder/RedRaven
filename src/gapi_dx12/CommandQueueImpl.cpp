@@ -50,8 +50,8 @@ namespace OpenDemo
             {
                 ASSERT(D3DCommandQueue_);
 
-                ASSERT(dynamic_cast<CommandContextImpl*>(commandList->GetInterface()));
-                const auto& commandListImpl = static_cast<CommandContextImpl*>(commandList->GetInterface());
+                ASSERT(dynamic_cast<CommandContextImpl*>(commandList->GetPrivateImpl()));
+                const auto& commandListImpl = static_cast<CommandContextImpl*>(commandList->GetPrivateImpl());
 
                 const auto& d3dCommandList = commandListImpl->GetD3DObject();
                 ASSERT(d3dCommandList);

@@ -8,10 +8,11 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceImpl final
+            class ResourceImpl final : public ResourceInterface
             {
             public:
                 ResourceImpl() = default;
+                ~ResourceImpl() = default;
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& desc, const ResourceBindFlags bindFlags, const U8String& name);
                 Result Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& desc, const ResourceBindFlags bindFlags, const U8String& name);

@@ -10,7 +10,7 @@ namespace OpenDemo
             {
             public:
                 Device();
-                ~Device() override;
+                ~Device();
 
                 // Todo separate freeThread / Multithread
                 Result Init(const Description& description) override;

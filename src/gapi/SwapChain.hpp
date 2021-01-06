@@ -23,7 +23,7 @@ namespace OpenDemo
             bool isStereo;
 
         public:
-            SwapChainDescription() {};
+            SwapChainDescription() = default;
             SwapChainDescription(NativeWindowHandle windowHandle, uint32_t width, uint32_t height, uint32_t bufferCount, ResourceFormat resourceFormat, bool isStereo = false)
                 : windowHandle(windowHandle),
                   width(width),
@@ -38,12 +38,14 @@ namespace OpenDemo
         class SwapChainInterface
         {
         public:
+            virtual ~SwapChainInterface() {};
+
             virtual Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
 
             virtual Result Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
-        class SwapChain final : public InterfaceWrapObject<SwapChainInterface>
+        class SwapChain final : public PrivateImplementedObject<SwapChainInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<SwapChain>;
@@ -63,7 +65,7 @@ namespace OpenDemo
 
             Result Reset(const SwapChainDescription& description);
 
-            inline Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetInterface()->InitBackBufferTexture(backBufferIndex, resource); }
+            inline Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
 
         private:
             SwapChainDescription description_;

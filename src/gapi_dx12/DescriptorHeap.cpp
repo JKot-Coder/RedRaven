@@ -6,6 +6,12 @@ namespace OpenDemo
     {
         namespace DX12
         {
+            DescriptorHeap::~DescriptorHeap()
+            {
+                // No any leaks
+                ASSERT(allocated_ == 0);
+            }
+
             Result DescriptorHeap::Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc)
             {
                 ASSERT(device)

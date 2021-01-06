@@ -180,6 +180,8 @@ namespace OpenDemo
 
     void Application::terminate()
     {
+        swapChain_ = nullptr;
+
         Render::RenderContext::Instance().Terminate();
 
         //_scene->Terminate();

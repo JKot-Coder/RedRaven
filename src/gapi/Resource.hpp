@@ -133,7 +133,13 @@ namespace OpenDemo
             U8String ToString(ResourceFormat format);
         };
 
-        class Resource : public PrivateImplementedObject
+        class ResourceInterface
+        {
+        public:
+            virtual ~ResourceInterface() {};
+        };
+
+        class Resource : public PrivateImplementedObject<ResourceInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<Resource>;

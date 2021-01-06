@@ -50,6 +50,7 @@ namespace OpenDemo
             {
             public:
                 DeviceImplementation();
+                ~DeviceImplementation();
 
                 Result Init(const Device::Description& description);
                 Result Submit(const CommandList::SharedPtr& commandList);
@@ -66,6 +67,14 @@ namespace OpenDemo
                 Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const;
 
             private:
+                struct Resources
+                {
+                    std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
+                    std::unique_ptr<FenceImpl> gpuWaitFence_;
+                    std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
+                };
+
+            private:
                 Result createDevice();
 
                 void moveToNextFrame();
@@ -77,22 +86,59 @@ namespace OpenDemo
 
                 std::thread::id creationThreadID_;
 
+                D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
+
                 std::unique_ptr<ResourceCreatorContext> resourceCreatorContext_;
 
-                ComSharedPtr<ID3D12Debug1> debugController_;
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
                 ComSharedPtr<ID3D12Device> d3dDevice_;
+                ComSharedPtr<ID3D12Debug1> debugController_;
 
-                D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
-                std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
-                std::unique_ptr<FenceImpl> gpuWaitFence_;
-                std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
+                std::unique_ptr<Resources> resources_;
             };
 
             DeviceImplementation::DeviceImplementation()
                 : creationThreadID_(std::this_thread::get_id())
             {
+            }
+
+            DeviceImplementation::~DeviceImplementation()
+            {
+                ASSERT_IS_CREATION_THREAD
+
+                if (!inited_)
+                    return;
+
+                Result result = WaitForGpu();
+
+                if (!result)
+                    LOG_ERROR("WaitForGPU Error: %s", result.ToString());
+
+                resources_.reset();
+                resourceCreatorContext_.reset();
+
+                dxgiFactory_ = nullptr;
+                dxgiAdapter_ = nullptr;
+                debugController_ = nullptr;
+
+                if (description_.debugMode != Device::DebugMode::Retail)
+                {
+                    ComSharedPtr<ID3D12DebugDevice> debugLayer;
+
+                    d3dDevice_->QueryInterface(IID_PPV_ARGS(debugLayer.put()));
+                    d3dDevice_ = nullptr;
+
+                    ASSERT(debugLayer);
+
+                    if (debugLayer)
+                    {
+                        Log::Print::Info("Dx12 leaked objects report:\n");
+                        debugLayer->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
+                    }
+                }
+
+                d3dDevice_ = nullptr;
             }
 
             Result DeviceImplementation::Init(const Device::Description& description)
@@ -106,20 +152,22 @@ namespace OpenDemo
 
                 D3DCallMsg(createDevice(), "CreateDevice");
 
-                descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
-                D3DCall(descriptorHeapSet_->Init(d3dDevice_));
+                resources_ = std::make_unique<Resources>();
 
-                gpuWaitFence_ = std::make_unique<FenceImpl>();
-                D3DCall(gpuWaitFence_->Init(d3dDevice_, "GpuWait"));
+                resources_->descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
+                D3DCall(resources_->descriptorHeapSet_->Init(d3dDevice_));
 
-                graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
-                D3DCall(graphicsCommandQueue_->Init(d3dDevice_, "Primary"));
+                resources_->gpuWaitFence_ = std::make_unique<FenceImpl>();
+                D3DCall(resources_->gpuWaitFence_->Init(d3dDevice_, "GpuWait"));
+
+                resources_->graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
+                D3DCall(resources_->graphicsCommandQueue_->Init(d3dDevice_, "Primary"));
 
                 resourceCreatorContext_ = std::make_unique<ResourceCreatorContext>(
                     d3dDevice_,
                     dxgiFactory_,
-                    graphicsCommandQueue_,
-                    descriptorHeapSet_);
+                    resources_->graphicsCommandQueue_,
+                    resources_->descriptorHeapSet_);
 
                 inited_ = true;
 
@@ -130,8 +178,8 @@ namespace OpenDemo
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                D3DCall(gpuWaitFence_->Signal(*graphicsCommandQueue_.get()));
-                D3DCall(gpuWaitFence_->SyncCPU(std::nullopt));
+                D3DCall(resources_->gpuWaitFence_->Signal(*resources_->graphicsCommandQueue_.get()));
+                D3DCall(resources_->gpuWaitFence_->SyncCPU(std::nullopt));
 
                 return Result::Ok;
             }
@@ -151,8 +199,8 @@ namespace OpenDemo
                 Log::Print::Info("submit\n");
                 const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
 
-                ASSERT(dynamic_cast<CommandListImpl*>(commandList->GetInterface()));
-                const auto commandListImpl = reinterpret_cast<const CommandListImpl*>(commandList->GetInterface());
+                ASSERT(dynamic_cast<CommandListImpl*>(commandList->GetPrivateImpl()));
+                const auto commandListImpl = reinterpret_cast<const CommandListImpl*>(commandList->GetPrivateImpl());
 
                 const auto D3DCommandList = commandListImpl->GetD3DObject();
                 ASSERT(D3DCommandList)
@@ -189,8 +237,8 @@ namespace OpenDemo
                 // frames that will never be displayed to the screen.
                 DXGI_PRESENT_PARAMETERS parameters = {};
 
-                ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetInterface()));
-                auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetInterface());
+                ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
+                auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
                 Result result = swapChainImpl->Present(0);
 
                 // If the device was reset we must completely reinitialize the renderer.
@@ -282,7 +330,7 @@ namespace OpenDemo
                     }
                     else
                     {
-                        LOG_ERROR("Unable to get ID3D12InfoQueue with HRESULT of 0x%08X", result);
+                        LOG_ERROR("Unable to get ID3D12InfoQueue. Error: %s", result.ToString());
                     }
                 }
 

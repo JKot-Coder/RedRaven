@@ -64,6 +64,9 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
+            //Release resources before termination;
+            fence_.reset();
+
             submission_->Terminate();
             inited_ = false;
         }
@@ -79,7 +82,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            submission_->ExecuteAsync([&swapChain](GAPI::Device& device) {
+            submission_->ExecuteAsync([swapChain](GAPI::Device& device) {
                 const auto result = device.Present(swapChain);
                 return result;
             });
@@ -91,24 +94,24 @@ namespace OpenDemo
 
             static uint32_t submissionFrame = 0;
 
-            submission_->ExecuteAsync([this, &commandQueue](GAPI::Device& device) {
+            submission_->ExecuteAsync([fence = fence_, commandQueue](GAPI::Device& device) {
                 GAPI::Result result = GAPI::Result::Ok;
 
                 submissionFrame++;
 
                 // Schedule a Signal command in the queue.
-                if (!(result = fence_->Signal(commandQueue)))
+                if (!(result = fence->Signal(commandQueue)))
                     return result;
 
-                if (fence_->GetCpuValue() >= GpuFramesBuffered)
+                if (fence->GetCpuValue() >= GpuFramesBuffered)
                 {
-                    uint64_t syncFenceValue = fence_->GetCpuValue() - GpuFramesBuffered;
+                    uint64_t syncFenceValue = fence->GetCpuValue() - GpuFramesBuffered;
 
                     // We shoud had at least one completed frame in ringbuffer.
                     syncFenceValue++;
 
                     // Throttle cpu if gpu behind
-                    if (!(fence_->SyncCPU(syncFenceValue, INFINITE)))
+                    if (!(fence->SyncCPU(syncFenceValue, INFINITE)))
                         return result;
                 }
 

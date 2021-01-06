@@ -10,7 +10,7 @@ namespace OpenDemo
     namespace GAPI
     {
         SwapChain::SwapChain(const SwapChainDescription& description, const U8String& name)
-            : InterfaceWrapObject(Object::Type::SwapChain, name),
+            : PrivateImplementedObject(Object::Type::SwapChain, name),
               description_(description)
         {
             ASSERT(description.width > 0);
@@ -29,7 +29,7 @@ namespace OpenDemo
             ASSERT(description.resourceFormat == description_.resourceFormat);
             ASSERT(description.windowHandle == description_.windowHandle);
 
-            Result result = GetInterface()->Reset(description, backBuffers_);
+            Result result = GetPrivateImpl()->Reset(description, backBuffers_);
 
             if (result == Result::Ok)
             {

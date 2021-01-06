@@ -3,6 +3,8 @@
 #include <deque>
 #include <limits>
 
+#include "gapi/ResourceViews.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -19,6 +21,7 @@ namespace OpenDemo
                 struct DescriptorHeapDesc;
 
                 DescriptorHeap() = default;
+                ~DescriptorHeap();
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc);
 
@@ -58,7 +61,6 @@ namespace OpenDemo
                     ASSERT(chunkIndex < chunks_.size())
 
                     auto& chunk = chunks_[chunkIndex];
-
                     chunk->Free(index);
 
                     // Chunk was exhausted
@@ -77,22 +79,22 @@ namespace OpenDemo
                     D3D12_DESCRIPTOR_HEAP_FLAGS flags;
                 };
 
-                struct Allocation
+                struct Allocation final : public ResourceViewInterface
                 {
                     Allocation() = default;
 
-                    Allocation::Allocation(Allocation&& donor) noexcept = delete;
+                    Allocation(Allocation&& donor) noexcept = delete;
 
-                    Allocation::~Allocation() { release(); }
+                    ~Allocation() { release(); }
 
-                    bool Allocation::operator==(const Allocation& alloc) const
+                    bool operator==(const Allocation& alloc) const
                     {
                         return (cpuHandle_.ptr == alloc.cpuHandle_.ptr) && (heap_ == alloc.heap_) && (indexInHeap_ == alloc.indexInHeap_);
                     }
 
-                    bool Allocation::operator!=(const Allocation& alloc) const { return !(*this == alloc); }
+                    bool operator!=(const Allocation& alloc) const { return !(*this == alloc); }
 
-                    Allocation& Allocation::operator=(Allocation&& alloc) noexcept
+                    Allocation& operator=(Allocation&& alloc) noexcept
                     {
                         std::swap(heap_, alloc.heap_);
                         std::swap(indexInHeap_, alloc.indexInHeap_);
@@ -157,7 +159,7 @@ namespace OpenDemo
                     inline void Free(uint32_t index)
                     {
                         ASSERT(index < Chunk::SIZE)
-                        ASSERT(index > Offset && index < Offset + Chunk::SIZE)
+                        ASSERT(index >= Offset && index < Offset + Chunk::SIZE)
                         const uint8_t indexInChunk = static_cast<uint8_t>(index - Offset);
 
                         indices_[--cursor_] = indexInChunk;

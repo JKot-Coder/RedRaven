@@ -39,7 +39,13 @@ namespace OpenDemo
             }
         };
 
-        class ResourceView : public PrivateImplementedObject
+        class ResourceViewInterface
+        {
+        public:
+            virtual ~ResourceViewInterface() {};
+        };
+
+        class ResourceView : public PrivateImplementedObject<ResourceViewInterface>
         {
         public:
             using SharedPtr = std::shared_ptr<ResourceView>;

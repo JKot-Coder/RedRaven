@@ -72,7 +72,7 @@ namespace OpenDemo
 
         Submission::~Submission()
         {
-            ASSERT(device_)
+            ASSERT(!device_)
 #if ENABLE_SUBMISSION_THREAD
             ASSERT(!submissionThread_.IsJoinable())
 #endif
@@ -195,7 +195,7 @@ namespace OpenDemo
         template <>
         inline GAPI::Result Submission::doTask(const Task::Terminate& task)
         {
-            device_ == nullptr;
+            device_.reset();
             Log::Print::Info("Device terminated.\n");
             return GAPI::Result::Ok;
         }
