@@ -9,12 +9,15 @@ namespace OpenDemo
         namespace DX12
         {
             class CommandListImpl;
+            class ResourceReleaseContext;
 
             class CommandQueueImpl final : public ICommandQueue
             {
             public:
                 CommandQueueImpl() = delete;
-                CommandQueueImpl(CommandQueueType type);
+                CommandQueueImpl(CommandQueueType type) : type_(type) {};
+
+                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
                 Result Submit(const std::shared_ptr<CommandList>& commandList) override;

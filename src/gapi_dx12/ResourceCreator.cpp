@@ -286,11 +286,11 @@ namespace OpenDemo
                     const auto impl = resource.GetPrivateImpl<Impl>();
                     ASSERT(impl);
 
-                    resourceReleaseContext.DeferredD3DResourceRelease(impl->GetD3DObject());
+                    impl->ReleaseD3DObjects(resourceReleaseContext);
 
                     resource.SetPrivateImpl(nullptr);
                 }
-
+              
                 template <>
                 void releaseResource<GpuResourceView, DescriptorHeap::Allocation>(ResourceReleaseContext& resourceReleaseContext, GpuResourceView& resource)
                 {
@@ -298,8 +298,6 @@ namespace OpenDemo
                     ASSERT(impl);
 
                     // Todo delete?
-
-                    //resourceReleaseContext.DeferredD3DResourceRelease(1, impl->GetD3DObject());
 
                     resource.SetPrivateImpl(nullptr);
                 }

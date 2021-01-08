@@ -12,10 +12,14 @@ namespace OpenDemo
     {
         namespace DX12
         {
+            class ResourceReleaseContext;
+
             class CommandContextImpl final : public IGraphicsCommandList
             {
             public:
                 CommandContextImpl();
+
+                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const CommandListType commandListType, const U8String& name);
 

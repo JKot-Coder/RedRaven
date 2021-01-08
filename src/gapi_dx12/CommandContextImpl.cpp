@@ -3,6 +3,7 @@
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
 
+#include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -16,6 +17,12 @@ namespace OpenDemo
             CommandContextImpl::CommandContextImpl() : commandList_(new CommandListImpl(D3D12_COMMAND_LIST_TYPE_DIRECT))
             {
             }
+
+            void CommandContextImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            {
+                releaseContext.DeferredD3DResourceRelease(D3DCommandList_);
+            }
+
 
             Result CommandContextImpl::Init(const ComSharedPtr<ID3D12Device>& device, const CommandListType commandListType, const U8String& name)
             {

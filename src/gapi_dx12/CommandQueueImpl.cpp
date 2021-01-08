@@ -5,6 +5,7 @@
 
 #include "gapi_dx12/CommandContextImpl.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
+#include "gapi_dx12/ResourceReleaseContext.hpp"
 
 namespace OpenDemo
 {
@@ -12,8 +13,9 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            CommandQueueImpl::CommandQueueImpl(CommandQueueType type) : type_(type)
+            void CommandQueueImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
             {
+                releaseContext.DeferredD3DResourceRelease(D3DCommandQueue_);
             }
 
             Result CommandQueueImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
