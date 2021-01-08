@@ -21,8 +21,10 @@
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
+#include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <iterator>
 #include <thread>
@@ -55,16 +57,16 @@ namespace OpenDemo
                 Result Init(const Device::Description& description);
                 Result Submit(const CommandList::SharedPtr& commandList);
                 Result Present(const SwapChain::SharedPtr& swapChain);
+                Result MoveToNextFrame();
+                Result WaitForGpu();
+
+                Result InitResource(const Object::SharedPtr& resource) const;
+                void ReleaseResource(Object& resource) const;
 
                 ID3D12Device* GetDevice() const
                 {
                     return d3dDevice_.get();
                 }
-
-                Result WaitForGpu();
-
-                Result InitResource(const Object::SharedPtr& resource) const;
-                Result DeviceImplementation::InitResource(const Fence::SharedPtr& resource, uint64_t initialValue) const;
 
             private:
                 struct Resources
@@ -77,23 +79,21 @@ namespace OpenDemo
             private:
                 Result createDevice();
 
-                void moveToNextFrame();
-
             private:
                 Device::Description description_ = {};
 
-                bool inited_ = false;
+                std::atomic_bool inited_ = false;
 
                 std::thread::id creationThreadID_;
 
                 D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
 
-                std::unique_ptr<ResourceCreatorContext> resourceCreatorContext_;
+                std::unique_ptr<ResourceCreateContext> resourceCreateContext_;
+                std::unique_ptr<ResourceReleaseContext> resourceReleaseContext_;
 
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
                 ComSharedPtr<ID3D12Device> d3dDevice_;
-                ComSharedPtr<ID3D12Debug1> debugController_;
 
                 std::unique_ptr<Resources> resources_;
             };
@@ -105,7 +105,7 @@ namespace OpenDemo
 
             DeviceImplementation::~DeviceImplementation()
             {
-                ASSERT_IS_CREATION_THREAD
+                ASSERT_IS_CREATION_THREAD;
 
                 if (!inited_)
                     return;
@@ -116,11 +116,11 @@ namespace OpenDemo
                     LOG_ERROR("WaitForGPU Error: %s", result.ToString());
 
                 resources_.reset();
-                resourceCreatorContext_.reset();
+                resourceCreateContext_.reset();
+                resourceReleaseContext_.reset();
 
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
-                debugController_ = nullptr;
 
                 if (description_.debugMode != Device::DebugMode::Retail)
                 {
@@ -144,7 +144,7 @@ namespace OpenDemo
             Result DeviceImplementation::Init(const Device::Description& description)
             {
                 ASSERT_IS_CREATION_THREAD;
-                ASSERT(inited_ == false);
+                ASSERT(!inited_);
 
                 ASSERT(description.gpuFramesBuffered <= MAX_BACK_BUFFER_COUNT);
 
@@ -163,11 +163,14 @@ namespace OpenDemo
                 resources_->graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
                 D3DCall(resources_->graphicsCommandQueue_->Init(d3dDevice_, "Primary"));
 
-                resourceCreatorContext_ = std::make_unique<ResourceCreatorContext>(
+                resourceCreateContext_ = std::make_unique<ResourceCreateContext>(
                     d3dDevice_,
                     dxgiFactory_,
                     resources_->graphicsCommandQueue_,
                     resources_->descriptorHeapSet_);
+
+                resourceReleaseContext_ = std::make_unique<ResourceReleaseContext>();
+                D3DCall(resourceReleaseContext_->Init(d3dDevice_));
 
                 inited_ = true;
 
@@ -180,14 +183,25 @@ namespace OpenDemo
 
                 D3DCall(resources_->gpuWaitFence_->Signal(*resources_->graphicsCommandQueue_.get()));
                 D3DCall(resources_->gpuWaitFence_->SyncCPU(std::nullopt));
+                D3DCall(resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
 
                 return Result::Ok;
             }
 
             Result DeviceImplementation::InitResource(const Object::SharedPtr& resource) const
             {
-                ASSERT(resourceCreatorContext_);
-                return ResourceCreator::InitResource(*resourceCreatorContext_.get(), resource);
+                ASSERT_IS_DEVICE_INITED;
+                ASSERT(resourceCreateContext_);
+
+                return ResourceCreator::InitResource(*resourceCreateContext_.get(), resource);
+            }
+
+            void DeviceImplementation::ReleaseResource(Object& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                ASSERT(resourceReleaseContext_);
+
+                return ResourceCreator::ReleaseResource(*resourceReleaseContext_.get(), resource);
             }
 
             Result DeviceImplementation::Submit(const CommandList::SharedPtr& commandList)
@@ -279,14 +293,16 @@ namespace OpenDemo
                 if (description_.debugMode == Device::DebugMode::Debug
                     || description_.debugMode == Device::DebugMode::Instrumented)
                 {
-                    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController_.put()))))
+
+                    ComSharedPtr<ID3D12Debug1> debugController;
+                    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.put()))))
                     {
-                        debugController_->EnableDebugLayer();
-                        debugController_->SetEnableGPUBasedValidation(true);
+                        debugController->EnableDebugLayer();
+                        debugController->SetEnableGPUBasedValidation(true);
 
                         if (description_.debugMode == Device::DebugMode::Debug)
                         {
-                            debugController_->SetEnableSynchronizedCommandQueueValidation(true);
+                            debugController->SetEnableSynchronizedCommandQueueValidation(true);
                         }
                     }
                     else
@@ -358,11 +374,27 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            void DeviceImplementation::moveToNextFrame()
+            Result DeviceImplementation::MoveToNextFrame()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
+
+                D3DCall(resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
+
+                return Result::Ok;
             }
+
+            /*
+            void DeviceImplementation::DefferedDeleteD3DObject(const ComSharedPtr<IUnknown>& object)
+            {
+                ASSERT(defferedDeletionResources_);
+
+                // Device already destoyed. Leaked object destruction.
+                if (!defferedDeletionResources_)
+                    return;
+
+                defferedDeletionResources_->push_back(object);
+            }*/
 
             Device::Device()
                 : _impl(new DeviceImplementation())
@@ -380,6 +412,12 @@ namespace OpenDemo
             {
                 return _impl->Present(swapChain);
             }
+
+            Result Device::MoveToNextFrame()
+            {
+                return _impl->MoveToNextFrame();
+            }
+
             /*
             Result Device::Submit(const CommandList::SharedPtr& CommandList)
             {
@@ -394,6 +432,11 @@ namespace OpenDemo
             Result Device::InitResource(const Object::SharedPtr& resource) const
             {
                 return _impl->InitResource(resource);
+            }
+
+            void Device::ReleaseResource(Object& resource) const
+            {
+                return _impl->ReleaseResource(resource);
             }
         }
     }

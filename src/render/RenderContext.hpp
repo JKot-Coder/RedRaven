@@ -34,12 +34,14 @@ namespace OpenDemo
             std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::ComputeCommandList> CreateComputeCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::GraphicsCommandList> CreateGraphicsCommandList(const U8String& name) const;
-            std::shared_ptr<GAPI::CommandQueue> RenderContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
-            std::shared_ptr<GAPI::Fence> RenderContext::CreateFence(const U8String& name = "") const;
+            std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
+            std::shared_ptr<GAPI::Fence> CreateFence(const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc, const U8String& name = "") const;
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
+
+            void ReleaseResource(GAPI::Object& resource) const;
 
         private:
             GAPI::Result initDevice(const GAPI::Device::Description& description);

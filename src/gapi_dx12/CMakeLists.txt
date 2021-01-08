@@ -38,6 +38,7 @@ set(GAPI_SRC
         Device.cpp
         Device.hpp
         FencedRingBuffer.hpp
+        ResourceReleaseContext.hpp
         ResourceCreator.cpp
         ResourceCreator.hpp
         TypeConversions.cpp

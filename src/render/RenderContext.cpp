@@ -17,6 +17,23 @@ namespace OpenDemo
 {
     namespace Render
     {
+        namespace
+        {
+            template <typename T>
+            struct GPIObjectsDeleter
+            {
+                void operator()(T* p)
+                {
+                    static_assert(std::is_convertible<T*, GAPI::Object*>::value, "T shoud be convertable to GAPI::Object");
+
+                    ASSERT(p);
+
+                    const auto& instance = RenderContext::Instance();
+                    instance.ReleaseResource(*static_cast<GAPI::Object*>(p));
+                }
+            };
+        }
+
         RenderContext::RenderContext()
             : submission_(new Submission())
         {
@@ -111,9 +128,12 @@ namespace OpenDemo
                     syncFenceValue++;
 
                     // Throttle cpu if gpu behind
-                    if (!(fence->SyncCPU(syncFenceValue, INFINITE)))
+                    if (!(result = fence->SyncCPU(syncFenceValue, INFINITE)))
                         return result;
                 }
+
+                if (!(result = device.MoveToNextFrame()))
+                    return result;
 
                 return result;
             });
@@ -142,8 +162,10 @@ namespace OpenDemo
             auto result = submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
                 GAPI::Result result = GAPI::Result::Ok;
 
-                result = swapchain->Reset(description);
-                if (!result)
+                if (!(result = device.WaitForGpu()))
+                    return result;
+
+                if (!(result = swapchain->Reset(description)))
                     return result;
 
                 return result;
@@ -156,7 +178,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::CopyCommandList::Create(name);
+            auto& resource = GAPI::CopyCommandList::Create(name, GPIObjectsDeleter<GAPI::CopyCommandList>());
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -167,7 +189,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::ComputeCommandList::Create(name);
+            auto& resource = GAPI::ComputeCommandList::Create(name, GPIObjectsDeleter<GAPI::ComputeCommandList>());
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -178,7 +200,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::GraphicsCommandList::Create(name);
+            auto& resource = GAPI::GraphicsCommandList::Create(name, GPIObjectsDeleter<GAPI::GraphicsCommandList>());
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -200,7 +222,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::Fence::Create(name);
+            auto& resource = GAPI::Fence::Create(name, GPIObjectsDeleter<GAPI::Fence>());
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -243,16 +265,27 @@ namespace OpenDemo
 
         GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
-            auto& resource = GAPI::SwapChain::Create(description, name);
+            auto& resource = GAPI::SwapChain::Create(description, name, GPIObjectsDeleter<GAPI::SwapChain>());
             if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
         }
 
-        GAPI::Result RenderContext::initDevice(const GAPI::Device::Description& description)
+        void RenderContext::ReleaseResource(GAPI::Object& resource) const
+        {
+            ASSERT(inited_);
+
+            if (!inited_) // Leaked resource release. We can't do nothing with it.
+                return;
+
+            submission_->GetMultiThreadDeviceInterface().lock()->ReleaseResource(resource);
+        }
+
+        GAPI::Result
+        RenderContext::initDevice(const GAPI::Device::Description& description)
         {
             return submission_->ExecuteAwait([&description](GAPI::Device& device) {
                 return device.Init(description);

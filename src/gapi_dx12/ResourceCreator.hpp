@@ -8,17 +8,18 @@ namespace OpenDemo
         {
             class DescriptorHeapSet;
             class CommandQueueImpl;
+            class ResourceReleaseContext;
 
-            struct ResourceCreatorContext
+            struct ResourceCreateContext
             {
                 ComSharedPtr<ID3D12Device> device;
                 ComSharedPtr<IDXGIFactory2> dxgiFactory;
                 std::shared_ptr<CommandQueueImpl> graphicsCommandQueue;
                 std::shared_ptr<DescriptorHeapSet> descriptorHeapSet;
 
-                ResourceCreatorContext() = delete;
+                ResourceCreateContext() = delete;
 
-                ResourceCreatorContext(
+                ResourceCreateContext(
                     const ComSharedPtr<ID3D12Device>& device,
                     const ComSharedPtr<IDXGIFactory2>& dxgiFactory,
                     const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
@@ -35,13 +36,14 @@ namespace OpenDemo
                 }
             };
 
-            static constexpr D3D12_HEAP_PROPERTIES DefaultHeapProps = {
-                D3D12_HEAP_TYPE_DEFAULT,
-                D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-                D3D12_MEMORY_POOL_UNKNOWN,
-                0,
-                0
-            };
+            static constexpr D3D12_HEAP_PROPERTIES DefaultHeapProps
+                = {
+                      D3D12_HEAP_TYPE_DEFAULT,
+                      D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+                      D3D12_MEMORY_POOL_UNKNOWN,
+                      0,
+                      0
+                  };
 
             static constexpr D3D12_HEAP_PROPERTIES UploadHeapProps = {
                 D3D12_HEAP_TYPE_UPLOAD,
@@ -61,7 +63,8 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                Result InitResource(const ResourceCreatorContext& context, const std::shared_ptr<Object>& resource);
+                Result InitResource(const ResourceCreateContext& context, const std::shared_ptr<Object>& resource);
+                void ReleaseResource(ResourceReleaseContext& resourceReleaseContext, Object& resource);
             }
         }
     }

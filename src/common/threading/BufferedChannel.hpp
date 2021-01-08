@@ -25,7 +25,7 @@ namespace OpenDemo
                     if (closed_)
                         return;
 
-                    std::unique_lock lock(mutex_);
+                    Threading::UniqueLock<Threading::Mutex> lock(mutex_);
 
                     if (buffer_.full())
                     {
@@ -40,7 +40,7 @@ namespace OpenDemo
 
                 inline std::optional<T> GetNext()
                 {
-                    std::unique_lock lock(mutex_);
+                    Threading::UniqueLock<Threading::Mutex> lock(mutex_);
 
                     if (buffer_.empty())
                     {
@@ -62,7 +62,7 @@ namespace OpenDemo
 
                 inline std::optional<T> TryGetNext()
                 {
-                    std::unique_lock lock(mutex_);
+                    Threading::UniqueLock<Threading::Mutex> lock(mutex_);
 
                     if (buffer_.empty())
                         return std::nullopt;

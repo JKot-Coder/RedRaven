@@ -139,12 +139,12 @@ namespace OpenDemo
 
 #if ENABLE_SUBMISSION_THREAD
             Threading::Mutex mutex;
-            std::unique_lock<Threading::Mutex> lock(mutex);
+            Threading::UniqueLock<Threading::Mutex> lock(mutex);
             Threading::ConditionVariable condition;
             GAPI::Result result = GAPI::Result::Fail;
 
             task.function = [&condition, &function, &mutex, &result](GAPI::Device& device) {
-                std::unique_lock<Threading::Mutex> lock(mutex);
+                Threading::UniqueLock<Threading::Mutex> lock(mutex);
                 result = function(device);
                 condition.notify_one();
                 return result;

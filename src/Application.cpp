@@ -106,10 +106,10 @@ namespace OpenDemo
 
             auto index2 = index;
             renderContext.ExecuteAsync(
-                [this, index2, &commandList](GAPI::Device& device) {
+                [swapChain = swapChain_, index2, commandList](GAPI::Device& device) {
                     std::ignore = device;
 
-                    auto texture = swapChain_->GetTexture(index2);
+                    auto texture = swapChain->GetTexture(index2);
                     ASSERT(texture)
                     //Log::Print::Info("Texture %s\n", texture->GetName());
 
@@ -128,7 +128,7 @@ namespace OpenDemo
             renderContext.MoveToNextFrame(commandQueue);
 
             renderContext.ExecuteAsync(
-                [&commandList](GAPI::Device& device) {
+                [commandList](GAPI::Device& device) {
                     std::ignore = device;
 
                     commandList->Reset();
@@ -141,6 +141,9 @@ namespace OpenDemo
 
             time->Update();
         }
+        commandQueue = nullptr;
+        commandList = nullptr;
+        fence = nullptr;
 
         //  delete renderPipeline;
 

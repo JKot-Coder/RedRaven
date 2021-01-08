@@ -19,14 +19,14 @@ namespace OpenDemo
 
                 inline void Reset()
                 {
-                    std::unique_lock<Mutex> lock(mutex_);
+                    UniqueLock<Mutex> lock(mutex_);
                     state_ = false;
                 }
 
                 inline void Notify()
                 {
                     {
-                        std::unique_lock<Mutex> lock(mutex_);
+                        UniqueLock<Mutex> lock(mutex_);
                         state_ = true;
                     }
 
@@ -35,7 +35,7 @@ namespace OpenDemo
 
                 inline bool Wait(uint32_t milliseconds = INFINITE_WAIT)
                 {
-                    std::unique_lock<Mutex> lock(mutex_);
+                    UniqueLock<Mutex> lock(mutex_);
                     bool result = true;
 
                     if (state_ == false)

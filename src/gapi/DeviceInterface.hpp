@@ -22,7 +22,7 @@ namespace OpenDemo
             struct Description final
             {
             public:
-                Description() = default;	
+                Description() = default;
 
                 Description(uint32_t gpuFramesBuffered, DebugMode debugMode)
                     : gpuFramesBuffered(gpuFramesBuffered),
@@ -42,6 +42,8 @@ namespace OpenDemo
 
             virtual Result Present(const std::shared_ptr<SwapChain>& swapChain) = 0;
 
+            virtual Result MoveToNextFrame() = 0;
+
             virtual Result WaitForGpu() = 0;
         };
 
@@ -49,6 +51,7 @@ namespace OpenDemo
         {
         public:
             virtual Result InitResource(const std::shared_ptr<Object>& resource) const = 0;
+            virtual void ReleaseResource(Object& resource) const = 0;
         };
 
         class Device : public SingleThreadDeviceInterface, public MultiThreadDeviceInterface

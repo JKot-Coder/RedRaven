@@ -20,6 +20,20 @@ namespace OpenDemo
                 return privateImpl_.get();
             }
 
+            template <typename T1>
+            inline T1* GetPrivateImpl()
+            {
+                ASSERT(dynamic_cast<T1*>(privateImpl_.get()));
+                return static_cast<T1*>(privateImpl_.get());
+            }
+
+            template <typename T1>
+            inline const T1* GetPrivateImpl() const
+            {
+                ASSERT(dynamic_cast<T1*>(privateImpl_.get()));
+                return static_cast<const T1*>(privateImpl_.get());
+            }
+
             inline void SetPrivateImpl(T* impl)
             {
                 privateImpl_.reset(impl);

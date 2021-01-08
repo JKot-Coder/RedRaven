@@ -24,11 +24,6 @@ namespace OpenDemo
                 }
             }
 
-            SwapChainImpl::~SwapChainImpl()
-            {      
-               // Device::ReleaseResource
-            }
-
             Result SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
             {
                 ASSERT(device)
@@ -86,13 +81,7 @@ namespace OpenDemo
                     if (!backBuffer)
                         continue;
 
-                    auto resourceImpl = backBuffer->GetPrivateImpl();
-
-                    if (resourceImpl)
-                    {
-                        delete resourceImpl;
-                        backBuffer->SetPrivateImpl(nullptr);
-                    }
+                    backBuffer->SetPrivateImpl(nullptr);
                 }
 
                 HRESULT hr = D3DSwapChain_->ResizeBuffers(

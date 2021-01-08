@@ -5,6 +5,7 @@
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
+#include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
 #include "gapi_dx12/TypeConversions.hpp"
@@ -12,9 +13,9 @@
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
-#include "gapi/Object.hpp"
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
@@ -154,7 +155,7 @@ namespace OpenDemo
                     return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(textureDescription, description);
                 }
 
-                Result initResource(const ResourceCreatorContext& context, GpuResource& resource)
+                Result initResource(const ResourceCreateContext& context, GpuResource& resource)
                 {
                     auto impl = new ResourceImpl();
 
@@ -180,7 +181,7 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, CommandQueue& resource)
+                Result initResource(const ResourceCreateContext& context, CommandQueue& resource)
                 {
                     CommandQueueImpl* impl = nullptr;
 
@@ -188,10 +189,12 @@ namespace OpenDemo
                     {
                         static bool alreadyInited = false;
                         ASSERT(!alreadyInited); // Only one graphics command queue are alloved.
+                        ASSERT(context.graphicsCommandQueue);
                         alreadyInited = true;
 
-                        // Graphics command queue already initialized internally in device, so just use it.
-                        impl = context.graphicsCommandQueue.get();
+                        // Graphics command queue already initialized internally in device,
+                        // so make copy to prevent d3d object leaking.
+                        impl = new CommandQueueImpl(*context.graphicsCommandQueue.get());
                     }
                     else
                     {
@@ -204,13 +207,13 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, GpuResourceView& object)
+                Result initResource(const ResourceCreateContext& context, GpuResourceView& object)
                 {
                     const auto& resourceSharedPtr = object.GetGpuResource().lock();
                     ASSERT(resourceSharedPtr);
 
-                    ASSERT(dynamic_cast<ResourceImpl*>(resourceSharedPtr->GetPrivateImpl()));
-                    const auto& resourcePrivateImpl = static_cast<ResourceImpl*>(resourceSharedPtr->GetPrivateImpl());
+                    const auto resourcePrivateImpl = resourceSharedPtr->GetPrivateImpl<ResourceImpl>();
+                    ASSERT(resourcePrivateImpl);
 
                     const auto& d3dObject = resourcePrivateImpl->GetD3DObject();
                     ASSERT(d3dObject);
@@ -243,7 +246,7 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, CommandList& resource)
+                Result initResource(const ResourceCreateContext& context, CommandList& resource)
                 {
                     auto impl = new CommandContextImpl();
 
@@ -253,7 +256,7 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, Fence& resource)
+                Result initResource(const ResourceCreateContext& context, Fence& resource)
                 {
                     auto impl = new FenceImpl();
 
@@ -263,7 +266,7 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreatorContext& context, SwapChain& resource)
+                Result initResource(const ResourceCreateContext& context, SwapChain& resource)
                 {
                     auto impl = new SwapChainImpl();
 
@@ -274,11 +277,53 @@ namespace OpenDemo
 
                     return Result::Ok;
                 }
+
+                template <typename T, typename Impl>
+                void releaseResource(ResourceReleaseContext& resourceReleaseContext, T& resource)
+                {
+                    static_assert(std::is_base_of<Object, T>::value, "T should be derived from Object");
+
+                    const auto impl = resource.GetPrivateImpl<Impl>();
+                    ASSERT(impl);
+
+                    Log::Print::Info("Release %s\n", D3DUtils::GetAPIName(impl->GetD3DObject().get(), resource.GetName()));
+
+                    resourceReleaseContext.DeferredD3DResourceRelease(impl->GetD3DObject());
+
+                    resource.SetPrivateImpl(nullptr);
+                }
+
+                template <>
+                void releaseResource<SwapChain, SwapChainImpl>(ResourceReleaseContext& resourceReleaseContext, SwapChain& resource)
+                {
+
+                    const auto impl = resource.GetPrivateImpl<SwapChainImpl>();
+                    ASSERT(impl);
+
+                    resource.Reset2();
+                    Log::Print::Info("Release %s\n", D3DUtils::GetAPIName(impl->GetD3DObject().get(), resource.GetName()));
+
+                    resourceReleaseContext.DeferredD3DResourceRelease(impl->GetD3DObject());
+
+                    resource.SetPrivateImpl(nullptr);
+                }
+
+                template <>
+                void releaseResource<GpuResourceView, DescriptorHeap::Allocation>(ResourceReleaseContext& resourceReleaseContext, GpuResourceView& resource)
+                {
+                    const auto impl = resource.GetPrivateImpl<DescriptorHeap::Allocation>();
+                    ASSERT(impl);
+
+                    // Todo delete?
+
+                    //resourceReleaseContext.DeferredD3DResourceRelease(1, impl->GetD3DObject());
+
+                    resource.SetPrivateImpl(nullptr);
+                }
             }
 
-            Result ResourceCreator::InitResource(const ResourceCreatorContext& context, const Object::SharedPtr& resource)
+            Result ResourceCreator::InitResource(const ResourceCreateContext& context, const Object::SharedPtr& resource)
             {
-                // TODO ambigous naming Resource->Object
                 ASSERT(resource)
 
 #define CASE_RESOURCE(T)                                                        \
@@ -301,12 +346,36 @@ namespace OpenDemo
                 default:
                     ASSERT_MSG(false, "Unsuported resource type");
                 }
+
 #undef CASE_RESOURCE
 
                 if (!result)
                     Log::Print::Error("Error creating resource with eror: %s", result.ToString());
 
                 return result;
+            }
+
+            void ResourceCreator::ReleaseResource(ResourceReleaseContext& resourceReleaseContext, Object& resource)
+            {
+#define CASE_RESOURCE(T, IMPL)                                                       \
+    case Object::Type::T:                                                            \
+        ASSERT(dynamic_cast<T*>(&resource));                                         \
+        releaseResource<T, IMPL>(resourceReleaseContext, static_cast<T&>(resource)); \
+        break;
+
+                switch (resource.GetType())
+                {
+                    CASE_RESOURCE(CommandList, CommandContextImpl)
+                    CASE_RESOURCE(CommandQueue, CommandQueueImpl)
+                    CASE_RESOURCE(Fence, FenceImpl)
+                    CASE_RESOURCE(GpuResource, ResourceImpl)
+                    CASE_RESOURCE(GpuResourceView, DescriptorHeap::Allocation)
+                    CASE_RESOURCE(SwapChain, SwapChainImpl)
+                default:
+                    ASSERT_MSG(false, "Unsuported resource type");
+                }
+
+#undef CASE_RESOURCE
             }
         }
     }

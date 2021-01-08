@@ -28,9 +28,9 @@ namespace OpenDemo
 
             Result FenceImpl::Signal(const std::shared_ptr<CommandQueue>& queue)
             {
-                ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetPrivateImpl()));
-                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetPrivateImpl());
+                ASSERT(queue);
 
+                const auto queueImpl = queue->GetPrivateImpl<CommandQueueImpl>();
                 ASSERT(queueImpl);
 
                 return Signal(*queueImpl);

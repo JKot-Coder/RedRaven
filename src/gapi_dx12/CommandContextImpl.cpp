@@ -41,15 +41,15 @@ namespace OpenDemo
                 ASSERT(renderTargetView);
                 ASSERT(D3DCommandList_);
 
-                ASSERT(dynamic_cast<DescriptorHeap::Allocation*>(renderTargetView->GetPrivateImpl()));
-                const auto& allocation = static_cast<DescriptorHeap::Allocation*>(renderTargetView->GetPrivateImpl());
+                const auto allocation = renderTargetView->GetPrivateImpl<DescriptorHeap::Allocation>();
+                ASSERT(allocation);
 
                 const auto& resource = renderTargetView->GetGpuResource().lock();
                 ASSERT(resource);
                 ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture);
 
-                ASSERT(dynamic_cast<ResourceImpl*>(resource->GetPrivateImpl()));
-                const auto resourceImpl = static_cast<ResourceImpl*>(resource->GetPrivateImpl());
+                const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
+                ASSERT(resourceImpl);
 
                 D3D12_RESOURCE_BARRIER barrier
                     = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);

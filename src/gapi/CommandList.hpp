@@ -77,9 +77,10 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<const CopyCommandList>;
 
         private:
-            static SharedPtr Create(const U8String& name)
+            template <class Deleter>
+            static SharedPtr Create(const U8String& name, Deleter deleter)
             {
-                return SharedPtr(new CopyCommandList(CommandListType::Copy, name));
+                return SharedPtr(new CopyCommandList(CommandListType::Copy, name), std::move(deleter));
             }
 
         protected:
@@ -99,9 +100,10 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<const ComputeCommandList>;
 
         private:
-            static SharedPtr Create(const U8String& name)
+            template <class Deleter>
+            static SharedPtr Create(const U8String& name, Deleter deleter)
             {
-                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name));
+                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name), std::move(deleter));
             }
 
         protected:
@@ -123,9 +125,10 @@ namespace OpenDemo
             inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:
-            static SharedPtr Create(const U8String& name)
+            template <class Deleter>
+            static SharedPtr Create(const U8String& name, Deleter deleter)
             {
-                return SharedPtr(new GraphicsCommandList(name));
+                return SharedPtr(new GraphicsCommandList(name), std::move(deleter));
             }
 
         protected:

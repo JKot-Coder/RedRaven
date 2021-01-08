@@ -26,7 +26,7 @@ namespace OpenDemo
 
                 ~FencedFrameRingBuffer()
                 {
-                    for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
+                    for (int index = 0; index < MAX_GPU_FRAMES_BUFFERED; index++)
                         if (_ringBuffer[index].object)
                             _ringBuffer[index].object->Release();
                 }
@@ -35,7 +35,7 @@ namespace OpenDemo
                 {
                     ASSERT(newObject);
 
-                    for (int index = 0; index < GPU_FRAMES_BUFFERED; index++)
+                    for (int index = 0; index < MAX_GPU_FRAMES_BUFFERED; index++)
                     {
                         ObjectType object;
 
@@ -68,7 +68,7 @@ namespace OpenDemo
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     _ringBuffer[_frameIndex].frameStamp = _fence->GetCpuValue();
 #endif
-                    _frameIndex = (++_frameIndex % GPU_FRAMES_BUFFERED);
+                    _frameIndex = (++_frameIndex % MAX_GPU_FRAMES_BUFFERED);
 
 #ifdef ENABLE_FENCE_SYNC_CHECK
                     auto fenceGpuValue = _fence->GetGpuValue();
@@ -97,7 +97,7 @@ namespace OpenDemo
 #endif
                 };
 
-                std::array<Data, GPU_FRAMES_BUFFERED> _ringBuffer;
+                std::array<Data, MAX_GPU_FRAMES_BUFFERED> _ringBuffer;
                 uint32_t _frameIndex = 0;
 #ifdef ENABLE_FENCE_SYNC_CHECK
                 std::unique_ptr<FenceImpl> _fence;

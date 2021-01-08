@@ -9,6 +9,7 @@ namespace OpenDemo
     {
         namespace Threading
         {
+            // Todo Threading::Mutex
             template <typename T>
             class AccessGuard
             {
@@ -24,15 +25,15 @@ namespace OpenDemo
 
             private:
                 template <typename LockType>
-                class AccessGuardPointer
+                class Pointer
                 {
                 public:
-                    AccessGuardPointer() = delete;
+                    Pointer() = delete;
 
-                    AccessGuardPointer(const std::shared_ptr<T>& ptr, const std::shared_ptr<SharedMutex>& mutex) : ptr_(ptr), mutex_(mutex), lock_(*mutex) {};
-                    AccessGuardPointer(AccessGuardPointer&& other) : ptr_(other.ptr_), mutex_(other.mutex_), lock_(other.lock_) {};
+                    Pointer(const std::shared_ptr<T>& ptr, const std::shared_ptr<SharedMutex>& mutex) : ptr_(ptr), mutex_(mutex), lock_(*mutex) {};
+                    Pointer(Pointer&& other) : ptr_(other.ptr_), mutex_(other.mutex_), lock_(other.lock_) {};
 
-                    ~AccessGuardPointer() = default;
+                    ~Pointer() = default;
 
                     inline T* operator->() { return ptr_.get(); }
                     inline const T* operator->() const { return ptr_.get(); }
@@ -44,8 +45,8 @@ namespace OpenDemo
                 };
 
             public:
-                using ExclusiveAcessPointer = AccessGuardPointer<std::unique_lock<SharedMutex>>;
-                using SharedAcessPointer = AccessGuardPointer<std::shared_lock<SharedMutex>>;
+                using ExclusiveAcessPointer = Pointer<std::unique_lock<SharedMutex>>;
+                using SharedAcessPointer = Pointer<std::shared_lock<SharedMutex>>;
 
             public:
                 inline ExclusiveAcessPointer ExclusiveAcess() { return ExclusiveAcessPointer(ptr_, mutex_); }
