@@ -84,6 +84,9 @@ namespace OpenDemo
                     backBuffer->SetPrivateImpl(nullptr);
                 }
 
+                Log::Print::Info("W:%d,H:%d\n", targetSwapChainDesc.Width,
+                    targetSwapChainDesc.Height );
+
                 HRESULT hr = D3DSwapChain_->ResizeBuffers(
                     targetSwapChainDesc.BufferCount,
                     targetSwapChainDesc.Width,

@@ -40,7 +40,7 @@ namespace OpenDemo
                     output.Scaling = DXGI_SCALING_STRETCH;
                     output.SwapEffect = swapEffect;
                     output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-                    output.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+                    output.Flags = 0;
                     return output;
                 }
 
