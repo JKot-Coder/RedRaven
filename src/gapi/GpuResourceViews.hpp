@@ -39,13 +39,13 @@ namespace OpenDemo
             }
         };
 
-        class GpuResourceViewInterface
+        class IGpuResourceView
         {
         public:
-            virtual ~GpuResourceViewInterface() {};
+            virtual ~IGpuResourceView() {};
         };
 
-        class GpuResourceView : public Resource<GpuResourceViewInterface>
+        class GpuResourceView : public Resource<IGpuResourceView>
         {
         public:
             using SharedPtr = std::shared_ptr<GpuResourceView>;

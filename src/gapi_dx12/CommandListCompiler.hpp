@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/DeviceInterface.hpp"
+#include "gapi/IDevice.hpp"
 
 struct ID3D12Device;
 struct ID3D12CommandList;

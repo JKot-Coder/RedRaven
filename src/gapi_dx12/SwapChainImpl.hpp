@@ -9,7 +9,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class SwapChainImpl final : public SwapChainInterface
+            class SwapChainImpl final : public ISwapChain
             {
             public:
                 SwapChainImpl() = default;

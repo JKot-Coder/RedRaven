@@ -7,10 +7,10 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        class FenceInterface
+        class IFence
         {
         public:
-            virtual ~FenceInterface() {};
+            virtual ~IFence() {};
 
             virtual Result Signal(const std::shared_ptr<CommandQueue>& queue) = 0;
 
@@ -21,7 +21,7 @@ namespace OpenDemo
             virtual uint64_t GetCpuValue() const = 0;
         };
 
-        class Fence final : public Resource<FenceInterface>
+        class Fence final : public Resource<IFence>
         {
         public:
             using SharedPtr = std::shared_ptr<Fence>;

@@ -10,7 +10,7 @@ namespace OpenDemo
         {
             class CommandListImpl;
 
-            class CommandQueueImpl final : public CommandQueueInterface
+            class CommandQueueImpl final : public ICommandQueue
             {
             public:
                 CommandQueueImpl() = delete;

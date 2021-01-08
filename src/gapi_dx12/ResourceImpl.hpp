@@ -8,7 +8,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceImpl final : public GpuResourceInterface
+            class ResourceImpl final : public IGpuResource
             {
             public:
                 ResourceImpl() = default;

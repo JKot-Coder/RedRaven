@@ -17,15 +17,15 @@ namespace OpenDemo
             Count
         };
 
-        class CommandQueueInterface
+        class ICommandQueue
         {
         public:
-            virtual ~CommandQueueInterface() {};
+            virtual ~ICommandQueue() {};
 
             virtual Result Submit(const std::shared_ptr<CommandList>& commandList) = 0;
         };
 
-        class CommandQueue final : public Resource<CommandQueueInterface>
+        class CommandQueue final : public Resource<ICommandQueue>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandQueue>;

@@ -22,7 +22,7 @@ namespace OpenDemo
             Graphics
         };
 
-        class CommandListInterface
+        class ICommandList
         {
         public:
             // TODO result;
@@ -31,25 +31,25 @@ namespace OpenDemo
             virtual void Close() = 0;
         };
 
-        class CopyCommandListInterface : public CommandListInterface
+        class ICopyCommandList : public ICommandList
         {
         public:
         };
 
-        class ComputeCommandListInterface : public CopyCommandListInterface
+        class IComputeCommandList: public ICopyCommandList
         {
         public:
         };
 
-        class GraphicsCommandListInterface : public ComputeCommandListInterface
+        class IGraphicsCommandList : public IComputeCommandList
         {
         public:
-            virtual ~GraphicsCommandListInterface() {};
+            virtual ~IGraphicsCommandList() {};
 
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandList : public Resource<GraphicsCommandListInterface>
+        class CommandList : public Resource<IGraphicsCommandList>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandList>;

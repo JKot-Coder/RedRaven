@@ -2,7 +2,7 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/DeviceInterface.hpp"
+#include "gapi/IDevice.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/Result.hpp"
@@ -179,7 +179,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::CopyCommandList::Create(name, GPIObjectsDeleter<GAPI::CopyCommandList>());
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -190,7 +190,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::ComputeCommandList::Create(name, GPIObjectsDeleter<GAPI::ComputeCommandList>());
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -201,7 +201,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::GraphicsCommandList::Create(name, GPIObjectsDeleter<GAPI::GraphicsCommandList>());
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -212,7 +212,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::CommandQueue::Create(type, name);
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -223,7 +223,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::Fence::Create(name, GPIObjectsDeleter<GAPI::Fence>());
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -234,7 +234,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name);
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -257,7 +257,7 @@ namespace OpenDemo
             ASSERT(inited_)
 
             auto& resource = GAPI::RenderTargetView::Create(texture, desc, name);
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -268,7 +268,7 @@ namespace OpenDemo
             ASSERT(inited_);
 
             auto& resource = GAPI::SwapChain::Create(description, name, GPIObjectsDeleter<GAPI::SwapChain>());
-            if (!submission_->GetMultiThreadDeviceInterface().lock()->InitResource(resource))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
             return resource;
@@ -281,7 +281,7 @@ namespace OpenDemo
             if (!inited_) // Leaked resource release. We can't do nothing with it.
                 return;
 
-            submission_->GetMultiThreadDeviceInterface().lock()->ReleaseResource(resource);
+            submission_->GetIMultiThreadDevice().lock()->ReleaseResource(resource);
         }
 
         GAPI::Result

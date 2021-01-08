@@ -251,7 +251,7 @@ namespace OpenDemo
                     auto impl = new CommandContextImpl();
 
                     D3DCall(impl->Init(context.device, resource.GetCommandListType(), resource.GetName()));
-                    resource.SetPrivateImpl(static_cast<GraphicsCommandListInterface*>(impl));
+                    resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl));
 
                     return Result::Ok;
                 }

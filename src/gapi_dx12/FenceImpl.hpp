@@ -10,7 +10,7 @@ namespace OpenDemo
         {
             class CommandQueueImpl;
 
-            class FenceImpl final : public FenceInterface
+            class FenceImpl final : public IFence
             {
             public:
                 FenceImpl() = default;

@@ -79,7 +79,7 @@ namespace OpenDemo
                     D3D12_DESCRIPTOR_HEAP_FLAGS flags;
                 };
 
-                struct Allocation final : public GpuResourceViewInterface
+                struct Allocation final : public IGpuResourceView
                 {
                     Allocation() = default;
 

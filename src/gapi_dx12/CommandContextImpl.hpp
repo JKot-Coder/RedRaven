@@ -12,7 +12,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class CommandContextImpl final : public GraphicsCommandListInterface
+            class CommandContextImpl final : public IGraphicsCommandList
             {
             public:
                 CommandContextImpl();

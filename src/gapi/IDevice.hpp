@@ -9,7 +9,7 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        class SingleThreadIDevice
+        class ISingleThreadDevice
         {
         public:
             enum class DebugMode : uint32_t
@@ -47,14 +47,14 @@ namespace OpenDemo
             virtual Result WaitForGpu() = 0;
         };
 
-        class MultiThreadIDevice
+        class IMultiThreadDevice
         {
         public:
             virtual Result InitResource(const std::shared_ptr<Object>& resource) const = 0;
             virtual void ReleaseResource(Object& resource) const = 0;
         };
 
-        class Device : public SingleThreadIDevice, public MultiThreadIDevice
+        class Device : public ISingleThreadDevice, public IMultiThreadDevice
         {
         public:
             virtual ~Device() = default;

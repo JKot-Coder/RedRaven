@@ -35,17 +35,17 @@ namespace OpenDemo
             }
         };
 
-        class SwapChainInterface
+        class ISwapChain
         {
         public:
-            virtual ~SwapChainInterface() {};
+            virtual ~ISwapChain() {};
 
             virtual Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
 
             virtual Result Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
-        class SwapChain final : public Resource<SwapChainInterface>
+        class SwapChain final : public Resource<ISwapChain>
         {
         public:
             using SharedPtr = std::shared_ptr<SwapChain>;

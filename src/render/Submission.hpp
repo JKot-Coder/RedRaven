@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/DeviceInterface.hpp"
+#include "gapi/IDevice.hpp"
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/SwapChain.hpp"
 
@@ -41,7 +41,7 @@ namespace OpenDemo
             void ExecuteAsync(const CallbackFunction&& function);
             GAPI::Result ExecuteAwait(const CallbackFunction&& function);
 
-            inline std::weak_ptr<GAPI::MultiThreadDeviceInterface> GetMultiThreadDeviceInterface() { return device_; }
+            inline std::weak_ptr<GAPI::IMultiThreadDevice> GetIMultiThreadDevice() { return device_; }
 
         private:
             template <typename T>

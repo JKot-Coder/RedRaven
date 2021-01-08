@@ -3,7 +3,7 @@ project (gapi)
 set(GAPI_SRC
         CommandList.hpp
         CommandQueue.hpp
-        DeviceInterface.hpp
+        IDevice.hpp
         Fence.hpp
         FencedPool.hpp
         ForwardDeclarations.hpp

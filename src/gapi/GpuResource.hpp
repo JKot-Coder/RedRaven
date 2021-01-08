@@ -133,13 +133,13 @@ namespace OpenDemo
             U8String ToString(GpuResourceFormat format);
         };
 
-        class GpuResourceInterface
+        class IGpuResource
         {
         public:
-            virtual ~GpuResourceInterface() {};
+            virtual ~IGpuResource() {};
         };
 
-        class GpuResource : public Resource<GpuResourceInterface>
+        class GpuResource : public Resource<IGpuResource>
         {
         public:
             using SharedPtr = std::shared_ptr<GpuResource>;
