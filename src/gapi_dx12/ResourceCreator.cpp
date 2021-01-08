@@ -286,23 +286,6 @@ namespace OpenDemo
                     const auto impl = resource.GetPrivateImpl<Impl>();
                     ASSERT(impl);
 
-                    Log::Print::Info("Release %s\n", D3DUtils::GetAPIName(impl->GetD3DObject().get(), resource.GetName()));
-
-                    resourceReleaseContext.DeferredD3DResourceRelease(impl->GetD3DObject());
-
-                    resource.SetPrivateImpl(nullptr);
-                }
-
-                template <>
-                void releaseResource<SwapChain, SwapChainImpl>(ResourceReleaseContext& resourceReleaseContext, SwapChain& resource)
-                {
-
-                    const auto impl = resource.GetPrivateImpl<SwapChainImpl>();
-                    ASSERT(impl);
-
-                    resource.Reset2();
-                    Log::Print::Info("Release %s\n", D3DUtils::GetAPIName(impl->GetD3DObject().get(), resource.GetName()));
-
                     resourceReleaseContext.DeferredD3DResourceRelease(impl->GetD3DObject());
 
                     resource.SetPrivateImpl(nullptr);
