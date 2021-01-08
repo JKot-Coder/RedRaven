@@ -86,7 +86,21 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<RenderTargetView>;
 
         private:
-            static SharedPtr Create(const std::shared_ptr<Texture>& texture, const GpuResourceViewDescription& desc, const U8String& name);
+            template <class Deleter>
+            static SharedPtr Create(
+                const std::shared_ptr<Texture>& texture,
+                const GpuResourceViewDescription& desc,
+                const U8String& name,
+                Deleter
+            ) 
+            {
+                return SharedPtr(Create(texture, desc, name), Deleter());
+            };
+
+            static RenderTargetView* Create(
+                const std::shared_ptr<Texture>& texture,
+                const GpuResourceViewDescription& desc,
+                const U8String& name);
 
             RenderTargetView(const std::weak_ptr<GpuResource>& GpuResource, const GpuResourceViewDescription& desc, const U8String& name)
                 : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, GpuResource, desc, name) { }

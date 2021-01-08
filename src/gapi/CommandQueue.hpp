@@ -33,9 +33,10 @@ namespace OpenDemo
 
             CommandQueue() = delete;
 
-            static SharedPtr Create(CommandQueueType type, const U8String& name)
+            template <class Deleter>
+            static SharedPtr Create(CommandQueueType type, const U8String& name, Deleter)
             {
-                return SharedPtr(new CommandQueue(type, name));
+                return SharedPtr(new CommandQueue(type, name), Deleter());
             }
 
             inline Result Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }

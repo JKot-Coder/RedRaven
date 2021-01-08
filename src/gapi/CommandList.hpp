@@ -78,9 +78,9 @@ namespace OpenDemo
 
         private:
             template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter deleter)
+            static SharedPtr Create(const U8String& name, Deleter)
             {
-                return SharedPtr(new CopyCommandList(CommandListType::Copy, name), std::move(deleter));
+                return SharedPtr(new CopyCommandList(CommandListType::Copy, name), Deleter());
             }
 
         protected:
@@ -101,9 +101,9 @@ namespace OpenDemo
 
         private:
             template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter deleter)
+            static SharedPtr Create(const U8String& name, Deleter)
             {
-                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name), std::move(deleter));
+                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name), Deleter());
             }
 
         protected:
@@ -126,9 +126,9 @@ namespace OpenDemo
 
         private:
             template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter deleter)
+            static SharedPtr Create(const U8String& name, Deleter)
             {
-                return SharedPtr(new GraphicsCommandList(name), std::move(deleter));
+                return SharedPtr(new GraphicsCommandList(name), Deleter());
             }
 
         protected:

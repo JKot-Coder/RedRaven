@@ -36,9 +36,9 @@ namespace OpenDemo
 
         private:
             template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter deleter)
+            static SharedPtr Create(const U8String& name, Deleter)
             {
-                return SharedPtr(new Fence(name), std::move(deleter));
+                return SharedPtr(new Fence(name), Deleter());
             }
 
             Fence(const U8String& name)

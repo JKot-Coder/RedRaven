@@ -90,9 +90,14 @@ namespace OpenDemo
             GpuResourceBindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
-            static SharedPtr Create(const TextureDescription& description, GpuResourceBindFlags bindFlags, const U8String& name)
+            template <class Deleter>
+            static SharedPtr Create(
+                const TextureDescription& description,
+                GpuResourceBindFlags bindFlags,
+                const U8String& name,
+                Deleter)
             {
-                return SharedPtr(new Texture(description, bindFlags, name));
+                return SharedPtr(new Texture(description, bindFlags, name), Deleter());
             }
 
             Texture(const TextureDescription& description, GpuResourceBindFlags bindFlags, const U8String& name);

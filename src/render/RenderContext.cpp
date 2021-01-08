@@ -2,9 +2,9 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/IDevice.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/IDevice.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -211,7 +211,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::CommandQueue::Create(type, name);
+            auto& resource = GAPI::CommandQueue::Create(type, name, GPIObjectsDeleter<GAPI::CommandQueue>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -233,7 +233,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::Texture::Create(desc, bindFlags, name);
+            auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
@@ -245,7 +245,7 @@ namespace OpenDemo
             ASSERT(inited_)
             ASSERT(swapchain)
 
-            auto& resource = GAPI::Texture::Create(desc, bindFlags, name);
+            auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
             if (!swapchain->InitBackBufferTexture(backBufferIndex, resource))
                 resource = nullptr;
 
@@ -256,7 +256,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::RenderTargetView::Create(texture, desc, name);
+            auto& resource = GAPI::RenderTargetView::Create(texture, desc, name, GPIObjectsDeleter<GAPI::RenderTargetView>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
                 resource = nullptr;
 
