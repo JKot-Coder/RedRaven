@@ -10,6 +10,7 @@ namespace OpenDemo
         {
             namespace TypeConversions
             {
+                //TODO Resource Format conrsions 
                 ::DXGI_FORMAT GetGpuResourceFormat(GpuResourceFormat format);
 
                 inline ::DXGI_FORMAT GetTypelessFormatFromDepthFormat(GpuResourceFormat format)

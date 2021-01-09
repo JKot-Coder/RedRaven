@@ -86,6 +86,7 @@ namespace OpenDemo
         desciption.windowHandle = _window->GetNativeHandle();
 
         swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
+
         auto fence = renderContext.CreateFence("qwe");
 
         while (!_quit)
@@ -104,9 +105,9 @@ namespace OpenDemo
 
             // renderContext.Present();
 
-            auto index2 = index;
+            // auto index2 = index;
             renderContext.ExecuteAsync(
-                [swapChain = swapChain_, index2, commandList](GAPI::Device& device) {
+                [swapChain = swapChain_, index2 = index, commandList](GAPI::Device& device) {
                     std::ignore = device;
 
                     auto texture = swapChain->GetTexture(index2);
@@ -127,20 +128,15 @@ namespace OpenDemo
             renderContext.Present(swapChain_);
             renderContext.MoveToNextFrame(commandQueue);
 
-            renderContext.ExecuteAsync(
-                [commandList](GAPI::Device& device) {
-                    std::ignore = device;
-
-                    commandList->Reset();
-
-                    return GAPI::Result::Ok;
-                });
-
             index = (++index % swapChain_->GetDescription().bufferCount);
             frame++;
 
             time->Update();
         }
+
+        commandQueue = nullptr;
+        commandList = nullptr;
+
         commandQueue = nullptr;
         commandList = nullptr;
         fence = nullptr;

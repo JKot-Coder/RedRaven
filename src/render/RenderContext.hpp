@@ -47,6 +47,7 @@ namespace OpenDemo
             GAPI::Result initDevice(const GAPI::Device::Description& description);
 
         private:
+            // TODO sync with GPU_MAX
             static constexpr int GpuFramesBuffered = 3;
 
             bool inited_ = false;

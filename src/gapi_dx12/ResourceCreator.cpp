@@ -5,7 +5,6 @@
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
-#include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
 #include "gapi_dx12/TypeConversions.hpp"
@@ -185,7 +184,7 @@ namespace OpenDemo
                 {
                     CommandQueueImpl* impl = nullptr;
 
-                    if (resource.GetType() == CommandQueueType::Graphics)
+                    if (resource.GetCommandQueueType() == CommandQueueType::Graphics)
                     {
                         static bool alreadyInited = false;
                         ASSERT(!alreadyInited); // Only one graphics command queue are alloved.
@@ -198,7 +197,7 @@ namespace OpenDemo
                     }
                     else
                     {
-                        impl = new CommandQueueImpl(resource.GetType());
+                        impl = new CommandQueueImpl(resource.GetCommandQueueType());
                         D3DCall(impl->Init(context.device, resource.GetName()));
                     }
 
@@ -248,9 +247,9 @@ namespace OpenDemo
 
                 Result initResource(const ResourceCreateContext& context, CommandList& resource)
                 {
-                    auto impl = new CommandContextImpl();
+                    auto impl = new CommandContextImpl(resource.GetCommandListType());
 
-                    D3DCall(impl->Init(context.device, resource.GetCommandListType(), resource.GetName()));
+                    D3DCall(impl->Init(context.device, resource.GetName()));
                     resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl));
 
                     return Result::Ok;
@@ -283,6 +282,9 @@ namespace OpenDemo
                 {
                     static_assert(std::is_base_of<Object, T>::value, "T should be derived from Object");
 
+                    if (!resource.GetPrivateImpl())
+                        return;
+
                     const auto impl = resource.GetPrivateImpl<Impl>();
                     ASSERT(impl);
 
@@ -290,7 +292,7 @@ namespace OpenDemo
 
                     resource.SetPrivateImpl(nullptr);
                 }
-              
+
                 template <>
                 void releaseResource<GpuResourceView, DescriptorHeap::Allocation>(ResourceReleaseContext& resourceReleaseContext, GpuResourceView& resource)
                 {

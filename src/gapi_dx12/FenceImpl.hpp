@@ -18,7 +18,7 @@ namespace OpenDemo
 
                 void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name, uint64_t initialValue = 0);
 
                 Result Signal(const std::shared_ptr<CommandQueue>& queue) override;
                 Result Signal(CommandQueueImpl& queue);

@@ -33,27 +33,27 @@ namespace OpenDemo
 
             CommandQueue() = delete;
 
+            inline Result Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
+
+            inline const CommandQueueType GetCommandQueueType() const { return type_; }
+
+        private:
             template <class Deleter>
             static SharedPtr Create(CommandQueueType type, const U8String& name, Deleter)
             {
                 return SharedPtr(new CommandQueue(type, name), Deleter());
             }
 
-            inline Result Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
-
-            inline CommandQueueType GetType() const
-            {
-                return type_;
-            }
-
-        private:
             CommandQueue(CommandQueueType type, const U8String& name)
                 : Resource(Object::Type::CommandQueue, name),
                   type_(type)
             {
             }
 
+        private:
             CommandQueueType type_;
+
+            friend class Render::RenderContext;
         };
     }
 }
