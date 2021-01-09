@@ -1,6 +1,6 @@
 #include "ResourceCreator.hpp"
 
-#include "gapi_dx12/CommandContextImpl.hpp"
+#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
@@ -247,7 +247,7 @@ namespace OpenDemo
 
                 Result initResource(const ResourceCreateContext& context, CommandList& resource)
                 {
-                    auto impl = new CommandContextImpl(resource.GetCommandListType());
+                    auto impl = new CommandListImpl(resource.GetCommandListType());
 
                     D3DCall(impl->Init(context.device, resource.GetName()));
                     resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl));
@@ -348,7 +348,7 @@ namespace OpenDemo
 
                 switch (resource.GetType())
                 {
-                    CASE_RESOURCE(CommandList, CommandContextImpl)
+                    CASE_RESOURCE(CommandList, CommandListImpl)
                     CASE_RESOURCE(CommandQueue, CommandQueueImpl)
                     CASE_RESOURCE(Fence, FenceImpl)
                     CASE_RESOURCE(GpuResource, ResourceImpl)

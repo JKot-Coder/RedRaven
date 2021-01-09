@@ -3,7 +3,7 @@
 #include "gapi/CommandList.hpp"
 #include "gapi/Fence.hpp"
 
-#include "gapi_dx12/CommandContextImpl.hpp"
+#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
@@ -74,7 +74,7 @@ namespace OpenDemo
                 ASSERT(commandList);
                 ASSERT(isListTypeCompatable(type_, commandList->GetCommandListType()));
 
-                const auto& commandListImpl = commandList->GetPrivateImpl<CommandContextImpl>();
+                const auto& commandListImpl = commandList->GetPrivateImpl<CommandListImpl>();
                 ASSERT(commandListImpl);
 
                 const auto& d3dCommandList = commandListImpl->GetD3DObject();

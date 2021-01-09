@@ -1,4 +1,4 @@
-#include "CommandContextImpl.hpp"
+#include "CommandListImpl.hpp"
 
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
@@ -14,7 +14,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            Result CommandContextImpl::CommandAllocatorsPool::createAllocator(
+            Result CommandListImpl::CommandAllocatorsPool::createAllocator(
                 const ComSharedPtr<ID3D12Device>& device,
                 ComSharedPtr<ID3D12CommandAllocator>& allocator) const
             {
@@ -29,7 +29,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result CommandContextImpl::CommandAllocatorsPool::Init(
+            Result CommandListImpl::CommandAllocatorsPool::Init(
                 const ComSharedPtr<ID3D12Device>& device,
                 D3D12_COMMAND_LIST_TYPE type,
                 const U8String& name)
@@ -49,13 +49,13 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            void CommandContextImpl::CommandAllocatorsPool::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
             {
                 for (auto& allocatorData : allocators_)
                     releaseContext.DeferredD3DResourceRelease(allocatorData.allocator);
             }
 
-            const ComSharedPtr<ID3D12CommandAllocator>& CommandContextImpl::CommandAllocatorsPool::GetNextAllocator()
+            const ComSharedPtr<ID3D12CommandAllocator>& CommandListImpl::CommandAllocatorsPool::GetNextAllocator()
             {
                 auto& data = allocators_[ringBufferIndex_];
 
@@ -68,13 +68,13 @@ namespace OpenDemo
                 return data.allocator;
             }
 
-            Result CommandContextImpl::CommandAllocatorsPool::ResetAfterSubmit(CommandQueueImpl& commandQueue)
+            Result CommandListImpl::CommandAllocatorsPool::ResetAfterSubmit(CommandQueueImpl& commandQueue)
             {
                 ringBufferIndex_ = (++ringBufferIndex_ % AllocatorsCount);
                 return fence_->Signal(commandQueue);
             }
 
-            CommandContextImpl::CommandContextImpl(const CommandListType commandListType)
+            CommandListImpl::CommandListImpl(const CommandListType commandListType)
             {
                 switch (commandListType)
                 {
@@ -92,13 +92,13 @@ namespace OpenDemo
                 }
             }
 
-            void CommandContextImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void CommandListImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
             {
                 releaseContext.DeferredD3DResourceRelease(D3DCommandList_);
                 commandAllocatorsPool_.ReleaseD3DObjects(releaseContext);
             }
 
-            Result CommandContextImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
+            Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device);
                 ASSERT(!D3DCommandList_);
@@ -113,7 +113,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result CommandContextImpl::ResetAfterSubmit(CommandQueueImpl& commandQueue)
+            Result CommandListImpl::ResetAfterSubmit(CommandQueueImpl& commandQueue)
             {
                 ASSERT(D3DCommandList_);
 
@@ -124,7 +124,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            void CommandContextImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)
+            void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)
             {
                 ASSERT(renderTargetView);
                 ASSERT(D3DCommandList_);
@@ -150,7 +150,7 @@ namespace OpenDemo
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
-            Result CommandContextImpl::Close()
+            Result CommandListImpl::Close()
             {
                 D3DCallMsg(D3DCommandList_->Close(), "Close");
                 return Result::Ok;

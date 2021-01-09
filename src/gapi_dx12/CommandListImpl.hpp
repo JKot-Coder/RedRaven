@@ -14,10 +14,10 @@ namespace OpenDemo
             class FenceImpl;
             class CommandQueueImpl;
 
-            class CommandContextImpl final : public IGraphicsCommandList
+            class CommandListImpl final : public IGraphicsCommandList
             {
             public:
-                CommandContextImpl(const CommandListType commandListType);
+                CommandListImpl(const CommandListType commandListType);
 
                 void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
 
