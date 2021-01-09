@@ -8,8 +8,6 @@ SOURCE_GROUP( "Ms" FILES ${MS_SRC} )
 set(IMPL_SRC
         CommandContextImpl.cpp
         CommandContextImpl.hpp
-        CommandListImpl.cpp
-        CommandListImpl.hpp
         CommandQueueImpl.cpp
         CommandQueueImpl.hpp
         FenceImpl.cpp
@@ -25,8 +23,6 @@ SOURCE_GROUP( "Implementations" FILES ${IMPL_SRC} )
 
 set(GAPI_SRC
         pch.hpp
-        CommandListCompiler.cpp     
-        CommandListCompiler.hpp
         ComSharedPtr.hpp
         Config.hpp
         D3DUtils.cpp
@@ -37,7 +33,6 @@ set(GAPI_SRC
         DescriptorHeapSet.hpp
         Device.cpp
         Device.hpp
-        FencedRingBuffer.hpp
         ResourceReleaseContext.hpp
         ResourceCreator.cpp
         ResourceCreator.hpp

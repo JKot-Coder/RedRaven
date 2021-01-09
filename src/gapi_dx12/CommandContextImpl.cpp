@@ -3,7 +3,7 @@
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
+#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"

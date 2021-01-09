@@ -12,7 +12,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-
             class ResourceReleaseContext
             {
 

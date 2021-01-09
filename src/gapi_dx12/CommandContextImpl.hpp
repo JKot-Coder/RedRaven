@@ -4,8 +4,6 @@
 
 #include "gapi/CommandList.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
-
 namespace OpenDemo
 {
     namespace GAPI
@@ -13,6 +11,8 @@ namespace OpenDemo
         namespace DX12
         {
             class ResourceReleaseContext;
+            class FenceImpl;
+            class CommandQueueImpl;
 
             class CommandContextImpl final : public IGraphicsCommandList
             {
