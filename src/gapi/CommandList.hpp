@@ -2,6 +2,7 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
+#include "gapi/Result.hpp"
 
 namespace OpenDemo
 {
@@ -25,10 +26,7 @@ namespace OpenDemo
         class ICommandList
         {
         public:
-            // TODO result;
-            virtual void Reset() = 0;
-            // TODO result;
-            virtual void Close() = 0;
+            virtual Result Close() = 0;
         };
 
         class ICopyCommandList : public ICommandList
@@ -36,7 +34,7 @@ namespace OpenDemo
         public:
         };
 
-        class IComputeCommandList: public ICopyCommandList
+        class IComputeCommandList : public ICopyCommandList
         {
         public:
         };
@@ -57,8 +55,7 @@ namespace OpenDemo
 
             inline CommandListType GetCommandListType() const { return type_; };
 
-            inline void Reset() { GetPrivateImpl()->Reset(); }
-            inline void Close() { GetPrivateImpl()->Close(); }
+            inline Result Close() { return GetPrivateImpl()->Close(); }
 
         protected:
             CommandList(CommandListType type, const U8String& name)

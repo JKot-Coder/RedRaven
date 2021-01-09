@@ -6,4 +6,7 @@ namespace OpenDemo
 {
     template <typename T>
     using ComSharedPtr = winrt::com_ptr<T>;
+
+    template <typename T>
+    using ComWeakPtr = winrt::weak_ref<T>;
 }

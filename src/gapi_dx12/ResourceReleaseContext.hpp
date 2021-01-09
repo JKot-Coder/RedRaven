@@ -34,7 +34,8 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                void DeferredD3DResourceRelease(const ComSharedPtr<IUnknown>& resource)
+                template <class T>
+                void DeferredD3DResourceRelease(ComSharedPtr<T>& resource)
                 {
                     Threading::ReadWriteGuard lock(mutex_);
 
@@ -42,6 +43,7 @@ namespace OpenDemo
                     ASSERT(resource);
 
                     queue_.push({ fence_->GetCpuValue(), resource });
+                    resource = nullptr;
                 }
 
                 Result ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)

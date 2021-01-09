@@ -1,11 +1,18 @@
 #include "CommandListImpl.hpp"
 
+#include "gapi_dx12/ResourceReleaseContext.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
     {
         namespace DX12
         {
+            void CommandListImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            {
+                releaseContext.DeferredD3DResourceRelease(D3DCommandList_);        
+            }
+            
             Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device)

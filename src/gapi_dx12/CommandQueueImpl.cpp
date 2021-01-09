@@ -13,6 +13,26 @@ namespace OpenDemo
     {
         namespace DX12
         {
+            namespace
+            {
+                bool isListTypeCompatable(CommandQueueType commandQueueType, CommandListType commandListType)
+                {
+                    switch (commandListType)
+                    {
+                    case OpenDemo::GAPI::CommandListType::Copy:
+                        return true;
+                    case OpenDemo::GAPI::CommandListType::Compute:
+                        return (commandQueueType == CommandQueueType::Compute || commandQueueType == CommandQueueType::Graphics);
+                    case OpenDemo::GAPI::CommandListType::Graphics:
+                        return (commandQueueType == CommandQueueType::Graphics);
+                    default:
+                        ASSERT_MSG(false, "Unsupported list type");
+                    }
+
+                    return false;
+                }
+            }
+
             void CommandQueueImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
             {
                 releaseContext.DeferredD3DResourceRelease(D3DCommandQueue_);
@@ -51,6 +71,8 @@ namespace OpenDemo
             Result CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
             {
                 ASSERT(D3DCommandQueue_);
+                ASSERT(commandList);
+                ASSERT(isListTypeCompatable(type_, commandList->GetCommandListType()));
 
                 const auto& commandListImpl = commandList->GetPrivateImpl<CommandContextImpl>();
                 ASSERT(commandListImpl);
@@ -60,6 +82,8 @@ namespace OpenDemo
 
                 ID3D12CommandList* commandLists[] = { d3dCommandList.get() };
                 D3DCommandQueue_->ExecuteCommandLists(1, commandLists);
+
+                D3DCall(commandListImpl->ResetAfterSubmit(*this));
 
                 return Result::Ok;
             }

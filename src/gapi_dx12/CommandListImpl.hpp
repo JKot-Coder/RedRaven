@@ -18,6 +18,8 @@ namespace OpenDemo
                 {
                 }
 
+                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
