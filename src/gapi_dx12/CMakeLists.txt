@@ -6,8 +6,8 @@ set(MS_SRC
 SOURCE_GROUP( "Ms" FILES ${MS_SRC} )
 
 set(IMPL_SRC
-        CommandContextImpl.cpp
-        CommandContextImpl.hpp
+        CommandListImpl.cpp
+        CommandListImpl.hpp
         CommandQueueImpl.cpp
         CommandQueueImpl.hpp
         FenceImpl.cpp
