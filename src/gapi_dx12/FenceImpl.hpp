@@ -12,13 +12,13 @@ namespace OpenDemo
             class ResourceReleaseContext;
 
             class FenceImpl final : public IFence
-            {
+            { 
             public:
                 FenceImpl() = default;
 
                 void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name, uint64_t initialValue = 0);
+                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 Result Signal(const std::shared_ptr<CommandQueue>& queue) override;
                 Result Signal(CommandQueueImpl& queue);
@@ -39,7 +39,7 @@ namespace OpenDemo
             private:
                 HANDLE event_ = 0;
                 ComSharedPtr<ID3D12Fence> D3DFence_ = nullptr;
-                uint64_t cpuValue_ = 0;
+                uint64_t cpuValue_ = 1;
             };
         }
     }

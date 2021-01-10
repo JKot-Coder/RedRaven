@@ -16,15 +16,10 @@ namespace OpenDemo
 
             inline void push_back(const T& item)
             {
-                push_back(std::move(item));
-            }
-
-            inline void push_back(T&& item)
-            {
                 if (full())
                     throw std::out_of_range("CircularBuffer is full");
 
-                new (back_) T(std::move(item));
+                *back_ = item;
                 increment(back_);
                 ++size_;
             }

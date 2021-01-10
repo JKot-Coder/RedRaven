@@ -30,6 +30,8 @@ namespace OpenDemo
 
                     const auto& instance = RenderContext::Instance();
                     instance.ReleaseResource(*static_cast<GAPI::Object*>(p));
+
+                    delete p; 
                 }
             };
         }

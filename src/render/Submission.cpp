@@ -33,11 +33,17 @@ namespace OpenDemo
     {
         namespace
         {
+            struct Test
+            {
+            public:
+                Test() { }
+                ~Test() { }
+            };
+
             struct Task final
             {
             public:
                 Task() = default;
-                Task(Task&&) = default;
 
                 struct Terminate
                 {
@@ -57,10 +63,11 @@ namespace OpenDemo
                 using TaskVariant = std::variant<Terminate, Callback, Submit>;
 
             public:
+                Test tet;
                 TaskVariant taskVariant;
 #ifdef DEBUG
-                backward::StackTrace stackTrace;
-                U8String label;
+                // backward::StackTrace stackTrace;
+                // U8String label;
 #endif
             };
         }
@@ -105,11 +112,11 @@ namespace OpenDemo
             task.taskVariant = std::move(taskVariant);
 
 #ifdef DEBUG
-            constexpr int STACK_SIZE = 32;
-            task.stackTrace.load_here(STACK_SIZE);
+            //  constexpr int STACK_SIZE = 32;
+            //  task.stackTrace.load_here(STACK_SIZE);
 #endif
 
-            inputTaskChannel_->Put(std::move(task));
+            inputTaskChannel_->Put(task);
 #else
             ASSERT(device_);
             doTask(taskVariant);
@@ -127,10 +134,10 @@ namespace OpenDemo
 
         void Submission::ExecuteAsync(const CallbackFunction&& function)
         {
-            Task::Callback task;
-            task.function = function;
+            //  Task::Callback task;
+            // task.function = function;
 
-            putTask(task);
+            putTask(std::move(Task::Callback { function }));
         }
 
         GAPI::Result Submission::ExecuteAwait(const CallbackFunction&& function)
@@ -224,13 +231,16 @@ namespace OpenDemo
 
                 ASSERT(device_)
 
-                GAPI::Result result = GAPI::Result::Fail;
+                //GAPI::Result result = GAPI::Result::Fail;
 
-                std::visit(overloaded {
-                               [this, &result](const Task::Submit& task) { result = doTask(task); },
-                               [this, &result](const Task::Callback& task) { result = doTask(task); },
-                               [this, &result](const Task::Terminate& task) { result = doTask(task); },
-                               [](auto&& arg) { ASSERT_MSG(false, "Unsupported task type"); } },
+                // TODO     void add(U && val) { _impl.push_back(std::forward<U>(val)); }
+
+                GAPI::Result result = std::visit(
+                    overloaded {
+                        [this](const Task::Submit& task) { return doTask(task); },
+                        [this](const Task::Callback& task) { return doTask(task); },
+                        [this](const Task::Terminate& task) { return doTask(task); },
+                    },
                     inputTask.taskVariant);
 
                 // Todo: Add task label in message

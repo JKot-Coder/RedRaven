@@ -16,12 +16,10 @@ namespace OpenDemo
                 releaseContext.DeferredD3DResourceRelease(D3DFence_);
             }
 
-            Result FenceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name, uint64_t initialValue)
+            Result FenceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
             {
                 ASSERT(device);
                 ASSERT(!D3DFence_);
-
-                cpuValue_ = initialValue;
 
                 D3DCallMsg(device->CreateFence(cpuValue_, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(D3DFence_.put())), "CreateFence");
                 D3DUtils::SetAPIName(D3DFence_.get(), name);

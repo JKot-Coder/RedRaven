@@ -53,6 +53,8 @@ namespace OpenDemo
 
                     Result createAllocator(
                         const ComSharedPtr<ID3D12Device>& device,
+                        const U8String& name,
+                        const uint32_t index,
                         ComSharedPtr<ID3D12CommandAllocator>& allocator) const;
 
                 private:

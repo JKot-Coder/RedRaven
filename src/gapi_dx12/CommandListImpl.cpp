@@ -16,6 +16,8 @@ namespace OpenDemo
         {
             Result CommandListImpl::CommandAllocatorsPool::createAllocator(
                 const ComSharedPtr<ID3D12Device>& device,
+                const U8String& name,
+                const uint32_t index,
                 ComSharedPtr<ID3D12CommandAllocator>& allocator) const
             {
                 ASSERT(device);
@@ -23,8 +25,7 @@ namespace OpenDemo
 
                 D3DCallMsg(device->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
 
-                //TODO
-                // D3DUtils::SetAPIName(allocator, "", 0);
+                D3DUtils::SetAPIName(allocator.get(), name, index);
 
                 return Result::Ok;
             }
@@ -38,11 +39,12 @@ namespace OpenDemo
 
                 type_ = type;
                 fence_ = std::make_unique<FenceImpl>();
-                D3DCall(fence_->Init(device, name, 1));
+                D3DCall(fence_->Init(device, name));
 
-                for (auto& allocatorData : allocators_)
+                for (uint32_t index = 0; index < allocators_.size(); index++)
                 {
-                    D3DCall(createAllocator(device, allocatorData.allocator));
+                    auto& allocatorData = allocators_[index];
+                    D3DCall(createAllocator(device, name, index, allocatorData.allocator));
                     allocatorData.cpuFenceValue = 0;
                 }
 
