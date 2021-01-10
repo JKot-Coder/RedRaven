@@ -38,7 +38,10 @@ namespace OpenDemo
             std::shared_ptr<GAPI::Fence> CreateFence(const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name = "") const;
+            std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc, const U8String& name = "") const;
+            std::shared_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc, const U8String& name = "") const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc, const U8String& name = "") const;
+            std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc, const U8String& name = "") const;
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
 
             void ReleaseResource(GAPI::Object& resource) const;

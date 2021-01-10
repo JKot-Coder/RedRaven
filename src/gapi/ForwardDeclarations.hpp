@@ -27,7 +27,10 @@ namespace OpenDemo
         class GpuResourceView;
         struct GpuResourceViewDescription;
 
+        class ShaderResourceView;
         class RenderTargetView;
+        class DepthStencilView;
+        class UnorderedAccessView;
 
         class SwapChain;
         struct SwapChainDescription;

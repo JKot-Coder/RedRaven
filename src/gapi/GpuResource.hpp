@@ -3,12 +3,29 @@
 #include "common/EnumClassOperators.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
+#include "gapi/GpuResourceViews.hpp"
 #include "gapi/Resource.hpp"
+
+#include <unordered_map>
 
 namespace OpenDemo
 {
     namespace GAPI
     {
+        namespace
+        {
+            struct GpuResourceViewDescriptionHashFunc
+            {
+                std::size_t operator()(const GpuResourceViewDescription& desc) const
+                {
+                    return (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1)
+                        ^ (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3)
+                        ^ (std::hash<uint32_t>()(desc.texture.mipCount) << 5)
+                        ^ (std::hash<uint32_t>()(desc.texture.mipLevel) << 7);
+                }
+            };
+        }
+
         enum class GpuResourceBindFlags : uint32_t
         {
             None = 0x0,
@@ -153,19 +170,28 @@ namespace OpenDemo
             };
 
         public:
-            GpuResource::Type inline GetGpuResourceType() const { return type_; }
+            inline GpuResource::Type GetGpuResourceType() const { return type_; }
 
             template <typename Type>
             std::shared_ptr<Type> GetTyped();
 
+            inline GpuResourceBindFlags GetBindFlags() const { return bindFlags_; }
+
         protected:
-            GpuResource(GpuResource::Type type, const U8String& name)
+            GpuResource(GpuResource::Type type, GpuResourceBindFlags bindFlags, const U8String& name)
                 : Resource(Object::Type::GpuResource, name),
-                  type_(type)
+                  type_(type),
+                  bindFlags_(bindFlags)
             {
             }
 
             GpuResource::Type type_;
+            GpuResourceBindFlags bindFlags_;
+
+            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<ShaderResourceView>, GpuResourceViewDescriptionHashFunc> srvs_;
+            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<RenderTargetView>, GpuResourceViewDescriptionHashFunc> rtvs_;
+            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<DepthStencilView>, GpuResourceViewDescriptionHashFunc> dsvs_;
+            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<UnorderedAccessView>, GpuResourceViewDescriptionHashFunc> uavs_;
         };
 
         template <>

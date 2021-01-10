@@ -78,16 +78,12 @@ namespace OpenDemo
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
         public:
-            //      ShaderResourceView::SharedPtr getSRV(uint32_t mostDetailedMip, uint32_t mipCount = kMaxPossible, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
-
+            std::shared_ptr<ShaderResourceView> GetSRV(uint32_t mipLevel = 0, uint32_t mipCount = MaxPossible, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
             std::shared_ptr<RenderTargetView> GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
-
-            // DepthStencilView::SharedPtr getDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
-
-            //   UnorderedAccessView::SharedPtr getUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t arraySize = kMaxPossible);
+            std::shared_ptr<DepthStencilView> GetDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
+            std::shared_ptr<UnorderedAccessView> GetUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
 
             const TextureDescription& GetDescription() const { return description_; }
-            GpuResourceBindFlags GetBindFlags() const { return bindFlags_; }
 
         private:
             template <class Deleter>
@@ -104,10 +100,6 @@ namespace OpenDemo
 
         private:
             TextureDescription description_;
-            GpuResourceBindFlags bindFlags_;
-
-            // TODO remove this
-            std::shared_ptr<RenderTargetView> rtv = nullptr;
 
             friend class Render::RenderContext;
         };

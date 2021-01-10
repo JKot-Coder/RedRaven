@@ -33,13 +33,6 @@ namespace OpenDemo
     {
         namespace
         {
-            struct Test
-            {
-            public:
-                Test() { }
-                ~Test() { }
-            };
-
             struct Task final
             {
             public:
@@ -63,7 +56,6 @@ namespace OpenDemo
                 using TaskVariant = std::variant<Terminate, Callback, Submit>;
 
             public:
-                Test tet;
                 TaskVariant taskVariant;
 #ifdef DEBUG
                 // backward::StackTrace stackTrace;
@@ -230,10 +222,6 @@ namespace OpenDemo
                 const auto& inputTask = inputTaskOptional.value();
 
                 ASSERT(device_)
-
-                //GAPI::Result result = GAPI::Result::Fail;
-
-                // TODO     void add(U && val) { _impl.push_back(std::forward<U>(val)); }
 
                 GAPI::Result result = std::visit(
                     overloaded {

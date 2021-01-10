@@ -77,16 +77,16 @@ namespace OpenDemo
                     result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(textureDescription.dimension, textureDescription.arraySize > 1);
 
                     const uint32_t arrayMultiplier = (textureDescription.dimension == TextureDimension::TextureCube) ? 6 : 1;
-                    ASSERT((description.texture.firstArraySlice + description.texture.arraySlicesCount) * arrayMultiplier <= textureDescription.arraySize)
+                    ASSERT((description.texture.firstArraySlice + description.texture.arraySliceCount) * arrayMultiplier <= textureDescription.arraySize)
 
                     switch (textureDescription.dimension)
                     {
                     case TextureDimension::Texture1D:
-                        if (description.texture.arraySlicesCount > 1)
+                        if (description.texture.arraySliceCount > 1)
                         {
-                            result.Texture1DArray.ArraySize = description.texture.arraySlicesCount;
+                            result.Texture1DArray.ArraySize = description.texture.arraySliceCount;
                             result.Texture1DArray.FirstArraySlice = description.texture.firstArraySlice;
-                            result.Texture1DArray.MipSlice = description.texture.arraySlicesCount;
+                            result.Texture1DArray.MipSlice = description.texture.mipLevel;
                         }
                         else
                         {
@@ -97,7 +97,7 @@ namespace OpenDemo
                     case TextureDimension::TextureCube:
                         if (description.texture.firstArraySlice * arrayMultiplier > 1)
                         {
-                            result.Texture2DArray.ArraySize = description.texture.arraySlicesCount * arrayMultiplier;
+                            result.Texture2DArray.ArraySize = description.texture.arraySliceCount * arrayMultiplier;
                             result.Texture2DArray.FirstArraySlice = description.texture.firstArraySlice * arrayMultiplier;
                             result.Texture2DArray.MipSlice = description.texture.mipLevel;
                         }
@@ -129,7 +129,7 @@ namespace OpenDemo
                         if (textureDescription.arraySize > 1)
                         {
                             result.Texture2DMSArray.ArraySize = description.texture.firstArraySlice;
-                            result.Texture2DMSArray.FirstArraySlice = description.texture.arraySlicesCount;
+                            result.Texture2DMSArray.FirstArraySlice = description.texture.arraySliceCount;
                         }
                     }
 
