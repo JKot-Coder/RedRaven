@@ -16,12 +16,6 @@
 
 #include "render/RenderContext.hpp"
 
-#include "rendering/Mesh.hpp"
-#include "rendering/Primitives.hpp"
-#include "rendering/Render.hpp"
-#include "rendering/RenderPipeline.hpp"
-#include "rendering/Shader.hpp"
-
 #include "windowing/InputtingWindow.hpp"
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
@@ -196,7 +190,7 @@ namespace OpenDemo
 
     void Application::loadResouces()
     {
-        _scene = std::make_shared<Scenes::Scene_2>();
-        _scene->Init();
+       // _scene = std::make_shared<Scenes::Scene_2>();
+       // _scene->Init();
     }
 }

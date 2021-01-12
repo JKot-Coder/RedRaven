@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "rendering/Render.hpp"
-#include "rendering/Texture.hpp"
+//#include "rendering/Render.hpp"
+//#include "rendering/Texture.hpp"
 
 namespace OpenDemo
 {

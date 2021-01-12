@@ -10,12 +10,6 @@ namespace OpenDemo
         class InputtingWindow;
     }
 
-    namespace Rendering
-    {
-        class Mesh;
-        class SceneGraph;
-    }
-
     class Application : public Windowing::IListener
     {
     public:
@@ -28,7 +22,6 @@ namespace OpenDemo
         bool _quit = false;
 
         std::shared_ptr<Windowing::InputtingWindow> _window;
-        std::shared_ptr<Rendering::SceneGraph> _scene;
         std::shared_ptr<GAPI::SwapChain> swapChain_;
 
         void init();

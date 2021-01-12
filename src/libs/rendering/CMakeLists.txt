@@ -99,6 +99,7 @@ set(OPEN_DEMO_SRC
 set(OPEN_DEMO_LINK_LIBRARIES ${RENDER_GAPI_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${OPEN_DEMO_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_link_libraries(${PROJECT_NAME} ${OPEN_DEMO_LINK_LIBRARIES} common)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OPEN_DEMO_INCLUDE_DIRS})
 

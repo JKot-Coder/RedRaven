@@ -5,9 +5,9 @@
 
 #include "filesystem/FileSystem.hpp"
 
-#include "rendering/Mesh.hpp"
-#include "rendering/Render.hpp"
-#include "rendering/Shader.hpp"
+//#include "rendering/Mesh.hpp"
+//#include "rendering/Render.hpp"
+//#include "rendering/Shader.hpp"
 
 #include "resource_manager/ResourcesLoaders.hpp"
 

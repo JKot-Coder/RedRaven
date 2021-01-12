@@ -26,4 +26,6 @@ set(GAPI_SRC
         Texture.hpp        )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
+target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} common)

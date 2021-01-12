@@ -47,6 +47,7 @@ set( COMMON_SRC
 )
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)

@@ -7,4 +7,6 @@ set(Render_SRC
       Submission.cpp)
         
 add_library(${PROJECT_NAME} ${Render_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
+target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} common)

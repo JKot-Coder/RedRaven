@@ -48,6 +48,7 @@ set( GAPI_SRC
 )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_link_libraries(${PROJECT_NAME} common gapi d3d12.lib dxgi.lib dxguid.lib WindowsApp.lib)
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)

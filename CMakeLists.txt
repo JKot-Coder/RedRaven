@@ -1,7 +1,5 @@
 cmake_minimum_required (VERSION 3.16.0)
 
-project(OpenDemo)
-
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
 message(warning ${CMAKE_BINARY_DIR})
@@ -59,9 +57,16 @@ add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/eigen)
 add_subdirectory(src/dependencies/backward-cpp)
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi_dx12)
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/render)
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/common)
+
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
 
-add_subdirectory(src)
+add_subdirectory(src/open_demo)
+##add_subdirectory(src/tests)
+##add_subdirectory(src)
