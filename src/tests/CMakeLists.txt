@@ -5,7 +5,7 @@ set(TESTS_SRC
 
 set(TESTS_LINK_LIBRARIES
     common
-    boost.ut)
+    Catch2::Catch2WithMain)
 
 set(TESTS_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs)

@@ -13,3 +13,6 @@
 [submodule "src/dependencies/ut"]
 	path = src/dependencies/ut
 	url = https://github.com/boost-ext/ut.git
+[submodule "src/dependencies/catch2"]
+	path = src/dependencies/catch2
+	url = https://github.com/catchorg/Catch2.git
