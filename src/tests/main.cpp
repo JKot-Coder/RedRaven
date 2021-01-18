@@ -1,23 +1,11 @@
-#include <catch2/catch_all.hpp>
-    /*
-#include <catch2/internal/catch_default_main.hpp>
+#include <catch2/catch_session.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/internal/catch_compiler_capabilities.hpp>
+#include <catch2/internal/catch_config_wchar.hpp>
+#include <catch2/internal/catch_leak_detector.hpp>
+#include <catch2/internal/catch_platform.hpp>
 
-
-isDebuggerActive
-
-
-
-    Catch::ConfigData config;
-    config.showDurations = Catch::ShowDurations::Always;
-    config.useColour = Catch::UseColour::No;
-    config.outputFilename = "%debug";
-    session.useConfigData( config );
-
-
-
-    return session.run( argc, argv );
-
-
+#include "common/debug/LeakDetector.hpp"
 
 namespace Catch
 {
@@ -27,13 +15,42 @@ namespace Catch
     CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION
 }
 
-int executTests(int argc, char** argv)
+int runCatch2(int argc, char** argv)
 {
-    // We want to force the linker not to discard the global variable
-    // and its constructor, as it (optionally) registers leak detector
-    (void)&Catch::leakDetector;
+    const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
 
-    return Catch::Session().run(argc, argv);
+    const auto& startSnapshot = leakDetector.CreateEmpySnapshot();
+    const auto& finishSnapshot = leakDetector.CreateEmpySnapshot();
+
+    int result = 0;
+  
+    leakDetector.Capture(startSnapshot);
+
+    {
+        // We want to force the linker not to discard the global variable
+        // and its constructor, as it (optionally) registers leak detector
+        (void)&Catch::leakDetector;
+
+        auto& session = Catch::Session();
+
+        Catch::ConfigData config;
+        config.showDurations = Catch::ShowDurations::Always;
+        config.useColour = Catch::UseColour::No;
+        config.outputFilename = "%debug";
+        session.useConfigData(config);
+
+        result = session.run(argc, argv);
+    }
+
+    leakDetector.Capture(finishSnapshot);
+
+    if (leakDetector.GetDifference(startSnapshot, finishSnapshot))
+    {
+        leakDetector.DumpAllSince(startSnapshot);
+        return (result == 0) ? -1 : result;
+    }
+
+    return result;
 }
 
 #if defined(OS_WINDOWS) && defined(UNICODE)
@@ -42,10 +59,9 @@ int executTests(int argc, char** argv)
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow)
 {
     int argc;
-    char** argv;
-
     LPWSTR* lpArgv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    argv = (char**)malloc(argc * sizeof(char*));
+    char** argv = (char**)malloc(argc * sizeof(char*));
+
     for (int i = 0; i < argc; ++i)
     {
         const auto size = wcslen(lpArgv[i]) + 1;
@@ -54,7 +70,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCm
     }
     LocalFree(lpArgv);
 
-    const auto exitCode = executTests(argc, argv);
+    const auto exitCode = runCatch2(argc, argv);
 
     for (int i = 0; i < argc; ++i)
         free(argv[i]);
@@ -65,10 +81,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCm
 #else
 int main(int argc, char** argv)
 {
-    return executTests(argc, argv);
+    return runCatch2(argc, argv);
 }
 #endif
-*/
+
 unsigned int Factorial(unsigned int number)
 {
     return number <= 1 ? number : Factorial(number - 1) * number;
@@ -76,7 +92,7 @@ unsigned int Factorial(unsigned int number)
 
 TEST_CASE("Factorials are computed", "[factorial]")
 {
-    REQUIRE(Factorial(1) == 1);
+   REQUIRE(Factorial(1) == 1);
     REQUIRE(Factorial(2) == 2);
     REQUIRE(Factorial(3) == 6);
     REQUIRE(Factorial(10) == 3628800);

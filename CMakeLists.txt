@@ -48,8 +48,6 @@ add_definitions(${OPEN_DEMO_PLATFORM_DEFINITIONS})
 
 include_directories(src)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/fmt)
@@ -58,6 +56,8 @@ add_subdirectory(src/dependencies/eigen)
 add_subdirectory(src/dependencies/backward-cpp)
 add_subdirectory(src/dependencies/ut)
 add_subdirectory(src/dependencies/catch2)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")

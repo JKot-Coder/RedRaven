@@ -1,6 +1,7 @@
 #include "Application.hpp"
 
 #include "common/Time.hpp"
+#include "common/debug/LeakDetector.hpp"
 
 #include "inputting/Input.hpp"
 
@@ -44,7 +45,9 @@ namespace OpenDemo
 
     void Application::Start()
     {
+        Debug::LeakDetector::Instance();
         init();
+
 
         /*    const auto cmdList = new GAPI::CommandList("asd");
         std::ignore = cmdList;

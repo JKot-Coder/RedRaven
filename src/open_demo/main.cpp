@@ -1,5 +1,4 @@
 #include "Application.hpp"
-#include "windowing/Windowing.hpp"
 
 #ifdef OS_WINDOWS
 #include <Windows.h>
