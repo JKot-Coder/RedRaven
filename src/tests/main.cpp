@@ -1,5 +1,6 @@
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/internal/catch_debugger.hpp>
 #include <catch2/internal/catch_compiler_capabilities.hpp>
 #include <catch2/internal/catch_config_wchar.hpp>
 #include <catch2/internal/catch_leak_detector.hpp>
@@ -23,7 +24,7 @@ int runCatch2(int argc, char** argv)
     const auto& finishSnapshot = leakDetector.CreateEmpySnapshot();
 
     int result = 0;
-  
+
     leakDetector.Capture(startSnapshot);
 
     {
@@ -33,11 +34,14 @@ int runCatch2(int argc, char** argv)
 
         auto& session = Catch::Session();
 
-        Catch::ConfigData config;
-        config.showDurations = Catch::ShowDurations::Always;
-        config.useColour = Catch::UseColour::No;
-        config.outputFilename = "%debug";
-        session.useConfigData(config);
+        if (Catch::isDebuggerActive())
+        {
+            Catch::ConfigData config;
+            config.showDurations = Catch::ShowDurations::Always;
+            config.useColour = Catch::UseColour::No;
+            config.outputFilename = "%debug";
+            session.useConfigData(config);
+        }
 
         result = session.run(argc, argv);
     }
@@ -92,7 +96,7 @@ unsigned int Factorial(unsigned int number)
 
 TEST_CASE("Factorials are computed", "[factorial]")
 {
-   REQUIRE(Factorial(1) == 1);
+    REQUIRE(Factorial(1) == 1);
     REQUIRE(Factorial(2) == 2);
     REQUIRE(Factorial(3) == 6);
     REQUIRE(Factorial(10) == 3628800);

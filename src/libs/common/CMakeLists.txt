@@ -18,6 +18,8 @@ SET( DEBUG_SRC
     debug/DebugStream.cpp
     debug/LeakDetector.hpp
     debug/LeakDetector.cpp
+    debug/Debug.hpp
+    debug/Debug.cpp
 )
 SOURCE_GROUP( "Debug" FILES ${DEBUG_SRC} )
 
