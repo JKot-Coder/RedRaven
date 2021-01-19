@@ -25,7 +25,7 @@ namespace OpenDemo
             template <class CharT, class TraitsT = std::char_traits<CharT>>
             class DebugStringBuffer : public std::basic_streambuf<CharT, TraitsT>
             {
-            protected:
+            private:
                 inline std::streamsize xsputn(const CharT* s, std::streamsize n) override
                 {
                     OutputDebugString(s);

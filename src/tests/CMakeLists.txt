@@ -5,7 +5,8 @@ set(TESTS_SRC
 
 set(TESTS_LINK_LIBRARIES
     common
-    Catch2::Catch2WithMain)
+    Catch2::Catch2WithMain
+    ApprovalTests)
 
 set(TESTS_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs)

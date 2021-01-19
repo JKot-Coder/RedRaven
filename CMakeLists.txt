@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 3.16.0)
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
 message(warning ${CMAKE_BINARY_DIR})
+
+include(FetchContent)
 include("build/conanbuildinfo_multi.cmake")
 conan_basic_setup(TARGETS)
 
@@ -52,20 +54,33 @@ add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src/dependencies/utfcpp)
-add_subdirectory(src/dependencies/eigen)
 add_subdirectory(src/dependencies/backward-cpp)
-add_subdirectory(src/dependencies/ut)
-add_subdirectory(src/dependencies/catch2)
+
+#=================================== Catch2 ==================================#
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v2.13.4
+)
+FetchContent_MakeAvailable(Catch2)
+
+#=============================== ApprovalTests ===============================#
+FetchContent_Declare(
+  ApprovalTests
+  GIT_REPOSITORY https://github.com/approvals/ApprovalTests.cpp.git
+  GIT_TAG        v.10.6.0
+)
+# Tell the ApprovalTests CMake files that we want to use its copy of Catch2:
+set(APPROVAL_TESTS_BUILD_THIRD_PARTY_CATCH2 ON CACHE BOOL "")
+FetchContent_MakeAvailable(ApprovalTests)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
-set_property(TARGET style PROPERTY FOLDER "Dependencies")
-set_property(TARGET Catch2 PROPERTY FOLDER "Dependencies")
 set_property(TARGET Catch2WithMain PROPERTY FOLDER "Dependencies")
+set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi_dx12)

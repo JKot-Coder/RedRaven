@@ -10,9 +10,3 @@
 [submodule "src/dependencies/backward-cpp"]
 	path = src/dependencies/backward-cpp
 	url = https://github.com/bombela/backward-cpp
-[submodule "src/dependencies/ut"]
-	path = src/dependencies/ut
-	url = https://github.com/boost-ext/ut.git
-[submodule "src/dependencies/catch2"]
-	path = src/dependencies/catch2
-	url = https://github.com/catchorg/Catch2.git

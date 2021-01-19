@@ -1,31 +1,14 @@
-#include <catch2/catch_session.hpp>
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/internal/catch_debugger.hpp>
-#include <catch2/internal/catch_compiler_capabilities.hpp>
-#include <catch2/internal/catch_config_wchar.hpp>
-#include <catch2/internal/catch_leak_detector.hpp>
-#include <catch2/internal/catch_platform.hpp>
-
 #include "common/debug/LeakDetector.hpp"
 
-namespace Catch
-{
-    CATCH_INTERNAL_START_WARNINGS_SUPPRESSION
-    CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS
-    LeakDetector leakDetector;
-    CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION
-}
+#define CATCH_CONFIG_RUNNER
+#include <catch2/catch.hpp>
+
+#define APPROVALS_CATCH
+#include "ApprovalTests/ApprovalTests.hpp"
 
 int runCatch2(int argc, char** argv)
 {
-    const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
-
-    const auto& startSnapshot = leakDetector.CreateEmpySnapshot();
-    const auto& finishSnapshot = leakDetector.CreateEmpySnapshot();
-
     int result = 0;
-
-    leakDetector.Capture(startSnapshot);
 
     {
         // We want to force the linker not to discard the global variable
@@ -45,6 +28,13 @@ int runCatch2(int argc, char** argv)
 
         result = session.run(argc, argv);
     }
+    
+    const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
+    /*
+    const auto& startSnapshot = leakDetector.CreateEmpySnapshot();
+    const auto& finishSnapshot = leakDetector.CreateEmpySnapshot();
+
+    leakDetector.Capture(startSnapshot);
 
     leakDetector.Capture(finishSnapshot);
 
@@ -52,7 +42,7 @@ int runCatch2(int argc, char** argv)
     {
         leakDetector.DumpAllSince(startSnapshot);
         return (result == 0) ? -1 : result;
-    }
+    }*/
 
     return result;
 }
@@ -100,4 +90,9 @@ TEST_CASE("Factorials are computed", "[factorial]")
     REQUIRE(Factorial(2) == 2);
     REQUIRE(Factorial(3) == 6);
     REQUIRE(Factorial(10) == 3628800);
+}
+
+TEST_CASE("HelloApprovals")
+{
+    ApprovalTests::Approvals::verify("Hello Approvals!");
 }
