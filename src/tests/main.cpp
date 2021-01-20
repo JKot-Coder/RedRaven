@@ -1,10 +1,10 @@
-#include "common/debug/LeakDetector.hpp"
-
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
 #define APPROVALS_CATCH
 #include "ApprovalTests/ApprovalTests.hpp"
+
+#include "common/debug/LeakDetector.hpp"
 
 int runCatch2(int argc, char** argv)
 {
@@ -90,9 +90,4 @@ TEST_CASE("Factorials are computed", "[factorial]")
     REQUIRE(Factorial(2) == 2);
     REQUIRE(Factorial(3) == 6);
     REQUIRE(Factorial(10) == 3628800);
-}
-
-TEST_CASE("HelloApprovals")
-{
-    ApprovalTests::Approvals::verify("Hello Approvals!");
 }

@@ -10,7 +10,7 @@ namespace OpenDemo
     {
         namespace Debug
         {
-            struct LeakDetector::Snapshot
+            struct MemorySnapshot
             {
 #if OS_WINDOWS
                 _CrtMemState state;
@@ -35,12 +35,12 @@ namespace OpenDemo
             {
             }
 
-            std::shared_ptr<LeakDetector::Snapshot> LeakDetector::CreateEmpySnapshot() const
+            std::shared_ptr<MemorySnapshot> LeakDetector::CreateEmpySnapshot() const
             {
-                return std::make_shared<LeakDetector::Snapshot>();
+                return std::make_shared<MemorySnapshot>();
             }
 
-            void LeakDetector::Capture(const std::shared_ptr<LeakDetector::Snapshot>& snapshot) const
+            void LeakDetector::Capture(const std::shared_ptr<MemorySnapshot>& snapshot) const
             {
                 ASSERT(snapshot);
                 ASSERT(!snapshot->inited_);
@@ -52,7 +52,7 @@ namespace OpenDemo
                 snapshot->inited_ = true;
             }
 
-            uint64_t LeakDetector::GetDifference(const std::shared_ptr<LeakDetector::Snapshot>& oldSnapshot, const std::shared_ptr<LeakDetector::Snapshot>& newSnapshot) const
+            uint64_t LeakDetector::GetDifference(const std::shared_ptr<MemorySnapshot>& oldSnapshot, const std::shared_ptr<MemorySnapshot>& newSnapshot) const
             {
                 ASSERT(oldSnapshot);
                 ASSERT(newSnapshot);
@@ -71,7 +71,7 @@ namespace OpenDemo
 #endif
             }
 
-            void LeakDetector::DumpAllSince(const std::shared_ptr<LeakDetector::Snapshot>& snapshot) const
+            void LeakDetector::DumpAllSince(const std::shared_ptr<MemorySnapshot>& snapshot) const
             {
                 ASSERT(snapshot);
                 ASSERT(snapshot->inited_);

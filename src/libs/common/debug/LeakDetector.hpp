@@ -8,20 +8,19 @@ namespace OpenDemo
     {
         namespace Debug
         {
+            struct MemorySnapshot;
+
             class LeakDetector : public Singleton<LeakDetector>
             {
-            public:
-                struct Snapshot;
-
             public:
                 LeakDetector();
                 ~LeakDetector();
 
-                std::shared_ptr<LeakDetector::Snapshot> CreateEmpySnapshot() const;
-                void Capture(const std::shared_ptr<LeakDetector::Snapshot>& oldSnapshot) const;
-                uint64_t GetDifference(const std::shared_ptr<LeakDetector::Snapshot>& oldSnapshot, const std::shared_ptr<LeakDetector::Snapshot>& newSnapshot) const;
+                std::shared_ptr<MemorySnapshot> CreateEmpySnapshot() const;
+                void Capture(const std::shared_ptr<MemorySnapshot>& oldSnapshot) const;
+                uint64_t GetDifference(const std::shared_ptr<MemorySnapshot>& oldSnapshot, const std::shared_ptr<MemorySnapshot>& newSnapshot) const;
 
-                void DumpAllSince(const std::shared_ptr<Snapshot>& snapshot) const;
+                void DumpAllSince(const std::shared_ptr<MemorySnapshot>& snapshot) const;
             };
         }
     }
