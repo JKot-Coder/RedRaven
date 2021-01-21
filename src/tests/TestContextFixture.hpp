@@ -13,11 +13,6 @@ namespace Tests
         TestContextFixture();
         ~TestContextFixture();
 
-        void begin();
-        void end();
-
-    private:
-        std::shared_ptr<MemorySnapshot> startSnapshot;
-        std::shared_ptr<MemorySnapshot> finishSnapshot;
+        bool Init();
     };
 }

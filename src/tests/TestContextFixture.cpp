@@ -1,6 +1,8 @@
 #include "TestContextFixture.hpp"
 
-#include "common/debug/LeakDetector.hpp"
+#include "windowing/InputtingWindow.hpp"
+#include "windowing/WindowSettings.hpp"
+#include "windowing/Windowing.hpp"
 
 namespace Tests
 {
@@ -14,25 +16,18 @@ namespace Tests
 
     }
 
-    void TestContextFixture::begin()
+    bool TestContextFixture::Init()
     {
-        const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
+        Windowing::WindowSettings settings;
+        Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED,
+        Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
 
-        startSnapshot = leakDetector.CreateEmpySnapshot();
-        finishSnapshot = leakDetector.CreateEmpySnapshot();
+        settings.Title = "OpenDemo";
+        settings.WindowRect = rect;
 
-        leakDetector.Capture(startSnapshot);
-    }
-
-    void TestContextFixture::end()
-    {
-        const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
-        leakDetector.Capture(finishSnapshot);
-
-        if (leakDetector.GetDifference(startSnapshot, finishSnapshot))
-        {
-            leakDetector.DumpAllSince(startSnapshot);
-        }
+        Windowing::Windowing::Subscribe(this);
+        _window = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
+        _window->Init(settings, true);
     }
 
 }
