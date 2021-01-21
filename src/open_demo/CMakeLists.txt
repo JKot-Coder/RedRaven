@@ -44,15 +44,10 @@ set(OPEN_DEMO_SRC_MODULE_FILE_SYSTEM
         filesystem/FileStream.cpp
         filesystem/FileStream.hpp)
 
-set(OPEN_DEMO_SRC_MODULE_INPUTTING
-        inputting/Input.hpp
-        inputting/Input.cpp)
-
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_COMMON}
         ${OPEN_DEMO_SRC_PLATFORM}
         ${OPEN_DEMO_SRC_MODULE_FILE_SYSTEM}
-        ${OPEN_DEMO_SRC_MODULE_INPUTTING}
         )
 
 add_executable(open_demo WIN32 ${OPEN_DEMO_SRC})

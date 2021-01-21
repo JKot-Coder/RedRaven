@@ -9,7 +9,7 @@ set( WINDOWING_SRC
         Windowing.cpp
         WindowSettings.hpp )
 
-source_group( "" FILES ${GAPI_SRC} )
+source_group( "" FILES ${WINDOWING_SRC} )
 
 add_library(${PROJECT_NAME} ${WINDOWING_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
