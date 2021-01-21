@@ -15,21 +15,13 @@ namespace OpenDemo
     {
         TEST_CASE_METHOD(TestContextFixture, "CopyCommmanList tests", "[CommandList][CopyCommmanList]")
         {
-            REQUIRE(Init());
-
             auto& renderContext = Render::RenderContext::Instance();
+            auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
+            REQUIRE(commandList != nullptr);
 
-            SECTION("Create command list")
+            SECTION("Close")
             {
-                auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
-                REQUIRE(commandList != nullptr);
-            }
-
-            SECTION("Create command list")
-            {
-                auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
-                commandList->Close();
-                REQUIRE(commandList != nullptr);
+                commandList->Close();                
             }
         }
 

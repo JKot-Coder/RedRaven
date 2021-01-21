@@ -3,6 +3,8 @@ project(tests)
 set(TESTS_SRC
     "pch.hpp"
     "main.cpp"
+    "Application.hpp"
+    "Application.cpp"
     "TestContextFixture.cpp"
     "TestContextFixture.hpp"
     "tests/CopyCommandList.cpp"
