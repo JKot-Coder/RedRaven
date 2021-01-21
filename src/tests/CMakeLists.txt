@@ -10,6 +10,7 @@ set(TESTS_SRC
 
 set(TESTS_LINK_LIBRARIES
     common
+    windowing
     Catch2::Catch2WithMain
     ApprovalTests)
 

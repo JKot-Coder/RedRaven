@@ -1,9 +1,5 @@
 #include "Input.hpp"
 
-#include <SDL_events.h>
-#include <SDL_keyboard.h>
-#include <SDL_scancode.h>
-
 #include "common/Math.hpp"
 
 #include "windowing/Window.hpp"
@@ -118,7 +114,6 @@ namespace OpenDemo
 
         void Input::OnButtonUp(InputKey inputKey)
         {
-            ;
             SetDown(inputKey, false);
         }
 

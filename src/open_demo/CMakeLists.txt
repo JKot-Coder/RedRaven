@@ -15,6 +15,7 @@ set(OPEN_DEMO_LINK_LIBRARIES
         common
         gapi_dx12
         windowing
+        inputting
         render
         STB
         ghc_filesystem
