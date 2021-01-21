@@ -10,6 +10,8 @@ set(TESTS_SRC
 
 set(TESTS_LINK_LIBRARIES
     common
+    render
+    gapi
     windowing
     Catch2::Catch2WithMain
     ApprovalTests)
@@ -23,4 +25,4 @@ target_link_libraries(${PROJECT_NAME} ${TESTS_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${TESTS_INCLUDE_DIRS})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)

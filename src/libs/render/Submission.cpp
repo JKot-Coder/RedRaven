@@ -75,7 +75,6 @@ namespace OpenDemo
 #if ENABLE_SUBMISSION_THREAD
             ASSERT(!submissionThread_.IsJoinable())
 #endif
-            ASSERT(inputTaskChannel_->IsClosed())
         }
 
         void Submission::Start()
@@ -177,6 +176,9 @@ namespace OpenDemo
             ASSERT(submissionThread_.IsJoinable())
             submissionThread_.Join();
 #endif
+
+            //Reset channel to allow reuse submission after terminate
+            inputTaskChannel_ = std::make_unique<BufferedChannel>();
         }
 
         template <>

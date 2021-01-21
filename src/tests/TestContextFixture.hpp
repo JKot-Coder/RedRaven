@@ -1,18 +1,24 @@
 #pragma once
 
-namespace OpenDemo::Common::Debug
+namespace OpenDemo
 {
-    struct MemorySnapshot;
-}
-
-namespace Tests
-{
-    class TestContextFixture
+    namespace Windowing
     {
-    public:
-        TestContextFixture();
-        ~TestContextFixture();
+        class InputtingWindow;
+    }
+    
+    namespace Tests
+    {
+        class TestContextFixture
+        {
+        public:
+            TestContextFixture();
+            ~TestContextFixture();
 
-        bool Init();
-    };
+            bool Init();
+
+        private:
+            std::shared_ptr<Windowing::InputtingWindow> window_;
+        };
+    }
 }

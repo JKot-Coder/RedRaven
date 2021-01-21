@@ -1,8 +1,11 @@
 #pragma once
 
-namespace Tests
+namespace OpenDemo
 {
-    class CopyCommandList
+    namespace Tests
     {
-    };
+        class CopyCommandList
+        {
+        };
+    }
 }
