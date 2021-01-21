@@ -11,16 +11,14 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
             RELEASE)
 endif()
 
-
 set(OPEN_DEMO_LINK_LIBRARIES
-        ${SDL2_LIBRARY}
         common
         gapi_dx12
+        windowing
         render
         STB
         ghc_filesystem
-        CONAN_PKG::Assimp
-        CONAN_PKG::sdl2)
+        CONAN_PKG::Assimp)
         
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS}
@@ -31,7 +29,6 @@ set(OPEN_DEMO_INCLUDE_DIRS
         ${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/filesystem
         ${PROJECT_SOURCE_DIR}/input
-        ${PROJECT_SOURCE_DIR}/windowing
         ${PROJECT_SOURCE_DIR}/render
         ${SDL2_INCLUDE_DIR})
 
@@ -51,21 +48,11 @@ set(OPEN_DEMO_SRC_MODULE_INPUTTING
         inputting/Input.hpp
         inputting/Input.cpp)
 
-set(OPEN_DEMO_SRC_MODULE_WINDOWING
-        windowing/Window.hpp
-		windowing/Window.cpp
-		windowing/InputtingWindow.hpp
-		windowing/InputtingWindow.cpp
-        windowing/Windowing.hpp
-		windowing/Windowing.cpp
-        windowing/WindowSettings.hpp)
-
 set(OPEN_DEMO_SRC
         ${OPEN_DEMO_SRC_COMMON}
         ${OPEN_DEMO_SRC_PLATFORM}
         ${OPEN_DEMO_SRC_MODULE_FILE_SYSTEM}
         ${OPEN_DEMO_SRC_MODULE_INPUTTING}
-        ${OPEN_DEMO_SRC_MODULE_WINDOWING}
         )
 
 add_executable(open_demo WIN32 ${OPEN_DEMO_SRC})

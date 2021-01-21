@@ -1,6 +1,6 @@
 project (common)
 
-SET( THREADING_SRC
+set( THREADING_SRC
 	threading/AccessGuard.hpp
 	threading/BufferedChannel.hpp
     threading/Thread.hpp
@@ -9,9 +9,9 @@ SET( THREADING_SRC
     threading/ConditionVariable.hpp
     threading/SpinLock.hpp
 )
-SOURCE_GROUP( "Threading" FILES ${THREADING_SRC} )
+source_group( "Threading" FILES ${THREADING_SRC} )
 
-SET( DEBUG_SRC
+set( DEBUG_SRC
 	debug/Logger.hpp
     debug/Logger.cpp
     debug/DebugStream.hpp
@@ -21,9 +21,9 @@ SET( DEBUG_SRC
     debug/Debug.hpp
     debug/Debug.cpp
 )
-SOURCE_GROUP( "Debug" FILES ${DEBUG_SRC} )
+source_group( "Debug" FILES ${DEBUG_SRC} )
 
-SET( COMMON_SRC
+set( COMMON_SRC
         pch.hpp
         Math.hpp  
         Math.cpp
@@ -42,7 +42,7 @@ SET( COMMON_SRC
         Singleton.hpp
         EnumClassOperators.hpp
 )
-SOURCE_GROUP( "" FILES ${COMMON_SRC} )
+source_group( "" FILES ${COMMON_SRC} )
 
 set( COMMON_SRC
         ${COMMON_SRC}

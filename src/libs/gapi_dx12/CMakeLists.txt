@@ -3,7 +3,7 @@ project (gapi_dx12)
 set(MS_SRC
         d3dx12.h
 )
-SOURCE_GROUP( "Ms" FILES ${MS_SRC} )
+source_group( "Ms" FILES ${MS_SRC} )
 
 set(IMPL_SRC
         CommandListImpl.cpp
@@ -19,7 +19,7 @@ set(IMPL_SRC
         SwapChainImpl.cpp
         SwapChainImpl.hpp
 )
-SOURCE_GROUP( "Implementations" FILES ${IMPL_SRC} )
+source_group( "Implementations" FILES ${IMPL_SRC} )
 
 set(GAPI_SRC
         pch.hpp
@@ -39,7 +39,7 @@ set(GAPI_SRC
         TypeConversions.cpp
         TypeConversions.hpp
         )
-SOURCE_GROUP( "" FILES ${GAPI_SRC} )
+source_group( "" FILES ${GAPI_SRC} )
 
 set( GAPI_SRC
         ${GAPI_SRC}
