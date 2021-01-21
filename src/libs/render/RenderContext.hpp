@@ -16,6 +16,7 @@ namespace OpenDemo
         // Todo thread safety?
         class RenderContext final : public Singleton<RenderContext>
         {
+
         public:
             RenderContext();
             ~RenderContext();
@@ -45,9 +46,6 @@ namespace OpenDemo
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
 
             void ReleaseResource(GAPI::Object& resource) const;
-
-        private:
-            GAPI::Result initDevice(const GAPI::Device::Description& description);
 
         private:
             // TODO sync with GPU_MAX

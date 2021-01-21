@@ -37,7 +37,7 @@ namespace OpenDemo
         }
 
         RenderContext::RenderContext()
-            : submission_(new Submission())
+            : submission_(new Submission()),
         {
         }
 
@@ -54,12 +54,17 @@ namespace OpenDemo
             auto debugMode = GAPI::Device::DebugMode::Retail;
 
 #ifdef DEBUG
+            // Force debug 
             debugMode = GAPI::Device::DebugMode::Debug;
 #endif
 
             GAPI::Device::Description description(GpuFramesBuffered, debugMode);
 
-            result = initDevice(description);
+            // Init Device
+            result = submission_->ExecuteAwait([&description](GAPI::Device& device) {
+                return device.Init(description);
+            });
+
             if (!result)
             {
                 Log::Print::Error("Render device init failed.\n");
@@ -256,7 +261,7 @@ namespace OpenDemo
 
         GAPI::ShaderResourceView::SharedPtr RenderContext::CreateShaderResourceView(
             const std::shared_ptr<GAPI::GpuResource>& gpuResource,
-            const GAPI::GpuResourceViewDescription& desc, 
+            const GAPI::GpuResourceViewDescription& desc,
             const U8String& name) const
         {
             ASSERT(inited_)
@@ -269,9 +274,10 @@ namespace OpenDemo
         }
 
         GAPI::DepthStencilView::SharedPtr RenderContext::CreateDepthStencilView(
-            const GAPI::Texture::SharedPtr& texture, 
-            const GAPI::GpuResourceViewDescription& 
-            desc, const U8String& name) const
+            const GAPI::Texture::SharedPtr& texture,
+            const GAPI::GpuResourceViewDescription&
+                desc,
+            const U8String& name) const
         {
             ASSERT(inited_)
 
@@ -284,7 +290,7 @@ namespace OpenDemo
 
         GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(
             const GAPI::Texture::SharedPtr& texture,
-            const GAPI::GpuResourceViewDescription& desc, 
+            const GAPI::GpuResourceViewDescription& desc,
             const U8String& name) const
         {
             ASSERT(inited_)
@@ -297,8 +303,8 @@ namespace OpenDemo
         }
 
         GAPI::UnorderedAccessView::SharedPtr RenderContext::CreateUnorderedAccessView(
-            const std::shared_ptr<GAPI::GpuResource>& gpuResource, 
-            const GAPI::GpuResourceViewDescription& desc, 
+            const std::shared_ptr<GAPI::GpuResource>& gpuResource,
+            const GAPI::GpuResourceViewDescription& desc,
             const U8String& name) const
         {
             ASSERT(inited_)
@@ -329,14 +335,6 @@ namespace OpenDemo
                 return;
 
             submission_->GetIMultiThreadDevice().lock()->ReleaseResource(resource);
-        }
-
-        GAPI::Result
-        RenderContext::initDevice(const GAPI::Device::Description& description)
-        {
-            return submission_->ExecuteAwait([&description](GAPI::Device& device) {
-                return device.Init(description);
-            });
         }
     }
 }
