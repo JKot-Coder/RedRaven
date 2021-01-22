@@ -37,7 +37,7 @@ namespace OpenDemo
         }
 
         RenderContext::RenderContext()
-            : submission_(new Submission()),
+            : submission_(new Submission())
         {
         }
 

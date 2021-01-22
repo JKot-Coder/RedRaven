@@ -10,6 +10,8 @@ namespace OpenDemo
         class Resource : public Object
         {
         public:
+            virtual ~Resource() {};
+
             inline T* GetPrivateImpl()
             {
                 return privateImpl_.get();

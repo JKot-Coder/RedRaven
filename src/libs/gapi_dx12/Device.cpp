@@ -4,6 +4,7 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
+#include "gapi/IDevice.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -43,20 +44,20 @@ namespace OpenDemo
             template <typename T>
             void ThrowIfFailed(T c) { std::ignore = c; };
 
-            class DeviceImplementation
+            class DeviceImplementation final : public IDevice
             {
             public:
                 DeviceImplementation();
-                ~DeviceImplementation();
+                virtual ~DeviceImplementation();
 
-                Result Init(const Device::Description& description);
+                Result Init(const IDevice::Description& description) override;
                 Result Submit(const CommandList::SharedPtr& commandList);
-                Result Present(const SwapChain::SharedPtr& swapChain);
-                Result MoveToNextFrame();
-                Result WaitForGpu();
+                Result Present(const SwapChain::SharedPtr& swapChain) override;
+                Result MoveToNextFrame() override;
+                Result WaitForGpu() override;
 
-                Result InitResource(const Object::SharedPtr& resource) const;
-                void ReleaseResource(Object& resource) const;
+                Result InitResource(const Object::SharedPtr& resource) const override;
+                void ReleaseResource(Object& resource) const override;
 
                 ID3D12Device* GetDevice() const
                 {
@@ -75,7 +76,7 @@ namespace OpenDemo
                 Result createDevice();
 
             private:
-                Device::Description description_ = {};
+                IDevice::Description description_ = {};
 
                 std::atomic_bool inited_ = false;
 
@@ -117,7 +118,7 @@ namespace OpenDemo
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
 
-                if (description_.debugMode != Device::DebugMode::Retail)
+                if (description_.debugMode != IDevice::DebugMode::Retail)
                 {
                     ComSharedPtr<ID3D12DebugDevice> debugLayer;
 
@@ -136,7 +137,7 @@ namespace OpenDemo
                 d3dDevice_ = nullptr;
             }
 
-            Result DeviceImplementation::Init(const Device::Description& description)
+            Result DeviceImplementation::Init(const IDevice::Description& description)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
@@ -285,8 +286,8 @@ namespace OpenDemo
 
                 // Enable the debug layer (requires the Graphics Tools "optional feature").
                 // NOTE: Enabling the debug layer after device creation will invalidate the active device.
-                if (description_.debugMode == Device::DebugMode::Debug
-                    || description_.debugMode == Device::DebugMode::Instrumented)
+                if (description_.debugMode == IDevice::DebugMode::Debug
+                    || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
 
                     ComSharedPtr<ID3D12Debug1> debugController;
@@ -295,7 +296,7 @@ namespace OpenDemo
                         debugController->EnableDebugLayer();
                         debugController->SetEnableGPUBasedValidation(true);
 
-                        if (description_.debugMode == Device::DebugMode::Debug)
+                        if (description_.debugMode == IDevice::DebugMode::Debug)
                         {
                             debugController->SetEnableSynchronizedCommandQueueValidation(true);
                         }
@@ -324,8 +325,8 @@ namespace OpenDemo
                 D3DCallMsg(D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put())), "D3D12CreateDevice");
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
 
-                if (description_.debugMode == Device::DebugMode::Debug
-                    || description_.debugMode == Device::DebugMode::Instrumented)
+                if (description_.debugMode == IDevice::DebugMode::Debug
+                    || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
@@ -391,47 +392,13 @@ namespace OpenDemo
                 defferedDeletionResources_->push_back(object);
             }*/
 
-            Device::Device()
-                : _impl(new DeviceImplementation())
+            std::shared_ptr<Device> CreateDevice()
             {
-            }
+                auto& device = Device::Create("Primary");
+                ASSERT(device);
 
-            Device::~Device() { }
-
-            Result Device::Init(const Description& description)
-            {
-                return _impl->Init(description);
-            }
-
-            Result Device::Present(const std::shared_ptr<SwapChain>& swapChain)
-            {
-                return _impl->Present(swapChain);
-            }
-
-            Result Device::MoveToNextFrame()
-            {
-                return _impl->MoveToNextFrame();
-            }
-
-            /*
-            Result Device::Submit(const CommandList::SharedPtr& CommandList)
-            {
-                return _impl->Submit(CommandList);
-            }*/
-
-            Result Device::WaitForGpu()
-            {
-                return _impl->WaitForGpu();
-            }
-
-            Result Device::InitResource(const Object::SharedPtr& resource) const
-            {
-                return _impl->InitResource(resource);
-            }
-
-            void Device::ReleaseResource(Object& resource) const
-            {
-                return _impl->ReleaseResource(resource);
+                device->SetPrivateImpl(new DeviceImplementation());
+                return device;
             }
         }
     }

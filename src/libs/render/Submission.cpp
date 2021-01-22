@@ -85,11 +85,11 @@ namespace OpenDemo
             ASSERT(!submissionThread_.IsJoinable())
 
             submissionThread_ = Threading::Thread("Submission Thread", [this] {
-                device_.reset(new GAPI::DX12::Device());
+                device_ = GAPI::DX12::CreateDevice();
                 this->threadFunc();
             });
 #else
-            device_.reset(new GAPI::DX12::Device());
+            device_ = GAPI::DX12::CreateDevice()æ
 #endif
         }
 

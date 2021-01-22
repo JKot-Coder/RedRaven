@@ -12,6 +12,7 @@ namespace OpenDemo
         public:
             enum class Type
             {
+                Device,
                 CommandQueue,
                 CommandContext,
                 CommandList,
@@ -26,7 +27,7 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<const Object>;
 
             Object() = delete;
-            virtual ~Object() { }
+            virtual ~Object() = default;
 
             inline Type GetType() const { return type_; }
             inline U8String GetName() const { return name_; }
