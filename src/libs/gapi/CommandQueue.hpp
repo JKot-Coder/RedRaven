@@ -5,6 +5,11 @@
 
 namespace OpenDemo
 {
+    namespace Render
+    {
+        class RenderContext;
+    }
+
     namespace GAPI
     {
         class CommandList;

@@ -25,6 +25,7 @@ namespace OpenDemo
 
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& CommandList);
             void Present(const std::shared_ptr<GAPI::SwapChain>& swapChain);
+            void WaitForGpu();
             void MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue);
             void ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description);
 

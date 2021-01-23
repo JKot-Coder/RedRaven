@@ -33,6 +33,13 @@ namespace OpenDemo
     {
         namespace
         {
+            bool isListTypeCompatable(GAPI::CommandQueueType commandQueueType, GAPI::CommandListType commandListType)
+            {
+                return (commandQueueType == GAPI::CommandQueueType::Copy && commandListType == GAPI::CommandListType::Copy) ||
+                       (commandQueueType == GAPI::CommandQueueType::Compute && commandListType == GAPI::CommandListType::Compute) ||
+                       (commandQueueType == GAPI::CommandQueueType::Graphics && commandListType == GAPI::CommandListType::Graphics);
+            }
+
             struct Task final
             {
             public:
@@ -116,6 +123,10 @@ namespace OpenDemo
 
         void Submission::Submit(const GAPI::CommandQueue::SharedPtr& commandQueue, const GAPI::CommandList::SharedPtr& commandList)
         {
+            ASSERT(commandQueue);
+            ASSERT(commandList);
+            ASSERT(isListTypeCompatable(commandQueue->GetCommandQueueType() ,commandList->GetCommandListType()));
+
             Task::Submit task;
             task.commandQueue = commandQueue;
             task.commandList = commandList;

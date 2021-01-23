@@ -1,15 +1,19 @@
 #include "TestContextFixture.hpp"
 
+#include "render/RenderContext.hpp"
+
+#include "Application.hpp"
+
 namespace OpenDemo
 {
     namespace Tests
     {
-        TestContextFixture::TestContextFixture()
+        void TestContextFixture::submitAndWait(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {
-        }
+            auto& renderContext = Render::RenderContext::Instance();
 
-        TestContextFixture::~TestContextFixture()
-        {
+            renderContext.Submit(commandQueue, commandList);
+            renderContext.WaitForGpu();
         }
     }
 }

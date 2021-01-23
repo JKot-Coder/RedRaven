@@ -17,19 +17,9 @@ namespace OpenDemo
             {
                 bool isListTypeCompatable(CommandQueueType commandQueueType, CommandListType commandListType)
                 {
-                    switch (commandListType)
-                    {
-                    case OpenDemo::GAPI::CommandListType::Copy:
-                        return true;
-                    case OpenDemo::GAPI::CommandListType::Compute:
-                        return (commandQueueType == CommandQueueType::Compute || commandQueueType == CommandQueueType::Graphics);
-                    case OpenDemo::GAPI::CommandListType::Graphics:
-                        return (commandQueueType == CommandQueueType::Graphics);
-                    default:
-                        ASSERT_MSG(false, "Unsupported list type");
-                    }
-
-                    return false;
+                    return (commandQueueType == CommandQueueType::Copy && commandListType == CommandListType::Copy) ||
+                           (commandQueueType == CommandQueueType::Compute && commandListType == CommandListType::Compute) ||
+                           (commandQueueType == CommandQueueType::Graphics && commandListType == CommandListType::Graphics);
                 }
             }
 

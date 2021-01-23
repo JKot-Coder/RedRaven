@@ -110,7 +110,7 @@ namespace OpenDemo
 
                 D3DCallMsg(device->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
 
-                // D3DUtils::SetAPIName(D3DCommandList_.get(), name);
+                D3DUtils::SetAPIName(D3DCommandList_.get(), name);
 
                 return Result::Ok;
             }
@@ -124,6 +124,29 @@ namespace OpenDemo
                 D3DCallMsg(D3DCommandList_->Reset(allocator.get(), nullptr), "Reset");
 
                 return Result::Ok;
+            }
+
+            void CommandListImpl::CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer)
+            {
+            }
+
+            void CommandListImpl::CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                                   const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes)
+            {
+            }
+
+            void CommandListImpl::CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture)
+            {
+            }
+
+            void CommandListImpl::CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                                         const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx)
+            {
+            }
+
+            void CommandListImpl::CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
+            {
             }
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)

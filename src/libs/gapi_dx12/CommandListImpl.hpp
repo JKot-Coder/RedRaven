@@ -19,14 +19,24 @@ namespace OpenDemo
             public:
                 CommandListImpl(const CommandListType commandListType);
 
-                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
-
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 
                 Result Close() override;
-                Result ResetAfterSubmit(CommandQueueImpl& commandQueue);
+
+                void CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer) override;
+                void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                      const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes) override;
+
+                void CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture) override;
+                void CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                            const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) override;
+                void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                                  const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
 
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
+
+                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+                Result ResetAfterSubmit(CommandQueueImpl& commandQueue);
 
                 const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
 

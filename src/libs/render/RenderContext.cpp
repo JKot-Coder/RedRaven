@@ -86,7 +86,7 @@ namespace OpenDemo
 
         void RenderContext::Terminate()
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             //Release resources before termination;
             fence_.reset();
@@ -97,24 +97,32 @@ namespace OpenDemo
 
         void RenderContext::Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             submission_->Submit(commandQueue, commandList);
         }
 
         void RenderContext::Present(const std::shared_ptr<GAPI::SwapChain>& swapChain)
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             submission_->ExecuteAsync([swapChain](GAPI::Device& device) {
-                const auto result = device.Present(swapChain);
-                return result;
+                return device.Present(swapChain);
+            });
+        }
+
+        void RenderContext::WaitForGpu()
+        {
+            ASSERT(inited_);
+
+            submission_->ExecuteAwait([](GAPI::Device& device) {
+                return device.WaitForGpu();
             });
         }
 
         void RenderContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             static uint32_t submissionFrame = 0;
 
@@ -183,7 +191,7 @@ namespace OpenDemo
 
         GAPI::CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::CopyCommandList::Create(name, GPIObjectsDeleter<GAPI::CopyCommandList>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -194,7 +202,7 @@ namespace OpenDemo
 
         GAPI::ComputeCommandList::SharedPtr RenderContext::CreateComputeCommandList(const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::ComputeCommandList::Create(name, GPIObjectsDeleter<GAPI::ComputeCommandList>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -205,7 +213,7 @@ namespace OpenDemo
 
         GAPI::GraphicsCommandList::SharedPtr RenderContext::CreateGraphicsCommandList(const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::GraphicsCommandList::Create(name, GPIObjectsDeleter<GAPI::GraphicsCommandList>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -227,7 +235,7 @@ namespace OpenDemo
 
         GAPI::Fence::SharedPtr RenderContext::CreateFence(const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::Fence::Create(name, GPIObjectsDeleter<GAPI::Fence>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -238,7 +246,7 @@ namespace OpenDemo
 
         GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -249,8 +257,8 @@ namespace OpenDemo
 
         GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name) const
         {
-            ASSERT(inited_)
-            ASSERT(swapchain)
+            ASSERT(inited_);
+            ASSERT(swapchain);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
             if (!swapchain->InitBackBufferTexture(backBufferIndex, resource))
@@ -264,7 +272,7 @@ namespace OpenDemo
             const GAPI::GpuResourceViewDescription& desc,
             const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::ShaderResourceView::Create(gpuResource, desc, name, GPIObjectsDeleter<GAPI::ShaderResourceView>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -279,7 +287,7 @@ namespace OpenDemo
                 desc,
             const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::DepthStencilView::Create(texture, desc, name, GPIObjectsDeleter<GAPI::DepthStencilView>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -293,7 +301,7 @@ namespace OpenDemo
             const GAPI::GpuResourceViewDescription& desc,
             const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::RenderTargetView::Create(texture, desc, name, GPIObjectsDeleter<GAPI::RenderTargetView>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))
@@ -307,7 +315,7 @@ namespace OpenDemo
             const GAPI::GpuResourceViewDescription& desc,
             const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto& resource = GAPI::UnorderedAccessView::Create(gpuResource, desc, name, GPIObjectsDeleter<GAPI::UnorderedAccessView>());
             if (!submission_->GetIMultiThreadDevice().lock()->InitResource(resource))

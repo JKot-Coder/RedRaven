@@ -7,9 +7,9 @@ namespace
     int runApp(int argc, char** argv)
     {
         const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
-        auto application = std::make_unique<OpenDemo::Tests::Application>();
+        auto& application = OpenDemo::Tests::Application::Instance();
 
-        return application->Run(argc, argv);
+        return application.Run(argc, argv);
     }
 }
 

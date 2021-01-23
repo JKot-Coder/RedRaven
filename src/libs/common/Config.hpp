@@ -6,15 +6,15 @@
 #include <stdlib.h>
 #endif
 
-#ifdef DEBUG
+#if DEBUG || FORCE_ENABLE_ASSERTS
 #define ENABLE_ASSERTS 1
 #endif
 
-#ifndef DEBUG
+#if !DEBUG
 #define ENABLE_INLINE 1
 #endif
 
-#ifdef ENABLE_INLINE
+#if ENABLE_INLINE
 #define INLINE inline
 #else
 #define INLINE

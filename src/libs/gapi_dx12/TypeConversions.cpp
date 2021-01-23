@@ -124,7 +124,8 @@ namespace OpenDemo
                     D3D12_RESOURCE_FLAGS d3d = D3D12_RESOURCE_FLAG_NONE;
 
                     d3d |= IsSet(flags, GpuResourceBindFlags::UnorderedAccess) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
-                    d3d |= IsSet(flags, GpuResourceBindFlags::ShaderResource) ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+                    // Flags cannot have D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE set without D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+                    d3d |= !IsSet(flags, GpuResourceBindFlags::ShaderResource) && IsSet(flags, GpuResourceBindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE : D3D12_RESOURCE_FLAG_NONE;
                     d3d |= IsSet(flags, GpuResourceBindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
                     d3d |= IsSet(flags, GpuResourceBindFlags::RenderTarget) ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE;
 

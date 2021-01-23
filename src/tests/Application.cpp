@@ -6,6 +6,8 @@
 
 #include "render/RenderContext.hpp"
 
+#include "gapi/CommandQueue.hpp"
+
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
@@ -70,11 +72,19 @@ namespace OpenDemo
                 return false;
             }
 
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Copy)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "Copy");
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "Compute");
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Graphics)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, "Primary");
+
             return true;
         }
 
         void Application::terminate()
         {
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Copy)] = nullptr;
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = nullptr;
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Graphics)] = nullptr;
+
             auto& renderContext = Render::RenderContext::Instance();
             renderContext.Terminate();
         }
