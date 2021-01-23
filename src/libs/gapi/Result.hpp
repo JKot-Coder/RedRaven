@@ -7,8 +7,7 @@ namespace OpenDemo
         struct Result final
         {
         public:
-
-            // TODO dangerous. auto result = Result::OK; result type is uint32_t 
+            // TODO dangerous. auto result = Result::OK; result type is uint32_t
             enum Value : uint32_t
             {
                 Ok = 0,
@@ -52,7 +51,7 @@ namespace OpenDemo
             {
                 return static_cast<int32_t>(value_) >= 0;
             }
-           
+
         public:
             U8String ToString() const;
 

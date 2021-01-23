@@ -62,9 +62,8 @@ namespace OpenDemo
             ASSERT(description_.sampleCount > 0)
             ASSERT(description_.arraySize > 0)
 
-            ASSERT(
-                (description_.sampleCount > 1 && description_.dimension == TextureDimension::Texture2DMS)
-                || (description_.sampleCount == 1 && description_.dimension != TextureDimension::Texture2DMS));
+            ASSERT((description_.sampleCount > 1 && description_.dimension == TextureDimension::Texture2DMS) ||
+                   (description_.sampleCount == 1 && description_.dimension != TextureDimension::Texture2DMS));
 
             switch (description_.dimension)
             {

@@ -55,7 +55,6 @@ namespace OpenDemo
             {
                 namespace Print
                 {
-
                     template <typename S, typename... Args>
                     inline void Info(const S& format, Args&&... args)
                     {

@@ -141,8 +141,7 @@ namespace OpenDemo
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
 
-                D3D12_RESOURCE_BARRIER barrier
-                    = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
                 D3DCommandList_->ResourceBarrier(1, &barrier);
 
@@ -157,7 +156,6 @@ namespace OpenDemo
                 D3DCallMsg(D3DCommandList_->Close(), "Close");
                 return Result::Ok;
             }
-
         };
     }
 }

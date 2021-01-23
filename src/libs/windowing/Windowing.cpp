@@ -68,8 +68,8 @@ namespace OpenDemo
                         const auto* window = static_cast<Window*>(SDL_GetWindowData(sdlWindow, "WindowObject"));
 
                         listener->OnMouseMotion(*window,
-                            Vector2i(motionEvent.x, motionEvent.y),
-                            Vector2i(motionEvent.xrel, motionEvent.yrel));
+                                                Vector2i(motionEvent.x, motionEvent.y),
+                                                Vector2i(motionEvent.xrel, motionEvent.yrel));
                     }
                     case SDL_MOUSEBUTTONDOWN:
                     case SDL_MOUSEBUTTONUP:

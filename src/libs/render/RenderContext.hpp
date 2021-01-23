@@ -16,7 +16,6 @@ namespace OpenDemo
         // Todo thread safety?
         class RenderContext final : public Singleton<RenderContext>
         {
-
         public:
             RenderContext();
             ~RenderContext();

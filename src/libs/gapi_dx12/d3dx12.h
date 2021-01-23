@@ -1796,7 +1796,7 @@ struct CD3DX12_RESOURCE_DESC : public D3D12_RESOURCE_DESC
         D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) noexcept
     {
         return CD3DX12_RESOURCE_DESC(D3D12_RESOURCE_DIMENSION_BUFFER, resAllocInfo.Alignment, resAllocInfo.SizeInBytes,
-            1, 1, 1, DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags);
+                                     1, 1, 1, DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags);
     }
     static inline CD3DX12_RESOURCE_DESC Buffer(
         UINT64 width,
@@ -1804,7 +1804,7 @@ struct CD3DX12_RESOURCE_DESC : public D3D12_RESOURCE_DESC
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC(D3D12_RESOURCE_DIMENSION_BUFFER, alignment, width, 1, 1, 1,
-            DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags);
+                                     DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags);
     }
     static inline CD3DX12_RESOURCE_DESC Tex1D(
         DXGI_FORMAT format,
@@ -1816,7 +1816,7 @@ struct CD3DX12_RESOURCE_DESC : public D3D12_RESOURCE_DESC
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC(D3D12_RESOURCE_DIMENSION_TEXTURE1D, alignment, width, 1, arraySize,
-            mipLevels, format, 1, 0, layout, flags);
+                                     mipLevels, format, 1, 0, layout, flags);
     }
     static inline CD3DX12_RESOURCE_DESC Tex2D(
         DXGI_FORMAT format,
@@ -1831,7 +1831,7 @@ struct CD3DX12_RESOURCE_DESC : public D3D12_RESOURCE_DESC
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC(D3D12_RESOURCE_DIMENSION_TEXTURE2D, alignment, width, height, arraySize,
-            mipLevels, format, sampleCount, sampleQuality, layout, flags);
+                                     mipLevels, format, sampleCount, sampleQuality, layout, flags);
     }
     static inline CD3DX12_RESOURCE_DESC Tex3D(
         DXGI_FORMAT format,
@@ -1844,7 +1844,7 @@ struct CD3DX12_RESOURCE_DESC : public D3D12_RESOURCE_DESC
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC(D3D12_RESOURCE_DIMENSION_TEXTURE3D, alignment, width, height, depth,
-            mipLevels, format, 1, 0, layout, flags);
+                                     mipLevels, format, 1, 0, layout, flags);
     }
     inline UINT16 Depth() const noexcept
     {
@@ -1922,7 +1922,7 @@ struct CD3DX12_RESOURCE_DESC1 : public D3D12_RESOURCE_DESC1
         D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) noexcept
     {
         return CD3DX12_RESOURCE_DESC1(D3D12_RESOURCE_DIMENSION_BUFFER, resAllocInfo.Alignment, resAllocInfo.SizeInBytes,
-            1, 1, 1, DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags, 0, 0, 0);
+                                      1, 1, 1, DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags, 0, 0, 0);
     }
     static inline CD3DX12_RESOURCE_DESC1 Buffer(
         UINT64 width,
@@ -1930,7 +1930,7 @@ struct CD3DX12_RESOURCE_DESC1 : public D3D12_RESOURCE_DESC1
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC1(D3D12_RESOURCE_DIMENSION_BUFFER, alignment, width, 1, 1, 1,
-            DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags, 0, 0, 0);
+                                      DXGI_FORMAT_UNKNOWN, 1, 0, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, flags, 0, 0, 0);
     }
     static inline CD3DX12_RESOURCE_DESC1 Tex1D(
         DXGI_FORMAT format,
@@ -1942,7 +1942,7 @@ struct CD3DX12_RESOURCE_DESC1 : public D3D12_RESOURCE_DESC1
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC1(D3D12_RESOURCE_DIMENSION_TEXTURE1D, alignment, width, 1, arraySize,
-            mipLevels, format, 1, 0, layout, flags, 0, 0, 0);
+                                      mipLevels, format, 1, 0, layout, flags, 0, 0, 0);
     }
     static inline CD3DX12_RESOURCE_DESC1 Tex2D(
         DXGI_FORMAT format,
@@ -1960,8 +1960,8 @@ struct CD3DX12_RESOURCE_DESC1 : public D3D12_RESOURCE_DESC1
         UINT samplerFeedbackMipRegionDepth = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC1(D3D12_RESOURCE_DIMENSION_TEXTURE2D, alignment, width, height, arraySize,
-            mipLevels, format, sampleCount, sampleQuality, layout, flags, samplerFeedbackMipRegionWidth,
-            samplerFeedbackMipRegionHeight, samplerFeedbackMipRegionDepth);
+                                      mipLevels, format, sampleCount, sampleQuality, layout, flags, samplerFeedbackMipRegionWidth,
+                                      samplerFeedbackMipRegionHeight, samplerFeedbackMipRegionDepth);
     }
     static inline CD3DX12_RESOURCE_DESC1 Tex3D(
         DXGI_FORMAT format,
@@ -1974,7 +1974,7 @@ struct CD3DX12_RESOURCE_DESC1 : public D3D12_RESOURCE_DESC1
         UINT64 alignment = 0) noexcept
     {
         return CD3DX12_RESOURCE_DESC1(D3D12_RESOURCE_DIMENSION_TEXTURE3D, alignment, width, height, depth,
-            mipLevels, format, 1, 0, layout, flags, 0, 0, 0);
+                                      mipLevels, format, 1, 0, layout, flags, 0, 0, 0);
     }
     inline UINT16 Depth() const noexcept
     {
@@ -2050,8 +2050,8 @@ inline void MemcpySubresource(
         for (UINT y = 0; y < NumRows; ++y)
         {
             memcpy(pDestSlice + pDest->RowPitch * y,
-                pSrcSlice + pSrc->RowPitch * LONG_PTR(y),
-                RowSizeInBytes);
+                   pSrcSlice + pSrc->RowPitch * LONG_PTR(y),
+                   RowSizeInBytes);
         }
     }
 }
@@ -3081,10 +3081,7 @@ inline bool operator==(const D3D12_CLEAR_VALUE& a, const D3D12_CLEAR_VALUE& b) n
 {
     if (a.Format != b.Format)
         return false;
-    if (a.Format == DXGI_FORMAT_D24_UNORM_S8_UINT
-        || a.Format == DXGI_FORMAT_D16_UNORM
-        || a.Format == DXGI_FORMAT_D32_FLOAT
-        || a.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT)
+    if (a.Format == DXGI_FORMAT_D24_UNORM_S8_UINT || a.Format == DXGI_FORMAT_D16_UNORM || a.Format == DXGI_FORMAT_D32_FLOAT || a.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT)
     {
         return (a.DepthStencil.Depth == b.DepthStencil.Depth) && (a.DepthStencil.Stencil == b.DepthStencil.Stencil);
     }
@@ -3293,7 +3290,7 @@ private:
 
     std::list<D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION>
         m_RepointedAssociations; // subobject type that contains pointers to other subobjects,
-        // repointed to flattened array
+    // repointed to flattened array
 
     class StringContainer
     {

@@ -17,11 +17,7 @@ namespace OpenDemo
             {
                 bool CheckSwapchainDescription(const SwapChainDescription& desc)
                 {
-                    return (desc.width > 0)
-                        && (desc.height > 0)
-                        && (desc.bufferCount > 0 && desc.bufferCount <= MAX_BACK_BUFFER_COUNT)
-                        && (desc.windowHandle)
-                        && (desc.isStereo == false);
+                    return (desc.width > 0) && (desc.height > 0) && (desc.bufferCount > 0 && desc.bufferCount <= MAX_BACK_BUFFER_COUNT) && (desc.windowHandle) && (desc.isStereo == false);
                 }
             }
 
@@ -51,7 +47,7 @@ namespace OpenDemo
                                nullptr,
                                nullptr,
                                swapChain1.put()),
-                    "CreateSwapChainForHwnd");
+                           "CreateSwapChainForHwnd");
 
                 if (!swapChain1.try_as(D3DSwapChain_))
                 {
@@ -91,7 +87,7 @@ namespace OpenDemo
                 }
 
                 Log::Print::Info("W:%d,H:%d\n", targetSwapChainDesc.Width,
-                    targetSwapChainDesc.Height);
+                                 targetSwapChainDesc.Height);
 
                 HRESULT hr = D3DSwapChain_->ResizeBuffers(
                     targetSwapChainDesc.BufferCount,

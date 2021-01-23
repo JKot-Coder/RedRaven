@@ -4,7 +4,6 @@ namespace OpenDemo
 {
     namespace Tests
     {
-
         TestContextFixture::TestContextFixture()
         {
         }
@@ -12,6 +11,5 @@ namespace OpenDemo
         TestContextFixture::~TestContextFixture()
         {
         }
-
     }
 }

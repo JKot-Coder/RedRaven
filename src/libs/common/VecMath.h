@@ -501,9 +501,9 @@ namespace OpenDemo
             quat operator*(const quat& q) const
             {
                 return quat(w * q.x + x * q.w + y * q.z - z * q.y,
-                    w * q.y + y * q.w + z * q.x - x * q.z,
-                    w * q.z + z * q.w + x * q.y - y * q.x,
-                    w * q.w - x * q.x - y * q.y - z * q.z);
+                            w * q.y + y * q.w + z * q.x - x * q.z,
+                            w * q.z + z * q.w + x * q.y - y * q.x,
+                            w * q.w - x * q.x - y * q.y - z * q.z);
             }
 
             vec3 operator*(const vec3& v) const
@@ -617,9 +617,9 @@ namespace OpenDemo
             mat4() { }
 
             mat4(float e00, float e10, float e20, float e30,
-                float e01, float e11, float e21, float e31,
-                float e02, float e12, float e22, float e32,
-                float e03, float e13, float e23, float e33)
+                 float e01, float e11, float e21, float e31,
+                 float e02, float e12, float e22, float e32,
+                 float e03, float e13, float e23, float e33)
                 : e00(e00), e10(e10), e20(e20), e30(e30), e01(e01), e11(e11), e21(e21), e31(e31), e02(e02), e12(e12), e22(e22), e32(e32), e03(e03), e13(e13), e23(e23), e33(e33)
             {
             }

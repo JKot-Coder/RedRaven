@@ -79,7 +79,6 @@ namespace OpenDemo
                 _CrtMemDumpAllObjectsSince(&snapshot->state);
 #endif
             }
-
         }
     }
 }

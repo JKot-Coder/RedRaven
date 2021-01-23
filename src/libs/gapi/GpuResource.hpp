@@ -18,10 +18,10 @@ namespace OpenDemo
             {
                 std::size_t operator()(const GpuResourceViewDescription& desc) const
                 {
-                    return (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1)
-                        ^ (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3)
-                        ^ (std::hash<uint32_t>()(desc.texture.mipCount) << 5)
-                        ^ (std::hash<uint32_t>()(desc.texture.mipLevel) << 7);
+                    return (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1) ^
+                           (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3) ^
+                           (std::hash<uint32_t>()(desc.texture.mipCount) << 5) ^
+                           (std::hash<uint32_t>()(desc.texture.mipLevel) << 7);
                 }
             };
         }

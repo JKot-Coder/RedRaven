@@ -286,10 +286,8 @@ namespace OpenDemo
 
                 // Enable the debug layer (requires the Graphics Tools "optional feature").
                 // NOTE: Enabling the debug layer after device creation will invalidate the active device.
-                if (description_.debugMode == IDevice::DebugMode::Debug
-                    || description_.debugMode == IDevice::DebugMode::Instrumented)
+                if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
-
                     ComSharedPtr<ID3D12Debug1> debugController;
                     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.put()))))
                     {
@@ -325,8 +323,7 @@ namespace OpenDemo
                 D3DCallMsg(D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put())), "D3D12CreateDevice");
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
 
-                if (description_.debugMode == IDevice::DebugMode::Debug
-                    || description_.debugMode == IDevice::DebugMode::Instrumented)
+                if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;

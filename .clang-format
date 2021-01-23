@@ -1,6 +1,7 @@
 ﻿---
 BasedOnStyle: WebKit
 AlignAfterOpenBracket: Align
+AlignOperands: 'true'
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakConstructorInitializers: BeforeColon

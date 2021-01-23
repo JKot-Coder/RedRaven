@@ -15,12 +15,12 @@ namespace OpenDemo
             {
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right)
                 {
-                    return (left.Stereo == right.Stereo
-                        && left.SampleDesc.Count == right.SampleDesc.Count
-                        && left.SampleDesc.Quality == right.SampleDesc.Quality
-                        && left.BufferUsage == right.BufferUsage
-                        && left.SwapEffect == right.SwapEffect
-                        && left.Flags == right.Flags);
+                    return (left.Stereo == right.Stereo &&
+                            left.SampleDesc.Count == right.SampleDesc.Count &&
+                            left.SampleDesc.Quality == right.SampleDesc.Quality &&
+                            left.BufferUsage == right.BufferUsage &&
+                            left.SwapEffect == right.SwapEffect &&
+                            left.Flags == right.Flags);
                 }
 
                 DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect)

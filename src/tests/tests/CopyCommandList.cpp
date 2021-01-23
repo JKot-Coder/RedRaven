@@ -6,8 +6,8 @@
 
 #include "ApprovalTests/ApprovalTests.hpp"
 
-#include "render/RenderContext.hpp"
 #include "gapi/CommandList.hpp"
+#include "render/RenderContext.hpp"
 
 #include "common/Math.hpp"
 
@@ -18,7 +18,6 @@ namespace OpenDemo
     {
         TEST_CASE_METHOD(TestContextFixture, "CopyCommmanList", "[CommandList][CopyCommmanList]")
         {
-        
             Vector2 qwe = Vector2::UNIT_X;
             qwe[0];
 
@@ -28,7 +27,7 @@ namespace OpenDemo
 
             SECTION("Close")
             {
-                 REQUIRE(commandList->Close() == GAPI::Result::Ok);                
+                REQUIRE(commandList->Close() == GAPI::Result::Ok);
             }
         }
 

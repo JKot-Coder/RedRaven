@@ -12,7 +12,7 @@ namespace OpenDemo
             class ResourceReleaseContext;
 
             class FenceImpl final : public IFence
-            { 
+            {
             public:
                 FenceImpl() = default;
 

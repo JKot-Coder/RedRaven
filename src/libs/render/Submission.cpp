@@ -89,7 +89,7 @@ namespace OpenDemo
                 this->threadFunc();
             });
 #else
-            device_ = GAPI::DX12::CreateDevice()æ
+            device_ = GAPI::DX12::CreateDevice();
 #endif
         }
 

@@ -48,7 +48,6 @@ namespace OpenDemo
         Debug::LeakDetector::Instance();
         init();
 
-
         /*    const auto cmdList = new GAPI::CommandList("asd");
         std::ignore = cmdList;
 
@@ -152,7 +151,7 @@ namespace OpenDemo
     {
         Windowing::WindowSettings settings;
         Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED,
-            Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
+                                   Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
 
         settings.Title = "OpenDemo";
         settings.WindowRect = rect;
@@ -193,7 +192,7 @@ namespace OpenDemo
 
     void Application::loadResouces()
     {
-       // _scene = std::make_shared<Scenes::Scene_2>();
-       // _scene->Init();
+        // _scene = std::make_shared<Scenes::Scene_2>();
+        // _scene->Init();
     }
 }

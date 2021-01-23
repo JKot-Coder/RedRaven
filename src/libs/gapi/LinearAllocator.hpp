@@ -25,9 +25,9 @@ namespace OpenDemo
 
                 void* Allocate(size_t size, size_t aligment,
 #ifdef CACHE_LINE_ALIGN
-                    size_t cacheLineSize);
+                               size_t cacheLineSize);
 #else
-                    size_t);
+                               size_t);
 #endif
 
                 inline void Reset()

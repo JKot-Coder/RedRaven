@@ -24,10 +24,10 @@ namespace OpenDemo
 
             bool operator==(const GpuResourceViewDescription& other) const
             {
-                return (texture.mipLevel == other.texture.mipLevel)
-                    && (texture.mipCount == other.texture.mipCount)
-                    && (texture.firstArraySlice == other.texture.firstArraySlice)
-                    && (texture.arraySliceCount == other.texture.arraySliceCount);
+                return (texture.mipLevel == other.texture.mipLevel) &&
+                       (texture.mipCount == other.texture.mipCount) &&
+                       (texture.firstArraySlice == other.texture.firstArraySlice) &&
+                       (texture.arraySliceCount == other.texture.arraySliceCount);
             }
 
         public:

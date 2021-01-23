@@ -16,7 +16,6 @@ namespace OpenDemo
 {
     namespace Tests
     {
-
         int Application::Run(int argc, char** argv)
         {
             if (!init())
@@ -52,7 +51,7 @@ namespace OpenDemo
             Windowing::WindowSettings settings;
 
             Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED,
-                Windowing::WindowRect::WINDOW_POSITION_CENTERED, 640, 480);
+                                       Windowing::WindowRect::WINDOW_POSITION_CENTERED, 640, 480);
 
             settings.Title = "Tests";
             settings.WindowRect = rect;
@@ -79,6 +78,5 @@ namespace OpenDemo
             auto& renderContext = Render::RenderContext::Instance();
             renderContext.Terminate();
         }
-
     }
 }

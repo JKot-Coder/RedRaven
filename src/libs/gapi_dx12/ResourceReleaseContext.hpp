@@ -14,7 +14,6 @@ namespace OpenDemo
         {
             class ResourceReleaseContext
             {
-
             public:
                 struct ResourceRelease
                 {
@@ -65,7 +64,6 @@ namespace OpenDemo
                 std::queue<ResourceRelease> queue_;
                 Threading::Mutex mutex_;
             };
-
         }
     }
 }

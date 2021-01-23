@@ -6,7 +6,7 @@ namespace OpenDemo
     {
         class InputtingWindow;
     }
-    
+
     namespace Tests
     {
         class Application
