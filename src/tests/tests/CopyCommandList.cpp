@@ -9,19 +9,26 @@
 #include "render/RenderContext.hpp"
 #include "gapi/CommandList.hpp"
 
+#include "common/Math.hpp"
+
 namespace OpenDemo
 {
     namespace Tests
+
     {
-        TEST_CASE_METHOD(TestContextFixture, "CopyCommmanList tests", "[CommandList][CopyCommmanList]")
+        TEST_CASE_METHOD(TestContextFixture, "CopyCommmanList", "[CommandList][CopyCommmanList]")
         {
+        
+            Vector2 qwe = Vector2::UNIT_X;
+            qwe[0];
+
             auto& renderContext = Render::RenderContext::Instance();
             auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
             REQUIRE(commandList != nullptr);
 
             SECTION("Close")
             {
-                commandList->Close();                
+                 REQUIRE(commandList->Close() == GAPI::Result::Ok);                
             }
         }
 

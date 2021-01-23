@@ -338,20 +338,10 @@ namespace OpenDemo
         // Vector
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define SHARED_VECTOR_FUNCTIONS =
-
         template <size_t Len, typename T>
         struct Vector
         {
-            static const Vector<Len, T> ZERO;
-            static const Vector<Len, T> ONE;
         };
-
-        template <size_t Len, typename T>
-        inline const Vector<Len, T> Vector<Len, T>::ZERO = Vector<Len, T>(0);
-
-        template <size_t Len, typename T>
-        inline const Vector<Len, T> Vector<Len, T>::ONE = Vector<Len, T>(1);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector2
@@ -479,7 +469,7 @@ namespace OpenDemo
             // Shared vectors functions
             T& operator[](int index) const
             {
-                ASSERT(index >= 0 && index < Len)
+                ASSERT(index >= 0 && index < SIZE)
                 return ((T*)this)[index];
             }
 
@@ -492,9 +482,9 @@ namespace OpenDemo
                 return *this + (v - *this) * t;
             }
 
-            FloatFormat Length2() const { return Dot(*this); }
+            FloatFormat LengthSqr() const { return Dot(*this); }
 
-            FloatFormat Length() const { return sqrtf(Length2()); }
+            FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<SIZE, T> Normal() const
@@ -507,6 +497,12 @@ namespace OpenDemo
             T x;
             T y;
         };
+
+        template <typename T>
+        inline const Vector<2, T> Vector<2, T>::ZERO = Vector<2, T>(0);
+
+        template <typename T>
+        inline const Vector<2, T> Vector<2, T>::ONE = Vector<2, T>(1);
 
         template <typename T>
         inline const Vector<2, T> Vector<2, T>::UNIT_X = Vector<2, T>(1, 0);
@@ -690,9 +686,9 @@ namespace OpenDemo
                 return *this + (v - *this) * t;
             }
 
-            FloatFormat Length2() const { return Dot(*this); }
+            FloatFormat LengthSqr() const { return Dot(*this); }
 
-            FloatFormat Length() const { return sqrtf(Length2()); }
+            FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<SIZE, T> Normal() const
@@ -706,6 +702,12 @@ namespace OpenDemo
             T y;
             T z;
         };
+
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::ZERO = Vector<3, T>(0);
+
+        template <typename T>
+        inline const Vector<3, T> Vector<3, T>::ONE = Vector<3, T>(1);
 
         template <typename T>
         inline const Vector<3, T> Vector<3, T>::UNIT_X = Vector<3, T>(1, 0, 0);
@@ -723,6 +725,7 @@ namespace OpenDemo
         inline const Vector<3, T> Vector<3, T>::FORWARD = Vector<3, T>(0, 0, 1);
 
         using Vector3 = Vector<3, float>;
+        using Vector3u = Vector<3, uint32_t>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Vector4
@@ -877,9 +880,9 @@ namespace OpenDemo
                 return *this + (v - *this) * t;
             }
 
-            FloatFormat Length2() const { return Dot(*this); }
+            FloatFormat LengthSqr() const { return Dot(*this); }
 
-            FloatFormat Length() const { return sqrtf(Length2()); }
+            FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
             template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
             Vector<SIZE, T> Normal() const
@@ -894,6 +897,12 @@ namespace OpenDemo
             T z;
             T w;
         };
+
+        template <typename T>
+        inline const Vector<4, T> Vector<4, T>::ZERO = Vector<4, T>(0);
+
+        template <typename T>
+        inline const Vector<4, T> Vector<4, T>::ONE = Vector<4, T>(1);
 
         template <typename T>
         inline const Vector<4, T> Vector<4, T>::UNIT_X = Vector<4, T>(1, 0, 0, 0);
@@ -1038,14 +1047,14 @@ namespace OpenDemo
                 return x * q.x + y * q.y + z * q.z + w * q.w;
             }
 
-            float Length2() const
+            float LengthSqr() const
             {
                 return Dot(*this);
             }
 
             float Length() const
             {
-                return sqrtf(Length2());
+                return sqrtf(LengthSqr());
             }
 
             void Normalize()
@@ -1066,7 +1075,7 @@ namespace OpenDemo
 
             Quaternion Inverse() const
             {
-                const float l2 = Length2();
+                const float l2 = LengthSqr();
                 const float l2inv = l2 == 0.0f ? 0.0f : (1.0f / l2);
 
                 return Conjugate() * l2inv;
@@ -1587,8 +1596,8 @@ namespace OpenDemo
         struct Rect
         {
             Rect() = default;
-            Rect(T rectLeft, T rectTop, T rectWidth, T rectHeight)
-                : left(rectLeft), top(rectTop), width(rectWidth), height(rectHeight) {};
+            Rect(T left, T top, T width, T height)
+                : left(left), top(top), width(width), height(height) {};
 
             Rect(const Vector<2, T>& position, const Vector<2, T>& size)
                 : left(position.x), top(position.y), width(size.x), height(size.y)
@@ -1703,7 +1712,143 @@ namespace OpenDemo
             return !(left == rect);
         }
 
-        using AlignedBox2i = Rect<uint32_t>;
+        using Rect2u = Rect<uint32_t>;
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Box
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        template <typename T>
+        struct Box
+        {
+            Box() = default;
+            Box(T left, T top, T front, T width, T height, T depth)
+                : left(left), top(top), front(front), width(width), height(height), depth(depth) {};
+
+            Box(const Vector<3, T>& position, const Vector<3, T>& size)
+                : left(position.x), top(position.y), front(position.z),
+                  width(size.x), height(size.y), depth(size.z) { }
+
+            template <typename U>
+            explicit Box(const Box<U>& rectangle)
+                : left(static_cast<T>(rectangle.left)), top(static_cast<T>(rectangle.top)), front(static_cast<T>(rectangle.front)),
+                  width(static_cast<T>(rectangle.width)), height(static_cast<T>(rectangle.height)), depth(static_cast<T>(rectangle.depth)) {};
+
+            bool Contains(T x, T y, T z) const;
+            bool Contains(const Vector<3, T>& point) const;
+            bool Intersects(const Box<T>& box) const;
+            bool Intersects(const Box<T>& box, Box<T>& intersection) const;
+
+            Vector<3, T> GetPosition() const;
+            Vector<3, T> GetSize() const;
+
+            bool operator==(const Box<T>& rect) const;
+            bool operator!=(const Box<T>& rect) const;
+
+            T left;
+            T top;
+            T width;
+            T height;
+        };
+
+        template <typename T>
+        bool Box<T>::Contains(T x, T y, T z) const
+        {
+            // Box with negative dimensions are allowed, so we must handle them correctly
+            // Compute the real min and max of the box
+
+            T minX = std::min(left, static_cast<T>(left + width));
+            T maxX = std::max(left, static_cast<T>(left + width));
+            T minY = std::min(top, static_cast<T>(top + height));
+            T maxY = std::max(top, static_cast<T>(top + height));
+            T minZ = std::min(front, static_cast<T>(front + depth));
+            T maxZ = std::max(front, static_cast<T>(front + depth));
+
+            return (x >= minX) && (x < maxX) && (y >= minY) && (y < maxY) && (z >= minZ) && (z < maxZ);
+        }
+
+        template <typename T>
+        bool Box<T>::Contains(const Vector<3, T>& point) const
+        {
+            return contains(point.x, point.y, point.z);
+        }
+
+        template <typename T>
+        bool Box<T>::Intersects(const Box<T>& box) const
+        {
+            Box<T> intersection;
+            return intersects(rect, intersection);
+        }
+
+        template <typename T>
+        bool Box<T>::Intersects(const Box<T>& box, Box<T>& intersection) const
+        {
+            // Box with negative dimensions are allowed, so we must handle them correctly
+            // Compute the real min and max of the box
+
+            T r1MinX = std::min(left, static_cast<T>(left + width));
+            T r1MaxX = std::max(left, static_cast<T>(left + width));
+            T r1MinY = std::min(top, static_cast<T>(top + height));
+            T r1MaxY = std::max(top, static_cast<T>(top + height));
+            T r1MinZ = std::min(front, static_cast<T>(front + depth));
+            T r1MaxZ = std::max(front, static_cast<T>(front + depth));
+
+            // Compute the min and max of the second box
+            T r2MinX = std::min(box.left, static_cast<T>(box.left + box.width));
+            T r2MaxX = std::max(box.left, static_cast<T>(box.left + box.width));
+            T r2MinY = std::min(box.top, static_cast<T>(box.top + box.height));
+            T r2MaxY = std::max(box.top, static_cast<T>(box.top + box.height));
+            T r2MinZ = std::min(box.front, static_cast<T>(box.front + box.depth));
+            T r2MaxZ = std::max(box.front, static_cast<T>(box.front + box.depth));
+
+            // Compute the intersection boundaries
+            T interLeft = std::max(r1MinX, r2MinX);
+            T interRight = std::min(r1MaxX, r2MaxX);
+            T interTop = std::max(r1MinY, r2MinY);      
+            T interBottom = std::min(r1MaxY, r2MaxY);
+            T interFront = std::max(r1MinZ, r2MinZ);
+            T interBack = std::min(r1MaxZ, r2MaxZ);
+
+            // If the intersection is valid (positive non zero area), then there is an intersection
+            if ((interLeft < interRight) && (interTop < interBottom) && (interFront < interBack))
+            {
+                intersection = Box<T>(interLeft, interTop, interFront, interRight - interLeft, interBottom - interTop, interBack - interFront);
+                return true;
+            }
+            else
+            {
+                intersection = Box<T>(0, 0, 0, 0, 0, 0);
+                return false;
+            }
+        }
+
+        template <typename T>
+        Vector<3, T> Box<T>::GetPosition() const
+        {
+            return Vector<3, T>(left, top, front);
+        }
+
+        template <typename T>
+        Vector<3, T> Box<T>::GetSize() const
+        {
+            return Vector<3, T>(width, height, depth);
+        }
+
+        template <typename T>
+        bool Box<T>::operator==(const Box<T>& box) const
+        {
+            return (left == box.left) && (width == box.width)
+                && (top == box.top) && (height == box.height)
+                && (front == box.front) && (depth == box.depth);
+        }
+
+        template <typename T>
+        bool Box<T>::operator!=(const Box<T>& box) const
+        {
+            return !(left == box);
+        }
+
+        using Box3u = Box<uint32_t>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // AlignTo

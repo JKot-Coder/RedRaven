@@ -2,9 +2,9 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/GpuResourceViews.hpp"
-#include "gapi/IDevice.hpp"
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -54,7 +54,7 @@ namespace OpenDemo
             auto debugMode = GAPI::Device::DebugMode::Retail;
 
 #ifdef DEBUG
-            // Force debug 
+            // Force debug
             debugMode = GAPI::Device::DebugMode::Debug;
 #endif
 

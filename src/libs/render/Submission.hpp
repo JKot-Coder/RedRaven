@@ -1,7 +1,7 @@
 #pragma once
 
+#include "gapi/Device.hpp"
 #include "gapi/ForwardDeclarations.hpp"
-#include "gapi/IDevice.hpp"
 #include "gapi/SwapChain.hpp"
 
 #include "common/threading/Thread.hpp"

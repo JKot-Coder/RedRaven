@@ -1,6 +1,6 @@
 #include "D3DUtils.hpp"
 
-#include "gapi/IDevice.hpp"
+#include "gapi/Device.hpp"
 #include "gapi/SwapChain.hpp"
 
 #include "gapi_dx12/TypeConversions.hpp"

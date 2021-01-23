@@ -2,9 +2,9 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
-#include "gapi/IDevice.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"

@@ -3,7 +3,7 @@ project (gapi)
 set(GAPI_SRC
         CommandList.hpp
         CommandQueue.hpp
-        IDevice.hpp
+        Device.hpp
         Fence.hpp
         FencedPool.hpp
         ForwardDeclarations.hpp
@@ -23,7 +23,7 @@ set(GAPI_SRC
         SwapChain.cpp
         SwapChain.hpp
         Texture.cpp
-        Texture.hpp        )
+        Texture.hpp )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")

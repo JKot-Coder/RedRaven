@@ -12,6 +12,12 @@ namespace OpenDemo
         struct Vector;
 
         using Vector4 = Vector<4, float>;
+        using Vector3u = Vector<3, uint32_t>;
+
+        template <typename T>
+        struct Box;
+
+        using Box3u = Box<uint32_t>;
     }
 
     namespace GAPI
@@ -23,10 +29,21 @@ namespace OpenDemo
             Graphics
         };
 
+        // https://docs.microsoft.com/en-us/windows/win32/direct3d12/recording-command-lists-and-bundles#command-list-api-restrictions
         class ICommandList
         {
         public:
             virtual Result Close() = 0;
+
+            virtual Result CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer) = 0;
+            virtual Result CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                            const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes) = 0;
+
+            virtual Result CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture);
+            virtual Result CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                                  const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) = 0;
+            virtual Result CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                                        const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
         };
 
         class ICopyCommandList : public ICommandList

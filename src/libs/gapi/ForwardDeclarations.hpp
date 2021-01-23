@@ -39,6 +39,8 @@ namespace OpenDemo
         struct TextureDescription;
         enum class TextureDimension : uint32_t;
 
+        class Buffer;
+
         struct Result;
     }
 
