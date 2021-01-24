@@ -1,5 +1,6 @@
 #include "ResourceImpl.hpp"
 
+#include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/TypeConversions.hpp"
@@ -72,9 +73,10 @@ namespace OpenDemo
                 }
             }
 
-            void ResourceImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void ResourceImpl::ReleaseD3DObjects()
             {
-                releaseContext.DeferredD3DResourceRelease(D3DResource_);
+                auto& deviceContext = DeviceContext().Instance();
+                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
             Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags, const U8String& name)

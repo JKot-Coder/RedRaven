@@ -3,7 +3,7 @@
 #include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 
-#include "gapi_dx12/Device.hpp"
+#include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
@@ -21,9 +21,10 @@ namespace OpenDemo
                 }
             }
 
-            void SwapChainImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void SwapChainImpl::ReleaseD3DObjects()
             {
-                releaseContext.DeferredD3DResourceRelease(D3DSwapChain_);
+                auto& deviceContext = DeviceContext().Instance();
+                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DSwapChain_);
             }
 
             Result SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)

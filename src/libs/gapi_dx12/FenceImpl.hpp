@@ -9,14 +9,13 @@ namespace OpenDemo
         namespace DX12
         {
             class CommandQueueImpl;
-            class ResourceReleaseContext;
 
             class FenceImpl final : public IFence
             {
             public:
                 FenceImpl() = default;
 
-                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+                void ReleaseD3DObjects();
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
 

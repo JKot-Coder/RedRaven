@@ -3,6 +3,7 @@
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
+#include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -154,8 +155,9 @@ namespace OpenDemo
                     return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(textureDescription, description);
                 }
 
-                Result initResource(const ResourceCreateContext& context, GpuResource& resource)
+                Result initResource(GpuResource& resource)
                 {
+                    auto& deviceContext = DeviceContext::Instance();
                     auto impl = new ResourceImpl();
 
                     switch (resource.GetGpuResourceType())
@@ -164,7 +166,7 @@ namespace OpenDemo
                     {
                         const auto& texture = resource.GetTyped<Texture>();
 
-                        D3DCall(impl->Init(context.device, texture->GetDescription(), texture->GetBindFlags(), resource.GetName()));
+                        D3DCall(impl->Init(deviceContext.GetDevice(), texture->GetDescription(), texture->GetBindFlags(), resource.GetName()));
                     }
                     break;
                         //    case Resource::Type::Buffer:
@@ -180,25 +182,25 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreateContext& context, CommandQueue& resource)
+                Result initResource(CommandQueue& resource)
                 {
                     CommandQueueImpl* impl = nullptr;
+                    auto& deviceContext = DeviceContext::Instance();
 
                     if (resource.GetCommandQueueType() == CommandQueueType::Graphics)
                     {
                         static bool alreadyInited = false;
                         ASSERT(!alreadyInited); // Only one graphics command queue are alloved.
-                        ASSERT(context.graphicsCommandQueue);
                         alreadyInited = true;
 
                         // Graphics command queue already initialized internally in device,
                         // so make copy to prevent d3d object leaking.
-                        impl = new CommandQueueImpl(*context.graphicsCommandQueue.get());
+                        impl = new CommandQueueImpl(*deviceContext.GetGraphicsCommandQueue());
                     }
                     else
                     {
                         impl = new CommandQueueImpl(resource.GetCommandQueueType());
-                        D3DCall(impl->Init(context.device, resource.GetName()));
+                        D3DCall(impl->Init(deviceContext.GetDevice(), resource.GetName()));
                     }
 
                     resource.SetPrivateImpl(impl);
@@ -206,8 +208,10 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreateContext& context, GpuResourceView& object)
+                Result initResource(GpuResourceView& object)
                 {
+                    auto& deviceContext = DeviceContext::Instance();
+
                     const auto& resourceSharedPtr = object.GetGpuResource().lock();
                     ASSERT(resourceSharedPtr);
 
@@ -222,13 +226,13 @@ namespace OpenDemo
                     {
                     case GpuResourceView::ViewType::RenderTargetView:
                     {
-                        const auto& descriptorHeap = context.descriptorHeapSet->GetRtvDescriptorHeap();
+                        const auto& descriptorHeap = deviceContext.GetDesciptorHeapSet()->GetRtvDescriptorHeap();
                         ASSERT(descriptorHeap);
 
                         D3DCall(descriptorHeap->Alloc(*allocation));
 
                         D3D12_RENDER_TARGET_VIEW_DESC desc = CreateRtvDesc(resourceSharedPtr, object.GetDescription());
-                        context.device->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
+                        deviceContext.GetDevice()->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
                     }
                     break;
                         /*     case ResourceView::ViewType::RShaderResourceView:
@@ -245,40 +249,41 @@ namespace OpenDemo
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreateContext& context, CommandList& resource)
+                Result initResource(CommandList& resource)
                 {
+                    auto& deviceContext = DeviceContext::Instance();
                     auto impl = new CommandListImpl(resource.GetCommandListType());
 
-                    D3DCall(impl->Init(context.device, resource.GetName()));
+                    D3DCall(impl->Init(deviceContext.GetDevice(), resource.GetName()));
                     resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl));
 
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreateContext& context, Fence& resource)
+                Result initResource(Fence& resource)
                 {
+                    auto& deviceContext = DeviceContext::Instance();
                     auto impl = new FenceImpl();
 
-                    D3DCall(impl->Init(context.device, resource.GetName()));
+                    D3DCall(impl->Init(deviceContext.GetDevice(), resource.GetName()));
                     resource.SetPrivateImpl(impl);
 
                     return Result::Ok;
                 }
 
-                Result initResource(const ResourceCreateContext& context, SwapChain& resource)
+                Result initResource(SwapChain& resource)
                 {
+                    auto& deviceContext = DeviceContext::Instance();
                     auto impl = new SwapChainImpl();
 
-                    ASSERT(context.graphicsCommandQueue->GetD3DObject());
-
-                    D3DCall(impl->Init(context.device, context.dxgiFactory, context.graphicsCommandQueue->GetD3DObject(), resource.GetDescription(), resource.GetName()));
+                    D3DCall(impl->Init(deviceContext.GetDevice(), deviceContext.GetDxgiFactory(), deviceContext.GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription(), resource.GetName()));
                     resource.SetPrivateImpl(impl);
 
                     return Result::Ok;
                 }
 
                 template <typename T, typename Impl>
-                void releaseResource(ResourceReleaseContext& resourceReleaseContext, T& resource)
+                void releaseResource(T& resource)
                 {
                     static_assert(std::is_base_of<Object, T>::value, "T should be derived from Object");
 
@@ -288,13 +293,13 @@ namespace OpenDemo
                     const auto impl = resource.GetPrivateImpl<Impl>();
                     ASSERT(impl);
 
-                    impl->ReleaseD3DObjects(resourceReleaseContext);
+                    impl->ReleaseD3DObjects();
 
                     resource.SetPrivateImpl(nullptr);
                 }
 
                 template <>
-                void releaseResource<GpuResourceView, DescriptorHeap::Allocation>(ResourceReleaseContext& resourceReleaseContext, GpuResourceView& resource)
+                void releaseResource<GpuResourceView, DescriptorHeap::Allocation>(GpuResourceView& resource)
                 {
                     const auto impl = resource.GetPrivateImpl<DescriptorHeap::Allocation>();
                     ASSERT(impl);
@@ -305,15 +310,15 @@ namespace OpenDemo
                 }
             }
 
-            Result ResourceCreator::InitResource(const ResourceCreateContext& context, const Object::SharedPtr& resource)
+            Result ResourceCreator::InitResource(const Object::SharedPtr& resource)
             {
                 ASSERT(resource)
 
-#define CASE_RESOURCE(T)                                                        \
-    case Object::Type::T:                                                       \
-        ASSERT(std::dynamic_pointer_cast<T>(resource));                         \
-        ASSERT(!std::static_pointer_cast<T>(resource)->GetPrivateImpl());       \
-        result = initResource(context, *std::static_pointer_cast<T>(resource)); \
+#define CASE_RESOURCE(T)                                                  \
+    case Object::Type::T:                                                 \
+        ASSERT(std::dynamic_pointer_cast<T>(resource));                   \
+        ASSERT(!std::static_pointer_cast<T>(resource)->GetPrivateImpl()); \
+        result = initResource(*std::static_pointer_cast<T>(resource));    \
         break;
 
                 Result result = Result::NotImplemented;
@@ -338,12 +343,12 @@ namespace OpenDemo
                 return result;
             }
 
-            void ResourceCreator::ReleaseResource(ResourceReleaseContext& resourceReleaseContext, Object& resource)
+            void ResourceCreator::ReleaseResource(Object& resource)
             {
-#define CASE_RESOURCE(T, IMPL)                                                       \
-    case Object::Type::T:                                                            \
-        ASSERT(dynamic_cast<T*>(&resource));                                         \
-        releaseResource<T, IMPL>(resourceReleaseContext, static_cast<T&>(resource)); \
+#define CASE_RESOURCE(T, IMPL)                               \
+    case Object::Type::T:                                    \
+        ASSERT(dynamic_cast<T*>(&resource));                 \
+        releaseResource<T, IMPL>(static_cast<T&>(resource)); \
         break;
 
                 switch (resource.GetType())

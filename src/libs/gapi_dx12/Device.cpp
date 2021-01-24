@@ -14,6 +14,7 @@
 #include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
+#include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
@@ -44,11 +45,11 @@ namespace OpenDemo
             template <typename T>
             void ThrowIfFailed(T c) { std::ignore = c; };
 
-            class DeviceImplementation final : public IDevice
+            class DeviceImpl final : public IDevice
             {
             public:
-                DeviceImplementation();
-                virtual ~DeviceImplementation();
+                DeviceImpl();
+                virtual ~DeviceImpl();
 
                 Result Init(const IDevice::Description& description) override;
                 Result Submit(const CommandList::SharedPtr& commandList);
@@ -70,6 +71,7 @@ namespace OpenDemo
                     std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
                     std::unique_ptr<FenceImpl> gpuWaitFence_;
                     std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
+                    std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
                 };
 
             private:
@@ -84,9 +86,6 @@ namespace OpenDemo
 
                 D3D_FEATURE_LEVEL d3dFeatureLevel_ = D3D_FEATURE_LEVEL_1_0_CORE;
 
-                std::unique_ptr<ResourceCreateContext> resourceCreateContext_;
-                std::unique_ptr<ResourceReleaseContext> resourceReleaseContext_;
-
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
                 ComSharedPtr<ID3D12Device> d3dDevice_;
@@ -94,12 +93,12 @@ namespace OpenDemo
                 std::unique_ptr<Resources> resources_;
             };
 
-            DeviceImplementation::DeviceImplementation()
+            DeviceImpl::DeviceImpl()
                 : creationThreadID_(std::this_thread::get_id())
             {
             }
 
-            DeviceImplementation::~DeviceImplementation()
+            DeviceImpl::~DeviceImpl()
             {
                 ASSERT_IS_CREATION_THREAD;
 
@@ -112,8 +111,7 @@ namespace OpenDemo
                     LOG_ERROR("WaitForGPU Error: %s", result.ToString());
 
                 resources_.reset();
-                resourceCreateContext_.reset();
-                resourceReleaseContext_.reset();
+                DeviceContext::Instance().Terminate();
 
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
@@ -137,7 +135,7 @@ namespace OpenDemo
                 d3dDevice_ = nullptr;
             }
 
-            Result DeviceImplementation::Init(const IDevice::Description& description)
+            Result DeviceImpl::Init(const IDevice::Description& description)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
@@ -159,48 +157,46 @@ namespace OpenDemo
                 resources_->graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
                 D3DCall(resources_->graphicsCommandQueue_->Init(d3dDevice_, "Primary"));
 
-                resourceCreateContext_ = std::make_unique<ResourceCreateContext>(
-                    d3dDevice_,
-                    dxgiFactory_,
-                    resources_->graphicsCommandQueue_,
-                    resources_->descriptorHeapSet_);
+                resources_->resourceReleaseContext_ = std::make_shared<ResourceReleaseContext>();
+                D3DCall(resources_->resourceReleaseContext_->Init(d3dDevice_));
 
-                resourceReleaseContext_ = std::make_unique<ResourceReleaseContext>();
-                D3DCall(resourceReleaseContext_->Init(d3dDevice_));
+                DeviceContext::Instance()
+                    .Init(
+                        d3dDevice_,
+                        dxgiFactory_,
+                        resources_->graphicsCommandQueue_,
+                        resources_->descriptorHeapSet_,
+                        resources_->resourceReleaseContext_);
 
                 inited_ = true;
 
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::WaitForGpu()
+            Result DeviceImpl::WaitForGpu()
             {
                 ASSERT_IS_DEVICE_INITED;
 
                 D3DCall(resources_->gpuWaitFence_->Signal(*resources_->graphicsCommandQueue_.get()));
                 D3DCall(resources_->gpuWaitFence_->SyncCPU(std::nullopt));
-                D3DCall(resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
+                D3DCall(resources_->resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
 
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::InitResource(const Object::SharedPtr& resource) const
+            Result DeviceImpl::InitResource(const Object::SharedPtr& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                ASSERT(resourceCreateContext_);
-
-                return ResourceCreator::InitResource(*resourceCreateContext_.get(), resource);
+                return ResourceCreator::InitResource(resource);
             }
 
-            void DeviceImplementation::ReleaseResource(Object& resource) const
+            void DeviceImpl::ReleaseResource(Object& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                ASSERT(resourceReleaseContext_);
-
-                return ResourceCreator::ReleaseResource(*resourceReleaseContext_.get(), resource);
+                return ResourceCreator::ReleaseResource(resource);
             }
 
-            Result DeviceImplementation::Submit(const CommandList::SharedPtr& commandList)
+            Result DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
             {
                 /* ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -221,7 +217,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::Present(const SwapChain::SharedPtr& swapChain)
+            Result DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -278,7 +274,7 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::createDevice()
+            Result DeviceImpl::createDevice()
             {
                 ASSERT_IS_CREATION_THREAD
 
@@ -367,18 +363,18 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImplementation::MoveToNextFrame()
+            Result DeviceImpl::MoveToNextFrame()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
 
-                D3DCall(resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
+                D3DCall(resources_->resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
 
                 return Result::Ok;
             }
 
             /*
-            void DeviceImplementation::DefferedDeleteD3DObject(const ComSharedPtr<IUnknown>& object)
+            void DeviceImpl::DefferedDeleteD3DObject(const ComSharedPtr<IUnknown>& object)
             {
                 ASSERT(defferedDeletionResources_);
 
@@ -394,7 +390,7 @@ namespace OpenDemo
                 auto& device = Device::Create("Primary");
                 ASSERT(device);
 
-                device->SetPrivateImpl(new DeviceImplementation());
+                device->SetPrivateImpl(new DeviceImpl());
                 return device;
             }
         }

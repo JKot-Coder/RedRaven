@@ -1,8 +1,11 @@
 #include "CommandListImpl.hpp"
 
+#include "d3dx12.h"
+
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
 
+#include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -51,10 +54,12 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects()
             {
+                auto& deviceContext = DeviceContext::Instance();
+
                 for (auto& allocatorData : allocators_)
-                    releaseContext.DeferredD3DResourceRelease(allocatorData.allocator);
+                    deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(allocatorData.allocator);
             }
 
             const ComSharedPtr<ID3D12CommandAllocator>& CommandListImpl::CommandAllocatorsPool::GetNextAllocator()
@@ -94,10 +99,12 @@ namespace OpenDemo
                 }
             }
 
-            void CommandListImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void CommandListImpl::ReleaseD3DObjects()
             {
-                releaseContext.DeferredD3DResourceRelease(D3DCommandList_);
-                commandAllocatorsPool_.ReleaseD3DObjects(releaseContext);
+                auto& deviceContext = DeviceContext::Instance();
+
+                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandList_);
+                commandAllocatorsPool_.ReleaseD3DObjects();
             }
 
             Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
@@ -147,6 +154,44 @@ namespace OpenDemo
             void CommandListImpl::CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                                const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
             {
+            }
+
+            void CommandListImpl::UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            {
+                ASSERT(texture);
+                ASSERT(texture->GetNumSubresources() == subresourceFootprint.size());
+
+                UpdateSubresourceData(texture, 0, subresourceFootprint);
+            }
+
+            void CommandListImpl::UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            {
+                ASSERT(texture);
+                ASSERT(firstSubresource + subresourceFootprint.size() <= texture->GetNumSubresources());
+
+                const auto subresourcesCount = subresourceFootprint.size();
+                ASSERT(subresourcesCount > 0);
+
+                const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
+                ASSERT(resourceImpl);
+
+                resourceImpl->GetD3DObject().get();
+
+                std::vector<D3D12_SUBRESOURCE_DATA> subresourcesData(subresourcesCount);
+
+                for (int index = 0; index < subresourcesCount; index++)
+                {
+                    auto& subresourceData = subresourcesData[index];
+
+                    subresourceData.pData = subresourceFootprint[index].data;
+                    subresourceData.RowPitch = subresourceFootprint[index].rowPitch;
+                    subresourceData.SlicePitch = subresourceFootprint[index].depthPitch;
+                }
+
+                const auto& deviceContext = DeviceContext::Instance();
+                deviceContext.getUploadBuffer();
+
+                UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
             }
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)

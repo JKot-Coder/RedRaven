@@ -84,6 +84,11 @@ namespace OpenDemo
             std::shared_ptr<UnorderedAccessView> GetUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
 
             const TextureDescription& GetDescription() const { return description_; }
+            const uint32_t GetNumSubresources() const
+            {
+                constexpr uint32_t PlaneSlices = 1;
+                return PlaneSlices * description_.arraySize * description_.mipLevels;
+            }
 
         private:
             template <class Deleter>

@@ -27,10 +27,13 @@ set(GAPI_SRC
         Config.hpp
         D3DUtils.cpp
         D3DUtils.hpp
+        GpuMemoryHeap.hpp
+        GpuMemoryHeap.hpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
         DescriptorHeapSet.cpp 
         DescriptorHeapSet.hpp
+        DeviceContext.hpp
         Device.cpp
         Device.hpp
         ResourceReleaseContext.hpp

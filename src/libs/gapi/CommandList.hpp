@@ -22,6 +22,17 @@ namespace OpenDemo
 
     namespace GAPI
     {
+        struct TextureSubresourceFootprint
+        {
+            TextureSubresourceFootprint(void* data, size_t size, size_t rowPitch, size_t depthPitch)
+                : data(data), size(size), rowPitch(rowPitch), depthPitch(depthPitch) { }
+
+            void* data;
+            size_t size;
+            size_t rowPitch;
+            size_t depthPitch;
+        };
+
         enum class CommandListType : uint32_t
         {
             Copy,
@@ -44,6 +55,9 @@ namespace OpenDemo
                                                 const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) = 0;
             virtual void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                       const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
+
+            virtual void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint) = 0;
+            virtual void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint) = 0;
         };
 
         class ICopyCommandList : public ICommandList
@@ -116,6 +130,16 @@ namespace OpenDemo
                                                      const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
             {
                 GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
+            }
+
+            inline void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            {
+                GetPrivateImpl()->UpdateTextureData(texture, subresourceFootprint);
+            }
+
+            inline void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            {
+                GetPrivateImpl()->UpdateSubresourceData(texture, firstSubresource, subresourceFootprint);
             }
 
         private:

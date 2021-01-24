@@ -8,15 +8,13 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceReleaseContext;
-
             class ResourceImpl final : public IGpuResource
             {
             public:
                 ResourceImpl() = default;
                 ~ResourceImpl() = default;
 
-                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+                void ReleaseD3DObjects();
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& desc, const GpuResourceBindFlags bindFlags, const U8String& name);
                 Result Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& desc, const GpuResourceBindFlags bindFlags, const U8String& name);

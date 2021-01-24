@@ -9,14 +9,12 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceReleaseContext;
-
             class SwapChainImpl final : public ISwapChain
             {
             public:
                 SwapChainImpl() = default;
 
-                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+                void ReleaseD3DObjects();
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name);
                 Result Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers);

@@ -3,6 +3,7 @@
 #include "gapi/CommandQueue.hpp"
 
 #include "gapi_dx12/CommandQueueImpl.hpp"
+#include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
 namespace OpenDemo
@@ -11,9 +12,10 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            void FenceImpl::ReleaseD3DObjects(ResourceReleaseContext& releaseContext)
+            void FenceImpl::ReleaseD3DObjects()
             {
-                releaseContext.DeferredD3DResourceRelease(D3DFence_);
+                auto& deviceContext = DeviceContext().Instance();
+                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DFence_);
             }
 
             Result FenceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)

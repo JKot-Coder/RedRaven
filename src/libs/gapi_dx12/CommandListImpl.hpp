@@ -10,7 +10,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceReleaseContext;
             class FenceImpl;
             class CommandQueueImpl;
 
@@ -33,9 +32,12 @@ namespace OpenDemo
                 void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                   const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
 
+                void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint) override;
+                void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint) override;
+
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
-                void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+                void ReleaseD3DObjects();
                 Result ResetAfterSubmit(CommandQueueImpl& commandQueue);
 
                 const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
@@ -49,7 +51,7 @@ namespace OpenDemo
                 public:
                     Result Init(const ComSharedPtr<ID3D12Device>& device, D3D12_COMMAND_LIST_TYPE type, const U8String& name);
 
-                    void ReleaseD3DObjects(ResourceReleaseContext& releaseContext);
+                    void ReleaseD3DObjects();
 
                     const ComSharedPtr<ID3D12CommandAllocator>& GetNextAllocator();
                     Result ResetAfterSubmit(CommandQueueImpl& commandQueue);
