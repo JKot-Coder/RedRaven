@@ -48,7 +48,14 @@ namespace OpenDemo
         class IMultiThreadDevice
         {
         public:
-            virtual Result InitResource(const std::shared_ptr<Object>& resource) const = 0;
+            virtual Result InitSwapChain(SwapChain& resource) const = 0;
+            virtual Result InitFence(Fence& resource) const = 0;
+            virtual Result InitCommandQueue(CommandQueue& resource) const = 0;
+            virtual Result InitCommandList(CommandList& resource) const = 0;
+            virtual Result InitTexture(Texture& resource) const = 0;
+            virtual Result InitBuffer(Buffer& resource) const = 0;
+            virtual Result InitGpuResourceView(GpuResourceView& view) const = 0;
+
             virtual void ReleaseResource(Object& resource) const = 0;
         };
 
@@ -73,7 +80,14 @@ namespace OpenDemo
             Result MoveToNextFrame() override { return GetPrivateImpl()->MoveToNextFrame(); }
             Result WaitForGpu() override { return GetPrivateImpl()->WaitForGpu(); }
 
-            Result InitResource(const std::shared_ptr<Object>& resource) const override { return GetPrivateImpl()->InitResource(resource); }
+            Result InitSwapChain(SwapChain& resource) const override { return GetPrivateImpl()->InitSwapChain(resource); };
+            Result InitFence(Fence& resource) const override { return GetPrivateImpl()->InitFence(resource); };
+            Result InitCommandQueue(CommandQueue& resource) const override { return GetPrivateImpl()->InitCommandQueue(resource); };
+            Result InitCommandList(CommandList& resource) const override { return GetPrivateImpl()->InitCommandList(resource); };
+            Result InitTexture(Texture& resource) const override { return GetPrivateImpl()->InitTexture(resource); };
+            Result InitBuffer(Buffer& resource) const override { return GetPrivateImpl()->InitBuffer(resource); };
+            Result InitGpuResourceView(GpuResourceView& view) const override { return GetPrivateImpl()->InitGpuResourceView(view); };
+
             void ReleaseResource(Object& resource) const override { GetPrivateImpl()->ReleaseResource(resource); }
 
         public:

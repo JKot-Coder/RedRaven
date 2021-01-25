@@ -189,9 +189,9 @@ namespace OpenDemo
                 }
 
                 const auto& deviceContext = DeviceContext::Instance();
-                deviceContext.getUploadBuffer();
+               // deviceContext.getUploadBuffer();
 
-                UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
+            //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
             }
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)

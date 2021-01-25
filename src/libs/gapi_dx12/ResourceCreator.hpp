@@ -32,7 +32,14 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                Result InitResource(const std::shared_ptr<Object>& resource);
+                Result InitSwapChain(SwapChain& resource);
+                Result InitFence(Fence& resource);
+                Result InitCommandQueue(CommandQueue& resource);
+                Result InitCommandList(CommandList& resource);
+                Result InitTexture(Texture& resource);
+                Result InitBuffer(Buffer& resource);
+                Result InitGpuResourceView(GpuResourceView& view);
+
                 void ReleaseResource(Object& resource);
             }
         }

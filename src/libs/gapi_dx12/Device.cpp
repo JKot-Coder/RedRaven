@@ -57,7 +57,14 @@ namespace OpenDemo
                 Result MoveToNextFrame() override;
                 Result WaitForGpu() override;
 
-                Result InitResource(const Object::SharedPtr& resource) const override;
+                Result InitSwapChain(SwapChain& resource) const override;
+                Result InitFence(Fence& resource) const override;
+                Result InitCommandQueue(CommandQueue& resource) const override;
+                Result InitCommandList(CommandList& resource) const override;
+                Result InitTexture(Texture& resource) const override;
+                Result InitBuffer(Buffer& resource) const override;
+                Result InitGpuResourceView(GpuResourceView& view) const override;
+
                 void ReleaseResource(Object& resource) const override;
 
                 ID3D12Device* GetDevice() const
@@ -184,10 +191,46 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result DeviceImpl::InitResource(const Object::SharedPtr& resource) const
+            Result DeviceImpl::InitSwapChain(SwapChain& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::InitResource(resource);
+                return ResourceCreator::InitSwapChain(resource);
+            }
+
+            Result DeviceImpl::InitFence(Fence& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitFence(resource);
+            }
+
+            Result DeviceImpl::InitCommandQueue(CommandQueue& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitCommandQueue(resource);
+            }
+
+            Result DeviceImpl::InitCommandList(CommandList& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitCommandList(resource);
+            }
+
+            Result DeviceImpl::InitTexture(Texture& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitTexture(resource);
+            }
+
+            Result DeviceImpl::InitBuffer(Buffer& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitBuffer(resource);
+            }
+
+            Result DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitGpuResourceView(view);
             }
 
             void DeviceImpl::ReleaseResource(Object& resource) const
