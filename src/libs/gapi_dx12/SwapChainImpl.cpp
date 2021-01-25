@@ -122,7 +122,7 @@ namespace OpenDemo
                 ASSERT(backBuffer_);
 
                 auto impl = new ResourceImpl();
-                D3DCall(impl->Init(backBuffer_, resource->GetDescription(), resource->GetBindFlags(), resource->GetName()));
+                D3DCall(impl->Init(backBuffer_, resource->GetDescription(), resource->GetName()));
                 resource->SetPrivateImpl(impl);
 
                 return Result::Ok;

@@ -159,7 +159,7 @@ namespace OpenDemo
             void CommandListImpl::UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
             {
                 ASSERT(texture);
-                ASSERT(texture->GetNumSubresources() == subresourceFootprint.size());
+                ASSERT(texture->GetDescription().GetNumSubresources() == subresourceFootprint.size());
 
                 UpdateSubresourceData(texture, 0, subresourceFootprint);
             }
@@ -167,7 +167,7 @@ namespace OpenDemo
             void CommandListImpl::UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
             {
                 ASSERT(texture);
-                ASSERT(firstSubresource + subresourceFootprint.size() <= texture->GetNumSubresources());
+                ASSERT(firstSubresource + subresourceFootprint.size() <= texture->GetDescription().GetNumSubresources());
 
                 const auto subresourcesCount = subresourceFootprint.size();
                 ASSERT(subresourcesCount > 0);

@@ -79,10 +79,17 @@ namespace OpenDemo
                 deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
             {
-                ASSERT(device)
+                return Init(resource.GetDescription(), resource.GetBindFlags(), subresourcesFootprint, resource.GetName());
+            }
+
+            Result ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name)
+            {
                 // TextureDesc ASSERT checks done on Texture initialization;
+                ASSERT(subresourcesFootprint.size() == 0 || subresourcesFootprint.size() == resourceDesc.GetNumSubresources());
+
+                auto& deviceContext = DeviceContext().Instance();
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
                 ASSERT(format != DXGI_FORMAT_UNKNOWN)
@@ -94,7 +101,7 @@ namespace OpenDemo
                 const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
 
                 D3DCallMsg(
-                    device->CreateCommittedResource(
+                    deviceContext.GetDevice()->CreateCommittedResource(
                         &DefaultHeapProps,
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
@@ -105,10 +112,12 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
+                D3DCall(performInitialUpload(subresourcesFootprint));
+
                 return Result::Ok;
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags, const U8String& name)
+            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, const U8String& name)
             {
                 ASSERT(resource);
                 // TextureDesc ASSERT checks done on Texture initialization;
@@ -122,6 +131,16 @@ namespace OpenDemo
 
                 D3DResource_ = resource;
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
+
+                return Result::Ok;
+            }
+
+            Result ResourceImpl::performInitialUpload(const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
+            {
+                if (subresourcesFootprint.size() == 0)
+                    return Result::Ok;
+
+                //subresourcesFootprint
 
                 return Result::Ok;
             }

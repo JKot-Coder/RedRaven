@@ -244,12 +244,12 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::vector<GAPI::TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name) const
         {
             ASSERT(inited_);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
-            if (!submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get()))
+            if (!submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), subresourcesFootprint))
                 resource = nullptr;
 
             return resource;

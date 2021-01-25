@@ -245,18 +245,6 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result ResourceCreator::InitTexture(Texture& resource)
-            {
-                auto& deviceContext = DeviceContext::Instance();
-
-                auto impl = std::make_unique<ResourceImpl>();
-                D3DCall(impl->Init(deviceContext.GetDevice(), resource.GetDescription(), resource.GetBindFlags(), resource.GetName()));
-
-                resource.SetPrivateImpl(impl.release());
-
-                return Result::Ok;
-            }
-
             Result ResourceCreator::InitBuffer(Buffer& resource)
             {
                 auto& deviceContext = DeviceContext::Instance();

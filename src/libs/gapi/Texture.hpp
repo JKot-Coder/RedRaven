@@ -46,6 +46,12 @@ namespace OpenDemo
                 return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
             }
 
+            const uint32_t GetNumSubresources() const
+            {
+                constexpr uint32_t PlaneSlices = 1;
+                return PlaneSlices * arraySize * mipLevels;
+            }
+
             GpuResourceFormat format;
             TextureDimension dimension = TextureDimension::Unknown;
             uint32_t width = 0;
@@ -69,6 +75,17 @@ namespace OpenDemo
             }
         };
 
+        struct TextureSubresourceFootprint
+        {
+            TextureSubresourceFootprint(void* data, size_t size, size_t rowPitch, size_t depthPitch)
+                : data(data), size(size), rowPitch(rowPitch), depthPitch(depthPitch) { }
+
+            void* data;
+            size_t size;
+            size_t rowPitch;
+            size_t depthPitch;
+        };
+
         class Texture final : public GpuResource
         {
         public:
@@ -84,11 +101,6 @@ namespace OpenDemo
             std::shared_ptr<UnorderedAccessView> GetUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
 
             const TextureDescription& GetDescription() const { return description_; }
-            const uint32_t GetNumSubresources() const
-            {
-                constexpr uint32_t PlaneSlices = 1;
-                return PlaneSlices * description_.arraySize * description_.mipLevels;
-            }
 
         private:
             template <class Deleter>

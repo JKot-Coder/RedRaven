@@ -37,6 +37,7 @@ namespace OpenDemo
 
         class Texture;
         struct TextureDescription;
+        struct TextureSubresourceFootprint;
         enum class TextureDimension : uint32_t;
 
         class Buffer;

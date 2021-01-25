@@ -52,15 +52,8 @@ namespace OpenDemo
             : GpuResource(GpuResource::Type::Texture, bindFlags, name),
               description_(desc)
         {
+            ASSERT(description_.format != GpuResourceFormat::Unknown)
             ASSERT(description_.dimension != TextureDimension::Unknown)
-
-            ASSERT(description_.width > 0)
-            ASSERT(description_.height > 0)
-            ASSERT(description_.depth > 0)
-
-            ASSERT(description_.mipLevels > 0)
-            ASSERT(description_.sampleCount > 0)
-            ASSERT(description_.arraySize > 0)
 
             ASSERT((description_.sampleCount > 1 && description_.dimension == TextureDimension::Texture2DMS) ||
                    (description_.sampleCount == 1 && description_.dimension != TextureDimension::Texture2DMS));

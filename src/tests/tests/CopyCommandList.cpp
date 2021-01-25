@@ -30,7 +30,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
   
-                auto texture = renderContext.CreateTexture(description, bindFlags, name);
+                auto texture = renderContext.CreateTexture(description, bindFlags, {}, name);
                 REQUIRE(texture);
 
                 return texture;

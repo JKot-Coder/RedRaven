@@ -23,7 +23,9 @@ set(GAPI_SRC
         SwapChain.cpp
         SwapChain.hpp
         Texture.cpp
-        Texture.hpp )
+        Texture.hpp
+        Buffer.hpp
+        Buffer.cpp)
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")

@@ -1867,6 +1867,7 @@ namespace OpenDemo
 
         namespace PointerMath
         {
+            // Todo ambigous
             template <typename T>
             inline constexpr T AlignTo(T value, size_t alignment)
             {

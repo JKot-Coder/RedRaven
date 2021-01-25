@@ -25,7 +25,7 @@ namespace OpenDemo
 
                 Result Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc);
 
-                Result Alloc(Allocation& allocation)
+                Result Allocate(Allocation& allocation)
                 {
                     ASSERT(d3d12Heap_)
 

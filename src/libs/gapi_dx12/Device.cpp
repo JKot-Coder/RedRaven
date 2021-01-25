@@ -61,7 +61,7 @@ namespace OpenDemo
                 Result InitFence(Fence& resource) const override;
                 Result InitCommandQueue(CommandQueue& resource) const override;
                 Result InitCommandList(CommandList& resource) const override;
-                Result InitTexture(Texture& resource) const override;
+                Result InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const override;
                 Result InitBuffer(Buffer& resource) const override;
                 Result InitGpuResourceView(GpuResourceView& view) const override;
 
@@ -215,10 +215,16 @@ namespace OpenDemo
                 return ResourceCreator::InitCommandList(resource);
             }
 
-            Result DeviceImpl::InitTexture(Texture& resource) const
+            Result DeviceImpl::InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::InitTexture(resource);
+
+                auto impl = std::make_unique<ResourceImpl>();
+                D3DCall(impl->Init(resource, subresourcesFootprint));
+
+                resource.SetPrivateImpl(impl.release());
+
+                return Result::Ok;
             }
 
             Result DeviceImpl::InitBuffer(Buffer& resource) const

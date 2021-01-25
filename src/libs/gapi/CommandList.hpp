@@ -22,17 +22,6 @@ namespace OpenDemo
 
     namespace GAPI
     {
-        struct TextureSubresourceFootprint
-        {
-            TextureSubresourceFootprint(void* data, size_t size, size_t rowPitch, size_t depthPitch)
-                : data(data), size(size), rowPitch(rowPitch), depthPitch(depthPitch) { }
-
-            void* data;
-            size_t size;
-            size_t rowPitch;
-            size_t depthPitch;
-        };
-
         enum class CommandListType : uint32_t
         {
             Copy,

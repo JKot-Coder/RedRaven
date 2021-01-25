@@ -28,7 +28,7 @@ set(GAPI_SRC
         D3DUtils.cpp
         D3DUtils.hpp
         GpuMemoryHeap.hpp
-        GpuMemoryHeap.hpp
+        GpuMemoryHeap.cpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
         DescriptorHeapSet.cpp 

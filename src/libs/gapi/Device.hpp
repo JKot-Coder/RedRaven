@@ -52,7 +52,7 @@ namespace OpenDemo
             virtual Result InitFence(Fence& resource) const = 0;
             virtual Result InitCommandQueue(CommandQueue& resource) const = 0;
             virtual Result InitCommandList(CommandList& resource) const = 0;
-            virtual Result InitTexture(Texture& resource) const = 0;
+            virtual Result InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const = 0;
             virtual Result InitBuffer(Buffer& resource) const = 0;
             virtual Result InitGpuResourceView(GpuResourceView& view) const = 0;
 
@@ -84,7 +84,7 @@ namespace OpenDemo
             Result InitFence(Fence& resource) const override { return GetPrivateImpl()->InitFence(resource); };
             Result InitCommandQueue(CommandQueue& resource) const override { return GetPrivateImpl()->InitCommandQueue(resource); };
             Result InitCommandList(CommandList& resource) const override { return GetPrivateImpl()->InitCommandList(resource); };
-            Result InitTexture(Texture& resource) const override { return GetPrivateImpl()->InitTexture(resource); };
+            Result InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const override { return GetPrivateImpl()->InitTexture(resource, subresourcesFootprint); };
             Result InitBuffer(Buffer& resource) const override { return GetPrivateImpl()->InitBuffer(resource); };
             Result InitGpuResourceView(GpuResourceView& view) const override { return GetPrivateImpl()->InitGpuResourceView(view); };
 
