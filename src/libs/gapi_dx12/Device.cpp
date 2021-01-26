@@ -16,6 +16,7 @@
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
+#include "gapi_dx12/GpuMemoryHeap.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -79,6 +80,7 @@ namespace OpenDemo
                     std::unique_ptr<FenceImpl> gpuWaitFence_;
                     std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
                     std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
+                    std::shared_ptr<GpuMemoryHeap> uploadHeap_;
                 };
 
             private:
@@ -153,27 +155,31 @@ namespace OpenDemo
 
                 D3DCallMsg(createDevice(), "CreateDevice");
 
+                DeviceContext::Instance().Init(d3dDevice_, dxgiFactory_);
+
                 resources_ = std::make_unique<Resources>();
 
                 resources_->descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
-                D3DCall(resources_->descriptorHeapSet_->Init(d3dDevice_));
+                D3DCall(resources_->descriptorHeapSet_->Init());
 
                 resources_->gpuWaitFence_ = std::make_unique<FenceImpl>();
-                D3DCall(resources_->gpuWaitFence_->Init(d3dDevice_, "GpuWait"));
+                D3DCall(resources_->gpuWaitFence_->Init("GpuWait"));
 
                 resources_->graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
-                D3DCall(resources_->graphicsCommandQueue_->Init(d3dDevice_, "Primary"));
+                D3DCall(resources_->graphicsCommandQueue_->Init("Primary"));
 
                 resources_->resourceReleaseContext_ = std::make_shared<ResourceReleaseContext>();
-                D3DCall(resources_->resourceReleaseContext_->Init(d3dDevice_));
+                D3DCall(resources_->resourceReleaseContext_->Init());
 
-                DeviceContext::Instance()
-                    .Init(
-                        d3dDevice_,
-                        dxgiFactory_,
-                        resources_->graphicsCommandQueue_,
-                        resources_->descriptorHeapSet_,
-                        resources_->resourceReleaseContext_);
+                constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
+                resources_->uploadHeap_ = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
+                D3DCall(resources_->uploadHeap_->Init("Upload heap"));
+
+                DeviceContext::Instance().Init(
+                    resources_->graphicsCommandQueue_,
+                    resources_->descriptorHeapSet_,
+                    resources_->resourceReleaseContext_,
+                    resources_->uploadHeap_);
 
                 inited_ = true;
 

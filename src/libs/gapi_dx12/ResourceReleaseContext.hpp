@@ -24,10 +24,10 @@ namespace OpenDemo
             public:
                 ResourceReleaseContext() = default;
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device)
+                Result Init()
                 {
                     fence_ = std::make_unique<FenceImpl>();
-                    D3DCall(fence_->Init(device, "ResourceRelease"));
+                    D3DCall(fence_->Init("ResourceRelease"));
 
                     return Result::Ok;
                 }

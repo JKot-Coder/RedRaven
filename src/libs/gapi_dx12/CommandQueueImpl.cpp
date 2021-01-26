@@ -30,10 +30,11 @@ namespace OpenDemo
                 deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandQueue_);
             }
 
-            Result CommandQueueImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
+            Result CommandQueueImpl::Init(const U8String& name)
             {
-                ASSERT(device)
-                ASSERT(D3DCommandQueue_.get() == nullptr)
+                ASSERT(!D3DCommandQueue_)
+
+                const auto& device = DeviceContext::Instance().GetDevice();
 
                 D3D12_COMMAND_QUEUE_DESC desc = {};
                 desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;

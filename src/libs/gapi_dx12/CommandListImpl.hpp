@@ -18,7 +18,7 @@ namespace OpenDemo
             public:
                 CommandListImpl(const CommandListType commandListType);
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
+                Result Init(const U8String& name);
 
                 Result Close() override;
 
@@ -49,7 +49,7 @@ namespace OpenDemo
                 class CommandAllocatorsPool
                 {
                 public:
-                    Result Init(const ComSharedPtr<ID3D12Device>& device, D3D12_COMMAND_LIST_TYPE type, const U8String& name);
+                    Result Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
 
                     void ReleaseD3DObjects();
 
@@ -64,7 +64,6 @@ namespace OpenDemo
                     };
 
                     Result createAllocator(
-                        const ComSharedPtr<ID3D12Device>& device,
                         const U8String& name,
                         const uint32_t index,
                         ComSharedPtr<ID3D12CommandAllocator>& allocator) const;

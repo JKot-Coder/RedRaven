@@ -18,15 +18,13 @@ namespace OpenDemo
         namespace DX12
         {
             Result CommandListImpl::CommandAllocatorsPool::createAllocator(
-                const ComSharedPtr<ID3D12Device>& device,
                 const U8String& name,
                 const uint32_t index,
                 ComSharedPtr<ID3D12CommandAllocator>& allocator) const
             {
-                ASSERT(device);
                 ASSERT(!allocator);
 
-                D3DCallMsg(device->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
+                D3DCallMsg(DeviceContext::Instance().GetDevice()->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
 
                 D3DUtils::SetAPIName(allocator.get(), name, index);
 
@@ -34,20 +32,17 @@ namespace OpenDemo
             }
 
             Result CommandListImpl::CommandAllocatorsPool::Init(
-                const ComSharedPtr<ID3D12Device>& device,
                 D3D12_COMMAND_LIST_TYPE type,
                 const U8String& name)
             {
-                ASSERT(device);
-
                 type_ = type;
                 fence_ = std::make_unique<FenceImpl>();
-                D3DCall(fence_->Init(device, name));
+                D3DCall(fence_->Init(name));
 
                 for (uint32_t index = 0; index < allocators_.size(); index++)
                 {
                     auto& allocatorData = allocators_[index];
-                    D3DCall(createAllocator(device, name, index, allocatorData.allocator));
+                    D3DCall(createAllocator(name, index, allocatorData.allocator));
                     allocatorData.cpuFenceValue = 0;
                 }
 
@@ -107,15 +102,14 @@ namespace OpenDemo
                 commandAllocatorsPool_.ReleaseD3DObjects();
             }
 
-            Result CommandListImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
+            Result CommandListImpl::Init(const U8String& name)
             {
-                ASSERT(device);
                 ASSERT(!D3DCommandList_);
 
-                D3DCall(commandAllocatorsPool_.Init(device, type_, name));
+                D3DCall(commandAllocatorsPool_.Init(type_, name));
                 const auto allocator = commandAllocatorsPool_.GetNextAllocator();
 
-                D3DCallMsg(device->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
+                D3DCallMsg(DeviceContext::Instance().GetDevice()->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
 
                 D3DUtils::SetAPIName(D3DCommandList_.get(), name);
 
@@ -189,9 +183,9 @@ namespace OpenDemo
                 }
 
                 const auto& deviceContext = DeviceContext::Instance();
-               // deviceContext.getUploadBuffer();
+                // deviceContext.getUploadBuffer();
 
-            //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
+                //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
             }
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)

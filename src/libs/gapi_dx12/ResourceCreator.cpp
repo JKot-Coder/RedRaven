@@ -197,10 +197,8 @@ namespace OpenDemo
 
             Result ResourceCreator::InitFence(Fence& resource)
             {
-                auto& deviceContext = DeviceContext::Instance();
-
                 auto impl = std::make_unique<FenceImpl>();
-                D3DCall(impl->Init(deviceContext.GetDevice(), resource.GetName()));
+                D3DCall(impl->Init(resource.GetName()));
 
                 resource.SetPrivateImpl(impl.release());
 
@@ -225,7 +223,7 @@ namespace OpenDemo
                 else
                 {
                     impl.reset(new CommandQueueImpl(resource.GetCommandQueueType()));
-                    D3DCall(impl->Init(deviceContext.GetDevice(), resource.GetName()));
+                    D3DCall(impl->Init(resource.GetName()));
                 }
 
                 resource.SetPrivateImpl(impl.release());
@@ -235,10 +233,8 @@ namespace OpenDemo
 
             Result ResourceCreator::InitCommandList(CommandList& resource)
             {
-                auto& deviceContext = DeviceContext::Instance();
-
                 auto impl = std::make_unique<CommandListImpl>(resource.GetCommandListType());
-                const auto result = impl->Init(deviceContext.GetDevice(), resource.GetName());
+                const auto result = impl->Init(resource.GetName());
 
                 resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl.release()));
 
@@ -287,7 +283,7 @@ namespace OpenDemo
                     const auto& descriptorHeap = deviceContext.GetDesciptorHeapSet()->GetRtvDescriptorHeap();
                     ASSERT(descriptorHeap);
 
-                    D3DCall(descriptorHeap->Alloc(*allocation));
+                    D3DCall(descriptorHeap->Allocate(*allocation));
 
                     D3D12_RENDER_TARGET_VIEW_DESC desc = CreateRtvDesc(resourceSharedPtr, object.GetDescription());
                     deviceContext.GetDevice()->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());

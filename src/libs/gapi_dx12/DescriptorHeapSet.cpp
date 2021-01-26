@@ -6,7 +6,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            Result DescriptorHeapSet::Init(const ComSharedPtr<ID3D12Device>& device)
+            Result DescriptorHeapSet::Init()
             {
                 rtvDescriptorHeap_ = std::make_shared<DescriptorHeap>();
 
@@ -16,7 +16,7 @@ namespace OpenDemo
                 desc.type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
                 desc.flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-                D3DCall(rtvDescriptorHeap_->Init(device, desc));
+                D3DCall(rtvDescriptorHeap_->Init(desc));
 
                 return Result::Ok;
             }

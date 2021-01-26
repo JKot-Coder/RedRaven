@@ -114,8 +114,10 @@ namespace OpenDemo
 
                 ::DXGI_FORMAT GetGpuResourceFormat(GpuResourceFormat format)
                 {
-                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format)
-                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].to != DXGI_FORMAT_UNKNOWN)
+                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
+                    ASSERT(format == GpuResourceFormat::Unknown ||
+                           formatsConversion[static_cast<uint32_t>(format)].to != DXGI_FORMAT_UNKNOWN);
+
                     return formatsConversion[static_cast<uint32_t>(format)].to;
                 }
 

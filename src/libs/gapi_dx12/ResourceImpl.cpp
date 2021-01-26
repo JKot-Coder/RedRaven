@@ -42,6 +42,9 @@ namespace OpenDemo
                 D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags)
                 {
                     DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
+                    
+                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
+                        format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
 
                     D3D12_RESOURCE_DESC desc;
                     switch (resourceDesc.dimension)
@@ -64,11 +67,16 @@ namespace OpenDemo
                     }
 
                     desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
+                    return desc;
+                }
 
-                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
-                        format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
+                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                {
+                    D3D12_RESOURCE_DESC desc;
 
-                    desc.Format = format;
+                    desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.size);
+                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
+                    desc.Format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
                     return desc;
                 }
             }
@@ -92,7 +100,6 @@ namespace OpenDemo
                 auto& deviceContext = DeviceContext().Instance();
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
-                ASSERT(format != DXGI_FORMAT_UNKNOWN)
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
                 D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
@@ -123,7 +130,6 @@ namespace OpenDemo
                 // TextureDesc ASSERT checks done on Texture initialization;
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
-                ASSERT(format != DXGI_FORMAT_UNKNOWN);
 
                 const D3D12_RESOURCE_DESC& desc = resource->GetDesc();
                 ASSERT(desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
@@ -131,6 +137,30 @@ namespace OpenDemo
 
                 D3DResource_ = resource;
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
+
+                return Result::Ok;
+            }
+
+            Result ResourceImpl::Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name)
+            {
+                ASSERT(resourceDesc.size > 0);
+
+                auto& deviceContext = DeviceContext().Instance();
+                const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
+
+                D3DCallMsg(
+                    deviceContext.GetDevice()->CreateCommittedResource(
+                        &DefaultHeapProps,
+                        D3D12_HEAP_FLAG_NONE,
+                        &desc,
+                        D3D12_RESOURCE_STATE_COMMON,
+                        nullptr,
+                        IID_PPV_ARGS(D3DResource_.put())),
+                    "ResourceImpl::CreateCommittedResource");
+
+                D3DUtils::SetAPIName(D3DResource_.get(), name);
+
+            //    D3DCall(performInitialUpload(subresourcesFootprint));
 
                 return Result::Ok;
             }

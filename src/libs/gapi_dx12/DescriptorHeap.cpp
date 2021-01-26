@@ -1,5 +1,7 @@
 #include "DescriptorHeap.hpp"
 
+#include "DeviceContext.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -12,11 +14,12 @@ namespace OpenDemo
                 ASSERT(allocated_ == 0);
             }
 
-            Result DescriptorHeap::Init(const ComSharedPtr<ID3D12Device>& device, const DescriptorHeapDesc& desc)
+            Result DescriptorHeap::Init(const DescriptorHeapDesc& desc)
             {
-                ASSERT(device)
-                ASSERT(!d3d12Heap_)
-                ASSERT(desc.numDescriptors_ > 0)
+                ASSERT(!d3d12Heap_);
+                ASSERT(desc.numDescriptors_ > 0);
+
+                const auto& device = DeviceContext::Instance().GetDevice();
 
                 name_ = desc.name;
                 numDescriptors_ = desc.numDescriptors_;

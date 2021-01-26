@@ -18,7 +18,7 @@ namespace OpenDemo
 
                 void ReleaseD3DObjects();
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name);
+                Result Init(const U8String& name);
                 Result Submit(const std::shared_ptr<CommandList>& commandList) override;
 
                 // Todo private?

@@ -13,7 +13,7 @@ namespace OpenDemo
             public:
                 DescriptorHeapSet() = default;
 
-                Result Init(const ComSharedPtr<ID3D12Device>& device);
+                Result Init();
 
                 const DescriptorHeap::SharedPtr& GetRtvDescriptorHeap() const { return rtvDescriptorHeap_; }
 

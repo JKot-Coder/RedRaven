@@ -18,10 +18,11 @@ namespace OpenDemo
                 deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DFence_);
             }
 
-            Result FenceImpl::Init(const ComSharedPtr<ID3D12Device>& device, const U8String& name)
+            Result FenceImpl::Init(const U8String& name)
             {
-                ASSERT(device);
                 ASSERT(!D3DFence_);
+
+                const auto& device = DeviceContext::Instance().GetDevice();
 
                 D3DCallMsg(device->CreateFence(cpuValue_, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(D3DFence_.put())), "CreateFence");
                 D3DUtils::SetAPIName(D3DFence_.get(), name);

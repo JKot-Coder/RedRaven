@@ -12,7 +12,7 @@ namespace OpenDemo
             GpuResourceFormat format = GpuResourceFormat::Unknown;
             uint32_t size = 0;
 
-            static BufferDescription Create(uint32_t size, GpuResourceFormat format)
+            static BufferDescription Create(uint32_t size, GpuResourceFormat format = GpuResourceFormat::Unknown)
             {
                 return BufferDescription(size, format);
             }
