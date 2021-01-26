@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gapi/Texture.hpp"
 #include "gapi/Buffer.hpp"
+#include "gapi/Texture.hpp"
 
 namespace OpenDemo
 {
@@ -20,6 +20,7 @@ namespace OpenDemo
                 Result Init(const Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint);
                 Result Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name);
 
+                Result Init(const Buffer& resource);
                 Result Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name);
 
                 // Only used for initialize swapchain texture

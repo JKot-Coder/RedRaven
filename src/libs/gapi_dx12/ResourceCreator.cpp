@@ -185,10 +185,8 @@ namespace OpenDemo
 
             Result ResourceCreator::InitSwapChain(SwapChain& resource)
             {
-                auto& deviceContext = DeviceContext::Instance();
-
                 auto impl = std::make_unique<SwapChainImpl>();
-                D3DCall(impl->Init(deviceContext.GetDevice(), deviceContext.GetDxgiFactory(), deviceContext.GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription(), resource.GetName()));
+                D3DCall(impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription(), resource.GetName()));
 
                 resource.SetPrivateImpl(impl.release());
 
@@ -208,7 +206,6 @@ namespace OpenDemo
             Result ResourceCreator::InitCommandQueue(CommandQueue& resource)
             {
                 std::unique_ptr<CommandQueueImpl> impl;
-                auto& deviceContext = DeviceContext::Instance();
 
                 if (resource.GetCommandQueueType() == CommandQueueType::Graphics)
                 {
@@ -218,7 +215,7 @@ namespace OpenDemo
 
                     // Graphics command queue already initialized internally in device,
                     // so make copy to prevent d3d object leaking.
-                    impl.reset(new CommandQueueImpl(*deviceContext.GetGraphicsCommandQueue()));
+                    impl.reset(new CommandQueueImpl(*DeviceContext::GetGraphicsCommandQueue()));
                 }
                 else
                 {
@@ -241,30 +238,8 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
-            Result ResourceCreator::InitBuffer(Buffer& resource)
-            {
-                auto& deviceContext = DeviceContext::Instance();
-
-                auto impl = std::make_unique<ResourceImpl>();
-                //   const auto result = impl->Init(deviceContext.GetDevice(), resource.GetDescription(), resource.GetBindFlags(), resource.GetName());
-                /*
-                if (!result)
-                {
-                    delete impl;
-                    LOG_ERROR("Error creating Buffer with error: %s", result.ToString());
-
-                    return result;
-                }*/
-
-                //Buffer   resource.SetPrivateImpl(impl);
-
-                return Result::Ok;
-            }
-
             Result ResourceCreator::InitGpuResourceView(GpuResourceView& object)
             {
-                auto& deviceContext = DeviceContext::Instance();
-
                 const auto& resourceSharedPtr = object.GetGpuResource().lock();
                 ASSERT(resourceSharedPtr);
 
@@ -280,13 +255,13 @@ namespace OpenDemo
                 {
                 case GpuResourceView::ViewType::RenderTargetView:
                 {
-                    const auto& descriptorHeap = deviceContext.GetDesciptorHeapSet()->GetRtvDescriptorHeap();
+                    const auto& descriptorHeap = DeviceContext::GetDesciptorHeapSet()->GetRtvDescriptorHeap();
                     ASSERT(descriptorHeap);
 
                     D3DCall(descriptorHeap->Allocate(*allocation));
 
                     D3D12_RENDER_TARGET_VIEW_DESC desc = CreateRtvDesc(resourceSharedPtr, object.GetDescription());
-                    deviceContext.GetDevice()->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
+                    DeviceContext::GetDevice()->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
                 }
                 break;
                     /*     case ResourceView::ViewType::RShaderResourceView:

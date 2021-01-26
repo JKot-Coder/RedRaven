@@ -36,7 +36,6 @@ namespace OpenDemo
                 Result InitFence(Fence& resource);
                 Result InitCommandQueue(CommandQueue& resource);
                 Result InitCommandList(CommandList& resource);
-                Result InitBuffer(Buffer& resource);
                 Result InitGpuResourceView(GpuResourceView& view);
 
                 void ReleaseResource(Object& resource);

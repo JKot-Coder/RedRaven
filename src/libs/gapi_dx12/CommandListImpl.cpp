@@ -24,7 +24,7 @@ namespace OpenDemo
             {
                 ASSERT(!allocator);
 
-                D3DCallMsg(DeviceContext::Instance().GetDevice()->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
+                D3DCallMsg(DeviceContext::GetDevice()->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
 
                 D3DUtils::SetAPIName(allocator.get(), name, index);
 
@@ -51,10 +51,8 @@ namespace OpenDemo
 
             void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects()
             {
-                auto& deviceContext = DeviceContext::Instance();
-
                 for (auto& allocatorData : allocators_)
-                    deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(allocatorData.allocator);
+                    DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(allocatorData.allocator);
             }
 
             const ComSharedPtr<ID3D12CommandAllocator>& CommandListImpl::CommandAllocatorsPool::GetNextAllocator()
@@ -96,9 +94,7 @@ namespace OpenDemo
 
             void CommandListImpl::ReleaseD3DObjects()
             {
-                auto& deviceContext = DeviceContext::Instance();
-
-                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandList_);
+                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandList_);
                 commandAllocatorsPool_.ReleaseD3DObjects();
             }
 
@@ -109,7 +105,7 @@ namespace OpenDemo
                 D3DCall(commandAllocatorsPool_.Init(type_, name));
                 const auto allocator = commandAllocatorsPool_.GetNextAllocator();
 
-                D3DCallMsg(DeviceContext::Instance().GetDevice()->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
+                D3DCallMsg(DeviceContext::GetDevice()->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
 
                 D3DUtils::SetAPIName(D3DCommandList_.get(), name);
 
@@ -182,7 +178,6 @@ namespace OpenDemo
                     subresourceData.SlicePitch = subresourceFootprint[index].depthPitch;
                 }
 
-                const auto& deviceContext = DeviceContext::Instance();
                 // deviceContext.getUploadBuffer();
 
                 //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);

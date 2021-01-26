@@ -19,7 +19,7 @@ namespace OpenDemo
                 ASSERT(!d3d12Heap_);
                 ASSERT(desc.numDescriptors_ > 0);
 
-                const auto& device = DeviceContext::Instance().GetDevice();
+                const auto& device = DeviceContext::GetDevice();
 
                 name_ = desc.name;
                 numDescriptors_ = desc.numDescriptors_;

@@ -26,15 +26,14 @@ namespace OpenDemo
 
             void CommandQueueImpl::ReleaseD3DObjects()
             {
-                auto& deviceContext = DeviceContext().Instance();
-                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandQueue_);
+                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandQueue_);
             }
 
             Result CommandQueueImpl::Init(const U8String& name)
             {
                 ASSERT(!D3DCommandQueue_)
 
-                const auto& device = DeviceContext::Instance().GetDevice();
+                const auto& device = DeviceContext::GetDevice();
 
                 D3D12_COMMAND_QUEUE_DESC desc = {};
                 desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;

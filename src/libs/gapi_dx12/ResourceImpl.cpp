@@ -42,7 +42,7 @@ namespace OpenDemo
                 D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags)
                 {
                     DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
-                    
+
                     if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
                         format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
 
@@ -83,8 +83,7 @@ namespace OpenDemo
 
             void ResourceImpl::ReleaseD3DObjects()
             {
-                auto& deviceContext = DeviceContext().Instance();
-                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
+                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
             Result ResourceImpl::Init(const Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
@@ -97,8 +96,6 @@ namespace OpenDemo
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(subresourcesFootprint.size() == 0 || subresourcesFootprint.size() == resourceDesc.GetNumSubresources());
 
-                auto& deviceContext = DeviceContext().Instance();
-
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
@@ -108,7 +105,7 @@ namespace OpenDemo
                 const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
 
                 D3DCallMsg(
-                    deviceContext.GetDevice()->CreateCommittedResource(
+                    DeviceContext::GetDevice()->CreateCommittedResource(
                         &DefaultHeapProps,
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
@@ -141,15 +138,19 @@ namespace OpenDemo
                 return Result::Ok;
             }
 
+            Result ResourceImpl::Init(const Buffer& resource)
+            {
+                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetName());
+            }
+
             Result ResourceImpl::Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name)
             {
                 ASSERT(resourceDesc.size > 0);
 
-                auto& deviceContext = DeviceContext().Instance();
                 const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
 
                 D3DCallMsg(
-                    deviceContext.GetDevice()->CreateCommittedResource(
+                    DeviceContext::GetDevice()->CreateCommittedResource(
                         &DefaultHeapProps,
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
@@ -160,7 +161,7 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
-            //    D3DCall(performInitialUpload(subresourcesFootprint));
+                //    D3DCall(performInitialUpload(subresourcesFootprint));
 
                 return Result::Ok;
             }

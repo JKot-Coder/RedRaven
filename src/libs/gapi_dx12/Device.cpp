@@ -46,6 +46,13 @@ namespace OpenDemo
             template <typename T>
             void ThrowIfFailed(T c) { std::ignore = c; };
 
+            ComSharedPtr<ID3D12Device> DeviceContext::device_;
+            ComSharedPtr<IDXGIFactory2> DeviceContext::dxgiFactory_;
+            std::shared_ptr<CommandQueueImpl> DeviceContext::graphicsCommandQueue_;
+            std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
+            std::shared_ptr<ResourceReleaseContext> DeviceContext::resourceReleaseContext_;
+            std::shared_ptr<GpuMemoryHeap> DeviceContext::uploadHeap_;
+
             class DeviceImpl final : public IDevice
             {
             public:
@@ -74,16 +81,6 @@ namespace OpenDemo
                 }
 
             private:
-                struct Resources
-                {
-                    std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
-                    std::unique_ptr<FenceImpl> gpuWaitFence_;
-                    std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
-                    std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
-                    std::shared_ptr<GpuMemoryHeap> uploadHeap_;
-                };
-
-            private:
                 Result createDevice();
 
             private:
@@ -98,8 +95,7 @@ namespace OpenDemo
                 ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
                 ComSharedPtr<ID3D12Device> d3dDevice_;
-
-                std::unique_ptr<Resources> resources_;
+                std::shared_ptr<FenceImpl> gpuWaitFence_;
             };
 
             DeviceImpl::DeviceImpl()
@@ -119,9 +115,9 @@ namespace OpenDemo
                 if (!result)
                     LOG_ERROR("WaitForGPU Error: %s", result.ToString());
 
-                resources_.reset();
-                DeviceContext::Instance().Terminate();
+                DeviceContext::Terminate();
 
+                gpuWaitFence_ = nullptr;
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
 
@@ -155,31 +151,29 @@ namespace OpenDemo
 
                 D3DCallMsg(createDevice(), "CreateDevice");
 
-                DeviceContext::Instance().Init(d3dDevice_, dxgiFactory_);
+                DeviceContext::Init(d3dDevice_, dxgiFactory_);
 
-                resources_ = std::make_unique<Resources>();
+                auto& descriptorHeapSet = std::make_shared<DescriptorHeapSet>();
+                D3DCall(descriptorHeapSet->Init());
 
-                resources_->descriptorHeapSet_ = std::make_shared<DescriptorHeapSet>();
-                D3DCall(resources_->descriptorHeapSet_->Init());
+                gpuWaitFence_ = std::make_unique<FenceImpl>();
+                D3DCall(gpuWaitFence_->Init("GpuWait"));
 
-                resources_->gpuWaitFence_ = std::make_unique<FenceImpl>();
-                D3DCall(resources_->gpuWaitFence_->Init("GpuWait"));
+                auto& graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
+                D3DCall(graphicsCommandQueue->Init("Primary"));
 
-                resources_->graphicsCommandQueue_ = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
-                D3DCall(resources_->graphicsCommandQueue_->Init("Primary"));
-
-                resources_->resourceReleaseContext_ = std::make_shared<ResourceReleaseContext>();
-                D3DCall(resources_->resourceReleaseContext_->Init());
+                auto& resourceReleaseContext = std::make_shared<ResourceReleaseContext>();
+                D3DCall(resourceReleaseContext->Init());
 
                 constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
-                resources_->uploadHeap_ = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
-                D3DCall(resources_->uploadHeap_->Init("Upload heap"));
+                auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
+                D3DCall(uploadHeap->Init("Upload heap"));
 
-                DeviceContext::Instance().Init(
-                    resources_->graphicsCommandQueue_,
-                    resources_->descriptorHeapSet_,
-                    resources_->resourceReleaseContext_,
-                    resources_->uploadHeap_);
+                DeviceContext::Init(
+                    graphicsCommandQueue,
+                    descriptorHeapSet,
+                    resourceReleaseContext,
+                    uploadHeap);
 
                 inited_ = true;
 
@@ -190,9 +184,9 @@ namespace OpenDemo
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                D3DCall(resources_->gpuWaitFence_->Signal(*resources_->graphicsCommandQueue_.get()));
-                D3DCall(resources_->gpuWaitFence_->SyncCPU(std::nullopt));
-                D3DCall(resources_->resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
+                D3DCall(gpuWaitFence_->Signal(*DeviceContext::GetGraphicsCommandQueue().get()));
+                D3DCall(gpuWaitFence_->SyncCPU(std::nullopt));
+                D3DCall(DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue()));
 
                 return Result::Ok;
             }
@@ -236,7 +230,13 @@ namespace OpenDemo
             Result DeviceImpl::InitBuffer(Buffer& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::InitBuffer(resource);
+
+                auto impl = std::make_unique<ResourceImpl>();
+                D3DCall(impl->Init(resource));
+
+                resource.SetPrivateImpl(impl.release());
+
+                return Result::Ok;
             }
 
             Result DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
@@ -423,7 +423,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
 
-                D3DCall(resources_->resourceReleaseContext_->ExecuteDeferredDeletions(resources_->graphicsCommandQueue_));
+                D3DCall(DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue()));
 
                 return Result::Ok;
             }

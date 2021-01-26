@@ -23,8 +23,7 @@ namespace OpenDemo
 
             void SwapChainImpl::ReleaseD3DObjects()
             {
-                auto& deviceContext = DeviceContext().Instance();
-                deviceContext.GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DSwapChain_);
+                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DSwapChain_);
             }
 
             Result SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
