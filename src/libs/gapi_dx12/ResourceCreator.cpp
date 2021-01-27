@@ -111,7 +111,7 @@ namespace OpenDemo
                         //ASSERT(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value)
                         break;
                     default:
-                        Log::Print::Fatal("Unsupported resource view type");
+                        LOG_FATAL("Unsupported resource view type");
                     }
                     result.Format = TypeConversions::GetGpuResourceFormat(textureDescription.format);
 

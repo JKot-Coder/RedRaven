@@ -7,6 +7,7 @@
 
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
+#include "gapi_dx12/GpuMemoryHeap.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -165,21 +166,28 @@ namespace OpenDemo
                 const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
 
-                resourceImpl->GetD3DObject().get();
-
-                std::vector<D3D12_SUBRESOURCE_DATA> subresourcesData(subresourcesCount);
-
-                for (int index = 0; index < subresourcesCount; index++)
+                if (true)
                 {
-                    auto& subresourceData = subresourcesData[index];
+                    const intermediateSize = GetRequiredIntermediateSize(resourceImpl->GetD3DObject().get(), firstSubresource, subresourceFootprint.size());
 
-                    subresourceData.pData = subresourceFootprint[index].data;
-                    subresourceData.RowPitch = subresourceFootprint[index].rowPitch;
-                    subresourceData.SlicePitch = subresourceFootprint[index].depthPitch;
+                    DeviceContext::GetUploadHeap()->Allocate(size_)
+
+                    std::vector<D3D12_SUBRESOURCE_DATA> subresourcesData(subresourcesCount);
+
+                    for (int index = 0; index < subresourcesCount; index++)
+                    {
+                        auto& subresourceData = subresourcesData[index];
+
+                        subresourceData.pData = subresourceFootprint[index].data;
+                        subresourceData.RowPitch = subresourceFootprint[index].rowPitch;
+                        subresourceData.SlicePitch = subresourceFootprint[index].depthPitch;
+                    }
                 }
+   
 
-                // deviceContext.getUploadBuffer();
-
+                
+                    deviceContext.getUploadBuffer();
+                UpdateSubresources()
                 //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
             }
 
