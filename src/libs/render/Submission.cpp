@@ -2,7 +2,6 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 
 #include "gapi_dx12/Device.hpp"
@@ -125,7 +124,7 @@ namespace OpenDemo
         {
             ASSERT(commandQueue);
             ASSERT(commandList);
-            ASSERT(isListTypeCompatable(commandQueue->GetCommandQueueType() ,commandList->GetCommandListType()));
+            ASSERT(isListTypeCompatable(commandQueue->GetCommandQueueType(), commandList->GetCommandListType()));
 
             Task::Submit task;
             task.commandQueue = commandQueue;
@@ -142,7 +141,7 @@ namespace OpenDemo
             putTask(std::move(Task::Callback { function }));
         }
 
-        GAPI::Result Submission::ExecuteAwait(const CallbackFunction&& function)
+        void Submission::ExecuteAwait(const CallbackFunction&& function)
         {
             Task::Callback task;
 
@@ -150,20 +149,18 @@ namespace OpenDemo
             Threading::Mutex mutex;
             Threading::UniqueLock<Threading::Mutex> lock(mutex);
             Threading::ConditionVariable condition;
-            GAPI::Result result = GAPI::Result::Fail;
 
-            task.function = [&condition, &function, &mutex, &result](GAPI::Device& device) {
+            task.function = [&condition, &function, &mutex](GAPI::Device& device) {
                 Threading::UniqueLock<Threading::Mutex> lock(mutex);
-                result = function(device);
+                function(device);
                 condition.notify_one();
-                return result;
             };
 
             putTask(task);
 
             condition.wait(lock);
 #else
-            GAPI::Result result = GAPI::Result::Fail;
+            GAPI::void result = GAPI::void ::Fail;
 
             task.function = [&function, &result](GAPI::Device& device) {
                 result = function(device);
@@ -172,8 +169,6 @@ namespace OpenDemo
 
             putTask(task);
 #endif
-
-            return result;
         }
 
         void Submission::Terminate()
@@ -193,23 +188,22 @@ namespace OpenDemo
         }
 
         template <>
-        inline GAPI::Result Submission::doTask(const Task::Submit& task)
+        inline void Submission::doTask(const Task::Submit& task)
         {
-            return task.commandQueue->Submit(task.commandList);
+            task.commandQueue->Submit(task.commandList);
         }
 
         template <>
-        inline GAPI::Result Submission::doTask(const Task::Callback& task)
+        inline void Submission::doTask(const Task::Callback& task)
         {
-            return task.function(*device_);
+            task.function(*device_);
         }
 
         template <>
-        inline GAPI::Result Submission::doTask(const Task::Terminate& task)
+        inline void Submission::doTask(const Task::Terminate& task)
         {
             device_.reset();
             Log::Print::Info("Device terminated.\n");
-            return GAPI::Result::Ok;
         }
 
         // helper type for the visitor
@@ -236,17 +230,13 @@ namespace OpenDemo
 
                 ASSERT(device_)
 
-                GAPI::Result result = std::visit(
+                std::visit(
                     overloaded {
                         [this](const Task::Submit& task) { return doTask(task); },
                         [this](const Task::Callback& task) { return doTask(task); },
                         [this](const Task::Terminate& task) { return doTask(task); },
                     },
                     inputTask.taskVariant);
-
-                // Todo: Add task label in message
-                if (!result)
-                    Log::Print::Fatal(u8"Fatal error on SubmissionThread with result: %s\n", result.ToString());
 
                 //std::this_thread::sleep_for(50ms);
             }

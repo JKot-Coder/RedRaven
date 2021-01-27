@@ -66,11 +66,16 @@ namespace OpenDemo
             }
 
             auto& renderContext = Render::RenderContext::Instance();
+            renderContext.Init();
+            /*
+            TODO 
+            
             if (!renderContext.Init())
             {
                 ASSERT_MSG(false, "Error initialize render context");
                 return false;
             }
+            */
 
             commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Copy)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "Copy");
             commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "Compute");

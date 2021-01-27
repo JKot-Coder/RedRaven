@@ -11,7 +11,6 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/GpuResourceViews.hpp"
-#include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
@@ -116,7 +115,7 @@ namespace OpenDemo
                     commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
                     commandList->Close();
 
-                    return GAPI::Result::Ok;
+                    return GAPI::void::Ok;
                 });
 
             renderContext.Submit(commandQueue, commandList);

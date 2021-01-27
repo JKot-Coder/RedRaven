@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gapi/Resource.hpp"
-#include "gapi/Result.hpp"
 
 namespace OpenDemo
 {
@@ -27,7 +26,7 @@ namespace OpenDemo
         public:
             virtual ~ICommandQueue() {};
 
-            virtual Result Submit(const std::shared_ptr<CommandList>& commandList) = 0;
+            virtual void Submit(const std::shared_ptr<CommandList>& commandList) = 0;
         };
 
         class CommandQueue final : public Resource<ICommandQueue>
@@ -38,7 +37,7 @@ namespace OpenDemo
 
             CommandQueue() = delete;
 
-            inline Result Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
+            inline void Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
 
             inline const CommandQueueType GetCommandQueueType() const { return type_; }
 

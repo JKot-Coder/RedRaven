@@ -18,8 +18,6 @@ set(GAPI_SRC
         GpuResource.hpp
         GpuResourceViews.cpp
         GpuResourceViews.hpp
-        Result.cpp
-        Result.hpp
         SwapChain.cpp
         SwapChain.hpp
         Texture.cpp

@@ -15,7 +15,7 @@ namespace OpenDemo
             public:
                 RenderTargetViewImpl() = default;
 
-                Result Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHeap::Allocation& handle)
+                void Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHeap::Allocation& handle)
                 {
                    // handle_()
                 }

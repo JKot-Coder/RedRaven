@@ -1,7 +1,5 @@
 #pragma once
 
-#include "gapi/Result.hpp"
-
 #include <queue>
 
 namespace OpenDemo
@@ -37,11 +35,11 @@ namespace OpenDemo
             public:
                 GpuMemoryHeap(size_t pageSize) : defaultPageSize_(pageSize) {};
 
-                Result Init(const U8String& name);
-                Result Allocate(Allocation& allocation, size_t size, size_t alignment = 1);
+                void Init(const U8String& name);
+                void Allocate(Allocation& allocation, size_t size, size_t alignment = 1);
 
             private:
-                Result getNextPageForAllocation(size_t allocSize, std::unique_ptr<Page>& page);
+                void getNextPageForAllocation(size_t allocSize, std::unique_ptr<Page>& page);
 
             private:
                 size_t defaultPageSize_;

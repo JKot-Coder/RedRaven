@@ -18,9 +18,9 @@ namespace OpenDemo
             public:
                 CommandListImpl(const CommandListType commandListType);
 
-                Result Init(const U8String& name);
+                void Init(const U8String& name);
 
-                Result Close() override;
+                void Close() override;
 
                 void CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer) override;
                 void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
@@ -38,7 +38,7 @@ namespace OpenDemo
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
                 void ReleaseD3DObjects();
-                Result ResetAfterSubmit(CommandQueueImpl& commandQueue);
+                void ResetAfterSubmit(CommandQueueImpl& commandQueue);
 
                 const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
 
@@ -49,12 +49,12 @@ namespace OpenDemo
                 class CommandAllocatorsPool
                 {
                 public:
-                    Result Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
+                    void Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
 
                     void ReleaseD3DObjects();
 
                     const ComSharedPtr<ID3D12CommandAllocator>& GetNextAllocator();
-                    Result ResetAfterSubmit(CommandQueueImpl& commandQueue);
+                    void ResetAfterSubmit(CommandQueueImpl& commandQueue);
 
                 private:
                     struct AllocatorData final
@@ -63,7 +63,7 @@ namespace OpenDemo
                         ComSharedPtr<ID3D12CommandAllocator> allocator;
                     };
 
-                    Result createAllocator(
+                    void createAllocator(
                         const U8String& name,
                         const uint32_t index,
                         ComSharedPtr<ID3D12CommandAllocator>& allocator) const;

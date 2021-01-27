@@ -18,7 +18,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            Result CommandListImpl::CommandAllocatorsPool::createAllocator(
+            void CommandListImpl::CommandAllocatorsPool::createAllocator(
                 const U8String& name,
                 const uint32_t index,
                 ComSharedPtr<ID3D12CommandAllocator>& allocator) const
@@ -28,26 +28,22 @@ namespace OpenDemo
                 D3DCallMsg(DeviceContext::GetDevice()->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
 
                 D3DUtils::SetAPIName(allocator.get(), name, index);
-
-                return Result::Ok;
             }
 
-            Result CommandListImpl::CommandAllocatorsPool::Init(
+            void CommandListImpl::CommandAllocatorsPool::Init(
                 D3D12_COMMAND_LIST_TYPE type,
                 const U8String& name)
             {
                 type_ = type;
                 fence_ = std::make_unique<FenceImpl>();
-                D3DCall(fence_->Init(name));
+                fence_->Init(name);
 
                 for (uint32_t index = 0; index < allocators_.size(); index++)
                 {
                     auto& allocatorData = allocators_[index];
-                    D3DCall(createAllocator(name, index, allocatorData.allocator));
+                    createAllocator(name, index, allocatorData.allocator);
                     allocatorData.cpuFenceValue = 0;
                 }
-
-                return Result::Ok;
             }
 
             void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects()
@@ -69,7 +65,7 @@ namespace OpenDemo
                 return data.allocator;
             }
 
-            Result CommandListImpl::CommandAllocatorsPool::ResetAfterSubmit(CommandQueueImpl& commandQueue)
+            void CommandListImpl::CommandAllocatorsPool::ResetAfterSubmit(CommandQueueImpl& commandQueue)
             {
                 ringBufferIndex_ = (++ringBufferIndex_ % AllocatorsCount);
                 return fence_->Signal(commandQueue);
@@ -99,29 +95,25 @@ namespace OpenDemo
                 commandAllocatorsPool_.ReleaseD3DObjects();
             }
 
-            Result CommandListImpl::Init(const U8String& name)
+            void CommandListImpl::Init(const U8String& name)
             {
                 ASSERT(!D3DCommandList_);
 
-                D3DCall(commandAllocatorsPool_.Init(type_, name));
+                commandAllocatorsPool_.Init(type_, name);
                 const auto allocator = commandAllocatorsPool_.GetNextAllocator();
 
                 D3DCallMsg(DeviceContext::GetDevice()->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
 
                 D3DUtils::SetAPIName(D3DCommandList_.get(), name);
-
-                return Result::Ok;
             }
 
-            Result CommandListImpl::ResetAfterSubmit(CommandQueueImpl& commandQueue)
+            void CommandListImpl::ResetAfterSubmit(CommandQueueImpl& commandQueue)
             {
                 ASSERT(D3DCommandList_);
 
-                D3DCall(commandAllocatorsPool_.ResetAfterSubmit(commandQueue));
+                commandAllocatorsPool_.ResetAfterSubmit(commandQueue);
                 const auto& allocator = commandAllocatorsPool_.GetNextAllocator();
                 D3DCallMsg(D3DCommandList_->Reset(allocator.get(), nullptr), "Reset");
-
-                return Result::Ok;
             }
 
             void CommandListImpl::CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer)
@@ -168,11 +160,12 @@ namespace OpenDemo
 
                 if (true)
                 {
-                    const intermediateSize = GetRequiredIntermediateSize(resourceImpl->GetD3DObject().get(), firstSubresource, subresourceFootprint.size());
+                    const auto intermediateSize = GetRequiredIntermediateSize(resourceImpl->GetD3DObject().get(), firstSubresource, subresourceFootprint.size());
 
-                    DeviceContext::GetUploadHeap()->Allocate(size_)
+                   // DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
 
-                    std::vector<D3D12_SUBRESOURCE_DATA> subresourcesData(subresourcesCount);
+                        std::vector<D3D12_SUBRESOURCE_DATA>
+                            subresourcesData(subresourcesCount);
 
                     for (int index = 0; index < subresourcesCount; index++)
                     {
@@ -183,11 +176,9 @@ namespace OpenDemo
                         subresourceData.SlicePitch = subresourceFootprint[index].depthPitch;
                     }
                 }
-   
 
-                
-                    deviceContext.getUploadBuffer();
-                UpdateSubresources()
+              //  deviceContext.getUploadBuffer();
+               // UpdateSubresources();
                 //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
             }
 
@@ -216,10 +207,9 @@ namespace OpenDemo
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
-            Result CommandListImpl::Close()
+            void CommandListImpl::Close()
             {
                 D3DCallMsg(D3DCommandList_->Close(), "Close");
-                return Result::Ok;
             }
         };
     }

@@ -41,8 +41,6 @@ namespace OpenDemo
         enum class TextureDimension : uint32_t;
 
         class Buffer;
-
-        struct Result;
     }
 
     namespace Render

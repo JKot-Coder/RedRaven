@@ -59,19 +59,19 @@ namespace OpenDemo
                 DeviceImpl();
                 virtual ~DeviceImpl();
 
-                Result Init(const IDevice::Description& description) override;
-                Result Submit(const CommandList::SharedPtr& commandList);
-                Result Present(const SwapChain::SharedPtr& swapChain) override;
-                Result MoveToNextFrame() override;
-                Result WaitForGpu() override;
+                void Init(const IDevice::Description& description) override;
+                void Submit(const CommandList::SharedPtr& commandList);
+                void Present(const SwapChain::SharedPtr& swapChain) override;
+                void MoveToNextFrame() override;
+                void WaitForGpu() override;
 
-                Result InitSwapChain(SwapChain& resource) const override;
-                Result InitFence(Fence& resource) const override;
-                Result InitCommandQueue(CommandQueue& resource) const override;
-                Result InitCommandList(CommandList& resource) const override;
-                Result InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const override;
-                Result InitBuffer(Buffer& resource) const override;
-                Result InitGpuResourceView(GpuResourceView& view) const override;
+                void InitSwapChain(SwapChain& resource) const override;
+                void InitFence(Fence& resource) const override;
+                void InitCommandQueue(CommandQueue& resource) const override;
+                void InitCommandList(CommandList& resource) const override;
+                void InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const override;
+                void InitBuffer(Buffer& resource) const override;
+                void InitGpuResourceView(GpuResourceView& view) const override;
 
                 void ReleaseResource(Object& resource) const override;
 
@@ -81,7 +81,7 @@ namespace OpenDemo
                 }
 
             private:
-                Result createDevice();
+                void createDevice();
 
             private:
                 IDevice::Description description_ = {};
@@ -110,10 +110,7 @@ namespace OpenDemo
                 if (!inited_)
                     return;
 
-                Result result = WaitForGpu();
-
-                if (!result)
-                    LOG_ERROR("WaitForGPU Error: %s", result.ToString());
+                WaitForGpu();
 
                 DeviceContext::Terminate();
 
@@ -140,8 +137,9 @@ namespace OpenDemo
                 d3dDevice_ = nullptr;
             }
 
-            Result DeviceImpl::Init(const IDevice::Description& description)
+            void DeviceImpl::Init(const IDevice::Description& description)
             {
+                // TODO TODO TODO TODO returnvalue
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
 
@@ -149,25 +147,25 @@ namespace OpenDemo
 
                 description_ = description;
 
-                D3DCallMsg(createDevice(), "CreateDevice");
+                createDevice();
 
                 DeviceContext::Init(d3dDevice_, dxgiFactory_);
 
                 auto& descriptorHeapSet = std::make_shared<DescriptorHeapSet>();
-                D3DCall(descriptorHeapSet->Init());
+                descriptorHeapSet->Init();
 
                 gpuWaitFence_ = std::make_unique<FenceImpl>();
-                D3DCall(gpuWaitFence_->Init("GpuWait"));
+                gpuWaitFence_->Init("GpuWait");
 
                 auto& graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
-                D3DCall(graphicsCommandQueue->Init("Primary"));
+                graphicsCommandQueue->Init("Primary");
 
                 auto& resourceReleaseContext = std::make_shared<ResourceReleaseContext>();
-                D3DCall(resourceReleaseContext->Init());
+                resourceReleaseContext->Init();
 
                 constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
                 auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
-                D3DCall(uploadHeap->Init("Upload heap"));
+                uploadHeap->Init("Upload heap");
 
                 DeviceContext::Init(
                     graphicsCommandQueue,
@@ -176,70 +174,62 @@ namespace OpenDemo
                     uploadHeap);
 
                 inited_ = true;
-
-                return Result::Ok;
             }
 
-            Result DeviceImpl::WaitForGpu()
+            void DeviceImpl::WaitForGpu()
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                D3DCall(gpuWaitFence_->Signal(*DeviceContext::GetGraphicsCommandQueue().get()));
-                D3DCall(gpuWaitFence_->SyncCPU(std::nullopt));
-                D3DCall(DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue()));
-
-                return Result::Ok;
+                gpuWaitFence_->Signal(*DeviceContext::GetGraphicsCommandQueue().get());
+                gpuWaitFence_->SyncCPU(std::nullopt);
+                DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
-            Result DeviceImpl::InitSwapChain(SwapChain& resource) const
+            void DeviceImpl::InitSwapChain(SwapChain& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitSwapChain(resource);
             }
 
-            Result DeviceImpl::InitFence(Fence& resource) const
+            void DeviceImpl::InitFence(Fence& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitFence(resource);
             }
 
-            Result DeviceImpl::InitCommandQueue(CommandQueue& resource) const
+            void DeviceImpl::InitCommandQueue(CommandQueue& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitCommandQueue(resource);
             }
 
-            Result DeviceImpl::InitCommandList(CommandList& resource) const
+            void DeviceImpl::InitCommandList(CommandList& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitCommandList(resource);
             }
 
-            Result DeviceImpl::InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const
+            void DeviceImpl::InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
                 auto impl = std::make_unique<ResourceImpl>();
-                D3DCall(impl->Init(resource, subresourcesFootprint));
+                impl->Init(resource, subresourcesFootprint);
 
                 resource.SetPrivateImpl(impl.release());
-
-                return Result::Ok;
             }
 
-            Result DeviceImpl::InitBuffer(Buffer& resource) const
+            void DeviceImpl::InitBuffer(Buffer& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
                 auto impl = std::make_unique<ResourceImpl>();
-                D3DCall(impl->Init(resource));
+                impl->Init(resource);
 
                 resource.SetPrivateImpl(impl.release());
-
-                return Result::Ok;
             }
 
-            Result DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
+            void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
@@ -251,7 +241,7 @@ namespace OpenDemo
                 return ResourceCreator::ReleaseResource(resource);
             }
 
-            Result DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
+            void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
             {
                 /* ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -269,10 +259,9 @@ namespace OpenDemo
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
                 commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
                 */
-                return Result::Ok;
             }
 
-            Result DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
+            void DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -300,36 +289,37 @@ namespace OpenDemo
 
                 ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
                 auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
-                Result result = swapChainImpl->Present(0);
+                    
+                    
+                    /// TODO TODO TODO TODO
+              /*  void result = swapChainImpl->Present(0);
 
                 // If the device was reset we must completely reinitialize the renderer.
-                if (result == Result::DeviceRemoved || result == Result::DeviceReset)
+                if (result == void ::DeviceRemoved || result == void ::DeviceReset)
                 {
-                    result = (result == Result::DeviceRemoved) ? Result(d3dDevice_->GetDeviceRemovedReason()) : result;
+                    result = (result == void ::DeviceRemoved) ? void(d3dDevice_->GetDeviceRemovedReason()) : result;
                     Log::Print::Warning("Device Lost on Present. Error: %s\n", result.ToString());
 
                     // Todo error check
                     //handleDeviceLost();
                     ASSERT(false);
 
-                    return Result::Fail;
+                    return void ::Fail;
                 }
                 else
                 {
                     if (!dxgiFactory_->IsCurrent())
                     {
                         LOG_ERROR("Dxgi is not current");
-                        return Result::Fail;
+                        return void ::Fail;
 
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
-                }
-
-                return Result::Ok;
+                }*/
             }
 
-            Result DeviceImpl::createDevice()
+            void DeviceImpl::createDevice()
             {
                 ASSERT_IS_CREATION_THREAD
 
@@ -379,8 +369,10 @@ namespace OpenDemo
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
 
-                    Result result;
-                    if (result = Result(d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
+                    // TODO TODO TODO TODO
+                    /*
+                    void result;
+                    if (result = void(d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
                         d3dInfoQueue->ClearStorageFilter();
@@ -391,7 +383,7 @@ namespace OpenDemo
                     else
                     {
                         LOG_ERROR("Unable to get ID3D12InfoQueue. Error: %s", result.ToString());
-                    }
+                    }*/
                 }
 
                 // Determine maximum supported feature level for this device
@@ -414,18 +406,14 @@ namespace OpenDemo
                 {
                     d3dFeatureLevel_ = minimumFeatureLevel;
                 }
-
-                return Result::Ok;
             }
 
-            Result DeviceImpl::MoveToNextFrame()
+            void DeviceImpl::MoveToNextFrame()
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
 
-                D3DCall(DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue()));
-
-                return Result::Ok;
+                DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
             /*

@@ -24,12 +24,10 @@ namespace OpenDemo
             public:
                 ResourceReleaseContext() = default;
 
-                Result Init()
+                void Init()
                 {
                     fence_ = std::make_unique<FenceImpl>();
-                    D3DCall(fence_->Init("ResourceRelease"));
-
-                    return Result::Ok;
+                    fence_->Init("ResourceRelease");
                 }
 
                 template <class T>
@@ -44,7 +42,7 @@ namespace OpenDemo
                     resource = nullptr;
                 }
 
-                Result ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
+                void ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
                 {
                     Threading::ReadWriteGuard lock(mutex_);
 
@@ -54,9 +52,7 @@ namespace OpenDemo
                     while (queue_.size() && queue_.front().cpuFrameIndex < fence_->GetGpuValue())
                         queue_.pop();
 
-                    D3DCall(fence_->Signal(*queue.get()));
-
-                    return Result::Ok;
+                    fence_->Signal(*queue.get());
                 }
 
             private:

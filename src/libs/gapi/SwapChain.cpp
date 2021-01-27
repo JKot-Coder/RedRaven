@@ -22,27 +22,21 @@ namespace OpenDemo
             ASSERT(description.windowHandle != 0);
         }
 
-        Result SwapChain::Reset(const SwapChainDescription& description)
+        void SwapChain::Reset(const SwapChainDescription& description)
         {
             ASSERT(description.isStereo == description_.isStereo);
             ASSERT(description.bufferCount == description_.bufferCount);
             ASSERT(description.gpuResourceFormat == description_.gpuResourceFormat);
             ASSERT(description.windowHandle == description_.windowHandle);
 
-            Result result = GetPrivateImpl()->Reset(description, backBuffers_);
+            GetPrivateImpl()->Reset(description, backBuffers_);
 
-            if (result == Result::Ok)
+            description_ = description;
+            for (auto& backBuffer : backBuffers_)
             {
-                description_ = description;
-
-                for (auto& backBuffer : backBuffers_)
-                {
-                    //TODO assert
-                    backBuffer = nullptr;
-                }
+                //TODO assert
+                backBuffer = nullptr;
             }
-
-            return result;
         }
 
         Texture::SharedPtr SwapChain::GetTexture(uint32_t backBufferIndex)

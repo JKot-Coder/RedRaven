@@ -15,13 +15,13 @@ namespace OpenDemo
             {
             }
 
-            Result GpuMemoryHeap::Init(const U8String& name)
+            void GpuMemoryHeap::Init(const U8String& name)
             {
                 name_ = name;
-                return getNextPageForAllocation(0, currentPage_);
+                getNextPageForAllocation(0, currentPage_);
             }
 
-            Result GpuMemoryHeap::Allocate(Allocation& allocation, size_t size, size_t alignment)
+            void GpuMemoryHeap::Allocate(Allocation& allocation, size_t size, size_t alignment)
             {
                 ASSERT(currentPage_);
                 ASSERT(size > 0);
@@ -32,20 +32,18 @@ namespace OpenDemo
                     pageOffset = 0;
 
                     usedPages_.push_back(std::move(currentPage_));
-                    D3DCall(getNextPageForAllocation(size, currentPage_));
+                    getNextPageForAllocation(size, currentPage_);
                 }
 
                 allocation.offset = pageOffset;
                 allocation.fenceValue = 0;
                 allocation.resource = currentPage_->resource->GetD3DObject();
                 currentPage_->offset = pageOffset + size;
-
-                return Result::Ok;
             }
 
-            Result GpuMemoryHeap::getNextPageForAllocation(size_t allocSize, std::unique_ptr<Page>& page)
+            void GpuMemoryHeap::getNextPageForAllocation(size_t allocSize, std::unique_ptr<Page>& page)
             {
-                ASSERT(!page)
+                ASSERT(!page);
 
                 if (freePages_.size() > 0 && freePages_.front()->size > allocSize)
                 {
@@ -58,14 +56,12 @@ namespace OpenDemo
 
                     const auto& description = BufferDescription::Create(pageSize);
                     auto& resource = std::make_unique<ResourceImpl>();
-                    D3DCall(resource->Init(description, GpuResourceBindFlags::None, fmt::sprintf("%s::%u", name_, pageIndex)));
+                    resource->Init(description, GpuResourceBindFlags::None, fmt::sprintf("%s::%u", name_, pageIndex));
 
                     page = std::make_unique<Page>(pageSize, std::move(resource));
                     
                     pageIndex++;
                 }
-
-                return Result::Ok;
             }
 
         }

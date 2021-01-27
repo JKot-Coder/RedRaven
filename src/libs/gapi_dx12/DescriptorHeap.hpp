@@ -23,17 +23,14 @@ namespace OpenDemo
                 DescriptorHeap() = default;
                 ~DescriptorHeap();
 
-                Result Init(const DescriptorHeapDesc& desc);
+                void Init(const DescriptorHeapDesc& desc);
 
-                Result Allocate(Allocation& allocation)
+                void Allocate(Allocation& allocation)
                 {
-                    ASSERT(d3d12Heap_)
+                    ASSERT(d3d12Heap_);
 
                     if (allocated_ >= numDescriptors_)
-                    {
-                        LOG_ERROR("Not enough memory in descriptorHeap: %s", name_)
-                        return Result::OutOfMemory;
-                    }
+                        LOG_FATAL("Not enough memory in descriptorHeap: %s", name_);
 
                     ASSERT(!freeChunks_.empty())
 
@@ -49,16 +46,14 @@ namespace OpenDemo
                     allocation = Allocation(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap));
 
                     allocated_++;
-
-                    return Result::Ok;
                 }
 
                 void Free(uint32_t index)
                 {
-                    ASSERT(d3d12Heap_)
+                    ASSERT(d3d12Heap_);
 
                     const auto chunkIndex = index / Chunk::SIZE;
-                    ASSERT(chunkIndex < chunks_.size())
+                    ASSERT(chunkIndex < chunks_.size());
 
                     auto& chunk = chunks_[chunkIndex];
                     chunk->Free(index);

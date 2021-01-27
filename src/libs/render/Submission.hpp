@@ -29,7 +29,7 @@ namespace OpenDemo
         class Submission final
         {
         public:
-            using CallbackFunction = std::function<GAPI::Result(GAPI::Device& device)>;
+            using CallbackFunction = std::function<void(GAPI::Device& device)>;
 
             Submission();
             ~Submission();
@@ -39,7 +39,7 @@ namespace OpenDemo
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList);
 
             void ExecuteAsync(const CallbackFunction&& function);
-            GAPI::Result ExecuteAwait(const CallbackFunction&& function);
+            void ExecuteAwait(const CallbackFunction&& function);
 
             inline std::weak_ptr<GAPI::IMultiThreadDevice> GetIMultiThreadDevice() { return device_; }
 
@@ -48,7 +48,7 @@ namespace OpenDemo
             void putTask(T&& task);
 
             template <typename T>
-            inline GAPI::Result doTask(const T& task);
+            inline void doTask(const T& task);
 
 #if ENABLE_SUBMISSION_THREAD
             void threadFunc();

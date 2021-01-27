@@ -32,11 +32,11 @@ namespace OpenDemo
 
             namespace ResourceCreator
             {
-                Result InitSwapChain(SwapChain& resource);
-                Result InitFence(Fence& resource);
-                Result InitCommandQueue(CommandQueue& resource);
-                Result InitCommandList(CommandList& resource);
-                Result InitGpuResourceView(GpuResourceView& view);
+                void InitSwapChain(SwapChain& resource);
+                void InitFence(Fence& resource);
+                void InitCommandQueue(CommandQueue& resource);
+                void InitCommandList(CommandList& resource);
+                void InitGpuResourceView(GpuResourceView& view);
 
                 void ReleaseResource(Object& resource);
             }

@@ -3,7 +3,6 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
-#include "gapi/Result.hpp"
 
 #include "common/NativeWindowHandle.hpp"
 
@@ -40,9 +39,9 @@ namespace OpenDemo
         public:
             virtual ~ISwapChain() {};
 
-            virtual Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
+            virtual void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
 
-            virtual Result Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
+            virtual void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain>
@@ -64,9 +63,9 @@ namespace OpenDemo
 
             SwapChain(const SwapChainDescription& description, const U8String& name);
 
-            Result Reset(const SwapChainDescription& description);
+            void Reset(const SwapChainDescription& description);
 
-            inline Result InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
+            inline void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
 
         private:
             SwapChainDescription description_;

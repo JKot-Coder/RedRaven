@@ -17,14 +17,14 @@ namespace OpenDemo
 
                 void ReleaseD3DObjects();
 
-                Result Init(const U8String& name);
+                void Init(const U8String& name);
 
-                Result Signal(const std::shared_ptr<CommandQueue>& queue) override;
-                Result Signal(CommandQueueImpl& queue);
+                void Signal(const std::shared_ptr<CommandQueue>& queue) override;
+                void Signal(CommandQueueImpl& queue);
 
                 // TODO infinity
-                Result SyncCPU(std::optional<uint64_t> value, uint32_t timeout = 0xFFFFFF) const override;
-                Result SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;
+                void SyncCPU(std::optional<uint64_t> value, uint32_t timeout = 0xFFFFFF) const override;
+                void SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;
 
                 uint64_t GetGpuValue() const override
                 {

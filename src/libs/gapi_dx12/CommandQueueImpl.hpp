@@ -18,12 +18,12 @@ namespace OpenDemo
 
                 void ReleaseD3DObjects();
 
-                Result Init(const U8String& name);
-                Result Submit(const std::shared_ptr<CommandList>& commandList) override;
+                void Init(const U8String& name);
+                void Submit(const std::shared_ptr<CommandList>& commandList) override;
 
                 // Todo private?
-                Result Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
-                Result Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
+                void Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
+                void Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value);
 
                 const ComSharedPtr<ID3D12CommandQueue>& GetD3DObject() const { return D3DCommandQueue_; }
 

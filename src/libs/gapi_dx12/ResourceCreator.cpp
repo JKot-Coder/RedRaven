@@ -183,27 +183,23 @@ namespace OpenDemo
                 }
             }
 
-            Result ResourceCreator::InitSwapChain(SwapChain& resource)
+            void ResourceCreator::InitSwapChain(SwapChain& resource)
             {
                 auto impl = std::make_unique<SwapChainImpl>();
-                D3DCall(impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription(), resource.GetName()));
+                impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription(), resource.GetName());
 
                 resource.SetPrivateImpl(impl.release());
-
-                return Result::Ok;
             }
 
-            Result ResourceCreator::InitFence(Fence& resource)
+            void ResourceCreator::InitFence(Fence& resource)
             {
                 auto impl = std::make_unique<FenceImpl>();
-                D3DCall(impl->Init(resource.GetName()));
+                impl->Init(resource.GetName());
 
                 resource.SetPrivateImpl(impl.release());
-
-                return Result::Ok;
             }
 
-            Result ResourceCreator::InitCommandQueue(CommandQueue& resource)
+            void ResourceCreator::InitCommandQueue(CommandQueue& resource)
             {
                 std::unique_ptr<CommandQueueImpl> impl;
 
@@ -220,25 +216,21 @@ namespace OpenDemo
                 else
                 {
                     impl.reset(new CommandQueueImpl(resource.GetCommandQueueType()));
-                    D3DCall(impl->Init(resource.GetName()));
+                    impl->Init(resource.GetName());
                 }
 
                 resource.SetPrivateImpl(impl.release());
-
-                return Result::Ok;
             }
 
-            Result ResourceCreator::InitCommandList(CommandList& resource)
+            void ResourceCreator::InitCommandList(CommandList& resource)
             {
                 auto impl = std::make_unique<CommandListImpl>(resource.GetCommandListType());
-                const auto result = impl->Init(resource.GetName());
+                impl->Init(resource.GetName());
 
                 resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl.release()));
-
-                return Result::Ok;
             }
 
-            Result ResourceCreator::InitGpuResourceView(GpuResourceView& object)
+            void ResourceCreator::InitGpuResourceView(GpuResourceView& object)
             {
                 const auto& resourceSharedPtr = object.GetGpuResource().lock();
                 ASSERT(resourceSharedPtr);
@@ -258,7 +250,7 @@ namespace OpenDemo
                     const auto& descriptorHeap = DeviceContext::GetDesciptorHeapSet()->GetRtvDescriptorHeap();
                     ASSERT(descriptorHeap);
 
-                    D3DCall(descriptorHeap->Allocate(*allocation));
+                    descriptorHeap->Allocate(*allocation);
 
                     D3D12_RENDER_TARGET_VIEW_DESC desc = CreateRtvDesc(resourceSharedPtr, object.GetDescription());
                     DeviceContext::GetDevice()->CreateRenderTargetView(d3dObject.get(), &desc, allocation->GetCPUHandle());
@@ -275,8 +267,6 @@ namespace OpenDemo
                 }
 
                 object.SetPrivateImpl(allocation.release());
-
-                return Result::Ok;
             }
 
             void ResourceCreator::ReleaseResource(Object& resource)

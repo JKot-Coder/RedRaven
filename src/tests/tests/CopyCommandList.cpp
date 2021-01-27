@@ -49,7 +49,7 @@ namespace OpenDemo
 
             SECTION("Close")
             {
-                REQUIRE(commandList->Close() == GAPI::Result::Ok);
+                commandList->Close();
             }
 
             SECTION("CopyTexture_RGBA8")

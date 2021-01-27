@@ -18,19 +18,19 @@ namespace OpenDemo
 #define D3DCall(exp, ...)                                                                                                                               \
     {                                                                                                                                                   \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
-        const Result result = Result(exp);                                                                                                              \
-        if (!result)                                                                                                                                    \
-            return result;                                                                                                                              \
-    }
+        const HRESULT result = exp;                                                                                                                     \
+        if (FAILED(result))                                                                                                                             \
+        {                                                                                                                                               \
+            LOG_ERROR("%s Error: %d", msg, result);                                                                                                     \
+        }
 
 #define D3DCallMsg(exp, msg, ...)                                                                                 \
     {                                                                                                             \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
-        const Result result = Result(exp);                                                                        \
-        if (!result)                                                                                              \
+        const HRESULT result = exp;                                                                               \
+        if (FAILED(result))                                                                                       \
         {                                                                                                         \
-            LOG_ERROR("%s Error: %s", msg, result.ToString())                                                     \
-            return result;                                                                                        \
+            LOG_ERROR("%s Error: %d", msg, result)                                                                \
         }                                                                                                         \
     }
 

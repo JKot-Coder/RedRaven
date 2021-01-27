@@ -1,6 +1,5 @@
 #include "SwapChainImpl.hpp"
 
-#include "gapi/Result.hpp"
 #include "gapi/SwapChain.hpp"
 
 #include "gapi_dx12/DeviceContext.hpp"
@@ -26,7 +25,7 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DSwapChain_);
             }
 
-            Result SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
+            void SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
             {
                 ASSERT(device)
                 ASSERT(dxgiFactory)
@@ -50,17 +49,12 @@ namespace OpenDemo
                            "CreateSwapChainForHwnd");
 
                 if (!swapChain1.try_as(D3DSwapChain_))
-                {
-                    ASSERT_MSG(false, "Failed to cast swapchain")
-                    return Result::Fail;
-                }
+                    LOG_FATAL("Failed to cast swapchain");
 
                 swapChain1.as(D3DSwapChain_);
-
-                return Result::Ok;
             }
 
-            Result SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
+            void SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
             {
                 ASSERT(D3DSwapChain_)
                 ASSERT(CheckSwapchainDescription(description))
@@ -72,10 +66,7 @@ namespace OpenDemo
                 const auto swapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
 
                 if (!swapChainCompatable)
-                {
-                    LOG_ERROR("SwapChains incompatible");
-                    return Result::Fail;
-                }
+                    LOG_FATAL("SwapChains incompatible");
 
                 // Clear api references
                 for (const auto& backBuffer : backBuffers)
@@ -97,14 +88,13 @@ namespace OpenDemo
                     targetSwapChainDesc.Flags);
 
                 // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
-                //   if (ResultU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
+                //   if (voidU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
                 // {
                 // }*/
 
-                return Result::Ok;
             }
 
-            Result SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource)
+            void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource)
             {
                 ASSERT(resource);
                 ASSERT(!resource->GetPrivateImpl());
@@ -121,20 +111,16 @@ namespace OpenDemo
                 ASSERT(backBuffer_);
 
                 auto impl = new ResourceImpl();
-                D3DCall(impl->Init(backBuffer_, resource->GetDescription(), resource->GetName()));
+                impl->Init(backBuffer_, resource->GetDescription(), resource->GetName());
                 resource->SetPrivateImpl(impl);
-
-                return Result::Ok;
             }
 
-            Result SwapChainImpl::Present(uint32_t interval)
+            void SwapChainImpl::Present(uint32_t interval)
             {
                 ASSERT(D3DSwapChain_);
 
                 DXGI_PRESENT_PARAMETERS params = {};
                 D3DCallMsg(D3DSwapChain_->Present1(interval, 0, &params), "Present1");
-
-                return Result::Ok;
             }
         }
     }

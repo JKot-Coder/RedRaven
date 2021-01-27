@@ -17,7 +17,7 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DFence_);
             }
 
-            Result FenceImpl::Init(const U8String& name)
+            void FenceImpl::Init(const U8String& name)
             {
                 ASSERT(!D3DFence_);
 
@@ -28,11 +28,9 @@ namespace OpenDemo
 
                 event_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
                 ASSERT(event_);
-
-                return Result::Ok;
             }
 
-            Result FenceImpl::Signal(const std::shared_ptr<CommandQueue>& queue)
+            void FenceImpl::Signal(const std::shared_ptr<CommandQueue>& queue)
             {
                 ASSERT(queue);
 
@@ -42,18 +40,16 @@ namespace OpenDemo
                 return Signal(*queueImpl);
             }
 
-            Result FenceImpl::Signal(CommandQueueImpl& queue)
+            void FenceImpl::Signal(CommandQueueImpl& queue)
             {
                 ASSERT(D3DFence_);
 
                 cpuValue_++;
 
-                D3DCall(queue.Signal(D3DFence_, cpuValue_));
-
-                return Result::Ok;
+                queue.Signal(D3DFence_, cpuValue_);
             }
 
-            Result FenceImpl::SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const
+            void FenceImpl::SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const
             {
                 ASSERT(D3DFence_);
 
@@ -64,22 +60,19 @@ namespace OpenDemo
                 if (gpuVal < syncVal)
                 {
                     D3DCallMsg(D3DFence_->SetEventOnCompletion(syncVal, event_), "SetEventOnCompletion");
-                    return Result(WaitForSingleObject(event_, timeout));
+                    //TODO TODO TODO TODO TODO TODO 
+                    //return void(WaitForSingleObject(event_, timeout));
                 }
-
-                return Result::Ok;
             }
 
-            Result FenceImpl::SyncGPU(const std::shared_ptr<CommandQueue>& queue) const
+            void FenceImpl::SyncGPU(const std::shared_ptr<CommandQueue>& queue) const
             {
                 ASSERT(D3DFence_);
                 ASSERT(queue);
                 ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetPrivateImpl()));
 
                 const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetPrivateImpl());
-                D3DCall(queueImpl->Wait(D3DFence_, cpuValue_));
-
-                return Result::Ok;
+                queueImpl->Wait(D3DFence_, cpuValue_);
             }
         }
     }

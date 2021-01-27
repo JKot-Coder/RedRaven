@@ -8,7 +8,7 @@ namespace OpenDemo
     {
         namespace DX12
         { /*
-            Result RenderTargetViewImpl::Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHandle& handle)
+            void RenderTargetViewImpl::Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHandle& handle)
             {
                 if (DSVDesc.Format == TEX_FORMAT_UNKNOWN)
                 {
@@ -21,7 +21,7 @@ namespace OpenDemo
                 auto* pDeviceD3D12 = static_cast<RenderDeviceD3D12Impl*>(GetDevice())->GetD3D12Device();
                 pDeviceD3D12->CreateDepthStencilView(m_pd3d12Resource, &D3D12_DSVDesc, DSVHandle);
 
-                return Result::Ok;
+                return void::Ok;
             }*/
         }
     }

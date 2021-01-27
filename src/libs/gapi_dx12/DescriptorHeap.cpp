@@ -14,7 +14,7 @@ namespace OpenDemo
                 ASSERT(allocated_ == 0);
             }
 
-            Result DescriptorHeap::Init(const DescriptorHeapDesc& desc)
+            void DescriptorHeap::Init(const DescriptorHeapDesc& desc)
             {
                 ASSERT(!d3d12Heap_);
                 ASSERT(desc.numDescriptors_ > 0);
@@ -42,8 +42,6 @@ namespace OpenDemo
                     chunks_.emplace_back(std::make_unique<Chunk>(offset));
                     freeChunks_.emplace_back(chunks_[i].get());
                 }
-
-                return Result::Ok;
             }
         }
     }

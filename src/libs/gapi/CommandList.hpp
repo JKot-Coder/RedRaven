@@ -2,7 +2,6 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
-#include "gapi/Result.hpp"
 
 namespace OpenDemo
 {
@@ -33,7 +32,7 @@ namespace OpenDemo
         class ICommandList
         {
         public:
-            virtual Result Close() = 0;
+            virtual void Close() = 0;
 
             virtual void CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer) = 0;
             virtual void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
@@ -75,7 +74,7 @@ namespace OpenDemo
 
             inline CommandListType GetCommandListType() const { return type_; };
 
-            inline Result Close() { return GetPrivateImpl()->Close(); }
+            inline void Close() { return GetPrivateImpl()->Close(); }
 
         protected:
             CommandList(CommandListType type, const U8String& name)

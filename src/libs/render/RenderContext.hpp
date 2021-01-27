@@ -20,7 +20,7 @@ namespace OpenDemo
             RenderContext();
             ~RenderContext();
 
-            GAPI::Result Init();
+            void Init();
             void Terminate();
 
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& CommandList);
@@ -30,7 +30,7 @@ namespace OpenDemo
             void ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description);
 
             void ExecuteAsync(const Submission::CallbackFunction&& function);
-            GAPI::Result ExecuteAwait(const Submission::CallbackFunction&& function);
+            void ExecuteAwait(const Submission::CallbackFunction&& function);
 
             std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::ComputeCommandList> CreateComputeCommandList(const U8String& name) const;

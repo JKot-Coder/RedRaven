@@ -86,12 +86,12 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
-            Result ResourceImpl::Init(const Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
+            void ResourceImpl::Init(const Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
             {
                 return Init(resource.GetDescription(), resource.GetBindFlags(), subresourcesFootprint, resource.GetName());
             }
 
-            Result ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name)
+            void ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name)
             {
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(subresourcesFootprint.size() == 0 || subresourcesFootprint.size() == resourceDesc.GetNumSubresources());
@@ -116,12 +116,10 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
-                D3DCall(performInitialUpload(subresourcesFootprint));
-
-                return Result::Ok;
+                performInitialUpload(subresourcesFootprint);
             }
 
-            Result ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, const U8String& name)
+            void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, const U8String& name)
             {
                 ASSERT(resource);
                 // TextureDesc ASSERT checks done on Texture initialization;
@@ -134,16 +132,14 @@ namespace OpenDemo
 
                 D3DResource_ = resource;
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
-
-                return Result::Ok;
             }
 
-            Result ResourceImpl::Init(const Buffer& resource)
+            void ResourceImpl::Init(const Buffer& resource)
             {
                 return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetName());
             }
 
-            Result ResourceImpl::Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name)
+            void ResourceImpl::Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name)
             {
                 ASSERT(resourceDesc.size > 0);
 
@@ -162,18 +158,14 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
                 //    D3DCall(performInitialUpload(subresourcesFootprint));
-
-                return Result::Ok;
             }
 
-            Result ResourceImpl::performInitialUpload(const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
+            void ResourceImpl::performInitialUpload(const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
             {
                 if (subresourcesFootprint.size() == 0)
-                    return Result::Ok;
+                    return;
 
                 //subresourcesFootprint
-
-                return Result::Ok;
             }
         }
     }

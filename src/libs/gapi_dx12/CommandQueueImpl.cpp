@@ -29,7 +29,7 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandQueue_);
             }
 
-            Result CommandQueueImpl::Init(const U8String& name)
+            void CommandQueueImpl::Init(const U8String& name)
             {
                 ASSERT(!D3DCommandQueue_)
 
@@ -50,17 +50,14 @@ namespace OpenDemo
                     desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
                     break;
                 default:
-                    ASSERT_MSG(false, "Unsuported command queue type");
-                    return Result::NotImplemented;
+                    LOG_FATAL( "Unsuported command queue type");
                 }
 
                 D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
-
-                return Result::Ok;
             }
 
-            Result CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
+            void CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
             {
                 ASSERT(D3DCommandQueue_);
                 ASSERT(commandList);
@@ -75,25 +72,19 @@ namespace OpenDemo
                 ID3D12CommandList* commandLists[] = { d3dCommandList.get() };
                 D3DCommandQueue_->ExecuteCommandLists(1, commandLists);
 
-                D3DCall(commandListImpl->ResetAfterSubmit(*this));
-
-                return Result::Ok;
+                commandListImpl->ResetAfterSubmit(*this);
             }
 
-            Result CommandQueueImpl::Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
+            void CommandQueueImpl::Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
                 D3DCallMsg(D3DCommandQueue_->Signal(fence.get(), value), "Signal");
-
-                return Result::Ok;
             }
 
-            Result CommandQueueImpl::Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
+            void CommandQueueImpl::Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
                 D3DCallMsg(D3DCommandQueue_->Wait(fence.get(), value), "Wait");
-
-                return Result::Ok;
             }
         };
     }
