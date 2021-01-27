@@ -115,12 +115,12 @@ namespace OpenDemo
                 resource->SetPrivateImpl(impl);
             }
 
-            void SwapChainImpl::Present(uint32_t interval)
+            HRESULT SwapChainImpl::Present(uint32_t interval)
             {
                 ASSERT(D3DSwapChain_);
 
                 DXGI_PRESENT_PARAMETERS params = {};
-                D3DCallMsg(D3DSwapChain_->Present1(interval, 0, &params), "Present1");
+                return D3DSwapChain_->Present1(interval, 0, &params);
             }
         }
     }

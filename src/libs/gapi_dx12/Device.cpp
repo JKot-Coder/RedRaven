@@ -289,34 +289,31 @@ namespace OpenDemo
 
                 ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
                 auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
-                    
-                    
-                    /// TODO TODO TODO TODO
-              /*  void result = swapChainImpl->Present(0);
+
+                auto result = swapChainImpl->Present(0);
 
                 // If the device was reset we must completely reinitialize the renderer.
-                if (result == void ::DeviceRemoved || result == void ::DeviceReset)
+                if (result == DXGI_ERROR_DEVICE_REMOVED || result == DXGI_ERROR_DEVICE_RESET)
                 {
-                    result = (result == void ::DeviceRemoved) ? void(d3dDevice_->GetDeviceRemovedReason()) : result;
-                    Log::Print::Warning("Device Lost on Present. Error: %s\n", result.ToString());
+                    result = (result == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : result;
+
+                    // TODO TODO TODO string
+                    Log::Print::Fatal("Device Lost on Present. Error: %s\n", result.ToString());
 
                     // Todo error check
                     //handleDeviceLost();
                     ASSERT(false);
-
-                    return void ::Fail;
                 }
                 else
                 {
                     if (!dxgiFactory_->IsCurrent())
                     {
-                        LOG_ERROR("Dxgi is not current");
-                        return void ::Fail;
+                        LOG_FATAL("Dxgi is not current");
 
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
                         //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
-                }*/
+                }
             }
 
             void DeviceImpl::createDevice()
@@ -368,11 +365,8 @@ namespace OpenDemo
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
-
-                    // TODO TODO TODO TODO
-                    /*
-                    void result;
-                    if (result = void(d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
+                    HRESULT result;
+                    if (SUCCEEDED(result = d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
                         d3dInfoQueue->ClearStorageFilter();
@@ -382,8 +376,9 @@ namespace OpenDemo
                     }
                     else
                     {
-                        LOG_ERROR("Unable to get ID3D12InfoQueue. Error: %s", result.ToString());
-                    }*/
+                        // TODO TODO TODO TODO
+                        //   LOG_WARNING("Unable to get ID3D12InfoQueue. Error: %s", result.ToString());
+                    }
                 }
 
                 // Determine maximum supported feature level for this device

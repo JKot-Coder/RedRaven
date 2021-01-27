@@ -63,22 +63,16 @@ namespace OpenDemo
             });
 
             // TODO TODO TODO TODO
-           /* if (!result)
+            /* if (!result)
             {
                 Log::Print::Error("Render device init failed.\n");
                 return result;
             }*/
 
-            inited_ = true;
-
             fence_ = CreateFence("Frame sync fence");
+            ASSERT(fence_);
 
-            // TODO TODO TODO
-            if (!fence_)
-            {
-                inited_ = false;
-                LOG_FATAL("Failed init fence.\n");
-            }
+            inited_ = true;
         }
 
         void RenderContext::Terminate()
@@ -157,7 +151,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-           submission_->ExecuteAwait(std::move(function));
+            submission_->ExecuteAwait(std::move(function));
         }
 
         void RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
@@ -177,7 +171,7 @@ namespace OpenDemo
             // TODO TODO TODO TODO
             auto& resource = GAPI::CopyCommandList::Create(name, GPIObjectsDeleter<GAPI::CopyCommandList>());
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
-              //  resource = nullptr;
+            //  resource = nullptr;
 
             return resource;
         }
@@ -186,10 +180,10 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-             // TODO TODO TODO TODO
+            // TODO TODO TODO TODO
             auto& resource = GAPI::ComputeCommandList::Create(name, GPIObjectsDeleter<GAPI::ComputeCommandList>());
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
-             //   resource = nullptr;
+            //   resource = nullptr;
 
             return resource;
         }
@@ -222,7 +216,7 @@ namespace OpenDemo
 
             auto& resource = GAPI::Fence::Create(name, GPIObjectsDeleter<GAPI::Fence>());
             submission_->GetIMultiThreadDevice().lock()->InitFence(*resource.get());
-             //   resource = nullptr;
+            //   resource = nullptr;
 
             return resource;
         }
@@ -233,7 +227,7 @@ namespace OpenDemo
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
             submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), subresourcesFootprint);
-             //   resource = nullptr;
+            //   resource = nullptr;
 
             return resource;
         }
@@ -288,7 +282,7 @@ namespace OpenDemo
 
             auto& resource = GAPI::RenderTargetView::Create(texture, desc, name, GPIObjectsDeleter<GAPI::RenderTargetView>());
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
-             //   resource = nullptr;
+            //   resource = nullptr;
 
             return resource;
         }

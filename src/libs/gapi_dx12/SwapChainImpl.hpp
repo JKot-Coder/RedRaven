@@ -21,7 +21,7 @@ namespace OpenDemo
 
                 void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) override;
 
-                void Present(uint32_t interval);
+                HRESULT Present(uint32_t interval);
 
                 const ComSharedPtr<IDXGISwapChain3>& GetD3DObject() const { return D3DSwapChain_; }
 
