@@ -21,7 +21,7 @@ namespace OpenDemo
         const HRESULT result = exp;                                                                                                                     \
         if (FAILED(result))                                                                                                                             \
         {                                                                                                                                               \
-            LOG_ERROR("%s Error: %d", msg, result);                                                                                                     \
+            LOG_FATAL("%s Error: %d", msg, result);                                                                                                     \
         }
 
 #define D3DCallMsg(exp, msg, ...)                                                                                 \
@@ -30,7 +30,7 @@ namespace OpenDemo
         const HRESULT result = exp;                                                                               \
         if (FAILED(result))                                                                                       \
         {                                                                                                         \
-            LOG_ERROR("%s Error: %d", msg, result)                                                                \
+            LOG_FATAL("%s Error: %s", msg, D3DUtils::HResultToString(result))                                     \
         }                                                                                                         \
     }
 
@@ -75,6 +75,8 @@ namespace OpenDemo
                 {
                 }
 #endif
+
+                U8String HResultToString(HRESULT hr);
 
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right);
 

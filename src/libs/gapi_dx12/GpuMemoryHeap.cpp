@@ -53,13 +53,14 @@ namespace OpenDemo
                 else
                 {
                     const auto pageSize = Max(allocSize, defaultPageSize_);
+                    ASSERT(pageSize <= std::numeric_limits<uint32_t>::max());
 
-                    const auto& description = BufferDescription::Create(pageSize);
+                    const auto& description = BufferDescription::Create(static_cast<uint32_t>(pageSize));
                     auto& resource = std::make_unique<ResourceImpl>();
                     resource->Init(description, GpuResourceBindFlags::None, fmt::sprintf("%s::%u", name_, pageIndex));
 
                     page = std::make_unique<Page>(pageSize, std::move(resource));
-                    
+
                     pageIndex++;
                 }
             }

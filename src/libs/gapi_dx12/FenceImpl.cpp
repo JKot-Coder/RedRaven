@@ -60,8 +60,7 @@ namespace OpenDemo
                 if (gpuVal < syncVal)
                 {
                     D3DCallMsg(D3DFence_->SetEventOnCompletion(syncVal, event_), "SetEventOnCompletion");
-                    //TODO TODO TODO TODO TODO TODO 
-                    //return void(WaitForSingleObject(event_, timeout));
+                    D3DCallMsg(WaitForSingleObject(event_, timeout), "WaitForSingleObject");
                 }
             }
 

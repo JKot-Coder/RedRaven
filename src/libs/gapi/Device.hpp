@@ -37,7 +37,7 @@ namespace OpenDemo
             };
 
         public:
-            virtual void Init(const Description& description) = 0;
+            virtual bool Init(const Description& description) = 0;
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             virtual void Present(const std::shared_ptr<SwapChain>& swapChain) = 0;
             virtual void MoveToNextFrame() = 0;
@@ -73,7 +73,7 @@ namespace OpenDemo
         public:
             virtual ~Device() = default;
 
-            void Init(const Description& description) override { GetPrivateImpl()->Init(description); };
+            bool Init(const Description& description) override { return GetPrivateImpl()->Init(description); };
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             void Present(const std::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame() override { GetPrivateImpl()->MoveToNextFrame(); }

@@ -5,6 +5,8 @@
 
 #include "gapi_dx12/TypeConversions.hpp"
 
+#include <comdef.h>
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -13,6 +15,66 @@ namespace OpenDemo
         {
             namespace D3DUtils
             {
+                // Copy from _com_error::ErrorMessage(), with english locale
+                inline const TCHAR* ErrorMessage(HRESULT hr) throw()
+                {
+                    TCHAR* pszMsg;
+                    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                                      FORMAT_MESSAGE_FROM_SYSTEM |
+                                      FORMAT_MESSAGE_IGNORE_INSERTS,
+                                  NULL,
+                                  hr,
+                                  MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
+                                  (LPTSTR)&pszMsg,
+                                  0,
+                                  NULL);
+                    if (pszMsg != NULL)
+                    {
+#ifdef UNICODE
+                        size_t const nLen = wcslen(pszMsg);
+#else
+                        size_t const nLen = strlen(m_pszMsg);
+#endif
+                        if (nLen > 1 && pszMsg[nLen - 1] == '\n')
+                        {
+                            pszMsg[nLen - 1] = 0;
+                            if (pszMsg[nLen - 2] == '\r')
+                            {
+                                pszMsg[nLen - 2] = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        pszMsg = (LPTSTR)LocalAlloc(0, 32 * sizeof(TCHAR));
+                        if (pszMsg != NULL)
+                        {
+                            WORD wCode = _com_error::HRESULTToWCode(hr);
+                            if (wCode != 0)
+                            {
+                                _COM_PRINTF_S_1(pszMsg, 32, TEXT("IDispatch error #%d"), (int)wCode);
+                            }
+                            else
+                            {
+                                _COM_PRINTF_S_1(pszMsg, 32, TEXT("Unknown error 0x%0lX"), hr);
+                            }
+                        }
+                    }
+                    return pszMsg;
+                }
+
+                U8String HResultToString(HRESULT hr)
+                {
+                    if (SUCCEEDED(hr))
+                        return "";
+
+                    const auto pMessage = ErrorMessage(hr);
+                    const auto& messageString = StringConversions::WStringToUTF8(pMessage);
+                    LocalFree((HLOCAL)pMessage);
+
+                    return messageString;                  
+                }
+
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right)
                 {
                     return (left.Stereo == right.Stereo &&

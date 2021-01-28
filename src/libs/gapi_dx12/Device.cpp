@@ -59,7 +59,7 @@ namespace OpenDemo
                 DeviceImpl();
                 virtual ~DeviceImpl();
 
-                void Init(const IDevice::Description& description) override;
+                bool Init(const IDevice::Description& description) override;
                 void Submit(const CommandList::SharedPtr& commandList);
                 void Present(const SwapChain::SharedPtr& swapChain) override;
                 void MoveToNextFrame() override;
@@ -81,7 +81,7 @@ namespace OpenDemo
                 }
 
             private:
-                void createDevice();
+                bool createDevice();
 
             private:
                 IDevice::Description description_ = {};
@@ -137,17 +137,20 @@ namespace OpenDemo
                 d3dDevice_ = nullptr;
             }
 
-            void DeviceImpl::Init(const IDevice::Description& description)
+            bool DeviceImpl::Init(const IDevice::Description& description)
             {
-                // TODO TODO TODO TODO returnvalue
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
 
                 ASSERT(description.gpuFramesBuffered <= MAX_BACK_BUFFER_COUNT);
 
+                
+           //     D3DCallMsg(DXGI_ERROR_DEVICE_RESET, "qwewqe");
+
                 description_ = description;
 
-                createDevice();
+                if (!createDevice())
+                    return false;
 
                 DeviceContext::Init(d3dDevice_, dxgiFactory_);
 
@@ -174,6 +177,8 @@ namespace OpenDemo
                     uploadHeap);
 
                 inited_ = true;
+
+                return true;
             }
 
             void DeviceImpl::WaitForGpu()
@@ -296,10 +301,8 @@ namespace OpenDemo
                 if (result == DXGI_ERROR_DEVICE_REMOVED || result == DXGI_ERROR_DEVICE_RESET)
                 {
                     result = (result == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : result;
-
-                    // TODO TODO TODO string
-                    Log::Print::Fatal("Device Lost on Present. Error: %s\n", result.ToString());
-
+                    
+                    LOG_FATAL("Device Lost on Present. Error: %s", D3DUtils::HResultToString(result));
                     // Todo error check
                     //handleDeviceLost();
                     ASSERT(false);
@@ -316,7 +319,7 @@ namespace OpenDemo
                 }
             }
 
-            void DeviceImpl::createDevice()
+            bool DeviceImpl::createDevice()
             {
                 ASSERT_IS_CREATION_THREAD
 
@@ -352,20 +355,34 @@ namespace OpenDemo
                     }
                 }
 
-                D3DCallMsg(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(dxgiFactory_.put())), "CreateDXGIFactory2");
+                HRESULT result;
+                if (FAILED(result = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(dxgiFactory_.put()))))
+                {
+                    LOG_WARNING("Failed to create DXGIFactory. Error: %s", D3DUtils::HResultToString(result));
+                    return false;
+                }
 
                 D3D_FEATURE_LEVEL minimumFeatureLevel = D3D_FEATURE_LEVEL_11_0;
-                D3DCallMsg(D3DUtils::GetAdapter(dxgiFactory_, minimumFeatureLevel, dxgiAdapter_), "GetAdapter");
+                if (FAILED(result = D3DUtils::GetAdapter(dxgiFactory_, minimumFeatureLevel, dxgiAdapter_)))
+                {
+                    LOG_WARNING("Failed to get adapter. Error: %s", D3DUtils::HResultToString(result));
+                    return false;
+                }
 
                 // Create the DX12 API device object.
-                D3DCallMsg(D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put())), "D3D12CreateDevice");
+                if (FAILED(result = D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put()))))
+                {
+                    LOG_WARNING("Failed to CreateDevice. Error: %s", D3DUtils::HResultToString(result));
+                    return false;
+                }
+
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
 
                 if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
-                    HRESULT result;
+
                     if (SUCCEEDED(result = d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
                     {
                         d3dInfoQueue->ClearRetrievalFilter();
@@ -376,8 +393,7 @@ namespace OpenDemo
                     }
                     else
                     {
-                        // TODO TODO TODO TODO
-                        //   LOG_WARNING("Unable to get ID3D12InfoQueue. Error: %s", result.ToString());
+                        LOG_WARNING("Unable to get ID3D12InfoQueue. Error: %s", D3DUtils::HResultToString(result));
                     }
                 }
 
@@ -401,6 +417,8 @@ namespace OpenDemo
                 {
                     d3dFeatureLevel_ = minimumFeatureLevel;
                 }
+
+                return true;
             }
 
             void DeviceImpl::MoveToNextFrame()
