@@ -23,7 +23,7 @@ namespace OpenDemo
 
                 const auto& device = DeviceContext::GetDevice();
 
-                D3DCallMsg(device->CreateFence(cpuValue_, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(D3DFence_.put())), "CreateFence");
+                D3DCall(device->CreateFence(cpuValue_, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(D3DFence_.put())));
                 D3DUtils::SetAPIName(D3DFence_.get(), name);
 
                 event_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -59,8 +59,8 @@ namespace OpenDemo
                 uint64_t gpuVal = GetGpuValue();
                 if (gpuVal < syncVal)
                 {
-                    D3DCallMsg(D3DFence_->SetEventOnCompletion(syncVal, event_), "SetEventOnCompletion");
-                    D3DCallMsg(WaitForSingleObject(event_, timeout), "WaitForSingleObject");
+                    D3DCall(D3DFence_->SetEventOnCompletion(syncVal, event_));
+                    D3DCall(WaitForSingleObject(event_, timeout));
                 }
             }
 

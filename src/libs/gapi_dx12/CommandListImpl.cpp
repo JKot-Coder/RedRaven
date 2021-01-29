@@ -25,7 +25,7 @@ namespace OpenDemo
             {
                 ASSERT(!allocator);
 
-                D3DCallMsg(DeviceContext::GetDevice()->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())), "CreateCommandAllocator");
+                D3DCall(DeviceContext::GetDevice()->CreateCommandAllocator(type_, IID_PPV_ARGS(allocator.put())));
 
                 D3DUtils::SetAPIName(allocator.get(), name, index);
             }
@@ -102,7 +102,7 @@ namespace OpenDemo
                 commandAllocatorsPool_.Init(type_, name);
                 const auto allocator = commandAllocatorsPool_.GetNextAllocator();
 
-                D3DCallMsg(DeviceContext::GetDevice()->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())), "CreateCommandList");
+                D3DCall(DeviceContext::GetDevice()->CreateCommandList(0, type_, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList_.put())));
 
                 D3DUtils::SetAPIName(D3DCommandList_.get(), name);
             }
@@ -113,7 +113,7 @@ namespace OpenDemo
 
                 commandAllocatorsPool_.ResetAfterSubmit(commandQueue);
                 const auto& allocator = commandAllocatorsPool_.GetNextAllocator();
-                D3DCallMsg(D3DCommandList_->Reset(allocator.get(), nullptr), "Reset");
+                D3DCall(D3DCommandList_->Reset(allocator.get(), nullptr));
             }
 
             void CommandListImpl::CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer)
@@ -209,7 +209,7 @@ namespace OpenDemo
 
             void CommandListImpl::Close()
             {
-                D3DCallMsg(D3DCommandList_->Close(), "Close");
+                D3DCall(D3DCommandList_->Close());
             }
         };
     }

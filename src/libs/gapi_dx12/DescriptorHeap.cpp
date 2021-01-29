@@ -32,7 +32,7 @@ namespace OpenDemo
                 rtvDescriptorHeapDesc.Type = desc.type;
                 rtvDescriptorHeapDesc.Flags = desc.flags;
 
-                D3DCallMsg(device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(d3d12Heap_.put())), "CreateDescriptorHeap");
+                D3DCall(device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(d3d12Heap_.put())));
 
                 D3DUtils::SetAPIName(d3d12Heap_.get(), name_);
 

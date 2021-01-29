@@ -106,16 +106,12 @@ namespace OpenDemo
                     std::ignore = device;
 
                     auto texture = swapChain->GetTexture(index2);
-                    ASSERT(texture)
                     //Log::Print::Info("Texture %s\n", texture->GetName());
 
                     auto rtv = texture->GetRTV();
-                    ASSERT(rtv);
 
                     commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
                     commandList->Close();
-
-                    return GAPI::void::Ok;
                 });
 
             renderContext.Submit(commandQueue, commandList);
@@ -163,10 +159,7 @@ namespace OpenDemo
         Inputting::Instance()->SubscribeToWindow(_window);
 
         auto& renderContext = Render::RenderContext::Instance();
-        const auto result = renderContext.Init();
-
-        if (!result)
-            Log::Print::Fatal("Fatal error initialize render context with error: %s\n", result.ToString());
+        renderContext.Init();
 
         // auto& render = Rendering::Instance();
         // render->Init(_window);

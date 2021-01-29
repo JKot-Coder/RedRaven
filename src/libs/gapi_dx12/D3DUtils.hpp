@@ -14,23 +14,14 @@ namespace OpenDemo
         {
             namespace D3DUtils
             {
-                // TODO likely, unlikely
-#define D3DCall(exp, ...)                                                                                                                               \
-    {                                                                                                                                                   \
-        static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "D3DCall takes only one argument use D3DCallCheck instead"); \
-        const HRESULT result = exp;                                                                                                                     \
-        if (FAILED(result))                                                                                                                             \
-        {                                                                                                                                               \
-            LOG_FATAL("%s Error: %d", msg, result);                                                                                                     \
-        }
 
-#define D3DCallMsg(exp, msg, ...)                                                                                 \
+#define D3DCall(exp, ...)                                                                                         \
     {                                                                                                             \
         static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "Too many arguments"); \
         const HRESULT result = exp;                                                                               \
         if (FAILED(result))                                                                                       \
         {                                                                                                         \
-            LOG_FATAL("%s Error: %s", msg, D3DUtils::HResultToString(result))                                     \
+            LOG_FATAL(#exp " Error: %s", D3DUtils::HResultToString(result))                                       \
         }                                                                                                         \
     }
 

@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 3.16.0)
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/MP>")
+
 message(warning ${CMAKE_BINARY_DIR})
 
 include(FetchContent)

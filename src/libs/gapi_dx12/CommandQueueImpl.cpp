@@ -53,7 +53,7 @@ namespace OpenDemo
                     LOG_FATAL( "Unsuported command queue type");
                 }
 
-                D3DCallMsg(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())), "CreateCommandQueue");
+                D3DCall(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())));
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
             }
 
@@ -78,13 +78,13 @@ namespace OpenDemo
             void CommandQueueImpl::Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
-                D3DCallMsg(D3DCommandQueue_->Signal(fence.get(), value), "Signal");
+                D3DCall(D3DCommandQueue_->Signal(fence.get(), value));
             }
 
             void CommandQueueImpl::Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
-                D3DCallMsg(D3DCommandQueue_->Wait(fence.get(), value), "Wait");
+                D3DCall(D3DCommandQueue_->Wait(fence.get(), value));
             }
         };
     }

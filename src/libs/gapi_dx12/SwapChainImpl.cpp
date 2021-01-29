@@ -39,14 +39,13 @@ namespace OpenDemo
 
                 ComSharedPtr<IDXGISwapChain1> swapChain1;
                 // Create a swap chain for the window.
-                D3DCallMsg(dxgiFactory->CreateSwapChainForHwnd(
+                D3DCall(dxgiFactory->CreateSwapChainForHwnd(
                                commandQueue.get(),
                                description.windowHandle,
                                &targetSwapChainDesc,
                                nullptr,
                                nullptr,
-                               swapChain1.put()),
-                           "CreateSwapChainForHwnd");
+                               swapChain1.put()));
 
                 if (!swapChain1.try_as(D3DSwapChain_))
                     LOG_FATAL("Failed to cast swapchain");
@@ -60,7 +59,7 @@ namespace OpenDemo
                 ASSERT(CheckSwapchainDescription(description))
 
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
-                D3DCallMsg(D3DSwapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
+                D3DCall(D3DSwapChain_->GetDesc1(&currentSwapChainDesc));
 
                 const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
                 const auto swapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
@@ -102,12 +101,12 @@ namespace OpenDemo
 
 #ifdef ENABLE_ASSERTS
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
-                D3DCallMsg(D3DSwapChain_->GetDesc1(&currentSwapChainDesc), "GetDesc1");
+                D3DCall(D3DSwapChain_->GetDesc1(&currentSwapChainDesc));
                 ASSERT(backBufferIndex <= currentSwapChainDesc.BufferCount);
 #endif
 
                 ComSharedPtr<ID3D12Resource> backBuffer_;
-                D3DCallMsg(D3DSwapChain_->GetBuffer(backBufferIndex, IID_PPV_ARGS(backBuffer_.put())), "GetBuffer");
+                D3DCall(D3DSwapChain_->GetBuffer(backBufferIndex, IID_PPV_ARGS(backBuffer_.put())));
                 ASSERT(backBuffer_);
 
                 auto impl = new ResourceImpl();

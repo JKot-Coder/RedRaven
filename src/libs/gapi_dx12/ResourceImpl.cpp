@@ -104,15 +104,14 @@ namespace OpenDemo
 
                 const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
 
-                D3DCallMsg(
+                D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
                         &DefaultHeapProps,
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
                         D3D12_RESOURCE_STATE_COMMON,
                         pOptimizedClearValue,
-                        IID_PPV_ARGS(D3DResource_.put())),
-                    "ResourceImpl::CreateCommittedResource");
+                        IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
@@ -145,15 +144,14 @@ namespace OpenDemo
 
                 const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
 
-                D3DCallMsg(
+                D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
                         &DefaultHeapProps,
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
                         D3D12_RESOURCE_STATE_COMMON,
                         nullptr,
-                        IID_PPV_ARGS(D3DResource_.put())),
-                    "ResourceImpl::CreateCommittedResource");
+                        IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 

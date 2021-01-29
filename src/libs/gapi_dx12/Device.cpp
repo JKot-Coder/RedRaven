@@ -137,15 +137,17 @@ namespace OpenDemo
                 d3dDevice_ = nullptr;
             }
 
+            HRESULT wqeqweqwe()
+            {
+                return -1;
+            }
+
             bool DeviceImpl::Init(const IDevice::Description& description)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
 
                 ASSERT(description.gpuFramesBuffered <= MAX_BACK_BUFFER_COUNT);
-
-                
-           //     D3DCallMsg(DXGI_ERROR_DEVICE_RESET, "qwewqe");
 
                 description_ = description;
 
