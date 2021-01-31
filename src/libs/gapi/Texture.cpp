@@ -96,7 +96,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
                 // TODO static_pointer_cast; name_
-                srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc, name_);
+                srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
             }
 
             return srvs_[viewDesc];
@@ -110,7 +110,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
                 // TODO static_pointer_cast; name_
-                dsvs_[viewDesc] = renderContext.CreateDepthStencilView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc, name_);
+                dsvs_[viewDesc] = renderContext.CreateDepthStencilView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
             }
 
             return dsvs_[viewDesc];
@@ -124,7 +124,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
                 // TODO static_pointer_cast; name_
-                rtvs_[viewDesc] = renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc, name_);
+                rtvs_[viewDesc] = renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
             }
 
             return rtvs_[viewDesc];
@@ -138,7 +138,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
                 // TODO static_pointer_cast; name_
-                uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc, name_);
+                uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
             }
 
             return uavs_[viewDesc];

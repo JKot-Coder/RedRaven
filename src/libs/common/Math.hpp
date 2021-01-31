@@ -1878,10 +1878,10 @@ namespace OpenDemo
                 return static_cast<T>(truncatedValue);
             }
 
-            template <typename PtrType>
-            inline constexpr PtrType* AlignTo(PtrType* value, size_t alignment)
+            template <typename T>
+            inline constexpr T* AlignTo(T* value, size_t alignment)
             {
-                return reinterpret_cast<PtrType*>(AlignTo(reinterpret_cast<uintptr_t>(value), alignment));
+                return reinterpret_cast<T*>(AlignTo(reinterpret_cast<uintptr_t>(value), alignment));
             }
 
             template <typename T>
@@ -1891,8 +1891,8 @@ namespace OpenDemo
                 return (value & (alignment - 1)) == 0;
             }
 
-            template <typename PtrType>
-            inline constexpr bool IsAlignedTo(PtrType* value, size_t alignment)
+            template <typename T>
+            inline constexpr bool IsAlignedTo(T* value, size_t alignment)
             {
                 return (reinterpret_cast<uintptr_t>(value) & (alignment - 1)) == 0;
             }

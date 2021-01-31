@@ -30,7 +30,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
                 // TODO static_pointer_cast; name_
-                srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc, name_);
+                srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
 
             return srvs_[viewDesc];
@@ -48,7 +48,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
                 // TODO static_pointer_cast; name_
-                uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc, name_);
+                uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
 
             return uavs_[viewDesc];

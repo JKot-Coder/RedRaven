@@ -47,11 +47,13 @@ namespace OpenDemo
         class IMultiThreadDevice
         {
         public:
+            virtual std::shared_ptr<TextureData> const AllocateTextureSubresourceData(const TextureDescription& desc) const = 0;
+
             virtual void InitSwapChain(SwapChain& resource) const = 0;
             virtual void InitFence(Fence& resource) const = 0;
             virtual void InitCommandQueue(CommandQueue& resource) const = 0;
             virtual void InitCommandList(CommandList& resource) const = 0;
-            virtual void InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const = 0;
+            virtual void InitTexture(Texture& resource, const std::shared_ptr<TextureData>& textureData) const = 0;
             virtual void InitBuffer(Buffer& resource) const = 0;
             virtual void InitGpuResourceView(GpuResourceView& view) const = 0;
 
@@ -79,11 +81,13 @@ namespace OpenDemo
             void MoveToNextFrame() override { GetPrivateImpl()->MoveToNextFrame(); }
             void WaitForGpu() override { GetPrivateImpl()->WaitForGpu(); }
 
+            std::shared_ptr<TextureData> const AllocateTextureSubresourceData(const TextureDescription& desc) const override { return GetPrivateImpl()->AllocateTextureSubresourceData(desc); };
+
             void InitSwapChain(SwapChain& resource) const override { GetPrivateImpl()->InitSwapChain(resource); };
             void InitFence(Fence& resource) const override { GetPrivateImpl()->InitFence(resource); };
             void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };
             void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
-            void InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const override { GetPrivateImpl()->InitTexture(resource, subresourcesFootprint); };
+            void InitTexture(Texture& resource, const std::shared_ptr<TextureData>& textureData) const override { GetPrivateImpl()->InitTexture(resource, textureData); };
             void InitBuffer(Buffer& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
             void InitGpuResourceView(GpuResourceView& view) const override { GetPrivateImpl()->InitGpuResourceView(view); };
 

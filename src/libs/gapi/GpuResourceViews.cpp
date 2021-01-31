@@ -8,8 +8,7 @@ namespace OpenDemo
     {
         ShaderResourceView::ShaderResourceView(
             const std::weak_ptr<GpuResource>& gpuResource,
-            const GpuResourceViewDescription& desc,
-            const U8String& name) : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc, name)
+            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
             ASSERT(!gpuResource.expired());
 
@@ -35,8 +34,7 @@ namespace OpenDemo
 
         DepthStencilView::DepthStencilView(
             const std::weak_ptr<Texture>& texture,
-            const GpuResourceViewDescription& desc,
-            const U8String& name) : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc, name)
+            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
             ASSERT(!texture.expired());
 
@@ -49,8 +47,7 @@ namespace OpenDemo
 
         RenderTargetView::RenderTargetView(
             const std::weak_ptr<Texture>& texture,
-            const GpuResourceViewDescription& desc,
-            const U8String& name) : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc, name)
+            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
         {
             ASSERT(!texture.expired());
 
@@ -63,8 +60,7 @@ namespace OpenDemo
 
         UnorderedAccessView::UnorderedAccessView(
             const std::weak_ptr<GpuResource>& gpuResource,
-            const GpuResourceViewDescription& desc,
-            const U8String& name) : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc, name)
+            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {
             ASSERT(!gpuResource.expired());
 

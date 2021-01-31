@@ -55,7 +55,7 @@ namespace OpenDemo
             virtual ~IGpuResourceView() {};
         };
 
-        class GpuResourceView : public Resource<IGpuResourceView>
+        class GpuResourceView : public Resource<IGpuResourceView, false>
         {
         public:
             using SharedPtr = std::shared_ptr<GpuResourceView>;
@@ -74,8 +74,8 @@ namespace OpenDemo
             std::weak_ptr<GpuResource> GetGpuResource() const { return gpuResource_; }
 
         protected:
-            GpuResourceView(ViewType viewType, const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& description, const U8String& name)
-                : Resource(Object::Type::GpuResourceView, name),
+            GpuResourceView(ViewType viewType, const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& description)
+                : Resource<IGpuResourceView, false>(Object::Type::GpuResourceView),
                   viewType_(viewType),
                   gpuResource_(gpuResource),
                   description_(description)
@@ -100,13 +100,12 @@ namespace OpenDemo
             static SharedPtr Create(
                 const std::weak_ptr<GpuResource>& gpuResource,
                 const GpuResourceViewDescription& desc,
-                const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new ShaderResourceView(gpuResource, desc, name), Deleter());
+                return SharedPtr(new ShaderResourceView(gpuResource, desc), Deleter());
             };
 
-            ShaderResourceView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc, const U8String& name);
+            ShaderResourceView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
             friend class Render::RenderContext;
         };
 
@@ -121,13 +120,12 @@ namespace OpenDemo
             static SharedPtr Create(
                 const std::weak_ptr<Texture>& texture,
                 const GpuResourceViewDescription& desc,
-                const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new DepthStencilView(texture, desc, name), Deleter());
+                return SharedPtr(new DepthStencilView(texture, desc), Deleter());
             };
 
-            DepthStencilView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc, const U8String& name);
+            DepthStencilView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
 
             friend class Render::RenderContext;
         };
@@ -143,13 +141,12 @@ namespace OpenDemo
             static SharedPtr Create(
                 const std::shared_ptr<Texture>& texture,
                 const GpuResourceViewDescription& desc,
-                const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new RenderTargetView(texture, desc, name), Deleter());
+                return SharedPtr(new RenderTargetView(texture, desc), Deleter());
             };
 
-            RenderTargetView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc, const U8String& name);
+            RenderTargetView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
 
             friend class Render::RenderContext;
         };
@@ -165,13 +162,12 @@ namespace OpenDemo
             static SharedPtr Create(
                 const std::shared_ptr<GpuResource>& gpuResource,
                 const GpuResourceViewDescription& desc,
-                const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new UnorderedAccessView(gpuResource, desc, name), Deleter());
+                return SharedPtr(new UnorderedAccessView(gpuResource, desc), Deleter());
             };
 
-            UnorderedAccessView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc, const U8String& name);
+            UnorderedAccessView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
 
             friend class Render::RenderContext;
         };

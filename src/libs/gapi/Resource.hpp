@@ -6,7 +6,7 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        template <typename T>
+        template <typename T, bool IsNamed = true>
         class Resource : public Object
         {
         public:
@@ -41,14 +41,30 @@ namespace OpenDemo
                 privateImpl_.reset(impl);
             }
 
+            template <typename = std::enable_if_t<IsNamed>>
+            inline U8String GetName() const { return name_; }
+
         protected:
+            template <typename = std::enable_if_t<IsNamed>>
             Resource(Type type, const U8String& name)
-                : Object(type, name)
+                : name_(name), Object(type)
             {
             }
 
-        protected:
+            template <typename = std::enable_if_t<!IsNamed, void>>
+            Resource(Type type)
+                : Object(type)
+            {
+            }
+
+        private:
+            // clang-format off
+            struct monostate{};
+            // clang-format on
+
             std::unique_ptr<T> privateImpl_ = nullptr;
+            std::conditional_t<IsNamed, U8String, monostate> name_;
         };
+
     }
 }

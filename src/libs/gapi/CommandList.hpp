@@ -44,8 +44,8 @@ namespace OpenDemo
             virtual void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                       const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
 
-            virtual void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint) = 0;
-            virtual void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint) = 0;
+            virtual void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData) = 0;
+            virtual void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData) = 0;
         };
 
         class ICopyCommandList : public ICommandList
@@ -120,14 +120,14 @@ namespace OpenDemo
                 GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
             }
 
-            inline void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            inline void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData)
             {
-                GetPrivateImpl()->UpdateTextureData(texture, subresourceFootprint);
+                GetPrivateImpl()->UpdateTextureData(texture, textureData);
             }
 
-            inline void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            inline void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData)
             {
-                GetPrivateImpl()->UpdateSubresourceData(texture, firstSubresource, subresourceFootprint);
+                GetPrivateImpl()->UpdateSubresourceData(texture, subresourceData);
             }
 
         private:

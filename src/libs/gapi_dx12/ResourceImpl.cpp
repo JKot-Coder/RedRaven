@@ -39,46 +39,36 @@ namespace OpenDemo
                     }
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                const D3D12_HEAP_PROPERTIES* GetHeapProperties(BufferDescription::CpuAccess cpuAccess)
                 {
-                    DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
-
-                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
-                        format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
-
-                    D3D12_RESOURCE_DESC desc;
-                    switch (resourceDesc.dimension)
+                    switch (cpuAccess)
                     {
-                    case TextureDimension::Texture1D:
-                        desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels);
-                        break;
-                    case TextureDimension::Texture2D:
-                    case TextureDimension::Texture2DMS:
-                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize, resourceDesc.mipLevels, resourceDesc.sampleCount);
-                        break;
-                    case TextureDimension::Texture3D:
-                        desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.width, resourceDesc.height, resourceDesc.depth, resourceDesc.mipLevels);
-                        break;
-                    case TextureDimension::TextureCube:
-                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize * 6, resourceDesc.mipLevels);
-                        break;
+                    case BufferDescription::CpuAccess::None:
+                        return &DefaultHeapProps;
+                    case BufferDescription::CpuAccess::Write:
+                        return &UploadHeapProps;
+                    case BufferDescription::CpuAccess::Read:
+                        return &ReadbackHeapProps;
                     default:
-                        LOG_FATAL("Unsupported texture dimension");
+                        LOG_FATAL("Unsupported cpuAcess");
                     }
-
-                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
-                    return desc;
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                D3D12_RESOURCE_STATES GetDefaultResourceState(BufferDescription::CpuAccess cpuAccess)
                 {
-                    D3D12_RESOURCE_DESC desc;
-
-                    desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.size);
-                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
-                    desc.Format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
-                    return desc;
+                    switch (cpuAccess)
+                    {
+                    case BufferDescription::CpuAccess::None:
+                        return D3D12_RESOURCE_STATE_COMMON;
+                    case BufferDescription::CpuAccess::Write:
+                        return D3D12_RESOURCE_STATE_GENERIC_READ;
+                   // case BufferDescription::CpuAccess::Read:
+                   //     return &ReadbackHeapProps;
+                    default:
+                        LOG_FATAL("Unsupported cpuAcess");
+                    }
                 }
+
             }
 
             void ResourceImpl::ReleaseD3DObjects()
@@ -86,15 +76,16 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
-            void ResourceImpl::Init(const Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
+            void ResourceImpl::Init(const Texture& resource, const std::shared_ptr<TextureData>& subresourceData)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), subresourcesFootprint, resource.GetName());
+                return Init(resource.GetDescription(), resource.GetBindFlags(), subresourceData, resource.GetName());
             }
 
-            void ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name)
+            void ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::shared_ptr<TextureData>& subresourceData, const U8String& name)
             {
                 // TextureDesc ASSERT checks done on Texture initialization;
-                ASSERT(subresourcesFootprint.size() == 0 || subresourcesFootprint.size() == resourceDesc.GetNumSubresources());
+                ASSERT(!D3DResource_);
+                ASSERT(subresourceData == nullptr || subresourceData->size() == resourceDesc.GetNumSubresources());
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
 
@@ -102,7 +93,7 @@ namespace OpenDemo
                 D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
                 GetOptimizedClearValue(bindFlags, format, pOptimizedClearValue);
 
-                const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
+                const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc, bindFlags);
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
@@ -115,12 +106,13 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
-                performInitialUpload(subresourcesFootprint);
+                // performInitialUpload(textureData);
             }
 
             void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, const U8String& name)
             {
                 ASSERT(resource);
+                ASSERT(!D3DResource_);
                 // TextureDesc ASSERT checks done on Texture initialization;
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
@@ -140,30 +132,38 @@ namespace OpenDemo
 
             void ResourceImpl::Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name)
             {
+                ASSERT(!D3DResource_);
                 ASSERT(resourceDesc.size > 0);
 
-                const D3D12_RESOURCE_DESC& desc = GetResourceDesc(resourceDesc, bindFlags);
+                const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc, bindFlags);
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
-                        &DefaultHeapProps,
+                        GetHeapProperties(resourceDesc.cpuAccess),
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
-                        D3D12_RESOURCE_STATE_COMMON,
+                        GetDefaultResourceState(resourceDesc.cpuAccess),
                         nullptr,
                         IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
 
-                //    D3DCall(performInitialUpload(subresourcesFootprint));
+                //    D3DCall(performInitialUpload(textureData));
             }
 
-            void ResourceImpl::performInitialUpload(const std::vector<TextureSubresourceFootprint>& subresourcesFootprint)
+            void ResourceImpl::performInitialUpload(const std::shared_ptr<TextureData>& subresourceData)
             {
-                if (subresourcesFootprint.size() == 0)
+                if (subresourceData->size() == 0)
                     return;
 
-                //subresourcesFootprint
+                //textureData
+            }
+
+            void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory)
+            {
+                ASSERT(D3DResource_);
+
+                D3DCall(D3DResource_->Map(subresource, &range, &memory));
             }
         }
     }

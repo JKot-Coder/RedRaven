@@ -4,21 +4,19 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        template <typename T>
-        class Resource;
-
         class Object : public std::enable_shared_from_this<Object>, private NonCopyable
         {
         public:
             enum class Type
             {
-                Device,
-                CommandQueue,
                 CommandContext,
                 CommandList,
+                CommandQueue,
+                Device,
                 Fence,
                 GpuResource,
                 GpuResourceView,
+                MemoryAllocation,
                 SwapChain,
             };
 
@@ -30,19 +28,18 @@ namespace OpenDemo
             virtual ~Object() = default;
 
             inline Type GetType() const { return type_; }
-            inline U8String GetName() const { return name_; }
 
         private:
-            Object(Type type, const U8String& name)
-                : type_(type), name_(name)
+            Object(Type type)
+                : type_(type)
             {
             }
-            template <class T>
+
+            template <class T, bool IsNamed>
             friend class Resource;
 
         protected:
             Type type_;
-            U8String name_;
         };
     }
 }

@@ -5,6 +5,7 @@
 #include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
+#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -65,11 +66,13 @@ namespace OpenDemo
                 void MoveToNextFrame() override;
                 void WaitForGpu() override;
 
+                std::shared_ptr<TextureData> const AllocateTextureSubresourceData(const TextureDescription& desc) const override;
+
                 void InitSwapChain(SwapChain& resource) const override;
                 void InitFence(Fence& resource) const override;
                 void InitCommandQueue(CommandQueue& resource) const override;
                 void InitCommandList(CommandList& resource) const override;
-                void InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const override;
+                void InitTexture(Texture& resource, const std::shared_ptr<TextureData>& textureData) const override;
                 void InitBuffer(Buffer& resource) const override;
                 void InitGpuResourceView(GpuResourceView& view) const override;
 
@@ -192,6 +195,41 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
+            std::shared_ptr<TextureData> const DeviceImpl::AllocateTextureSubresourceData(const TextureDescription& resourceDesc) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+
+                const auto numSubresources = resourceDesc.GetNumSubresources();
+                D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc, GpuResourceBindFlags::None);
+
+                UINT64 intermediateSize;
+                d3dDevice_->GetCopyableFootprints(&desc, 0, numSubresources, 0, nullptr, nullptr, nullptr, &intermediateSize);
+                const auto& heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
+
+                auto layouts = std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>(numSubresources);
+                auto numRows = std::vector<UINT>(numSubresources);
+
+                d3dDevice_->GetCopyableFootprints(&desc, 0, numSubresources, heapAlloc.offset, &layouts.front(), &numRows.front(), nullptr, nullptr);
+
+                const auto& allocation = std::make_shared<MemoryAllocation>(MemoryAllocation::Type::UploadBuffer);
+                allocation->SetPrivateImpl(new GpuMemoryHeap::Allocation(heapAlloc));
+
+                auto result = std::make_shared<TextureData>(numSubresources);
+
+                for (uint32_t index = 0; index < numSubresources; index++)
+                {
+                    const auto& layout = layouts[index];
+
+                    const auto rowPitch = layout.Footprint.RowPitch;
+                    const auto depthPitch = numRows[index] * rowPitch;
+                    const auto data = static_cast<void*>(static_cast<unsigned char*>(heapAlloc.GetData()) + layout.Offset);
+
+                    (*result.get())[index] = TextureSubresourceData(allocation, data, numRows[index], rowPitch, depthPitch, index);
+                }
+
+                return result;
+            }
+
             void DeviceImpl::InitSwapChain(SwapChain& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
@@ -216,12 +254,12 @@ namespace OpenDemo
                 return ResourceCreator::InitCommandList(resource);
             }
 
-            void DeviceImpl::InitTexture(Texture& resource, const std::vector<TextureSubresourceFootprint>& subresourcesFootprint) const
+            void DeviceImpl::InitTexture(Texture& resource, const std::shared_ptr<TextureData>& textureData) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
                 auto impl = std::make_unique<ResourceImpl>();
-                impl->Init(resource, subresourcesFootprint);
+                impl->Init(resource, textureData);
 
                 resource.SetPrivateImpl(impl.release());
             }
@@ -303,7 +341,7 @@ namespace OpenDemo
                 if (result == DXGI_ERROR_DEVICE_REMOVED || result == DXGI_ERROR_DEVICE_RESET)
                 {
                     result = (result == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : result;
-                    
+
                     LOG_FATAL("Device Lost on Present. Error: %s", D3DUtils::HResultToString(result));
                     // Todo error check
                     //handleDeviceLost();

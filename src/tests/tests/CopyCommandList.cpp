@@ -20,7 +20,7 @@ namespace OpenDemo
     {
         namespace
         {
-            template<typename T>
+            template <typename T>
             T texelZeroFill(Vector3u texel, uint32_t level)
             {
                 return T(0);
@@ -29,11 +29,29 @@ namespace OpenDemo
             GAPI::Texture::SharedPtr CreateTestTexture(const GAPI::TextureDescription& description, const U8String& name, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::None)
             {
                 auto& renderContext = Render::RenderContext::Instance();
-  
+
                 auto texture = renderContext.CreateTexture(description, bindFlags, {}, name);
                 REQUIRE(texture);
 
                 return texture;
+            }
+
+            void UpdateTexture(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList)
+            {
+                auto& renderContext = Render::RenderContext::Instance();
+                const auto textureData = renderContext.AllocateTextureData(texture->GetDescription());
+
+                for (const auto& subresourceData : *textureData.get())
+                {
+                    auto rowPointer = static_cast<uint8_t*>(subresourceData.data);
+                    for (uint32_t row = 0; row < subresourceData.numRows; row++)
+                    {
+                        memset(rowPointer, 0, subresourceData.rowPitch);
+                        rowPointer += subresourceData.rowPitch;
+                    }
+                }
+
+                commandList->UpdateTextureData(texture, textureData);
             }
         }
 
@@ -66,11 +84,13 @@ namespace OpenDemo
             }
 
             SECTION("CopyTexture_Float")
-            {             
+            {
                 const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::RGBA16Float);
 
                 auto source = CreateTestTexture(description, "Source");
                 auto dest = CreateTestTexture(description, "Dest");
+
+                UpdateTexture(source, commandList);
 
                 commandList->CopyTexture(source, dest);
                 commandList->Close();

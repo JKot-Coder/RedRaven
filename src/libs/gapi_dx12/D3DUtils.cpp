@@ -1,7 +1,9 @@
 #include "D3DUtils.hpp"
 
+#include "gapi/Buffer.hpp"
 #include "gapi/Device.hpp"
 #include "gapi/SwapChain.hpp"
+#include "gapi/Texture.hpp"
 
 #include "gapi_dx12/TypeConversions.hpp"
 
@@ -72,7 +74,7 @@ namespace OpenDemo
                     const auto& messageString = StringConversions::WStringToUTF8(pMessage);
                     LocalFree((HLOCAL)pMessage);
 
-                    return messageString;                  
+                    return messageString;
                 }
 
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right)
@@ -104,6 +106,47 @@ namespace OpenDemo
                     output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
                     output.Flags = 0;
                     return output;
+                }
+
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                {
+                    DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
+
+                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
+                        format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.format);
+
+                    D3D12_RESOURCE_DESC desc;
+                    switch (resourceDesc.dimension)
+                    {
+                    case TextureDimension::Texture1D:
+                        desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels);
+                        break;
+                    case TextureDimension::Texture2D:
+                    case TextureDimension::Texture2DMS:
+                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize, resourceDesc.mipLevels, resourceDesc.sampleCount);
+                        break;
+                    case TextureDimension::Texture3D:
+                        desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.width, resourceDesc.height, resourceDesc.depth, resourceDesc.mipLevels);
+                        break;
+                    case TextureDimension::TextureCube:
+                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize * 6, resourceDesc.mipLevels);
+                        break;
+                    default:
+                        LOG_FATAL("Unsupported texture dimension");
+                    }
+
+                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
+                    return desc;
+                }
+
+                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                {
+                    D3D12_RESOURCE_DESC desc;
+
+                    desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.size);
+                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
+                    desc.Format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
+                    return desc;
                 }
 
                 DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format)

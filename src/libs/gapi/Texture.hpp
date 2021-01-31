@@ -75,16 +75,33 @@ namespace OpenDemo
             }
         };
 
-        struct TextureSubresourceFootprint
+        /*
+        struct TextureSubresourceData
         {
-            TextureSubresourceFootprint(void* data, size_t size, size_t rowPitch, size_t depthPitch)
+            TextureSubresourceData(void* data, size_t size, size_t rowPitch, size_t depthPitch)
                 : data(data), size(size), rowPitch(rowPitch), depthPitch(depthPitch) { }
 
             void* data;
             size_t size;
             size_t rowPitch;
             size_t depthPitch;
+        };*/
+
+        struct TextureSubresourceData
+        {
+            TextureSubresourceData() = default;
+            TextureSubresourceData(const std::shared_ptr<MemoryAllocation>& allocation, void* data, uint32_t numRows, size_t rowPitch, size_t depthPitch, uint32_t subresourceIndex)
+                : allocation(allocation), data(data), numRows(numRows), rowPitch(rowPitch), depthPitch(depthPitch), subresourceIndex(subresourceIndex) { }
+
+            std::shared_ptr<MemoryAllocation> allocation;
+            void* data;
+            uint32_t numRows;
+            size_t rowPitch;
+            size_t depthPitch;
+            uint32_t subresourceIndex;
         };
+
+        using TextureData = std::vector<TextureSubresourceData>;
 
         class Texture final : public GpuResource
         {

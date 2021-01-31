@@ -7,19 +7,29 @@ namespace OpenDemo
     namespace GAPI
     {
 
+        // TODO inherite from GpuResourceDescription{ cpuAcess, BindFlags}
         struct BufferDescription
         {
+            enum class CpuAccess
+            {
+                None,
+                Read,
+                Write
+            };
+
             GpuResourceFormat format = GpuResourceFormat::Unknown;
+            CpuAccess cpuAccess = CpuAccess::None;
             uint32_t size = 0;
 
-            static BufferDescription Create(uint32_t size, GpuResourceFormat format = GpuResourceFormat::Unknown)
+            static BufferDescription Create(uint32_t size, CpuAccess cpuAccess = CpuAccess::None, GpuResourceFormat format = GpuResourceFormat::Unknown)
             {
-                return BufferDescription(size, format);
+                return BufferDescription(size, cpuAccess, format);
             }
 
         private:
-            BufferDescription(uint32_t size, GpuResourceFormat format)
+            BufferDescription(uint32_t size, CpuAccess cpuAccess, GpuResourceFormat format)
                 : size(size),
+                  cpuAccess(cpuAccess),
                   format(format)
             {
             }

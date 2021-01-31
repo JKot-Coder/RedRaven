@@ -17,7 +17,7 @@ namespace OpenDemo
         class Fence;
         class Object;
 
-        template <typename T>
+        template <typename T, bool IsNamed = true>
         class Resource;
 
         class GpuResource;
@@ -35,12 +35,16 @@ namespace OpenDemo
         class SwapChain;
         struct SwapChainDescription;
 
+        class MemoryAllocation;
+
         class Texture;
         struct TextureDescription;
-        struct TextureSubresourceFootprint;
+        struct TextureSubresourceData;
+        using TextureData = std::vector<TextureSubresourceData>;
         enum class TextureDimension : uint32_t;
 
         class Buffer;
+        struct BufferDescription;
     }
 
     namespace Render

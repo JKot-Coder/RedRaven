@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gapi/MemoryAllocation.hpp"
+
 #include <queue>
 
 namespace OpenDemo
@@ -13,12 +15,16 @@ namespace OpenDemo
             class GpuMemoryHeap
             {
             public:
-                struct Allocation
+                struct Allocation final : public IMemoryAllocation
                 {
+                    void* mappedData;
                     size_t size = 0;
                     size_t offset = 0;
                     uint64_t fenceValue = 0;
                     ComSharedPtr<ID3D12Resource> resource;
+
+                public:
+                    void* GetData() const override { return mappedData; };
                 };
 
                 struct Page
@@ -36,7 +42,7 @@ namespace OpenDemo
                 GpuMemoryHeap(size_t pageSize) : defaultPageSize_(pageSize) {};
 
                 void Init(const U8String& name);
-                void Allocate(Allocation& allocation, size_t size, size_t alignment = 1);
+                Allocation Allocate(size_t size, size_t alignment = 1);
 
             private:
                 void getNextPageForAllocation(size_t allocSize, std::unique_ptr<Page>& page);

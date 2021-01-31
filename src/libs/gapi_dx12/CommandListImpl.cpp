@@ -4,6 +4,7 @@
 
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/MemoryAllocation.hpp"
 
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
@@ -139,47 +140,81 @@ namespace OpenDemo
             {
             }
 
-            void CommandListImpl::UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            void CommandListImpl::UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData)
             {
                 ASSERT(texture);
-                ASSERT(texture->GetDescription().GetNumSubresources() == subresourceFootprint.size());
+                ASSERT(textureData);
+                ASSERT(texture->GetDescription().GetNumSubresources() == textureData->size());
 
-                UpdateSubresourceData(texture, 0, subresourceFootprint);
+                for (const auto& subresourceData : *textureData.get())
+                    UpdateSubresourceData(texture, subresourceData);
             }
 
-            void CommandListImpl::UpdateSubresourceData(const std::shared_ptr<Texture>& texture, uint32_t firstSubresource, const std::vector<TextureSubresourceFootprint>& subresourceFootprint)
+            void CommandListImpl::UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData)
             {
                 ASSERT(texture);
-                ASSERT(firstSubresource + subresourceFootprint.size() <= texture->GetDescription().GetNumSubresources());
-
-                const auto subresourcesCount = subresourceFootprint.size();
-                ASSERT(subresourcesCount > 0);
+                ASSERT(subresourceData.subresourceIndex < texture->GetDescription().GetNumSubresources());
+                ASSERT(subresourceData.allocation);
 
                 const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
 
-                if (true)
+                size_t intermediateDataOffset = 0;
+                switch (subresourceData.allocation->GetMemoryType())
                 {
-                    const auto intermediateSize = GetRequiredIntermediateSize(resourceImpl->GetD3DObject().get(), firstSubresource, subresourceFootprint.size());
-
-                   // DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
-
-                        std::vector<D3D12_SUBRESOURCE_DATA>
-                            subresourcesData(subresourcesCount);
-
-                    for (int index = 0; index < subresourcesCount; index++)
-                    {
-                        auto& subresourceData = subresourcesData[index];
-
-                        subresourceData.pData = subresourceFootprint[index].data;
-                        subresourceData.RowPitch = subresourceFootprint[index].rowPitch;
-                        subresourceData.SlicePitch = subresourceFootprint[index].depthPitch;
-                    }
+                case MemoryAllocation::Type::UploadBuffer:
+                {
+                    const auto allocation = subresourceData.allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                    intermediateDataOffset = allocation->offset;
+                    break;
+                }
+                default:
+                    LOG_FATAL("Unsupported memory type");
                 }
 
-              //  deviceContext.getUploadBuffer();
-               // UpdateSubresources();
-                //    UpdateSubresources(D3DCommandList_, resourceImpl->GetD3DObject().get(), buffer, intermediateOffset, firstSubresource, subresourcesCount, &subresourcesData[0]);
+                const auto& device = DeviceContext::GetDevice();
+                auto desc = resourceImpl->GetD3DObject()->GetDesc();
+                D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+                UINT numRows;
+                device->GetCopyableFootprints(&desc, subresourceData.subresourceIndex, 1, intermediateDataOffset, &layout, &numRows, nullptr, nullptr);
+
+                ASSERT(subresourceData.depthPitch == layout.Footprint.RowPitch * numRows);
+                ASSERT(subresourceData.rowPitch == layout.Footprint.RowPitch);
+
+                switch (subresourceData.allocation->GetMemoryType())
+                {
+                case MemoryAllocation::Type::UploadBuffer:
+                {
+                    const auto allocation = subresourceData.allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                    ASSERT(allocation->offset == layout.Offset);
+
+                    CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceData.subresourceIndex);
+                    CD3DX12_TEXTURE_COPY_LOCATION src(allocation->resource.get(), layout);
+
+                    D3DCommandList_.get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+                    break;
+                }
+                default:
+                    LOG_FATAL("Unsupported memory type");
+                    break;
+                }
+                // UpdateSubresources<1>(D3DCommandList_.get(), resourceImpl->GetD3DObject().get(), alloc.resource.get(), alloc.offset, subresourceIndex, 1, &subresourceData);
+                /*
+                
+                    if (true) // is cpumemory
+                    {
+                        const auto intermediateSize = GetRequiredIntermediateSize(resourceImpl->GetD3DObject().get(), subresourceIndex, 1);
+
+                        const auto& alloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
+
+                        D3D12_SUBRESOURCE_DATA subresourceData;
+
+                        // subresourceData.pData = subresourceData.data;
+                        subresourceData.RowPitch = subresourceData.rowPitch;
+                        subresourceData.SlicePitch = subresourceData.depthPitch;
+
+                        UpdateSubresources<1>(D3DCommandList_.get(), resourceImpl->GetD3DObject().get(), alloc.resource.get(), alloc.offset, subresourceIndex, 1, &subresourceData);
+                    }*/
             }
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)

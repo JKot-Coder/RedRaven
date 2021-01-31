@@ -54,7 +54,7 @@ namespace OpenDemo
                 backBufferIndex,
                 desc,
                 GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource,
-                fmt::sprintf("%s BackBufferTexture:%d", name_, backBufferIndex)); //TODO move it
+                fmt::sprintf("%s BackBufferTexture:%d", GetName(), backBufferIndex)); //TODO move it
 
             return backBuffers_[backBufferIndex];
         }

@@ -64,7 +64,7 @@ namespace OpenDemo
             });
 
             inited_ = true;
-            
+
             fence_ = CreateFence("Frame sync fence");
         }
 
@@ -157,6 +157,13 @@ namespace OpenDemo
             });
         }
 
+        std::shared_ptr<GAPI::TextureData> RenderContext::AllocateTextureData(const GAPI::TextureDescription& desc) const
+        {
+            ASSERT(inited_);
+
+            return submission_->GetIMultiThreadDevice().lock()->AllocateTextureSubresourceData(desc);
+        }
+
         GAPI::CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
         {
             ASSERT(inited_);
@@ -207,12 +214,12 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::vector<GAPI::TextureSubresourceFootprint>& subresourcesFootprint, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::shared_ptr<GAPI::TextureData>& subresourceData, const U8String& name) const
         {
             ASSERT(inited_);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
-            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), subresourcesFootprint);
+            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), subresourceData);
 
             return resource;
         }
@@ -230,12 +237,11 @@ namespace OpenDemo
 
         GAPI::ShaderResourceView::SharedPtr RenderContext::CreateShaderResourceView(
             const std::shared_ptr<GAPI::GpuResource>& gpuResource,
-            const GAPI::GpuResourceViewDescription& desc,
-            const U8String& name) const
+            const GAPI::GpuResourceViewDescription& desc) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::ShaderResourceView::Create(gpuResource, desc, name, GPIObjectsDeleter<GAPI::ShaderResourceView>());
+            auto& resource = GAPI::ShaderResourceView::Create(gpuResource, desc, GPIObjectsDeleter<GAPI::ShaderResourceView>());
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -243,13 +249,11 @@ namespace OpenDemo
 
         GAPI::DepthStencilView::SharedPtr RenderContext::CreateDepthStencilView(
             const GAPI::Texture::SharedPtr& texture,
-            const GAPI::GpuResourceViewDescription&
-                desc,
-            const U8String& name) const
+            const GAPI::GpuResourceViewDescription& desc) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::DepthStencilView::Create(texture, desc, name, GPIObjectsDeleter<GAPI::DepthStencilView>());
+            auto& resource = GAPI::DepthStencilView::Create(texture, desc, GPIObjectsDeleter<GAPI::DepthStencilView>());
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -257,12 +261,11 @@ namespace OpenDemo
 
         GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(
             const GAPI::Texture::SharedPtr& texture,
-            const GAPI::GpuResourceViewDescription& desc,
-            const U8String& name) const
+            const GAPI::GpuResourceViewDescription& desc) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::RenderTargetView::Create(texture, desc, name, GPIObjectsDeleter<GAPI::RenderTargetView>());
+            auto& resource = GAPI::RenderTargetView::Create(texture, desc, GPIObjectsDeleter<GAPI::RenderTargetView>());
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -270,12 +273,11 @@ namespace OpenDemo
 
         GAPI::UnorderedAccessView::SharedPtr RenderContext::CreateUnorderedAccessView(
             const std::shared_ptr<GAPI::GpuResource>& gpuResource,
-            const GAPI::GpuResourceViewDescription& desc,
-            const U8String& name) const
+            const GAPI::GpuResourceViewDescription& desc) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::UnorderedAccessView::Create(gpuResource, desc, name, GPIObjectsDeleter<GAPI::UnorderedAccessView>());
+            auto& resource = GAPI::UnorderedAccessView::Create(gpuResource, desc, GPIObjectsDeleter<GAPI::UnorderedAccessView>());
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
