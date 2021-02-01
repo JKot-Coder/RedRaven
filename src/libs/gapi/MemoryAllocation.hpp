@@ -13,24 +13,30 @@ namespace OpenDemo
             virtual void* GetData() const = 0;
         };
 
+        enum class MemoryAllocationType : uint32_t
+        {
+            Upload,
+            Readback
+        };
+
         class MemoryAllocation final : public Resource<IMemoryAllocation, false>
         {
         public:
             using SharedPtr = std::shared_ptr<MemoryAllocation>;
             using SharedConstPtr = std::shared_ptr<const MemoryAllocation>;
 
-            enum class Type
+            MemoryAllocation(MemoryAllocationType memoryType, size_t size) : type_(memoryType),
+                                                                             size_(size), Resource(Object::Type::MemoryAllocation)
             {
-                UploadBuffer
-            };
+            }
 
-            MemoryAllocation(Type memoryType) : type(memoryType), Resource(Object::Type::MemoryAllocation) { }
-
+            inline size_t GetSize() const { return size_; }
             inline void* GetData() const { return GetPrivateImpl()->GetData(); }
-            inline Type GetMemoryType() const { return type; }
+            inline MemoryAllocationType GetMemoryType() const { return type_; }
 
         private:
-            Type type;
+            MemoryAllocationType type_;
+            size_t size_;
         };
     }
 }

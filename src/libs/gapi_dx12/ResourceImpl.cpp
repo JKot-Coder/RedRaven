@@ -62,8 +62,8 @@ namespace OpenDemo
                         return D3D12_RESOURCE_STATE_COMMON;
                     case BufferDescription::CpuAccess::Write:
                         return D3D12_RESOURCE_STATE_GENERIC_READ;
-                        // case BufferDescription::CpuAccess::Read:
-                        //     return &ReadbackHeapProps;
+                    case BufferDescription::CpuAccess::Read:
+                        return D3D12_RESOURCE_STATE_COPY_DEST;
                     default:
                         LOG_FATAL("Unsupported cpuAcess");
                     }
@@ -155,7 +155,7 @@ namespace OpenDemo
             {
                 //ASSERT(initialData == nullptr || initialData->GetNumSubresources() == resourceDesc.GetNumSubresources());
                 //if (initialData->size() == 0)
-                 //   return;
+                //   return;
 
                 //textureData
             }

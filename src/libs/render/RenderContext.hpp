@@ -36,7 +36,7 @@ namespace OpenDemo
 
             std::shared_ptr<GAPI::IntermediateMemory> AllocateIntermediateTextureData(
                 const GAPI::TextureDescription& desc,
-                GAPI::IntermediateMemoryType memoryType,
+                GAPI::MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const;
 

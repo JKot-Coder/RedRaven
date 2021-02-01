@@ -10,13 +10,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        // TODO MOVE IT
-        enum class IntermediateMemoryType : uint32_t
-        {
-            Upload,
-            Readback,
-        };
-
         class ISingleThreadDevice
         {
         public:
@@ -58,7 +51,7 @@ namespace OpenDemo
 
             virtual std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
                 const TextureDescription& desc,
-                IntermediateMemoryType memoryType,
+                MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const = 0;
 
@@ -96,7 +89,7 @@ namespace OpenDemo
 
             std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
                 const TextureDescription& desc,
-                IntermediateMemoryType memoryType,
+                MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const override
             {

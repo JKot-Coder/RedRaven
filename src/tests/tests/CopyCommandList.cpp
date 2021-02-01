@@ -8,6 +8,7 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
 #include "render/RenderContext.hpp"
@@ -39,26 +40,27 @@ namespace OpenDemo
             void UpdateTexture(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList)
             {
                 auto& renderContext = Render::RenderContext::Instance();
-                const auto textureData = renderContext.AllocateIntermediateTextureData(texture->GetDescription());
+                const auto textureData = renderContext.AllocateIntermediateTextureData(texture->GetDescription(), GAPI::MemoryAllocationType::Upload);
 
-                for (const auto& subresourceData : *textureData.get())
+                for (const auto& subresourceFootprint : textureData->GetSubresourceFootprints())
                 {
-                    auto rowPointer = static_cast<uint8_t*>(subresourceData.data);
-                    for (uint32_t row = 0; row < subresourceData.numRows; row++)
+                    auto rowPointer = static_cast<uint8_t*>(subresourceFootprint.data);
+                    for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
                     {
-                        memset(rowPointer, 0, subresourceData.rowPitch);
-                        rowPointer += subresourceData.rowPitch;
+                        memset(rowPointer, 0, subresourceFootprint.rowPitch);
+                        *static_cast<uint32_t*>(subresourceFootprint.data) = 0xDEADBEEF;
+                        rowPointer += subresourceFootprint.rowPitch;
                     }
                 }
 
                 commandList->UpdateTexture(texture, textureData);
             }
 
-            void ReadBack(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList)
+            void ReadBack(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList, const std::shared_ptr<GAPI::IntermediateMemory>& textureData)
             {
                 auto& renderContext = Render::RenderContext::Instance();
 
-
+                commandList->ReadbackTexture(texture, textureData);
             }
         }
 
@@ -97,12 +99,24 @@ namespace OpenDemo
                 auto source = CreateTestTexture(description, "Source");
                 auto dest = CreateTestTexture(description, "Dest");
 
+                const auto textureData = renderContext.AllocateIntermediateTextureData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+
                 UpdateTexture(source, commandList);
+                ReadBack(source, commandList, textureData);
 
                 commandList->CopyTexture(source, dest);
+
                 commandList->Close();
 
                 submitAndWait(copyQueue, commandList);
+
+                for (const auto& subresourceFootprint : textureData->GetSubresourceFootprints())
+                {
+                    auto rowPointer = static_cast<uint8_t*>(subresourceFootprint.data);
+                    for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
+                    {
+                    }
+                }
             }
         }
 

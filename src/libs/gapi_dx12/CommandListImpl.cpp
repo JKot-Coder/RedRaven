@@ -144,55 +144,52 @@ namespace OpenDemo
             {
                 ASSERT(texture);
                 ASSERT(textureData);
-                ASSERT(texture->GetDescription().GetNumSubresources() < textureData->GetNumSubresources());
-                ASSERT(subresourceData.allocation);
-  
-     
-                ASSERT(subresourceData.subresourceIndex < texture->GetDescription().GetNumSubresources());
-           
+                ASSERT(texture->GetDescription().GetNumSubresources() <= textureData->GetFirstSubresource() + textureData->GetNumSubresources());
 
                 const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
 
-                size_t intermediateDataOffset = 0;
-                switch (subresourceData.allocation->GetMemoryType())
-                {
-                case MemoryAllocation::Type::UploadBuffer:
-                {
-                    const auto allocation = subresourceData.allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
-                    intermediateDataOffset = allocation->offset;
-                    break;
-                }
-                default:
-                    LOG_FATAL("Unsupported memory type");
-                }
+                const auto allocation = textureData->GetAllocation();
+                ASSERT(allocation);
 
                 const auto& device = DeviceContext::GetDevice();
                 auto desc = resourceImpl->GetD3DObject()->GetDesc();
-                D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-                UINT numRows;
-                device->GetCopyableFootprints(&desc, subresourceData.subresourceIndex, 1, intermediateDataOffset, &layout, &numRows, nullptr, nullptr);
 
-                ASSERT(subresourceData.depthPitch == layout.Footprint.RowPitch * numRows);
-                ASSERT(subresourceData.rowPitch == layout.Footprint.RowPitch);
+                UINT64 itermediateSize;
+                device->GetCopyableFootprints(&desc, textureData->GetFirstSubresource(), textureData->GetNumSubresources(), 0, nullptr, nullptr, nullptr, &itermediateSize);
+                ASSERT(allocation->GetSize() == itermediateSize);
 
-                switch (subresourceData.allocation->GetMemoryType())
+                const auto firstResource = textureData->GetFirstSubresource();
+                for (uint32_t index = 0; index < textureData->GetNumSubresources(); index++)
                 {
-                case MemoryAllocation::Type::UploadBuffer:
-                {
-                    const auto allocation = subresourceData.allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
-                    ASSERT(allocation->offset == layout.Offset);
+                    const auto subresourceIndex = index + firstResource;
+                    const auto& footprint = textureData->GetSubresourceFootprints()[index];
 
-                    CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceData.subresourceIndex);
-                    CD3DX12_TEXTURE_COPY_LOCATION src(allocation->resource.get(), layout);
+                    switch (allocation->GetMemoryType())
+                    {
+                    case MemoryAllocationType::Upload:
+                    {
+                        const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                        size_t intermediateDataOffset = allocationImpl->offset;
 
-                    D3DCommandList_.get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-                    break;
+                        D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+                        UINT numRows;
+                        UINT64 itermediateSize;
+                        device->GetCopyableFootprints(&desc, subresourceIndex, 1, intermediateDataOffset, &layout, &numRows, nullptr, nullptr);
+
+                        ASSERT(footprint.depthPitch == layout.Footprint.RowPitch * numRows);
+                        ASSERT(footprint.rowPitch == layout.Footprint.RowPitch);
+
+                        CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceIndex);
+                        CD3DX12_TEXTURE_COPY_LOCATION src(allocationImpl->resource.get(), layout);
+                        D3DCommandList_.get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+                        break;
+                    }
+                    default:
+                        LOG_FATAL("Unsupported memory type");
+                    }
                 }
-                default:
-                    LOG_FATAL("Unsupported memory type");
-                    break;
-                }
+
                 // UpdateSubresources<1>(D3DCommandList_.get(), resourceImpl->GetD3DObject().get(), alloc.resource.get(), alloc.offset, subresourceIndex, 1, &subresourceData);
                 /*
                 
@@ -210,6 +207,58 @@ namespace OpenDemo
 
                         UpdateSubresources<1>(D3DCommandList_.get(), resourceImpl->GetD3DObject().get(), alloc.resource.get(), alloc.offset, subresourceIndex, 1, &subresourceData);
                     }*/
+            }
+
+            void CommandListImpl::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
+            {
+                ASSERT(texture);
+                ASSERT(textureData);
+                ASSERT(texture->GetDescription().GetNumSubresources() <= textureData->GetFirstSubresource() + textureData->GetNumSubresources());
+
+                const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
+                ASSERT(resourceImpl);
+
+                const auto allocation = textureData->GetAllocation();
+                ASSERT(allocation);
+
+                const auto& device = DeviceContext::GetDevice();
+                auto desc = resourceImpl->GetD3DObject()->GetDesc();
+
+                UINT64 itermediateSize;
+                device->GetCopyableFootprints(&desc, textureData->GetFirstSubresource(), textureData->GetNumSubresources(), 0, nullptr, nullptr, nullptr, &itermediateSize);
+                ASSERT(allocation->GetSize() == itermediateSize);
+
+                const auto firstResource = textureData->GetFirstSubresource();
+                for (uint32_t index = 0; index < textureData->GetNumSubresources(); index++)
+                {
+                    const auto subresourceIndex = index + firstResource;
+                    const auto& footprint = textureData->GetSubresourceFootprints()[index];
+
+                    switch (allocation->GetMemoryType())
+                    {
+                    case MemoryAllocationType::Readback:
+                    {
+                        const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                        size_t intermediateDataOffset = allocationImpl->offset;
+
+                        D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+                        UINT numRows;
+                        UINT64 itermediateSize;
+                        device->GetCopyableFootprints(&desc, subresourceIndex, 1, intermediateDataOffset, &layout, &numRows, nullptr, nullptr);
+
+                        ASSERT(footprint.depthPitch == layout.Footprint.RowPitch * numRows);
+                        ASSERT(footprint.rowPitch == layout.Footprint.RowPitch);
+
+                        CD3DX12_TEXTURE_COPY_LOCATION dst(allocationImpl->resource.get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION src(resourceImpl->GetD3DObject().get(), subresourceIndex);
+
+                        D3DCommandList_.get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+                        break;
+                    }
+                    default:
+                        LOG_FATAL("Unsupported memory type");
+                    }
+                }
             }
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)

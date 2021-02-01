@@ -29,17 +29,20 @@ namespace OpenDemo
                 static void Init(const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
                                  const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet,
                                  const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext,
-                                 const std::shared_ptr<GpuMemoryHeap>& uploadHeap)
+                                 const std::shared_ptr<GpuMemoryHeap>& uploadHeap,
+                                 const std::shared_ptr<GpuMemoryHeap>& readbackHeap)
                 {
                     ASSERT(descriptorHeapSet);
                     ASSERT(graphicsCommandQueue);
                     ASSERT(resourceReleaseContext);
                     ASSERT(uploadHeap);
+                    ASSERT(readbackHeap);
 
                     graphicsCommandQueue_ = graphicsCommandQueue;
                     descriptorHeapSet_ = descriptorHeapSet;
                     resourceReleaseContext_ = resourceReleaseContext;
                     uploadHeap_ = uploadHeap;
+                    readbackHeap_ = readbackHeap;
                 }
 
                 static void Terminate()
@@ -50,6 +53,7 @@ namespace OpenDemo
                     descriptorHeapSet_ = nullptr;
                     resourceReleaseContext_ = nullptr;
                     uploadHeap_ = nullptr;
+                    readbackHeap_ = nullptr;
                 }
 
                 static ComSharedPtr<ID3D12Device> GetDevice()
@@ -88,6 +92,12 @@ namespace OpenDemo
                     return uploadHeap_;
                 }
 
+                static std::shared_ptr<GpuMemoryHeap> GetReadbackHeap()
+                {
+                    ASSERT(readbackHeap_);
+                    return readbackHeap_;
+                }
+
             private:
                 static ComSharedPtr<ID3D12Device> device_;
                 static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
@@ -95,6 +105,7 @@ namespace OpenDemo
                 static std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 static std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
                 static std::shared_ptr<GpuMemoryHeap> uploadHeap_;
+                static std::shared_ptr<GpuMemoryHeap> readbackHeap_;
             };
         }
     }

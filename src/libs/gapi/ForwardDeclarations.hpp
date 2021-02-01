@@ -36,8 +36,8 @@ namespace OpenDemo
         struct SwapChainDescription;
 
         class MemoryAllocation;
-        struct IntermediateMemory;
-        enum class IntermediateMemoryType : uint32_t;
+        enum class MemoryAllocationType : uint32_t;
+        class IntermediateMemory;
 
         class Texture;
         struct TextureDescription;

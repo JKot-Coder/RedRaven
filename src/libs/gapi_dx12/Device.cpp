@@ -53,6 +53,7 @@ namespace OpenDemo
             std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
             std::shared_ptr<ResourceReleaseContext> DeviceContext::resourceReleaseContext_;
             std::shared_ptr<GpuMemoryHeap> DeviceContext::uploadHeap_;
+            std::shared_ptr<GpuMemoryHeap> DeviceContext::readbackHeap_;
 
             class DeviceImpl final : public IDevice
             {
@@ -68,7 +69,7 @@ namespace OpenDemo
 
                 std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
                     const TextureDescription& desc,
-                    IntermediateMemoryType memoryType,
+                    MemoryAllocationType memoryType,
                     uint32_t firstSubresourceIndex = 0,
                     uint32_t numSubresources = MaxPossible) const override;
 
@@ -177,13 +178,18 @@ namespace OpenDemo
 
                 constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
                 auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
-                uploadHeap->Init("Upload heap");
+                uploadHeap->Init(BufferDescription::CpuAccess::Write, "Upload heap");
+
+                constexpr size_t ReadbackHeapPageSize = 1024 * 1024 * 32; //32 Mb
+                auto& readbackHeap = std::make_shared<GpuMemoryHeap>(ReadbackHeapPageSize);
+                readbackHeap->Init(BufferDescription::CpuAccess::Read, "Readback heap");
 
                 DeviceContext::Init(
                     graphicsCommandQueue,
                     descriptorHeapSet,
                     resourceReleaseContext,
-                    uploadHeap);
+                    uploadHeap,
+                    readbackHeap);
 
                 inited_ = true;
 
@@ -200,42 +206,58 @@ namespace OpenDemo
             }
 
             std::shared_ptr<IntermediateMemory> const DeviceImpl::AllocateIntermediateTextureData(
-                const TextureDescription& desc,
-                IntermediateMemoryType memoryType,
-                uint32_t firstSubresourceIndex = 0,
-                uint32_t numSubresources = MaxPossible) const
+                const TextureDescription& resourceDesc,
+                MemoryAllocationType memoryType,
+                uint32_t firstSubresourceIndex,
+                uint32_t numSubresources) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                const auto numSubresources = resourceDesc.GetNumSubresources();
+                if (numSubresources == MaxPossible)
+                    numSubresources = resourceDesc.GetNumSubresources();
+
+                ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources())
                 D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc, GpuResourceBindFlags::None);
 
                 UINT64 intermediateSize;
                 d3dDevice_->GetCopyableFootprints(&desc, 0, numSubresources, 0, nullptr, nullptr, nullptr, &intermediateSize);
-                const auto& heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
 
-                auto layouts = std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>(numSubresources);
-                auto numRows = std::vector<UINT>(numSubresources);
+                GpuMemoryHeap::Allocation heapAlloc;
 
-                d3dDevice_->GetCopyableFootprints(&desc, 0, numSubresources, heapAlloc.offset, &layouts.front(), &numRows.front(), nullptr, nullptr);
-
-                const auto& allocation = std::make_shared<MemoryAllocation>(MemoryAllocation::Type::UploadBuffer);
-                allocation->SetPrivateImpl(new GpuMemoryHeap::Allocation(heapAlloc));
-
-                auto result = std::make_shared<TextureData>(numSubresources);
-
-                for (uint32_t index = 0; index < numSubresources; index++)
+                switch (memoryType)
                 {
-                    const auto& layout = layouts[index];
-
-                    const auto rowPitch = layout.Footprint.RowPitch;
-                    const auto depthPitch = numRows[index] * rowPitch;
-                    const auto data = static_cast<void*>(static_cast<unsigned char*>(heapAlloc.GetData()) + layout.Offset);
-
-                    (*result.get())[index] = TextureSubresourceData(allocation, data, numRows[index], rowPitch, depthPitch, index);
+                case MemoryAllocationType::Upload:
+                    heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
+                    break;
+                case MemoryAllocationType::Readback:
+                    heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize);
+                    break;
+                default:
+                    LOG_FATAL("Unsupported memory type");
                 }
 
-                return result;
+                const auto& allocation = std::make_shared<MemoryAllocation>(memoryType, intermediateSize);
+                allocation->SetPrivateImpl(new GpuMemoryHeap::Allocation(heapAlloc));
+
+                std::vector<IntermediateMemory::SubresourceFootprint> subresourceFootprints(numSubresources);
+                for (uint32_t index = 0; index < numSubresources; index++)
+                {
+                    const auto subresourceIndex = index + firstSubresourceIndex;
+
+                    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+                    UINT numRows;
+                    UINT64 rowSizeInBytes;
+
+                    d3dDevice_->GetCopyableFootprints(&desc, subresourceIndex, 1, heapAlloc.offset, &layout, &numRows, &rowSizeInBytes, nullptr);
+
+                    const auto rowPitch = layout.Footprint.RowPitch;
+                    const auto depthPitch = numRows * rowPitch;
+                    const auto data = static_cast<void*>(static_cast<unsigned char*>(heapAlloc.GetData()) + layout.Offset);
+
+                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(data, numRows, rowSizeInBytes, rowPitch, depthPitch);
+                }
+
+                return std::make_shared<IntermediateMemory>(allocation, subresourceFootprints, firstSubresourceIndex);
             }
 
             void DeviceImpl::InitSwapChain(SwapChain& resource) const

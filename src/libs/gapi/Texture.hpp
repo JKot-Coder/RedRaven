@@ -87,8 +87,9 @@ namespace OpenDemo
             size_t depthPitch;
         };*/
 
-        struct IntermediateMemory
+        class IntermediateMemory
         {
+        public:
             struct SubresourceFootprint
             {
                 SubresourceFootprint() = default;
@@ -103,17 +104,21 @@ namespace OpenDemo
             };
 
             IntermediateMemory(const std::shared_ptr<MemoryAllocation>& allocation, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
-                : allocation(allocation), subresourceFootprints(subresourceFootprints), firstSubresource(firstSubresource) { ASSERT(GetNumSubresources() > 0); };
-
-            inline uint32_t GetNumSubresources() const
+                : allocation_(allocation), subresourceFootprints_(subresourceFootprints), firstSubresource_(firstSubresource)
             {
-                return subresourceFootprints.size();
-            }
+                ASSERT(allocation);
+                ASSERT(GetNumSubresources() > 0);
+            };
+
+            inline std::shared_ptr<MemoryAllocation> GetAllocation() const { return allocation_; }
+            inline uint32_t GetFirstSubresource() const { return firstSubresource_; }
+            inline uint32_t GetNumSubresources() const { return subresourceFootprints_.size(); }
+            inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
 
         private:
-            std::shared_ptr<MemoryAllocation> allocation;
-            std::vector<SubresourceFootprint> subresourceFootprints;
-            uint32_t firstSubresource;
+            std::shared_ptr<MemoryAllocation> allocation_;
+            std::vector<SubresourceFootprint> subresourceFootprints_;
+            uint32_t firstSubresource_;
         };
 
         class Texture final : public GpuResource

@@ -159,7 +159,7 @@ namespace OpenDemo
 
         std::shared_ptr<GAPI::IntermediateMemory> RenderContext::AllocateIntermediateTextureData(
             const GAPI::TextureDescription& desc,
-            GAPI::IntermediateMemoryType memoryType,
+            GAPI::MemoryAllocationType memoryType,
             uint32_t firstSubresourceIndex,
             uint32_t numSubresources) const
         {
@@ -218,7 +218,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::shared_ptr<IntermediateMemory>& textureData, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::shared_ptr<GAPI::IntermediateMemory>& textureData, const U8String& name) const
         {
             ASSERT(inited_);
 

@@ -45,8 +45,7 @@ namespace OpenDemo
                                                       const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
 
             virtual void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData) = 0;
-            //virtual void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData) = 0;
-            //virtual void ReadbackTextureSubresource(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData) = 0;
+            virtual void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData) = 0;
         };
 
         class ICopyCommandList : public ICommandList
@@ -126,7 +125,10 @@ namespace OpenDemo
                 GetPrivateImpl()->UpdateTexture(texture, textureData);
             }
 
-            inline void ReadBackTextureData(const std::shared_ptr<Texture>& texture);
+            inline void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
+            {
+                GetPrivateImpl()->ReadbackTexture(texture, textureData);
+            }
 
         private:
             template <class Deleter>
