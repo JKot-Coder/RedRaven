@@ -36,11 +36,11 @@ namespace OpenDemo
         struct SwapChainDescription;
 
         class MemoryAllocation;
+        struct IntermediateMemory;
+        enum class IntermediateMemoryType : uint32_t;
 
         class Texture;
         struct TextureDescription;
-        struct TextureSubresourceData;
-        using TextureData = std::vector<TextureSubresourceData>;
         enum class TextureDimension : uint32_t;
 
         class Buffer;

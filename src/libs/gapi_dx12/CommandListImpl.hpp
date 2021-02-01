@@ -32,8 +32,7 @@ namespace OpenDemo
                 void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                   const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
 
-                void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData) override;
-                void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& textureData) override;
+                void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData) override;
 
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 

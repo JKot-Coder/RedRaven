@@ -62,8 +62,8 @@ namespace OpenDemo
                         return D3D12_RESOURCE_STATE_COMMON;
                     case BufferDescription::CpuAccess::Write:
                         return D3D12_RESOURCE_STATE_GENERIC_READ;
-                   // case BufferDescription::CpuAccess::Read:
-                   //     return &ReadbackHeapProps;
+                        // case BufferDescription::CpuAccess::Read:
+                        //     return &ReadbackHeapProps;
                     default:
                         LOG_FATAL("Unsupported cpuAcess");
                     }
@@ -76,16 +76,16 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
-            void ResourceImpl::Init(const Texture& resource, const std::shared_ptr<TextureData>& subresourceData)
+            void ResourceImpl::Init(const Texture& resource, const std::shared_ptr<IntermediateMemory>& initialData)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), subresourceData, resource.GetName());
+                return Init(resource.GetDescription(), resource.GetBindFlags(), initialData, resource.GetName());
             }
 
-            void ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::shared_ptr<TextureData>& subresourceData, const U8String& name)
+            void ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::shared_ptr<IntermediateMemory>& initialData, const U8String& name)
             {
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(!D3DResource_);
-                ASSERT(subresourceData == nullptr || subresourceData->size() == resourceDesc.GetNumSubresources());
+                ASSERT(initialData == nullptr || initialData->GetNumSubresources() == resourceDesc.GetNumSubresources());
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
 
@@ -151,10 +151,11 @@ namespace OpenDemo
                 //    D3DCall(performInitialUpload(textureData));
             }
 
-            void ResourceImpl::performInitialUpload(const std::shared_ptr<TextureData>& subresourceData)
+            void ResourceImpl::performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData)
             {
-                if (subresourceData->size() == 0)
-                    return;
+                //ASSERT(initialData == nullptr || initialData->GetNumSubresources() == resourceDesc.GetNumSubresources());
+                //if (initialData->size() == 0)
+                 //   return;
 
                 //textureData
             }

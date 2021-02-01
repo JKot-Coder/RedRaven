@@ -140,21 +140,16 @@ namespace OpenDemo
             {
             }
 
-            void CommandListImpl::UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData)
+            void CommandListImpl::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
             {
                 ASSERT(texture);
                 ASSERT(textureData);
-                ASSERT(texture->GetDescription().GetNumSubresources() == textureData->size());
-
-                for (const auto& subresourceData : *textureData.get())
-                    UpdateSubresourceData(texture, subresourceData);
-            }
-
-            void CommandListImpl::UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData)
-            {
-                ASSERT(texture);
-                ASSERT(subresourceData.subresourceIndex < texture->GetDescription().GetNumSubresources());
+                ASSERT(texture->GetDescription().GetNumSubresources() < textureData->GetNumSubresources());
                 ASSERT(subresourceData.allocation);
+  
+     
+                ASSERT(subresourceData.subresourceIndex < texture->GetDescription().GetNumSubresources());
+           
 
                 const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);

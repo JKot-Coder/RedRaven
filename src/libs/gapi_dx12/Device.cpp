@@ -66,13 +66,17 @@ namespace OpenDemo
                 void MoveToNextFrame() override;
                 void WaitForGpu() override;
 
-                std::shared_ptr<TextureData> const AllocateTextureSubresourceData(const TextureDescription& desc) const override;
+                std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
+                    const TextureDescription& desc,
+                    IntermediateMemoryType memoryType,
+                    uint32_t firstSubresourceIndex = 0,
+                    uint32_t numSubresources = MaxPossible) const override;
 
                 void InitSwapChain(SwapChain& resource) const override;
                 void InitFence(Fence& resource) const override;
                 void InitCommandQueue(CommandQueue& resource) const override;
                 void InitCommandList(CommandList& resource) const override;
-                void InitTexture(Texture& resource, const std::shared_ptr<TextureData>& textureData) const override;
+                void InitTexture(Texture& resource, const std::shared_ptr<IntermediateMemory>& textureData) const override;
                 void InitBuffer(Buffer& resource) const override;
                 void InitGpuResourceView(GpuResourceView& view) const override;
 
@@ -195,7 +199,11 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
-            std::shared_ptr<TextureData> const DeviceImpl::AllocateTextureSubresourceData(const TextureDescription& resourceDesc) const
+            std::shared_ptr<IntermediateMemory> const DeviceImpl::AllocateIntermediateTextureData(
+                const TextureDescription& desc,
+                IntermediateMemoryType memoryType,
+                uint32_t firstSubresourceIndex = 0,
+                uint32_t numSubresources = MaxPossible) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
@@ -254,7 +262,7 @@ namespace OpenDemo
                 return ResourceCreator::InitCommandList(resource);
             }
 
-            void DeviceImpl::InitTexture(Texture& resource, const std::shared_ptr<TextureData>& textureData) const
+            void DeviceImpl::InitTexture(Texture& resource, const std::shared_ptr<IntermediateMemory>& textureData) const
             {
                 ASSERT_IS_DEVICE_INITED;
 

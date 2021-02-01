@@ -39,7 +39,7 @@ namespace OpenDemo
             void UpdateTexture(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList)
             {
                 auto& renderContext = Render::RenderContext::Instance();
-                const auto textureData = renderContext.AllocateTextureData(texture->GetDescription());
+                const auto textureData = renderContext.AllocateIntermediateTextureData(texture->GetDescription());
 
                 for (const auto& subresourceData : *textureData.get())
                 {
@@ -51,7 +51,14 @@ namespace OpenDemo
                     }
                 }
 
-                commandList->UpdateTextureData(texture, textureData);
+                commandList->UpdateTexture(texture, textureData);
+            }
+
+            void ReadBack(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList)
+            {
+                auto& renderContext = Render::RenderContext::Instance();
+
+
             }
         }
 

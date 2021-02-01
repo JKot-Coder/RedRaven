@@ -17,8 +17,8 @@ namespace OpenDemo
 
                 void ReleaseD3DObjects();
 
-                void Init(const Texture& resource, const std::shared_ptr<TextureData>& subresourceData);
-                void Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::shared_ptr<TextureData>& subresourceData, const U8String& name);
+                void Init(const Texture& resource, const std::shared_ptr<IntermediateMemory>& initialData);
+                void Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::shared_ptr<IntermediateMemory>& initialData, const U8String& name);
 
                 void Init(const Buffer& resource);
                 void Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name);
@@ -31,7 +31,7 @@ namespace OpenDemo
                 void Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory);
 
             private:
-                void performInitialUpload(const std::shared_ptr<TextureData>& subresourceData);
+                void performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData);
 
             private:
                 ComSharedPtr<ID3D12Resource> D3DResource_;

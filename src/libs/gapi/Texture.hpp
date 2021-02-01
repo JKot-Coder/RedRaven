@@ -87,21 +87,34 @@ namespace OpenDemo
             size_t depthPitch;
         };*/
 
-        struct TextureSubresourceData
+        struct IntermediateMemory
         {
-            TextureSubresourceData() = default;
-            TextureSubresourceData(const std::shared_ptr<MemoryAllocation>& allocation, void* data, uint32_t numRows, size_t rowPitch, size_t depthPitch, uint32_t subresourceIndex)
-                : allocation(allocation), data(data), numRows(numRows), rowPitch(rowPitch), depthPitch(depthPitch), subresourceIndex(subresourceIndex) { }
+            struct SubresourceFootprint
+            {
+                SubresourceFootprint() = default;
+                SubresourceFootprint(void* data, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
+                    : data(data), numRows(numRows), rowPitch(rowPitch), depthPitch(depthPitch) { }
 
+                void* data;
+                uint32_t numRows;
+                size_t rowSizeInBytes;
+                size_t rowPitch;
+                size_t depthPitch;
+            };
+
+            IntermediateMemory(const std::shared_ptr<MemoryAllocation>& allocation, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
+                : allocation(allocation), subresourceFootprints(subresourceFootprints), firstSubresource(firstSubresource) { ASSERT(GetNumSubresources() > 0); };
+
+            inline uint32_t GetNumSubresources() const
+            {
+                return subresourceFootprints.size();
+            }
+
+        private:
             std::shared_ptr<MemoryAllocation> allocation;
-            void* data;
-            uint32_t numRows;
-            size_t rowPitch;
-            size_t depthPitch;
-            uint32_t subresourceIndex;
+            std::vector<SubresourceFootprint> subresourceFootprints;
+            uint32_t firstSubresource;
         };
-
-        using TextureData = std::vector<TextureSubresourceData>;
 
         class Texture final : public GpuResource
         {

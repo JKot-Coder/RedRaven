@@ -44,8 +44,9 @@ namespace OpenDemo
             virtual void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                       const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
 
-            virtual void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData) = 0;
-            virtual void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData) = 0;
+            virtual void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData) = 0;
+            //virtual void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData) = 0;
+            //virtual void ReadbackTextureSubresource(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData) = 0;
         };
 
         class ICopyCommandList : public ICommandList
@@ -120,15 +121,12 @@ namespace OpenDemo
                 GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
             }
 
-            inline void UpdateTextureData(const std::shared_ptr<Texture>& texture, const std::shared_ptr<TextureData>& textureData)
+            inline void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
             {
-                GetPrivateImpl()->UpdateTextureData(texture, textureData);
+                GetPrivateImpl()->UpdateTexture(texture, textureData);
             }
 
-            inline void UpdateSubresourceData(const std::shared_ptr<Texture>& texture, const TextureSubresourceData& subresourceData)
-            {
-                GetPrivateImpl()->UpdateSubresourceData(texture, subresourceData);
-            }
+            inline void ReadBackTextureData(const std::shared_ptr<Texture>& texture);
 
         private:
             template <class Deleter>

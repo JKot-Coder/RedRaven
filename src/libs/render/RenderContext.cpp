@@ -157,11 +157,15 @@ namespace OpenDemo
             });
         }
 
-        std::shared_ptr<GAPI::TextureData> RenderContext::AllocateTextureData(const GAPI::TextureDescription& desc) const
+        std::shared_ptr<GAPI::IntermediateMemory> RenderContext::AllocateIntermediateTextureData(
+            const GAPI::TextureDescription& desc,
+            GAPI::IntermediateMemoryType memoryType,
+            uint32_t firstSubresourceIndex,
+            uint32_t numSubresources) const
         {
             ASSERT(inited_);
 
-            return submission_->GetIMultiThreadDevice().lock()->AllocateTextureSubresourceData(desc);
+            return submission_->GetIMultiThreadDevice().lock()->AllocateIntermediateTextureData(desc, memoryType, firstSubresourceIndex, numSubresources);
         }
 
         GAPI::CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
@@ -214,12 +218,12 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::shared_ptr<GAPI::TextureData>& subresourceData, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::shared_ptr<IntermediateMemory>& textureData, const U8String& name) const
         {
             ASSERT(inited_);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
-            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), subresourceData);
+            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), textureData);
 
             return resource;
         }
