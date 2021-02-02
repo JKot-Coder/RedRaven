@@ -39,30 +39,30 @@ namespace OpenDemo
                     }
                 }
 
-                const D3D12_HEAP_PROPERTIES* GetHeapProperties(BufferDescription::CpuAccess cpuAccess)
+                const D3D12_HEAP_PROPERTIES* GetHeapProperties(GpuResourceCpuAccess cpuAccess)
                 {
                     switch (cpuAccess)
                     {
-                    case BufferDescription::CpuAccess::None:
+                    case GpuResourceCpuAccess::None:
                         return &DefaultHeapProps;
-                    case BufferDescription::CpuAccess::Write:
+                    case GpuResourceCpuAccess::Write:
                         return &UploadHeapProps;
-                    case BufferDescription::CpuAccess::Read:
+                    case GpuResourceCpuAccess::Read:
                         return &ReadbackHeapProps;
                     default:
                         LOG_FATAL("Unsupported cpuAcess");
                     }
                 }
 
-                D3D12_RESOURCE_STATES GetDefaultResourceState(BufferDescription::CpuAccess cpuAccess)
+                D3D12_RESOURCE_STATES GetDefaultResourceState(GpuResourceCpuAccess cpuAccess)
                 {
                     switch (cpuAccess)
                     {
-                    case BufferDescription::CpuAccess::None:
+                    case GpuResourceCpuAccess::None:
                         return D3D12_RESOURCE_STATE_COMMON;
-                    case BufferDescription::CpuAccess::Write:
+                    case GpuResourceCpuAccess::Write:
                         return D3D12_RESOURCE_STATE_GENERIC_READ;
-                    case BufferDescription::CpuAccess::Read:
+                    case GpuResourceCpuAccess::Read:
                         return D3D12_RESOURCE_STATE_COPY_DEST;
                     default:
                         LOG_FATAL("Unsupported cpuAcess");
@@ -78,10 +78,15 @@ namespace OpenDemo
 
             void ResourceImpl::Init(const Texture& resource, const std::shared_ptr<IntermediateMemory>& initialData)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), initialData, resource.GetName());
+                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetCpuAccess(), initialData, resource.GetName());
             }
 
-            void ResourceImpl::Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const std::shared_ptr<IntermediateMemory>& initialData, const U8String& name)
+            void ResourceImpl::Init(
+                const TextureDescription& resourceDesc,
+                const GpuResourceBindFlags bindFlags,
+                GpuResourceCpuAccess cpuAccess,
+                const std::shared_ptr<IntermediateMemory>& initialData,
+                const U8String& name)
             {
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(!D3DResource_);
@@ -97,10 +102,10 @@ namespace OpenDemo
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
-                        &DefaultHeapProps,
+                        GetHeapProperties(cpuAccess),
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
-                        D3D12_RESOURCE_STATE_COMMON,
+                        GetDefaultResourceState(cpuAccess),
                         pOptimizedClearValue,
                         IID_PPV_ARGS(D3DResource_.put())));
 
@@ -127,10 +132,14 @@ namespace OpenDemo
 
             void ResourceImpl::Init(const Buffer& resource)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetName());
+                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetCpuAccess(), resource.GetName());
             }
 
-            void ResourceImpl::Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, const U8String& name)
+            void ResourceImpl::Init(
+                const BufferDescription& resourceDesc,
+                const GpuResourceBindFlags bindFlags,
+                GpuResourceCpuAccess cpuAccess,
+                const U8String& name)
             {
                 ASSERT(!D3DResource_);
                 ASSERT(resourceDesc.size > 0);
@@ -139,10 +148,10 @@ namespace OpenDemo
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
-                        GetHeapProperties(resourceDesc.cpuAccess),
+                        GetHeapProperties(cpuAccess),
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
-                        GetDefaultResourceState(resourceDesc.cpuAccess),
+                        GetDefaultResourceState(cpuAccess),
                         nullptr,
                         IID_PPV_ARGS(D3DResource_.put())));
 

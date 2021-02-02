@@ -15,7 +15,7 @@ namespace OpenDemo
             {
             }
 
-            void GpuMemoryHeap::Init(BufferDescription::CpuAccess cpuAcess, const U8String& name)
+            void GpuMemoryHeap::Init(GpuResourceCpuAccess cpuAcess, const U8String& name)
             {
                 name_ = name;
                 cpuAcess_ = cpuAcess;
@@ -63,9 +63,9 @@ namespace OpenDemo
                     const auto pageSize = Max(allocSize, defaultPageSize_);
                     ASSERT(pageSize <= std::numeric_limits<uint32_t>::max());
 
-                    const auto& description = BufferDescription::Create(static_cast<uint32_t>(pageSize), cpuAcess_);
+                    const auto& description = BufferDescription::Create(static_cast<uint32_t>(pageSize));
                     auto& resource = std::make_unique<ResourceImpl>();
-                    resource->Init(description, GpuResourceBindFlags::None, fmt::sprintf("%s::%u", name_, pageIndex));
+                    resource->Init(description, GpuResourceBindFlags::None, cpuAcess_, fmt::sprintf("%s::%u", name_, pageIndex));
 
                     page = std::make_unique<Page>(pageSize, std::move(resource));
 

@@ -6,30 +6,19 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-
-        // TODO inherite from GpuResourceDescription{ cpuAcess, BindFlags}
         struct BufferDescription
         {
-            enum class CpuAccess
-            {
-                None,
-                Read,
-                Write
-            };
-
             GpuResourceFormat format = GpuResourceFormat::Unknown;
-            CpuAccess cpuAccess = CpuAccess::None;
             uint32_t size = 0;
 
-            static BufferDescription Create(uint32_t size, CpuAccess cpuAccess = CpuAccess::None, GpuResourceFormat format = GpuResourceFormat::Unknown)
+            static BufferDescription Create(uint32_t size, GpuResourceFormat format = GpuResourceFormat::Unknown)
             {
-                return BufferDescription(size, cpuAccess, format);
+                return BufferDescription(size, format);
             }
 
         private:
-            BufferDescription(uint32_t size, CpuAccess cpuAccess, GpuResourceFormat format)
+            BufferDescription(uint32_t size, GpuResourceFormat format)
                 : size(size),
-                  cpuAccess(cpuAccess),
                   format(format)
             {
             }
@@ -54,13 +43,14 @@ namespace OpenDemo
             static SharedPtr Create(
                 const Buffer& description,
                 GpuResourceBindFlags bindFlags,
+                GpuResourceCpuAccess cpuAccess,
                 const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new Buffer(description, bindFlags, name), Deleter());
+                return SharedPtr(new Buffer(description, bindFlags, cpuAccess, name), Deleter());
             }
 
-            Buffer(const BufferDescription& description, GpuResourceBindFlags bindFlags, const U8String& name);
+            Buffer(const BufferDescription& description, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
         private:
             BufferDescription description_;

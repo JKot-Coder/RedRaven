@@ -48,8 +48,8 @@ namespace OpenDemo
             }
         }
 
-        Texture::Texture(const TextureDescription& desc, GpuResourceBindFlags bindFlags, const U8String& name)
-            : GpuResource(GpuResource::Type::Texture, bindFlags, name),
+        Texture::Texture(const TextureDescription& desc, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name)
+            : GpuResource(GpuResource::Type::Texture, bindFlags, cpuAccess, name),
               description_(desc)
         {
             ASSERT(description_.format != GpuResourceFormat::Unknown)

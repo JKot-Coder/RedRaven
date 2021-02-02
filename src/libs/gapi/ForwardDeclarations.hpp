@@ -23,6 +23,7 @@ namespace OpenDemo
         class GpuResource;
         enum class GpuResourceBindFlags : uint32_t;
         enum class GpuResourceFormat : uint32_t;
+        enum class GpuResourceCpuAccess : uint32_t;
 
         class GpuResourceView;
         struct GpuResourceViewDescription;

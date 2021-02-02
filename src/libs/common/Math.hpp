@@ -1747,8 +1747,10 @@ namespace OpenDemo
 
             T left;
             T top;
+            T front;
             T width;
             T height;
+            T depth;
         };
 
         template <typename T>

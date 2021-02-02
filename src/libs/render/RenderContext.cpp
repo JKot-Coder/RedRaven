@@ -218,22 +218,32 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const std::shared_ptr<GAPI::IntermediateMemory>& textureData, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateTexture(
+            const GAPI::TextureDescription& desc,
+            GAPI::GpuResourceBindFlags bindFlags,
+            const std::shared_ptr<GAPI::IntermediateMemory>& textureData,
+            GAPI::GpuResourceCpuAccess cpuAccess,
+            const U8String& name) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
+            auto& resource = GAPI::Texture::Create(desc, bindFlags, cpuAccess, name, GPIObjectsDeleter<GAPI::Texture>());
             submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), textureData);
 
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, GAPI::GpuResourceBindFlags bindFlags, const U8String& name) const
+        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(
+            const std::shared_ptr<GAPI::SwapChain>& swapchain,
+            uint32_t backBufferIndex,
+            const GAPI::TextureDescription& desc,
+            GAPI::GpuResourceBindFlags bindFlags,
+            const U8String& name) const
         {
             ASSERT(inited_);
             ASSERT(swapchain);
 
-            auto& resource = GAPI::Texture::Create(desc, bindFlags, name, GPIObjectsDeleter<GAPI::Texture>());
+            auto& resource = GAPI::Texture::Create(desc, bindFlags, GAPI::GpuResourceCpuAccess::None, name, GPIObjectsDeleter<GAPI::Texture>());
             swapchain->InitBackBufferTexture(backBufferIndex, resource);
 
             return resource;

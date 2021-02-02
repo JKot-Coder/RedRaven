@@ -27,11 +27,11 @@ namespace OpenDemo
                 return T(0);
             }
 
-            GAPI::Texture::SharedPtr CreateTestTexture(const GAPI::TextureDescription& description, const U8String& name, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::None)
+            GAPI::Texture::SharedPtr CreateTestTexture(const GAPI::TextureDescription& description, const U8String& name, GAPI::GpuResourceCpuAccess cpuAcess = GAPI::GpuResourceCpuAccess::None, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::None)
             {
                 auto& renderContext = Render::RenderContext::Instance();
 
-                auto texture = renderContext.CreateTexture(description, bindFlags, {}, name);
+                auto texture = renderContext.CreateTexture(description, bindFlags, {}, cpuAcess, name);
                 REQUIRE(texture);
 
                 return texture;
@@ -102,13 +102,18 @@ namespace OpenDemo
                 const auto textureData = renderContext.AllocateIntermediateTextureData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 UpdateTexture(source, commandList);
-                ReadBack(source, commandList, textureData);
+              // UpdateTexture(dest, commandList);
 
                 commandList->CopyTexture(source, dest);
+
+                ReadBack(dest, commandList, textureData);
 
                 commandList->Close();
 
                 submitAndWait(copyQueue, commandList);
+                renderContext.WaitForGpu();
+                renderContext.WaitForGpu();
+                renderContext.WaitForGpu();
 
                 for (const auto& subresourceFootprint : textureData->GetSubresourceFootprints())
                 {

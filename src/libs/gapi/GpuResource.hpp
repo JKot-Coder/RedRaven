@@ -137,6 +137,13 @@ namespace OpenDemo
             Count
         };
 
+        enum class GpuResourceCpuAccess : uint32_t
+        {
+            None,
+            Read,
+            Write
+        };
+
         namespace GpuResourceFormatInfo
         {
             bool IsDepth(GpuResourceFormat format);
@@ -176,17 +183,20 @@ namespace OpenDemo
             std::shared_ptr<Type> GetTyped();
 
             inline GpuResourceBindFlags GetBindFlags() const { return bindFlags_; }
+            inline GpuResourceCpuAccess GetCpuAccess() const { return cpuAccess_; }
 
         protected:
-            GpuResource(GpuResource::Type type, GpuResourceBindFlags bindFlags, const U8String& name)
+            GpuResource(GpuResource::Type type, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name)
                 : Resource(Object::Type::GpuResource, name),
                   type_(type),
-                  bindFlags_(bindFlags)
+                  bindFlags_(bindFlags),
+                  cpuAccess_(cpuAccess)
             {
             }
 
             GpuResource::Type type_;
             GpuResourceBindFlags bindFlags_;
+            GpuResourceCpuAccess cpuAccess_;
 
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<ShaderResourceView>, GpuResourceViewDescriptionHashFunc> srvs_;
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<RenderTargetView>, GpuResourceViewDescriptionHashFunc> rtvs_;

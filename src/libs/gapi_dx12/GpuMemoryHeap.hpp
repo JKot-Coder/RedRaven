@@ -43,7 +43,7 @@ namespace OpenDemo
             public:
                 GpuMemoryHeap(size_t pageSize) : defaultPageSize_(pageSize) {};
 
-                void Init(BufferDescription::CpuAccess cpuAcess, const U8String& name);
+                void Init(GpuResourceCpuAccess cpuAcess, const U8String& name);
                 Allocation Allocate(size_t size, size_t alignment = 1);
 
             private:
@@ -52,7 +52,7 @@ namespace OpenDemo
             private:
                 size_t defaultPageSize_;
                 U8String name_ = "";
-                BufferDescription::CpuAccess cpuAcess_;
+                GpuResourceCpuAccess cpuAcess_;
                 uint32_t pageIndex = 0;
                 std::unique_ptr<Page> currentPage_;
                 std::queue<std::unique_ptr<Page>> freePages_;

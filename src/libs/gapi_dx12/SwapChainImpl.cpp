@@ -40,12 +40,12 @@ namespace OpenDemo
                 ComSharedPtr<IDXGISwapChain1> swapChain1;
                 // Create a swap chain for the window.
                 D3DCall(dxgiFactory->CreateSwapChainForHwnd(
-                               commandQueue.get(),
-                               description.windowHandle,
-                               &targetSwapChainDesc,
-                               nullptr,
-                               nullptr,
-                               swapChain1.put()));
+                    commandQueue.get(),
+                    description.windowHandle,
+                    &targetSwapChainDesc,
+                    nullptr,
+                    nullptr,
+                    swapChain1.put()));
 
                 if (!swapChain1.try_as(D3DSwapChain_))
                     LOG_FATAL("Failed to cast swapchain");
@@ -90,7 +90,6 @@ namespace OpenDemo
                 //   if (voidU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
                 // {
                 // }*/
-
             }
 
             void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource)
@@ -98,6 +97,8 @@ namespace OpenDemo
                 ASSERT(resource);
                 ASSERT(!resource->GetPrivateImpl());
                 ASSERT(D3DSwapChain_);
+                ASSERT(resource->GetCpuAccess() == GpuResourceCpuAccess::None);
+                ASSERT(IsSet(resource->GetBindFlags(), GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource));
 
 #ifdef ENABLE_ASSERTS
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;

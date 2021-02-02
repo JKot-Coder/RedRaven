@@ -52,6 +52,19 @@ namespace OpenDemo
                 return PlaneSlices * arraySize * mipLevels;
             }
 
+            inline friend bool operator==(const TextureDescription& lhs, const TextureDescription& rhs)
+            {
+                return lhs.format == rhs.format &&
+                       lhs.dimension == rhs.dimension &&
+                       lhs.width == rhs.width &&
+                       lhs.height == rhs.height &&
+                       lhs.depth == rhs.depth &&
+                       lhs.mipLevels == rhs.mipLevels &&
+                       lhs.sampleCount == rhs.sampleCount &&
+                       lhs.arraySize == rhs.arraySize;
+            }
+            inline friend bool operator!=(const TextureDescription& lhs, const TextureDescription& rhs) { return !(lhs == rhs); }
+
             GpuResourceFormat format;
             TextureDimension dimension = TextureDimension::Unknown;
             uint32_t width = 0;
@@ -142,13 +155,14 @@ namespace OpenDemo
             static SharedPtr Create(
                 const TextureDescription& description,
                 GpuResourceBindFlags bindFlags,
+                GpuResourceCpuAccess cpuAccess,
                 const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new Texture(description, bindFlags, name), Deleter());
+                return SharedPtr(new Texture(description, bindFlags, cpuAccess, name), Deleter());
             }
 
-            Texture(const TextureDescription& description, GpuResourceBindFlags bindFlags, const U8String& name);
+            Texture(const TextureDescription& description, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
         private:
             TextureDescription description_;

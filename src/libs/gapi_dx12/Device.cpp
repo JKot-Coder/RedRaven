@@ -178,11 +178,11 @@ namespace OpenDemo
 
                 constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
                 auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
-                uploadHeap->Init(BufferDescription::CpuAccess::Write, "Upload heap");
+                uploadHeap->Init(GpuResourceCpuAccess::Write, "Upload heap");
 
                 constexpr size_t ReadbackHeapPageSize = 1024 * 1024 * 32; //32 Mb
                 auto& readbackHeap = std::make_shared<GpuMemoryHeap>(ReadbackHeapPageSize);
-                readbackHeap->Init(BufferDescription::CpuAccess::Read, "Readback heap");
+                readbackHeap->Init(GpuResourceCpuAccess::Read, "Readback heap");
 
                 DeviceContext::Init(
                     graphicsCommandQueue,
