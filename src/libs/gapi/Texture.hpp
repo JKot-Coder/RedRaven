@@ -48,8 +48,9 @@ namespace OpenDemo
 
             const uint32_t GetNumSubresources() const
             {
-                constexpr uint32_t PlaneSlices = 1;
-                return PlaneSlices * arraySize * mipLevels;
+                constexpr uint32_t planeSlices = 1;
+                const uint32_t numSets = (dimension == TextureDimension::TextureCube ? 6 : 1);
+                return planeSlices * numSets * arraySize * mipLevels;
             }
 
             inline friend bool operator==(const TextureDescription& lhs, const TextureDescription& rhs)

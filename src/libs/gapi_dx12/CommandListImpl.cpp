@@ -152,6 +152,7 @@ namespace OpenDemo
 
                 const auto& sourceDesc = sourceTexture->GetDescription();
                 const auto& destDesc = destTexture->GetDescription();
+                // Actually we can  copy textures with different format with restrictions. So reconsider this assert
                 ASSERT(sourceDesc == destDesc);
 
                 /* // TODO ????????????
@@ -222,6 +223,58 @@ namespace OpenDemo
                 D3DCommandList_->CopyTextureRegion(&dst, destPoint.x, destPoint.y, destPoint.z, &src, &box);
             }
 
+            void CommandListImpl::copyImmediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData, bool readback)
+            {
+                ASSERT(texture);
+                ASSERT(textureData);
+                ASSERT(texture->GetDescription().GetNumSubresources() <= textureData->GetFirstSubresource() + textureData->GetNumSubresources());
+
+                const auto allocation = textureData->GetAllocation();
+                ASSERT(allocation);
+
+                const auto& device = DeviceContext::GetDevice();
+
+#ifdef ENABLE_ASSERTS
+                auto desc = resourceImpl->GetD3DObject()->GetDesc();
+
+                UINT64 itermediateSize;
+                device->GetCopyableFootprints(&desc, textureData->GetFirstSubresource(), textureData->GetNumSubresources(), 0, nullptr, nullptr, nullptr, &itermediateSize);
+                ASSERT(allocation->GetSize() == itermediateSize);
+#endif
+
+                ASSERT((allocation->GetMemoryType() == MemoryAllocationType::Upload && readback == false) ||
+                       (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
+
+                const auto firstResource = textureData->GetFirstSubresource();
+                for (uint32_t index = 0; index < textureData->GetNumSubresources(); index++)
+                {
+                    const auto subresourceIndex = index + firstResource;
+                    const auto& footprint = textureData->GetSubresourceFootprints()[index];
+
+                    const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                    size_t intermediateDataOffset = allocationImpl->offset;
+
+                    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+                    UINT numRows;
+                    UINT64 itermediateSize;
+                    device->GetCopyableFootprints(&desc, subresourceIndex, 1, intermediateDataOffset, &layout, &numRows, nullptr, nullptr);
+
+                    ASSERT(footprint.depthPitch == layout.Footprint.RowPitch * numRows);
+                    ASSERT(footprint.rowPitch == layout.Footprint.RowPitch);
+
+                    D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+                    D3DCommandList_->ResourceBarrier(1, &barrier);
+
+                    CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceIndex);
+                    CD3DX12_TEXTURE_COPY_LOCATION src(allocationImpl->resource.get(), layout);
+                    D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+                    barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+                    D3DCommandList_->ResourceBarrier(1, &barrier);
+                    break;
+                }
+            }
+
             void CommandListImpl::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
             {
                 ASSERT(texture);
@@ -280,24 +333,6 @@ namespace OpenDemo
                         LOG_FATAL("Unsupported memory type");
                     }
                 }
-
-                // UpdateSubresources<1>(D3DCommandList_.get(), resourceImpl->GetD3DObject().get(), alloc.resource.get(), alloc.offset, subresourceIndex, 1, &subresourceData);
-                /*
-                
-                    if (true) // is cpumemory
-                    {
-                        const auto intermediateSize = GetRequiredIntermediateSize(resourceImpl->GetD3DObject().get(), subresourceIndex, 1);
-
-                        const auto& alloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
-
-                        D3D12_SUBRESOURCE_DATA subresourceData;
-
-                        // subresourceData.pData = subresourceData.data;
-                        subresourceData.RowPitch = subresourceData.rowPitch;
-                        subresourceData.SlicePitch = subresourceData.depthPitch;
-
-                        UpdateSubresources<1>(D3DCommandList_.get(), resourceImpl->GetD3DObject().get(), alloc.resource.get(), alloc.offset, subresourceIndex, 1, &subresourceData);
-                    }*/
             }
 
             void CommandListImpl::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
