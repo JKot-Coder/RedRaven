@@ -46,11 +46,17 @@ namespace OpenDemo
                 return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
             }
 
-            const uint32_t GetNumSubresources() const
+            uint32_t GetNumSubresources() const
             {
                 constexpr uint32_t planeSlices = 1;
                 const uint32_t numSets = (dimension == TextureDimension::TextureCube ? 6 : 1);
                 return planeSlices * numSets * arraySize * mipLevels;
+            }
+
+            uint32_t GetMaxMipLevel() const
+            {
+                const uint32_t maxDimension = std::max(width, std::max(height, depth));
+                return 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
             }
 
             inline friend bool operator==(const TextureDescription& lhs, const TextureDescription& rhs)
@@ -84,7 +90,8 @@ namespace OpenDemo
                   format(format),
                   sampleCount(sampleCount),
                   arraySize(arraySize),
-                  mipLevels(mipLevels)
+                  // Limit/Calc maximum mip count
+                  mipLevels(std::min(GetMaxMipLevel(), mipLevels))
             {
             }
         };
@@ -104,11 +111,14 @@ namespace OpenDemo
         class IntermediateMemory
         {
         public:
+            using SharedPtr = std::shared_ptr<IntermediateMemory>;
+            using SharedConstPtr = std::shared_ptr<const IntermediateMemory>;
+
             struct SubresourceFootprint
             {
                 SubresourceFootprint() = default;
                 SubresourceFootprint(void* data, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
-                    : data(data), numRows(numRows), rowPitch(rowPitch), depthPitch(depthPitch) { }
+                    : data(data), numRows(numRows), rowSizeInBytes(rowSizeInBytes), rowPitch(rowPitch), depthPitch(depthPitch) { }
 
                 void* data;
                 uint32_t numRows;
@@ -127,6 +137,7 @@ namespace OpenDemo
             inline std::shared_ptr<MemoryAllocation> GetAllocation() const { return allocation_; }
             inline uint32_t GetFirstSubresource() const { return firstSubresource_; }
             inline uint32_t GetNumSubresources() const { return subresourceFootprints_.size(); }
+            inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
             inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
 
         private:

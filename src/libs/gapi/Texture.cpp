@@ -8,19 +8,6 @@
 
 #include "common/Math.hpp"
 
-namespace
-{
-    uint32_t getMaxMipLevels(uint32_t width, uint32_t height, uint32_t depth)
-    {
-        ASSERT(width > 0)
-        ASSERT(height > 0)
-        ASSERT(depth > 0)
-
-        const uint32_t maxDimension = std::max(width, std::max(height, depth));
-        return 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
-    }
-}
-
 namespace OpenDemo
 {
     namespace GAPI
@@ -84,8 +71,7 @@ namespace OpenDemo
                 ASSERT(AlignTo(description_.height, GpuResourceFormatInfo::GetCompressionBlockHeight(description_.format)) == description_.height)
             }
 
-            // Limit/Calc maximum mip count
-            description_.mipLevels = std::min(getMaxMipLevels(description_.width, description_.height, description_.depth), description_.mipLevels);
+            ASSERT(description_.mipLevels <= description_.GetMaxMipLevel());
         }
 
         ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices)

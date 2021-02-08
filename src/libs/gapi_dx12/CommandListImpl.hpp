@@ -46,6 +46,8 @@ namespace OpenDemo
                 // One frame executing on GPU
                 static constexpr int AllocatorsCount = MAX_GPU_FRAMES_BUFFERED + 1;
 
+                void copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData, bool readback) const;
+
                 class CommandAllocatorsPool
                 {
                 public:

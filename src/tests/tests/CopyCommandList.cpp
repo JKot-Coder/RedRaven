@@ -27,7 +27,7 @@ namespace OpenDemo
                 return T(0);
             }
 
-            GAPI::Texture::SharedPtr CreateTestTexture(const GAPI::TextureDescription& description, const U8String& name, GAPI::GpuResourceCpuAccess cpuAcess = GAPI::GpuResourceCpuAccess::None, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::None)
+            GAPI::Texture::SharedPtr createTestTexture(const GAPI::TextureDescription& description, const U8String& name, GAPI::GpuResourceCpuAccess cpuAcess = GAPI::GpuResourceCpuAccess::None, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::None)
             {
                 auto& renderContext = Render::RenderContext::Instance();
 
@@ -37,12 +37,9 @@ namespace OpenDemo
                 return texture;
             }
 
-            void UpdateTexture(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList)
+            void initTextureData(const GAPI::IntermediateMemory::SharedPtr& data)
             {
-                auto& renderContext = Render::RenderContext::Instance();
-                const auto textureData = renderContext.AllocateIntermediateTextureData(texture->GetDescription(), GAPI::MemoryAllocationType::Upload);
-
-                for (const auto& subresourceFootprint : textureData->GetSubresourceFootprints())
+                for (const auto& subresourceFootprint : data->GetSubresourceFootprints())
                 {
                     auto rowPointer = static_cast<uint8_t*>(subresourceFootprint.data);
                     for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
@@ -52,15 +49,38 @@ namespace OpenDemo
                         rowPointer += subresourceFootprint.rowPitch;
                     }
                 }
-
-                commandList->UpdateTexture(texture, textureData);
             }
 
-            void ReadBack(const GAPI::Texture::SharedPtr& texture, const GAPI::CopyCommandList::SharedPtr& commandList, const std::shared_ptr<GAPI::IntermediateMemory>& textureData)
+            bool isResourceDataEqual(const GAPI::IntermediateMemory::SharedPtr& lhs,
+                                     const GAPI::IntermediateMemory::SharedPtr& rhs)
             {
-                auto& renderContext = Render::RenderContext::Instance();
+                ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
 
-                commandList->ReadbackTexture(texture, textureData);
+                const auto numSubresources = lhs->GetNumSubresources();
+                for (uint32_t index = 0; index < numSubresources; index++)
+                {
+                    const auto& lfootprint = lhs->GetSubresourceFootprintAt(index);
+                    const auto& rfootprint = rhs->GetSubresourceFootprintAt(index);
+
+                    ASSERT(lfootprint.rowSizeInBytes == rfootprint.rowSizeInBytes);
+                    ASSERT(lfootprint.rowPitch == rfootprint.rowPitch);
+                    ASSERT(lfootprint.depthPitch == rfootprint.depthPitch);
+                    ASSERT(lfootprint.numRows == rfootprint.numRows);
+
+                    auto lrowPointer = static_cast<uint8_t*>(lfootprint.data);
+                    auto rrowPointer = static_cast<uint8_t*>(rfootprint.data);
+
+                    for (uint32_t row = 0; row < lfootprint.numRows; row++)
+                    {
+                        if (memcmp(lrowPointer, rrowPointer, lfootprint.rowSizeInBytes) != 0)
+                            return false;
+
+                        lrowPointer += lfootprint.rowPitch;
+                        rrowPointer += rfootprint.rowPitch;
+                    }
+                }
+
+                return true;
             }
         }
 
@@ -83,8 +103,8 @@ namespace OpenDemo
             {
                 const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
 
-                auto source = CreateTestTexture(description, "Source");
-                auto dest = CreateTestTexture(description, "Dest");
+                auto source = createTestTexture(description, "Source");
+                auto dest = createTestTexture(description, "Dest");
 
                 commandList->CopyTexture(source, dest);
                 commandList->Close();
@@ -96,32 +116,22 @@ namespace OpenDemo
             {
                 const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::RGBA16Float);
 
-                auto source = CreateTestTexture(description, "Source");
-                auto dest = CreateTestTexture(description, "Dest");
+                auto source = createTestTexture(description, "Source");
+                auto dest = createTestTexture(description, "Dest");
 
-                const auto textureData = renderContext.AllocateIntermediateTextureData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+                const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
-                UpdateTexture(source, commandList);
-              // UpdateTexture(dest, commandList);
+                initTextureData(sourceData);
 
+                commandList->UpdateTexture(source, sourceData);
                 commandList->CopyTexture(source, dest);
-
-                ReadBack(dest, commandList, textureData);
+                commandList->ReadbackTexture(dest, readbackData);
 
                 commandList->Close();
 
                 submitAndWait(copyQueue, commandList);
-                renderContext.WaitForGpu();
-                renderContext.WaitForGpu();
-                renderContext.WaitForGpu();
-
-                for (const auto& subresourceFootprint : textureData->GetSubresourceFootprints())
-                {
-                    auto rowPointer = static_cast<uint8_t*>(subresourceFootprint.data);
-                    for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
-                    {
-                    }
-                }
+                REQUIRE(isResourceDataEqual(sourceData, readbackData));
             }
         }
 
