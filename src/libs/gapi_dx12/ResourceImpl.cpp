@@ -156,18 +156,22 @@ namespace OpenDemo
                         IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
-
-                //    D3DCall(performInitialUpload(textureData));
             }
 
-            void ResourceImpl::performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData)
+            void ResourceImpl::performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData, const TextureDescription& resourceDesc)
             {
-                //ASSERT(initialData == nullptr || initialData->GetNumSubresources() == resourceDesc.GetNumSubresources());
-                //if (initialData->size() == 0)
-                //   return;
-
-                //textureData
+                if (!initialData)
+                    return;
+                              
+               
             }
+            
+            void ResourceImpl::performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData, const BufferDescription& resourceDesc)
+            {
+            
+            }
+            
+    
 
             void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory)
             {

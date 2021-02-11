@@ -52,6 +52,7 @@ namespace OpenDemo
             std::shared_ptr<CommandQueueImpl> DeviceContext::graphicsCommandQueue_;
             std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
             std::shared_ptr<ResourceReleaseContext> DeviceContext::resourceReleaseContext_;
+            Threading::AccessGuard<CommandListImpl> DeviceContext::initialUploadsCommandList_(CommandListType::Graphics); // TODO
             std::shared_ptr<GpuMemoryHeap> DeviceContext::uploadHeap_;
             std::shared_ptr<GpuMemoryHeap> DeviceContext::readbackHeap_;
 
@@ -176,6 +177,9 @@ namespace OpenDemo
                 auto& resourceReleaseContext = std::make_shared<ResourceReleaseContext>();
                 resourceReleaseContext->Init();
 
+                auto& initialUploadsCommandList = std::make_shared<CommandListImpl>(CommandListType::Graphics);
+                initialUploadsCommandList->Init("Initial uploads");
+
                 constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
                 auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
                 uploadHeap->Init(GpuResourceCpuAccess::Write, "Upload heap");
@@ -188,6 +192,7 @@ namespace OpenDemo
                     graphicsCommandQueue,
                     descriptorHeapSet,
                     resourceReleaseContext,
+                    initialUploadsCommandList,
                     uploadHeap,
                     readbackHeap);
 
@@ -227,10 +232,10 @@ namespace OpenDemo
                 switch (memoryType)
                 {
                 case MemoryAllocationType::Upload:
-                    heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize);
+                    heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
                     break;
                 case MemoryAllocationType::Readback:
-                    heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize);
+                    heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
                     break;
                 default:
                     LOG_FATAL("Unsupported memory type");

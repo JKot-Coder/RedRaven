@@ -17,7 +17,7 @@ namespace OpenDemo
         class Fence;
         class Object;
 
-        template <typename T, bool IsNamed = true>
+        template <typename T, bool IsNamed>
         class Resource;
 
         class GpuResource;

@@ -23,6 +23,18 @@ namespace OpenDemo
 
                 ~AccessGuard() = default;
 
+                std::shared_ptr<T>& operator=(const std::shared_ptr<T>& r) noexcept
+                {
+                    ptr_ = r;
+                    return ptr_;
+                }
+
+                std::shared_ptr<T>& operator=(std::shared_ptr<T>&& r) noexcept
+                {
+                    ptr_ = std::move(r);
+                    return ptr_;
+                }
+
             private:
                 template <typename LockType>
                 class Pointer
@@ -35,6 +47,7 @@ namespace OpenDemo
 
                     ~Pointer() = default;
 
+                    inline operator bool() const { return ptr_.operator bool(); };
                     inline T* operator->() { return ptr_.get(); }
                     inline const T* operator->() const { return ptr_.get(); }
 

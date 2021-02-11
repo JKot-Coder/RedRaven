@@ -136,7 +136,7 @@ namespace OpenDemo
 
             inline std::shared_ptr<MemoryAllocation> GetAllocation() const { return allocation_; }
             inline uint32_t GetFirstSubresource() const { return firstSubresource_; }
-            inline uint32_t GetNumSubresources() const { return subresourceFootprints_.size(); }
+            inline size_t GetNumSubresources() const { return subresourceFootprints_.size(); }
             inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
             inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Singleton.hpp"
+#include "common/threading/AccessGuard.hpp"
 
 namespace OpenDemo
 {
@@ -12,6 +13,7 @@ namespace OpenDemo
             class DescriptorHeapSet;
             class CommandQueueImpl;
             class GpuMemoryHeap;
+            class CommandListImpl;
 
             class DeviceContext
             {
@@ -29,18 +31,21 @@ namespace OpenDemo
                 static void Init(const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
                                  const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet,
                                  const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext,
+                                 const std::shared_ptr<CommandListImpl>& initialUploadsCommandList,
                                  const std::shared_ptr<GpuMemoryHeap>& uploadHeap,
                                  const std::shared_ptr<GpuMemoryHeap>& readbackHeap)
                 {
                     ASSERT(descriptorHeapSet);
                     ASSERT(graphicsCommandQueue);
                     ASSERT(resourceReleaseContext);
+                    ASSERT(initialUploadsCommandList);
                     ASSERT(uploadHeap);
                     ASSERT(readbackHeap);
 
                     graphicsCommandQueue_ = graphicsCommandQueue;
                     descriptorHeapSet_ = descriptorHeapSet;
                     resourceReleaseContext_ = resourceReleaseContext;
+                    initialUploadsCommandList_ = initialUploadsCommandList;
                     uploadHeap_ = uploadHeap;
                     readbackHeap_ = readbackHeap;
                 }
@@ -51,6 +56,7 @@ namespace OpenDemo
                     dxgiFactory_ = nullptr;
                     graphicsCommandQueue_ = nullptr;
                     descriptorHeapSet_ = nullptr;
+                    initialUploadsCommandList_ = nullptr;
                     resourceReleaseContext_ = nullptr;
                     uploadHeap_ = nullptr;
                     readbackHeap_ = nullptr;
@@ -86,6 +92,12 @@ namespace OpenDemo
                     return resourceReleaseContext_;
                 }
 
+                static Threading::AccessGuard<CommandListImpl>::ExclusiveAcessPointer GetInitialUploadsCommandList()
+                {
+                    ASSERT(initialUploadsCommandList_.SharedAcess());
+                    return initialUploadsCommandList_.ExclusiveAcess();
+                }
+
                 static std::shared_ptr<GpuMemoryHeap> GetUploadHeap()
                 {
                     ASSERT(uploadHeap_);
@@ -104,6 +116,7 @@ namespace OpenDemo
                 static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
                 static std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 static std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
+                static Threading::AccessGuard<CommandListImpl> initialUploadsCommandList_;
                 static std::shared_ptr<GpuMemoryHeap> uploadHeap_;
                 static std::shared_ptr<GpuMemoryHeap> readbackHeap_;
             };

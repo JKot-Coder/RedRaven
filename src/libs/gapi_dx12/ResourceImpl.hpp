@@ -31,7 +31,8 @@ namespace OpenDemo
                 void Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory);
 
             private:
-                void performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData);
+                void performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData, const TextureDescription& resourceDesc);
+                void performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData, const BufferDescription& resourceDesc);
 
             private:
                 ComSharedPtr<ID3D12Resource> D3DResource_;

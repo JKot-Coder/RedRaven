@@ -110,6 +110,7 @@ namespace OpenDemo
 
             static uint32_t submissionFrame = 0;
 
+            // TODO this is not valid. We should sync all command list with primary command list.
             submission_->ExecuteAsync([fence = fence_, commandQueue](GAPI::Device& device) {
                 submissionFrame++;
 

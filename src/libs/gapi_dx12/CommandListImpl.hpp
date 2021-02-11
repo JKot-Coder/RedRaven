@@ -44,6 +44,7 @@ namespace OpenDemo
 
             private:
                 // One frame executing on GPU
+                // TODO allow dynamic allocators list size.
                 static constexpr int AllocatorsCount = MAX_GPU_FRAMES_BUFFERED + 1;
 
                 void copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData, bool readback) const;
