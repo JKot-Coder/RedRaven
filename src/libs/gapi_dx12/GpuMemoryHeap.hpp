@@ -19,14 +19,16 @@ namespace OpenDemo
             public:
                 struct Allocation final : public IMemoryAllocation
                 {
-                    void* mappedData;
+                    ~Allocation();
+
                     size_t size = 0;
                     size_t offset = 0;
                     uint64_t fenceValue = 0;
                     ComSharedPtr<ID3D12Resource> resource;
+                    mutable bool isMapped = false;
 
-                public:
-                    void* GetData() const override { return mappedData; };
+                    void* Map() const override;
+                    void Unmap() const override;
                 };
 
                 struct Page

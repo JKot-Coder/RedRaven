@@ -13,7 +13,7 @@ namespace OpenDemo
             auto& renderContext = Render::RenderContext::Instance();
 
             renderContext.Submit(commandQueue, commandList);
-            renderContext.WaitForGpu();
+            renderContext.WaitForGpu(commandQueue);
         }
     }
 }

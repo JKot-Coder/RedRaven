@@ -52,7 +52,6 @@ namespace OpenDemo
             std::shared_ptr<CommandQueueImpl> DeviceContext::graphicsCommandQueue_;
             std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
             std::shared_ptr<ResourceReleaseContext> DeviceContext::resourceReleaseContext_;
-            Threading::AccessGuard<CommandListImpl> DeviceContext::initialUploadsCommandList_(CommandListType::Graphics); // TODO
             std::shared_ptr<GpuMemoryHeap> DeviceContext::uploadHeap_;
             std::shared_ptr<GpuMemoryHeap> DeviceContext::readbackHeap_;
 
@@ -66,7 +65,6 @@ namespace OpenDemo
                 void Submit(const CommandList::SharedPtr& commandList);
                 void Present(const SwapChain::SharedPtr& swapChain) override;
                 void MoveToNextFrame() override;
-                void WaitForGpu() override;
 
                 std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
                     const TextureDescription& desc,
@@ -78,7 +76,7 @@ namespace OpenDemo
                 void InitFence(Fence& resource) const override;
                 void InitCommandQueue(CommandQueue& resource) const override;
                 void InitCommandList(CommandList& resource) const override;
-                void InitTexture(Texture& resource, const std::shared_ptr<IntermediateMemory>& textureData) const override;
+                void InitTexture(Texture& resource) const override;
                 void InitBuffer(Buffer& resource) const override;
                 void InitGpuResourceView(GpuResourceView& view) const override;
 
@@ -90,6 +88,7 @@ namespace OpenDemo
                 }
 
             private:
+                void waitForGpu();
                 bool createDevice();
 
             private:
@@ -119,7 +118,8 @@ namespace OpenDemo
                 if (!inited_)
                     return;
 
-                WaitForGpu();
+                // Todo need wait all queries
+                waitForGpu();
 
                 DeviceContext::Terminate();
 
@@ -177,9 +177,6 @@ namespace OpenDemo
                 auto& resourceReleaseContext = std::make_shared<ResourceReleaseContext>();
                 resourceReleaseContext->Init();
 
-                auto& initialUploadsCommandList = std::make_shared<CommandListImpl>(CommandListType::Graphics);
-                initialUploadsCommandList->Init("Initial uploads");
-
                 constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
                 auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
                 uploadHeap->Init(GpuResourceCpuAccess::Write, "Upload heap");
@@ -192,7 +189,6 @@ namespace OpenDemo
                     graphicsCommandQueue,
                     descriptorHeapSet,
                     resourceReleaseContext,
-                    initialUploadsCommandList,
                     uploadHeap,
                     readbackHeap);
 
@@ -201,7 +197,7 @@ namespace OpenDemo
                 return true;
             }
 
-            void DeviceImpl::WaitForGpu()
+            void DeviceImpl::waitForGpu()
             {
                 ASSERT_IS_DEVICE_INITED;
 
@@ -244,22 +240,22 @@ namespace OpenDemo
                 const auto& allocation = std::make_shared<MemoryAllocation>(memoryType, intermediateSize);
                 allocation->SetPrivateImpl(new GpuMemoryHeap::Allocation(heapAlloc));
 
+                std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
+                std::vector<UINT> numRowsVector(numSubresources);
+                std::vector<UINT64> rowSizeInBytesVector(numSubresources);
+
+                d3dDevice_->GetCopyableFootprints(&desc, firstSubresourceIndex, numSubresources, heapAlloc.offset, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
+
                 std::vector<IntermediateMemory::SubresourceFootprint> subresourceFootprints(numSubresources);
                 for (uint32_t index = 0; index < numSubresources; index++)
                 {
-                    const auto subresourceIndex = index + firstSubresourceIndex;
-
-                    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-                    UINT numRows;
-                    UINT64 rowSizeInBytes;
-
-                    d3dDevice_->GetCopyableFootprints(&desc, subresourceIndex, 1, heapAlloc.offset, &layout, &numRows, &rowSizeInBytes, nullptr);
-
+                    const auto& layout = layouts[index];
+                    const auto numRows = numRowsVector[index];
+                    const auto rowSizeInBytes = numRowsVector[index];
                     const auto rowPitch = layout.Footprint.RowPitch;
                     const auto depthPitch = numRows * rowPitch;
-                    const auto data = static_cast<void*>(static_cast<unsigned char*>(heapAlloc.GetData()) + layout.Offset);
 
-                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(data, numRows, rowSizeInBytes, rowPitch, depthPitch);
+                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(layout.Offset, numRows, rowSizeInBytes, rowPitch, depthPitch);
                 }
 
                 return std::make_shared<IntermediateMemory>(allocation, subresourceFootprints, firstSubresourceIndex);
@@ -289,12 +285,12 @@ namespace OpenDemo
                 return ResourceCreator::InitCommandList(resource);
             }
 
-            void DeviceImpl::InitTexture(Texture& resource, const std::shared_ptr<IntermediateMemory>& textureData) const
+            void DeviceImpl::InitTexture(Texture& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
                 auto impl = std::make_unique<ResourceImpl>();
-                impl->Init(resource, textureData);
+                impl->Init(resource);
 
                 resource.SetPrivateImpl(impl.release());
             }

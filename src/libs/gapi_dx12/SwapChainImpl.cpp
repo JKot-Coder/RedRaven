@@ -2,6 +2,7 @@
 
 #include "gapi/SwapChain.hpp"
 
+#include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -66,6 +67,8 @@ namespace OpenDemo
 
                 if (!swapChainCompatable)
                     LOG_FATAL("SwapChains incompatible");
+
+                DeviceContext().GetGraphicsCommandQueue()->WaitForGpu();
 
                 // Clear api references
                 for (const auto& backBuffer : backBuffers)

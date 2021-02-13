@@ -37,6 +37,8 @@ set(GAPI_SRC
         Device.cpp
         Device.hpp
         ResourceReleaseContext.hpp
+        #InitialUploadsManager.hpp
+        #InitialUploadsManager.cpp
         ResourceCreator.cpp
         ResourceCreator.hpp
         TypeConversions.cpp

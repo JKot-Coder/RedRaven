@@ -10,7 +10,8 @@ namespace OpenDemo
         {
         public:
             virtual ~IMemoryAllocation() = default;
-            virtual void* GetData() const = 0;
+            virtual void* Map() const = 0;
+            virtual void Unmap() const = 0;
         };
 
         enum class MemoryAllocationType : uint32_t
@@ -31,7 +32,8 @@ namespace OpenDemo
             }
 
             inline size_t GetSize() const { return size_; }
-            inline void* GetData() const { return GetPrivateImpl()->GetData(); }
+            inline void* Map() const { return GetPrivateImpl()->Map(); }
+            inline void Unmap() const { GetPrivateImpl()->Unmap(); }
             inline MemoryAllocationType GetMemoryType() const { return type_; }
 
         private:

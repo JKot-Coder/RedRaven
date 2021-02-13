@@ -14,6 +14,7 @@
 #include "render/RenderContext.hpp"
 
 #include "common/Math.hpp"
+#include "common/OnScopeExit.hpp"
 
 namespace OpenDemo
 {
@@ -33,7 +34,7 @@ namespace OpenDemo
             template <>
             Vector4 checkerboardPattern(Vector3u texel, uint32_t level)
             {
-                if ((texel.x + texel.y + texel.z) / 8 + level & 1 == 0)
+                if (((texel.x + texel.y + texel.z) / 8 + level) & 1)
                 {
                     return Vector4(0.5f, 0.5f, 0.5f, 0.5f);
                 }
@@ -68,7 +69,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::RenderContext::Instance();
 
-                auto texture = renderContext.CreateTexture(description, bindFlags, {}, cpuAcess, name);
+                auto texture = renderContext.CreateTexture(description, bindFlags, cpuAcess, name);
                 REQUIRE(texture);
 
                 return texture;
@@ -85,18 +86,19 @@ namespace OpenDemo
                        (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA32Float));
 
                 const auto& subresourceFootprints = data->GetSubresourceFootprints();
+                const auto dataPointer = static_cast<uint8_t*>(textureData->GetAllocation()->Map());
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
 
-                    auto rowPointer = static_cast<uint8_t*>(subresourceFootprint.data);
+                    auto rowPointer = dataPointer + subresourceFootprint.offset;
                     for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
                     {
                         auto columnPointer = reinterpret_cast<T*>(rowPointer);
                         for (uint32_t column = 0; column < description.width; column++)
                         {
-                            const auto texel = Vector3u(row, column, 0);
+                            const auto texel = Vector3u(column, row, 0);
 
                             *columnPointer = checkerboardPattern<T>(texel, index);
                             columnPointer++;
@@ -105,12 +107,24 @@ namespace OpenDemo
                         rowPointer += subresourceFootprint.rowPitch;
                     }
                 }
+
+                textureData->GetAllocation()->Unmap();
             }
 
             bool isResourceDataEqual(const GAPI::IntermediateMemory::SharedPtr& lhs,
                                      const GAPI::IntermediateMemory::SharedPtr& rhs)
             {
+                ASSERT(lhs != rhs);
                 ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
+
+                const auto ldataPointer = static_cast<uint8_t*>(lhs->GetAllocation()->Map());
+                const auto rdataPointer = static_cast<uint8_t*>(rhs->GetAllocation()->Map());
+
+                ON_SCOPE_EXIT(
+                    {
+                        lhs->GetAllocation()->Unmap();
+                        rhs->GetAllocation()->Unmap();
+                    });
 
                 const auto numSubresources = lhs->GetNumSubresources();
                 for (uint32_t index = 0; index < numSubresources; index++)
@@ -118,13 +132,14 @@ namespace OpenDemo
                     const auto& lfootprint = lhs->GetSubresourceFootprintAt(index);
                     const auto& rfootprint = rhs->GetSubresourceFootprintAt(index);
 
+                    ASSERT(lfootprint.offset == rfootprint.offset);
                     ASSERT(lfootprint.rowSizeInBytes == rfootprint.rowSizeInBytes);
                     ASSERT(lfootprint.rowPitch == rfootprint.rowPitch);
                     ASSERT(lfootprint.depthPitch == rfootprint.depthPitch);
                     ASSERT(lfootprint.numRows == rfootprint.numRows);
 
-                    auto lrowPointer = static_cast<uint8_t*>(lfootprint.data);
-                    auto rrowPointer = static_cast<uint8_t*>(rfootprint.data);
+                    auto lrowPointer = ldataPointer + lfootprint.offset;
+                    auto rrowPointer = rdataPointer + rfootprint.offset;
 
                     for (uint32_t row = 0; row < lfootprint.numRows; row++)
                     {
@@ -164,8 +179,8 @@ namespace OpenDemo
 
                 initTextureData<uint32_t>(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, {}, GAPI::GpuResourceCpuAccess::None, "Source");
-                auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, {}, GAPI::GpuResourceCpuAccess::None, "Dest");
+                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
+                auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
 
                 commandList->UpdateTexture(source, sourceData);
                 commandList->CopyTexture(source, dest);
@@ -186,8 +201,8 @@ namespace OpenDemo
 
                 initTextureData<Vector4>(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, {}, GAPI::GpuResourceCpuAccess::None, "Source");
-                auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, {}, GAPI::GpuResourceCpuAccess::None, "Dest");
+                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
+                auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
 
                 commandList->UpdateTexture(source, sourceData);
                 commandList->CopyTexture(source, dest);

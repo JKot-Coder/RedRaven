@@ -45,6 +45,10 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(allocator.get(), name, index);
             }
 
+            CommandListImpl::CommandAllocatorsPool::~CommandAllocatorsPool()
+            {
+            }
+
             void CommandListImpl::CommandAllocatorsPool::Init(
                 D3D12_COMMAND_LIST_TYPE type,
                 const U8String& name)
@@ -248,21 +252,28 @@ namespace OpenDemo
                 ASSERT((allocation->GetMemoryType() == MemoryAllocationType::Upload && readback == false) ||
                        (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
 
+                const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                size_t intermediateDataOffset = allocationImpl->offset;
+
                 const auto firstResource = textureData->GetFirstSubresource();
+                const auto numSubresources = textureData->GetNumSubresources();
+                std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
+                std::vector<UINT> numRowsVector(numSubresources);
+                std::vector<UINT64> rowSizeInBytesVector(numSubresources);
+                device->GetCopyableFootprints(&desc, firstResource, numSubresources, intermediateDataOffset, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
+
                 for (uint32_t index = 0; index < textureData->GetNumSubresources(); index++)
                 {
-                    const auto subresourceIndex = index + firstResource;
+                    const auto subresourceIndex = firstResource + index;
+
                     const auto& footprint = textureData->GetSubresourceFootprints()[index];
+                    const auto& layout = layouts[index];
+                    const auto numRows = numRowsVector[index];
+                    const auto rowSizeInBytes = numRowsVector[index];
+                    const auto rowPitch = layout.Footprint.RowPitch;
+                    const auto depthPitch = numRows * rowPitch;
 
-                    const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
-                    size_t intermediateDataOffset = allocationImpl->offset;
-
-                    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-                    UINT numRows;
-                    UINT64 itermediateSize;
-                    device->GetCopyableFootprints(&desc, subresourceIndex, 1, intermediateDataOffset, &layout, &numRows, nullptr, nullptr);
-
-                    ASSERT(footprint.depthPitch == layout.Footprint.RowPitch * numRows);
+                    ASSERT(footprint.depthPitch == depthPitch);
                     ASSERT(footprint.rowPitch == layout.Footprint.RowPitch);
 
                     if (readback)

@@ -91,16 +91,16 @@ namespace OpenDemo
             ASSERT(inited_);
 
             submission_->ExecuteAsync([swapChain](GAPI::Device& device) {
-                return device.Present(swapChain);
+                device.Present(swapChain);
             });
         }
 
-        void RenderContext::WaitForGpu()
+        void RenderContext::WaitForGpu(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([](GAPI::Device& device) {
-                return device.WaitForGpu();
+            submission_->ExecuteAwait([commandQueue](GAPI::Device& device) {
+                commandQueue->WaitForGpu();
             });
         }
 
@@ -153,7 +153,6 @@ namespace OpenDemo
             ASSERT(inited_);
 
             submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
-                device.WaitForGpu();
                 swapchain->Reset(description);
             });
         }
@@ -222,14 +221,13 @@ namespace OpenDemo
         GAPI::Texture::SharedPtr RenderContext::CreateTexture(
             const GAPI::TextureDescription& desc,
             GAPI::GpuResourceBindFlags bindFlags,
-            const std::shared_ptr<GAPI::IntermediateMemory>& textureData,
             GAPI::GpuResourceCpuAccess cpuAccess,
             const U8String& name) const
         {
             ASSERT(inited_);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, cpuAccess, name, GPIObjectsDeleter<GAPI::Texture>());
-            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get(), textureData);
+            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get());
 
             return resource;
         }

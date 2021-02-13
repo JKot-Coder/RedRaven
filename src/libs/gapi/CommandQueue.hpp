@@ -27,6 +27,7 @@ namespace OpenDemo
             virtual ~ICommandQueue() {};
 
             virtual void Submit(const std::shared_ptr<CommandList>& commandList) = 0;
+            virtual void WaitForGpu() = 0;
         };
 
         class CommandQueue final : public Resource<ICommandQueue>
@@ -53,6 +54,8 @@ namespace OpenDemo
                   type_(type)
             {
             }
+
+            inline void WaitForGpu() { GetPrivateImpl()->WaitForGpu(); }
 
         private:
             CommandQueueType type_;

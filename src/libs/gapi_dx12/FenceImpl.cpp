@@ -37,7 +37,7 @@ namespace OpenDemo
                 const auto queueImpl = queue->GetPrivateImpl<CommandQueueImpl>();
                 ASSERT(queueImpl);
 
-                return Signal(*queueImpl);
+                Signal(*queueImpl);
             }
 
             void FenceImpl::Signal(CommandQueueImpl& queue)

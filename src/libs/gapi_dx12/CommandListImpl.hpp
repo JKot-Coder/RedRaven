@@ -52,6 +52,8 @@ namespace OpenDemo
                 class CommandAllocatorsPool
                 {
                 public:
+                    ~CommandAllocatorsPool();
+                    
                     void Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
 
                     void ReleaseD3DObjects();

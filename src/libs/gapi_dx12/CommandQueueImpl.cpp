@@ -55,6 +55,9 @@ namespace OpenDemo
 
                 D3DCall(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())));
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
+
+                fence_ = std::make_unique<FenceImpl>();
+                fence_->Init(name);
             }
 
             void CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
@@ -84,7 +87,16 @@ namespace OpenDemo
             void CommandQueueImpl::Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
+                ASSERT(fence);
+                
                 D3DCall(D3DCommandQueue_->Wait(fence.get(), value));
+            }
+
+            void CommandQueueImpl::WaitForGpu()
+            {
+                ASSERT(fence_);
+                fence_->Signal(*this);
+                Wait(fence_->GetD3DObject(), fence_->GetCpuValue());
             }
         };
     }

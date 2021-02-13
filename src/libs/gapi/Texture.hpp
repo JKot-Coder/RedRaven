@@ -117,10 +117,10 @@ namespace OpenDemo
             struct SubresourceFootprint
             {
                 SubresourceFootprint() = default;
-                SubresourceFootprint(void* data, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
-                    : data(data), numRows(numRows), rowSizeInBytes(rowSizeInBytes), rowPitch(rowPitch), depthPitch(depthPitch) { }
+                SubresourceFootprint(size_t offset, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
+                    : offset(offset), numRows(numRows), rowSizeInBytes(rowSizeInBytes), rowPitch(rowPitch), depthPitch(depthPitch) { }
 
-                void* data;
+                size_t offset;
                 uint32_t numRows;
                 size_t rowSizeInBytes;
                 size_t rowPitch;

@@ -76,21 +76,19 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
             }
 
-            void ResourceImpl::Init(const Texture& resource, const std::shared_ptr<IntermediateMemory>& initialData)
+            void ResourceImpl::Init(const Texture& resource)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetCpuAccess(), initialData, resource.GetName());
+                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetCpuAccess(), resource.GetName());
             }
 
             void ResourceImpl::Init(
                 const TextureDescription& resourceDesc,
                 const GpuResourceBindFlags bindFlags,
                 GpuResourceCpuAccess cpuAccess,
-                const std::shared_ptr<IntermediateMemory>& initialData,
                 const U8String& name)
             {
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(!D3DResource_);
-                ASSERT(initialData == nullptr || initialData->GetNumSubresources() == resourceDesc.GetNumSubresources());
 
                 const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
 
@@ -110,8 +108,6 @@ namespace OpenDemo
                         IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
-
-                // performInitialUpload(textureData);
             }
 
             void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, const U8String& name)
@@ -157,21 +153,6 @@ namespace OpenDemo
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
             }
-
-            void ResourceImpl::performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData, const TextureDescription& resourceDesc)
-            {
-                if (!initialData)
-                    return;
-                              
-               
-            }
-            
-            void ResourceImpl::performInitialUpload(const std::shared_ptr<IntermediateMemory>& initialData, const BufferDescription& resourceDesc)
-            {
-            
-            }
-            
-    
 
             void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory)
             {

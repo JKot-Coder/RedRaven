@@ -15,6 +15,36 @@ namespace OpenDemo
             {
             }
 
+            GpuMemoryHeap::Allocation::~Allocation()
+            {
+                if (isMapped)
+                    Unmap(); 
+            }
+
+            void* GpuMemoryHeap::Allocation::Map() const
+            {
+                ASSERT(!isMapped);
+                D3D12_RANGE readRange { offset, offset + size };
+
+                isMapped = true;
+
+                uint8_t* mappedData;
+                resource->Map(0, &readRange, reinterpret_cast<void**>(&mappedData));
+                mappedData += offset;
+
+                return mappedData;
+            }
+
+            void GpuMemoryHeap::Allocation::Unmap() const
+            {
+                ASSERT(isMapped);
+
+                D3D12_RANGE writtenRange { offset, offset + size };
+                resource->Unmap(0, &writtenRange);
+
+                isMapped = false;
+            }
+
             void GpuMemoryHeap::Init(GpuResourceCpuAccess cpuAcess, const U8String& name)
             {
                 name_ = name;
@@ -40,9 +70,6 @@ namespace OpenDemo
                 allocation.offset = pageOffset;
                 allocation.fenceValue = 0;
                 allocation.resource = currentPage_->resource->GetD3DObject();
-
-                D3D12_RANGE readRange = { 0, 0 };
-                currentPage_->resource->Map(0, readRange, allocation.mappedData);
 
                 currentPage_->offset = pageOffset + size;
 
