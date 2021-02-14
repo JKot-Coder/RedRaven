@@ -190,9 +190,12 @@ namespace OpenDemo
                 ASSERT(destSubresourceIdx < destDesc.GetNumSubresources());
 #endif
 
-                CD3DX12_TEXTURE_COPY_LOCATION dst(sourceImpl->GetD3DObject().get(), sourceSubresourceIdx);
-                CD3DX12_TEXTURE_COPY_LOCATION src(destImpl->GetD3DObject().get(), destSubresourceIdx);
+                CD3DX12_TEXTURE_COPY_LOCATION dst(destImpl->GetD3DObject().get(), sourceSubresourceIdx);
+                CD3DX12_TEXTURE_COPY_LOCATION src(sourceImpl->GetD3DObject().get(), destSubresourceIdx);
                 D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(destImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+                D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
             void CommandListImpl::CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
@@ -240,14 +243,7 @@ namespace OpenDemo
                 ASSERT(allocation);
 
                 const auto& device = DeviceContext::GetDevice();
-
-#ifdef ENABLE_ASSERTS
                 auto desc = resourceImpl->GetD3DObject()->GetDesc();
-
-                UINT64 itermediateSize;
-                device->GetCopyableFootprints(&desc, textureData->GetFirstSubresource(), textureData->GetNumSubresources(), 0, nullptr, nullptr, nullptr, &itermediateSize);
-                ASSERT(allocation->GetSize() == itermediateSize);
-#endif
 
                 ASSERT((allocation->GetMemoryType() == MemoryAllocationType::Upload && readback == false) ||
                        (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
@@ -257,10 +253,12 @@ namespace OpenDemo
 
                 const auto firstResource = textureData->GetFirstSubresource();
                 const auto numSubresources = textureData->GetNumSubresources();
+                UINT64 itermediateSize;
                 std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
                 std::vector<UINT> numRowsVector(numSubresources);
                 std::vector<UINT64> rowSizeInBytesVector(numSubresources);
-                device->GetCopyableFootprints(&desc, firstResource, numSubresources, intermediateDataOffset, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
+                device->GetCopyableFootprints(&desc, firstResource, numSubresources, intermediateDataOffset, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], &itermediateSize);
+                ASSERT(allocation->GetSize() == itermediateSize);
 
                 for (uint32_t index = 0; index < textureData->GetNumSubresources(); index++)
                 {
@@ -269,19 +267,26 @@ namespace OpenDemo
                     const auto& footprint = textureData->GetSubresourceFootprints()[index];
                     const auto& layout = layouts[index];
                     const auto numRows = numRowsVector[index];
-                    const auto rowSizeInBytes = numRowsVector[index];
+                    const auto rowSizeInBytes = rowSizeInBytesVector[index];
                     const auto rowPitch = layout.Footprint.RowPitch;
                     const auto depthPitch = numRows * rowPitch;
 
+                    ASSERT(footprint.rowSizeInBytes == rowSizeInBytes);
                     ASSERT(footprint.depthPitch == depthPitch);
                     ASSERT(footprint.rowPitch == layout.Footprint.RowPitch);
 
                     if (readback)
                     {
+                        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
+                        D3DCommandList_->ResourceBarrier(1, &barrier);
+
                         CD3DX12_TEXTURE_COPY_LOCATION dst(allocationImpl->resource.get(), layout);
                         CD3DX12_TEXTURE_COPY_LOCATION src(resourceImpl->GetD3DObject().get(), subresourceIndex);
 
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+                        barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+                        D3DCommandList_->ResourceBarrier(1, &barrier);
                     }
                     else
                     {
@@ -295,8 +300,6 @@ namespace OpenDemo
                         barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
                     }
-
-                    break;
                 }
             }
 

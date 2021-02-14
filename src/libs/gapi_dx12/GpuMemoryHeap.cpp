@@ -70,7 +70,6 @@ namespace OpenDemo
                 allocation.offset = pageOffset;
                 allocation.fenceValue = 0;
                 allocation.resource = currentPage_->resource->GetD3DObject();
-
                 currentPage_->offset = pageOffset + size;
 
                 return allocation;

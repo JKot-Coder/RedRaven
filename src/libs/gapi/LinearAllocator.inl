@@ -36,11 +36,11 @@ namespace OpenDemo
             allocated_ += size;
 
             // Align offset
-            allocated_ = Common::PointerMath::AlignTo(allocated_, aligment);
+            allocated_ = AlignTo(allocated_, aligment);
 
 #ifdef ENABLE_ASSERTS
             // Check pointer is aligned
-            ASSERT(Common::PointerMath::IsAlignedTo(head, aligment));
+            ASSERT(IsAlignedTo(head, aligment));
 #endif
 
             return head;

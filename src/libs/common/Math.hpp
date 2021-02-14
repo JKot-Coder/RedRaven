@@ -1031,9 +1031,9 @@ namespace OpenDemo
             Quaternion operator*(const Quaternion& q) const
             {
                 return Quaternion(w * q.x + x * q.w + y * q.z - z * q.y,
-                    w * q.y + y * q.w + z * q.x - x * q.z,
-                    w * q.z + z * q.w + x * q.y - y * q.x,
-                    w * q.w - x * q.x - y * q.y - z * q.z);
+                                  w * q.y + y * q.w + z * q.x - x * q.z,
+                                  w * q.z + z * q.w + x * q.y - y * q.x,
+                                  w * q.w - x * q.x - y * q.y - z * q.z);
             }
 
             Vector<3, FloatFormat> operator*(const Vector<3, FloatFormat>& v) const
@@ -1167,9 +1167,9 @@ namespace OpenDemo
             }
 
             Matrix(FloatFormat e00, FloatFormat e10, FloatFormat e20, FloatFormat e30,
-                FloatFormat e01, FloatFormat e11, FloatFormat e21, FloatFormat e31,
-                FloatFormat e02, FloatFormat e12, FloatFormat e22, FloatFormat e32,
-                FloatFormat e03, FloatFormat e13, FloatFormat e23, FloatFormat e33)
+                   FloatFormat e01, FloatFormat e11, FloatFormat e21, FloatFormat e31,
+                   FloatFormat e02, FloatFormat e12, FloatFormat e22, FloatFormat e32,
+                   FloatFormat e03, FloatFormat e13, FloatFormat e23, FloatFormat e33)
                 : e00(e00), e10(e10), e20(e20), e30(e30), e01(e01), e11(e11), e21(e21), e31(e31), e02(e02), e12(e12), e22(e22), e32(e32), e03(e03), e13(e13), e23(e23), e33(e33)
             {
             }
@@ -1806,7 +1806,7 @@ namespace OpenDemo
             // Compute the intersection boundaries
             T interLeft = std::max(r1MinX, r2MinX);
             T interRight = std::min(r1MaxX, r2MaxX);
-            T interTop = std::max(r1MinY, r2MinY);      
+            T interTop = std::max(r1MinY, r2MinY);
             T interBottom = std::min(r1MaxY, r2MaxY);
             T interFront = std::max(r1MinZ, r2MinZ);
             T interBack = std::min(r1MaxZ, r2MaxZ);
@@ -1839,9 +1839,7 @@ namespace OpenDemo
         template <typename T>
         bool Box<T>::operator==(const Box<T>& box) const
         {
-            return (left == box.left) && (width == box.width)
-                && (top == box.top) && (height == box.height)
-                && (front == box.front) && (depth == box.depth);
+            return (left == box.left) && (width == box.width) && (top == box.top) && (height == box.height) && (front == box.front) && (depth == box.depth);
         }
 
         template <typename T>
@@ -1853,51 +1851,35 @@ namespace OpenDemo
         using Box3u = Box<uint32_t>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        // AlignTo
+        // Align
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
         template <typename T>
         inline constexpr T AlignTo(T value, size_t alignment)
         {
             static_assert(std::is_integral<T>::value, "Expect integral types.");
-            return static_cast<T>(value + alignment - 1) / static_cast<T>(alignment * alignment);
+            ASSERT(IsPowerOfTwo(alignment))
+            const size_t bumpedValue = static_cast<size_t>(value) + (alignment - 1);
+            const size_t truncatedValue = bumpedValue & ~(alignment - 1);
+            return static_cast<T>(truncatedValue);
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        // PointerMath
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        namespace PointerMath
+        template <typename T>
+        inline constexpr T* AlignTo(T* value, size_t alignment)
         {
-            // Todo ambigous
-            template <typename T>
-            inline constexpr T AlignTo(T value, size_t alignment)
-            {
-                static_assert(std::is_integral<T>::value, "Expect integral types.");
-                ASSERT(IsPowerOfTwo(alignment))
-                const size_t bumpedValue = static_cast<size_t>(value) + (alignment - 1);
-                const size_t truncatedValue = bumpedValue & ~(alignment - 1);
-                return static_cast<T>(truncatedValue);
-            }
+            return reinterpret_cast<T*>(AlignTo(reinterpret_cast<uintptr_t>(value), alignment));
+        }
 
-            template <typename T>
-            inline constexpr T* AlignTo(T* value, size_t alignment)
-            {
-                return reinterpret_cast<T*>(AlignTo(reinterpret_cast<uintptr_t>(value), alignment));
-            }
+        template <typename T>
+        inline constexpr bool IsAlignedTo(T value, size_t alignment)
+        {
+            static_assert(std::is_integral<T>::value, "Expect integral types.");
+            return (value & (alignment - 1)) == 0;
+        }
 
-            template <typename T>
-            inline constexpr bool IsAlignedTo(T value, size_t alignment)
-            {
-                static_assert(std::is_integral<T>::value, "Expect integral types.");
-                return (value & (alignment - 1)) == 0;
-            }
-
-            template <typename T>
-            inline constexpr bool IsAlignedTo(T* value, size_t alignment)
-            {
-                return (reinterpret_cast<uintptr_t>(value) & (alignment - 1)) == 0;
-            }
+        template <typename T>
+        inline constexpr bool IsAlignedTo(T* value, size_t alignment)
+        {
+            return (reinterpret_cast<uintptr_t>(value) & (alignment - 1)) == 0;
         }
     }
 }

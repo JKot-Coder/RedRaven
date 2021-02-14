@@ -76,11 +76,8 @@ namespace OpenDemo
             }
 
             template <typename T>
-            void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& data)
+            void fillTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData, const GAPI::IntermediateMemory::SharedPtr& data)
             {
-                auto& renderContext = Render::RenderContext::Instance();
-                const auto textureData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-
                 ASSERT((std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::RGBA8Uint) ||
                        (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA16Float) ||
                        (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA32Float));
@@ -109,6 +106,25 @@ namespace OpenDemo
                 }
 
                 textureData->GetAllocation()->Unmap();
+            }
+
+            void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& data)
+            {
+                auto& renderContext = Render::RenderContext::Instance();
+                const auto textureData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+
+                switch (description.format)
+                {
+                case GAPI::GpuResourceFormat::RGBA8Uint:
+                    fillTextureData<uint32_t>(description, textureData, data);
+                    break;
+                case GAPI::GpuResourceFormat::RGBA16Float:
+                case GAPI::GpuResourceFormat::RGBA32Float:
+                    fillTextureData<Vector4>(description, textureData, data);
+                    break;
+                default:
+                    LOG_FATAL("Unsupported format");
+                }
             }
 
             bool isResourceDataEqual(const GAPI::IntermediateMemory::SharedPtr& lhs,
@@ -165,53 +181,64 @@ namespace OpenDemo
             auto copyQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
             REQUIRE(copyQueue != nullptr);
 
+            std::array<GAPI::GpuResourceFormat, 2> formatsToTest = { GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
+
             SECTION("Close")
             {
                 commandList->Close();
             }
 
-            SECTION("CopyTexture_RGBA8")
+            SECTION("CopyTexture")
             {
-                const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+                for (const auto format : formatsToTest)
+                {
+                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
 
-                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-                const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
-                initTextureData<uint32_t>(description, sourceData);
+                    initTextureData(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
-                auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
+                    auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
+                    auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
 
-                commandList->UpdateTexture(source, sourceData);
-                commandList->CopyTexture(source, dest);
-                commandList->ReadbackTexture(dest, readbackData);
+                    commandList->UpdateTexture(source, sourceData);
+                    commandList->CopyTexture(source, dest);
+                    commandList->ReadbackTexture(dest, readbackData);
 
-                commandList->Close();
+                    commandList->Close();
 
-                submitAndWait(copyQueue, commandList);
-                REQUIRE(isResourceDataEqual(sourceData, readbackData));
+                    submitAndWait(copyQueue, commandList);
+                    REQUIRE(isResourceDataEqual(sourceData, readbackData));
+                }
             }
 
-            SECTION("CopyTexture_Float")
+            SECTION("CopySubresource")
             {
-                const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::RGBA16Float);
+                for (const auto format : formatsToTest)
+                {
+                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
 
-                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-                const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
-                initTextureData<Vector4>(description, sourceData);
+                    initTextureData(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
-                auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
+                    auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
+                    auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
 
-                commandList->UpdateTexture(source, sourceData);
-                commandList->CopyTexture(source, dest);
-                commandList->ReadbackTexture(dest, readbackData);
+                    commandList->UpdateTexture(source, sourceData);
+                    
+                    for (uint32_t index = 0; index < description.GetNumSubresources(); index++)
+                        commandList->CopyTextureSubresource(source, index, dest, index);
+                    
+                    commandList->ReadbackTexture(dest, readbackData);
 
-                commandList->Close();
+                    commandList->Close();
 
-                submitAndWait(copyQueue, commandList);
-                REQUIRE(isResourceDataEqual(sourceData, readbackData));
+                    submitAndWait(copyQueue, commandList);
+                    REQUIRE(isResourceDataEqual(sourceData, readbackData));
+                }
             }
         }
 

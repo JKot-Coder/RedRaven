@@ -96,7 +96,7 @@ namespace OpenDemo
             {
                 ASSERT(fence_);
                 fence_->Signal(*this);
-                Wait(fence_->GetD3DObject(), fence_->GetCpuValue());
+                fence_->SyncCPU(std::nullopt);
             }
         };
     }
