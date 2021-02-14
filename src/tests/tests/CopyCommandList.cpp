@@ -98,7 +98,7 @@ namespace OpenDemo
                             const auto texel = Vector3u(column, row, 0);
 
                             *columnPointer = checkerboardPattern<T>(texel, index);
-                            columnPointer++;
+                             columnPointer++;
                         }
 
                         rowPointer += subresourceFootprint.rowPitch;
@@ -127,11 +127,12 @@ namespace OpenDemo
                 }
             }
 
-            bool isResourceDataEqual(const GAPI::IntermediateMemory::SharedPtr& lhs,
-                                     const GAPI::IntermediateMemory::SharedPtr& rhs)
+            bool isSubresourceEqual(const GAPI::IntermediateMemory::SharedPtr& lhs, uint32_t lSubresourceIndex,
+                                    const GAPI::IntermediateMemory::SharedPtr& rhs, uint32_t rSubresourceIndex)
             {
                 ASSERT(lhs != rhs);
-                ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
+                ASSERT(lSubresourceIndex < lhs->GetNumSubresources());
+                ASSERT(rSubresourceIndex < lhs->GetNumSubresources());
 
                 const auto ldataPointer = static_cast<uint8_t*>(lhs->GetAllocation()->Map());
                 const auto rdataPointer = static_cast<uint8_t*>(rhs->GetAllocation()->Map());
@@ -142,30 +143,39 @@ namespace OpenDemo
                         rhs->GetAllocation()->Unmap();
                     });
 
+                const auto& lfootprint = lhs->GetSubresourceFootprintAt(lSubresourceIndex);
+                const auto& rfootprint = rhs->GetSubresourceFootprintAt(rSubresourceIndex);
+
+                ASSERT(lfootprint.rowSizeInBytes == rfootprint.rowSizeInBytes);
+                ASSERT(lfootprint.rowPitch == rfootprint.rowPitch);
+                ASSERT(lfootprint.depthPitch == rfootprint.depthPitch);
+                ASSERT(lfootprint.numRows == rfootprint.numRows);
+
+                auto lrowPointer = ldataPointer + lfootprint.offset;
+                auto rrowPointer = rdataPointer + rfootprint.offset;
+
+                for (uint32_t row = 0; row < lfootprint.numRows; row++)
+                {
+                    if (memcmp(lrowPointer, rrowPointer, lfootprint.rowSizeInBytes) != 0)
+                        return false;
+
+                    lrowPointer += lfootprint.rowPitch;
+                    rrowPointer += rfootprint.rowPitch;
+                }
+
+                return true;
+            }
+
+            bool isResourceEqual(const GAPI::IntermediateMemory::SharedPtr& lhs,
+                                 const GAPI::IntermediateMemory::SharedPtr& rhs)
+            {
+                ASSERT(lhs != rhs);
+                ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
+
                 const auto numSubresources = lhs->GetNumSubresources();
                 for (uint32_t index = 0; index < numSubresources; index++)
-                {
-                    const auto& lfootprint = lhs->GetSubresourceFootprintAt(index);
-                    const auto& rfootprint = rhs->GetSubresourceFootprintAt(index);
-
-                    ASSERT(lfootprint.offset == rfootprint.offset);
-                    ASSERT(lfootprint.rowSizeInBytes == rfootprint.rowSizeInBytes);
-                    ASSERT(lfootprint.rowPitch == rfootprint.rowPitch);
-                    ASSERT(lfootprint.depthPitch == rfootprint.depthPitch);
-                    ASSERT(lfootprint.numRows == rfootprint.numRows);
-
-                    auto lrowPointer = ldataPointer + lfootprint.offset;
-                    auto rrowPointer = rdataPointer + rfootprint.offset;
-
-                    for (uint32_t row = 0; row < lfootprint.numRows; row++)
-                    {
-                        if (memcmp(lrowPointer, rrowPointer, lfootprint.rowSizeInBytes) != 0)
-                            return false;
-
-                        lrowPointer += lfootprint.rowPitch;
-                        rrowPointer += rfootprint.rowPitch;
-                    }
-                }
+                    if (!isSubresourceEqual(lhs, index, rhs, index))
+                        return false;
 
                 return true;
             }
@@ -181,16 +191,17 @@ namespace OpenDemo
             auto copyQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
             REQUIRE(copyQueue != nullptr);
 
-            std::array<GAPI::GpuResourceFormat, 2> formatsToTest = { GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
-
             SECTION("Close")
             {
                 commandList->Close();
             }
 
-            SECTION("CopyTexture")
+            std::array<GAPI::GpuResourceFormat, 2> formatsToTest = { GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
+            for (const auto format : formatsToTest)
             {
-                for (const auto format : formatsToTest)
+                const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+
+                DYNAMIC_SECTION("CopyTexture : " << formatName)
                 {
                     const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
 
@@ -209,35 +220,39 @@ namespace OpenDemo
                     commandList->Close();
 
                     submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceDataEqual(sourceData, readbackData));
+                    REQUIRE(isResourceEqual(sourceData, readbackData));
                 }
-            }
 
-            SECTION("CopySubresource")
-            {
-                for (const auto format : formatsToTest)
+                DYNAMIC_SECTION("CopySubresource : " << formatName)
                 {
-                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
+                    const auto& sourceDescription = GAPI::TextureDescription::Create2D(256, 256, format);
+                    const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::Upload);
+                    auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
 
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+                    initTextureData(sourceDescription, sourceData);
 
-                    initTextureData(description, sourceData);
-
-                    auto source = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
-                    auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
+                    const auto& destDescription = GAPI::TextureDescription::Create2D(128, 128, format);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
+                    auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Dest");
 
                     commandList->UpdateTexture(source, sourceData);
-                    
-                    for (uint32_t index = 0; index < description.GetNumSubresources(); index++)
-                        commandList->CopyTextureSubresource(source, index, dest, index);
-                    
-                    commandList->ReadbackTexture(dest, readbackData);
 
+                    for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
+                    {
+                        if (index % 2 == 0)
+                            commandList->CopyTextureSubresource(source, index + 1, dest, index);
+                    }
+
+                    commandList->ReadbackTexture(dest, readbackData);
                     commandList->Close();
 
                     submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceDataEqual(sourceData, readbackData));
+
+                    for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
+                    {
+                        bool equal = isSubresourceEqual(sourceData, index + 1, readbackData, index);
+                        REQUIRE(equal ^ (index % 2 != 0));
+                    }
                 }
             }
         }

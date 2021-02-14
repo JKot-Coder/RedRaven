@@ -190,8 +190,8 @@ namespace OpenDemo
                 ASSERT(destSubresourceIdx < destDesc.GetNumSubresources());
 #endif
 
-                CD3DX12_TEXTURE_COPY_LOCATION dst(destImpl->GetD3DObject().get(), sourceSubresourceIdx);
-                CD3DX12_TEXTURE_COPY_LOCATION src(sourceImpl->GetD3DObject().get(), destSubresourceIdx);
+                CD3DX12_TEXTURE_COPY_LOCATION dst(destImpl->GetD3DObject().get(), destSubresourceIdx);
+                CD3DX12_TEXTURE_COPY_LOCATION src(sourceImpl->GetD3DObject().get(), sourceSubresourceIdx);
                 D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
                 D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(destImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);

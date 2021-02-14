@@ -448,16 +448,20 @@ namespace OpenDemo
                 }
 
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
-
+              
                 if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;
+                    bool clearDefaultFilters = false;
 
                     if (SUCCEEDED(result = d3dDevice_->QueryInterface(IID_PPV_ARGS(d3dInfoQueue.put()))))
                     {
-                        d3dInfoQueue->ClearRetrievalFilter();
-                        d3dInfoQueue->ClearStorageFilter();
+                        if (clearDefaultFilters)
+                        {
+                            d3dInfoQueue->ClearRetrievalFilter();
+                            d3dInfoQueue->ClearStorageFilter();
+                        }
 
                         d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
                         d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
