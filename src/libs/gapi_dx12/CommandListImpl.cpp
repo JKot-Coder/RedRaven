@@ -249,7 +249,7 @@ namespace OpenDemo
                        (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
 
                 const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
-                size_t intermediateDataOffset = allocationImpl->offset;
+                size_t intermediateDataOffset = allocationImpl->GetOffset();
 
                 const auto firstResource = textureData->GetFirstSubresource();
                 const auto numSubresources = textureData->GetNumSubresources();
@@ -280,7 +280,7 @@ namespace OpenDemo
                         D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
 
-                        CD3DX12_TEXTURE_COPY_LOCATION dst(allocationImpl->resource.get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION dst(allocationImpl->GetD3DResouce().get(), layout);
                         CD3DX12_TEXTURE_COPY_LOCATION src(resourceImpl->GetD3DObject().get(), subresourceIndex);
 
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
@@ -294,7 +294,7 @@ namespace OpenDemo
                         D3DCommandList_->ResourceBarrier(1, &barrier);
 
                         CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceIndex);
-                        CD3DX12_TEXTURE_COPY_LOCATION src(allocationImpl->resource.get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION src(allocationImpl->GetD3DResouce().get(), layout);
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
                         barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);

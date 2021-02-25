@@ -16,6 +16,7 @@ namespace OpenDemo
 
         enum class MemoryAllocationType : uint32_t
         {
+            CpuReadWrite,
             Upload,
             Readback
         };

@@ -17,32 +17,32 @@ namespace OpenDemo
 
             GpuMemoryHeap::Allocation::~Allocation()
             {
-                if (isMapped)
-                    Unmap(); 
+                if (isMapped_)
+                    Unmap();
             }
 
             void* GpuMemoryHeap::Allocation::Map() const
             {
-                ASSERT(!isMapped);
-                D3D12_RANGE readRange { offset, offset + size };
+                ASSERT(!isMapped_);
+                D3D12_RANGE readRange { offset_, offset_ + size_ };
 
-                isMapped = true;
+                isMapped_ = true;
 
                 uint8_t* mappedData;
-                resource->Map(0, &readRange, reinterpret_cast<void**>(&mappedData));
-                mappedData += offset;
+                resource_->Map(0, &readRange, reinterpret_cast<void**>(&mappedData));
+                mappedData += offset_;
 
                 return mappedData;
             }
 
             void GpuMemoryHeap::Allocation::Unmap() const
             {
-                ASSERT(isMapped);
+                ASSERT(isMapped_);
 
-                D3D12_RANGE writtenRange { offset, offset + size };
-                resource->Unmap(0, &writtenRange);
+                D3D12_RANGE writtenRange { offset_, offset_ + size_ };
+                resource_->Unmap(0, &writtenRange);
 
-                isMapped = false;
+                isMapped_ = false;
             }
 
             void GpuMemoryHeap::Init(GpuResourceCpuAccess cpuAcess, const U8String& name)
@@ -52,7 +52,7 @@ namespace OpenDemo
                 getNextPageForAllocation(0, currentPage_);
             }
 
-            GpuMemoryHeap::Allocation GpuMemoryHeap::Allocate(size_t size, size_t alignment)
+            GpuMemoryHeap::Allocation* GpuMemoryHeap::Allocate(size_t size, size_t alignment)
             {
                 ASSERT(currentPage_);
                 ASSERT(size > 0);
@@ -66,10 +66,7 @@ namespace OpenDemo
                     getNextPageForAllocation(size, currentPage_);
                 }
 
-                Allocation allocation;
-                allocation.offset = pageOffset;
-                allocation.fenceValue = 0;
-                allocation.resource = currentPage_->resource->GetD3DObject();
+                auto allocation = new GpuMemoryHeap::Allocation(size, pageOffset, currentPage_->resource->GetD3DObject());
                 currentPage_->offset = pageOffset + size;
 
                 return allocation;

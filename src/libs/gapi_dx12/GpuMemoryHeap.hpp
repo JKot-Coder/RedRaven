@@ -19,16 +19,21 @@ namespace OpenDemo
             public:
                 struct Allocation final : public IMemoryAllocation
                 {
+                    Allocation(size_t size, size_t offset, const ComSharedPtr<ID3D12Resource>& resource) : size_(size), offset_(offset), resource_(resource) {};
                     ~Allocation();
 
-                    size_t size = 0;
-                    size_t offset = 0;
-                    uint64_t fenceValue = 0;
-                    ComSharedPtr<ID3D12Resource> resource;
-                    mutable bool isMapped = false;
+                    ComSharedPtr<ID3D12Resource> GetD3DResouce() const { return resource_; }
+                    size_t GetOffset() const { return offset_; }
 
                     void* Map() const override;
                     void Unmap() const override;
+
+                private:
+                    size_t size_;
+                    size_t offset_;
+                    uint64_t fenceValue_ = 0;
+                    ComSharedPtr<ID3D12Resource> resource_;
+                    mutable bool isMapped_ = false;
                 };
 
                 struct Page
@@ -46,7 +51,7 @@ namespace OpenDemo
                 GpuMemoryHeap(size_t pageSize) : defaultPageSize_(pageSize) {};
 
                 void Init(GpuResourceCpuAccess cpuAcess, const U8String& name);
-                Allocation Allocate(size_t size, size_t alignment = 1);
+                GpuMemoryHeap::Allocation* Allocate(size_t size, size_t alignment = 1);
 
             private:
                 void getNextPageForAllocation(size_t allocSize, std::unique_ptr<Page>& page);

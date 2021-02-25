@@ -206,6 +206,17 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
+            struct Allocation final : public IMemoryAllocation
+            {
+                Allocation(size_t size) { memory = operator new(size); };
+                ~Allocation() { operator delete(memory); }
+
+                void* memory;
+
+                void* Map() const override { return memory; }
+                void Unmap() const override { }
+            };
+
             std::shared_ptr<IntermediateMemory> const DeviceImpl::AllocateIntermediateTextureData(
                 const TextureDescription& resourceDesc,
                 MemoryAllocationType memoryType,
@@ -223,28 +234,34 @@ namespace OpenDemo
                 UINT64 intermediateSize;
                 d3dDevice_->GetCopyableFootprints(&desc, 0, numSubresources, 0, nullptr, nullptr, nullptr, &intermediateSize);
 
-                GpuMemoryHeap::Allocation heapAlloc;
+                const auto& allocation = std::make_shared<MemoryAllocation>(memoryType, intermediateSize);
 
                 switch (memoryType)
                 {
                 case MemoryAllocationType::Upload:
-                    heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+                {
+                    const auto heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+                    allocation->SetPrivateImpl(heapAlloc);
                     break;
+                }
                 case MemoryAllocationType::Readback:
-                    heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+                {
+                    const auto heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+                    allocation->SetPrivateImpl(heapAlloc);
+                    break;
+                }
+                case MemoryAllocationType::CpuReadWrite:
+                    allocation->SetPrivateImpl(new Allocation(intermediateSize));
                     break;
                 default:
                     LOG_FATAL("Unsupported memory type");
                 }
 
-                const auto& allocation = std::make_shared<MemoryAllocation>(memoryType, intermediateSize);
-                allocation->SetPrivateImpl(new GpuMemoryHeap::Allocation(heapAlloc));
-
                 std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
                 std::vector<UINT> numRowsVector(numSubresources);
                 std::vector<UINT64> rowSizeInBytesVector(numSubresources);
 
-                d3dDevice_->GetCopyableFootprints(&desc, firstSubresourceIndex, numSubresources, heapAlloc.offset, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
+                d3dDevice_->GetCopyableFootprints(&desc, firstSubresourceIndex, numSubresources, 0, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
 
                 std::vector<IntermediateMemory::SubresourceFootprint> subresourceFootprints(numSubresources);
                 for (uint32_t index = 0; index < numSubresources; index++)
@@ -255,7 +272,7 @@ namespace OpenDemo
                     const auto rowPitch = layout.Footprint.RowPitch;
                     const auto depthPitch = numRows * rowPitch;
 
-                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(layout.Offset - heapAlloc.offset, numRows, rowSizeInBytes, rowPitch, depthPitch);
+                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(layout.Offset, numRows, rowSizeInBytes, rowPitch, depthPitch);
                 }
 
                 return std::make_shared<IntermediateMemory>(allocation, subresourceFootprints, firstSubresourceIndex);
@@ -448,7 +465,7 @@ namespace OpenDemo
                 }
 
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
-              
+
                 if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
