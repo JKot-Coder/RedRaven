@@ -6,6 +6,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/MemoryAllocation.hpp"
 
+#include "gapi_dx12/CpuAllocation.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/GpuMemoryHeap.hpp"
@@ -246,10 +247,35 @@ namespace OpenDemo
                 auto desc = resourceImpl->GetD3DObject()->GetDesc();
 
                 ASSERT((allocation->GetMemoryType() == MemoryAllocationType::Upload && readback == false) ||
-                       (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
+                       (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true) ||
+                       (allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite));
 
-                const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
-                size_t intermediateDataOffset = allocationImpl->GetOffset();
+                const bool cpuReadWriteMemory = allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite;
+
+                ComSharedPtr<ID3D12Resource> allocationResource;
+                size_t intermediateDataOffset;
+
+                if (cpuReadWriteMemory)
+                {
+                    const auto allocationImpl = allocation->GetPrivateImpl<CpuAllocation>();
+                    
+                    if (!readback)
+                    {
+                        DeviceContext::GetDevice()
+                        AllocateIntermediateTextureData()
+
+                    }
+                    
+
+
+                }
+                else
+                {
+                    const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+
+                    intermediateDataOffset = allocationImpl->GetOffset();
+                    allocationResource = allocationImpl->GetD3DResouce();
+                }
 
                 const auto firstResource = textureData->GetFirstSubresource();
                 const auto numSubresources = textureData->GetNumSubresources();
@@ -280,7 +306,7 @@ namespace OpenDemo
                         D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
 
-                        CD3DX12_TEXTURE_COPY_LOCATION dst(allocationImpl->GetD3DResouce().get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION dst(allocationResource.get(), layout);
                         CD3DX12_TEXTURE_COPY_LOCATION src(resourceImpl->GetD3DObject().get(), subresourceIndex);
 
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
@@ -294,7 +320,7 @@ namespace OpenDemo
                         D3DCommandList_->ResourceBarrier(1, &barrier);
 
                         CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceIndex);
-                        CD3DX12_TEXTURE_COPY_LOCATION src(allocationImpl->GetD3DResouce().get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION src(allocationResource.get(), layout);
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
                         barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);

@@ -120,6 +120,12 @@ namespace OpenDemo
                 SubresourceFootprint(size_t offset, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
                     : offset(offset), numRows(numRows), rowSizeInBytes(rowSizeInBytes), rowPitch(rowPitch), depthPitch(depthPitch) { }
 
+                bool isComplatable(const SubresourceFootprint& other) const
+                {
+                    return (numRows == other.numRows) &&
+                           (rowSizeInBytes == other.rowSizeInBytes);
+                }
+
                 size_t offset;
                 uint32_t numRows;
                 size_t rowSizeInBytes;

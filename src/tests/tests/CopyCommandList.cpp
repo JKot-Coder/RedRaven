@@ -151,11 +151,7 @@ namespace OpenDemo
                     const auto& sourceFootprint = source->GetSubresourceFootprintAt(index);
                     const auto& destFootprint = dest->GetSubresourceFootprintAt(index);
 
-                    // Todo is compatable
-                    ASSERT(sourceFootprint.rowSizeInBytes == destFootprint.rowSizeInBytes);
-                    ASSERT(sourceFootprint.rowPitch == destFootprint.rowPitch);
-                    ASSERT(sourceFootprint.depthPitch == destFootprint.depthPitch);
-                    ASSERT(sourceFootprint.numRows == destFootprint.numRows);
+                    ASSERT(sourceFootprint.isComplatable(destFootprint));
 
                     auto sourceRowPointer = sourceDataPointer + sourceFootprint.offset;
                     auto destRowPointer = destDataPointer + destFootprint.offset;
@@ -193,10 +189,7 @@ namespace OpenDemo
                 const auto& lfootprint = lhs->GetSubresourceFootprintAt(lSubresourceIndex);
                 const auto& rfootprint = rhs->GetSubresourceFootprintAt(rSubresourceIndex);
 
-                ASSERT(lfootprint.rowSizeInBytes == rfootprint.rowSizeInBytes);
-                ASSERT(lfootprint.rowPitch == rfootprint.rowPitch);
-                ASSERT(lfootprint.depthPitch == rfootprint.depthPitch);
-                ASSERT(lfootprint.numRows == rfootprint.numRows);
+                ASSERT(lfootprint.isComplatable(rfootprint));
 
                 auto lrowPointer = ldataPointer + lfootprint.offset;
                 auto rrowPointer = rdataPointer + rfootprint.offset;
@@ -247,6 +240,25 @@ namespace OpenDemo
             for (const auto format : formatsToTest)
             {
                 const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+
+                DYNAMIC_SECTION("UploadTexureFromCpu : " << formatName)
+                {
+                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
+
+                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                    initTextureData(description, cpuData);
+ 
+                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Test");
+
+                    commandList->UpdateTexture(testTexture, cpuData);
+                    commandList->ReadbackTexture(testTexture, readbackData);
+                    commandList->Close();
+
+                    submitAndWait(copyQueue, commandList);
+                    REQUIRE(isResourceEqual(cpuData, readbackData));
+                }
 
                 DYNAMIC_SECTION("CopyTexture : " << formatName)
                 {

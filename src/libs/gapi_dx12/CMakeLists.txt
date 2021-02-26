@@ -6,6 +6,8 @@ set(MS_SRC
 source_group( "Ms" FILES ${MS_SRC} )
 
 set(IMPL_SRC
+        DeviceImpl.cpp
+        DeviceImpl.hpp
         CommandListImpl.cpp
         CommandListImpl.hpp
         CommandQueueImpl.cpp
@@ -31,6 +33,7 @@ set(GAPI_SRC
         GpuMemoryHeap.cpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
+        CpuAllocation.hpp
         DescriptorHeapSet.cpp 
         DescriptorHeapSet.hpp
         DeviceContext.hpp

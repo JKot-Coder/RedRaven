@@ -8,7 +8,7 @@ namespace OpenDemo
 
         namespace DX12
         {
-            std::shared_ptr<Device> CreateDevice();
+            void InitDevice(std::shared_ptr<Device> );
         }
     }
 }
