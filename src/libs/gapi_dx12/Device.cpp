@@ -2,19 +2,23 @@
 
 #include "gapi_dx12/DeviceImpl.hpp"
 
+#include "gapi/Device.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
     {
         namespace DX12
         {
-            std::shared_ptr<Device> InitDevice()
+            bool InitDevice(Device& device)
             {
-                auto& device = Device::Create("Primary");
-                ASSERT(device);
-
-                device->SetPrivateImpl(new DeviceImpl());
-                return device;
+                auto deviceImpl = std::make_unique<DeviceImpl>();
+                 
+                if (!deviceImpl->Init(device.GetDescription()))
+                    return false;
+                  
+                device.SetPrivateImpl(deviceImpl.release());
+                return true;
             }
         }
     }

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "common/Singleton.hpp"
-#include "common/threading/AccessGuard.hpp"
-
 namespace OpenDemo
 {
     namespace GAPI

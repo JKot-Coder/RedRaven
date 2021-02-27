@@ -1,20 +1,24 @@
 #pragma once
 
+#include "gapi/Device.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
     {
         namespace DX12
         {
+            class FenceImpl;
+
             class DeviceImpl final : public IDevice
             {
             public:
                 DeviceImpl();
                 virtual ~DeviceImpl();
 
-                bool Init(const IDevice::Description& description) override;
-                void Submit(const CommandList::SharedPtr& commandList);
-                void Present(const SwapChain::SharedPtr& swapChain) override;
+                bool Init(const IDevice::Description& description);
+                void Submit(const std::shared_ptr<CommandList>& commandList);
+                void Present(const std::shared_ptr<SwapChain>& swapChain) override;
                 void MoveToNextFrame() override;
 
                 std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(

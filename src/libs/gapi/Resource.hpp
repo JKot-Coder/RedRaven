@@ -65,6 +65,5 @@ namespace OpenDemo
             std::unique_ptr<T> privateImpl_ = nullptr;
             std::conditional_t<IsNamed, U8String, monostate> name_;
         };
-
     }
 }

@@ -37,7 +37,6 @@ namespace OpenDemo
             };
 
         public:
-            virtual bool Init(const Description& description) = 0;
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             virtual void Present(const std::shared_ptr<SwapChain>& swapChain) = 0;
             virtual void MoveToNextFrame() = 0;
@@ -80,7 +79,8 @@ namespace OpenDemo
         public:
             virtual ~Device() = default;
 
-            bool Init(const Description& description) override { return GetPrivateImpl()->Init(description); };
+            const Description& GetDescription() const { return description_; }
+
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             void Present(const std::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame() override { GetPrivateImpl()->MoveToNextFrame(); }
@@ -104,17 +104,22 @@ namespace OpenDemo
 
             void ReleaseResource(Object& resource) const override { GetPrivateImpl()->ReleaseResource(resource); }
 
-        public:
-            static SharedPtr Create(const U8String& name)
+        private:
+            static SharedPtr Create(const Description& description, const U8String& name)
             {
-                return SharedPtr(new Device(name));
+                return std::shared_ptr<Device>(new Device(description, name));
             }
 
-        private:
-            Device(const U8String& name)
-                : Resource(Object::Type::Device, name)
+            Device(const Description& description, const U8String& name)
+                : Resource(Object::Type::Device, name),
+                  description_(description)
             {
             }
+
+            friend class Render::RenderContext;
+
+        private:
+            Description description_;
         };
     }
 }

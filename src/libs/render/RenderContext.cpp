@@ -8,6 +8,8 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
+#include "gapi_dx12/Device.hpp"
+
 #include "render/Submission.hpp"
 
 #include "common/threading/Event.hpp"
@@ -46,10 +48,7 @@ namespace OpenDemo
         {
             ASSERT(!inited_);
 
-            submission_->Start();
-
             auto debugMode = GAPI::Device::DebugMode::Retail;
-
 #ifdef DEBUG
             // Force debug
             debugMode = GAPI::Device::DebugMode::Debug;
@@ -57,9 +56,12 @@ namespace OpenDemo
 
             GAPI::Device::Description description(GpuFramesBuffered, debugMode);
 
+            const auto& device = GAPI::Device::Create(description, "Primary");
+            submission_->Start(device);
+
             // Init Device
             submission_->ExecuteAwait([&description](GAPI::Device& device) {
-                if (!device.Init(description))
+                if (!GAPI::DX12::InitDevice(device))
                     LOG_FATAL("Can't init device");
             });
 

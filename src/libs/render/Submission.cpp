@@ -4,8 +4,6 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/SwapChain.hpp"
 
-#include "gapi_dx12/Device.hpp"
-
 #include "common/debug/DebugStream.hpp"
 #include "common/threading/BufferedChannel.hpp"
 #include "common/threading/ConditionVariable.hpp"
@@ -83,19 +81,19 @@ namespace OpenDemo
 #endif
         }
 
-        void Submission::Start()
+        void Submission::Start(const GAPI::Device::SharedPtr& device)
         {
-            ASSERT(!inputTaskChannel_->IsClosed())
+            ASSERT(device);
+            ASSERT(!inputTaskChannel_->IsClosed());
+
+            device_ = device;
 
 #if ENABLE_SUBMISSION_THREAD
-            ASSERT(!submissionThread_.IsJoinable())
+            ASSERT(!submissionThread_.IsJoinable());
 
             submissionThread_ = Threading::Thread("Submission Thread", [this] {
-                device_ = GAPI::DX12::CreateDevice();
                 this->threadFunc();
             });
-#else
-            device_ = GAPI::DX12::CreateDevice();
 #endif
         }
 

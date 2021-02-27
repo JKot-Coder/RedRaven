@@ -33,10 +33,12 @@ set(GAPI_SRC
         GpuMemoryHeap.cpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
-        CpuAllocation.hpp
+        IntermediateMemoryAllocator.hpp
+        IntermediateMemoryAllocator.cpp
         DescriptorHeapSet.cpp 
         DescriptorHeapSet.hpp
         DeviceContext.hpp
+        DeviceContext.cpp
         Device.cpp
         Device.hpp
         ResourceReleaseContext.hpp

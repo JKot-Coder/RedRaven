@@ -18,7 +18,8 @@ namespace OpenDemo
         {
             CpuReadWrite,
             Upload,
-            Readback
+            Readback,
+            Count
         };
 
         class MemoryAllocation final : public Resource<IMemoryAllocation, false>

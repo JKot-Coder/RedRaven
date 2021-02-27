@@ -6,10 +6,10 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/MemoryAllocation.hpp"
 
-#include "gapi_dx12/CpuAllocation.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/GpuMemoryHeap.hpp"
+#include "gapi_dx12/IntermediateMemoryAllocator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -236,45 +236,59 @@ namespace OpenDemo
                 ASSERT(texture);
                 ASSERT(textureData);
                 ASSERT(texture->GetDescription().GetNumSubresources() <= textureData->GetFirstSubresource() + textureData->GetNumSubresources());
-
+                
                 const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
+
+                const auto d3dResource = resourceImpl->GetD3DObject();
+                ASSERT(d3dResource);
 
                 const auto allocation = textureData->GetAllocation();
                 ASSERT(allocation);
 
                 const auto& device = DeviceContext::GetDevice();
-                auto desc = resourceImpl->GetD3DObject()->GetDesc();
+                auto desc = d3dResource->GetDesc();
 
-                ASSERT((allocation->GetMemoryType() == MemoryAllocationType::Upload && readback == false) ||
-                       (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true) ||
-                       (allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite));
+                static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
 
-                const bool cpuReadWriteMemory = allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite;
+                ASSERT(
+                    ((allocation->GetMemoryType() == MemoryAllocationType::Upload ||
+                      allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite) &&
+                     readback == false) ||
+                    (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
 
-                ComSharedPtr<ID3D12Resource> allocationResource;
+                const bool cpuReadWriteTextureData = allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite;
+
+                ComSharedPtr<ID3D12Resource> intermediateResource;
                 size_t intermediateDataOffset;
+                std::shared_ptr<IntermediateMemory> intermediateMemory;
 
-                if (cpuReadWriteMemory)
+                if (cpuReadWriteTextureData)
                 {
                     const auto allocationImpl = allocation->GetPrivateImpl<CpuAllocation>();
-                    
+
+                    auto memoryType = readback ? MemoryAllocationType::Readback : MemoryAllocationType::Upload;
+
+                    intermediateMemory = IntermediateMemoryAllocator::AllocateIntermediateTextureData(
+                        texture->GetDescription(),
+                        memoryType,
+                        textureData->GetFirstSubresource(),
+                        textureData->GetNumSubresources());
+
+                    const auto intermediateAllocationImpl = intermediateMemory->GetAllocation()->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+
+                    intermediateDataOffset = intermediateAllocationImpl->GetOffset();
+                    intermediateResource = intermediateAllocationImpl->GetD3DResouce();
+
                     if (!readback)
-                    {
-                        DeviceContext::GetDevice()
-                        AllocateIntermediateTextureData()
-
-                    }
-                    
-
-
+                        intermediateMemory->CopyDataFrom(textureData);
                 }
                 else
                 {
                     const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
 
                     intermediateDataOffset = allocationImpl->GetOffset();
-                    allocationResource = allocationImpl->GetD3DResouce();
+                    intermediateResource = allocationImpl->GetD3DResouce();
                 }
 
                 const auto firstResource = textureData->GetFirstSubresource();
@@ -303,27 +317,27 @@ namespace OpenDemo
 
                     if (readback)
                     {
-                        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
+                        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
 
-                        CD3DX12_TEXTURE_COPY_LOCATION dst(allocationResource.get(), layout);
-                        CD3DX12_TEXTURE_COPY_LOCATION src(resourceImpl->GetD3DObject().get(), subresourceIndex);
+                        CD3DX12_TEXTURE_COPY_LOCATION dst(intermediateResource.get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION src(d3dResource.get(), subresourceIndex);
 
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
-                        barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+                        barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
                     }
                     else
                     {
-                        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+                        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
 
-                        CD3DX12_TEXTURE_COPY_LOCATION dst(resourceImpl->GetD3DObject().get(), subresourceIndex);
-                        CD3DX12_TEXTURE_COPY_LOCATION src(allocationResource.get(), layout);
+                        CD3DX12_TEXTURE_COPY_LOCATION dst(d3dResource.get(), subresourceIndex);
+                        CD3DX12_TEXTURE_COPY_LOCATION src(intermediateResource.get(), layout);
                         D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
-                        barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+                        barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
                         D3DCommandList_->ResourceBarrier(1, &barrier);
                     }
                 }

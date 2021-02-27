@@ -108,7 +108,7 @@ namespace OpenDemo
             size_t depthPitch;
         };*/
 
-        class IntermediateMemory
+        class IntermediateMemory : public std::enable_shared_from_this<IntermediateMemory>
         {
         public:
             using SharedPtr = std::shared_ptr<IntermediateMemory>;
@@ -145,6 +145,8 @@ namespace OpenDemo
             inline size_t GetNumSubresources() const { return subresourceFootprints_.size(); }
             inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
             inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
+
+            void CopyDataFrom(const GAPI::IntermediateMemory::SharedPtr& source);
 
         private:
             std::shared_ptr<MemoryAllocation> allocation_;

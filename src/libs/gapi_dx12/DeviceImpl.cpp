@@ -5,7 +5,6 @@
 #include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Object.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -18,6 +17,7 @@
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/GpuMemoryHeap.hpp"
+#include "gapi_dx12/IntermediateMemoryAllocator.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -46,14 +46,6 @@ namespace OpenDemo
         {
             template <typename T>
             void ThrowIfFailed(T c) { std::ignore = c; };
-
-            ComSharedPtr<ID3D12Device> DeviceContext::device_;
-            ComSharedPtr<IDXGIFactory2> DeviceContext::dxgiFactory_;
-            std::shared_ptr<CommandQueueImpl> DeviceContext::graphicsCommandQueue_;
-            std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
-            std::shared_ptr<ResourceReleaseContext> DeviceContext::resourceReleaseContext_;
-            std::shared_ptr<GpuMemoryHeap> DeviceContext::uploadHeap_;
-            std::shared_ptr<GpuMemoryHeap> DeviceContext::readbackHeap_;
 
             DeviceImpl::DeviceImpl()
                 : creationThreadID_(std::this_thread::get_id())
@@ -162,58 +154,7 @@ namespace OpenDemo
                 uint32_t numSubresources) const
             {
                 ASSERT_IS_DEVICE_INITED;
-
-                if (numSubresources == MaxPossible)
-                    numSubresources = resourceDesc.GetNumSubresources();
-
-                ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources())
-                D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc, GpuResourceBindFlags::None);
-
-                UINT64 intermediateSize;
-                d3dDevice_->GetCopyableFootprints(&desc, 0, numSubresources, 0, nullptr, nullptr, nullptr, &intermediateSize);
-
-                const auto& allocation = std::make_shared<MemoryAllocation>(memoryType, intermediateSize);
-
-                switch (memoryType)
-                {
-                case MemoryAllocationType::Upload:
-                {
-                    const auto heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-                    allocation->SetPrivateImpl(heapAlloc);
-                    break;
-                }
-                case MemoryAllocationType::Readback:
-                {
-                    const auto heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-                    allocation->SetPrivateImpl(heapAlloc);
-                    break;
-                }
-                case MemoryAllocationType::CpuReadWrite:
-                    allocation->SetPrivateImpl(new CpuAllocation(intermediateSize));
-                    break;
-                default:
-                    LOG_FATAL("Unsupported memory type");
-                }
-
-                std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
-                std::vector<UINT> numRowsVector(numSubresources);
-                std::vector<UINT64> rowSizeInBytesVector(numSubresources);
-
-                d3dDevice_->GetCopyableFootprints(&desc, firstSubresourceIndex, numSubresources, 0, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
-
-                std::vector<IntermediateMemory::SubresourceFootprint> subresourceFootprints(numSubresources);
-                for (uint32_t index = 0; index < numSubresources; index++)
-                {
-                    const auto& layout = layouts[index];
-                    const auto numRows = numRowsVector[index];
-                    const auto rowSizeInBytes = rowSizeInBytesVector[index];
-                    const auto rowPitch = layout.Footprint.RowPitch;
-                    const auto depthPitch = numRows * rowPitch;
-
-                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(layout.Offset, numRows, rowSizeInBytes, rowPitch, depthPitch);
-                }
-
-                return std::make_shared<IntermediateMemory>(allocation, subresourceFootprints, firstSubresourceIndex);
+                return IntermediateMemoryAllocator::AllocateIntermediateTextureData(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
             }
 
             void DeviceImpl::InitSwapChain(SwapChain& resource) const

@@ -34,7 +34,7 @@ namespace OpenDemo
             Submission();
             ~Submission();
 
-            void Start();
+            void Start(const GAPI::Device::SharedPtr& device);
             void Terminate();
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList);
 

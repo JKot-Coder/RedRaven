@@ -20,6 +20,16 @@ namespace OpenDemo
             private:
                 void* memory_;
             };
+
+            class IntermediateMemoryAllocator
+            {
+            public:
+                static std::shared_ptr<IntermediateMemory> const IntermediateMemoryAllocator::AllocateIntermediateTextureData(
+                    const TextureDescription& resourceDesc,
+                    MemoryAllocationType memoryType,
+                    uint32_t firstSubresourceIndex,
+                    uint32_t numSubresources);
+            };
         }
     }
 }

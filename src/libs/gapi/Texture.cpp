@@ -3,10 +3,12 @@
 #include "Texture.hpp"
 
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/MemoryAllocation.hpp"
 
 #include "render/RenderContext.hpp"
 
 #include "common/Math.hpp"
+#include "common/OnScopeExit.hpp"
 
 namespace OpenDemo
 {
@@ -128,6 +130,45 @@ namespace OpenDemo
             }
 
             return uavs_[viewDesc];
+        }
+
+        void IntermediateMemory::CopyDataFrom(const GAPI::IntermediateMemory::SharedPtr& source)
+        {
+            ASSERT(source);
+            ASSERT(source != shared_from_this());
+            static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
+            ASSERT(allocation_->GetMemoryType() != GAPI::MemoryAllocationType::Readback);
+            ASSERT(source->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
+            ASSERT(source->GetNumSubresources() == GetNumSubresources());
+
+            const auto sourceDataPointer = static_cast<uint8_t*>(source->GetAllocation()->Map());
+            const auto destDataPointer = static_cast<uint8_t*>(allocation_->Map());
+
+            ON_SCOPE_EXIT(
+                {
+                    source->GetAllocation()->Unmap();
+                    allocation_->Unmap();
+                });
+
+            const auto numSubresources = source->GetNumSubresources();
+            for (uint32_t index = 0; index < numSubresources; index++)
+            {
+                const auto& sourceFootprint = source->GetSubresourceFootprintAt(index);
+                const auto& destFootprint = GetSubresourceFootprintAt(index);
+
+                ASSERT(sourceFootprint.isComplatable(destFootprint));
+
+                auto sourceRowPointer = sourceDataPointer + sourceFootprint.offset;
+                auto destRowPointer = destDataPointer + destFootprint.offset;
+
+                for (uint32_t row = 0; row < sourceFootprint.numRows; row++)
+                {
+                    std::memcpy(destRowPointer, sourceRowPointer, sourceFootprint.rowSizeInBytes);
+
+                    sourceRowPointer += sourceFootprint.rowPitch;
+                    destRowPointer += destFootprint.rowPitch;
+                }
+            }
         }
     }
 }
