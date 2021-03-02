@@ -1,5 +1,10 @@
 #pragma once
 
+namespace D3D12MA
+{
+    class Allocator;
+}
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -15,43 +20,21 @@ namespace OpenDemo
             {
             public:
                 static void Init(const ComSharedPtr<ID3D12Device>& device,
-                                 const ComSharedPtr<IDXGIFactory2>& dxgiFactory)
-                {
-                    ASSERT(device);
-                    ASSERT(dxgiFactory);
+                                 const ComSharedPtr<IDXGIFactory2>& dxgiFactory);
 
-                    device_ = device;
-                    dxgiFactory_ = dxgiFactory;
-                }
-
-                static void Init(const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
+                static void Init(D3D12MA::Allocator* allocator,
+                                 const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
                                  const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet,
                                  const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext,
                                  const std::shared_ptr<GpuMemoryHeap>& uploadHeap,
-                                 const std::shared_ptr<GpuMemoryHeap>& readbackHeap)
-                {
-                    ASSERT(descriptorHeapSet);
-                    ASSERT(graphicsCommandQueue);
-                    ASSERT(resourceReleaseContext);
-                    ASSERT(uploadHeap);
-                    ASSERT(readbackHeap);
+                                 const std::shared_ptr<GpuMemoryHeap>& readbackHeap);
 
-                    graphicsCommandQueue_ = graphicsCommandQueue;
-                    descriptorHeapSet_ = descriptorHeapSet;
-                    resourceReleaseContext_ = resourceReleaseContext;
-                    uploadHeap_ = uploadHeap;
-                    readbackHeap_ = readbackHeap;
-                }
+                static void Terminate();
 
-                static void Terminate()
+                static D3D12MA::Allocator* GetAllocator()
                 {
-                    device_ = nullptr;
-                    dxgiFactory_ = nullptr;
-                    graphicsCommandQueue_ = nullptr;
-                    descriptorHeapSet_ = nullptr;
-                    resourceReleaseContext_ = nullptr;
-                    uploadHeap_ = nullptr;
-                    readbackHeap_ = nullptr;
+                    ASSERT(allocator_);
+                    return allocator_;
                 }
 
                 static ComSharedPtr<ID3D12Device> GetDevice()
@@ -97,6 +80,7 @@ namespace OpenDemo
                 }
 
             private:
+                static D3D12MA::Allocator* allocator_;
                 static ComSharedPtr<ID3D12Device> device_;
                 static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;

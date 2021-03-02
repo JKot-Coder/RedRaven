@@ -22,6 +22,7 @@
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
+#include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
 
 #include <atomic>
 #include <chrono>
@@ -87,11 +88,6 @@ namespace OpenDemo
                 d3dDevice_ = nullptr;
             }
 
-            HRESULT wqeqweqwe()
-            {
-                return -1;
-            }
-
             bool DeviceImpl::Init(const IDevice::Description& description)
             {
                 ASSERT_IS_CREATION_THREAD;
@@ -112,6 +108,13 @@ namespace OpenDemo
                 gpuWaitFence_ = std::make_unique<FenceImpl>();
                 gpuWaitFence_->Init("GpuWait");
 
+                D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
+                allocatorDesc.pDevice = d3dDevice_.get();
+                allocatorDesc.pAdapter = dxgiAdapter_.get();
+
+                D3D12MA::Allocator* allocator;
+                D3D12MA::CreateAllocator(&allocatorDesc, &allocator);
+              
                 auto& graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
                 graphicsCommandQueue->Init("Primary");
 
@@ -127,6 +130,7 @@ namespace OpenDemo
                 readbackHeap->Init(GpuResourceCpuAccess::Read, "Readback heap");
 
                 DeviceContext::Init(
+                    allocator,
                     graphicsCommandQueue,
                     descriptorHeapSet,
                     resourceReleaseContext,

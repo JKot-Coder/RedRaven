@@ -1,9 +1,16 @@
 project (gapi_dx12)
 
 set(MS_SRC
-        d3dx12.h
+        third_party/ms/d3dx12.h
 )
 source_group( "Ms" FILES ${MS_SRC} )
+
+set(D3D12_MEMORY_ALLOCATOR_SRC
+        third_party/d3d12_memory_allocator/D3D12MemAlloc.h
+        third_party/d3d12_memory_allocator/D3D12MemAlloc.cpp
+)
+source_group( "D3D12MemoryAllocator" FILES ${D3D12_MEMORY_ALLOCATOR_SRC} )
+
 
 set(IMPL_SRC
         DeviceImpl.cpp
@@ -55,6 +62,7 @@ set( GAPI_SRC
         ${GAPI_SRC}
         ${IMPL_SRC}
         ${MS_SRC}
+        ${D3D12_MEMORY_ALLOCATOR_SRC}
 )
         
 add_library(${PROJECT_NAME} ${GAPI_SRC})

@@ -1,7 +1,5 @@
 #include "CommandListImpl.hpp"
 
-#include "d3dx12.h"
-
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/MemoryAllocation.hpp"

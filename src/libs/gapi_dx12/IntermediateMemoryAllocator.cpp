@@ -3,8 +3,8 @@
 #include "gapi/Texture.hpp"
 
 #include "gapi_dx12/DeviceContext.hpp"
-#include "gapi_dx12/GpuMemoryHeap.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
+#include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
 
 namespace OpenDemo
 {
@@ -12,6 +12,59 @@ namespace OpenDemo
     {
         namespace DX12
         {
+            HeapAllocation::HeapAllocation(D3D12_HEAP_TYPE heapType, size_t size)
+            {
+                const auto& resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+
+                D3D12MA::ALLOCATION_DESC allocationDesc = {};
+                allocationDesc.HeapType = heapType;
+
+                ComSharedPtr<ID3D12Resource> d3dresource;
+                D3D12MA::Allocation* allocation;
+                HRESULT hr = DeviceContext::GetAllocator()->CreateResource(
+                    &allocationDesc,
+                    &resourceDesc,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    NULL,
+                    &allocation,
+                    IID_PPV_ARGS(d3dresource.put()));
+
+                resource_ = std::make_shared<ResourceImpl>();
+                resource_->Init(d3dresource, "heapAlloc");
+            }
+
+            HeapAllocation::~HeapAllocation()
+            {
+                if (isMapped_)
+                    Unmap();
+
+                resource_->ReleaseD3DObjects();
+                resource_.reset();
+            }
+
+            void* HeapAllocation::Map() const
+            {
+                ASSERT(!isMapped_);
+                D3D12_RANGE readRange { 0, size_ };
+
+                isMapped_ = true;
+
+                void* mappedData;
+                resource_->Map(0, readRange, mappedData);
+
+                return mappedData;
+            }
+
+            void HeapAllocation::Unmap() const
+            {
+                ASSERT(isMapped_);
+
+                D3D12_RANGE writtenRange { 0, size_ };
+                resource_->Unmap(0, writtenRange);
+
+                isMapped_ = false;
+            }
+
             std::shared_ptr<IntermediateMemory> const IntermediateMemoryAllocator::AllocateIntermediateTextureData(
                 const TextureDescription& resourceDesc,
                 MemoryAllocationType memoryType,
@@ -31,26 +84,24 @@ namespace OpenDemo
 
                 const auto& allocation = std::make_shared<MemoryAllocation>(memoryType, intermediateSize);
 
+                IMemoryAllocation* memoryAllocation;
                 switch (memoryType)
                 {
                 case MemoryAllocationType::Upload:
-                {
-                    const auto heapAlloc = DeviceContext::GetUploadHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-                    allocation->SetPrivateImpl(heapAlloc);
+                    memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_UPLOAD, intermediateSize);
                     break;
-                }
                 case MemoryAllocationType::Readback:
-                {
-                    const auto heapAlloc = DeviceContext::GetReadbackHeap()->Allocate(intermediateSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-                    allocation->SetPrivateImpl(heapAlloc);
+                    memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_READBACK, intermediateSize);
                     break;
-                }
                 case MemoryAllocationType::CpuReadWrite:
-                    allocation->SetPrivateImpl(new CpuAllocation(intermediateSize));
+                    memoryAllocation = new CpuAllocation(intermediateSize);
                     break;
                 default:
                     LOG_FATAL("Unsupported memory type");
                 }
+
+                ASSERT(memoryAllocation);
+                allocation->SetPrivateImpl(memoryAllocation);
 
                 std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
                 std::vector<UINT> numRowsVector(numSubresources);

@@ -23,12 +23,12 @@ namespace OpenDemo
                 void Init(const Buffer& resource);
                 void Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
-                // Only used for initialize swapchain texture
-                void Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& desc, const U8String& name);
+                void Init(const ComSharedPtr<ID3D12Resource>& resource, const U8String& name);
 
                 const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
-                void Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory);
+                void Map(uint32_t subresource, const D3D12_RANGE& readRange, void*& memory);
+                void Unmap(uint32_t subresource, const D3D12_RANGE& writtenRange);
 
             private:
                 ComSharedPtr<ID3D12Resource> D3DResource_;

@@ -5,7 +5,7 @@
 
 #include "gapi_dx12/Config.hpp"
 
-#include "d3dx12.h"
+#include "third_party\ms\d3dx12.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <dxgidebug.h>

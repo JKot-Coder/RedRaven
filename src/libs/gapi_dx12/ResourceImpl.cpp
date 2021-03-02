@@ -110,17 +110,10 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
             }
 
-            void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const TextureDescription& resourceDesc, const U8String& name)
+            void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const U8String& name)
             {
                 ASSERT(resource);
                 ASSERT(!D3DResource_);
-                // TextureDesc ASSERT checks done on Texture initialization;
-
-                const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
-
-                const D3D12_RESOURCE_DESC& desc = resource->GetDesc();
-                ASSERT(desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
-                ASSERT(desc.Format == format);
 
                 D3DResource_ = resource;
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
@@ -154,11 +147,20 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
             }
 
-            void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& range, void*& memory)
+            void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& readRange, void*& memory)
             {
                 ASSERT(D3DResource_);
+                // todo subresource readRange asserts
 
-                D3DCall(D3DResource_->Map(subresource, &range, &memory));
+                D3DCall(D3DResource_->Map(subresource, &readRange, &memory));
+            }
+
+            void ResourceImpl::Unmap(uint32_t subresource, const D3D12_RANGE& writtenRange)
+            {
+                ASSERT(D3DResource_);
+                // todo subresource readRange asserts
+
+                D3DResource_->Unmap(subresource, & writtenRange);
             }
         }
     }

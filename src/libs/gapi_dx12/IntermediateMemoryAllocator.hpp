@@ -8,6 +8,8 @@ namespace OpenDemo
     {
         namespace DX12
         {
+            class ResourceImpl;
+
             class CpuAllocation final : public IMemoryAllocation
             {
             public:
@@ -19,6 +21,21 @@ namespace OpenDemo
 
             private:
                 void* memory_;
+            };
+
+            class HeapAllocation final : public IMemoryAllocation
+            {
+            public:
+                HeapAllocation(D3D12_HEAP_TYPE heapType, size_t size);
+                ~HeapAllocation();
+
+                void* Map() const override;
+                void Unmap() const override;
+
+            private:
+                mutable bool isMapped_ = false;
+                size_t size_;                
+                std::shared_ptr<ResourceImpl> resource_;
             };
 
             class IntermediateMemoryAllocator

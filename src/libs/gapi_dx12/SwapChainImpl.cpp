@@ -114,7 +114,7 @@ namespace OpenDemo
                 ASSERT(backBuffer_);
 
                 auto impl = new ResourceImpl();
-                impl->Init(backBuffer_, resource->GetDescription(), resource->GetName());
+                impl->Init(backBuffer_, resource->GetName());
                 resource->SetPrivateImpl(impl);
             }
 
