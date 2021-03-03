@@ -13,24 +13,29 @@ namespace OpenDemo
         namespace DX12
         {
             HeapAllocation::HeapAllocation(D3D12_HEAP_TYPE heapType, size_t size)
+                : heapType_(heapType),
+                  size_(size)
             {
-                const auto& resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+                const auto& resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(size_);
 
                 D3D12MA::ALLOCATION_DESC allocationDesc = {};
-                allocationDesc.HeapType = heapType;
+                allocationDesc.HeapType = heapType_;
+
+                ASSERT(heapType == D3D12_HEAP_TYPE_READBACK || heapType == D3D12_HEAP_TYPE_UPLOAD);
+                const auto defaultState = (heapType == D3D12_HEAP_TYPE_UPLOAD) ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COPY_DEST;
 
                 ComSharedPtr<ID3D12Resource> d3dresource;
                 D3D12MA::Allocation* allocation;
                 HRESULT hr = DeviceContext::GetAllocator()->CreateResource(
                     &allocationDesc,
                     &resourceDesc,
-                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    defaultState,
                     NULL,
                     &allocation,
                     IID_PPV_ARGS(d3dresource.put()));
 
                 resource_ = std::make_shared<ResourceImpl>();
-                resource_->Init(d3dresource, "heapAlloc");
+                resource_->Init(d3dresource, allocation, "heapAlloc");
             }
 
             HeapAllocation::~HeapAllocation()
@@ -63,6 +68,11 @@ namespace OpenDemo
                 resource_->Unmap(0, writtenRange);
 
                 isMapped_ = false;
+            }
+
+            ComSharedPtr<ID3D12Resource> HeapAllocation::GetD3DResouce() const
+            {
+                return resource_->GetD3DObject();
             }
 
             std::shared_ptr<IntermediateMemory> const IntermediateMemoryAllocator::AllocateIntermediateTextureData(

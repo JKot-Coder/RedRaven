@@ -36,8 +36,6 @@ set(GAPI_SRC
         Config.hpp
         D3DUtils.cpp
         D3DUtils.hpp
-        GpuMemoryHeap.hpp
-        GpuMemoryHeap.cpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
         IntermediateMemoryAllocator.hpp
@@ -49,6 +47,7 @@ set(GAPI_SRC
         Device.cpp
         Device.hpp
         ResourceReleaseContext.hpp
+        ResourceReleaseContext.cpp
         #InitialUploadsManager.hpp
         #InitialUploadsManager.cpp
         ResourceCreator.cpp

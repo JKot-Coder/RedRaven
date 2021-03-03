@@ -19,7 +19,7 @@ namespace OpenDemo
                 bool Init(const IDevice::Description& description);
                 void Submit(const std::shared_ptr<CommandList>& commandList);
                 void Present(const std::shared_ptr<SwapChain>& swapChain) override;
-                void MoveToNextFrame() override;
+                void MoveToNextFrame(uint64_t frameIndex) override;
 
                 std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
                     const TextureDescription& desc,

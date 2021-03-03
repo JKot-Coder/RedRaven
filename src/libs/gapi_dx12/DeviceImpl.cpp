@@ -16,7 +16,6 @@
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/GpuMemoryHeap.hpp"
 #include "gapi_dx12/IntermediateMemoryAllocator.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
@@ -61,6 +60,7 @@ namespace OpenDemo
                     return;
 
                 // Todo need wait all queries
+                waitForGpu();
                 waitForGpu();
 
                 DeviceContext::Terminate();
@@ -114,28 +114,18 @@ namespace OpenDemo
 
                 D3D12MA::Allocator* allocator;
                 D3D12MA::CreateAllocator(&allocatorDesc, &allocator);
-              
+
                 auto& graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
                 graphicsCommandQueue->Init("Primary");
 
                 auto& resourceReleaseContext = std::make_shared<ResourceReleaseContext>();
                 resourceReleaseContext->Init();
 
-                constexpr size_t UploadHeapPageSize = 1024 * 1024 * 64; //64 Mb
-                auto& uploadHeap = std::make_shared<GpuMemoryHeap>(UploadHeapPageSize);
-                uploadHeap->Init(GpuResourceCpuAccess::Write, "Upload heap");
-
-                constexpr size_t ReadbackHeapPageSize = 1024 * 1024 * 32; //32 Mb
-                auto& readbackHeap = std::make_shared<GpuMemoryHeap>(ReadbackHeapPageSize);
-                readbackHeap->Init(GpuResourceCpuAccess::Read, "Readback heap");
-
                 DeviceContext::Init(
                     allocator,
                     graphicsCommandQueue,
                     descriptorHeapSet,
-                    resourceReleaseContext,
-                    uploadHeap,
-                    readbackHeap);
+                    resourceReleaseContext);
 
                 inited_ = true;
 
@@ -396,12 +386,13 @@ namespace OpenDemo
                 return true;
             }
 
-            void DeviceImpl::MoveToNextFrame()
+            void DeviceImpl::MoveToNextFrame(uint64_t frameIndex)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
 
                 DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
+                DeviceContext::GetAllocator()->SetCurrentFrameIndex(frameIndex);
             }
 
             /*

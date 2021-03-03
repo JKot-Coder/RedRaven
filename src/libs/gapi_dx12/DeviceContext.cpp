@@ -14,8 +14,6 @@ namespace OpenDemo
             std::shared_ptr<CommandQueueImpl> DeviceContext::graphicsCommandQueue_;
             std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
             std::shared_ptr<ResourceReleaseContext> DeviceContext::resourceReleaseContext_;
-            std::shared_ptr<GpuMemoryHeap> DeviceContext::uploadHeap_;
-            std::shared_ptr<GpuMemoryHeap> DeviceContext::readbackHeap_;
 
             void DeviceContext::Init(const ComSharedPtr<ID3D12Device>& device,
                                      const ComSharedPtr<IDXGIFactory2>& dxgiFactory)
@@ -30,23 +28,17 @@ namespace OpenDemo
             void DeviceContext::Init(D3D12MA::Allocator* allocator,
                                      const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
                                      const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet,
-                                     const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext,
-                                     const std::shared_ptr<GpuMemoryHeap>& uploadHeap,
-                                     const std::shared_ptr<GpuMemoryHeap>& readbackHeap)
+                                     const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext)
             {
                 ASSERT(allocator);
                 ASSERT(descriptorHeapSet);
                 ASSERT(graphicsCommandQueue);
                 ASSERT(resourceReleaseContext);
-                ASSERT(uploadHeap);
-                ASSERT(readbackHeap);
 
                 allocator_ = allocator;
                 graphicsCommandQueue_ = graphicsCommandQueue;
                 descriptorHeapSet_ = descriptorHeapSet;
                 resourceReleaseContext_ = resourceReleaseContext;
-                uploadHeap_ = uploadHeap;
-                readbackHeap_ = readbackHeap;
             }
 
             void DeviceContext::Terminate()
@@ -58,10 +50,7 @@ namespace OpenDemo
                 graphicsCommandQueue_ = nullptr;
                 descriptorHeapSet_ = nullptr;
                 resourceReleaseContext_ = nullptr;
-                uploadHeap_ = nullptr;
-                readbackHeap_ = nullptr;
             }
-
         }
     }
 }

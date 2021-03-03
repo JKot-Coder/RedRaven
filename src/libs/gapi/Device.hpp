@@ -39,7 +39,7 @@ namespace OpenDemo
         public:
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             virtual void Present(const std::shared_ptr<SwapChain>& swapChain) = 0;
-            virtual void MoveToNextFrame() = 0;
+            virtual void MoveToNextFrame(uint64_t frameIndex) = 0;
         };
 
         class IMultiThreadDevice
@@ -83,7 +83,7 @@ namespace OpenDemo
 
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             void Present(const std::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
-            void MoveToNextFrame() override { GetPrivateImpl()->MoveToNextFrame(); }
+            void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
 
             std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
                 const TextureDescription& desc,

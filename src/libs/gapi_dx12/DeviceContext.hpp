@@ -14,7 +14,6 @@ namespace OpenDemo
             class ResourceReleaseContext;
             class DescriptorHeapSet;
             class CommandQueueImpl;
-            class GpuMemoryHeap;
 
             class DeviceContext
             {
@@ -25,9 +24,7 @@ namespace OpenDemo
                 static void Init(D3D12MA::Allocator* allocator,
                                  const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
                                  const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet,
-                                 const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext,
-                                 const std::shared_ptr<GpuMemoryHeap>& uploadHeap,
-                                 const std::shared_ptr<GpuMemoryHeap>& readbackHeap);
+                                 const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext);
 
                 static void Terminate();
 
@@ -67,18 +64,6 @@ namespace OpenDemo
                     return resourceReleaseContext_;
                 }
 
-                static std::shared_ptr<GpuMemoryHeap> GetUploadHeap()
-                {
-                    ASSERT(uploadHeap_);
-                    return uploadHeap_;
-                }
-
-                static std::shared_ptr<GpuMemoryHeap> GetReadbackHeap()
-                {
-                    ASSERT(readbackHeap_);
-                    return readbackHeap_;
-                }
-
             private:
                 static D3D12MA::Allocator* allocator_;
                 static ComSharedPtr<ID3D12Device> device_;
@@ -86,8 +71,6 @@ namespace OpenDemo
                 static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
                 static std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
                 static std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
-                static std::shared_ptr<GpuMemoryHeap> uploadHeap_;
-                static std::shared_ptr<GpuMemoryHeap> readbackHeap_;
             };
         }
     }

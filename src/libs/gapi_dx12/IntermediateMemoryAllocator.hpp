@@ -32,9 +32,13 @@ namespace OpenDemo
                 void* Map() const override;
                 void Unmap() const override;
 
+                ComSharedPtr<ID3D12Resource> GetD3DResouce() const;
+                size_t GetOffset() const { return 0; }
+
             private:
                 mutable bool isMapped_ = false;
-                size_t size_;                
+                size_t size_;
+                D3D12_HEAP_TYPE heapType_;
                 std::shared_ptr<ResourceImpl> resource_;
             };
 

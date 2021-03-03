@@ -6,7 +6,6 @@
 
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/GpuMemoryHeap.hpp"
 #include "gapi_dx12/IntermediateMemoryAllocator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -273,7 +272,7 @@ namespace OpenDemo
                         textureData->GetFirstSubresource(),
                         textureData->GetNumSubresources());
 
-                    const auto intermediateAllocationImpl = intermediateMemory->GetAllocation()->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                    const auto intermediateAllocationImpl = intermediateMemory->GetAllocation()->GetPrivateImpl<HeapAllocation>();
 
                     intermediateDataOffset = intermediateAllocationImpl->GetOffset();
                     intermediateResource = intermediateAllocationImpl->GetD3DResouce();
@@ -283,7 +282,7 @@ namespace OpenDemo
                 }
                 else
                 {
-                    const auto allocationImpl = allocation->GetPrivateImpl<GpuMemoryHeap::Allocation>();
+                    const auto allocationImpl = allocation->GetPrivateImpl<HeapAllocation>();
 
                     intermediateDataOffset = allocationImpl->GetOffset();
                     intermediateResource = allocationImpl->GetD3DResouce();

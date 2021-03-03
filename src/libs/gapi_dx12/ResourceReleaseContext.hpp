@@ -1,10 +1,13 @@
 #pragma once
 
-#include "gapi_dx12/FenceImpl.hpp"
-
 #include "common/threading/Mutex.hpp"
 
 #include <queue>
+
+namespace D3D12MA
+{
+    class Allocation;
+}
 
 namespace OpenDemo
 {
@@ -12,48 +15,36 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceReleaseContext
+            class FenceImpl;
+            class CommandQueueImpl;
+
+            class ResourceReleaseContext final
             {
             public:
                 struct ResourceRelease
                 {
                     uint64_t cpuFrameIndex;
                     ComSharedPtr<IUnknown> resource;
+                    D3D12MA::Allocation* allocation;
                 };
 
             public:
                 ResourceReleaseContext() = default;
+                ~ResourceReleaseContext();
 
-                void Init()
-                {
-                    fence_ = std::make_unique<FenceImpl>();
-                    fence_->Init("ResourceRelease");
-                }
+                void Init();
 
                 template <class T>
-                void DeferredD3DResourceRelease(ComSharedPtr<T>& resource)
+                void DeferredD3DResourceRelease(ComSharedPtr<T>& resource, D3D12MA::Allocation* allocation = nullptr)
                 {
-                    Threading::ReadWriteGuard lock(mutex_);
-
-                    ASSERT(fence_);
-                    ASSERT(resource);
-
-                    queue_.push({ fence_->GetCpuValue(), resource });
+                    deferredD3DResourceRelease(resource.as<IUnknown>(), allocation);
                     resource = nullptr;
                 }
 
-                void ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
-                {
-                    Threading::ReadWriteGuard lock(mutex_);
+                void ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue);
 
-                    ASSERT(fence_);
-                    ASSERT(queue);
-
-                    while (queue_.size() && queue_.front().cpuFrameIndex < fence_->GetGpuValue())
-                        queue_.pop();
-
-                    fence_->Signal(*queue.get());
-                }
+            private:
+                void deferredD3DResourceRelease(const ComSharedPtr<IUnknown>& resource, D3D12MA::Allocation* allocation);
 
             private:
                 std::unique_ptr<FenceImpl> fence_;

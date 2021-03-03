@@ -73,7 +73,7 @@ namespace OpenDemo
 
             void ResourceImpl::ReleaseD3DObjects()
             {
-                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_);
+                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_, allocation_);
             }
 
             void ResourceImpl::Init(const Texture& resource)
@@ -110,11 +110,12 @@ namespace OpenDemo
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
             }
 
-            void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, const U8String& name)
+            void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name)
             {
                 ASSERT(resource);
                 ASSERT(!D3DResource_);
 
+                allocation_ = allocation;
                 D3DResource_ = resource;
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
             }

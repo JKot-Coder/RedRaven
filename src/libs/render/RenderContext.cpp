@@ -130,7 +130,7 @@ namespace OpenDemo
                     fence->SyncCPU(syncFenceValue, INFINITE);
                 }
 
-                device.MoveToNextFrame();
+                device.MoveToNextFrame(submissionFrame);
             });
 
             // Todo throttle main thread?

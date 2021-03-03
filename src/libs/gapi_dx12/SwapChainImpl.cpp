@@ -2,6 +2,7 @@
 
 #include "gapi/SwapChain.hpp"
 
+#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
@@ -114,7 +115,7 @@ namespace OpenDemo
                 ASSERT(backBuffer_);
 
                 auto impl = new ResourceImpl();
-                impl->Init(backBuffer_, resource->GetName());
+                impl->Init(backBuffer_, nullptr, resource->GetName());
                 resource->SetPrivateImpl(impl);
             }
 

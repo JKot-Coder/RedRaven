@@ -3,6 +3,11 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/Texture.hpp"
 
+namespace D3D12MA
+{
+    class Allocation;
+}
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -23,7 +28,7 @@ namespace OpenDemo
                 void Init(const Buffer& resource);
                 void Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
-                void Init(const ComSharedPtr<ID3D12Resource>& resource, const U8String& name);
+                void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 
                 const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
@@ -32,6 +37,7 @@ namespace OpenDemo
 
             private:
                 ComSharedPtr<ID3D12Resource> D3DResource_;
+                D3D12MA::Allocation* allocation_;
             };
         }
     }
