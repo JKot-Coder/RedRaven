@@ -51,12 +51,9 @@ namespace OpenDemo
         bool Application::init()
         {
             Windowing::WindowSettings settings;
-
-            Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED,
-                                       Windowing::WindowRect::WINDOW_POSITION_CENTERED, 640, 480);
-
+            settings.Height = 480;
+            settings.Width = 640;
             settings.Title = "Tests";
-            settings.WindowRect = rect;
 
             window_ = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
             if (!window_->Init(settings, true))

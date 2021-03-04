@@ -50,7 +50,7 @@ namespace OpenDemo
             void* HeapAllocation::Map() const
             {
                 ASSERT(!isMapped_);
-                D3D12_RANGE readRange { 0, size_ };
+                D3D12_RANGE readRange { 0, heapType_ == D3D12_HEAP_TYPE_READBACK ? size_ : 0 };
 
                 isMapped_ = true;
 
@@ -64,7 +64,7 @@ namespace OpenDemo
             {
                 ASSERT(isMapped_);
 
-                D3D12_RANGE writtenRange { 0, size_ };
+                D3D12_RANGE writtenRange { 0, heapType_ == D3D12_HEAP_TYPE_UPLOAD ? size_ : 0 };
                 resource_->Unmap(0, writtenRange);
 
                 isMapped_ = false;

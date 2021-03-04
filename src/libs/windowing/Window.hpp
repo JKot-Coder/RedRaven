@@ -3,7 +3,7 @@
 #include "common/Math.hpp"
 #include "common/NativeWindowHandle.hpp"
 
-struct SDL_Window;
+struct GLFWwindow;
 
 namespace OpenDemo
 {
@@ -30,15 +30,15 @@ namespace OpenDemo
             void SetMousePos(int x, int y) const;
             void ShowCursor(bool value);
 
-            bool IsCursorHidden() const { return _cursorIsHidden; }
+          //  bool IsCursorHidden() const { return _cursorIsHidden; }
 
             OpenDemo::Common::NativeWindowHandle GetNativeHandle() const;
-            SDL_Window* GetSDLWindow() const { return _window; };
+            GLFWwindow* GetGLFWWindow() const { return _window; };
 
         private:
-            SDL_Window* _window = nullptr;
+            GLFWwindow* _window = nullptr;
 
-            bool _cursorIsHidden = false;
+         //   bool _cursorIsHidden = false;
         };
     }
 }

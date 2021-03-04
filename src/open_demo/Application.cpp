@@ -3,8 +3,6 @@
 #include "common/Time.hpp"
 #include "common/debug/LeakDetector.hpp"
 
-#include "inputting/Input.hpp"
-
 #include "resource_manager/ResourceManager.hpp"
 
 #include "gapi/CommandList.hpp"
@@ -16,9 +14,10 @@
 
 #include "render/RenderContext.hpp"
 
-#include "windowing/InputtingWindow.hpp"
+//#include "windowing/InputtingWindow.hpp"
 #include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
+#include "windowing/Window.hpp"
 
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
@@ -145,18 +144,16 @@ namespace OpenDemo
     void Application::init()
     {
         Windowing::WindowSettings settings;
-        Windowing::WindowRect rect(Windowing::WindowRect::WINDOW_POSITION_CENTERED,
-                                   Windowing::WindowRect::WINDOW_POSITION_CENTERED, 800, 600);
-
+        settings.Width = 800;
+        settings.Height = 600;
         settings.Title = "OpenDemo";
-        settings.WindowRect = rect;
-
+        
         Windowing::Windowing::Subscribe(this);
-        _window = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
-        _window->Init(settings, true);
+        _window = std::make_shared<Windowing::Window>();
+        _window->Init(settings);
 
-        Inputting::Instance()->Init();
-        Inputting::Instance()->SubscribeToWindow(_window);
+       // Inputting::Instance()->Init();
+       // Inputting::Instance()->SubscribeToWindow(_window);
 
         auto& renderContext = Render::RenderContext::Instance();
         renderContext.Init();
@@ -176,7 +173,7 @@ namespace OpenDemo
         _window.reset();
         _window = nullptr;
 
-        Inputting::Instance()->Terminate();
+       // Inputting::Instance()->Terminate();
 
         // Rendering::Instance()->Terminate();
         Windowing::Windowing::UnSubscribe(this);

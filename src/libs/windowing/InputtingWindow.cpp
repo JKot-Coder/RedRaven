@@ -1,7 +1,5 @@
 #include "InputtingWindow.hpp"
 
-#include "SDL.h"
-
 #include "common/Exception.hpp"
 
 #include "inputting/Input.hpp"
@@ -12,6 +10,7 @@ namespace OpenDemo
 {
     namespace Windowing
     {
+        /*
         static const std::map<SDL_Scancode, Inputting::InputKey> SDLToInputKeyMap = {
             { SDL_SCANCODE_A, Inputting::ikA },
             { SDL_SCANCODE_B, Inputting::ikB },
@@ -70,7 +69,7 @@ namespace OpenDemo
             //            { SDL_SCANCODE_RSHIFT,    Inputting::ikUnknown },
             //            { SDL_SCANCODE_RALT,      Inputting::ikUnknown }, /**< alt gr, option */
             //            { SDL_SCANCODE_RGUI,      Inputting::ikUnknown }, /**< windows, command (apple), meta */
-        };
+      /* };*/
 
         InputtingWindow::InputtingWindow()
         {
@@ -84,10 +83,10 @@ namespace OpenDemo
 
         bool InputtingWindow::Init(const WindowSettings& settings, bool trapMouse_)
         {
-            _trapMouse = trapMouse_;
+            //_trapMouse = trapMouse_;
             return Window::Init(settings);
         }
-
+        /*
         void InputtingWindow::SubscribeOnKeyboardEvents(Inputting::IKeyboardListener* listener)
         {
             ASSERT(listener)
@@ -262,6 +261,6 @@ namespace OpenDemo
             ShowCursor(true);
             SDL_SetWindowGrab(GetSDLWindow(), SDL_FALSE);
             SDL_SetRelativeMouseMode(SDL_FALSE);
-        }
+        }*/
     }
 }

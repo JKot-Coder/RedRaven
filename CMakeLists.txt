@@ -76,6 +76,18 @@ FetchContent_Declare(
 set(APPROVAL_TESTS_BUILD_THIRD_PARTY_CATCH2 ON CACHE BOOL "")
 FetchContent_MakeAvailable(ApprovalTests)
 
+#=================================== Glfw ====================================#
+FetchContent_Declare(
+  Glfw
+  GIT_REPOSITORY https://github.com/glfw/glfw
+  GIT_TAG        3.3.3
+)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(Glfw)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
@@ -83,6 +95,7 @@ set_property(TARGET backward PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
 set_property(TARGET Catch2WithMain PROPERTY FOLDER "Dependencies")
 set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
+set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi_dx12)

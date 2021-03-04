@@ -1,7 +1,6 @@
 #include "Windowing.hpp"
 
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <GLFW/glfw3.h>
 
 #include "common/Exception.hpp"
 #include "common/Math.hpp"
@@ -19,19 +18,21 @@ namespace OpenDemo
 
         Windowing::Windowing()
         {
-            if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-                throw Common::Exception(fmt::format(FMT_STRING("Could not initialize SDL video subsystem ({})"), SDL_GetError()));
+            if (!glfwInit())
+                LOG_FATAL("Could not initialize glfw");
         }
 
         Windowing::~Windowing()
         {
-            SDL_QuitSubSystem(SDL_INIT_VIDEO);
-            SDL_Quit();
+            glfwTerminate();
         }
 
         void Windowing::PoolEvents()
         {
-            SDL_Event e;
+            glfwPollEvents();
+
+
+      /*     SDL_Event e;
 
             while (SDL_PollEvent(&e))
             {
@@ -115,7 +116,7 @@ namespace OpenDemo
                     }
                     }
                 }
-            }
+            }*/
         }
 
         void Windowing::Subscribe(IListener* listener)

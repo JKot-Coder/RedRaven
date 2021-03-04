@@ -182,7 +182,7 @@ namespace OpenDemo
             }
         }
 
-        TEST_CASE_METHOD(TestContextFixture, "CopyCommmanList", "[CommandList][CopyCommmanList]")
+        TEST_CASE_METHOD(TestContextFixture, "CopyCommmandList", "[CommandList][CopyCommmandList]")
         {
             auto& renderContext = Render::RenderContext::Instance();
 
@@ -234,6 +234,27 @@ namespace OpenDemo
                     REQUIRE(isResourceEqual(cpuData, readbackData));
                 }
 
+                DYNAMIC_SECTION("UploadTexureFromGpuHeap: " << formatName)
+                {
+                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
+
+                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                    initTextureData(description, cpuData);
+                    sourceData->CopyDataFrom(cpuData);
+
+                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Test");
+
+                    commandList->UpdateTexture(testTexture, sourceData);
+                    commandList->ReadbackTexture(testTexture, readbackData);
+                    commandList->Close();
+
+                    submitAndWait(copyQueue, commandList);
+                    REQUIRE(isResourceEqual(cpuData, readbackData));
+                }
+
                 DYNAMIC_SECTION("CopyTexture: " << formatName)
                 {
                     const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
@@ -261,12 +282,10 @@ namespace OpenDemo
                 DYNAMIC_SECTION("CopyTextureSubresource: " << formatName)
                 {
                     const auto& sourceDescription = GAPI::TextureDescription::Create2D(256, 256, format);
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::Upload);
+                    const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                     auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceBindFlags::None, GAPI::GpuResourceCpuAccess::None, "Source");
 
-                    initTextureData(sourceDescription, cpuData);
-                    sourceData->CopyDataFrom(cpuData);
+                    initTextureData(sourceDescription, sourceData);
 
                     const auto& destDescription = GAPI::TextureDescription::Create2D(128, 128, format);
                     const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
@@ -275,10 +294,8 @@ namespace OpenDemo
                     commandList->UpdateTexture(source, sourceData);
 
                     for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
-                    {
                         if (index % 2 == 0)
                             commandList->CopyTextureSubresource(source, index + 1, dest, index);
-                    }
 
                     commandList->ReadbackTexture(dest, readbackData);
                     commandList->Close();
@@ -287,7 +304,7 @@ namespace OpenDemo
 
                     for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
                     {
-                        bool equal = isSubresourceEqual(cpuData, index + 1, readbackData, index);
+                        bool equal = isSubresourceEqual(sourceData, index + 1, readbackData, index);
                         REQUIRE(equal ^ (index % 2 != 0));
                     }
                 }

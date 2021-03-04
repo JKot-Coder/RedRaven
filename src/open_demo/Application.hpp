@@ -21,7 +21,7 @@ namespace OpenDemo
     private:
         bool _quit = false;
 
-        std::shared_ptr<Windowing::InputtingWindow> _window;
+        std::shared_ptr<Windowing::Window> _window;
         std::shared_ptr<GAPI::SwapChain> swapChain_;
 
         void init();
