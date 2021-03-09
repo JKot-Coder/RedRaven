@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/Math.hpp"
-#include "common/NativeWindowHandle.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"

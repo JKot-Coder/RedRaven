@@ -1,19 +1,5 @@
 #include "Window.hpp"
 
-#ifdef OS_WINDOWS
-#define GLFW_EXPOSE_NATIVE_WIN32
-#else
-static_assert(false, "Platform is not supported");
-#endif
-
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-
-#include "common/Exception.hpp"
-
-#include "windowing/Window.hpp"
-#include "windowing/WindowSettings.hpp"
-
 namespace OpenDemo
 {
     namespace Windowing
@@ -24,16 +10,10 @@ namespace OpenDemo
 
         Window::~Window()
         {
-            if (_window)
-            {
-                glfwDestroyWindow(_window);
-                _window = nullptr;
-            }
         }
 
-        bool Window::Init(const WindowSettings& settings)
+        bool Window::Init(const Description& description)
         {
-            U8String windowerror;
             // Uint32 windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
 
             ASSERT(!_window)
@@ -54,6 +34,14 @@ namespace OpenDemo
 
         int Window::GetWidth() const
         {
+            RECT area;
+            GetClientRect(window->win32.handle, &area);
+
+            if (width)
+                *width = area.right;
+            if (height)
+                *height = area.bottom;
+
             ASSERT(_window)
 
             int32_t w, h;
@@ -68,22 +56,14 @@ namespace OpenDemo
             return h;
         }
 
-        OpenDemo::Common::NativeWindowHandle Window::GetNativeHandle() const
+        WindowHandle Window::GetNativeHandle() const
         {
-            if (_window)
-            {
-#ifdef OS_WINDOWS
-                return glfwGetWin32Window(_window);
-#endif
-            }
-
             return 0;
         }
 
         void Window::SetMousePos(int x, int y) const
         {
-            (void)x, y;
-            //  SDL_WarpMouseInWindow(window, x, y);
+
         }
 
         void Window::ShowCursor(bool value)

@@ -31,7 +31,6 @@ set( COMMON_SRC
         VecMath.h
         Check.cpp
         CircularBuffer.hpp
-        NativeWindowHandle.hpp
         String.hpp
         Exception.hpp
         Stream.hpp

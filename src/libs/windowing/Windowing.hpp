@@ -2,9 +2,6 @@
 
 #include "common/Math.hpp"
 
-struct SDL_Keysym;
-struct SDL_MouseMotionEvent;
-
 namespace OpenDemo
 {
     namespace Windowing
@@ -22,7 +19,7 @@ namespace OpenDemo
             virtual void OnWindowFocusLost(const Window& window) { (void)window; };
 
             virtual void OnWindowResize(const Window& window) { (void)window; };
-
+            /*
             virtual void OnKeyUp(const Window& window, const SDL_Keysym& keysym)
             {
                 (void)window;
@@ -33,7 +30,7 @@ namespace OpenDemo
                 (void)window;
                 (void)keysym;
             }
-
+            */
             virtual void OnMouseMotion(const Window& window, const Vector2i& position, const Vector2i& relative)
             {
                 (void)window;

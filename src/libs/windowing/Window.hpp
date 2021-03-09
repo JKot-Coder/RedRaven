@@ -1,28 +1,34 @@
 #pragma once
 
 #include "common/Math.hpp"
-#include "common/NativeWindowHandle.hpp"
-
-struct GLFWwindow;
 
 namespace OpenDemo
 {
     namespace Windowing
     {
-        struct WindowSettings;
+#ifdef OS_WINDOWS
+        // Little hack to avoid exposing windows.h include. Hope this will works well.
+        using WindowHandle = void*;
+#endif
+        class WindowImpl;
 
-        class Window
+        class Window : public std::enable_shared_from_this<Window>, private NonCopyable
         {
         public:
-            Window();
+            using SharedPtr = std::shared_ptr<Window>;
+            using SharedConstPtr = std::shared_ptr<const Window>;
+
+            struct Description
+            {
+                U8String Title = "";
+                uint32_t Width = 0;
+                uint32_t Height = 0;
+            };
+
+        public:
             ~Window();
 
-            bool Init(const WindowSettings& settings);
-
-            inline bool IsWindow() const
-            {
-                return _window;
-            }
+            bool Init(const Description& description);
 
             int GetWidth() const;
             int GetHeight() const;
@@ -30,15 +36,12 @@ namespace OpenDemo
             void SetMousePos(int x, int y) const;
             void ShowCursor(bool value);
 
-          //  bool IsCursorHidden() const { return _cursorIsHidden; }
-
-            OpenDemo::Common::NativeWindowHandle GetNativeHandle() const;
-            GLFWwindow* GetGLFWWindow() const { return _window; };
+            WindowHandle GetNativeHandle() const;
 
         private:
-            GLFWwindow* _window = nullptr;
+            Window();
 
-         //   bool _cursorIsHidden = false;
+            std::unique_ptr<WindowImpl> impl_;
         };
     }
 }
