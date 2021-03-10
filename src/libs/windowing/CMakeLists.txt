@@ -4,13 +4,15 @@ set( WINDOWING_SRC
        # InputtingWindow.hpp
       #  InputtingWindow.cpp
         Window.hpp
+        Window.cpp
+
         Windowing.hpp
         Windowing.cpp )
 
 if (WIN32)
-
 set( WINDOWING_SRC
      ${WINDOWING_SRC}
+     Win32Window.hpp
      Win32Window.cpp
 )
 endif (WIN32)

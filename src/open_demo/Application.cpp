@@ -14,8 +14,6 @@
 
 #include "render/RenderContext.hpp"
 
-//#include "windowing/InputtingWindow.hpp"
-#include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
 #include "windowing/Window.hpp"
 
@@ -77,7 +75,7 @@ namespace OpenDemo
         desciption.bufferCount = 2;
         desciption.isStereo = false;
         desciption.gpuResourceFormat = GAPI::GpuResourceFormat::BGRA8Unorm;
-        desciption.windowHandle = _window->GetNativeHandle();
+        desciption.window = _window;
 
         swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
 
@@ -143,14 +141,14 @@ namespace OpenDemo
 
     void Application::init()
     {
-        Windowing::WindowSettings settings;
-        settings.Width = 800;
-        settings.Height = 600;
-        settings.Title = "OpenDemo";
+        Windowing::WindowDescription windowDesc;
+        windowDesc.Width = 800;
+        windowDesc.Height = 600;
+        windowDesc.Title = "OpenDemo";
         
         Windowing::Windowing::Subscribe(this);
         _window = std::make_shared<Windowing::Window>();
-        _window->Init(settings);
+        _window->Init(windowDesc);
 
        // Inputting::Instance()->Init();
        // Inputting::Instance()->SubscribeToWindow(_window);

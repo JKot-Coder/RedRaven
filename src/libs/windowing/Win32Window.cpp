@@ -1,10 +1,13 @@
 #include "Window.hpp"
 
+#include <Windows.h>
+#include "Win32Window.hpp"
+
 namespace OpenDemo
 {
     namespace Windowing
     {
-        Window::Window()
+     /*   Window::Window()
         {
         }
 
@@ -70,6 +73,34 @@ namespace OpenDemo
         {
             ASSERT(_window);
             glfwSetInputMode(_window, GLFW_CURSOR, value ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+        }*/
+
+        bool Win32Window::Init(const WindowDescription& description)
+        {
+            return false;
+        }
+
+        int Win32Window::GetWidth() const
+        {
+            return 0;
+        }
+
+        int Win32Window::GetHeight() const
+        {
+            return 0;
+        }
+
+        void Win32Window::SetMousePos(int x, int y) const
+        {
+        }
+
+        void Win32Window::ShowCursor(bool value)
+        {
+        }
+
+        WindowHandle Win32Window::GetNativeHandle() const
+        {
+            return WindowHandle();
         }
     }
 }

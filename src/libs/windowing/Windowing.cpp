@@ -1,7 +1,5 @@
 #include "Windowing.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include "common/Exception.hpp"
 #include "common/Math.hpp"
 

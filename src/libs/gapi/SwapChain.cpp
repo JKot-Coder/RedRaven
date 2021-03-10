@@ -18,8 +18,7 @@ namespace OpenDemo
             ASSERT(description.isStereo == false);
             ASSERT(description.bufferCount <= MAX_BACK_BUFFER_COUNT);
             ASSERT(description.gpuResourceFormat != GpuResourceFormat::Unknown);
-            //TODO fix it
-            ASSERT(description.windowHandle != 0);
+            ASSERT(description.window);
         }
 
         void SwapChain::Reset(const SwapChainDescription& description)
@@ -27,7 +26,7 @@ namespace OpenDemo
             ASSERT(description.isStereo == description_.isStereo);
             ASSERT(description.bufferCount == description_.bufferCount);
             ASSERT(description.gpuResourceFormat == description_.gpuResourceFormat);
-            ASSERT(description.windowHandle == description_.windowHandle);
+            ASSERT(description.window == description_.window);
 
             GetPrivateImpl()->Reset(description, backBuffers_);
 

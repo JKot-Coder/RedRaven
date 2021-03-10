@@ -8,6 +8,9 @@
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
+#include <Windows.h>
+#include "windowing/Window.hpp"
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -18,7 +21,7 @@ namespace OpenDemo
             {
                 bool CheckSwapchainDescription(const SwapChainDescription& desc)
                 {
-                    return (desc.width > 0) && (desc.height > 0) && (desc.bufferCount > 0 && desc.bufferCount <= MAX_BACK_BUFFER_COUNT) && (desc.windowHandle) && (desc.isStereo == false);
+                    return (desc.bufferCount > 0 && desc.bufferCount <= MAX_BACK_BUFFER_COUNT) && (desc.window) && (desc.isStereo == false);
                 }
             }
 
@@ -43,7 +46,7 @@ namespace OpenDemo
                 // Create a swap chain for the window.
                 D3DCall(dxgiFactory->CreateSwapChainForHwnd(
                     commandQueue.get(),
-                    description.windowHandle,
+                    description.window->GetNativeHandle(),
                     &targetSwapChainDesc,
                     nullptr,
                     nullptr,

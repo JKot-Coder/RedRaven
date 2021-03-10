@@ -4,15 +4,18 @@
 #include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
 
-#include "common/NativeWindowHandle.hpp"
-
 namespace OpenDemo
 {
+    namespace Windowing
+    {
+        class Window;
+    }
+    
     namespace GAPI
     {
         struct SwapChainDescription
         {
-            NativeWindowHandle windowHandle;
+            std::shared_ptr<Windowing::Window> window;
 
             uint32_t width;
             uint32_t height;
@@ -23,8 +26,8 @@ namespace OpenDemo
 
         public:
             SwapChainDescription() = default;
-            SwapChainDescription(NativeWindowHandle windowHandle, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
-                : windowHandle(windowHandle),
+            SwapChainDescription(const std::shared_ptr<Windowing::Window>& window, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
+                : window(window),
                   width(width),
                   height(height),
                   bufferCount(bufferCount),
