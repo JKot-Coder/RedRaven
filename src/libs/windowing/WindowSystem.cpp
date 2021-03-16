@@ -1,9 +1,9 @@
-#include "Windowing.hpp"
+#include "WindowSystem.hpp"
 
 #include "common/Exception.hpp"
 #include "common/Math.hpp"
 
-#include "windowing/Window.hpp"
+#include "Windowing/Window.hpp"
 
 namespace OpenDemo
 {
@@ -11,26 +11,32 @@ namespace OpenDemo
 
     namespace Windowing
     {
-        std::unique_ptr<Windowing> Windowing::Windowing::_windowingInstance = std::unique_ptr<Windowing>(new Windowing());
-        std::vector<IListener*> Windowing::Windowing::_listeners = std::vector<IListener*>();
+        std::vector<IListener*> WindowSystem::WindowSystem::_listeners = std::vector<IListener*>();
 
-        Windowing::Windowing()
+        WindowSystem::WindowSystem()
         {
-            if (!glfwInit())
-                LOG_FATAL("Could not initialize glfw");
         }
 
-        Windowing::~Windowing()
+        WindowSystem::~WindowSystem()
         {
-            glfwTerminate();
         }
 
-        void Windowing::PoolEvents()
+        std::shared_ptr<Window> WindowSystem::Create(const WindowDescription& description)
         {
-            glfwPollEvents();
+            const auto& window = std::shared_ptr<Window>(new Window());
+
+            if (!window->Init(description))
+                return nullptr;
+
+            return window;
+        }
+
+        void WindowSystem::PoolEvents()
+        {
+            /* glfwPollEvents();
 
 
-      /*     SDL_Event e;
+           SDL_Event e;
 
             while (SDL_PollEvent(&e))
             {
@@ -117,7 +123,7 @@ namespace OpenDemo
             }*/
         }
 
-        void Windowing::Subscribe(IListener* listener)
+        void WindowSystem::Subscribe(IListener* listener)
         {
             for (auto& item : _listeners)
             {
@@ -128,7 +134,7 @@ namespace OpenDemo
             _listeners.push_back(listener);
         }
 
-        void Windowing::UnSubscribe(const IListener* listener)
+        void WindowSystem::UnSubscribe(const IListener* listener)
         {
             for (auto it = _listeners.begin(); it != _listeners.end();)
             {

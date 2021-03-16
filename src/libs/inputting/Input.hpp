@@ -119,12 +119,12 @@ namespace OpenDemo
                 return _instance;
             }
 
-            void SubscribeToWindow(const std::shared_ptr<Windowing::InputtingWindow>& inputtingWindow);
+            void SubscribeToWindow(const std::shared_ptr<WindowSystem::InputtingWindow>& inputtingWindow);
 
         private:
             static std::unique_ptr<Input> _instance;
 
-            std::shared_ptr<Windowing::InputtingWindow> _inputtingWindow;
+            std::shared_ptr<WindowSystem::InputtingWindow> _inputtingWindow;
 
             InputKey _lastKey;
             bool _down[ikMAX];

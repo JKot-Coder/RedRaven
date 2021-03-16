@@ -6,7 +6,7 @@ namespace OpenDemo
 {
     namespace Windowing
     {
-        struct WindowSettings;
+        struct WindowDescription;
         class Window;
 
         class IListener
@@ -51,19 +51,19 @@ namespace OpenDemo
             virtual void OnQuit() {};
         };
 
-        class Windowing
+        class WindowSystem
         {
         public:
-            Windowing();
-            ~Windowing();
+            WindowSystem();
+            ~WindowSystem();
 
+            static std::shared_ptr<Window> Create(const WindowDescription& description);
             static void PoolEvents();
             static void Subscribe(IListener* listener);
             static void UnSubscribe(const IListener* listener);
 
         private:
             static std::vector<IListener*> _listeners;
-            static std::unique_ptr<Windowing> _windowingInstance;
         };
     }
 }

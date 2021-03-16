@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gapi/Device.hpp"
-#include "windowing/Windowing.hpp"
+#include "windowing/WindowSystem.hpp"
 
 namespace OpenDemo
 {

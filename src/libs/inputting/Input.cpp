@@ -39,7 +39,7 @@ namespace OpenDemo
             }
         }
 
-        void Input::SubscribeToWindow(const std::shared_ptr<Windowing::InputtingWindow>& inputtingWindow_)
+        void Input::SubscribeToWindow(const std::shared_ptr<WindowSystem::InputtingWindow>& inputtingWindow_)
         {
             _inputtingWindow = inputtingWindow_;
             _inputtingWindow->SubscribeOnKeyboardEvents(this);

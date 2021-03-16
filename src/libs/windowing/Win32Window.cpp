@@ -1,20 +1,12 @@
 #include "Window.hpp"
 
 #include <Windows.h>
-#include "Win32Window.hpp"
 
 namespace OpenDemo
 {
     namespace Windowing
     {
-     /*   Window::Window()
-        {
-        }
-
-        Window::~Window()
-        {
-        }
-
+        /*  
         bool Window::Init(const Description& description)
         {
             // Uint32 windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL; //TODO add gapi flag based on current gapi
@@ -75,32 +67,44 @@ namespace OpenDemo
             glfwSetInputMode(_window, GLFW_CURSOR, value ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
         }*/
 
-        bool Win32Window::Init(const WindowDescription& description)
+        class WindowImpl
+        {
+        };
+
+        Window::Window()
+        {
+        }
+
+        Window::~Window()
+        {
+        }
+
+        bool Window::Init(const WindowDescription& description)
         {
             return false;
         }
 
-        int Win32Window::GetWidth() const
+        int Window::GetWidth() const
         {
             return 0;
         }
 
-        int Win32Window::GetHeight() const
+        int Window::GetHeight() const
         {
             return 0;
         }
 
-        void Win32Window::SetMousePos(int x, int y) const
+        void Window::SetMousePos(int x, int y) const
         {
         }
 
-        void Win32Window::ShowCursor(bool value)
+        void Window::ShowCursor(bool value)
         {
         }
 
-        WindowHandle Win32Window::GetNativeHandle() const
+        std::any Window::GetNativeHandle() const
         {
-            return WindowHandle();
+            return 0;
         }
     }
 }

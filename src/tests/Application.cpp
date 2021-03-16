@@ -1,7 +1,6 @@
 #include "Application.hpp"
 
 #include "windowing/InputtingWindow.hpp"
-#include "windowing/WindowSettings.hpp"
 #include "windowing/Windowing.hpp"
 
 #include "render/RenderContext.hpp"
@@ -50,17 +49,17 @@ namespace OpenDemo
 
         bool Application::init()
         {
-            Windowing::WindowSettings settings;
-            settings.Height = 480;
-            settings.Width = 640;
-            settings.Title = "Tests";
-
-            window_ = std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
-            if (!window_->Init(settings, true))
+            WindowSystem::WindowDescription description;
+            description.Height = 480;
+            description.Width = 640;
+            description.Title = "Tests";
+            /*
+            window_ = Windowing std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
+            if (!window_->Init(description, true))
             {
                 ASSERT_MSG(false, "Error initing window");
                 return false;
-            }
+            }*/
 
             auto& renderContext = Render::RenderContext::Instance();
             renderContext.Init();

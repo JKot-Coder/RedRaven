@@ -11,7 +11,7 @@ namespace OpenDemo
         class IMouseListener;
     }
 
-    namespace Windowing
+    namespace WindowSystem
     {
         class InputtingWindow final : public Window, IListener
         {

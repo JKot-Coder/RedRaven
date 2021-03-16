@@ -46,7 +46,7 @@ namespace OpenDemo
                 // Create a swap chain for the window.
                 D3DCall(dxgiFactory->CreateSwapChainForHwnd(
                     commandQueue.get(),
-                    description.window->GetNativeHandle(),
+                    std::any_cast<HWND>(description.window->GetNativeHandle()),
                     &targetSwapChainDesc,
                     nullptr,
                     nullptr,

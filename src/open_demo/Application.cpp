@@ -14,8 +14,8 @@
 
 #include "render/RenderContext.hpp"
 
-#include "windowing/Windowing.hpp"
 #include "windowing/Window.hpp"
+#include "windowing/WindowSystem.hpp"
 
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
@@ -83,7 +83,7 @@ namespace OpenDemo
 
         while (!_quit)
         {
-            Windowing::Windowing::PoolEvents();
+            Windowing::WindowSystem::PoolEvents();
 
             // renderContext.Submit(commandQueue, commandList);
 
@@ -145,13 +145,12 @@ namespace OpenDemo
         windowDesc.Width = 800;
         windowDesc.Height = 600;
         windowDesc.Title = "OpenDemo";
-        
-        Windowing::Windowing::Subscribe(this);
-        _window = std::make_shared<Windowing::Window>();
-        _window->Init(windowDesc);
 
-       // Inputting::Instance()->Init();
-       // Inputting::Instance()->SubscribeToWindow(_window);
+        Windowing::WindowSystem::Subscribe(this);
+        _window = Windowing::WindowSystem::Create(windowDesc);
+
+        // Inputting::Instance()->Init();
+        // Inputting::Instance()->SubscribeToWindow(_window);
 
         auto& renderContext = Render::RenderContext::Instance();
         renderContext.Init();
@@ -171,10 +170,10 @@ namespace OpenDemo
         _window.reset();
         _window = nullptr;
 
-       // Inputting::Instance()->Terminate();
+        // Inputting::Instance()->Terminate();
 
         // Rendering::Instance()->Terminate();
-        Windowing::Windowing::UnSubscribe(this);
+        Windowing::WindowSystem::UnSubscribe(this);
     }
 
     void Application::loadResouces()

@@ -7,7 +7,7 @@
 
 namespace OpenDemo
 {
-    namespace Windowing
+    namespace WindowSystem
     {
         class InputtingWindow;
     }
@@ -30,7 +30,7 @@ namespace OpenDemo
             void terminate();
 
         private:
-            std::shared_ptr<Windowing::InputtingWindow> window_;
+            std::shared_ptr<WindowSystem::InputtingWindow> window_;
             std::array<std::shared_ptr<GAPI::CommandQueue>, static_cast<size_t>(GAPI::CommandQueueType::Count)> commandQueue_;
         };
     }
