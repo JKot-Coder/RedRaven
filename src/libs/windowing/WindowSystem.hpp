@@ -9,6 +9,10 @@ namespace OpenDemo
         struct WindowDescription;
         class Window;
 
+        #ifdef OS_WINDOWS
+        constexpr char WINDOW_CLASS_NAME[] = "OpenDemoWndClass";
+        #endif
+
         class IListener
         {
         public:

@@ -148,6 +148,7 @@ namespace OpenDemo
 
         Windowing::WindowSystem::Subscribe(this);
         _window = Windowing::WindowSystem::Create(windowDesc);
+        ASSERT(_window);
 
         // Inputting::Instance()->Init();
         // Inputting::Instance()->SubscribeToWindow(_window);

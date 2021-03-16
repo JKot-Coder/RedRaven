@@ -1,5 +1,7 @@
 #include "Window.hpp"
 
+#include "windowing/WindowSystem.hpp"
+
 #include <Windows.h>
 
 namespace OpenDemo
@@ -67,8 +69,48 @@ namespace OpenDemo
             glfwSetInputMode(_window, GLFW_CURSOR, value ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
         }*/
 
+        namespace
+        {
+            static DWORD getWindowStyle(const WindowDescription& description)
+            {
+                DWORD style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+                /* if (window->monitor)
+                style |= WS_POPUP;
+            else
+            {
+                style |= WS_SYSMENU | WS_MINIMIZEBOX;
+
+                if (window->decorated)
+                {
+                    style |= WS_CAPTION;
+
+                    if (window->resizable)
+                        style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
+                }
+                else
+                    style |= WS_POPUP;
+            }*/
+
+                return style;
+            }
+
+            static DWORD getWindowExStyle(const WindowDescription& description)
+            {
+                DWORD style = WS_EX_APPWINDOW;
+
+                /*if (window->monitor || window->floating)
+                    style |= WS_EX_TOPMOST;*/
+
+                return style;
+            }
+
+        }
+
         class WindowImpl
         {
+        public:
+            HWND handle;
         };
 
         Window::Window()
@@ -81,7 +123,23 @@ namespace OpenDemo
 
         bool Window::Init(const WindowDescription& description)
         {
-            return false;
+            DWORD style = getWindowStyle(description);
+            DWORD exStyle = getWindowExStyle(description);
+
+            impl_ = std::make_unique<WindowImpl>();
+
+            impl_->handle = CreateWindowExW(exStyle,
+                                            StringConversions::UTF8ToWString(Windowing::WINDOW_CLASS_NAME).c_str(),
+                                            StringConversions::UTF8ToWString(description.Title).c_str(),
+                                            style,
+                                            CW_USEDEFAULT, CW_USEDEFAULT,
+                                            description.Width, description.Height,
+                                            NULL, NULL,
+                                            GetModuleHandleW(NULL), 0);
+            if (!impl_->handle)
+                return false;
+
+            return true;
         }
 
         int Window::GetWidth() const
@@ -104,7 +162,9 @@ namespace OpenDemo
 
         std::any Window::GetNativeHandle() const
         {
-            return 0;
+            ASSERT(impl_);
+
+            return impl_->handle;
         }
     }
 }

@@ -5,6 +5,8 @@
 
 #include "Windowing/Window.hpp"
 
+#include <Windows.h>
+
 namespace OpenDemo
 {
     using namespace Common;
@@ -33,6 +35,30 @@ namespace OpenDemo
 
         void WindowSystem::PoolEvents()
         {
+            MSG msg;
+
+            while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+            {
+                if (msg.message == WM_QUIT)
+                {
+                    // NOTE: While GLFW does not itself post WM_QUIT, other processes
+                    //       may post it to this one, for example Task Manager
+                    // HACK: Treat WM_QUIT as a close on all windows
+
+                 /*   window = _glfw.windowListHead;
+                    while (window)
+                    {
+                        _glfwInputWindowCloseRequest(window);
+                        window = window->next;
+                    }*/
+                }
+                else
+                {
+                    TranslateMessage(&msg);
+                    DispatchMessageW(&msg);
+                }
+            }
+
             /* glfwPollEvents();
 
 
