@@ -129,7 +129,7 @@ namespace OpenDemo
             impl_ = std::make_unique<WindowImpl>();
 
             impl_->handle = CreateWindowExW(exStyle,
-                                            StringConversions::UTF8ToWString(Windowing::WINDOW_CLASS_NAME).c_str(),
+                                            Windowing::WINDOW_CLASS_NAME,
                                             StringConversions::UTF8ToWString(description.Title).c_str(),
                                             style,
                                             CW_USEDEFAULT, CW_USEDEFAULT,

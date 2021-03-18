@@ -10,7 +10,7 @@ namespace OpenDemo
         class Window;
 
         #ifdef OS_WINDOWS
-        constexpr char WINDOW_CLASS_NAME[] = "OpenDemoWndClass";
+        constexpr wchar_t WINDOW_CLASS_NAME[] = L"OpenDemoWndClass";
         #endif
 
         class IListener
