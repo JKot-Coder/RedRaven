@@ -35,9 +35,14 @@ namespace OpenDemo
         struct EnumClassHash
         {
             template <typename T>
-            std::size_t operator()(T t) const noexcept
+            std::size_t operator()(T value) const noexcept
             {
-                return std::hash<std::underlying_type<T>>(t);
+                using uderlyingType = std::underlying_type<T>;
+
+                static_assert(std::is_enum<T>::value, "Must be a scoped enum!");
+                static_assert(!std::is_convertible<T, typename uderlyingType>::value, "Must be a scoped enum!");
+
+                return std::hash<typename uderlyingType::type> {}(static_cast<typename uderlyingType::type>(value));
             }
         };
 

@@ -18,7 +18,12 @@ namespace OpenDemo
             uint32_t Height = 0;
         };
 
-        class IWindowImpl
+        enum class WindowEvent : uint32_t
+        {
+            CLOSE
+        };
+
+        class IWindowImpl : public EventProvider<WindowEvent>
         {
         public:
             virtual bool Init(const WindowDescription& description) = 0;
@@ -30,12 +35,7 @@ namespace OpenDemo
             virtual std::any GetNativeHandle() const = 0;
         };
 
-        enum class WindowEvents
-        {
-            CLOSE
-        };
-
-        class Window final : public std::enable_shared_from_this<Window>, public EventProvider<WindowEvents>, private NonCopyable
+        class Window final : public std::enable_shared_from_this<Window>, private NonCopyable
         {
         private:
             friend class Windowing::WindowSystem;
@@ -43,8 +43,21 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<Window>;
             using SharedConstPtr = std::shared_ptr<const Window>;
+            using CallBackFunction = EventProvider<WindowEvent>::CallBackFunction;
 
             ~Window();
+
+            inline void Subscribe(WindowEvent eventType, CallBackFunction callback)
+            {
+                ASSERT(impl_);
+                impl_->Subscribe(eventType, callback);
+            }
+
+            inline void Unsubscribe(WindowEvent eventType, CallBackFunction callback)
+            {
+                ASSERT(impl_);
+                impl_->Unsubscribe(eventType, callback);
+            }
 
             inline void ShowCursor(bool value)
             {
