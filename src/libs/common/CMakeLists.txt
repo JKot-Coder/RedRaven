@@ -40,6 +40,7 @@ set( COMMON_SRC
         NonCopyableMovable.hpp
         Singleton.hpp
         EnumClassOperators.hpp
+        EventProvider.hpp
 )
 source_group( "" FILES ${COMMON_SRC} )
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/EventProvider.hpp"
 #include "common/Math.hpp"
 
 #include <any>
@@ -17,9 +18,24 @@ namespace OpenDemo
             uint32_t Height = 0;
         };
 
-        class WindowImpl;
+        class IWindowImpl
+        {
+        public:
+            virtual bool Init(const WindowDescription& description) = 0;
 
-        class Window : public std::enable_shared_from_this<Window>, private NonCopyable
+            virtual void ShowCursor(bool value) = 0;
+
+            virtual int32_t GetWidth() const = 0;
+            virtual int32_t GetHeight() const = 0;
+            virtual std::any GetNativeHandle() const = 0;
+        };
+
+        enum class WindowEvents
+        {
+            CLOSE
+        };
+
+        class Window final : public std::enable_shared_from_this<Window>, public EventProvider<WindowEvents>, private NonCopyable
         {
         private:
             friend class Windowing::WindowSystem;
@@ -30,18 +46,41 @@ namespace OpenDemo
 
             ~Window();
 
-            int GetWidth() const;
-            int GetHeight() const;
-            void SetMousePos(int x, int y) const;
-            void ShowCursor(bool value);
+            inline void ShowCursor(bool value)
+            {
+                ASSERT(impl_);
+                impl_->ShowCursor(value);
+            }
 
-            std::any GetNativeHandle() const;
+            inline int GetWidth() const
+            {
+                ASSERT(impl_);
+                return impl_->GetWidth();
+            }
+
+            inline int GetHeight() const
+            {
+                ASSERT(impl_);
+                return impl_->GetWidth();
+            }
+
+            inline std::any GetNativeHandle() const
+            {
+                ASSERT(impl_);
+                return impl_->GetNativeHandle();
+            }
+
+            IWindowImpl& GetPrivateImpl()
+            {
+                ASSERT(impl_);
+                return *impl_;
+            }
 
         private:
-            Window();
+            Window() = default;
             bool Init(const WindowDescription& description);
 
-            std::unique_ptr<WindowImpl> impl_;
+            std::unique_ptr<IWindowImpl> impl_;
         };
     }
 }

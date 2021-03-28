@@ -32,6 +32,15 @@ namespace OpenDemo
 {
     namespace Common
     {
+        struct EnumClassHash
+        {
+            template <typename T>
+            std::size_t operator()(T t) const noexcept
+            {
+                return std::hash<std::underlying_type<T>>(t);
+            }
+        };
+
         template <typename EnumT>
         bool IsSet(EnumT value, EnumT flag)
         {

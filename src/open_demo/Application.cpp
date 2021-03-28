@@ -81,9 +81,12 @@ namespace OpenDemo
 
         auto fence = renderContext.CreateFence("qwe");
 
+        const auto& windowSystem = Windowing::WindowSystem::Instance();
+
         while (!_quit)
         {
-            Windowing::WindowSystem::PoolEvents();
+            windowSystem.PoolEvents();
+            //Windowing::WindowSystem::PoolEvents();
 
             // renderContext.Submit(commandQueue, commandList);
 
@@ -111,7 +114,7 @@ namespace OpenDemo
                     commandList->Close();
                 });
 
-            renderContext.Submit(commandQueue, commandList);
+           renderContext.Submit(commandQueue, commandList);
 
             renderContext.Present(swapChain_);
             renderContext.MoveToNextFrame(commandQueue);
@@ -146,8 +149,10 @@ namespace OpenDemo
         windowDesc.Height = 600;
         windowDesc.Title = "OpenDemo";
 
-        Windowing::WindowSystem::Subscribe(this);
-        _window = Windowing::WindowSystem::Create(windowDesc);
+        auto& windowSystem = Windowing::WindowSystem::Instance();
+        windowSystem.Init();
+
+        _window = windowSystem.Create(windowDesc);
         ASSERT(_window);
 
         // Inputting::Instance()->Init();
@@ -174,7 +179,7 @@ namespace OpenDemo
         // Inputting::Instance()->Terminate();
 
         // Rendering::Instance()->Terminate();
-        Windowing::WindowSystem::UnSubscribe(this);
+       // Windowing::WindowSystem::UnSubscribe(this);
     }
 
     void Application::loadResouces()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/Math.hpp"
+#include "common/Singleton.hpp"
 
 namespace OpenDemo
 {
@@ -9,9 +9,9 @@ namespace OpenDemo
         struct WindowDescription;
         class Window;
 
-        #ifdef OS_WINDOWS
+#ifdef OS_WINDOWS
         constexpr wchar_t WINDOW_CLASS_NAME[] = L"OpenDemoWndClass";
-        #endif
+#endif
 
         class IListener
         {
@@ -34,7 +34,7 @@ namespace OpenDemo
                 (void)window;
                 (void)keysym;
             }
-            */
+           
             virtual void OnMouseMotion(const Window& window, const Vector2i& position, const Vector2i& relative)
             {
                 (void)window;
@@ -51,23 +51,27 @@ namespace OpenDemo
                 (void)window;
                 (void)button;
             }
-
+             */
             virtual void OnQuit() {};
         };
 
-        class WindowSystem
+        class WindowSystem final : public Singleton<WindowSystem>
         {
         public:
             WindowSystem();
             ~WindowSystem();
 
-            static std::shared_ptr<Window> Create(const WindowDescription& description);
-            static void PoolEvents();
-            static void Subscribe(IListener* listener);
-            static void UnSubscribe(const IListener* listener);
+            void Init();
+
+            std::shared_ptr<Window> Create(const WindowDescription& description) const;
+            void PoolEvents() const;
+
+            void Subscribe(IListener* listener);
+            void UnSubscribe(const IListener* listener);
 
         private:
-            static std::vector<IListener*> _listeners;
+            std::vector<IListener*> _listeners;
+            bool isInited_ = false;
         };
     }
 }
