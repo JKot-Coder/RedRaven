@@ -31,10 +31,11 @@ namespace OpenDemo
         using std::log2;
 
         // Enum used for object construction specifying how the object should initialized.
-        enum Initialization
+        enum class Initialization
         {
             Identity
         };
+        constexpr auto Identity = Initialization::Identity;
 
         // Angles
         enum class AngleUnitType
@@ -930,7 +931,7 @@ namespace OpenDemo
 
             Vector<3, FloatFormat>& xyz() const { return *((Vector<3, FloatFormat>*)&x); }
 
-            Quaternion() { }
+            Quaternion() = default;
 
             Quaternion(FloatFormat x, FloatFormat y, FloatFormat z, FloatFormat w)
                 : x(x), y(y), z(z), w(w)
