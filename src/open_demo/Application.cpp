@@ -142,6 +142,14 @@ namespace OpenDemo
         _quit = true;
     }
 
+    #define EVENT_HANDLER(function) [this]() { function(); }
+
+
+    void Application::Close()
+    {
+    
+    }
+
     void Application::init()
     {
         Windowing::WindowDescription windowDesc;
@@ -155,6 +163,11 @@ namespace OpenDemo
         _window = windowSystem.Create(windowDesc);
         ASSERT(_window);
 
+         _window->Subscribe(Windowing::WindowEvent::CLOSE, EVENT_HANDLER(Close));
+        _window->Subscribe(Windowing::WindowEvent::CLOSE, EVENT_HANDLER(Close));
+         _window->Subscribe(Windowing::WindowEvent::CLOSE, EVENT_HANDLER(Close));
+        _window->Subscribe(Windowing::WindowEvent::CLOSE, EVENT_HANDLER(Close));
+        _window->Unsubscribe(Windowing::WindowEvent::CLOSE, EVENT_HANDLER(Close));
         // Inputting::Instance()->Init();
         // Inputting::Instance()->SubscribeToWindow(_window);
 

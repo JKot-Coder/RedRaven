@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
+#include <functional>
 
 using namespace OpenDemo::Common;
 using namespace OpenDemo::Common::Debug;

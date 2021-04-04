@@ -1,8 +1,7 @@
 #pragma once
 
 #include "common/EnumClassOperators.hpp"
-
-#include <unordered_map>
+#include <map>
 
 namespace OpenDemo
 {
@@ -16,41 +15,44 @@ namespace OpenDemo
                           "Must be a scoped enum!");
 
         public:
-            using CallBackFunction = std::function<void(int)>;
+            using CallBackFunction = std::function<void()>;
 
             void Subscribe(EventEnumClass eventType, CallBackFunction function)
             {
-                std::ignore = function;
+                const size_t functionAdress = *reinterpret_cast<size_t*>(reinterpret_cast<char*>(&function));
+                Log::Print::Info("Adresss: %zx \n", functionAdress);
 
-                auto callbacksVector = eventsCallbacks_.find(eventType);
-
-                if (callbacksVector == eventsCallbacks_.end())
-                {
-                    eventsCallbacks_.emplace(eventType, std::vector<CallBackFunction>());
-                }
+                eventsCallbacks_.insert(std::make_pair(eventType, function));
             }
 
             void Unsubscribe(EventEnumClass eventType, CallBackFunction function)
             {
-                std::ignore = eventType;
-                std::ignore = function;
+                const size_t functionAdress = *reinterpret_cast<size_t*>(reinterpret_cast<char*>(&function));
+                const auto& subscribers = eventsCallbacks_.equal_range(eventType);
+
+                Log::Print::Info("Adresss: %zx \n", functionAdress);
+
+                for (auto it = subscribers.first; it != subscribers.second; it++)
+                {
+                    const size_t subscriberAdress = *reinterpret_cast<long*>(reinterpret_cast<char*>(&(*it)));
+                    if (subscriberAdress == functionAdress)
+                        eventsCallbacks_.erase(it);
+                }
             }
 
         protected:
             void FireEvent(EventEnumClass eventType)
             {
-                auto& callbacksVector = eventsCallbacks_.find(eventType);
+                const auto& equalRange = eventsCallbacks_.equal_range(eventType);
 
-                if (callbacksVector == eventsCallbacks_.end())
+                for (auto it = equalRange.first; it != equalRange.second; it++)
                 {
-                    eventsCallbacks_.emplace(eventType, std::vector<CallBackFunction>());
+                    //it.second->();
                 }
-
-                callbacksVector.
             }
 
         private:
-            std::unordered_map<EventEnumClass, std::vector<CallBackFunction>, EnumClassHash> eventsCallbacks_;
+            std::multimap<EventEnumClass, CallBackFunction> eventsCallbacks_;
         };
     }
 }

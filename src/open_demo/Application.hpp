@@ -17,6 +17,8 @@ namespace OpenDemo
 
         void Start();
         virtual void OnQuit() override;
+        void Close();
+
 
     private:
         bool _quit = false;
