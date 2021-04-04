@@ -7,8 +7,6 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/MP>")
 message(warning ${CMAKE_BINARY_DIR})
 
 include(FetchContent)
-include("build/conanbuildinfo_multi.cmake")
-conan_basic_setup(TARGETS)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 

@@ -17,8 +17,7 @@ set(OPEN_DEMO_LINK_LIBRARIES
         windowing
         render
         STB
-        ghc_filesystem
-        CONAN_PKG::Assimp)
+        ghc_filesystem)
         
 set(OPEN_DEMO_DEFINITIONS
         ${OPEN_DEMO_PLATFORM_DEFINITIONS}
