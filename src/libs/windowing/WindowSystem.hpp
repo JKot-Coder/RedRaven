@@ -1,59 +1,16 @@
 #pragma once
 
+#include "windowing/Window.hpp"
+
 #include "common/Singleton.hpp"
 
 namespace OpenDemo
 {
     namespace Windowing
     {
-        struct WindowDescription;
-        class Window;
-
 #ifdef OS_WINDOWS
         constexpr wchar_t WINDOW_CLASS_NAME[] = L"OpenDemoWndClass";
 #endif
-
-        class IListener
-        {
-        public:
-            virtual void OnWindowShown(const Window& window) { (void)window; };
-            virtual void OnWindowHidden(const Window& window) { (void)window; };
-
-            virtual void OnWindowFocusGained(const Window& window) { (void)window; };
-            virtual void OnWindowFocusLost(const Window& window) { (void)window; };
-
-            virtual void OnWindowResize(const Window& window) { (void)window; };
-            /*
-            virtual void OnKeyUp(const Window& window, const SDL_Keysym& keysym)
-            {
-                (void)window;
-                (void)keysym;
-            }
-            virtual void OnKeyDown(const Window& window, const SDL_Keysym& keysym)
-            {
-                (void)window;
-                (void)keysym;
-            }
-           
-            virtual void OnMouseMotion(const Window& window, const Vector2i& position, const Vector2i& relative)
-            {
-                (void)window;
-                (void)position;
-                (void)relative;
-            }
-            virtual void OnMouseButtonUp(const Window& window, uint32_t button)
-            {
-                (void)window;
-                (void)button;
-            }
-            virtual void OnMouseButtonDown(const Window& window, uint32_t button)
-            {
-                (void)window;
-                (void)button;
-            }
-             */
-            virtual void OnQuit() {};
-        };
 
         class WindowSystem final : public Singleton<WindowSystem>
         {
@@ -63,14 +20,10 @@ namespace OpenDemo
 
             void Init();
 
-            std::shared_ptr<Window> Create(const WindowDescription& description) const;
+            std::shared_ptr<Window> Create(Window::ICallbacks* callbacks, const Window::Description& description) const;
             void PoolEvents() const;
 
-            void Subscribe(IListener* listener);
-            void UnSubscribe(const IListener* listener);
-
         private:
-            std::vector<IListener*> _listeners;
             bool isInited_ = false;
         };
     }

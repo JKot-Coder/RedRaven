@@ -20,17 +20,26 @@ namespace OpenDemo
         {
 #ifdef OS_WINDOWS
             const auto handle = glfwGetWin32Window(glfwWindow);
-            const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);
-            ASSERT(windowPtr);
 
+            const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);
             auto windowImpl = static_cast<GlfwWindowImpl*>(windowPtr);
-  
+            ASSERT(windowImpl);
+
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(handle, &ps);
 
             FillRect(hdc, &ps.rcPaint, windowImpl->bgBrush_);
             EndPaint(handle, &ps);
 #endif
+        }
+
+        void GlfwWindowImpl::windowCloseCallback(GLFWwindow* glfwWindow)
+        {
+            const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);       
+            auto windowImpl = static_cast<GlfwWindowImpl*>(windowPtr);
+            ASSERT(windowImpl);
+
+            windowImpl->callbacks_->OnClose();
         }
 
         GlfwWindowImpl::~GlfwWindowImpl()
@@ -43,16 +52,19 @@ namespace OpenDemo
 #endif
         }
 
-        bool GlfwWindowImpl::Init(const WindowDescription& description)
+        bool GlfwWindowImpl::Init(Window::ICallbacks* callbacks, const Window::Description& description)
         {
             ASSERT(!window_);
+            ASSERT(callbacks);
 
+            callbacks_ = callbacks;
             window_ = glfwCreateWindow(description.Width, description.Height, description.Title.c_str(), nullptr, nullptr);
 
             if (!window_)
                 return false;
 
             glfwSetWindowRefreshCallback(window_, &windowUpdateCallback);
+            glfwSetWindowCloseCallback(window_, &windowCloseCallback);
             glfwSetWindowUserPointer(window_, this);
 
 #ifdef OS_WINDOWS

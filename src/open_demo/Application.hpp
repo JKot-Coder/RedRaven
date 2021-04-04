@@ -10,15 +10,13 @@ namespace OpenDemo
         class InputtingWindow;
     }
 
-    class Application : public Windowing::IListener
+    class Application : public Windowing::Window::ICallbacks
     {
     public:
         Application() = default;
 
         void Start();
-        virtual void OnQuit() override;
-        void Close();
-
+        virtual void OnClose() override;
 
     private:
         bool _quit = false;

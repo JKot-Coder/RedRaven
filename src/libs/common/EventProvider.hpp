@@ -7,6 +7,10 @@ namespace OpenDemo
 {
     namespace Common
     {
+        // This class has problems: to unsubscribe need to provide the exact same lamba which we subscribe.
+        // So, we should hold all lambdas for subscribe and unsubscribe.
+        // This class is candidate to remove
+
         template <typename EventEnumClass>
         class EventProvider
         {

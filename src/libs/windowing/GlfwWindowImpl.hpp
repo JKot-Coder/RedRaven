@@ -17,7 +17,7 @@ namespace OpenDemo
         public:
             ~GlfwWindowImpl();
 
-            bool Init(const WindowDescription& description) override;
+            bool Init(Window::ICallbacks* callbacks, const Window::Description& description) override;
 
             void ShowCursor(bool value) override;
             int32_t GetWidth() const override;
@@ -26,8 +26,10 @@ namespace OpenDemo
 
         private:
             static void windowUpdateCallback(GLFWwindow* glfwWindow);
+            static void windowCloseCallback(GLFWwindow* glfwWindow);
 
         private:
+            Window::ICallbacks* callbacks_;
             GLFWwindow* window_;
 #ifdef OS_WINDOWS
             HBRUSH bgBrush_;

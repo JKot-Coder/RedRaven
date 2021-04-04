@@ -20,12 +20,12 @@ namespace OpenDemo
             impl_.reset();
         }
 
-        bool Window::Init(const WindowDescription& description)
+        bool Window::Init(Window::ICallbacks* callbacks, const Window::Description& description)
         {
             ASSERT(!impl_)
 
             impl_ = std::make_unique<GlfwWindowImpl>();
-            return impl_->Init(description);
+            return impl_->Init(callbacks, description);
         }
     }
 }

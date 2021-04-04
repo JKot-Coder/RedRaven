@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/EventProvider.hpp"
 #include "common/Math.hpp"
 
 #include <any>
@@ -10,23 +9,86 @@ namespace OpenDemo
     namespace Windowing
     {
         class WindowSystem;
+        class IWindowImpl;
 
-        struct WindowDescription
-        {
-            U8String Title = "";
-            uint32_t Width = 0;
-            uint32_t Height = 0;
-        };
-
-        enum class WindowEvent : uint32_t
-        {
-            CLOSE
-        };
-
-        class IWindowImpl : public EventProvider<WindowEvent>
+        class Window final : public std::enable_shared_from_this<Window>, private NonCopyable
         {
         public:
-            virtual bool Init(const WindowDescription& description) = 0;
+            using SharedPtr = std::shared_ptr<Window>;
+            using SharedConstPtr = std::shared_ptr<const Window>;
+
+            class ICallbacks
+            {
+            public:
+                virtual void OnWindowShown(const Window& window) { (void)window; };
+                virtual void OnWindowHidden(const Window& window) { (void)window; };
+
+                virtual void OnWindowFocusGained(const Window& window) { (void)window; };
+                virtual void OnWindowFocusLost(const Window& window) { (void)window; };
+
+                virtual void OnWindowResize(const Window& window) { (void)window; };
+                /*
+            virtual void OnKeyUp(const Window& window, const SDL_Keysym& keysym)
+            {
+                (void)window;
+                (void)keysym;
+            }
+            virtual void OnKeyDown(const Window& window, const SDL_Keysym& keysym)
+            {
+                (void)window;
+                (void)keysym;
+            }
+           
+            virtual void OnMouseMotion(const Window& window, const Vector2i& position, const Vector2i& relative)
+            {
+                (void)window;
+                (void)position;
+                (void)relative;
+            }
+            virtual void OnMouseButtonUp(const Window& window, uint32_t button)
+            {
+                (void)window;
+                (void)button;
+            }
+            virtual void OnMouseButtonDown(const Window& window, uint32_t button)
+            {
+                (void)window;
+                (void)button;
+            }
+             */
+                virtual void OnClose() {};
+            };
+
+            struct Description
+            {
+                U8String Title = "";
+                uint32_t Width = 0;
+                uint32_t Height = 0;
+            };
+
+        public:
+            ~Window();
+
+            inline void ShowCursor(bool value);
+            inline int GetWidth() const;
+            inline int GetHeight() const;
+            inline std::any GetNativeHandle() const;
+            IWindowImpl& GetPrivateImpl();
+
+        private:
+            Window() = default;
+            bool Init(ICallbacks* callbacks, const Description& description);
+
+            std::unique_ptr<IWindowImpl> impl_;
+
+        private:
+            friend class Windowing::WindowSystem;
+        };
+
+        class IWindowImpl
+        {
+        public:
+            virtual bool Init(Window::ICallbacks* callbacks, const Window::Description& description) = 0;
 
             virtual void ShowCursor(bool value) = 0;
 
@@ -35,65 +97,34 @@ namespace OpenDemo
             virtual std::any GetNativeHandle() const = 0;
         };
 
-        class Window final : public std::enable_shared_from_this<Window>, private NonCopyable
+        inline void Window::ShowCursor(bool value)
         {
-        private:
-            friend class Windowing::WindowSystem;
+            ASSERT(impl_);
+            impl_->ShowCursor(value);
+        }
 
-        public:
-            using SharedPtr = std::shared_ptr<Window>;
-            using SharedConstPtr = std::shared_ptr<const Window>;
-            using CallBackFunction = EventProvider<WindowEvent>::CallBackFunction;
+        inline int Window::GetWidth() const
+        {
+            ASSERT(impl_);
+            return impl_->GetWidth();
+        }
 
-            ~Window();
+        inline int Window::GetHeight() const
+        {
+            ASSERT(impl_);
+            return impl_->GetWidth();
+        }
 
-            inline void Subscribe(WindowEvent eventType, CallBackFunction callback)
-            {
-                ASSERT(impl_);
-                impl_->Subscribe(eventType, callback);
-            }
+        inline std::any Window::GetNativeHandle() const
+        {
+            ASSERT(impl_);
+            return impl_->GetNativeHandle();
+        }
 
-            inline void Unsubscribe(WindowEvent eventType, CallBackFunction callback)
-            {
-                ASSERT(impl_);
-                impl_->Unsubscribe(eventType, callback);
-            }
-
-            inline void ShowCursor(bool value)
-            {
-                ASSERT(impl_);
-                impl_->ShowCursor(value);
-            }
-
-            inline int GetWidth() const
-            {
-                ASSERT(impl_);
-                return impl_->GetWidth();
-            }
-
-            inline int GetHeight() const
-            {
-                ASSERT(impl_);
-                return impl_->GetWidth();
-            }
-
-            inline std::any GetNativeHandle() const
-            {
-                ASSERT(impl_);
-                return impl_->GetNativeHandle();
-            }
-
-            IWindowImpl& GetPrivateImpl()
-            {
-                ASSERT(impl_);
-                return *impl_;
-            }
-
-        private:
-            Window() = default;
-            bool Init(const WindowDescription& description);
-
-            std::unique_ptr<IWindowImpl> impl_;
-        };
+        inline IWindowImpl& Window::GetPrivateImpl()
+        {
+            ASSERT(impl_);
+            return *impl_;
+        }
     }
 }
