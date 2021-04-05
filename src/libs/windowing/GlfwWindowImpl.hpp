@@ -26,6 +26,7 @@ namespace OpenDemo
 
         private:
             static void windowUpdateCallback(GLFWwindow* glfwWindow);
+            static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
             static void windowCloseCallback(GLFWwindow* glfwWindow);
 
         private:

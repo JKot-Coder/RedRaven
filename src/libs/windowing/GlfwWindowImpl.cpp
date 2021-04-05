@@ -33,9 +33,22 @@ namespace OpenDemo
 #endif
         }
 
+        void GlfwWindowImpl::windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
+        {
+            ASSERT(width >= 0);
+            ASSERT(height >= 0);
+
+            const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);
+            auto windowImpl = static_cast<GlfwWindowImpl*>(windowPtr);
+            ASSERT(windowImpl);
+
+            windowImpl->callbacks_->OnWindowResize(static_cast<uint32_t>(width),
+                                                   static_cast<uint32_t>(height));
+        }
+
         void GlfwWindowImpl::windowCloseCallback(GLFWwindow* glfwWindow)
         {
-            const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);       
+            const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);
             auto windowImpl = static_cast<GlfwWindowImpl*>(windowPtr);
             ASSERT(windowImpl);
 
@@ -64,6 +77,7 @@ namespace OpenDemo
                 return false;
 
             glfwSetWindowRefreshCallback(window_, &windowUpdateCallback);
+            glfwSetWindowSizeCallback(window_, &windowResizeCallback);
             glfwSetWindowCloseCallback(window_, &windowCloseCallback);
             glfwSetWindowUserPointer(window_, this);
 

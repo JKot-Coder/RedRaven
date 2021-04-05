@@ -20,13 +20,15 @@ namespace OpenDemo
             class ICallbacks
             {
             public:
-                virtual void OnWindowShown(const Window& window) { (void)window; };
-                virtual void OnWindowHidden(const Window& window) { (void)window; };
+                virtual void OnWindowShown() {};
+                virtual void OnWindowHidden() {};
 
-                virtual void OnWindowFocusGained(const Window& window) { (void)window; };
-                virtual void OnWindowFocusLost(const Window& window) { (void)window; };
+                virtual void OnWindowFocusGained() {};
+                virtual void OnWindowFocusLost() {};
 
-                virtual void OnWindowResize(const Window& window) { (void)window; };
+                // clang-format off
+                virtual void OnWindowResize(uint32_t width, uint32_t height) { (void)width; (void)height; };
+                // clang-format on
                 /*
             virtual void OnKeyUp(const Window& window, const SDL_Keysym& keysym)
             {

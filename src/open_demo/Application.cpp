@@ -27,11 +27,11 @@ namespace OpenDemo
     static uint32_t index = 0;
     static uint32_t frame = 0;
 
-    void Application::OnWindowResize(const Windowing::Window& window_)
+    void Application::OnWindowResize(uint32_t width, uint32_t height)
     {
         GAPI::SwapChainDescription desc = swapChain_->GetDescription();
-        desc.width = window_.GetWidth();
-        desc.height = window_.GetHeight();
+        desc.width = width;
+        desc.height = height;
 
         auto& renderContext = Render::RenderContext::Instance();
         renderContext.ResetSwapChain(swapChain_, desc);
@@ -66,6 +66,9 @@ namespace OpenDemo
 
         auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
         auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
+
+        const auto desc = GAPI::TextureDescription::Create2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, 1, 1);
+        auto texture = renderContext.CreateTexture(desc, GAPI::GpuResourceBindFlags::RenderTarget);
         //  ASSERT(commandList)
         // commandList->Close();
 
@@ -102,19 +105,23 @@ namespace OpenDemo
 
             // auto index2 = index;
             renderContext.ExecuteAsync(
-                [swapChain = swapChain_, index2 = index, commandList](GAPI::Device& device) {
+                [swapChain = swapChain_, index2 = index, commandList, texture](GAPI::Device& device) {
                     std::ignore = device;
 
-                    auto texture = swapChain->GetTexture(index2);
+                    auto swapChainTexture = swapChain->GetTexture(index2);
                     //Log::Print::Info("Texture %s\n", texture->GetName());
 
-                    auto rtv = texture->GetRTV();
+                    auto swapChainRtv = swapChainTexture->GetRTV();
+                    auto blueRtv = texture->GetRTV();
 
-                    commandList->ClearRenderTargetView(rtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
+                    commandList->ClearRenderTargetView(blueRtv, Vector4(0, 0, 1, 1));
+                    commandList->ClearRenderTargetView(swapChainRtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
+                    commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
+
                     commandList->Close();
                 });
 
-           renderContext.Submit(commandQueue, commandList);
+            renderContext.Submit(commandQueue, commandList);
 
             renderContext.Present(swapChain_);
             renderContext.MoveToNextFrame(commandQueue);
@@ -155,7 +162,6 @@ namespace OpenDemo
         _window = windowSystem.Create(this, windowDesc);
         ASSERT(_window);
 
-
         // Inputting::Instance()->Init();
         // Inputting::Instance()->SubscribeToWindow(_window);
 
@@ -180,7 +186,7 @@ namespace OpenDemo
         // Inputting::Instance()->Terminate();
 
         // Rendering::Instance()->Terminate();
-       // Windowing::WindowSystem::UnSubscribe(this);
+        // Windowing::WindowSystem::UnSubscribe(this);
     }
 
     void Application::loadResouces()

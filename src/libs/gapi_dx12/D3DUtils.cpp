@@ -89,8 +89,8 @@ namespace OpenDemo
 
                 DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect)
                 {
-                    ASSERT(description.width > 0);
-                    ASSERT(description.height > 0);
+                    ASSERT(description.width >= 0);
+                    ASSERT(description.height >= 0);
                     ASSERT(description.bufferCount > 0 && description.bufferCount <= MAX_BACK_BUFFER_COUNT);
 
                     DXGI_SWAP_CHAIN_DESC1 output;

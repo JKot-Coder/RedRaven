@@ -29,6 +29,6 @@ namespace OpenDemo
 
         void loadResouces();
 
-        void OnWindowResize(const Windowing::Window& window) override;
+        void OnWindowResize(uint32_t width, uint32_t height) override;
     };
 }
