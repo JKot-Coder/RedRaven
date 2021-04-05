@@ -2,6 +2,8 @@ project (gapi)
 
 set(GAPI_SRC
         CommandList.hpp
+        CommandList.cpp
+        CommandList.inl
         CommandQueue.hpp
         Device.hpp
         Fence.hpp

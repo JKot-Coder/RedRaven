@@ -243,6 +243,8 @@ namespace OpenDemo
         {
             ASSERT(inited_);
             ASSERT(swapchain);
+            ASSERT(desc.GetDimension() == GAPI::TextureDimension::Texture2D);
+            ASSERT(desc.GetNumSubresources() == 1);
 
             auto& resource = GAPI::Texture::Create(desc, bindFlags, GAPI::GpuResourceCpuAccess::None, name, GPIObjectsDeleter<GAPI::Texture>());
             swapchain->InitBackBufferTexture(backBufferIndex, resource);

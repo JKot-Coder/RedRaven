@@ -1,5 +1,5 @@
 #include "LinearAllocator.hpp"
 
-#ifndef USE_INLINE
+#if !ENABLE_INLINE
 #include "LinearAllocator.inl"
 #endif

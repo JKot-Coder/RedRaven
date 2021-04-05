@@ -18,8 +18,8 @@ namespace OpenDemo
         {
             GpuResourceViewDescription createViewDesctiption(const TextureDescription& resDesctiption, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
             {
-                const auto resArraySize = resDesctiption.arraySize;
-                const auto resMipLevels = resDesctiption.mipLevels;
+                const auto resArraySize = resDesctiption.GetArraySize();
+                const auto resMipLevels = resDesctiption.GetMipCount();
 
                 ASSERT(firstArraySlice < resArraySize);
                 ASSERT(mipLevel < resMipLevels);

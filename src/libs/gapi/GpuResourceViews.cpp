@@ -18,8 +18,8 @@ namespace OpenDemo
             {
                 const auto texture = sharedGpuResource->GetTyped<Texture>();
 
-                ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= texture->GetDescription().mipLevels);
-                ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= texture->GetDescription().arraySize);
+                ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= texture->GetDescription().GetMipCount());
+                ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= texture->GetDescription().GetArraySize());
             }
             else
             {
@@ -40,8 +40,8 @@ namespace OpenDemo
 
             const auto sharedTexutre = texture.lock();
 
-            ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= sharedTexutre->GetDescription().mipLevels);
-            ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= sharedTexutre->GetDescription().arraySize);
+            ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= sharedTexutre->GetDescription().GetMipCount());
+            ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= sharedTexutre->GetDescription().GetArraySize());
             ASSERT(IsSet(sharedTexutre->GetBindFlags(), GpuResourceBindFlags::RenderTarget));
         }
 
@@ -53,8 +53,8 @@ namespace OpenDemo
 
             const auto sharedTexutre = texture.lock();
 
-            ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= sharedTexutre->GetDescription().mipLevels)
-            ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= sharedTexutre->GetDescription().arraySize)
+            ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= sharedTexutre->GetDescription().GetMipCount())
+            ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= sharedTexutre->GetDescription().GetArraySize())
             ASSERT(IsSet(sharedTexutre->GetBindFlags(), GpuResourceBindFlags::RenderTarget));
         }
 
@@ -70,8 +70,8 @@ namespace OpenDemo
             {
                 const auto texture = sharedGpuResource->GetTyped<Texture>();
 
-                ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= texture->GetDescription().mipLevels);
-                ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= texture->GetDescription().arraySize);
+                ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= texture->GetDescription().GetMipCount());
+                ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= texture->GetDescription().GetArraySize());
             }
             else
             {

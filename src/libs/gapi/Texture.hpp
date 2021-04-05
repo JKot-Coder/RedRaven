@@ -46,6 +46,17 @@ namespace OpenDemo
                 return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
             }
 
+            GpuResourceFormat GetFormat() const { return format; }
+            TextureDimension GetDimension() const { return dimension; }
+            uint32_t GetWidth(uint32_t mipLevel = 0) const { return (mipLevel < mipLevels) ? std::max(1U, width >> mipLevel) : 0u; }
+            uint32_t GetHeight(uint32_t mipLevel = 0) const { return (mipLevel < mipLevels) ? std::max(1U, height >> mipLevel) : 0u; }
+            uint32_t GetDepth(uint32_t mipLevel = 0) const { return (mipLevel < mipLevels) ? std::max(1U, depth >> mipLevel) : 0u; }
+            uint32_t GetSampleCount() const { return sampleCount; }
+            uint32_t GetMipCount() const { return mipLevels; }
+            uint32_t GetArraySize() const { return arraySize; }
+
+            uint32_t GetSubresourceMipLevel(uint32_t subresource) const { return subresource % mipLevels; }
+
             uint32_t GetNumSubresources() const
             {
                 constexpr uint32_t planeSlices = 1;
@@ -72,15 +83,6 @@ namespace OpenDemo
             }
             inline friend bool operator!=(const TextureDescription& lhs, const TextureDescription& rhs) { return !(lhs == rhs); }
 
-            GpuResourceFormat format;
-            TextureDimension dimension = TextureDimension::Unknown;
-            uint32_t width = 0;
-            uint32_t height = 0;
-            uint32_t depth = 0;
-            uint32_t mipLevels = 0;
-            uint32_t sampleCount = 0;
-            uint32_t arraySize = 0;
-
         private:
             TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
                 : dimension(dimension),
@@ -94,6 +96,19 @@ namespace OpenDemo
                   mipLevels(std::min(GetMaxMipLevel(), mipLevels))
             {
             }
+
+        private:
+            GpuResourceFormat format;
+            TextureDimension dimension = TextureDimension::Unknown;
+            uint32_t width = 0;
+            uint32_t height = 0;
+            uint32_t depth = 0;
+            uint32_t mipLevels = 0;
+            uint32_t sampleCount = 0;
+            uint32_t arraySize = 0;
+
+        private:
+            friend class Texture;
         };
 
         /*

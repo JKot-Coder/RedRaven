@@ -90,7 +90,7 @@ namespace OpenDemo
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(!D3DResource_);
 
-                const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
+                const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.GetFormat());
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
                 D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;

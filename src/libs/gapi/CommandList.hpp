@@ -92,43 +92,17 @@ namespace OpenDemo
             using SharedPtr = std::shared_ptr<CopyCommandList>;
             using SharedConstPtr = std::shared_ptr<const CopyCommandList>;
 
-            inline void CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer)
-            {
-                GetPrivateImpl()->CopyBuffer(sourceBuffer, destBuffer);
-            }
+            void CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer);
+            void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                  const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes);
+            void CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture);
+            void CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                        const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx);
+            void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                              const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint);
 
-            inline void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
-                                         const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes)
-            {
-                GetPrivateImpl()->CopyBufferRegion(sourceBuffer, sourceOffset, destBuffer, destOffset, numBytes);
-            }
-
-            inline void CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture)
-            {
-                GetPrivateImpl()->CopyTexture(sourceTexture, destTexture);
-            }
-
-            inline void CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
-                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx)
-            {
-                GetPrivateImpl()->CopyTextureSubresource(sourceTexture, sourceSubresourceIdx, destTexture, destSubresourceIdx);
-            }
-
-            inline void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
-                                                     const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
-            {
-                GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
-            }
-
-            inline void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
-            {
-                GetPrivateImpl()->UpdateTexture(texture, textureData);
-            }
-
-            inline void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
-            {
-                GetPrivateImpl()->ReadbackTexture(texture, textureData);
-            }
+            void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData);
+            void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData);
 
         private:
             template <class Deleter>
@@ -196,3 +170,7 @@ namespace OpenDemo
         };
     }
 }
+
+#if ENABLE_INLINE && !ENABLE_ASSERTS
+#include "CommandList.inl"
+#endif

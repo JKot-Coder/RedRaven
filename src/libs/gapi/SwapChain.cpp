@@ -45,7 +45,7 @@ namespace OpenDemo
             if (backBuffers_[backBufferIndex])
                 return backBuffers_[backBufferIndex];
 
-            const TextureDescription desc = TextureDescription::Create2D(1, 1, description_.gpuResourceFormat);
+            const TextureDescription desc = TextureDescription::Create2D(description_.width, description_.height, description_.gpuResourceFormat, 1, 1);
             auto& renderContext = Render::RenderContext::Instance();
 
             backBuffers_[backBufferIndex] = renderContext.CreateSwapChainBackBuffer(

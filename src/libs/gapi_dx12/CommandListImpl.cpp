@@ -181,13 +181,6 @@ namespace OpenDemo
                 const auto destImpl = destTexture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(destImpl);
 
-#ifdef ENABLE_ASSERTS
-                const auto& sourceDesc = sourceTexture->GetDescription();
-                const auto& destDesc = destTexture->GetDescription();
-                ASSERT(sourceSubresourceIdx < sourceDesc.GetNumSubresources());
-                ASSERT(destSubresourceIdx < destDesc.GetNumSubresources());
-#endif
-
                 CD3DX12_TEXTURE_COPY_LOCATION dst(destImpl->GetD3DObject().get(), destSubresourceIdx);
                 CD3DX12_TEXTURE_COPY_LOCATION src(sourceImpl->GetD3DObject().get(), sourceSubresourceIdx);
                 D3DCommandList_->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
@@ -206,13 +199,6 @@ namespace OpenDemo
 
                 const auto destImpl = destTexture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(destImpl);
-
-#ifdef ENABLE_ASSERTS
-                const auto& sourceDesc = sourceTexture->GetDescription();
-                const auto& destDesc = destTexture->GetDescription();
-                ASSERT(sourceSubresourceIdx < sourceDesc.GetNumSubresources());
-                ASSERT(destSubresourceIdx < destDesc.GetNumSubresources());
-#endif
 
                 const D3D12_BOX box = {
                     sourceBox.left,

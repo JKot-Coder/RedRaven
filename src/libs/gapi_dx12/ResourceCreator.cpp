@@ -75,12 +75,12 @@ namespace OpenDemo
                 DescType CreateDsvRtvUavDescCommon(const TextureDescription& textureDescription, const GpuResourceViewDescription& description)
                 {
                     DescType result = {};
-                    result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(textureDescription.dimension, textureDescription.arraySize > 1);
+                    result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(textureDescription.GetDimension(), textureDescription.GetArraySize() > 1);
 
-                    const uint32_t arrayMultiplier = (textureDescription.dimension == TextureDimension::TextureCube) ? 6 : 1;
-                    ASSERT((description.texture.firstArraySlice + description.texture.arraySliceCount) * arrayMultiplier <= textureDescription.arraySize)
+                    const uint32_t arrayMultiplier = (textureDescription.GetDimension() == TextureDimension::TextureCube) ? 6 : 1;
+                    ASSERT((description.texture.firstArraySlice + description.texture.arraySliceCount) * arrayMultiplier <= textureDescription.GetArraySize())
 
-                    switch (textureDescription.dimension)
+                    switch (textureDescription.GetDimension())
                     {
                     case TextureDimension::Texture1D:
                         if (description.texture.arraySliceCount > 1)
@@ -113,7 +113,7 @@ namespace OpenDemo
                     default:
                         LOG_FATAL("Unsupported resource view type");
                     }
-                    result.Format = TypeConversions::GetGpuResourceFormat(textureDescription.format);
+                    result.Format = TypeConversions::GetGpuResourceFormat(textureDescription.GetFormat());
 
                     return result;
                 }
@@ -125,9 +125,9 @@ namespace OpenDemo
 
                     DescType result = CreateDsvRtvUavDescCommon<DescType>(textureDescription, description);
 
-                    if (textureDescription.dimension == TextureDimension::Texture2DMS)
+                    if (textureDescription.GetDimension() == TextureDimension::Texture2DMS)
                     {
-                        if (textureDescription.arraySize > 1)
+                        if (textureDescription.GetArraySize() > 1)
                         {
                             result.Texture2DMSArray.ArraySize = description.texture.firstArraySlice;
                             result.Texture2DMSArray.FirstArraySlice = description.texture.arraySliceCount;
