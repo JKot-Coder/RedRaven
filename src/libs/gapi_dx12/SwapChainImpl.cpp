@@ -2,14 +2,14 @@
 
 #include "gapi/SwapChain.hpp"
 
-#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
+#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
-#include <Windows.h>
 #include "windowing/Window.hpp"
+#include <Windows.h>
 
 namespace OpenDemo
 {
@@ -105,7 +105,7 @@ namespace OpenDemo
                 ASSERT(!resource->GetPrivateImpl());
                 ASSERT(D3DSwapChain_);
                 ASSERT(resource->GetCpuAccess() == GpuResourceCpuAccess::None);
-                ASSERT(IsSet(resource->GetBindFlags(), GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource));
+                ASSERT(IsSet(resource->GetDescription().GetBindFlags(), GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource));
 
 #ifdef ENABLE_ASSERTS
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;

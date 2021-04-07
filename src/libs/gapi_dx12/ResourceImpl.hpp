@@ -23,10 +23,10 @@ namespace OpenDemo
                 void ReleaseD3DObjects();
 
                 void Init(const Texture& resource);
-                void Init(const TextureDescription& resourceDesc, const GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
+                void Init(const TextureDescription& resourceDesc, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
                 void Init(const Buffer& resource);
-                void Init(const BufferDescription& resourceDesc, const GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
+                void Init(const BufferDescription& resourceDesc, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
                 void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 

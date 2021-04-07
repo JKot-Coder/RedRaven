@@ -42,15 +42,14 @@ namespace OpenDemo
             template <class Deleter>
             static SharedPtr Create(
                 const Buffer& description,
-                GpuResourceBindFlags bindFlags,
                 GpuResourceCpuAccess cpuAccess,
                 const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new Buffer(description, bindFlags, cpuAccess, name), Deleter());
+                return SharedPtr(new Buffer(description, cpuAccess, name), Deleter());
             }
 
-            Buffer(const BufferDescription& description, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
+            Buffer(const BufferDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
         private:
             BufferDescription description_;

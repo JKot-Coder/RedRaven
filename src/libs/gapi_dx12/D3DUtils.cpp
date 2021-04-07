@@ -108,11 +108,11 @@ namespace OpenDemo
                     return output;
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc)
                 {
                     DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.GetFormat());
 
-                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.GetFormat()) && IsAny(bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
+                    if (GpuResourceFormatInfo::IsDepth(resourceDesc.GetFormat()) && IsAny(resourceDesc.GetBindFlags(), GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
                         format = TypeConversions::GetTypelessFormatFromDepthFormat(resourceDesc.GetFormat());
 
                     D3D12_RESOURCE_DESC desc;
@@ -135,16 +135,17 @@ namespace OpenDemo
                         LOG_FATAL("Unsupported texture dimension");
                     }
 
-                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
+                    desc.Flags = TypeConversions::GetResourceFlags(resourceDesc.GetBindFlags());
                     return desc;
                 }
 
-                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc, GpuResourceBindFlags bindFlags)
+                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc)
                 {
                     D3D12_RESOURCE_DESC desc;
 
+                    ASSERT_MSG(false, "Fix bindflags")
                     desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.size);
-                    desc.Flags = TypeConversions::GetResourceFlags(bindFlags);
+                    desc.Flags = TypeConversions::GetResourceFlags(GpuResourceBindFlags::None);
                     desc.Format = TypeConversions::GetGpuResourceFormat(resourceDesc.format);
                     return desc;
                 }

@@ -45,14 +45,13 @@ namespace OpenDemo
             if (backBuffers_[backBufferIndex])
                 return backBuffers_[backBufferIndex];
 
-            const TextureDescription desc = TextureDescription::Create2D(description_.width, description_.height, description_.gpuResourceFormat, 1, 1);
+            const TextureDescription desc = TextureDescription::Create2D(description_.width, description_.height, description_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource, 1, 1);
             auto& renderContext = Render::RenderContext::Instance();
 
             backBuffers_[backBufferIndex] = renderContext.CreateSwapChainBackBuffer(
                 std::static_pointer_cast<SwapChain>(shared_from_this()),
                 backBufferIndex,
                 desc,
-                GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource,
                 fmt::sprintf("%s BackBufferTexture:%d", GetName(), backBufferIndex)); //TODO move it
 
             return backBuffers_[backBufferIndex];

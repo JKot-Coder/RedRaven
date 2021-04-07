@@ -12,8 +12,8 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        Buffer::Buffer(const BufferDescription& desc, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name)
-            : GpuResource(GpuResource::Type::Buffer, bindFlags, cpuAccess, name),
+        Buffer::Buffer(const BufferDescription& desc, GpuResourceCpuAccess cpuAccess, const U8String& name)
+            : GpuResource(GpuResource::Type::Buffer, cpuAccess, name),
               description_(desc)
         {
         }

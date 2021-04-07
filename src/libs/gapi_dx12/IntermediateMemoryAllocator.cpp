@@ -84,8 +84,10 @@ namespace OpenDemo
                 if (numSubresources == Texture::MaxPossible)
                     numSubresources = resourceDesc.GetNumSubresources();
 
-                ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources())
-                D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc, GpuResourceBindFlags::None);
+                ASSERT(resourceDesc.GetDimension() != TextureDimension::Texture2DMS);
+                ASSERT(resourceDesc.GetSampleCount() == 1);
+                ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources());
+                D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc);
 
                 const auto& device = DeviceContext::GetDevice();
 

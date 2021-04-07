@@ -78,12 +78,11 @@ namespace OpenDemo
 
             void ResourceImpl::Init(const Texture& resource)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetCpuAccess(), resource.GetName());
+                return Init(resource.GetDescription(), resource.GetCpuAccess(), resource.GetName());
             }
 
             void ResourceImpl::Init(
                 const TextureDescription& resourceDesc,
-                const GpuResourceBindFlags bindFlags,
                 GpuResourceCpuAccess cpuAccess,
                 const U8String& name)
             {
@@ -94,9 +93,9 @@ namespace OpenDemo
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
                 D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
-                GetOptimizedClearValue(bindFlags, format, pOptimizedClearValue);
+                GetOptimizedClearValue(resourceDesc.GetBindFlags(), format, pOptimizedClearValue);
 
-                const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc, bindFlags);
+                const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc);
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
@@ -122,19 +121,18 @@ namespace OpenDemo
 
             void ResourceImpl::Init(const Buffer& resource)
             {
-                return Init(resource.GetDescription(), resource.GetBindFlags(), resource.GetCpuAccess(), resource.GetName());
+                return Init(resource.GetDescription(), resource.GetCpuAccess(), resource.GetName());
             }
 
             void ResourceImpl::Init(
                 const BufferDescription& resourceDesc,
-                const GpuResourceBindFlags bindFlags,
                 GpuResourceCpuAccess cpuAccess,
                 const U8String& name)
             {
                 ASSERT(!D3DResource_);
                 ASSERT(resourceDesc.size > 0);
 
-                const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc, bindFlags);
+                const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc);
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(

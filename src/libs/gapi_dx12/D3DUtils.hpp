@@ -73,8 +73,8 @@ namespace OpenDemo
 
                 DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect);
                 DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect);
-                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc, GpuResourceBindFlags bindFlags);
-                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc, GpuResourceBindFlags bindFlags);
+                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc);
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc);
 
                 DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format);
 

@@ -9,6 +9,7 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/MemoryAllocation.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
@@ -24,9 +25,111 @@ namespace OpenDemo
 {
     using namespace Common;
 
-    static uint32_t index = 0;
+    static uint32_t swindex = 0;
     static uint32_t frame = 0;
 
+    namespace
+    {
+        template <typename T>
+        T texelZeroFill(Vector3u texel, uint32_t level)
+        {
+            return T(0);
+        }
+
+        template <typename T>
+        T checkerboardPattern(Vector3u texel, uint32_t level);
+
+        template <>
+        Vector4 checkerboardPattern(Vector3u texel, uint32_t level)
+        {
+            if (((texel.x + texel.y + texel.z) / 8 + level) & 1)
+            {
+                return Vector4(0.5f, 0.5f, 0.5f, 0.5f);
+            }
+
+            std::array<Vector4, 8> colors = {
+                Vector4(0, 0, 1, 1),
+                Vector4(0, 1, 0, 1),
+                Vector4(1, 0, 0, 1),
+                Vector4(0, 1, 1, 1),
+                Vector4(1, 0, 1, 1),
+                Vector4(1, 1, 0, 1),
+                Vector4(1, 1, 1, 1),
+                Vector4(0.25, 0.25, 0.25, 1),
+            };
+
+            return colors[std::min(level, 7u)];
+        }
+
+        template <>
+        uint32_t checkerboardPattern(Vector3u texel, uint32_t level)
+        {
+            const auto& value = checkerboardPattern<Vector4>(texel, level);
+            // TODO olor class
+            // RGBA format
+            return static_cast<uint32_t>(value.x * 255.0f) << 24 |
+                   static_cast<uint32_t>(value.y * 255.0f) << 16 |
+                   static_cast<uint32_t>(value.z * 255.0f) << 8 |
+                   static_cast<uint32_t>(value.w * 255.0f);
+        }
+
+        template <typename T>
+        void fillTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData, const GAPI::IntermediateMemory::SharedPtr& data)
+        {
+            ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
+                   (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA16Float) ||
+                   (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA32Float));
+
+            const auto& subresourceFootprints = data->GetSubresourceFootprints();
+            const auto dataPointer = static_cast<uint8_t*>(textureData->GetAllocation()->Map());
+
+            for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
+            {
+                const auto& subresourceFootprint = subresourceFootprints[index];
+
+                auto depthPointer = dataPointer + subresourceFootprint.offset;
+                for (uint32_t depth = 0; depth < subresourceFootprint.numRows; depth++)
+                {
+                    auto rowPointer = depthPointer;
+                    for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
+                    {
+                        auto columnPointer = reinterpret_cast<T*>(rowPointer);
+                        for (uint32_t column = 0; column < description.GetWidth(); column++)
+                        {
+                            const auto texel = Vector3u(column, row, depth);
+
+                            *columnPointer = checkerboardPattern<T>(texel, index);
+                            columnPointer++;
+                        }
+
+                        rowPointer += subresourceFootprint.rowPitch;
+                    }
+                    depthPointer += subresourceFootprint.depthPitch;
+                }
+            }
+
+            textureData->GetAllocation()->Unmap();
+        }
+
+        void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& data)
+        {
+            auto& renderContext = Render::RenderContext::Instance();
+            const auto textureData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+
+            switch (description.GetFormat())
+            {
+            case GAPI::GpuResourceFormat::RGBA8Uint:
+                fillTextureData<uint32_t>(description, textureData, data);
+                break;
+            case GAPI::GpuResourceFormat::RGBA16Float:
+            case GAPI::GpuResourceFormat::RGBA32Float:
+                fillTextureData<Vector4>(description, textureData, data);
+                break;
+            default:
+                LOG_FATAL("Unsupported format");
+            }
+        }
+    }
     void Application::OnWindowResize(uint32_t width, uint32_t height)
     {
         GAPI::SwapChainDescription desc = swapChain_->GetDescription();
@@ -36,7 +139,7 @@ namespace OpenDemo
         auto& renderContext = Render::RenderContext::Instance();
         renderContext.ResetSwapChain(swapChain_, desc);
 
-        index = 0;
+        swindex = 0;
     }
 
     void Application::Start()
@@ -67,10 +170,19 @@ namespace OpenDemo
         auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
         auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
 
-        const auto desc = GAPI::TextureDescription::Create2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, 1, 1);
-        auto texture = renderContext.CreateTexture(desc, GAPI::GpuResourceBindFlags::RenderTarget);
+        const auto desc = GAPI::TextureDescription::Create2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget, 1, 1);
+        auto texture = renderContext.CreateTexture(desc);
         //  ASSERT(commandList)
         // commandList->Close();
+
+        const auto& description = GAPI::TextureDescription::Create3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+
+        const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+        const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+        initTextureData(description, cpuData);
+
+        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
 
         GAPI::SwapChainDescription desciption = {};
         desciption.width = 100;
@@ -105,7 +217,7 @@ namespace OpenDemo
 
             // auto index2 = index;
             renderContext.ExecuteAsync(
-                [swapChain = swapChain_, index2 = index, commandList, texture](GAPI::Device& device) {
+                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData](GAPI::Device& device) {
                     std::ignore = device;
 
                     auto swapChainTexture = swapChain->GetTexture(index2);
@@ -118,6 +230,9 @@ namespace OpenDemo
                     commandList->ClearRenderTargetView(swapChainRtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
                     commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
 
+                    commandList->UpdateTexture(testTexture, cpuData);
+                    commandList->ReadbackTexture(testTexture, readbackData);
+
                     commandList->Close();
                 });
 
@@ -126,7 +241,7 @@ namespace OpenDemo
             renderContext.Present(swapChain_);
             renderContext.MoveToNextFrame(commandQueue);
 
-            index = (++index % swapChain_->GetDescription().bufferCount);
+            swindex = (++swindex % swapChain_->GetDescription().bufferCount);
             frame++;
 
             time->Update();

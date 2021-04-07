@@ -21,33 +21,34 @@ namespace OpenDemo
         {
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static TextureDescription Create1D(uint32_t width, GpuResourceFormat format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static TextureDescription Create1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return TextureDescription(TextureDimension::Texture1D, width, 1, 1, format, 1, arraySize, mipLevels);
+                return TextureDescription(TextureDimension::Texture1D, width, 1, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
 
-            static TextureDescription Create2D(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static TextureDescription Create2D(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return TextureDescription(TextureDimension::Texture2D, width, height, 1, format, 1, arraySize, mipLevels);
+                return TextureDescription(TextureDimension::Texture2D, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
 
-            static TextureDescription Create2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t sampleCount, uint32_t arraySize = 1)
+            static TextureDescription Create2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t sampleCount, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1)
             {
-                return TextureDescription(TextureDimension::Texture2DMS, width, height, 1, format, sampleCount, arraySize, 1);
+                return TextureDescription(TextureDimension::Texture2DMS, width, height, 1, format, bindFlags, sampleCount, arraySize, 1);
             }
 
-            static TextureDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, uint32_t mipLevels = MaxPossible)
+            static TextureDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t mipLevels = MaxPossible)
             {
-                return TextureDescription(TextureDimension::Texture3D, width, height, depth, format, 1, 1, mipLevels);
+                return TextureDescription(TextureDimension::Texture3D, width, height, depth, format, bindFlags, 1, 1, mipLevels);
             }
 
-            static TextureDescription CreateCube(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static TextureDescription CreateCube(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, 1, arraySize, mipLevels);
+                return TextureDescription(TextureDimension::TextureCube, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
 
             GpuResourceFormat GetFormat() const { return format; }
             TextureDimension GetDimension() const { return dimension; }
+            GpuResourceBindFlags GetBindFlags() const { return bindflags; }
             uint32_t GetWidth(uint32_t mipLevel = 0) const { return (mipLevel < mipLevels) ? std::max(1U, width >> mipLevel) : 0u; }
             uint32_t GetHeight(uint32_t mipLevel = 0) const { return (mipLevel < mipLevels) ? std::max(1U, height >> mipLevel) : 0u; }
             uint32_t GetDepth(uint32_t mipLevel = 0) const { return (mipLevel < mipLevels) ? std::max(1U, depth >> mipLevel) : 0u; }
@@ -84,28 +85,30 @@ namespace OpenDemo
             inline friend bool operator!=(const TextureDescription& lhs, const TextureDescription& rhs) { return !(lhs == rhs); }
 
         private:
-            TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
-                : dimension(dimension),
-                  width(width),
+            TextureDescription(TextureDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
+                : width(width),
                   height(height),
                   depth(depth),
-                  format(format),
                   sampleCount(sampleCount),
                   arraySize(arraySize),
+                  format(format),
+                  bindflags(bindFlags),
+                  dimension(dimension),
                   // Limit/Calc maximum mip count
                   mipLevels(std::min(GetMaxMipLevel(), mipLevels))
             {
             }
 
         private:
-            GpuResourceFormat format;
-            TextureDimension dimension = TextureDimension::Unknown;
             uint32_t width = 0;
             uint32_t height = 0;
             uint32_t depth = 0;
             uint32_t mipLevels = 0;
             uint32_t sampleCount = 0;
             uint32_t arraySize = 0;
+            GpuResourceFormat format = GpuResourceFormat::Unknown;
+            TextureDimension dimension = TextureDimension::Unknown;
+            GpuResourceBindFlags bindflags = GpuResourceBindFlags::None;
 
         private:
             friend class Texture;
@@ -189,15 +192,14 @@ namespace OpenDemo
             template <class Deleter>
             static SharedPtr Create(
                 const TextureDescription& description,
-                GpuResourceBindFlags bindFlags,
                 GpuResourceCpuAccess cpuAccess,
                 const U8String& name,
                 Deleter)
             {
-                return SharedPtr(new Texture(description, bindFlags, cpuAccess, name), Deleter());
+                return SharedPtr(new Texture(description, cpuAccess, name), Deleter());
             }
 
-            Texture(const TextureDescription& description, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name);
+            Texture(const TextureDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
         private:
             TextureDescription description_;

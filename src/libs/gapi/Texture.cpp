@@ -37,8 +37,8 @@ namespace OpenDemo
             }
         }
 
-        Texture::Texture(const TextureDescription& desc, GpuResourceBindFlags bindFlags, GpuResourceCpuAccess cpuAccess, const U8String& name)
-            : GpuResource(GpuResource::Type::Texture, bindFlags, cpuAccess, name),
+        Texture::Texture(const TextureDescription& desc, GpuResourceCpuAccess cpuAccess, const U8String& name)
+            : GpuResource(GpuResource::Type::Texture, cpuAccess, name),
               description_(desc)
         {
             ASSERT(description_.format != GpuResourceFormat::Unknown)
@@ -50,16 +50,19 @@ namespace OpenDemo
             switch (description_.dimension)
             {
             case TextureDimension::Texture1D:
-                ASSERT(description_.height == 1)
-                ASSERT(description_.depth == 1)
+                ASSERT(description_.height == 1);
+                ASSERT(description_.depth == 1);
                 break;
             case TextureDimension::Texture2D:
-            case TextureDimension::Texture2DMS:
             case TextureDimension::TextureCube:
-                ASSERT(description_.depth == 1)
+                ASSERT(description_.depth == 1);
+                break;
+            case TextureDimension::Texture2DMS:
+                ASSERT(description_.depth == 1);
+                ASSERT(IsSet(description_.bindflags, GpuResourceBindFlags::RenderTarget));
                 break;
             case TextureDimension::Texture3D:
-                ASSERT(description_.arraySize == 1)
+                ASSERT(description_.arraySize == 1);
                 break;
             default:
                 LOG_FATAL("Unsupported texture type");
@@ -150,6 +153,8 @@ namespace OpenDemo
                     allocation_->Unmap();
                 });
 
+            
+            ASSERT(false, "copyitright");
             const auto numSubresources = source->GetNumSubresources();
             for (uint32_t index = 0; index < numSubresources; index++)
             {

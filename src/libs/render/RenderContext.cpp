@@ -222,13 +222,12 @@ namespace OpenDemo
 
         GAPI::Texture::SharedPtr RenderContext::CreateTexture(
             const GAPI::TextureDescription& desc,
-            GAPI::GpuResourceBindFlags bindFlags,
             GAPI::GpuResourceCpuAccess cpuAccess,
             const U8String& name) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Texture::Create(desc, bindFlags, cpuAccess, name, GPIObjectsDeleter<GAPI::Texture>());
+            auto& resource = GAPI::Texture::Create(desc, cpuAccess, name, GPIObjectsDeleter<GAPI::Texture>());
             submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get());
 
             return resource;
@@ -238,7 +237,6 @@ namespace OpenDemo
             const std::shared_ptr<GAPI::SwapChain>& swapchain,
             uint32_t backBufferIndex,
             const GAPI::TextureDescription& desc,
-            GAPI::GpuResourceBindFlags bindFlags,
             const U8String& name) const
         {
             ASSERT(inited_);
@@ -246,7 +244,7 @@ namespace OpenDemo
             ASSERT(desc.GetDimension() == GAPI::TextureDimension::Texture2D);
             ASSERT(desc.GetNumSubresources() == 1);
 
-            auto& resource = GAPI::Texture::Create(desc, bindFlags, GAPI::GpuResourceCpuAccess::None, name, GPIObjectsDeleter<GAPI::Texture>());
+            auto& resource = GAPI::Texture::Create(desc, GAPI::GpuResourceCpuAccess::None, name, GPIObjectsDeleter<GAPI::Texture>());
             swapchain->InitBackBufferTexture(backBufferIndex, resource);
 
             return resource;

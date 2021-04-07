@@ -1,7 +1,6 @@
 #pragma once
 
 #include "windowing\Window.hpp"
-#include "windowing\Windowing.hpp"
 
 namespace OpenDemo
 {

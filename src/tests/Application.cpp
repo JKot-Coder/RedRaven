@@ -1,7 +1,6 @@
 #include "Application.hpp"
 
-#include "windowing/InputtingWindow.hpp"
-#include "windowing/Windowing.hpp"
+#include "windowing/WindowSystem.hpp"
 
 #include "render/RenderContext.hpp"
 
@@ -49,7 +48,7 @@ namespace OpenDemo
 
         bool Application::init()
         {
-            WindowSystem::WindowDescription description;
+            Windowing::Window::Description description;
             description.Height = 480;
             description.Width = 640;
             description.Title = "Tests";
