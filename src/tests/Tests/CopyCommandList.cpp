@@ -2,8 +2,9 @@
 
 #include "TestContextFixture.hpp"
 
-#include <catch2/catch.hpp>
+#include "ApprovalIntegration/ImageApprover.hpp"
 
+#include <catch2/catch.hpp>
 #include "ApprovalTests/ApprovalTests.hpp"
 
 #include "gapi/CommandList.hpp"
@@ -196,7 +197,7 @@ namespace OpenDemo
             }
         }
 
-        TEST_CASE_METHOD(TestContextFixture, "CopyCommmandList", "[CommandList][CopyCommmandList]")
+        TEST_CASE_METHOD(TestContextFixture, "CopyTextureTests", "[CommandList][CopyCommmandList][CopyTexture]")
         {
             auto& renderContext = Render::RenderContext::Instance();
 
@@ -309,7 +310,7 @@ namespace OpenDemo
                     }
                 }
 
-                DYNAMIC_SECTION(fmt::format("[Texture2D::{}] CopyTextureSubresource: ", formatName))
+                DYNAMIC_SECTION(fmt::format("[Texture2D::{}] CopyTextureSubresource", formatName))
                 {
                     const auto& sourceDescription = GAPI::TextureDescription::Create2D(256, 256, format);
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
@@ -338,8 +339,8 @@ namespace OpenDemo
                         REQUIRE(equal ^ (index % 2 != 0));
                     }
                 }
-/*
-                DYNAMIC_SECTION(fmt::format("[Texture3D::{}] UploadTexureFromCpu: ", formatName))
+
+                DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
                 {
                     const auto& description = createDescription(GAPI::TextureDimension::Texture3D, 128, format);
 
@@ -355,14 +356,15 @@ namespace OpenDemo
                     commandList->Close();
 
                     submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
+                    ImageApprover::verify(readbackData);
                 }
-                */
+               
             }
         }
 
         TEST_CASE("HelloApprovals")
         {
+            //ImageApprover::verify()
             //     ApprovalTests::Approvals::verify("Hello Approvals!");
         }
     }

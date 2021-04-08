@@ -10,7 +10,7 @@
 #define APPROVALS_CATCH
 #include "ApprovalTests/ApprovalTests.hpp"
 
-#include "approval_integration/ImageComparator.hpp"
+#include "ApprovalIntegration/ImageComparator.hpp"
 
 namespace OpenDemo
 {
@@ -26,7 +26,7 @@ namespace OpenDemo
                 // Custom comporator for images.
                 auto ktxComparatorDisposer =
                     ApprovalTests::FileApprover::registerComparatorForExtension(
-                        ".ktx", std::make_shared<ImageApprovalComparator>());
+                        ".ktx", std::make_shared<ImageComparator>());
 
                 // We want to force the linker not to discard the global variable
                 // and its constructor, as it (optionally) registers leak detector
