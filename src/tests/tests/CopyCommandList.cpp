@@ -227,31 +227,12 @@ namespace OpenDemo
                     "Texture3D"
                 };
 
-                DYNAMIC_SECTION(fmt::format("[Texture3D] UploadTexureFromCpu: {}", formatName))
-                {
-                    const auto& description = createDescription(GAPI::TextureDimension::Texture3D, 128, format);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initTextureData(description, cpuData);
-
-                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
-
-                    commandList->UpdateTexture(testTexture, cpuData);
-                    commandList->ReadbackTexture(testTexture, readbackData);
-                    commandList->Close();
-
-                    submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
-                }
-
                 for (int idx = 0; idx < dimensions.size(); idx++)
                 {
                     const auto dimension = dimensions[idx];
                     const auto dimensionTitle = dimensionTitles[idx];
 
-                    DYNAMIC_SECTION(fmt::format("[{}] CopyTextureData: {}", dimensionTitle, formatName))
+                    DYNAMIC_SECTION(fmt::format("[{}::{}] Copy texure data on CPU", dimensionTitle, formatName))
                     {
                         const auto& description = createDescription(dimension, 128, format);
 
@@ -264,7 +245,7 @@ namespace OpenDemo
                         REQUIRE(isResourceEqual(sourceData, destData));
                     }
 
-                    DYNAMIC_SECTION(fmt::format("[{}] UploadTexureFromCpu: {}", dimensionTitle, formatName))
+                    DYNAMIC_SECTION(fmt::format("[{}::{}] Upload texure indirect", dimensionTitle, formatName))
                     {
                         const auto& description = createDescription(dimension, 128, format);
 
@@ -282,73 +263,52 @@ namespace OpenDemo
                         submitAndWait(copyQueue, commandList);
                         REQUIRE(isResourceEqual(cpuData, readbackData));
                     }
+
+                    DYNAMIC_SECTION(fmt::format("[{}::{}] Upload texure direct", dimensionTitle, formatName))
+                    {
+                        const auto& description = createDescription(dimension, 128, format);
+
+                        const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                        const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+                        const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                        initTextureData(description, cpuData);
+                        sourceData->CopyDataFrom(cpuData);
+
+                        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
+
+                        commandList->UpdateTexture(testTexture, sourceData);
+                        commandList->ReadbackTexture(testTexture, readbackData);
+                        commandList->Close();
+
+                        submitAndWait(copyQueue, commandList);
+                        REQUIRE(isResourceEqual(cpuData, readbackData));
+                    }
+
+                    DYNAMIC_SECTION(fmt::format("[{}::{}] Copy texure on GPU", dimensionTitle, formatName))
+                    {
+                        const auto& description = createDescription(dimension, 128, format);
+
+                        const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                        const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                        initTextureData(description, sourceData);
+         
+                        auto source = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Source");
+                        auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Dest");
+
+                        commandList->UpdateTexture(source, sourceData);
+                        commandList->CopyTexture(source, dest);
+                        commandList->ReadbackTexture(dest, readbackData);
+
+                        commandList->Close();
+
+                        submitAndWait(copyQueue, commandList);
+                        REQUIRE(isResourceEqual(sourceData, readbackData));
+                    }
                 }
 
-                DYNAMIC_SECTION("[Texture2D] UploadTexureFromCpu: " << formatName)
-                {
-                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initTextureData(description, cpuData);
-
-                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
-
-                    commandList->UpdateTexture(testTexture, cpuData);
-                    commandList->ReadbackTexture(testTexture, readbackData);
-                    commandList->Close();
-
-                    submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
-                }
-
-                DYNAMIC_SECTION("UploadTexureFromGpuHeap: " << formatName)
-                {
-                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initTextureData(description, cpuData);
-                    sourceData->CopyDataFrom(cpuData);
-
-                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
-
-                    commandList->UpdateTexture(testTexture, sourceData);
-                    commandList->ReadbackTexture(testTexture, readbackData);
-                    commandList->Close();
-
-                    submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
-                }
-
-                DYNAMIC_SECTION("CopyTexture: " << formatName)
-                {
-                    const auto& description = GAPI::TextureDescription::Create2D(128, 128, format);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initTextureData(description, cpuData);
-                    sourceData->CopyDataFrom(cpuData);
-
-                    auto source = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Source");
-                    auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Dest");
-
-                    commandList->UpdateTexture(source, sourceData);
-                    commandList->CopyTexture(source, dest);
-                    commandList->ReadbackTexture(dest, readbackData);
-
-                    commandList->Close();
-
-                    submitAndWait(copyQueue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
-                }
-
-                DYNAMIC_SECTION("CopyTextureSubresource: " << formatName)
+                DYNAMIC_SECTION(fmt::format("[Texture2D::{}] CopyTextureSubresource: ", formatName))
                 {
                     const auto& sourceDescription = GAPI::TextureDescription::Create2D(256, 256, format);
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
@@ -377,6 +337,26 @@ namespace OpenDemo
                         REQUIRE(equal ^ (index % 2 != 0));
                     }
                 }
+/*
+                DYNAMIC_SECTION(fmt::format("[Texture3D::{}] UploadTexureFromCpu: ", formatName))
+                {
+                    const auto& description = createDescription(GAPI::TextureDimension::Texture3D, 128, format);
+
+                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                    initTextureData(description, cpuData);
+
+                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
+
+                    commandList->UpdateTexture(testTexture, cpuData);
+                    commandList->ReadbackTexture(testTexture, readbackData);
+                    commandList->Close();
+
+                    submitAndWait(copyQueue, commandList);
+                    REQUIRE(isResourceEqual(cpuData, readbackData));
+                }
+                */
             }
         }
 
