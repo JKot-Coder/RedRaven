@@ -8,8 +8,18 @@ set(TESTS_SRC
     "TestContextFixture.cpp"
     "TestContextFixture.hpp"
     "Tests/CopyCommandList.cpp"
-    "Tests/CopyCommandList.hpp"
-    "ApprovalIntegration/ImageComparator.hpp")
+    "Tests/CopyCommandList.hpp" )
+source_group( "" FILES ${TESTS_SRC} )
+
+set(APPROVAL_INTEGRAION_SRC
+    "ApprovalIntegration/ImageComparator.hpp"
+    "ApprovalIntegration/ImageApprover.hpp"
+    )
+source_group( "ApprovalIntegration" FILES ${APPROVAL_INTEGRAION_SRC} )
+
+set(TESTS_SRC
+    ${TESTS_SRC}
+    ${APPROVAL_INTEGRAION_SRC})
 
 set(TESTS_LINK_LIBRARIES
     common
@@ -22,6 +32,8 @@ set(TESTS_LINK_LIBRARIES
 set(TESTS_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs
     ${PROJECT_SOURCE_DIR})
+
+
 
 add_executable(${PROJECT_NAME} WIN32 ${TESTS_SRC})
 target_link_libraries(${PROJECT_NAME} ${TESTS_LINK_LIBRARIES})
