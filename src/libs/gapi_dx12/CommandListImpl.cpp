@@ -215,6 +215,9 @@ namespace OpenDemo
 
                 D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(destImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
+
+                barrier = CD3DX12_RESOURCE_BARRIER::Transition(sourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+                D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
             void CommandListImpl::copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData, bool readback) const

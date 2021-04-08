@@ -135,8 +135,8 @@ namespace OpenDemo
             struct SubresourceFootprint
             {
                 SubresourceFootprint() = default;
-                SubresourceFootprint(size_t offset, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
-                    : offset(offset), numRows(numRows), rowSizeInBytes(rowSizeInBytes), rowPitch(rowPitch), depthPitch(depthPitch) { }
+                SubresourceFootprint(size_t offset, uint32_t width, uint32_t height, uint32_t depth, uint32_t numRows, uint32_t rowSizeInBytes, size_t rowPitch, size_t depthPitch)
+                    : offset(offset), width(width), height(height), depth(depth), numRows(numRows), rowSizeInBytes(rowSizeInBytes), rowPitch(rowPitch), depthPitch(depthPitch) { }
 
                 bool isComplatable(const SubresourceFootprint& other) const
                 {
@@ -145,6 +145,9 @@ namespace OpenDemo
                 }
 
                 size_t offset;
+                uint32_t width;
+                uint32_t height;
+                uint32_t depth;
                 uint32_t numRows;
                 size_t rowSizeInBytes;
                 size_t rowPitch;

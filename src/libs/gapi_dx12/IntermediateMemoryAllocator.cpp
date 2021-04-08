@@ -129,8 +129,13 @@ namespace OpenDemo
                     const auto rowSizeInBytes = rowSizeInBytesVector[index];
                     const auto rowPitch = layout.Footprint.RowPitch;
                     const auto depthPitch = numRows * rowPitch;
-
-                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(layout.Offset, numRows, rowSizeInBytes, rowPitch, depthPitch);
+          
+                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(
+                        layout.Offset,
+                        layout.Footprint.Width,
+                        layout.Footprint.Height,
+                        layout.Footprint.Depth,
+                        numRows, rowSizeInBytes, rowPitch, depthPitch);
                 }
 
                 return std::make_shared<IntermediateMemory>(allocation, subresourceFootprints, firstSubresourceIndex);

@@ -153,8 +153,6 @@ namespace OpenDemo
                     allocation_->Unmap();
                 });
 
-            
-            ASSERT(false, "copyitright");
             const auto numSubresources = source->GetNumSubresources();
             for (uint32_t index = 0; index < numSubresources; index++)
             {
@@ -163,15 +161,18 @@ namespace OpenDemo
 
                 ASSERT(sourceFootprint.isComplatable(destFootprint));
 
-                auto sourceRowPointer = sourceDataPointer + sourceFootprint.offset;
-                auto destRowPointer = destDataPointer + destFootprint.offset;
-
-                for (uint32_t row = 0; row < sourceFootprint.numRows; row++)
+                for (uint32_t depth = 0; depth < sourceFootprint.depth; depth++)
                 {
-                    std::memcpy(destRowPointer, sourceRowPointer, sourceFootprint.rowSizeInBytes);
+                    auto sourceRowPointer = sourceDataPointer + sourceFootprint.offset + sourceFootprint.depthPitch * depth;
+                    auto destRowPointer = destDataPointer + destFootprint.offset + destFootprint.depthPitch * depth;
 
-                    sourceRowPointer += sourceFootprint.rowPitch;
-                    destRowPointer += destFootprint.rowPitch;
+                    for (uint32_t row = 0; row < sourceFootprint.numRows; row++)
+                    {
+                        std::memcpy(destRowPointer, sourceRowPointer, sourceFootprint.rowSizeInBytes);
+
+                        sourceRowPointer += sourceFootprint.rowPitch;
+                        destRowPointer += destFootprint.rowPitch;
+                    }
                 }
             }
         }

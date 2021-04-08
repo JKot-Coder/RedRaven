@@ -42,7 +42,7 @@ namespace OpenDemo
         template <>
         Vector4 checkerboardPattern(Vector3u texel, uint32_t level)
         {
-            if (((texel.x + texel.y + texel.z) / 8 + level) & 1)
+            if (((texel.x / 4) + (texel.y / 4) + (texel.z / 4) + level) & 1)
             {
                 return Vector4(0.5f, 0.5f, 0.5f, 0.5f);
             }
@@ -74,56 +74,54 @@ namespace OpenDemo
         }
 
         template <typename T>
-        void fillTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData, const GAPI::IntermediateMemory::SharedPtr& data)
+        void fillTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData)
         {
             ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
+                   (std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::BGRA8Unorm) ||
                    (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA16Float) ||
                    (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA32Float));
 
-            const auto& subresourceFootprints = data->GetSubresourceFootprints();
+            const auto& subresourceFootprints = textureData->GetSubresourceFootprints();
             const auto dataPointer = static_cast<uint8_t*>(textureData->GetAllocation()->Map());
 
             for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
             {
                 const auto& subresourceFootprint = subresourceFootprints[index];
 
-                auto depthPointer = dataPointer + subresourceFootprint.offset;
-                for (uint32_t depth = 0; depth < subresourceFootprint.numRows; depth++)
+                for (uint32_t depth = 0; depth < subresourceFootprint.depth; depth++)
                 {
-                    auto rowPointer = depthPointer;
+                    const auto depthPointer = dataPointer + subresourceFootprint.offset +
+                                              depth * subresourceFootprint.depthPitch;
                     for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
                     {
+                        const auto rowPointer = depthPointer + row * subresourceFootprint.rowPitch;
                         auto columnPointer = reinterpret_cast<T*>(rowPointer);
-                        for (uint32_t column = 0; column < description.GetWidth(); column++)
+
+                        for (uint32_t column = 0; column < subresourceFootprint.width; column++)
                         {
                             const auto texel = Vector3u(column, row, depth);
 
                             *columnPointer = checkerboardPattern<T>(texel, index);
                             columnPointer++;
                         }
-
-                        rowPointer += subresourceFootprint.rowPitch;
                     }
-                    depthPointer += subresourceFootprint.depthPitch;
                 }
             }
 
             textureData->GetAllocation()->Unmap();
         }
 
-        void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& data)
+        void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData)
         {
-            auto& renderContext = Render::RenderContext::Instance();
-            const auto textureData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-
             switch (description.GetFormat())
             {
             case GAPI::GpuResourceFormat::RGBA8Uint:
-                fillTextureData<uint32_t>(description, textureData, data);
+            case GAPI::GpuResourceFormat::BGRA8Unorm:
+                fillTextureData<uint32_t>(description, textureData);
                 break;
             case GAPI::GpuResourceFormat::RGBA16Float:
             case GAPI::GpuResourceFormat::RGBA32Float:
-                fillTextureData<Vector4>(description, textureData, data);
+                fillTextureData<Vector4>(description, textureData);
                 break;
             default:
                 LOG_FATAL("Unsupported format");
@@ -175,9 +173,9 @@ namespace OpenDemo
         //  ASSERT(commandList)
         // commandList->Close();
 
-        const auto& description = GAPI::TextureDescription::Create3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+        const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::BGRA8Unorm);
 
-        const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+        const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
         initTextureData(description, cpuData);
@@ -231,7 +229,8 @@ namespace OpenDemo
                     commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
 
                     commandList->UpdateTexture(testTexture, cpuData);
-                    commandList->ReadbackTexture(testTexture, readbackData);
+                    commandList->CopyTextureSubresourceRegion(testTexture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
+                    //commandList->ReadbackTexture(testTexture, readbackData);
 
                     commandList->Close();
                 });
