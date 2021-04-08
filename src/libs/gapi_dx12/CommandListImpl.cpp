@@ -6,7 +6,7 @@
 
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/IntermediateMemoryAllocator.hpp"
+#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -220,7 +220,7 @@ namespace OpenDemo
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
-            void CommandListImpl::copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData, bool readback) const
+            void CommandListImpl::copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData, bool readback) const
             {
                 ASSERT(texture);
                 ASSERT(textureData);
@@ -250,7 +250,7 @@ namespace OpenDemo
 
                 ComSharedPtr<ID3D12Resource> intermediateResource;
                 size_t intermediateDataOffset;
-                std::shared_ptr<IntermediateMemory> intermediateMemory;
+                std::shared_ptr<CpuResourceData> CpuResourceData;
 
                 if (cpuReadWriteTextureData)
                 {
@@ -258,19 +258,19 @@ namespace OpenDemo
 
                     auto memoryType = readback ? MemoryAllocationType::Readback : MemoryAllocationType::Upload;
 
-                    intermediateMemory = IntermediateMemoryAllocator::AllocateIntermediateTextureData(
+                    CpuResourceData = CpuResourceDataAllocator::Alloc(
                         texture->GetDescription(),
                         memoryType,
                         textureData->GetFirstSubresource(),
                         textureData->GetNumSubresources());
 
-                    const auto intermediateAllocationImpl = intermediateMemory->GetAllocation()->GetPrivateImpl<HeapAllocation>();
+                    const auto intermediateAllocationImpl = CpuResourceData->GetAllocation()->GetPrivateImpl<HeapAllocation>();
 
                     intermediateDataOffset = intermediateAllocationImpl->GetOffset();
                     intermediateResource = intermediateAllocationImpl->GetD3DResouce();
 
                     if (!readback)
-                        intermediateMemory->CopyDataFrom(textureData);
+                        CpuResourceData->CopyDataFrom(textureData);
                 }
                 else
                 {
@@ -332,12 +332,12 @@ namespace OpenDemo
                 }
             }
 
-            void CommandListImpl::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
+            void CommandListImpl::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData)
             {
                 copyIntermediate(texture, textureData, false);
             }
 
-            void CommandListImpl::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
+            void CommandListImpl::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData)
             {
                 copyIntermediate(texture, textureData, true);
             }

@@ -46,7 +46,7 @@ namespace OpenDemo
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            virtual std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
+            virtual std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
                 const TextureDescription& desc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
@@ -84,7 +84,7 @@ namespace OpenDemo
             void Present(const std::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
 
-            std::shared_ptr<IntermediateMemory> const AllocateIntermediateTextureData(
+            std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
                 const TextureDescription& desc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,

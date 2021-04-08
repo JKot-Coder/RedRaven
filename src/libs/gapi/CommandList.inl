@@ -91,7 +91,7 @@ namespace OpenDemo
             GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
         }
 
-        INLINE void CopyCommandList::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
+        INLINE void CopyCommandList::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData)
         {
             ASSERT(texture);
             ASSERT(textureData);
@@ -99,7 +99,7 @@ namespace OpenDemo
             GetPrivateImpl()->UpdateTexture(texture, textureData);
         }
 
-        INLINE void CopyCommandList::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData)
+        INLINE void CopyCommandList::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData)
         {
             ASSERT(texture);
             ASSERT(textureData);

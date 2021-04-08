@@ -1,16 +1,16 @@
 #include "Application.hpp"
 
-#include "windowing/WindowSystem.hpp"
-
-#include "render/RenderContext.hpp"
-
 #include "gapi/CommandQueue.hpp"
+#include "render/RenderContext.hpp"
+#include "windowing/WindowSystem.hpp"
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
 #define APPROVALS_CATCH
 #include "ApprovalTests/ApprovalTests.hpp"
+
+#include "approval_integration/ImageComparator.hpp"
 
 namespace OpenDemo
 {
@@ -23,6 +23,11 @@ namespace OpenDemo
 
             int result = 0;
             {
+                // Custom comporator for images.
+                auto ktxComparatorDisposer =
+                    ApprovalTests::FileApprover::registerComparatorForExtension(
+                        ".ktx", std::make_shared<ImageApprovalComparator>());
+
                 // We want to force the linker not to discard the global variable
                 // and its constructor, as it (optionally) registers leak detector
                 (void)&Catch::leakDetector;

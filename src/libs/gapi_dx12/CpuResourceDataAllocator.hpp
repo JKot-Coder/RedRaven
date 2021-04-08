@@ -42,10 +42,10 @@ namespace OpenDemo
                 std::shared_ptr<ResourceImpl> resource_;
             };
 
-            class IntermediateMemoryAllocator
+            class CpuResourceDataAllocator
             {
             public:
-                static std::shared_ptr<IntermediateMemory> const IntermediateMemoryAllocator::AllocateIntermediateTextureData(
+                static std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Alloc(
                     const TextureDescription& resourceDesc,
                     MemoryAllocationType memoryType,
                     uint32_t firstSubresourceIndex,

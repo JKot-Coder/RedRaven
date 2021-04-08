@@ -1,4 +1,4 @@
-#include "IntermediateMemoryAllocator.hpp"
+#include "CpuResourceDataAllocator.hpp"
 
 #include "gapi/Texture.hpp"
 
@@ -75,7 +75,7 @@ namespace OpenDemo
                 return resource_->GetD3DObject();
             }
 
-            std::shared_ptr<IntermediateMemory> const IntermediateMemoryAllocator::AllocateIntermediateTextureData(
+            std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Alloc(
                 const TextureDescription& resourceDesc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex,
@@ -121,7 +121,7 @@ namespace OpenDemo
 
                 device->GetCopyableFootprints(&desc, firstSubresourceIndex, numSubresources, 0, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], nullptr);
 
-                std::vector<IntermediateMemory::SubresourceFootprint> subresourceFootprints(numSubresources);
+                std::vector<CpuResourceData::SubresourceFootprint> subresourceFootprints(numSubresources);
                 for (uint32_t index = 0; index < numSubresources; index++)
                 {
                     const auto& layout = layouts[index];
@@ -130,7 +130,7 @@ namespace OpenDemo
                     const auto rowPitch = layout.Footprint.RowPitch;
                     const auto depthPitch = numRows * rowPitch;
           
-                    subresourceFootprints[index] = IntermediateMemory::SubresourceFootprint(
+                    subresourceFootprints[index] = CpuResourceData::SubresourceFootprint(
                         layout.Offset,
                         layout.Footprint.Width,
                         layout.Footprint.Height,
@@ -138,7 +138,7 @@ namespace OpenDemo
                         numRows, rowSizeInBytes, rowPitch, depthPitch);
                 }
 
-                return std::make_shared<IntermediateMemory>(allocation, subresourceFootprints, firstSubresourceIndex);
+                return std::make_shared<CpuResourceData>(allocation, subresourceFootprints, firstSubresourceIndex);
             }
         }
     }

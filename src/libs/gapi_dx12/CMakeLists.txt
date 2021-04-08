@@ -38,8 +38,8 @@ set(GAPI_SRC
         D3DUtils.hpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
-        IntermediateMemoryAllocator.hpp
-        IntermediateMemoryAllocator.cpp
+        CpuResourceDataAllocator.hpp
+        CpuResourceDataAllocator.cpp
         DescriptorHeapSet.cpp 
         DescriptorHeapSet.hpp
         DeviceContext.hpp

@@ -16,7 +16,7 @@
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/IntermediateMemoryAllocator.hpp"
+#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -141,14 +141,14 @@ namespace OpenDemo
                 DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
-            std::shared_ptr<IntermediateMemory> const DeviceImpl::AllocateIntermediateTextureData(
+            std::shared_ptr<CpuResourceData> const DeviceImpl::AllocateIntermediateTextureData(
                 const TextureDescription& resourceDesc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex,
                 uint32_t numSubresources) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return IntermediateMemoryAllocator::AllocateIntermediateTextureData(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
+                return CpuResourceDataAllocator::Alloc(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
             }
 
             void DeviceImpl::InitSwapChain(SwapChain& resource) const

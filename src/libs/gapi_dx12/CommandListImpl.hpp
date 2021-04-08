@@ -32,8 +32,8 @@ namespace OpenDemo
                 void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                   const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
 
-                void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData) override;
-                void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData) override;
+                void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
+                void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
 
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
@@ -47,7 +47,7 @@ namespace OpenDemo
                 // TODO allow dynamic allocators list size.
                 static constexpr int AllocatorsCount = MAX_GPU_FRAMES_BUFFERED + 1;
 
-                void copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData, bool readback) const;
+                void copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData, bool readback) const;
 
                 class CommandAllocatorsPool
                 {

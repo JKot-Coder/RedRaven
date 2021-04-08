@@ -7,8 +7,9 @@ set(TESTS_SRC
     "Application.cpp"
     "TestContextFixture.cpp"
     "TestContextFixture.hpp"
-    "tests/CopyCommandList.cpp"
-    "tests/CopyCommandList.hpp")
+    "Tests/CopyCommandList.cpp"
+    "Tests/CopyCommandList.hpp"
+    "ApprovalIntegration/ImageComparator.hpp")
 
 set(TESTS_LINK_LIBRARIES
     common

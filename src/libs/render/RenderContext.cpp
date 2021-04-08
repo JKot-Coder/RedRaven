@@ -159,7 +159,7 @@ namespace OpenDemo
             });
         }
 
-        std::shared_ptr<GAPI::IntermediateMemory> RenderContext::AllocateIntermediateTextureData(
+        std::shared_ptr<GAPI::CpuResourceData> RenderContext::AllocateIntermediateTextureData(
             const GAPI::TextureDescription& desc,
             GAPI::MemoryAllocationType memoryType,
             uint32_t firstSubresourceIndex,

@@ -135,13 +135,14 @@ namespace OpenDemo
             return uavs_[viewDesc];
         }
 
-        void IntermediateMemory::CopyDataFrom(const GAPI::IntermediateMemory::SharedPtr& source)
+        void CpuResourceData::CopyDataFrom(const GAPI::CpuResourceData::SharedPtr& source)
         {
             ASSERT(source);
             ASSERT(source != shared_from_this());
             static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
             ASSERT(allocation_->GetMemoryType() != GAPI::MemoryAllocationType::Readback);
             ASSERT(source->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
+            ASSERT(source->GetFirstSubresource() == GetFirstSubresource());
             ASSERT(source->GetNumSubresources() == GetNumSubresources());
 
             const auto sourceDataPointer = static_cast<uint8_t*>(source->GetAllocation()->Map());

@@ -126,11 +126,11 @@ namespace OpenDemo
             size_t depthPitch;
         };*/
 
-        class IntermediateMemory : public std::enable_shared_from_this<IntermediateMemory>
+        class CpuResourceData : public std::enable_shared_from_this<CpuResourceData>
         {
         public:
-            using SharedPtr = std::shared_ptr<IntermediateMemory>;
-            using SharedConstPtr = std::shared_ptr<const IntermediateMemory>;
+            using SharedPtr = std::shared_ptr<CpuResourceData>;
+            using SharedConstPtr = std::shared_ptr<const CpuResourceData>;
 
             struct SubresourceFootprint
             {
@@ -154,7 +154,7 @@ namespace OpenDemo
                 size_t depthPitch;
             };
 
-            IntermediateMemory(const std::shared_ptr<MemoryAllocation>& allocation, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
+            CpuResourceData(const std::shared_ptr<MemoryAllocation>& allocation, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
                 : allocation_(allocation), subresourceFootprints_(subresourceFootprints), firstSubresource_(firstSubresource)
             {
                 ASSERT(allocation);
@@ -167,7 +167,7 @@ namespace OpenDemo
             inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
             inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
 
-            void CopyDataFrom(const GAPI::IntermediateMemory::SharedPtr& source);
+            void CopyDataFrom(const GAPI::CpuResourceData::SharedPtr& source);
 
         private:
             std::shared_ptr<MemoryAllocation> allocation_;

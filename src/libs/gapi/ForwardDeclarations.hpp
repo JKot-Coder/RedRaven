@@ -38,7 +38,7 @@ namespace OpenDemo
 
         class MemoryAllocation;
         enum class MemoryAllocationType : uint32_t;
-        class IntermediateMemory;
+        class CpuResourceData;
 
         class Texture;
         struct TextureDescription;

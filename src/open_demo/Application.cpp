@@ -74,12 +74,13 @@ namespace OpenDemo
         }
 
         template <typename T>
-        void fillTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData)
+        void fillTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
         {
             ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
                    (std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::BGRA8Unorm) ||
                    (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA16Float) ||
                    (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA32Float));
+            ASSERT(textureData->GetFirstSubresource() == 0);
 
             const auto& subresourceFootprints = textureData->GetSubresourceFootprints();
             const auto dataPointer = static_cast<uint8_t*>(textureData->GetAllocation()->Map());
@@ -111,7 +112,7 @@ namespace OpenDemo
             textureData->GetAllocation()->Unmap();
         }
 
-        void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData)
+        void initTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
         {
             switch (description.GetFormat())
             {

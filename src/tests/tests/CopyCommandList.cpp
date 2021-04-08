@@ -66,8 +66,9 @@ namespace OpenDemo
             }
 
             template <typename T>
-            void fillTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData)
+            void fillTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
             {
+                ASSERT(textureData->GetFirstSubresource() == 0);
                 ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
                        (std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::BGRA8Unorm) ||
                        (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA16Float) ||
@@ -103,7 +104,7 @@ namespace OpenDemo
                 textureData->GetAllocation()->Unmap();
             }
 
-            void initTextureData(const GAPI::TextureDescription& description, const GAPI::IntermediateMemory::SharedPtr& textureData)
+            void initTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
             {
                 switch (description.GetFormat())
                 {
@@ -120,8 +121,8 @@ namespace OpenDemo
                 }
             }
 
-            bool isSubresourceEqual(const GAPI::IntermediateMemory::SharedPtr& lhs, uint32_t lSubresourceIndex,
-                                    const GAPI::IntermediateMemory::SharedPtr& rhs, uint32_t rSubresourceIndex)
+            bool isSubresourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs, uint32_t lSubresourceIndex,
+                                    const GAPI::CpuResourceData::SharedPtr& rhs, uint32_t rSubresourceIndex)
             {
                 ASSERT(lhs);
                 ASSERT(rhs);
@@ -160,8 +161,8 @@ namespace OpenDemo
                 return true;
             }
 
-            bool isResourceEqual(const GAPI::IntermediateMemory::SharedPtr& lhs,
-                                 const GAPI::IntermediateMemory::SharedPtr& rhs)
+            bool isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,
+                                 const GAPI::CpuResourceData::SharedPtr& rhs)
             {
                 ASSERT(lhs != rhs);
                 ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
