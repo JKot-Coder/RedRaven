@@ -40,8 +40,8 @@ namespace OpenDemo
         Texture::Texture(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
             : GpuResource(description, cpuAccess, name)
         {
-            ASSERT(description_.format != GpuResourceFormat::Unknown)
-            ASSERT(description_.dimension != GpuResourceDimension::Unknown)
+            ASSERT(description_.dimension != GpuResourceDimension::Unknown);
+            ASSERT(description_.format != GpuResourceFormat::Unknown);
 
             ASSERT((description_.sampleCount > 1 && description_.dimension == GpuResourceDimension::Texture2DMS) ||
                    (description_.sampleCount == 1 && description_.dimension != GpuResourceDimension::Texture2DMS));

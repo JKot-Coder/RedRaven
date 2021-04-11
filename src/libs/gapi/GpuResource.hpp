@@ -136,6 +136,19 @@ namespace OpenDemo
             Count
         };
 
+        namespace GpuResourceFormatInfo
+        {
+            bool IsDepth(GpuResourceFormat format);
+            bool IsStencil(GpuResourceFormat format);
+            bool IsCompressed(GpuResourceFormat format);
+
+            uint32_t GetBlockSize(GpuResourceFormat format);
+            uint32_t GetCompressionBlockWidth(GpuResourceFormat format);
+            uint32_t GetCompressionBlockHeight(GpuResourceFormat format);
+
+            U8String ToString(GpuResourceFormat format);
+        };
+
         enum class GpuResourceCpuAccess : uint32_t
         {
             None,
@@ -145,6 +158,7 @@ namespace OpenDemo
 
         enum class GpuResourceDimension : uint32_t
         {
+            // We can may try rid of this.
             Unknown,
 
             Buffer,
@@ -194,6 +208,7 @@ namespace OpenDemo
             uint32_t GetMipCount() const { return mipLevels; }
             uint32_t GetArraySize() const { return arraySize; }
 
+            uint32_t GetSubresourceArraySlice(uint32_t subresource) const { return subresource / mipLevels; }
             uint32_t GetSubresourceMipLevel(uint32_t subresource) const { return subresource % mipLevels; }
 
             uint32_t GetNumSubresources() const
@@ -254,19 +269,6 @@ namespace OpenDemo
             friend class Buffer;
         };
 
-        namespace GpuResourceFormatInfo
-        {
-            bool IsDepth(GpuResourceFormat format);
-            bool IsStencil(GpuResourceFormat format);
-            bool IsCompressed(GpuResourceFormat format);
-
-            uint32_t GetBlockSize(GpuResourceFormat format);
-            uint32_t GetCompressionBlockWidth(GpuResourceFormat format);
-            uint32_t GetCompressionBlockHeight(GpuResourceFormat format);
-
-            U8String ToString(GpuResourceFormat format);
-        };
-
         class IGpuResource
         {
         public:
@@ -298,6 +300,7 @@ namespace OpenDemo
                   cpuAccess_(cpuAccess)
             {
                 ASSERT(description_.dimension != GpuResourceDimension::Unknown);
+                ASSERT(description_.format != GpuResourceFormat::Unknown);
             };
 
             GpuResourceDescription description_;

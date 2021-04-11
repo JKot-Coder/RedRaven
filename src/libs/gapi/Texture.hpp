@@ -6,7 +6,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-   
 
         /*
         struct TextureSubresourceData
@@ -48,9 +47,15 @@ namespace OpenDemo
                 size_t depthPitch;
             };
 
-            CpuResourceData(const std::shared_ptr<MemoryAllocation>& allocation, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
-                : allocation_(allocation), subresourceFootprints_(subresourceFootprints), firstSubresource_(firstSubresource)
+            CpuResourceData(const std::shared_ptr<MemoryAllocation>& allocation, const GpuResourceDescription& resourceDescription, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
+                : allocation_(allocation),
+                  resourceDescription_(resourceDescription),
+                  subresourceFootprints_(subresourceFootprints),
+                  firstSubresource_(firstSubresource)
             {
+                ASSERT(resourceDescription.GetDimension() != GpuResourceDimension::Unknown);
+                ASSERT(resourceDescription.GetFormat() != GpuResourceFormat::Unknown);
+
                 ASSERT(allocation);
                 ASSERT(GetNumSubresources() > 0);
             };
@@ -58,6 +63,7 @@ namespace OpenDemo
             inline std::shared_ptr<MemoryAllocation> GetAllocation() const { return allocation_; }
             inline uint32_t GetFirstSubresource() const { return firstSubresource_; }
             inline size_t GetNumSubresources() const { return subresourceFootprints_.size(); }
+            inline const GpuResourceDescription& GetResourceDescription() const { return resourceDescription_; }
             inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
             inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
 
@@ -66,7 +72,7 @@ namespace OpenDemo
         private:
             std::shared_ptr<MemoryAllocation> allocation_;
             std::vector<SubresourceFootprint> subresourceFootprints_;
-            
+            GpuResourceDescription resourceDescription_;
             uint32_t firstSubresource_;
         };
 

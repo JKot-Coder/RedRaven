@@ -138,7 +138,7 @@ namespace OpenDemo
                         numRows, rowSizeInBytes, rowPitch, depthPitch);
                 }
 
-                return std::make_shared<CpuResourceData>(allocation, subresourceFootprints, firstSubresourceIndex);
+                return std::make_shared<CpuResourceData>(allocation, resourceDesc, subresourceFootprints, firstSubresourceIndex);
             }
         }
     }

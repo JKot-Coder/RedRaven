@@ -1,6 +1,9 @@
 #include "ImageWriter.hpp"
 
+#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
+
+#include "common/OnScopeExit.hpp"
 
 #include <../lib/vkformat_enum.h>
 #include <ktx.h>
@@ -123,28 +126,108 @@ namespace OpenDemo
                 return formatsConversion[static_cast<uint32_t>(format)].to;
             }
 
+            uint32_t getNumTextureDimensions(GAPI::GpuResourceDimension dimension)
+            {
+                switch (dimension)
+                {
+                case GAPI::GpuResourceDimension::Texture1D:
+                    return 1;
+                case GAPI::GpuResourceDimension::Texture2D:
+                case GAPI::GpuResourceDimension::Texture2DMS:
+                case GAPI::GpuResourceDimension::TextureCube:
+                    return 2;
+                case GAPI::GpuResourceDimension::Texture3D:
+                    return 3;
+                default:
+                    ASSERT_MSG(false, "Unsuported texture dimension");
+                }
+                return -1;
+            }
+
             const ktxTextureCreateInfo& getTextureCreateInfo(const GAPI::CpuResourceData::SharedPtr& resource)
             {
                 ASSERT(resource);
                 ASSERT(resource->GetNumSubresources() > 0);
 
-                ktxTextureCreateInfo createInfo;
-
+                const auto& resourceDesc = resource->GetResourceDescription();
                 const auto firstSubresource = resource->GetSubresourceFootprintAt(0);
 
-                createInfo.vkFormat = GetVkResourceFormat(resource->GetFormat());
-                createInfo.baseWidth = firstSubresource.width;
-                createInfo.baseHeight = firstSubresource.height;
-                createInfo.baseDepth = firstSubresource.depth;
-                createInfo.numDimensions = resource.;
-                // Note: it is not necessary to provide a full mipmap pyramid.
-                createInfo.numLevels = log2(createInfo.baseWidth) + 1;
+                ASSERT(resourceDesc.GetDimension() != GAPI::GpuResourceDimension::TextureCube);
+
+                ktxTextureCreateInfo createInfo;
+                createInfo.vkFormat = getVkResourceFormat(resourceDesc.GetFormat());
+                createInfo.baseWidth = resourceDesc.GetWidth();
+                createInfo.baseHeight = resourceDesc.GetHeight();
+                createInfo.baseDepth = resourceDesc.GetHeight();
+                createInfo.numDimensions = getNumTextureDimensions(resourceDesc.GetDimension());
+                createInfo.numLevels = resourceDesc.GetMipCount();
                 createInfo.numLayers = 1;
                 createInfo.numFaces = 1;
                 createInfo.isArray = KTX_FALSE;
                 createInfo.generateMipmaps = KTX_FALSE;
 
                 return createInfo;
+            }
+
+            KTX_error_code setImageFromData(ktxTexture2* texture, const GAPI::CpuResourceData::SharedPtr& resource)
+            {
+                const auto& resourceDesc = resource->GetResourceDescription();
+
+                ASSERT(resourceDesc.GetNumSubresources() == resource->GetNumSubresources());
+                ASSERT(resourceDesc.GetDimension() != GAPI::GpuResourceDimension::TextureCube);
+
+                const auto dataPointer = static_cast<uint8_t*>(resource->GetAllocation()->Map());
+
+                ON_SCOPE_EXIT(
+                    {
+                        resource->GetAllocation()->Unmap();
+                    });
+
+                for (uint32_t subresourceIdx = 0; subresourceIdx < resourceDesc.GetNumSubresources(); subresourceIdx++)
+                {
+                    const auto& subresourceFootprint = resource->GetSubresourceFootprintAt(subresourceIdx);
+                    const auto arraySlice = resourceDesc.GetSubresourceArraySlice(subresourceIdx);
+                    const auto mipLevel = resourceDesc.GetSubresourceMipLevel(subresourceIdx);
+
+                    ktx_size_t sliceDataSize = 0;
+                    uint8_t* subresourceDataPointer = 0;
+                    bool zeroPadding = subresourceFootprint.rowPitch == subresourceFootprint.rowSizeInBytes;
+
+                    if (zeroPadding)
+                    {
+                        sliceDataSize = subresourceFootprint.depthPitch;
+                        subresourceDataPointer = dataPointer + subresourceFootprint.offset;
+                    }
+                    else
+                    {
+                        sliceDataSize = subresourceFootprint.rowSizeInBytes * subresourceFootprint.numRows;
+                        subresourceDataPointer = new uint8_t[sliceDataSize * subresourceFootprint.depth];
+
+                        for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
+                        {
+                            const auto dst = subresourceDataPointer + row * subresourceFootprint.rowSizeInBytes;
+                            const auto source = dataPointer + subresourceFootprint.offset + row * subresourceFootprint.rowPitch;
+                            memcpy(dst, source, subresourceFootprint.rowSizeInBytes);
+                        }
+                    }
+
+                    for (uint32_t faceSlice = 0; faceSlice < subresourceFootprint.depth; faceSlice++)
+                    {
+                        const auto slicePointer = subresourceDataPointer +
+                                                  sliceDataSize * faceSlice;
+
+                        const auto result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                                                          mipLevel, arraySlice, faceSlice,
+                                                                          slicePointer, sliceDataSize);
+                        if (result != KTX_SUCCESS)
+                            return result;
+                    }
+
+                    if (!zeroPadding)
+                        delete[] subresourceDataPointer;
+                }
+
+                return KTX_SUCCESS;
             }
         }
 
@@ -155,22 +238,17 @@ namespace OpenDemo
             ktxTexture2* texture;
 
             KTX_error_code result;
-            ktx_uint32_t level, layer, faceSlice;
-            uint8_t* src;
-            ktx_size_t srcSize;
 
+            auto createInfo = getTextureCreateInfo(resource_);
             result = ktxTexture2_Create(&createInfo,
                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                         &texture);
 
-            /*  src = // Open a stdio FILE* on the baseLevel image, slice 0.
-                srcSize = // Query size of the file.
-                level = 0;
-            layer = 0;
-            faceSlice = 0;*/
-            //  result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
-            //                                         level, layer, faceSlice,
-            //                                        src, srcSize);
+            ASSERT(KTX_SUCCESS == result);
+
+            result = setImageFromData(texture, resource_);
+
+            ASSERT(KTX_SUCCESS == result);
 
             // Repeat for the other 15 slices of the base level and all other levels
             // up to createInfo.numLevels.
