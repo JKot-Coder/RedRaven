@@ -46,7 +46,7 @@ namespace OpenDemo
             {
             public:
                 static std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Alloc(
-                    const TextureDescription& resourceDesc,
+                    const GpuResourceDescription& resourceDesc,
                     MemoryAllocationType memoryType,
                     uint32_t firstSubresourceIndex,
                     uint32_t numSubresources);

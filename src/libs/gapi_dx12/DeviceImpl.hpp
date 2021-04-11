@@ -22,7 +22,7 @@ namespace OpenDemo
                 void MoveToNextFrame(uint64_t frameIndex) override;
 
                 std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
-                    const TextureDescription& desc,
+                    const GpuResourceDescription& desc,
                     MemoryAllocationType memoryType,
                     uint32_t firstSubresourceIndex = 0,
                     uint32_t numSubresources = MaxPossible) const override;

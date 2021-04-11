@@ -26,7 +26,7 @@ namespace OpenDemo
                 // Custom comporator for images.
                 auto ktxComparatorDisposer =
                     ApprovalTests::FileApprover::registerComparatorForExtension(
-                        ".ktx", std::make_shared<ImageComparator>());
+                        ".ktx2", std::make_shared<ImageComparator>());
 
                 // We want to force the linker not to discard the global variable
                 // and its constructor, as it (optionally) registers leak detector

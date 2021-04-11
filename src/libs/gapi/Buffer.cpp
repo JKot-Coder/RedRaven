@@ -12,18 +12,19 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        Buffer::Buffer(const BufferDescription& desc, GpuResourceCpuAccess cpuAccess, const U8String& name)
-            : GpuResource(GpuResource::Type::Buffer, cpuAccess, name),
-              description_(desc)
+        Buffer::Buffer(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
+            : GpuResource(description, cpuAccess, name)
         {
+            //TODO asserts
         }
 
         ShaderResourceView::SharedPtr Buffer::GetSRV(uint32_t firstElement, uint32_t numElements)
         {
-            ASSERT(firstElement < description_.size);
-            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.size);
+            //TODO asserts
+            ASSERT(firstElement < description_.width);
+            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width);
 
-            numElements = Min(numElements, description_.size - firstElement);
+            numElements = Min(numElements, description_.width - firstElement);
             const auto& viewDesc = GpuResourceViewDescription(firstElement, numElements);
 
             if (srvs_.find(viewDesc) == srvs_.end())
@@ -38,10 +39,11 @@ namespace OpenDemo
 
         UnorderedAccessView::SharedPtr Buffer::GetUAV(uint32_t firstElement, uint32_t numElements)
         {
-            ASSERT(firstElement < description_.size);
-            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.size);
+            //TODO asserts
+            ASSERT(firstElement < description_.width);
+            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width);
 
-            numElements = Min(numElements, description_.size - firstElement);
+            numElements = Min(numElements, description_.width - firstElement);
             const auto& viewDesc = GpuResourceViewDescription(firstElement, numElements);
 
             if (uavs_.find(viewDesc) == uavs_.end())

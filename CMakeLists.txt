@@ -86,6 +86,17 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Glfw)
 
+#================================== libktx ===================================#
+FetchContent_Declare(
+  libktx
+  GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software
+  GIT_TAG        v4.0.0-rc1
+)
+set(KTX_FEATURE_TESTS OFF CACHE BOOL "" FORCE)  
+set(KTX_FEATURE_TOOLS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(libktx)
+
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")

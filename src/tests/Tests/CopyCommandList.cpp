@@ -67,7 +67,7 @@ namespace OpenDemo
             }
 
             template <typename T>
-            void fillTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
+            void fillTextureData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
             {
                 ASSERT(textureData->GetFirstSubresource() == 0);
                 ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
@@ -105,7 +105,7 @@ namespace OpenDemo
                 textureData->GetAllocation()->Unmap();
             }
 
-            void initTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
+            void initTextureData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
             {
                 switch (description.GetFormat())
                 {
@@ -176,24 +176,24 @@ namespace OpenDemo
                 return true;
             }
 
-            GAPI::TextureDescription createDescription(GAPI::TextureDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
+            GAPI::GpuResourceDescription createDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
             {
                 switch (dimension)
                 {
-                case GAPI::TextureDimension::Texture1D:
-                    return GAPI::TextureDescription::Create1D(size, format);
-                case GAPI::TextureDimension::Texture2D:
-                    return GAPI::TextureDescription::Create2D(size, size, format);
-                case GAPI::TextureDimension::Texture2DMS:
-                    return GAPI::TextureDescription::Create2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget);
-                case GAPI::TextureDimension::Texture3D:
-                    return GAPI::TextureDescription::Create3D(size, size, size, format);
-                case GAPI::TextureDimension::TextureCube:
-                    return GAPI::TextureDescription::CreateCube(size, size, format);
+                case GAPI::GpuResourceDimension::Texture1D:
+                    return GAPI::GpuResourceDescription::Create1D(size, format);
+                case GAPI::GpuResourceDimension::Texture2D:
+                    return GAPI::GpuResourceDescription::Create2D(size, size, format);
+                case GAPI::GpuResourceDimension::Texture2DMS:
+                    return GAPI::GpuResourceDescription::Create2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget);
+                case GAPI::GpuResourceDimension::Texture3D:
+                    return GAPI::GpuResourceDescription::Create3D(size, size, size, format);
+                case GAPI::GpuResourceDimension::TextureCube:
+                    return GAPI::GpuResourceDescription::CreateCube(size, size, format);
                 }
 
-                ASSERT_MSG(false, "Unsupported TextureDimension");
-                return GAPI::TextureDescription::Create1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
+                ASSERT_MSG(false, "Unsupported GpuResourceDimension");
+                return GAPI::GpuResourceDescription::Create1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
             }
         }
 
@@ -217,10 +217,10 @@ namespace OpenDemo
             {
                 const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
 
-                const std::array<GAPI::TextureDimension, 3> dimensions = {
-                    GAPI::TextureDimension::Texture1D,
-                    GAPI::TextureDimension::Texture2D,
-                    GAPI::TextureDimension::Texture3D
+                const std::array<GAPI::GpuResourceDimension, 3> dimensions = {
+                    GAPI::GpuResourceDimension::Texture1D,
+                    GAPI::GpuResourceDimension::Texture2D,
+                    GAPI::GpuResourceDimension::Texture3D
                 };
 
                 const std::array<U8String, 3> dimensionTitles = {
@@ -312,13 +312,13 @@ namespace OpenDemo
 
                 DYNAMIC_SECTION(fmt::format("[Texture2D::{}] CopyTextureSubresource", formatName))
                 {
-                    const auto& sourceDescription = GAPI::TextureDescription::Create2D(256, 256, format);
+                    const auto& sourceDescription = GAPI::GpuResourceDescription::Create2D(256, 256, format);
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                     auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                     initTextureData(sourceDescription, sourceData);
 
-                    const auto& destDescription = GAPI::TextureDescription::Create2D(128, 128, format);
+                    const auto& destDescription = GAPI::GpuResourceDescription::Create2D(128, 128, format);
                     const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
                     auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 
@@ -342,7 +342,7 @@ namespace OpenDemo
 
                 DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
                 {
-                    const auto& description = createDescription(GAPI::TextureDimension::Texture3D, 128, format);
+                    const auto& description = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
 
                     const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                     const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);

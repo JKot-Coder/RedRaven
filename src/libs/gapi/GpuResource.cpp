@@ -136,7 +136,6 @@ namespace OpenDemo
                     GpuResourceFormat::BGRX8UnormSrgb,    u8"BGRX8UnormSrgb",    FormatType::UnormSrgb, 4,         4,                      {1, 1},            8,   8,  8,  8,  false,  false,    false,
                     //Format                              Name                   Type               BlockSize ChannelCount CompressionBlock{w, h} ChannelBits[x,   y,  z,  w]  isDepth isStencil isCompressed
                     GpuResourceFormat::R5G6B5Unorm,       u8"R5G6B5Unorm",       FormatType::Unorm,     2,         3,                      {1, 1},            5,   6,  5,  0,  false,  false,    false,
-                    GpuResourceFormat::Alpha32Float,      u8"Alpha32Float",      FormatType::Float,     4,         1,                      {1, 1},            0,   0,  0,  32, false,  false,    false,
             };
             // clang-format on
 
@@ -199,7 +198,7 @@ namespace OpenDemo
         template <>
         std::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
         {
-            ASSERT(type_ == GpuResource::Type::Texture)
+            ASSERT(IsTexture());
             //TODO inherit_shared_from_this
             return std::static_pointer_cast<Texture>(shared_from_this());
         }

@@ -927,23 +927,23 @@ private:
     {
     public:
         PackedData() :
-            m_Type(0), m_ResourceDimension(0), m_ResourceFlags(0), m_TextureLayout(0), m_WasZeroInitialized(0) { }
+            m_Type(0), m_GpuResourceDimension(0), m_ResourceFlags(0), m_TextureLayout(0), m_WasZeroInitialized(0) { }
 
         Type GetType() const { return (Type)m_Type; }
-        D3D12_RESOURCE_DIMENSION GetResourceDimension() const { return (D3D12_RESOURCE_DIMENSION)m_ResourceDimension; }
+        D3D12_RESOURCE_DIMENSION GetGpuResourceDimension() const { return (D3D12_RESOURCE_DIMENSION)m_GpuResourceDimension; }
         D3D12_RESOURCE_FLAGS GetResourceFlags() const { return (D3D12_RESOURCE_FLAGS)m_ResourceFlags; }
         D3D12_TEXTURE_LAYOUT GetTextureLayout() const { return (D3D12_TEXTURE_LAYOUT)m_TextureLayout; }
         BOOL WasZeroInitialized() const { return (BOOL)m_WasZeroInitialized; }
 
         void SetType(Type type);
-        void SetResourceDimension(D3D12_RESOURCE_DIMENSION resourceDimension);
+        void SetGpuResourceDimension(D3D12_RESOURCE_DIMENSION GpuResourceDimension);
         void SetResourceFlags(D3D12_RESOURCE_FLAGS resourceFlags);
         void SetTextureLayout(D3D12_TEXTURE_LAYOUT textureLayout);
         void SetWasZeroInitialized(BOOL wasZeroInitialized) { m_WasZeroInitialized = wasZeroInitialized ? 1 : 0; }
 
     private:
         UINT m_Type : 2;               // enum Type
-        UINT m_ResourceDimension : 3;  // enum D3D12_RESOURCE_DIMENSION
+        UINT m_GpuResourceDimension : 3;  // enum D3D12_RESOURCE_DIMENSION
         UINT m_ResourceFlags : 24;     // flags D3D12_RESOURCE_FLAGS
         UINT m_TextureLayout : 9;      // enum D3D12_TEXTURE_LAYOUT
         UINT m_WasZeroInitialized : 1; // BOOL

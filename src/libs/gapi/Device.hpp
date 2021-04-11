@@ -47,7 +47,7 @@ namespace OpenDemo
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
             virtual std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
-                const TextureDescription& desc,
+                const GpuResourceDescription& desc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const = 0;
@@ -85,7 +85,7 @@ namespace OpenDemo
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
 
             std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
-                const TextureDescription& desc,
+                const GpuResourceDescription& desc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const override

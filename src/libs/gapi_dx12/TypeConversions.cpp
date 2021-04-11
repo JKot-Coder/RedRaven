@@ -106,7 +106,6 @@ namespace OpenDemo
                     { GpuResourceFormat::BGRX8UnormSrgb,    DXGI_FORMAT_B8G8R8X8_UNORM_SRGB },
 
                     { GpuResourceFormat::R5G6B5Unorm,       DXGI_FORMAT_B5G6R5_UNORM },
-                    { GpuResourceFormat::Alpha32Float,      DXGI_FORMAT_UNKNOWN },
                 }; // clang-format on
 
                 static_assert(std::is_same<std::underlying_type<GpuResourceFormat>::type, uint32_t>::value);

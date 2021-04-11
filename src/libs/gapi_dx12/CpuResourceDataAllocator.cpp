@@ -76,7 +76,7 @@ namespace OpenDemo
             }
 
             std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Alloc(
-                const TextureDescription& resourceDesc,
+                const GpuResourceDescription& resourceDesc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex,
                 uint32_t numSubresources)
@@ -84,7 +84,7 @@ namespace OpenDemo
                 if (numSubresources == Texture::MaxPossible)
                     numSubresources = resourceDesc.GetNumSubresources();
 
-                ASSERT(resourceDesc.GetDimension() != TextureDimension::Texture2DMS);
+                ASSERT(resourceDesc.GetDimension() != GpuResourceDimension::Texture2DMS);
                 ASSERT(resourceDesc.GetSampleCount() == 1);
                 ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources());
                 D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc);

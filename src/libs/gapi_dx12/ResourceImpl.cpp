@@ -82,7 +82,7 @@ namespace OpenDemo
             }
 
             void ResourceImpl::Init(
-                const TextureDescription& resourceDesc,
+                const GpuResourceDescription& resourceDesc,
                 GpuResourceCpuAccess cpuAccess,
                 const U8String& name)
             {
@@ -123,14 +123,15 @@ namespace OpenDemo
             {
                 return Init(resource.GetDescription(), resource.GetCpuAccess(), resource.GetName());
             }
-
+            /*
+            * //TODO buffer support
             void ResourceImpl::Init(
                 const BufferDescription& resourceDesc,
                 GpuResourceCpuAccess cpuAccess,
                 const U8String& name)
             {
                 ASSERT(!D3DResource_);
-                ASSERT(resourceDesc.size > 0);
+                ASSERT(resourceDesc.width > 0);
 
                 const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc);
 
@@ -144,7 +145,7 @@ namespace OpenDemo
                         IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
-            }
+            }*/
 
             void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& readRange, void*& memory)
             {

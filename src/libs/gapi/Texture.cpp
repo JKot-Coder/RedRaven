@@ -16,7 +16,7 @@ namespace OpenDemo
     {
         namespace
         {
-            GpuResourceViewDescription createViewDesctiption(const TextureDescription& resDesctiption, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
+            GpuResourceViewDescription createViewDesctiption(const GpuResourceDescription& resDesctiption, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
             {
                 const auto resArraySize = resDesctiption.GetArraySize();
                 const auto resMipLevels = resDesctiption.GetMipCount();
@@ -37,31 +37,30 @@ namespace OpenDemo
             }
         }
 
-        Texture::Texture(const TextureDescription& desc, GpuResourceCpuAccess cpuAccess, const U8String& name)
-            : GpuResource(GpuResource::Type::Texture, cpuAccess, name),
-              description_(desc)
+        Texture::Texture(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
+            : GpuResource(description, cpuAccess, name)
         {
             ASSERT(description_.format != GpuResourceFormat::Unknown)
-            ASSERT(description_.dimension != TextureDimension::Unknown)
+            ASSERT(description_.dimension != GpuResourceDimension::Unknown)
 
-            ASSERT((description_.sampleCount > 1 && description_.dimension == TextureDimension::Texture2DMS) ||
-                   (description_.sampleCount == 1 && description_.dimension != TextureDimension::Texture2DMS));
+            ASSERT((description_.sampleCount > 1 && description_.dimension == GpuResourceDimension::Texture2DMS) ||
+                   (description_.sampleCount == 1 && description_.dimension != GpuResourceDimension::Texture2DMS));
 
             switch (description_.dimension)
             {
-            case TextureDimension::Texture1D:
+            case GpuResourceDimension::Texture1D:
                 ASSERT(description_.height == 1);
                 ASSERT(description_.depth == 1);
                 break;
-            case TextureDimension::Texture2D:
-            case TextureDimension::TextureCube:
+            case GpuResourceDimension::Texture2D:
+            case GpuResourceDimension::TextureCube:
                 ASSERT(description_.depth == 1);
                 break;
-            case TextureDimension::Texture2DMS:
+            case GpuResourceDimension::Texture2DMS:
                 ASSERT(description_.depth == 1);
                 ASSERT(IsSet(description_.bindflags, GpuResourceBindFlags::RenderTarget));
                 break;
-            case TextureDimension::Texture3D:
+            case GpuResourceDimension::Texture3D:
                 ASSERT(description_.arraySize == 1);
                 break;
             default:

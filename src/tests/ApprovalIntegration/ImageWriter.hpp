@@ -13,7 +13,7 @@ namespace OpenDemo
         {
         public:
             explicit ImageWriter(const GAPI::CpuResourceData::SharedPtr& resource,
-                                 std::string fileExtensionWithDot = ".ktx")
+                                 std::string fileExtensionWithDot = ".ktx2")
                 : resource_(resource), fileExtensionWithDot_(fileExtensionWithDot)
             {
             }
@@ -23,10 +23,7 @@ namespace OpenDemo
                 return fileExtensionWithDot_;
             }
 
-            void write(std::string path) const override
-            {
-                ASSERT_MSG(false, "Implement");
-            }
+            void write(std::string path) const override;
 
             void cleanUpReceived(std::string receivedPath) const override
             {

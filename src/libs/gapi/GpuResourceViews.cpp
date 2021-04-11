@@ -14,7 +14,7 @@ namespace OpenDemo
 
             const auto sharedGpuResource = gpuResource.lock();
 
-            if (sharedGpuResource->GetGpuResourceType() == GpuResource::Type::Texture)
+            if (sharedGpuResource->IsTexture())
             {
                 const auto texture = sharedGpuResource->GetTyped<Texture>();
                 const auto& description = texture->GetDescription();
@@ -69,7 +69,7 @@ namespace OpenDemo
 
             const auto sharedGpuResource = gpuResource.lock();
 
-            if (sharedGpuResource->GetGpuResourceType() == GpuResource::Type::Texture)
+            if (sharedGpuResource->IsTexture())
             {
                 const auto texture = sharedGpuResource->GetTyped<Texture>();
                 const auto& description = texture->GetDescription();

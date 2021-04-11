@@ -28,23 +28,23 @@ namespace OpenDemo
             namespace
             {
                 template <typename DescType>
-                DescType getViewDimension(TextureDimension dimension, bool isTextureArray);
+                DescType getViewDimension(GpuResourceDimension dimension, bool isTextureArray);
 
                 template <>
-                D3D12_RTV_DIMENSION getViewDimension(TextureDimension dimension, bool isTextureArray)
+                D3D12_RTV_DIMENSION getViewDimension(GpuResourceDimension dimension, bool isTextureArray)
                 {
                     switch (dimension)
                     {
-                    case TextureDimension::Texture1D:
+                    case GpuResourceDimension::Texture1D:
                         return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE1DARRAY : D3D12_RTV_DIMENSION_TEXTURE1D;
-                    case TextureDimension::Texture2D:
+                    case GpuResourceDimension::Texture2D:
                         return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DARRAY : D3D12_RTV_DIMENSION_TEXTURE2D;
-                    case TextureDimension::Texture3D:
+                    case GpuResourceDimension::Texture3D:
                         ASSERT(isTextureArray == false);
                         return D3D12_RTV_DIMENSION_TEXTURE3D;
-                    case TextureDimension::Texture2DMS:
+                    case GpuResourceDimension::Texture2DMS:
                         return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DMS;
-                    case TextureDimension::TextureCube:
+                    case GpuResourceDimension::TextureCube:
                         return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
                     default:
                         ASSERT_MSG(false, "Wrong texture dimension");
@@ -53,17 +53,17 @@ namespace OpenDemo
                 }
 
                 template <>
-                D3D12_DSV_DIMENSION getViewDimension(TextureDimension dimension, bool isTextureArray)
+                D3D12_DSV_DIMENSION getViewDimension(GpuResourceDimension dimension, bool isTextureArray)
                 {
                     switch (dimension)
                     {
-                    case TextureDimension::Texture1D:
+                    case GpuResourceDimension::Texture1D:
                         return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE1DARRAY : D3D12_DSV_DIMENSION_TEXTURE1D;
-                    case TextureDimension::Texture2D:
+                    case GpuResourceDimension::Texture2D:
                         return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DARRAY : D3D12_DSV_DIMENSION_TEXTURE2D;
-                    case TextureDimension::Texture2DMS:
+                    case GpuResourceDimension::Texture2DMS:
                         return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DMS;
-                    case TextureDimension::TextureCube:
+                    case GpuResourceDimension::TextureCube:
                         return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
                     default:
                         ASSERT_MSG(false, "Wrong texture dimension")
@@ -72,17 +72,17 @@ namespace OpenDemo
                 }
 
                 template <typename DescType>
-                DescType CreateDsvRtvUavDescCommon(const TextureDescription& textureDescription, const GpuResourceViewDescription& description)
+                DescType CreateDsvRtvUavDescCommon(const GpuResourceDescription& GpuResourceDescription, const GpuResourceViewDescription& description)
                 {
                     DescType result = {};
-                    result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(textureDescription.GetDimension(), textureDescription.GetArraySize() > 1);
+                    result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(GpuResourceDescription.GetDimension(), GpuResourceDescription.GetArraySize() > 1);
 
-                    const uint32_t arrayMultiplier = (textureDescription.GetDimension() == TextureDimension::TextureCube) ? 6 : 1;
-                    ASSERT((description.texture.firstArraySlice + description.texture.arraySliceCount) * arrayMultiplier <= textureDescription.GetArraySize())
+                    const uint32_t arrayMultiplier = (GpuResourceDescription.GetDimension() == GpuResourceDimension::TextureCube) ? 6 : 1;
+                    ASSERT((description.texture.firstArraySlice + description.texture.arraySliceCount) * arrayMultiplier <= GpuResourceDescription.GetArraySize())
 
-                    switch (textureDescription.GetDimension())
+                    switch (GpuResourceDescription.GetDimension())
                     {
-                    case TextureDimension::Texture1D:
+                    case GpuResourceDimension::Texture1D:
                         if (description.texture.arraySliceCount > 1)
                         {
                             result.Texture1DArray.ArraySize = description.texture.arraySliceCount;
@@ -94,8 +94,8 @@ namespace OpenDemo
                             result.Texture1D.MipSlice = description.texture.firstArraySlice;
                         }
                         break;
-                    case TextureDimension::Texture2D:
-                    case TextureDimension::TextureCube:
+                    case GpuResourceDimension::Texture2D:
+                    case GpuResourceDimension::TextureCube:
                         if (description.texture.firstArraySlice * arrayMultiplier > 1)
                         {
                             result.Texture2DArray.ArraySize = description.texture.arraySliceCount * arrayMultiplier;
@@ -107,27 +107,27 @@ namespace OpenDemo
                             result.Texture2D.MipSlice = description.texture.mipLevel;
                         }
                         break;
-                    case TextureDimension::Texture2DMS:
+                    case GpuResourceDimension::Texture2DMS:
                         //ASSERT(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value)
                         break;
                     default:
                         LOG_FATAL("Unsupported resource view type");
                     }
-                    result.Format = TypeConversions::GetGpuResourceFormat(textureDescription.GetFormat());
+                    result.Format = TypeConversions::GetGpuResourceFormat(GpuResourceDescription.GetFormat());
 
                     return result;
                 }
 
                 template <typename DescType>
-                DescType CreateDsvRtvDesc(const TextureDescription& textureDescription, const GpuResourceViewDescription& description)
+                DescType CreateDsvRtvDesc(const GpuResourceDescription& GpuResourceDescription, const GpuResourceViewDescription& description)
                 {
                     static_assert(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value);
 
-                    DescType result = CreateDsvRtvUavDescCommon<DescType>(textureDescription, description);
+                    DescType result = CreateDsvRtvUavDescCommon<DescType>(GpuResourceDescription, description);
 
-                    if (textureDescription.GetDimension() == TextureDimension::Texture2DMS)
+                    if (GpuResourceDescription.GetDimension() == GpuResourceDimension::Texture2DMS)
                     {
-                        if (textureDescription.GetArraySize() > 1)
+                        if (GpuResourceDescription.GetArraySize() > 1)
                         {
                             result.Texture2DMSArray.ArraySize = description.texture.firstArraySlice;
                             result.Texture2DMSArray.FirstArraySlice = description.texture.arraySliceCount;
@@ -139,20 +139,20 @@ namespace OpenDemo
 
                 D3D12_DEPTH_STENCIL_VIEW_DESC CreateDsvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
                 {
-                    ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture)
+                    ASSERT(resource->IsTexture())
                     const auto& texture = resource->GetTyped<Texture>();
-                    const auto& textureDescription = texture->GetDescription();
+                    const auto& GpuResourceDescription = texture->GetDescription();
 
-                    return CreateDsvRtvDesc<D3D12_DEPTH_STENCIL_VIEW_DESC>(textureDescription, description);
+                    return CreateDsvRtvDesc<D3D12_DEPTH_STENCIL_VIEW_DESC>(GpuResourceDescription, description);
                 }
 
                 D3D12_RENDER_TARGET_VIEW_DESC CreateRtvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
                 {
-                    ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture)
+                    ASSERT(resource->IsTexture())
                     const auto& texture = resource->GetTyped<Texture>();
-                    const auto& textureDescription = texture->GetDescription();
+                    const auto& GpuResourceDescription = texture->GetDescription();
 
-                    return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(textureDescription, description);
+                    return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(GpuResourceDescription, description);
                 }
 
                 template <typename T, typename Impl>

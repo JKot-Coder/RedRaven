@@ -142,7 +142,7 @@ namespace OpenDemo
             }
 
             std::shared_ptr<CpuResourceData> const DeviceImpl::AllocateIntermediateTextureData(
-                const TextureDescription& resourceDesc,
+                const GpuResourceDescription& resourceDesc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex,
                 uint32_t numSubresources) const

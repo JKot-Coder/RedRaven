@@ -74,7 +74,7 @@ namespace OpenDemo
         }
 
         template <typename T>
-        void fillTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
+        void fillTextureData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
         {
             ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
                    (std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::BGRA8Unorm) ||
@@ -112,7 +112,7 @@ namespace OpenDemo
             textureData->GetAllocation()->Unmap();
         }
 
-        void initTextureData(const GAPI::TextureDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
+        void initTextureData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& textureData)
         {
             switch (description.GetFormat())
             {
@@ -169,12 +169,12 @@ namespace OpenDemo
         auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
         auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
 
-        const auto desc = GAPI::TextureDescription::Create2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget, 1, 1);
+        const auto desc = GAPI::GpuResourceDescription::Create2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget, 1, 1);
         auto texture = renderContext.CreateTexture(desc);
         //  ASSERT(commandList)
         // commandList->Close();
 
-        const auto& description = GAPI::TextureDescription::Create2D(128, 128, GAPI::GpuResourceFormat::BGRA8Unorm);
+        const auto& description = GAPI::GpuResourceDescription::Create2D(128, 128, GAPI::GpuResourceFormat::BGRA8Unorm);
 
         const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);

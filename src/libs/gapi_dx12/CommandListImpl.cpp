@@ -352,7 +352,7 @@ namespace OpenDemo
 
                 const auto& resource = renderTargetView->GetGpuResource().lock();
                 ASSERT(resource);
-                ASSERT(resource->GetGpuResourceType() == GpuResource::Type::Texture);
+                ASSERT(resource->IsTexture());
 
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);

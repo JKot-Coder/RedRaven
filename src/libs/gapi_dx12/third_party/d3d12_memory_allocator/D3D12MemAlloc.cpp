@@ -1335,7 +1335,7 @@ void JsonWriter::WriteIndent(bool oneLess)
 void JsonWriter::AddAllocationToObject(const Allocation& alloc)
 {
     WriteString(L"Type");
-    switch (alloc.m_PackedData.GetResourceDimension()) {
+    switch (alloc.m_PackedData.GetGpuResourceDimension()) {
     case D3D12_RESOURCE_DIMENSION_UNKNOWN:
         WriteString(L"UNKNOWN");
         break;
@@ -5862,11 +5862,11 @@ void Allocation::PackedData::SetType(Type type)
     m_Type = u;
 }
 
-void Allocation::PackedData::SetResourceDimension(D3D12_RESOURCE_DIMENSION resourceDimension)
+void Allocation::PackedData::SetGpuResourceDimension(D3D12_RESOURCE_DIMENSION GpuResourceDimension)
 {
-    const UINT u = (UINT)resourceDimension;
+    const UINT u = (UINT)GpuResourceDimension;
     D3D12MA_ASSERT(u < (1u << 3));
-    m_ResourceDimension = u;
+    m_GpuResourceDimension = u;
 }
 
 void Allocation::PackedData::SetResourceFlags(D3D12_RESOURCE_FLAGS resourceFlags)
@@ -5965,7 +5965,7 @@ Allocation::Allocation(AllocatorPimpl* allocator, UINT64 size, BOOL wasZeroIniti
     D3D12MA_ASSERT(allocator);
 
     m_PackedData.SetType(TYPE_COUNT);
-    m_PackedData.SetResourceDimension(D3D12_RESOURCE_DIMENSION_UNKNOWN);
+    m_PackedData.SetGpuResourceDimension(D3D12_RESOURCE_DIMENSION_UNKNOWN);
     m_PackedData.SetResourceFlags(D3D12_RESOURCE_FLAG_NONE);
     m_PackedData.SetTextureLayout(D3D12_TEXTURE_LAYOUT_UNKNOWN);
     m_PackedData.SetWasZeroInitialized(wasZeroInitialized);
@@ -6001,7 +6001,7 @@ void Allocation::SetResource(ID3D12Resource* resource, const D3D12_RESOURCE_DESC
 {
     D3D12MA_ASSERT(m_Resource == NULL && pResourceDesc);
     m_Resource = resource;
-    m_PackedData.SetResourceDimension(pResourceDesc->Dimension);
+    m_PackedData.SetGpuResourceDimension(pResourceDesc->Dimension);
     m_PackedData.SetResourceFlags(pResourceDesc->Flags);
     m_PackedData.SetTextureLayout(pResourceDesc->Layout);
 }

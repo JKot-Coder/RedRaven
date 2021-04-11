@@ -46,7 +46,7 @@ namespace OpenDemo
         namespace
         {
 #ifdef ENABLE_ASSERTS
-            bool checkTextureRegion(const TextureDescription& desc, uint32_t subresourceIdx, const Box3u& region)
+            bool checkTextureRegion(const GpuResourceDescription& desc, uint32_t subresourceIdx, const Box3u& region)
             {
                 auto result = true;
 

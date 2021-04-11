@@ -21,6 +21,8 @@ namespace OpenDemo
         class Resource;
 
         class GpuResource;
+        struct GpuResourceDescription;
+        enum class GpuResourceDimension : uint32_t;
         enum class GpuResourceBindFlags : uint32_t;
         enum class GpuResourceFormat : uint32_t;
         enum class GpuResourceCpuAccess : uint32_t;
@@ -41,11 +43,7 @@ namespace OpenDemo
         class CpuResourceData;
 
         class Texture;
-        struct TextureDescription;
-        enum class TextureDimension : uint32_t;
-
         class Buffer;
-        struct BufferDescription;
     }
 
     namespace Render

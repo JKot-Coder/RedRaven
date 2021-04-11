@@ -17,6 +17,7 @@ source_group( "Tests" FILES ${TESTS_SRC} )
 
 set(APPROVAL_INTEGRAION_SRC
     "ApprovalIntegration/ImageWriter.hpp"
+    "ApprovalIntegration/ImageWriter.cpp"
     "ApprovalIntegration/ImageComparator.hpp"
     "ApprovalIntegration/ImageApprover.hpp"
     )
@@ -33,13 +34,12 @@ set(TESTS_LINK_LIBRARIES
     gapi
     windowing
     Catch2::Catch2WithMain
-    ApprovalTests)
+    ApprovalTests
+    ktx)
 
 set(TESTS_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs
     ${PROJECT_SOURCE_DIR})
-
-
 
 add_executable(${PROJECT_NAME} WIN32 ${SRC})
 target_link_libraries(${PROJECT_NAME} ${TESTS_LINK_LIBRARIES})

@@ -160,7 +160,7 @@ namespace OpenDemo
         }
 
         std::shared_ptr<GAPI::CpuResourceData> RenderContext::AllocateIntermediateTextureData(
-            const GAPI::TextureDescription& desc,
+            const GAPI::GpuResourceDescription& desc,
             GAPI::MemoryAllocationType memoryType,
             uint32_t firstSubresourceIndex,
             uint32_t numSubresources) const
@@ -221,7 +221,7 @@ namespace OpenDemo
         }
 
         GAPI::Texture::SharedPtr RenderContext::CreateTexture(
-            const GAPI::TextureDescription& desc,
+            const GAPI::GpuResourceDescription& desc,
             GAPI::GpuResourceCpuAccess cpuAccess,
             const U8String& name) const
         {
@@ -236,12 +236,12 @@ namespace OpenDemo
         GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(
             const std::shared_ptr<GAPI::SwapChain>& swapchain,
             uint32_t backBufferIndex,
-            const GAPI::TextureDescription& desc,
+            const GAPI::GpuResourceDescription& desc,
             const U8String& name) const
         {
             ASSERT(inited_);
             ASSERT(swapchain);
-            ASSERT(desc.GetDimension() == GAPI::TextureDimension::Texture2D);
+            ASSERT(desc.GetDimension() == GAPI::GpuResourceDimension::Texture2D);
             ASSERT(desc.GetNumSubresources() == 1);
 
             auto& resource = GAPI::Texture::Create(desc, GAPI::GpuResourceCpuAccess::None, name, GPIObjectsDeleter<GAPI::Texture>());
