@@ -3,7 +3,6 @@
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
-#include "gapi_dx12/TypeConversions.hpp"
 
 namespace OpenDemo
 {
@@ -89,7 +88,7 @@ namespace OpenDemo
                 // TextureDesc ASSERT checks done on Texture initialization;
                 ASSERT(!D3DResource_);
 
-                const DXGI_FORMAT format = TypeConversions::GetGpuResourceFormat(resourceDesc.GetFormat());
+                const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(resourceDesc.GetFormat());
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
                 D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;

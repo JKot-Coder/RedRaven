@@ -8,7 +8,6 @@
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
-#include "gapi_dx12/TypeConversions.hpp"
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
@@ -113,7 +112,7 @@ namespace OpenDemo
                     default:
                         LOG_FATAL("Unsupported resource view type");
                     }
-                    result.Format = TypeConversions::GetGpuResourceFormat(GpuResourceDescription.GetFormat());
+                    result.Format = D3DUtils::GetDxgiResourceFormat(GpuResourceDescription.GetFormat());
 
                     return result;
                 }

@@ -1,4 +1,6 @@
-#include "TypeConversions.hpp"
+#include "DXGIFormatsUtils.hpp"
+
+#include "gapi/GpuResource.hpp"
 
 namespace OpenDemo
 {
@@ -6,7 +8,7 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            namespace TypeConversions
+            namespace D3DUtils
             {
                 struct GpuResourceFormatConversion
                 {
@@ -111,7 +113,7 @@ namespace OpenDemo
                 static_assert(std::is_same<std::underlying_type<GpuResourceFormat>::type, uint32_t>::value);
                 static_assert(std::size(formatsConversion) == static_cast<uint32_t>(GpuResourceFormat::Count));
 
-                ::DXGI_FORMAT GetGpuResourceFormat(GpuResourceFormat format)
+                ::DXGI_FORMAT GetDxgiResourceFormat(GpuResourceFormat format)
                 {
                     ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
                     ASSERT(format == GpuResourceFormat::Unknown ||
@@ -120,17 +122,37 @@ namespace OpenDemo
                     return formatsConversion[static_cast<uint32_t>(format)].to;
                 }
 
-                D3D12_RESOURCE_FLAGS GetResourceFlags(GpuResourceBindFlags flags)
+                DXGI_FORMAT GetDxgiTypelessFormat(GpuResourceFormat format)
                 {
-                    D3D12_RESOURCE_FLAGS d3d = D3D12_RESOURCE_FLAG_NONE;
+                    switch (format)
+                    {
+                    case GpuResourceFormat::D16Unorm:
+                        return DXGI_FORMAT_R16_TYPELESS;
+                    case GpuResourceFormat::D32FloatS8X24Uint:
+                        return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                    case GpuResourceFormat::D24UnormS8Uint:
+                        return DXGI_FORMAT_R24G8_TYPELESS;
+                    case GpuResourceFormat::D32Float:
+                        return DXGI_FORMAT_R32_TYPELESS;
+                    default:
+                        ASSERT(!GpuResourceFormatInfo::IsDepth(format));
+                        return GetDxgiResourceFormat(format);
+                    }
+                }
 
-                    d3d |= IsSet(flags, GpuResourceBindFlags::UnorderedAccess) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
-                    // Flags cannot have D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE set without D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
-                    d3d |= !IsSet(flags, GpuResourceBindFlags::ShaderResource) && IsSet(flags, GpuResourceBindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE : D3D12_RESOURCE_FLAG_NONE;
-                    d3d |= IsSet(flags, GpuResourceBindFlags::DepthStencil) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
-                    d3d |= IsSet(flags, GpuResourceBindFlags::RenderTarget) ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE;
-
-                    return d3d;
+                DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format)
+                {
+                    switch (format)
+                    {
+                    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+                        return DXGI_FORMAT_R8G8B8A8_UNORM;
+                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+                        return DXGI_FORMAT_B8G8R8A8_UNORM;
+                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+                        return DXGI_FORMAT_B8G8R8X8_UNORM;
+                    default:
+                        return format;
+                    }
                 }
             }
         }

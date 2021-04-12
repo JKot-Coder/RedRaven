@@ -13,7 +13,7 @@ namespace OpenDemo
         {
         public:
             explicit ImageWriter(const GAPI::CpuResourceData::SharedPtr& resource,
-                                 std::string fileExtensionWithDot = ".ktx2")
+                                 std::string fileExtensionWithDot = ".dds")
                 : resource_(resource), fileExtensionWithDot_(fileExtensionWithDot)
             {
             }

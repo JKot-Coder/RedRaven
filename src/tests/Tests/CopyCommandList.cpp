@@ -102,6 +102,8 @@ namespace OpenDemo
                     }
                 }
 
+                memset(dataPointer, 1, textureData->GetAllocation()->GetSize());
+
                 textureData->GetAllocation()->Unmap();
             }
 
@@ -342,7 +344,7 @@ namespace OpenDemo
 
                 DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
                 {
-                    const auto& description = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
+                    const auto& description = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, GAPI::GpuResourceFormat::RGBA8Uint);
 
                     const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                     const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);

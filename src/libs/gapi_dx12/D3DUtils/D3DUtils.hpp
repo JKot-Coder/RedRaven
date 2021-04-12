@@ -2,6 +2,8 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 
+#include "gapi_dx12/D3DUtils/DXGIFormatsUtils.hpp"
+
 using HRESULT = long;
 
 namespace OpenDemo
@@ -66,16 +68,14 @@ namespace OpenDemo
                 {
                 }
 #endif
-
                 U8String HResultToString(HRESULT hr);
 
-                bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right);
-
-                DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect);
-                DXGI_SWAP_CHAIN_DESC1 GetDXGISwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect);
+                D3D12_RESOURCE_FLAGS GetResourceFlags(GpuResourceBindFlags flags);
                 D3D12_RESOURCE_DESC GetResourceDesc(const GpuResourceDescription& resourceDesc);
 
-                DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format);
+                bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right);
+                DXGI_SWAP_CHAIN_DESC1 GetDxgiSwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect);
+                DXGI_SWAP_CHAIN_DESC1 GetDxgiSwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect);
 
                 HRESULT GetAdapter(const ComSharedPtr<IDXGIFactory1>& dxgiFactory, D3D_FEATURE_LEVEL minimumFeatureLevel, ComSharedPtr<IDXGIAdapter1>& Adapter);
             }

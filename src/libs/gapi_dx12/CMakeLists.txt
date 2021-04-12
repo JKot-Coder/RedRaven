@@ -11,6 +11,13 @@ set(D3D12_MEMORY_ALLOCATOR_SRC
 )
 source_group( "D3D12MemoryAllocator" FILES ${D3D12_MEMORY_ALLOCATOR_SRC} )
 
+set(D3D_UTILS_SRC
+        D3DUtils/D3DUtils.cpp
+        D3DUtils/D3DUtils.hpp
+        D3DUtils/DXGIFormatsUtils.cpp
+        D3DUtils/DXGIFormatsUtils.hpp
+)
+source_group( "D3DUtils" FILES ${D3D_UTILS_SRC} )
 
 set(IMPL_SRC
         DeviceImpl.cpp
@@ -34,8 +41,6 @@ set(GAPI_SRC
         pch.hpp
         ComSharedPtr.hpp
         Config.hpp
-        D3DUtils.cpp
-        D3DUtils.hpp
         DescriptorHeap.cpp
         DescriptorHeap.hpp
         CpuResourceDataAllocator.hpp
@@ -52,8 +57,6 @@ set(GAPI_SRC
         #InitialUploadsManager.cpp
         ResourceCreator.cpp
         ResourceCreator.hpp
-        TypeConversions.cpp
-        TypeConversions.hpp
         )
 source_group( "" FILES ${GAPI_SRC} )
 
@@ -61,6 +64,7 @@ set( GAPI_SRC
         ${GAPI_SRC}
         ${IMPL_SRC}
         ${MS_SRC}
+        ${D3D_UTILS_SRC} 
         ${D3D12_MEMORY_ALLOCATOR_SRC}
 )
         

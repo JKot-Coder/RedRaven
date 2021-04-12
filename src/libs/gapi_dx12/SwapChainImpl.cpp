@@ -40,7 +40,7 @@ namespace OpenDemo
                 // Swapchain don't have name
                 std::ignore = name;
 
-                const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
+                const auto& targetSwapChainDesc = D3DUtils::GetDxgiSwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
 
                 ComSharedPtr<IDXGISwapChain1> swapChain1;
                 // Create a swap chain for the window.
@@ -66,7 +66,7 @@ namespace OpenDemo
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
                 D3DCall(D3DSwapChain_->GetDesc1(&currentSwapChainDesc));
 
-                const auto& targetSwapChainDesc = D3DUtils::GetDXGISwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
+                const auto& targetSwapChainDesc = D3DUtils::GetDxgiSwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
                 const auto swapChainCompatable = D3DUtils::SwapChainDesc1MatchesForReset(currentSwapChainDesc, targetSwapChainDesc);
 
                 if (!swapChainCompatable)

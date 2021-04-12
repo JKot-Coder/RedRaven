@@ -11,7 +11,6 @@
 
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
-#include "gapi_dx12/D3DUtils.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/DeviceContext.hpp"

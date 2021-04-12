@@ -35,7 +35,7 @@ set(TESTS_LINK_LIBRARIES
     windowing
     Catch2::Catch2WithMain
     ApprovalTests
-    ktx)
+    DirectXTex)
 
 set(TESTS_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs
