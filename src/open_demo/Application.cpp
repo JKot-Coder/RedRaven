@@ -1,5 +1,6 @@
 #include "Application.hpp"
 
+#include "common/OnScopeExit.hpp"
 #include "common/Time.hpp"
 #include "common/debug/LeakDetector.hpp"
 
@@ -128,6 +129,61 @@ namespace OpenDemo
                 LOG_FATAL("Unsupported format");
             }
         }
+
+        bool isSubresourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs, uint32_t lSubresourceIndex,
+                                const GAPI::CpuResourceData::SharedPtr& rhs, uint32_t rSubresourceIndex)
+        {
+            ASSERT(lhs);
+            ASSERT(rhs);
+            ASSERT(lhs != rhs);
+            ASSERT(lSubresourceIndex < lhs->GetNumSubresources());
+            ASSERT(rSubresourceIndex < lhs->GetNumSubresources());
+            ASSERT(lhs->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
+            ASSERT(rhs->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
+
+            const auto ldataPointer = static_cast<uint8_t*>(lhs->GetAllocation()->Map());
+            const auto rdataPointer = static_cast<uint8_t*>(rhs->GetAllocation()->Map());
+
+            ON_SCOPE_EXIT(
+                {
+                    lhs->GetAllocation()->Unmap();
+                    rhs->GetAllocation()->Unmap();
+                });
+
+            const auto& lfootprint = lhs->GetSubresourceFootprintAt(lSubresourceIndex);
+            const auto& rfootprint = rhs->GetSubresourceFootprintAt(rSubresourceIndex);
+
+            ASSERT(lfootprint.isComplatable(rfootprint));
+
+            auto lrowPointer = ldataPointer + lfootprint.offset;
+            auto rrowPointer = rdataPointer + rfootprint.offset;
+
+            for (uint32_t row = 0; row < lfootprint.numRows; row++)
+            {
+                if (memcmp(lrowPointer, rrowPointer, lfootprint.rowSizeInBytes) != 0)
+                    return false;
+
+                lrowPointer += lfootprint.rowPitch;
+                rrowPointer += rfootprint.rowPitch;
+            }
+
+            return true;
+        }
+
+        bool isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,
+                             const GAPI::CpuResourceData::SharedPtr& rhs)
+        {
+            ASSERT(lhs != rhs);
+            ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
+
+            const auto numSubresources = lhs->GetNumSubresources();
+            for (uint32_t index = 0; index < numSubresources; index++)
+                if (!isSubresourceEqual(lhs, index, rhs, index))
+                    return false;
+
+            return true;
+        }
+
     }
     void Application::OnWindowResize(uint32_t width, uint32_t height)
     {
@@ -215,34 +271,72 @@ namespace OpenDemo
             // renderContext.Present();
 
             // auto index2 = index;
+
+            std::shared_ptr<GAPI::CpuResourceData> readbackData1;
+
             renderContext.ExecuteAsync(
-                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData](GAPI::Device& device) {
+                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData, &readbackData1](GAPI::Device& device) {
                     std::ignore = device;
 
                     auto swapChainTexture = swapChain->GetTexture(index2);
                     //Log::Print::Info("Texture %s\n", texture->GetName());
+                    {
+                        auto& renderContext = Render::RenderContext::Instance();
 
+                        const auto& sourceDescription = GAPI::GpuResourceDescription::Create3D(256, 256, 256, GAPI::GpuResourceFormat::RGBA8Uint);
+                        const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
+                        auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
+
+                        initTextureData(sourceDescription, sourceData);
+                        commandList->UpdateTexture(source, sourceData);
+
+                        const auto& destDescription = GAPI::GpuResourceDescription::Create3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+                        const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Upload);
+                        auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
+
+                        initTextureData(destDescription, destData);
+                        commandList->UpdateTexture(dest, destData);
+
+                        commandList->CopyTextureSubresourceRegion(source, 1, Box3u(7, 42, 13, 64, 64, 64), dest, 0, Vector3u(32, 32, 32));
+                        commandList->CopyTextureSubresourceRegion(source, 2, Box3u(0, 0, 0, 32, 32, 32), dest, 1, Vector3u(16, 16, 16));
+                        commandList->CopyTextureSubresourceRegion(source, 0, Box3u(45, 128, 205, 16, 16, 16), dest, 2, Vector3u(0, 0, 0));
+
+                        readbackData1 = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
+                        commandList->ReadbackTexture(dest, readbackData1);
+
+                        ASSERT(isResourceEqual(cpuData, readbackData1));
+
+                        commandList->Close();
+                    }
+                    /*
                     auto swapChainRtv = swapChainTexture->GetRTV();
                     auto blueRtv = texture->GetRTV();
 
                     commandList->ClearRenderTargetView(blueRtv, Vector4(0, 0, 1, 1));
                     commandList->ClearRenderTargetView(swapChainRtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
-                   // commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
+                    // commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
 
-
-                    
                     commandList->UpdateTexture(testTexture, cpuData);
                     commandList->ReadbackTexture(testTexture, readbackData);
                     //commandList->Close();
 
-                   // commandList->UpdateTexture(testTexture, cpuData);
+                    // commandList->UpdateTexture(testTexture, cpuData);
                     //commandList->CopyTextureSubresourceRegion(testTexture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
                     //commandList->ReadbackTexture(testTexture, readbackData);
 
-                    commandList->Close();
+                    commandList->Close();*/
                 });
 
             renderContext.Submit(commandQueue, commandList);
+            renderContext.WaitForGpu(commandQueue);
+
+            const auto pointer = readbackData1->GetAllocation()->Map();
+
+            (void)pointer;
+            ON_SCOPE_EXIT(
+                {
+                    readbackData1->GetAllocation()->Unmap();
+                })
 
             renderContext.Present(swapChain_);
             renderContext.MoveToNextFrame(commandQueue);

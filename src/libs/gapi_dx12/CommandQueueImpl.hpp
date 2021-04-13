@@ -15,7 +15,10 @@ namespace OpenDemo
             {
             public:
                 CommandQueueImpl() = delete;
-                CommandQueueImpl(const CommandQueueImpl& other) : type_(other.type_), D3DCommandQueue_(other.D3DCommandQueue_) {};
+                CommandQueueImpl(const CommandQueueImpl& other) : 
+                    type_(other.type_), 
+                    D3DCommandQueue_(other.D3DCommandQueue_), 
+                    fence_(other.fence_) {};
                 CommandQueueImpl(CommandQueueType type) : type_(type) {};
 
                 void ReleaseD3DObjects();
@@ -34,7 +37,7 @@ namespace OpenDemo
             private:
                 CommandQueueType type_;
                 ComSharedPtr<ID3D12CommandQueue> D3DCommandQueue_ = nullptr;
-                std::unique_ptr<FenceImpl> fence_;
+                std::shared_ptr<FenceImpl> fence_;
             };
         };
     }

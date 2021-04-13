@@ -56,7 +56,7 @@ namespace OpenDemo
                 D3DCall(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())));
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
 
-                fence_ = std::make_unique<FenceImpl>();
+                fence_ = std::make_shared<FenceImpl>();
                 fence_->Init(name);
             }
 

@@ -263,6 +263,12 @@ namespace OpenDemo
                         commandList->Close();
 
                         submitAndWait(copyQueue, commandList);
+                        using namespace std::chrono_literals;
+                        std::this_thread::sleep_for(5000ms);
+                        renderContext.WaitForGpu(copyQueue);
+                        renderContext.WaitForGpu(copyQueue);
+                        renderContext.WaitForGpu(copyQueue);
+                        renderContext.WaitForGpu(copyQueue);
                         REQUIRE(isResourceEqual(cpuData, readbackData));
                     }
 
@@ -284,6 +290,10 @@ namespace OpenDemo
                         commandList->Close();
 
                         submitAndWait(copyQueue, commandList);
+                        renderContext.WaitForGpu(copyQueue);
+                        renderContext.WaitForGpu(copyQueue);
+                        renderContext.WaitForGpu(copyQueue);
+                        renderContext.WaitForGpu(copyQueue);
                         REQUIRE(isResourceEqual(cpuData, readbackData));
                     }
 
@@ -369,6 +379,11 @@ namespace OpenDemo
                     commandList->Close();
 
                     submitAndWait(copyQueue, commandList);
+
+                    renderContext.WaitForGpu(copyQueue);
+                    renderContext.WaitForGpu(copyQueue);
+                    renderContext.WaitForGpu(copyQueue);
+                    renderContext.WaitForGpu(copyQueue);
                     ImageApprover::verify(readbackData);
                 }
             }
