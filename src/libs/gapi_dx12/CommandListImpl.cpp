@@ -4,9 +4,9 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/MemoryAllocation.hpp"
 
+#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -224,7 +224,8 @@ namespace OpenDemo
             {
                 ASSERT(texture);
                 ASSERT(textureData);
-                ASSERT(texture->GetDescription().GetNumSubresources() <= textureData->GetFirstSubresource() + textureData->GetNumSubresources());
+                ASSERT(texture->GetDescription().GetNumSubresources() == textureData->GetNumSubresources() - textureData->GetFirstSubresource());
+                // Todo add copy checks and move up to rendercontext;
 
                 const auto resourceImpl = texture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
@@ -259,7 +260,7 @@ namespace OpenDemo
                     auto memoryType = readback ? MemoryAllocationType::Readback : MemoryAllocationType::Upload;
 
                     CpuResourceData = CpuResourceDataAllocator::Alloc(
-                        texture->GetDescription(),
+                        textureData->GetResourceDescription(),
                         memoryType,
                         textureData->GetFirstSubresource(),
                         textureData->GetNumSubresources());

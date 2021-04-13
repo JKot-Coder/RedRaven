@@ -19,6 +19,7 @@ set(APPROVAL_INTEGRAION_SRC
     "ApprovalIntegration/ImageWriter.hpp"
     "ApprovalIntegration/ImageWriter.cpp"
     "ApprovalIntegration/ImageComparator.hpp"
+    "ApprovalIntegration/ImageComparator.cpp"
     "ApprovalIntegration/ImageApprover.hpp"
     )
 source_group( "ApprovalIntegration" FILES ${APPROVAL_INTEGRAION_SRC} )

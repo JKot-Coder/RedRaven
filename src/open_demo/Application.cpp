@@ -174,9 +174,9 @@ namespace OpenDemo
         //  ASSERT(commandList)
         // commandList->Close();
 
-        const auto& description = GAPI::GpuResourceDescription::Create2D(128, 128, GAPI::GpuResourceFormat::BGRA8Unorm);
+        const auto& description = GAPI::GpuResourceDescription::Create3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
 
-        const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+        const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
         initTextureData(description, cpuData);
@@ -227,10 +227,16 @@ namespace OpenDemo
 
                     commandList->ClearRenderTargetView(blueRtv, Vector4(0, 0, 1, 1));
                     commandList->ClearRenderTargetView(swapChainRtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
-                    commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
+                   // commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
 
+
+                    
                     commandList->UpdateTexture(testTexture, cpuData);
-                    commandList->CopyTextureSubresourceRegion(testTexture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
+                    commandList->ReadbackTexture(testTexture, readbackData);
+                    //commandList->Close();
+
+                   // commandList->UpdateTexture(testTexture, cpuData);
+                    //commandList->CopyTextureSubresourceRegion(testTexture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
                     //commandList->ReadbackTexture(testTexture, readbackData);
 
                     commandList->Close();

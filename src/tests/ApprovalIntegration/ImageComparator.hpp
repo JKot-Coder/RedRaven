@@ -13,11 +13,7 @@ namespace OpenDemo
         {
         public:
             bool contentsAreEquivalent(std::string receivedPath,
-                                       std::string approvedPath) const override
-            {
-                ASSERT_MSG(false, "implement");
-                return true;
-            }
+                                       std::string approvedPath) const override;
         };
     }
 }

@@ -4,8 +4,8 @@
 
 #include "ApprovalIntegration/ImageApprover.hpp"
 
-#include <catch2/catch.hpp>
 #include "ApprovalTests/ApprovalTests.hpp"
+#include <catch2/catch.hpp>
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
@@ -60,10 +60,10 @@ namespace OpenDemo
                 const auto& value = checkerboardPattern<Vector4>(texel, level);
                 // TODO olor class
                 // RGBA format
-                return static_cast<uint32_t>(value.x * 255.0f) << 24 |
-                       static_cast<uint32_t>(value.y * 255.0f) << 16 |
-                       static_cast<uint32_t>(value.z * 255.0f) << 8 |
-                       static_cast<uint32_t>(value.w * 255.0f);
+                return static_cast<uint32_t>(value.w * 255.0f) << 24 |
+                       static_cast<uint32_t>(value.z * 255.0f) << 16 |
+                       static_cast<uint32_t>(value.y * 255.0f) << 8 |
+                       static_cast<uint32_t>(value.x * 255.0f);
             }
 
             template <typename T>
@@ -101,8 +101,6 @@ namespace OpenDemo
                         }
                     }
                 }
-
-                memset(dataPointer, 1, textureData->GetAllocation()->GetSize());
 
                 textureData->GetAllocation()->Unmap();
             }
@@ -297,7 +295,7 @@ namespace OpenDemo
                         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
                         initTextureData(description, sourceData);
-         
+
                         auto source = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Source");
                         auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Dest");
 
@@ -310,57 +308,69 @@ namespace OpenDemo
                         submitAndWait(copyQueue, commandList);
                         REQUIRE(isResourceEqual(sourceData, readbackData));
                     }
-                }
 
-                DYNAMIC_SECTION(fmt::format("[Texture2D::{}] CopyTextureSubresource", formatName))
+                    DYNAMIC_SECTION(fmt::format("[{}::{}] CopyTextureSubresource", dimensionTitle, formatName))
+                    {
+                        const auto& sourceDescription = createDescription(dimension, 256, format);
+                        const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
+                        auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
+
+                        initTextureData(sourceDescription, sourceData);
+                        commandList->UpdateTexture(source, sourceData);
+
+                        const auto& destDescription = createDescription(dimension, 128, format);
+                        const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::CpuReadWrite);
+                        auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
+
+                        initTextureData(destDescription, destData);
+                        commandList->UpdateTexture(dest, destData);
+
+                        for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
+                            if (index % 2 == 0)
+                                commandList->CopyTextureSubresource(source, index + 1, dest, index);
+
+                        const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
+                        commandList->ReadbackTexture(dest, readbackData);
+                        commandList->Close();
+
+                        submitAndWait(copyQueue, commandList);
+
+                        for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
+                        {
+                            bool equal = (index % 2 == 0) ? isSubresourceEqual(sourceData, index + 1, readbackData, index)
+                                                          : isSubresourceEqual(destData, index, readbackData, index);
+                            REQUIRE(equal);
+                        }
+                    }
+                }
+                
+                DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
                 {
-                    const auto& sourceDescription = GAPI::GpuResourceDescription::Create2D(256, 256, format);
+                    const auto& sourceDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 256, format);
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                     auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                     initTextureData(sourceDescription, sourceData);
-
-                    const auto& destDescription = GAPI::GpuResourceDescription::Create2D(128, 128, format);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
-                    auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
-
                     commandList->UpdateTexture(source, sourceData);
 
-                    for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
-                        if (index % 2 == 0)
-                            commandList->CopyTextureSubresource(source, index + 1, dest, index);
+                    const auto& destDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
+                    const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Upload);
+                    auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 
+                    initTextureData(destDescription, destData);
+                    commandList->UpdateTexture(dest, destData);
+
+                    commandList->CopyTextureSubresourceRegion(source, 1, Box3u(7, 42, 13, 64, 64, 64), dest, 0, Vector3u(32, 32, 32) );
+                    commandList->CopyTextureSubresourceRegion(source, 2, Box3u(0, 0, 0, 32, 32, 32), dest, 1, Vector3u(16, 16, 16));
+                    commandList->CopyTextureSubresourceRegion(source, 0, Box3u(45, 128, 205, 16, 16, 16), dest, 2, Vector3u(0, 0, 0));
+
+                     const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
                     commandList->ReadbackTexture(dest, readbackData);
-                    commandList->Close();
-
-                    submitAndWait(copyQueue, commandList);
-
-                    for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
-                    {
-                        bool equal = isSubresourceEqual(sourceData, index + 1, readbackData, index);
-                        REQUIRE(equal ^ (index % 2 != 0));
-                    }
-                }
-
-                DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
-                {
-                    const auto& description = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, GAPI::GpuResourceFormat::RGBA8Uint);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initTextureData(description, cpuData);
-
-                    auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
-
-                    commandList->UpdateTexture(testTexture, cpuData);
-                    commandList->ReadbackTexture(testTexture, readbackData);
                     commandList->Close();
 
                     submitAndWait(copyQueue, commandList);
                     ImageApprover::verify(readbackData);
                 }
-               
             }
         }
 

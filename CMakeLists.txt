@@ -92,6 +92,8 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/microsoft/DirectXTex
   GIT_TAG        apr2021
 )
+set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(DirectXTex)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -102,6 +104,7 @@ set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
 set_property(TARGET Catch2WithMain PROPERTY FOLDER "Dependencies")
 set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
+set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi_dx12)
