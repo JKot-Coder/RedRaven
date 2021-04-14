@@ -264,7 +264,7 @@ namespace OpenDemo
 
                         submitAndWait(copyQueue, commandList);
                         using namespace std::chrono_literals;
-                        std::this_thread::sleep_for(5000ms);
+                        // std::this_thread::sleep_for(5000ms);
                         renderContext.WaitForGpu(copyQueue);
                         renderContext.WaitForGpu(copyQueue);
                         renderContext.WaitForGpu(copyQueue);
@@ -353,28 +353,28 @@ namespace OpenDemo
                         }
                     }
                 }
-                
+
                 DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
                 {
-                    const auto& sourceDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 256, format);
+                    const auto& sourceDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                     auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                     initTextureData(sourceDescription, sourceData);
                     commandList->UpdateTexture(source, sourceData);
 
-                    const auto& destDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
+                    const auto& destDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 64, format);
                     const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Upload);
                     auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 
                     initTextureData(destDescription, destData);
                     commandList->UpdateTexture(dest, destData);
 
-                    commandList->CopyTextureSubresourceRegion(source, 1, Box3u(7, 42, 13, 64, 64, 64), dest, 0, Vector3u(32, 32, 32) );
-                    commandList->CopyTextureSubresourceRegion(source, 2, Box3u(0, 0, 0, 32, 32, 32), dest, 1, Vector3u(16, 16, 16));
-                    commandList->CopyTextureSubresourceRegion(source, 0, Box3u(45, 128, 205, 16, 16, 16), dest, 2, Vector3u(0, 0, 0));
+                    commandList->CopyTextureSubresourceRegion(source, 1, Box3u(7, 8, 13, 32, 32, 32), dest, 0, Vector3u(16, 16, 16));
+                    commandList->CopyTextureSubresourceRegion(source, 2, Box3u(0, 0, 0, 16, 16, 16), dest, 1, Vector3u(8, 8, 8));
+                    commandList->CopyTextureSubresourceRegion(source, 0, Box3u(3, 42, 66, 8, 8, 8), dest, 2, Vector3u(0, 0, 0));
 
-                     const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
+                    const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
                     commandList->ReadbackTexture(dest, readbackData);
                     commandList->Close();
 
@@ -387,12 +387,6 @@ namespace OpenDemo
                     ImageApprover::verify(readbackData);
                 }
             }
-        }
-
-        TEST_CASE("HelloApprovals")
-        {
-            //ImageApprover::verify()
-            //     ApprovalTests::Approvals::verify("Hello Approvals!");
         }
     }
 }

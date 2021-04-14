@@ -304,8 +304,6 @@ namespace OpenDemo
                         readbackData1 = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
                         commandList->ReadbackTexture(dest, readbackData1);
 
-                        ASSERT(isResourceEqual(cpuData, readbackData1));
-
                         commandList->Close();
                     }
                     /*
