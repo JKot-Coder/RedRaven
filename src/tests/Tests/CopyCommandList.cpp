@@ -33,9 +33,9 @@ namespace OpenDemo
             T checkerboardPattern(Vector3u texel, uint32_t level);
 
             template <>
-            Vector4 checkerboardPattern(Vector3u texel, uint32_t level)
+            Vector4 checkerboardPattern(Vector3u texel, uint32_t subresource)
             {
-                if (((texel.x / 4) + (texel.y / 4) + (texel.z / 4) + level) & 1)
+                if (((texel.x / 4) + (texel.y / 4) + (texel.z / 4) + subresource) & 1)
                 {
                     return Vector4(0.5f, 0.5f, 0.5f, 0.5f);
                 }
@@ -51,7 +51,7 @@ namespace OpenDemo
                     Vector4(0.25, 0.25, 0.25, 1),
                 };
 
-                return colors[std::min(level, 7u)];
+                return colors[subresource % colors.size()];
             }
 
             template <>
@@ -178,18 +178,19 @@ namespace OpenDemo
 
             GAPI::GpuResourceDescription createDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
             {
+                const auto numArraySlices = 3;
                 switch (dimension)
                 {
                 case GAPI::GpuResourceDimension::Texture1D:
-                    return GAPI::GpuResourceDescription::Create1D(size, format);
+                    return GAPI::GpuResourceDescription::Create1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 case GAPI::GpuResourceDimension::Texture2D:
-                    return GAPI::GpuResourceDescription::Create2D(size, size, format);
+                    return GAPI::GpuResourceDescription::Create2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 case GAPI::GpuResourceDimension::Texture2DMS:
-                    return GAPI::GpuResourceDescription::Create2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget);
+                    return GAPI::GpuResourceDescription::Create2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
                 case GAPI::GpuResourceDimension::Texture3D:
                     return GAPI::GpuResourceDescription::Create3D(size, size, size, format);
                 case GAPI::GpuResourceDimension::TextureCube:
-                    return GAPI::GpuResourceDescription::CreateCube(size, size, format);
+                    return GAPI::GpuResourceDescription::CreateCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 }
 
                 ASSERT_MSG(false, "Unsupported GpuResourceDimension");
@@ -286,10 +287,6 @@ namespace OpenDemo
                         commandList->Close();
 
                         submitAndWait(copyQueue, commandList);
-                        renderContext.WaitForGpu(copyQueue);
-                        renderContext.WaitForGpu(copyQueue);
-                        renderContext.WaitForGpu(copyQueue);
-                        renderContext.WaitForGpu(copyQueue);
                         REQUIRE(isResourceEqual(cpuData, readbackData));
                     }
 
@@ -333,11 +330,12 @@ namespace OpenDemo
 
                         for (uint32_t index = 0; index < sourceDescription.GetNumSubresources(); index++)
                         {
-                            const auto mipLevel = sourceDescription.GetSubresourceMipLevel(index);
-                            const auto arraySlice = sourceDescription.GetSubresourceArraySlice(index);
+                            const auto mipLevel = destDescription.GetSubresourceMipLevel(index);
+                            const auto arraySlice = destDescription.GetSubresourceArraySlice(index);
+                            const auto face = destDescription.GetSubresourceFace(index);
 
                             if (mipLevel % 2 != 0)
-                                  commandList->CopyTextureSubresource(source, index + 1, dest, destDescription.GetSubresourceIndex(arraySlice, mipLevel) );
+                                commandList->CopyTextureSubresource(source, index + 1, dest, destDescription.GetSubresourceIndex(arraySlice, mipLevel, face));
                         }
 
                         const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
@@ -350,9 +348,12 @@ namespace OpenDemo
                         {
                             const auto mipLevel = sourceDescription.GetSubresourceMipLevel(index);
                             const auto arraySlice = sourceDescription.GetSubresourceArraySlice(index);
+                            const auto face = sourceDescription.GetSubresourceFace(index);
 
-                            bool equal = (mipLevel % 2 != 0) ? isSubresourceEqual(sourceData, index + 1, readbackData, destDescription.GetSubresourceIndex(arraySlice, mipLevel))
-                                                             : isSubresourceEqual(destData, index, readbackData, destDescription.GetSubresourceIndex(arraySlice, mipLevel));
+                            const auto destSubresource = destDescription.GetSubresourceIndex(arraySlice, mipLevel, face);
+
+                            bool equal = (mipLevel % 2 != 0) ? isSubresourceEqual(sourceData, index + 1, readbackData, destSubresource)
+                                                             : isSubresourceEqual(destData, index, readbackData, destSubresource);
                             REQUIRE(equal);
                         }
                     }
@@ -383,11 +384,6 @@ namespace OpenDemo
                     commandList->Close();
 
                     submitAndWait(copyQueue, commandList);
-
-                    renderContext.WaitForGpu(copyQueue);
-                    renderContext.WaitForGpu(copyQueue);
-                    renderContext.WaitForGpu(copyQueue);
-                    renderContext.WaitForGpu(copyQueue);
                     ImageApprover::verify(readbackData);
                 }
             }

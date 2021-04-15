@@ -227,13 +227,22 @@ namespace OpenDemo
             uint32_t GetSubresourceArraySlice(uint32_t subresource) const
             {
                 ASSERT(mipLevels > 0);
+                ASSERT(subresource < GetNumSubresources());
                 const auto numFaces = (dimension == GpuResourceDimension::TextureCube ? 6 : 1);
                 return (subresource / numFaces) / mipLevels;
+            }
+
+            uint32_t GetSubresourceFace(uint32_t subresource) const
+            {
+                ASSERT(mipLevels > 0);
+                ASSERT(subresource < GetNumSubresources());
+                return (dimension == GpuResourceDimension::TextureCube ? (subresource / mipLevels) % 6 : 0);
             }
 
             uint32_t GetSubresourceMipLevel(uint32_t subresource) const
             {
                 ASSERT(mipLevels > 0);
+                ASSERT(subresource < GetNumSubresources());
                 return subresource % mipLevels;
             }
 
