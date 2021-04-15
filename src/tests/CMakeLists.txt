@@ -33,6 +33,7 @@ set(TESTS_LINK_LIBRARIES
     common
     render
     gapi
+    gapi_dx12
     windowing
     Catch2::Catch2WithMain
     ApprovalTests

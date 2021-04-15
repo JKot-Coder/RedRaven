@@ -171,6 +171,6 @@ namespace OpenDemo
     }
 }
 
-#if ENABLE_INLINE && !ENABLE_ASSERTS
+#if ENABLE_INLINE
 #include "CommandList.inl"
 #endif

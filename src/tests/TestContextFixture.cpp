@@ -14,6 +14,7 @@ namespace OpenDemo
 
             renderContext.Submit(commandQueue, commandList);
             renderContext.WaitForGpu(commandQueue);
+            renderContext.MoveToNextFrame(commandQueue);
         }
     }
 }

@@ -251,7 +251,7 @@ namespace OpenDemo
                 ASSERT(mipLevel < mipLevels);
                 ASSERT(arraySlice < arraySize);
 
-                const auto numFaces = (dimension == GpuResourceDimension::TextureCube ? 6 : 1);
+                const uint32_t numFaces = (dimension == GpuResourceDimension::TextureCube ? 6u : 1u);
                 ASSERT(faceIndex < numFaces);
 
                 return mipLevel + (arraySlice * numFaces + faceIndex) * mipLevels;
@@ -260,7 +260,7 @@ namespace OpenDemo
             uint32_t GetNumSubresources() const
             {
                 constexpr uint32_t planeSlices = 1;
-                const uint32_t numFaces = (dimension == GpuResourceDimension::TextureCube ? 6 : 1);
+                const uint32_t numFaces = (dimension == GpuResourceDimension::TextureCube ? 6u : 1u);
                 return planeSlices * numFaces * arraySize * mipLevels;
             }
 

@@ -1,3 +1,8 @@
+#ifdef ENABLE_ASSERTS
+#include "gapi/Texture.hpp"
+#include "common/Math.hpp"
+#endif 
+
 namespace OpenDemo
 {
     namespace GAPI
@@ -106,6 +111,5 @@ namespace OpenDemo
 
             GetPrivateImpl()->ReadbackTexture(texture, textureData);
         }
-
     }
 }

@@ -1,9 +1,5 @@
 #include "CommandList.hpp"
 
-#if !ENABLE_INLINE || ENABLE_ASSERTS
-#include "gapi/Texture.hpp"
-
-#include "common/Math.hpp"
-
+#if !ENABLE_INLINE
 #include "CommandList.inl"
 #endif

@@ -198,6 +198,19 @@ namespace OpenDemo
             }
         }
 
+        TEST_CASE_METHOD(TestContextFixture, "CopyCommmandList", "[CommandList][CopyCommmandList]")
+        {
+            auto& renderContext = Render::RenderContext::Instance();
+
+            auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
+            REQUIRE(commandList != nullptr);
+
+            SECTION("Close")
+            {
+                commandList->Close();
+            }
+        }
+
         TEST_CASE_METHOD(TestContextFixture, "CopyTextureTests", "[CommandList][CopyCommmandList][CopyTexture]")
         {
             auto& renderContext = Render::RenderContext::Instance();
@@ -207,11 +220,6 @@ namespace OpenDemo
 
             auto copyQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
             REQUIRE(copyQueue != nullptr);
-
-            SECTION("Close")
-            {
-                commandList->Close();
-            }
 
             std::array<GAPI::GpuResourceFormat, 2> formatsToTest = { GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
             for (const auto format : formatsToTest)
@@ -328,14 +336,14 @@ namespace OpenDemo
                         initTextureData(destDescription, destData);
                         commandList->UpdateTexture(dest, destData);
 
-                        for (uint32_t index = 0; index < sourceDescription.GetNumSubresources(); index++)
+                        for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
                         {
                             const auto mipLevel = destDescription.GetSubresourceMipLevel(index);
                             const auto arraySlice = destDescription.GetSubresourceArraySlice(index);
                             const auto face = destDescription.GetSubresourceFace(index);
 
                             if (mipLevel % 2 != 0)
-                                commandList->CopyTextureSubresource(source, index + 1, dest, destDescription.GetSubresourceIndex(arraySlice, mipLevel, face));
+                                commandList->CopyTextureSubresource(source, sourceDescription.GetSubresourceIndex(arraySlice, mipLevel + 1, face), dest, index);
                         }
 
                         const auto readbackData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Readback);
@@ -346,14 +354,12 @@ namespace OpenDemo
 
                         for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
                         {
-                            const auto mipLevel = sourceDescription.GetSubresourceMipLevel(index);
-                            const auto arraySlice = sourceDescription.GetSubresourceArraySlice(index);
-                            const auto face = sourceDescription.GetSubresourceFace(index);
+                            const auto mipLevel = destDescription.GetSubresourceMipLevel(index);
+                            const auto arraySlice = destDescription.GetSubresourceArraySlice(index);
+                            const auto face = destDescription.GetSubresourceFace(index);
 
-                            const auto destSubresource = destDescription.GetSubresourceIndex(arraySlice, mipLevel, face);
-
-                            bool equal = (mipLevel % 2 != 0) ? isSubresourceEqual(sourceData, index + 1, readbackData, destSubresource)
-                                                             : isSubresourceEqual(destData, index, readbackData, destSubresource);
+                            bool equal = (mipLevel % 2 != 0) ? isSubresourceEqual(sourceData, sourceDescription.GetSubresourceIndex(arraySlice, mipLevel + 1, face), readbackData, index)
+                                                             : isSubresourceEqual(destData, index, readbackData, index);
                             REQUIRE(equal);
                         }
                     }
