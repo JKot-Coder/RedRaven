@@ -3,7 +3,7 @@
 #include "gapi/GpuResource.hpp"
 #include "gapi/Texture.hpp"
 
-#include "render/RenderContext.hpp"
+#include "render/DeviceContext.hpp"
 
 namespace OpenDemo
 {

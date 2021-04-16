@@ -1,7 +1,7 @@
 #include "Application.hpp"
 
 #include "gapi/CommandQueue.hpp"
-#include "render/RenderContext.hpp"
+#include "render/DeviceContext.hpp"
 #include "windowing/WindowSystem.hpp"
 
 #define CATCH_CONFIG_RUNNER

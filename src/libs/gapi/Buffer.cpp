@@ -4,7 +4,7 @@
 
 #include "gapi/GpuResourceViews.hpp"
 
-#include "render/RenderContext.hpp"
+#include "render/DeviceContext.hpp"
 
 #include "common/Math.hpp"
 

@@ -1,8 +1,8 @@
 project (render)
 
 set(Render_SRC
-      RenderContext.cpp
-      RenderContext.hpp
+      DeviceContext.cpp
+      DeviceContext.hpp
       Submission.hpp
       Submission.cpp)
         

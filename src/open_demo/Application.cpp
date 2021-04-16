@@ -14,7 +14,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
-#include "render/RenderContext.hpp"
+#include "render/DeviceContext.hpp"
 
 #include "windowing/Window.hpp"
 #include "windowing/WindowSystem.hpp"

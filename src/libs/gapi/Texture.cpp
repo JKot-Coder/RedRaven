@@ -5,7 +5,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/MemoryAllocation.hpp"
 
-#include "render/RenderContext.hpp"
+#include "render/DeviceContext.hpp"
 
 #include "common/Math.hpp"
 #include "common/OnScopeExit.hpp"
