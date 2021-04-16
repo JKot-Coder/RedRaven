@@ -225,12 +225,12 @@ namespace OpenDemo
         auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
         auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
 
-        const auto desc = GAPI::GpuResourceDescription::Create2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget, 1, 1);
+        const auto desc = GAPI::GpuResourceDescription::Texture2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget, 1, 1);
         auto texture = renderContext.CreateTexture(desc);
         //  ASSERT(commandList)
         // commandList->Close();
 
-        const auto& description = GAPI::GpuResourceDescription::Create3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+        const auto& description = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
 
         const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
@@ -283,14 +283,14 @@ namespace OpenDemo
                     {
                         auto& renderContext = Render::DeviceContext::Instance();
 
-                        const auto& sourceDescription = GAPI::GpuResourceDescription::Create3D(256, 256, 256, GAPI::GpuResourceFormat::RGBA8Uint);
+                        const auto& sourceDescription = GAPI::GpuResourceDescription::Texture3D(256, 256, 256, GAPI::GpuResourceFormat::RGBA8Uint);
                         const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                         auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                         initTextureData(sourceDescription, sourceData);
                         commandList->UpdateTexture(source, sourceData);
 
-                        const auto& destDescription = GAPI::GpuResourceDescription::Create3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+                        const auto& destDescription = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
                         const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Upload);
                         auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 

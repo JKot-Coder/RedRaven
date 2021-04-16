@@ -243,6 +243,12 @@ namespace OpenDemo
                     D3D12_RESOURCE_DESC desc;
                     switch (resourceDesc.GetDimension())
                     {
+                    case GpuResourceDimension::Buffer:
+                    {
+                        const auto blockSize = (resourceDesc.GetFormat() == GpuResourceFormat::Unknown) ? 1 : GpuResourceFormatInfo::GetBlockSize(resourceDesc.GetFormat());
+                        desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.GetWidth() * blockSize);
+                    }
+                    break;
                     case GpuResourceDimension::Texture1D:
                         desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.GetWidth(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount());
                         break;

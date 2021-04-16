@@ -77,17 +77,19 @@ namespace OpenDemo
 
                 const auto& subresourceFootprints = textureData->GetSubresourceFootprints();
                 const auto dataPointer = static_cast<uint8_t*>(textureData->GetAllocation()->Map());
+                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.GetFormat());
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
+                    ASSERT(subresourceFootprint.width * blockSize == subresourceFootprint.rowSizeInBytes);
 
                     for (uint32_t depth = 0; depth < subresourceFootprint.depth; depth++)
-                    {
+                    {                   
                         const auto depthPointer = dataPointer + subresourceFootprint.offset +
                                                   depth * subresourceFootprint.depthPitch;
                         for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
-                        {
+                        {                            
                             const auto rowPointer = depthPointer + row * subresourceFootprint.rowPitch;
                             auto columnPointer = reinterpret_cast<T*>(rowPointer);
 
@@ -176,25 +178,26 @@ namespace OpenDemo
                 return true;
             }
 
-            GAPI::GpuResourceDescription createDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
+            GAPI::GpuResourceDescription createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
             {
                 const auto numArraySlices = 3;
+
                 switch (dimension)
                 {
                 case GAPI::GpuResourceDimension::Texture1D:
-                    return GAPI::GpuResourceDescription::Create1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                    return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 case GAPI::GpuResourceDimension::Texture2D:
-                    return GAPI::GpuResourceDescription::Create2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                    return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 case GAPI::GpuResourceDimension::Texture2DMS:
-                    return GAPI::GpuResourceDescription::Create2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
+                    return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
                 case GAPI::GpuResourceDimension::Texture3D:
-                    return GAPI::GpuResourceDescription::Create3D(size, size, size, format);
+                    return GAPI::GpuResourceDescription::Texture3D(size, size, size, format);
                 case GAPI::GpuResourceDimension::TextureCube:
-                    return GAPI::GpuResourceDescription::CreateCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                    return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 }
 
                 ASSERT_MSG(false, "Unsupported GpuResourceDimension");
-                return GAPI::GpuResourceDescription::Create1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
+                return GAPI::GpuResourceDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
             }
         }
 
@@ -208,6 +211,30 @@ namespace OpenDemo
             SECTION("Close")
             {
                 commandList->Close();
+            }
+        }
+
+        TEST_CASE_METHOD(TestContextFixture, "CopyBufferTests", "[CommandList][CopyCommmandList][CopyBuffer]")
+        {
+            auto& renderContext = Render::DeviceContext::Instance();
+
+            auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
+            REQUIRE(commandList != nullptr);
+
+            const auto format = GAPI::GpuResourceFormat::RGBA8Uint;
+            const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer data on CPU", formatName))
+            {
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128, format);
+
+                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                const auto destData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+
+                initTextureData(description, sourceData);
+              //  destData->CopyDataFrom(sourceData);
+
+             //   REQUIRE(isResourceEqual(sourceData, destData));
             }
         }
 
@@ -247,7 +274,7 @@ namespace OpenDemo
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Copy texure data on CPU", dimensionTitle, formatName))
                     {
-                        const auto& description = createDescription(dimension, 128, format);
+                        const auto& description = createTextureDescription(dimension, 128, format);
 
                         const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto destData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
@@ -260,7 +287,7 @@ namespace OpenDemo
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Upload texure indirect", dimensionTitle, formatName))
                     {
-                        const auto& description = createDescription(dimension, 128, format);
+                        const auto& description = createTextureDescription(dimension, 128, format);
 
                         const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
@@ -279,7 +306,7 @@ namespace OpenDemo
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Upload texure direct", dimensionTitle, formatName))
                     {
-                        const auto& description = createDescription(dimension, 128, format);
+                        const auto& description = createTextureDescription(dimension, 128, format);
 
                         const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
@@ -300,7 +327,7 @@ namespace OpenDemo
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Copy texure on GPU", dimensionTitle, formatName))
                     {
-                        const auto& description = createDescription(dimension, 128, format);
+                        const auto& description = createTextureDescription(dimension, 128, format);
 
                         const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
@@ -322,14 +349,14 @@ namespace OpenDemo
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] CopyTextureSubresource", dimensionTitle, formatName))
                     {
-                        const auto& sourceDescription = createDescription(dimension, 256, format);
+                        const auto& sourceDescription = createTextureDescription(dimension, 256, format);
                         const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                         auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                         initTextureData(sourceDescription, sourceData);
                         commandList->UpdateTexture(source, sourceData);
 
-                        const auto& destDescription = createDescription(dimension, 128, format);
+                        const auto& destDescription = createTextureDescription(dimension, 128, format);
                         const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                         auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 
@@ -367,14 +394,14 @@ namespace OpenDemo
 
                 DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))
                 {
-                    const auto& sourceDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
+                    const auto& sourceDescription = createTextureDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
                     auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                     initTextureData(sourceDescription, sourceData);
                     commandList->UpdateTexture(source, sourceData);
 
-                    const auto& destDescription = createDescription(GAPI::GpuResourceDimension::Texture3D, 64, format);
+                    const auto& destDescription = createTextureDescription(GAPI::GpuResourceDimension::Texture3D, 64, format);
                     const auto destData = renderContext.AllocateIntermediateTextureData(destDescription, GAPI::MemoryAllocationType::Upload);
                     auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 

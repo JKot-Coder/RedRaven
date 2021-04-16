@@ -129,7 +129,7 @@ namespace OpenDemo
                     const auto rowSizeInBytes = rowSizeInBytesVector[index];
                     const auto rowPitch = layout.Footprint.RowPitch;
                     const auto depthPitch = numRows * rowPitch;
-          
+
                     subresourceFootprints[index] = CpuResourceData::SubresourceFootprint(
                         layout.Offset,
                         layout.Footprint.Width,

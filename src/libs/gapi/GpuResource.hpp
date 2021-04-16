@@ -173,27 +173,32 @@ namespace OpenDemo
         {
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static GpuResourceDescription Create1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDescription Buffer(uint32_t size, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
+            {
+                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, format, bindFlags, 1, 1, 1);
+            }
+
+            static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
                 return GpuResourceDescription(GpuResourceDimension::Texture1D, width, 1, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
 
-            static GpuResourceDescription Create2D(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDescription Texture2D(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
                 return GpuResourceDescription(GpuResourceDimension::Texture2D, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
 
-            static GpuResourceDescription Create2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t sampleCount, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1)
+            static GpuResourceDescription Texture2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t sampleCount, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1)
             {
                 return GpuResourceDescription(GpuResourceDimension::Texture2DMS, width, height, 1, format, bindFlags, sampleCount, arraySize, 1);
             }
 
-            static GpuResourceDescription Create3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDescription Texture3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t mipLevels = MaxPossible)
             {
                 return GpuResourceDescription(GpuResourceDimension::Texture3D, width, height, depth, format, bindFlags, 1, 1, mipLevels);
             }
 
-            static GpuResourceDescription CreateCube(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDescription TextureCube(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
                 return GpuResourceDescription(GpuResourceDimension::TextureCube, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
