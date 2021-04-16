@@ -106,7 +106,7 @@ namespace OpenDemo
             };
 
             ShaderResourceView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
 
         class DepthStencilView final : public GpuResourceView
@@ -127,7 +127,7 @@ namespace OpenDemo
 
             DepthStencilView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
 
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
 
         class RenderTargetView final : public GpuResourceView
@@ -148,7 +148,7 @@ namespace OpenDemo
 
             RenderTargetView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
 
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
 
         class UnorderedAccessView final : public GpuResourceView
@@ -169,7 +169,7 @@ namespace OpenDemo
 
             UnorderedAccessView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
 
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
     }
 }

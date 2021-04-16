@@ -29,7 +29,7 @@ namespace OpenDemo
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
-                auto& renderContext = Render::RenderContext::Instance();
+                auto& renderContext = Render::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_
                 srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
@@ -48,7 +48,7 @@ namespace OpenDemo
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {
-                auto& renderContext = Render::RenderContext::Instance();
+                auto& renderContext = Render::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_
                 uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }

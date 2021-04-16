@@ -47,7 +47,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
     }
 }

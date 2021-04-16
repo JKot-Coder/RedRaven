@@ -32,7 +32,7 @@ namespace OpenDemo
             Buffer(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name);
 
         private:
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
     }
 }

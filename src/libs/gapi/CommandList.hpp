@@ -118,7 +118,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
 
         class ComputeCommandList : public CopyCommandList
@@ -141,7 +141,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
 
         class GraphicsCommandList final : public ComputeCommandList
@@ -166,7 +166,7 @@ namespace OpenDemo
             }
 
         private:
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
     }
 }

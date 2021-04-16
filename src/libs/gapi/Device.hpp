@@ -115,7 +115,7 @@ namespace OpenDemo
             {
             }
 
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
 
         private:
             Description description_;

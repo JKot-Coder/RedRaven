@@ -14,11 +14,11 @@ namespace OpenDemo
         class Submission;
 
         // Todo thread safety?
-        class RenderContext final : public Singleton<RenderContext>
+        class DeviceContext final : public Singleton<DeviceContext>
         {
         public:
-            RenderContext();
-            ~RenderContext();
+            DeviceContext();
+            ~DeviceContext();
 
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 

@@ -191,7 +191,7 @@ namespace OpenDemo
         desc.width = width;
         desc.height = height;
 
-        auto& renderContext = Render::RenderContext::Instance();
+        auto& renderContext = Render::DeviceContext::Instance();
         renderContext.ResetSwapChain(swapChain_, desc);
 
         swindex = 0;
@@ -220,7 +220,7 @@ namespace OpenDemo
 
         time->Init();
 
-        auto& renderContext = Render::RenderContext::Instance();
+        auto& renderContext = Render::DeviceContext::Instance();
 
         auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
         auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
@@ -281,7 +281,7 @@ namespace OpenDemo
                     auto swapChainTexture = swapChain->GetTexture(index2);
                     //Log::Print::Info("Texture %s\n", texture->GetName());
                     {
-                        auto& renderContext = Render::RenderContext::Instance();
+                        auto& renderContext = Render::DeviceContext::Instance();
 
                         const auto& sourceDescription = GAPI::GpuResourceDescription::Create3D(256, 256, 256, GAPI::GpuResourceFormat::RGBA8Uint);
                         const auto sourceData = renderContext.AllocateIntermediateTextureData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
@@ -378,7 +378,7 @@ namespace OpenDemo
         // Inputting::Instance()->Init();
         // Inputting::Instance()->SubscribeToWindow(_window);
 
-        auto& renderContext = Render::RenderContext::Instance();
+        auto& renderContext = Render::DeviceContext::Instance();
         renderContext.Init();
 
         // auto& render = Rendering::Instance();
@@ -389,7 +389,7 @@ namespace OpenDemo
     {
         swapChain_ = nullptr;
 
-        Render::RenderContext::Instance().Terminate();
+        Render::DeviceContext::Instance().Terminate();
 
         //_scene->Terminate();
 

@@ -29,7 +29,7 @@ namespace OpenDemo
 
                     ASSERT(p);
 
-                    const auto& instance = RenderContext::Instance();
+                    const auto& instance = DeviceContext::Instance();
                     instance.ReleaseResource(*static_cast<GAPI::Object*>(p));
 
                     delete p;
@@ -37,14 +37,14 @@ namespace OpenDemo
             };
         }
 
-        RenderContext::RenderContext()
+        DeviceContext::DeviceContext()
             : submission_(new Submission())
         {
         }
 
-        RenderContext::~RenderContext() { }
+        DeviceContext::~DeviceContext() { }
 
-        void RenderContext::Init()
+        void DeviceContext::Init()
         {
             ASSERT(!inited_);
 
@@ -70,7 +70,7 @@ namespace OpenDemo
             fence_ = CreateFence("Frame sync fence");
         }
 
-        void RenderContext::Terminate()
+        void DeviceContext::Terminate()
         {
             ASSERT(inited_);
 
@@ -81,14 +81,14 @@ namespace OpenDemo
             inited_ = false;
         }
 
-        void RenderContext::Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
+        void DeviceContext::Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {
             ASSERT(inited_);
 
             submission_->Submit(commandQueue, commandList);
         }
 
-        void RenderContext::Present(const std::shared_ptr<GAPI::SwapChain>& swapChain)
+        void DeviceContext::Present(const std::shared_ptr<GAPI::SwapChain>& swapChain)
         {
             ASSERT(inited_);
 
@@ -97,7 +97,7 @@ namespace OpenDemo
             });
         }
 
-        void RenderContext::WaitForGpu(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
+        void DeviceContext::WaitForGpu(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
             ASSERT(inited_);
 
@@ -106,7 +106,7 @@ namespace OpenDemo
             });
         }
 
-        void RenderContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
+        void DeviceContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
             ASSERT(inited_);
 
@@ -136,21 +136,21 @@ namespace OpenDemo
             // Todo throttle main thread?
         }
 
-        void RenderContext::ExecuteAsync(const Submission::CallbackFunction&& function)
+        void DeviceContext::ExecuteAsync(const Submission::CallbackFunction&& function)
         {
             ASSERT(inited_);
 
             submission_->ExecuteAsync(std::move(function));
         }
 
-        void RenderContext::ExecuteAwait(const Submission::CallbackFunction&& function)
+        void DeviceContext::ExecuteAwait(const Submission::CallbackFunction&& function)
         {
             ASSERT(inited_);
 
             submission_->ExecuteAwait(std::move(function));
         }
 
-        void RenderContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
+        void DeviceContext::ResetSwapChain(const std::shared_ptr<GAPI::SwapChain>& swapchain, GAPI::SwapChainDescription& description)
         {
             ASSERT(inited_);
 
@@ -159,7 +159,7 @@ namespace OpenDemo
             });
         }
 
-        std::shared_ptr<GAPI::CpuResourceData> RenderContext::AllocateIntermediateTextureData(
+        std::shared_ptr<GAPI::CpuResourceData> DeviceContext::AllocateIntermediateTextureData(
             const GAPI::GpuResourceDescription& desc,
             GAPI::MemoryAllocationType memoryType,
             uint32_t firstSubresourceIndex,
@@ -170,7 +170,7 @@ namespace OpenDemo
             return submission_->GetIMultiThreadDevice().lock()->AllocateIntermediateTextureData(desc, memoryType, firstSubresourceIndex, numSubresources);
         }
 
-        GAPI::CopyCommandList::SharedPtr RenderContext::CreateCopyCommandList(const U8String& name) const
+        GAPI::CopyCommandList::SharedPtr DeviceContext::CreateCopyCommandList(const U8String& name) const
         {
             ASSERT(inited_);
 
@@ -180,7 +180,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::ComputeCommandList::SharedPtr RenderContext::CreateComputeCommandList(const U8String& name) const
+        GAPI::ComputeCommandList::SharedPtr DeviceContext::CreateComputeCommandList(const U8String& name) const
         {
             ASSERT(inited_);
 
@@ -190,7 +190,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::GraphicsCommandList::SharedPtr RenderContext::CreateGraphicsCommandList(const U8String& name) const
+        GAPI::GraphicsCommandList::SharedPtr DeviceContext::CreateGraphicsCommandList(const U8String& name) const
         {
             ASSERT(inited_);
 
@@ -200,7 +200,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::CommandQueue::SharedPtr RenderContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const
+        GAPI::CommandQueue::SharedPtr DeviceContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const
         {
             ASSERT(inited_)
 
@@ -210,7 +210,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Fence::SharedPtr RenderContext::CreateFence(const U8String& name) const
+        GAPI::Fence::SharedPtr DeviceContext::CreateFence(const U8String& name) const
         {
             ASSERT(inited_);
 
@@ -220,7 +220,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateTexture(
+        GAPI::Texture::SharedPtr DeviceContext::CreateTexture(
             const GAPI::GpuResourceDescription& desc,
             GAPI::GpuResourceCpuAccess cpuAccess,
             const U8String& name) const
@@ -233,7 +233,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::Texture::SharedPtr RenderContext::CreateSwapChainBackBuffer(
+        GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(
             const std::shared_ptr<GAPI::SwapChain>& swapchain,
             uint32_t backBufferIndex,
             const GAPI::GpuResourceDescription& desc,
@@ -250,7 +250,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::ShaderResourceView::SharedPtr RenderContext::CreateShaderResourceView(
+        GAPI::ShaderResourceView::SharedPtr DeviceContext::CreateShaderResourceView(
             const std::shared_ptr<GAPI::GpuResource>& gpuResource,
             const GAPI::GpuResourceViewDescription& desc) const
         {
@@ -262,7 +262,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::DepthStencilView::SharedPtr RenderContext::CreateDepthStencilView(
+        GAPI::DepthStencilView::SharedPtr DeviceContext::CreateDepthStencilView(
             const GAPI::Texture::SharedPtr& texture,
             const GAPI::GpuResourceViewDescription& desc) const
         {
@@ -274,7 +274,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::RenderTargetView::SharedPtr RenderContext::CreateRenderTargetView(
+        GAPI::RenderTargetView::SharedPtr DeviceContext::CreateRenderTargetView(
             const GAPI::Texture::SharedPtr& texture,
             const GAPI::GpuResourceViewDescription& desc) const
         {
@@ -286,7 +286,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::UnorderedAccessView::SharedPtr RenderContext::CreateUnorderedAccessView(
+        GAPI::UnorderedAccessView::SharedPtr DeviceContext::CreateUnorderedAccessView(
             const std::shared_ptr<GAPI::GpuResource>& gpuResource,
             const GAPI::GpuResourceViewDescription& desc) const
         {
@@ -298,7 +298,7 @@ namespace OpenDemo
             return resource;
         }
 
-        GAPI::SwapChain::SharedPtr RenderContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
+        GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
         {
             ASSERT(inited_);
 
@@ -308,7 +308,7 @@ namespace OpenDemo
             return resource;
         }
 
-        void RenderContext::ReleaseResource(GAPI::Object& resource) const
+        void DeviceContext::ReleaseResource(GAPI::Object& resource) const
         {
             ASSERT(inited_);
 

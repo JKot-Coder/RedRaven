@@ -200,7 +200,7 @@ namespace OpenDemo
 
         TEST_CASE_METHOD(TestContextFixture, "CopyCommmandList", "[CommandList][CopyCommmandList]")
         {
-            auto& renderContext = Render::RenderContext::Instance();
+            auto& renderContext = Render::DeviceContext::Instance();
 
             auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
             REQUIRE(commandList != nullptr);
@@ -213,7 +213,7 @@ namespace OpenDemo
 
         TEST_CASE_METHOD(TestContextFixture, "CopyTextureTests", "[CommandList][CopyCommmandList][CopyTexture]")
         {
-            auto& renderContext = Render::RenderContext::Instance();
+            auto& renderContext = Render::DeviceContext::Instance();
 
             auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
             REQUIRE(commandList != nullptr);

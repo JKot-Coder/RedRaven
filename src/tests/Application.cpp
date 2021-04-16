@@ -65,7 +65,7 @@ namespace OpenDemo
                 return false;
             }*/
 
-            auto& renderContext = Render::RenderContext::Instance();
+            auto& renderContext = Render::DeviceContext::Instance();
             renderContext.Init();
             /*
             TODO 
@@ -90,7 +90,7 @@ namespace OpenDemo
             commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = nullptr;
             commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Graphics)] = nullptr;
 
-            auto& renderContext = Render::RenderContext::Instance();
+            auto& renderContext = Render::DeviceContext::Instance();
             renderContext.Terminate();
         }
     }

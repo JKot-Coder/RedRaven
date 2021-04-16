@@ -6,7 +6,7 @@ namespace OpenDemo
 {
     namespace Render
     {
-        class RenderContext;
+        class DeviceContext;
     }
 
     namespace GAPI
@@ -60,7 +60,7 @@ namespace OpenDemo
         private:
             CommandQueueType type_;
 
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
     }
 }

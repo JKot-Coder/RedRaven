@@ -74,7 +74,7 @@ namespace OpenDemo
             SwapChainDescription description_;
             std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
 
-            friend class Render::RenderContext;
+            friend class Render::DeviceContext;
         };
     }
 }

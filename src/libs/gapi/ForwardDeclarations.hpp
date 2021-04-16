@@ -48,6 +48,6 @@ namespace OpenDemo
 
     namespace Render
     {
-        class RenderContext;
+        class DeviceContext;
     }
 }
