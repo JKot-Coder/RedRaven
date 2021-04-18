@@ -132,7 +132,7 @@ namespace OpenDemo
 
                     subresourceFootprints[index] = CpuResourceData::SubresourceFootprint(
                         layout.Offset,
-                        layout.Footprint.Width,
+                        (resourceDesc.GetDimension() == GpuResourceDimension::Buffer) ? resourceDesc.GetNumElements() : layout.Footprint.Width,
                         layout.Footprint.Height,
                         layout.Footprint.Depth,
                         numRows, rowSizeInBytes, rowPitch, depthPitch);

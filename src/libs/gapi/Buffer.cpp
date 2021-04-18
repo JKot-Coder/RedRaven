@@ -21,10 +21,10 @@ namespace OpenDemo
         ShaderResourceView::SharedPtr Buffer::GetSRV(uint32_t firstElement, uint32_t numElements)
         {
             //TODO asserts
-            ASSERT(firstElement < description_.width);
-            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width);
+            ASSERT(firstElement < description_.width_);
+            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width_);
 
-            numElements = Min(numElements, description_.width - firstElement);
+            numElements = Min(numElements, description_.width_ - firstElement);
             const auto& viewDesc = GpuResourceViewDescription(firstElement, numElements);
 
             if (srvs_.find(viewDesc) == srvs_.end())
@@ -40,10 +40,10 @@ namespace OpenDemo
         UnorderedAccessView::SharedPtr Buffer::GetUAV(uint32_t firstElement, uint32_t numElements)
         {
             //TODO asserts
-            ASSERT(firstElement < description_.width);
-            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width);
+            ASSERT(firstElement < description_.width_);
+            ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width_);
 
-            numElements = Min(numElements, description_.width - firstElement);
+            numElements = Min(numElements, description_.width_ - firstElement);
             const auto& viewDesc = GpuResourceViewDescription(firstElement, numElements);
 
             if (uavs_.find(viewDesc) == uavs_.end())

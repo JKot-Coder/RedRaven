@@ -22,18 +22,16 @@ namespace OpenDemo
 
                 void Close() override;
 
-                void CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer) override;
+                void CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest) override;
                 void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
                                       const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes) override;
-
-                void CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture) override;
                 void CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
                                             const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) override;
                 void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                   const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
 
-                void UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
-                void ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
+                void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) override;
+                void ReadbackGpuResource(const std::shared_ptr<GpuResource>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
 
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
@@ -47,13 +45,13 @@ namespace OpenDemo
                 // TODO allow dynamic allocators list size.
                 static constexpr int AllocatorsCount = MAX_GPU_FRAMES_BUFFERED + 1;
 
-                void copyIntermediate(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData, bool readback) const;
+                void copyIntermediate(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData, bool readback) const;
 
                 class CommandAllocatorsPool
                 {
                 public:
                     ~CommandAllocatorsPool();
-                    
+
                     void Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
 
                     void ReleaseD3DObjects();

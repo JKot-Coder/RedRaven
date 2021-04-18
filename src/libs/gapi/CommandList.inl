@@ -1,7 +1,7 @@
 #ifdef ENABLE_ASSERTS
-#include "gapi/Texture.hpp"
 #include "common/Math.hpp"
-#endif 
+#include "gapi/Texture.hpp"
+#endif
 
 namespace OpenDemo
 {
@@ -16,20 +16,12 @@ namespace OpenDemo
             GetPrivateImpl()->CopyBufferRegion(sourceBuffer, sourceOffset, destBuffer, destOffset, numBytes);
         }
 
-        INLINE void CopyCommandList::CopyBuffer(const std::shared_ptr<Buffer>& sourceBuffer, const std::shared_ptr<Buffer>& destBuffer)
+        INLINE void CopyCommandList::CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest)
         {
-            ASSERT(sourceBuffer);
-            ASSERT(destBuffer);
+            ASSERT(source);
+            ASSERT(dest);
 
-            GetPrivateImpl()->CopyBuffer(sourceBuffer, destBuffer);
-        }
-
-        INLINE void CopyCommandList::CopyTexture(const std::shared_ptr<Texture>& sourceTexture, const std::shared_ptr<Texture>& destTexture)
-        {
-            ASSERT(sourceTexture);
-            ASSERT(destTexture);
-
-            GetPrivateImpl()->CopyTexture(sourceTexture, destTexture);
+            GetPrivateImpl()->CopyGpuResource(source, dest);
         }
 
         INLINE void CopyCommandList::CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
@@ -96,20 +88,20 @@ namespace OpenDemo
             GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
         }
 
-        INLINE void CopyCommandList::UpdateTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData)
+        INLINE void CopyCommandList::UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData)
         {
-            ASSERT(texture);
-            ASSERT(textureData);
+            ASSERT(resource);
+            ASSERT(resourceData);
 
-            GetPrivateImpl()->UpdateTexture(texture, textureData);
+            GetPrivateImpl()->UpdateGpuResource(resource, resourceData);
         }
 
-        INLINE void CopyCommandList::ReadbackTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<CpuResourceData>& textureData)
+        INLINE void CopyCommandList::ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData)
         {
-            ASSERT(texture);
-            ASSERT(textureData);
+            ASSERT(resource);
+            ASSERT(resourceData);
 
-            GetPrivateImpl()->ReadbackTexture(texture, textureData);
+            GetPrivateImpl()->ReadbackGpuResource(resource, resourceData);
         }
     }
 }

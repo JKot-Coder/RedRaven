@@ -1,5 +1,6 @@
 #include "DeviceContext.hpp"
 
+#include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Device.hpp"
@@ -216,6 +217,19 @@ namespace OpenDemo
 
             auto& resource = GAPI::Fence::Create(name, GPIObjectsDeleter<GAPI::Fence>());
             submission_->GetIMultiThreadDevice().lock()->InitFence(*resource.get());
+
+            return resource;
+        }
+
+        GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(
+            const GAPI::GpuResourceDescription& desc,
+            GAPI::GpuResourceCpuAccess cpuAccess,
+            const U8String& name) const
+        {
+            ASSERT(inited_);
+
+            auto& resource = GAPI::Buffer::Create(desc, cpuAccess, name, GPIObjectsDeleter<GAPI::Buffer>());
+            submission_->GetIMultiThreadDevice().lock()->InitBuffer(*resource.get());
 
             return resource;
         }

@@ -4,8 +4,8 @@
 #include "gapi/GpuResource.hpp"
 
 // TODO remove
-#include "render/Submission.hpp"
 #include "common/Singleton.hpp"
+#include "render/Submission.hpp"
 
 namespace OpenDemo
 {
@@ -45,6 +45,7 @@ namespace OpenDemo
             std::shared_ptr<GAPI::GraphicsCommandList> CreateGraphicsCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
             std::shared_ptr<GAPI::Fence> CreateFence(const U8String& name = "") const;
+            std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, GAPI::GpuResourceCpuAccess cpuAccess = GAPI::GpuResourceCpuAccess::None, const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, GAPI::GpuResourceCpuAccess cpuAccess = GAPI::GpuResourceCpuAccess::None, const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const U8String& name = "") const;
             std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;

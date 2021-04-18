@@ -158,9 +158,6 @@ namespace OpenDemo
 
         enum class GpuResourceDimension : uint32_t
         {
-            // We can may try rid of this.
-            Unknown,
-
             Buffer,
             Texture1D,
             Texture2D,
@@ -176,6 +173,11 @@ namespace OpenDemo
             static GpuResourceDescription Buffer(uint32_t size, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
             {
                 return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, format, bindFlags, 1, 1, 1);
+            }
+
+            static GpuResourceDescription StructuredBuffer(uint32_t size, uint32_t structSize, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
+            {
+                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, format, bindFlags, 1, 1, 1, structSize);
             }
 
             static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
@@ -203,119 +205,163 @@ namespace OpenDemo
                 return GpuResourceDescription(GpuResourceDimension::TextureCube, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
             }
 
-            GpuResourceFormat GetFormat() const { return format; }
-            GpuResourceDimension GetDimension() const { return dimension; }
-            GpuResourceBindFlags GetBindFlags() const { return bindflags; }
+            GpuResourceFormat GetFormat() const { return format_; }
+            GpuResourceDimension GetDimension() const { return dimension_; }
+            GpuResourceBindFlags GetBindFlags() const { return bindflags_; }
+
+            uint32_t GetNumElements() const
+            {
+                ASSERT(dimension_ == GpuResourceDimension::Buffer);
+                return width_;
+            }
+
+            uint32_t GetSize() const
+            {
+                ASSERT(dimension_ == GpuResourceDimension::Buffer);
+                return width_ * std::max(1u, structSize_) * std::max(1u, GpuResourceFormatInfo::GetBlockSize(format_));
+            }
+
+            uint32_t GetStructSize() const
+            {
+                ASSERT(dimension_ == GpuResourceDimension::Buffer);
+                ASSERT(structSize_ > 0);
+                return structSize_;
+            }
 
             uint32_t GetWidth(uint32_t mipLevel = 0) const
             {
-                ASSERT(mipLevel < mipLevels);
-                return (mipLevel < mipLevels) ? std::max(1U, width >> mipLevel) : 0u;
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                ASSERT(mipLevel < mipLevels_);
+                return (mipLevel < mipLevels_) ? std::max(1u, width_ >> mipLevel) : 0u;
             }
 
             uint32_t GetHeight(uint32_t mipLevel = 0) const
             {
-                ASSERT(mipLevel < mipLevels);
-                return (mipLevel < mipLevels) ? std::max(1U, height >> mipLevel) : 0u;
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                ASSERT(mipLevel < mipLevels_);
+                return (mipLevel < mipLevels_) ? std::max(1u, height_ >> mipLevel) : 0u;
             }
 
             uint32_t GetDepth(uint32_t mipLevel = 0) const
             {
-                ASSERT(mipLevel < mipLevels);
-                return (mipLevel < mipLevels) ? std::max(1U, depth >> mipLevel) : 0u;
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                ASSERT(mipLevel < mipLevels_);
+                return (mipLevel < mipLevels_) ? std::max(1U, depth_ >> mipLevel) : 0u;
             }
 
-            uint32_t GetSampleCount() const { return sampleCount; }
-            uint32_t GetMipCount() const { return mipLevels; }
-            uint32_t GetArraySize() const { return arraySize; }
+            uint32_t GetSampleCount() const { return sampleCount_; }
+
+            uint32_t GetMipCount() const
+            {
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                return mipLevels_;
+            }
+
+            uint32_t GetArraySize() const
+            {
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                return arraySize_;
+            }
 
             uint32_t GetSubresourceArraySlice(uint32_t subresource) const
             {
-                ASSERT(mipLevels > 0);
+                ASSERT(mipLevels_ > 0);
                 ASSERT(subresource < GetNumSubresources());
-                const auto numFaces = (dimension == GpuResourceDimension::TextureCube ? 6 : 1);
-                return (subresource / numFaces) / mipLevels;
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                const auto numFaces = (dimension_ == GpuResourceDimension::TextureCube ? 6 : 1);
+                return (subresource / numFaces) / mipLevels_;
             }
 
             uint32_t GetSubresourceFace(uint32_t subresource) const
             {
-                ASSERT(mipLevels > 0);
+                ASSERT(mipLevels_ > 0);
                 ASSERT(subresource < GetNumSubresources());
-                return (dimension == GpuResourceDimension::TextureCube ? (subresource / mipLevels) % 6 : 0);
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                return (dimension_ == GpuResourceDimension::TextureCube ? (subresource / mipLevels_) % 6 : 0);
             }
 
             uint32_t GetSubresourceMipLevel(uint32_t subresource) const
             {
-                ASSERT(mipLevels > 0);
+                ASSERT(mipLevels_ > 0);
                 ASSERT(subresource < GetNumSubresources());
-                return subresource % mipLevels;
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                return subresource % mipLevels_;
             }
 
             uint32_t GetSubresourceIndex(uint32_t arraySlice, uint32_t mipLevel, uint32_t faceIndex) const
             {
-                ASSERT(mipLevel < mipLevels);
-                ASSERT(arraySlice < arraySize);
+                ASSERT(mipLevel < mipLevels_);
+                ASSERT(arraySlice < arraySize_);
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
 
-                const uint32_t numFaces = (dimension == GpuResourceDimension::TextureCube ? 6u : 1u);
+                const uint32_t numFaces = (dimension_ == GpuResourceDimension::TextureCube ? 6u : 1u);
                 ASSERT(faceIndex < numFaces);
 
-                return mipLevel + (arraySlice * numFaces + faceIndex) * mipLevels;
+                return mipLevel + (arraySlice * numFaces + faceIndex) * mipLevels_;
             }
 
             uint32_t GetNumSubresources() const
             {
                 constexpr uint32_t planeSlices = 1;
-                const uint32_t numFaces = (dimension == GpuResourceDimension::TextureCube ? 6u : 1u);
-                return planeSlices * numFaces * arraySize * mipLevels;
+                const uint32_t numFaces = (dimension_ == GpuResourceDimension::TextureCube ? 6u : 1u);
+                return planeSlices * numFaces * arraySize_ * mipLevels_;
             }
 
             uint32_t GetMaxMipLevel() const
             {
-                const uint32_t maxDimension = std::max(width, std::max(height, depth));
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                const uint32_t maxDimension = std::max(width_, std::max(height_, depth_));
                 return 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
             }
 
             inline friend bool operator==(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs)
             {
-                return lhs.format == rhs.format &&
-                       lhs.dimension == rhs.dimension &&
-                       lhs.width == rhs.width &&
-                       lhs.height == rhs.height &&
-                       lhs.depth == rhs.depth &&
-                       lhs.mipLevels == rhs.mipLevels &&
-                       lhs.sampleCount == rhs.sampleCount &&
-                       lhs.arraySize == rhs.arraySize;
+                return lhs.dimension_ == rhs.dimension_ &&
+                       lhs.width_ == rhs.width_ &&
+                       lhs.height_ == rhs.height_ &&
+                       lhs.depth_ == rhs.depth_ &&
+                       lhs.format_ == rhs.format_ &&
+                       lhs.bindflags_ == rhs.bindflags_ &&
+                       lhs.sampleCount_ == rhs.sampleCount_ &&
+                       lhs.arraySize_ == rhs.arraySize_ &&
+                       lhs.structSize_ == rhs.structSize_ &&
+                       lhs.mipLevels_ == rhs.mipLevels_;
             }
             inline friend bool operator!=(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs) { return !(lhs == rhs); }
 
         private:
-            GpuResourceDescription(GpuResourceDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels)
-                : width(width),
-                  height(height),
-                  depth(depth),
-                  sampleCount(sampleCount),
-                  arraySize(arraySize),
-                  format(format),
-                  bindflags(bindFlags),
-                  dimension(dimension),
+            GpuResourceDescription(GpuResourceDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels, uint32_t structSize = 0)
+                : dimension_(dimension),
+                  width_(width),
+                  height_(height),
+                  depth_(depth),
+                  format_(format),
+                  bindflags_(bindFlags),
+                  sampleCount_(sampleCount),
+                  arraySize_(arraySize),
+                  structSize_(structSize),
                   // Limit/Calc maximum mip count
-                  mipLevels(std::min(GetMaxMipLevel(), mipLevels))
+                  mipLevels_(std::min(GetMaxMipLevel(), mipLevels))
             {
-                ASSERT(mipLevels > 0);
-                ASSERT(dimension != GpuResourceDimension::Unknown);
-                ASSERT(format != GpuResourceFormat::Unknown);
+                const bool isbuffer = dimension_ == GpuResourceDimension::Buffer;
+                const bool isFormatUnknown = format_ == GpuResourceFormat::Unknown;
+
+                ASSERT(mipLevels_ > 0);
+                ASSERT(!isFormatUnknown || isbuffer);
+                ASSERT(structSize_ == 0 || (isbuffer && isFormatUnknown));
             }
 
         private:
-            uint32_t width = 0;
-            uint32_t height = 0;
-            uint32_t depth = 0;
-            uint32_t mipLevels = 0;
-            uint32_t sampleCount = 0;
-            uint32_t arraySize = 0;
-            GpuResourceFormat format = GpuResourceFormat::Unknown;
-            GpuResourceDimension dimension = GpuResourceDimension::Unknown;
-            GpuResourceBindFlags bindflags = GpuResourceBindFlags::None;
+            uint32_t width_;
+            uint32_t height_;
+            uint32_t depth_;
+            uint32_t mipLevels_;
+            uint32_t sampleCount_;
+            uint32_t arraySize_;
+            uint32_t structSize_;
+            GpuResourceFormat format_;
+            GpuResourceDimension dimension_;
+            GpuResourceBindFlags bindflags_;
 
         private:
             friend class GpuResource;
@@ -357,7 +403,6 @@ namespace OpenDemo
                   subresourceFootprints_(subresourceFootprints),
                   firstSubresource_(firstSubresource)
             {
-                ASSERT(resourceDescription.GetDimension() != GpuResourceDimension::Unknown);
                 ASSERT(resourceDescription.GetFormat() != GpuResourceFormat::Unknown);
 
                 ASSERT(allocation);
@@ -396,13 +441,11 @@ namespace OpenDemo
             using WeakPtr = std::weak_ptr<GpuResource>;
 
         public:
-            inline GpuResourceDimension GetGpuGpuResourceDimension() const { return description_.dimension; }
-
             template <typename Type>
             std::shared_ptr<Type> GetTyped();
 
-            inline const bool IsBuffer() const { return description_.dimension == GpuResourceDimension::Buffer; }
-            inline const bool IsTexture() const { return description_.dimension != GpuResourceDimension::Buffer; }
+            inline const bool IsBuffer() const { return description_.dimension_ == GpuResourceDimension::Buffer; }
+            inline const bool IsTexture() const { return description_.dimension_ != GpuResourceDimension::Buffer; }
             inline const GpuResourceDescription& GetDescription() const { return description_; }
             inline GpuResourceCpuAccess GetCpuAccess() const { return cpuAccess_; }
 
@@ -412,8 +455,7 @@ namespace OpenDemo
                   description_(description),
                   cpuAccess_(cpuAccess)
             {
-                ASSERT(description_.dimension != GpuResourceDimension::Unknown);
-                ASSERT(description_.format != GpuResourceFormat::Unknown);
+                ASSERT(description_.format_ != GpuResourceFormat::Unknown);
             };
 
             GpuResourceDescription description_;
