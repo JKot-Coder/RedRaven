@@ -209,16 +209,21 @@ namespace OpenDemo
             GpuResourceDimension GetDimension() const { return dimension_; }
             GpuResourceBindFlags GetBindFlags() const { return bindflags_; }
 
+            uint32_t GetSize() const
+            {
+                return GetNumElements() * GetElementSize();
+            }
+
             uint32_t GetNumElements() const
             {
                 ASSERT(dimension_ == GpuResourceDimension::Buffer);
                 return width_;
             }
 
-            uint32_t GetSize() const
+            uint32_t GetElementSize() const
             {
                 ASSERT(dimension_ == GpuResourceDimension::Buffer);
-                return width_ * std::max(1u, structSize_) * std::max(1u, GpuResourceFormatInfo::GetBlockSize(format_));
+                return std::max(1u, structSize_) * std::max(1u, GpuResourceFormatInfo::GetBlockSize(format_));
             }
 
             uint32_t GetStructSize() const
@@ -309,10 +314,11 @@ namespace OpenDemo
 
             uint32_t GetMaxMipLevel() const
             {
-                ASSERT(dimension_ != GpuResourceDimension::Buffer);
                 const uint32_t maxDimension = std::max(width_, std::max(height_, depth_));
-                return 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
+                return dimension_ == GpuResourceDimension::Buffer ? 1 : 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
             }
+
+            bool IsValid() const;
 
             inline friend bool operator==(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs)
             {
@@ -343,12 +349,7 @@ namespace OpenDemo
                   // Limit/Calc maximum mip count
                   mipLevels_(std::min(GetMaxMipLevel(), mipLevels))
             {
-                const bool isbuffer = dimension_ == GpuResourceDimension::Buffer;
-                const bool isFormatUnknown = format_ == GpuResourceFormat::Unknown;
-
-                ASSERT(mipLevels_ > 0);
-                ASSERT(!isFormatUnknown || isbuffer);
-                ASSERT(structSize_ == 0 || (isbuffer && isFormatUnknown));
+                ASSERT(IsValid());
             }
 
         private:
@@ -403,8 +404,6 @@ namespace OpenDemo
                   subresourceFootprints_(subresourceFootprints),
                   firstSubresource_(firstSubresource)
             {
-                ASSERT(resourceDescription.GetFormat() != GpuResourceFormat::Unknown);
-
                 ASSERT(allocation);
                 ASSERT(subresourceFootprints.size() > 0);
                 ASSERT(firstSubresource < resourceDescription.GetNumSubresources());
@@ -455,7 +454,7 @@ namespace OpenDemo
                   description_(description),
                   cpuAccess_(cpuAccess)
             {
-                ASSERT(description_.format_ != GpuResourceFormat::Unknown);
+                ASSERT(description.IsValid());
             };
 
             GpuResourceDescription description_;
@@ -469,8 +468,8 @@ namespace OpenDemo
 
         template <>
         std::shared_ptr<Texture> GpuResource::GetTyped<Texture>();
-        /*
+
         template <>
-        Buffer& GpuResource::GetTyped<Buffer>();*/
+        std::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>();
     }
 }

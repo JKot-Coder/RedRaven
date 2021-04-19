@@ -31,7 +31,8 @@ namespace OpenDemo
                 return SharedPtr(new Texture(description, cpuAccess, name), Deleter());
             }
 
-            Texture(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name);
+            Texture(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
+                : GpuResource(description, cpuAccess, name) {};
 
         private:
             friend class Render::DeviceContext;

@@ -37,46 +37,6 @@ namespace OpenDemo
             }
         }
 
-        Texture::Texture(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
-            : GpuResource(description, cpuAccess, name)
-        {
-            ASSERT(description_.format_ != GpuResourceFormat::Unknown);
-
-            ASSERT((description_.sampleCount_ > 1 && description_.dimension_ == GpuResourceDimension::Texture2DMS) ||
-                   (description_.sampleCount_ == 1 && description_.dimension_ != GpuResourceDimension::Texture2DMS));
-
-            switch (description_.dimension_)
-            {
-            case GpuResourceDimension::Texture1D:
-                ASSERT(description_.height_ == 1);
-                ASSERT(description_.depth_ == 1);
-                break;
-            case GpuResourceDimension::Texture2D:
-            case GpuResourceDimension::TextureCube:
-                ASSERT(description_.depth_ == 1);
-                break;
-            case GpuResourceDimension::Texture2DMS:
-                ASSERT(description_.depth_ == 1);
-                ASSERT(IsSet(description_.bindflags_, GpuResourceBindFlags::RenderTarget));
-                break;
-            case GpuResourceDimension::Texture3D:
-                ASSERT(description_.arraySize_ == 1);
-                break;
-            default:
-                LOG_FATAL("Unsupported texture dimension");
-            }
-
-            if (GpuResourceFormatInfo::IsCompressed(description_.format_))
-            {
-                ASSERT(description_.depth_ == 1)
-                // Size is aligned to CompressionBlock
-                ASSERT(AlignTo(description_.width_, GpuResourceFormatInfo::GetCompressionBlockWidth(description_.format_)) == description_.width_)
-                ASSERT(AlignTo(description_.height_, GpuResourceFormatInfo::GetCompressionBlockHeight(description_.format_)) == description_.height_)
-            }
-
-            ASSERT(description_.mipLevels_ <= description_.GetMaxMipLevel());
-        }
-
         ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices)
         {
             const auto& viewDesc = createViewDesctiption(description_, mipLevel, 1, firstArraySlice, numArraySlices);

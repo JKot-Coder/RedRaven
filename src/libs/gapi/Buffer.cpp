@@ -12,11 +12,6 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        Buffer::Buffer(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
-            : GpuResource(description, cpuAccess, name)
-        {
-            //TODO asserts
-        }
 
         ShaderResourceView::SharedPtr Buffer::GetSRV(uint32_t firstElement, uint32_t numElements)
         {

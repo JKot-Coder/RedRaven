@@ -29,7 +29,8 @@ namespace OpenDemo
                 return SharedPtr(new Buffer(description, cpuAccess, name), Deleter());
             }
 
-            Buffer(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name);
+            Buffer(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)
+                : GpuResource(description, cpuAccess, name) {};
 
         private:
             friend class Render::DeviceContext;
