@@ -29,7 +29,7 @@ namespace OpenDemo
         };
 
         // https://docs.microsoft.com/en-us/windows/win32/direct3d12/recording-command-lists-and-bundles#command-list-api-restrictions
-        class ICommandList
+        class ICopyCommandList
         {
         public:
             virtual void Close() = 0;
@@ -44,11 +44,6 @@ namespace OpenDemo
 
             virtual void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) = 0;
             virtual void ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) = 0;
-        };
-
-        class ICopyCommandList : public ICommandList
-        {
-        public:
         };
 
         class IComputeCommandList : public ICopyCommandList
