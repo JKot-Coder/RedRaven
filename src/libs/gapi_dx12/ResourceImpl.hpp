@@ -18,7 +18,7 @@ namespace OpenDemo
             {
             public:
                 ResourceImpl() = default;
-                ~ResourceImpl() = default;
+                ~ResourceImpl();
 
                 void ReleaseD3DObjects();
 

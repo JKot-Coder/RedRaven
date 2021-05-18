@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/Singleton.hpp"
 #include "common/threading/Mutex.hpp"
 
 #include <queue>
@@ -18,7 +19,7 @@ namespace OpenDemo
             class FenceImpl;
             class CommandQueueImpl;
 
-            class ResourceReleaseContext final
+            class ResourceReleaseContext final : public Singleton<ResourceReleaseContext>
             {
             public:
                 struct ResourceRelease
@@ -33,18 +34,23 @@ namespace OpenDemo
                 ~ResourceReleaseContext();
 
                 void Init();
+                void Terminate();
 
                 template <class T>
-                void DeferredD3DResourceRelease(ComSharedPtr<T>& resource, D3D12MA::Allocation* allocation = nullptr)
+                void static DeferredD3DResourceRelease(ComSharedPtr<T>& resource, D3D12MA::Allocation* allocation = nullptr)
                 {
-                    deferredD3DResourceRelease(resource.as<IUnknown>(), allocation);
+                    Instance().deferredD3DResourceRelease(resource.as<IUnknown>(), allocation);
                     resource = nullptr;
                 }
 
-                void ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue);
+                void static ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
+                {
+                    Instance().executeDeferredDeletions(queue);
+                }
 
             private:
                 void deferredD3DResourceRelease(const ComSharedPtr<IUnknown>& resource, D3D12MA::Allocation* allocation);
+                void executeDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue);
 
             private:
                 std::unique_ptr<FenceImpl> fence_;

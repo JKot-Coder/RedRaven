@@ -56,4 +56,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)
 
+if(MSVC)
+    target_compile_options(${PROJECT_NAME}  PRIVATE /W4 /WX)
+else(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+endif(MSVC)
+
 add_backward(${PROJECT_NAME})

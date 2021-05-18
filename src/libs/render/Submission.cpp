@@ -16,8 +16,9 @@
 
 #undef NOMINMAX
 #pragma warning(push)
-#pragma warning(disable : 4267)
-#pragma warning(disable : 4996)
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+#pragma warning(disable:26495)
 #include "dependencies/backward-cpp/backward.hpp"
 #pragma warning(pop)
 #define NOMINMAX

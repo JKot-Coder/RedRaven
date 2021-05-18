@@ -14,9 +14,10 @@ namespace OpenDemo
             {
             public:
                 FenceImpl() = default;
+                ~FenceImpl();
 
-                void ReleaseD3DObjects();
-
+                void ReleaseD3DObjects() {};
+                
                 void Init(const U8String& name);
 
                 void Signal(const std::shared_ptr<CommandQueue>& queue) override;

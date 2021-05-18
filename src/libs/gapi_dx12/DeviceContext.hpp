@@ -11,7 +11,6 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            class ResourceReleaseContext;
             class DescriptorHeapSet;
             class CommandQueueImpl;
 
@@ -23,8 +22,7 @@ namespace OpenDemo
 
                 static void Init(D3D12MA::Allocator* allocator,
                                  const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
-                                 const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet,
-                                 const std::shared_ptr<ResourceReleaseContext>& resourceReleaseContext);
+                                 const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet);
 
                 static void Terminate();
 
@@ -58,19 +56,12 @@ namespace OpenDemo
                     return descriptorHeapSet_;
                 }
 
-                static std::shared_ptr<ResourceReleaseContext> GetResourceReleaseContext()
-                {
-                    ASSERT(resourceReleaseContext_);
-                    return resourceReleaseContext_;
-                }
-
             private:
                 static D3D12MA::Allocator* allocator_;
                 static ComSharedPtr<ID3D12Device> device_;
                 static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
                 static std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
-                static std::shared_ptr<ResourceReleaseContext> resourceReleaseContext_;
             };
         }
     }

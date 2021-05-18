@@ -12,9 +12,13 @@ namespace OpenDemo
     {
         namespace DX12
         {
-            void FenceImpl::ReleaseD3DObjects()
+            FenceImpl::~FenceImpl()
             {
-                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DFence_);
+                if (!D3DFence_)
+                    return;
+
+                CloseHandle(event_);
+                ResourceReleaseContext::DeferredD3DResourceRelease(D3DFence_);
             }
 
             void FenceImpl::Init(const U8String& name)

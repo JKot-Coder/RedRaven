@@ -4,13 +4,6 @@
 
 #include <windows.h>
 
-#include "backward.hpp"
-
-namespace backward
-{
-    backward::SignalHandling sh;
-} // namespace backward
-
 namespace OpenDemo
 {
     namespace Common
@@ -34,9 +27,10 @@ namespace OpenDemo
 
                 inline int_type overflow(int_type c) override
                 {
-                    CharT str[2];
-                    str[0] = c;
-                    str[1] = 0;
+                    if (TraitsT::eq_int_type(c, TraitsT::eof()))
+                        return TraitsT::not_eof(c);
+
+                    CharT str[] = { TraitsT::to_char_type(c), '\0' };
                     OutputDebugString(&str[0]);
                     return c;
                 }

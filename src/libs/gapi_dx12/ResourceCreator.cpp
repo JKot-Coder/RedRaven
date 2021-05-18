@@ -226,7 +226,7 @@ namespace OpenDemo
                 auto impl = std::make_unique<CommandListImpl>(resource.GetCommandListType());
                 impl->Init(resource.GetName());
 
-                resource.SetPrivateImpl(static_cast<IGraphicsCommandList*>(impl.release()));
+                resource.SetPrivateImpl(static_cast<ICommandList*>(impl.release()));
             }
 
             void ResourceCreator::InitGpuResourceView(GpuResourceView& object)

@@ -12,6 +12,7 @@ namespace OpenDemo
 
         using Vector4 = Vector<4, float>;
         using Vector3u = Vector<3, uint32_t>;
+        using Vector4u = Vector<4, uint32_t>;
 
         template <typename T>
         struct Box;
@@ -29,10 +30,14 @@ namespace OpenDemo
         };
 
         // https://docs.microsoft.com/en-us/windows/win32/direct3d12/recording-command-lists-and-bundles#command-list-api-restrictions
-        class ICopyCommandList
+        class ICommandList
         {
         public:
             virtual void Close() = 0;
+
+            // ---------------------------------------------------------------------------------------------
+            // Copy command list
+            // ---------------------------------------------------------------------------------------------
 
             virtual void CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest) = 0;
             virtual void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
@@ -44,22 +49,22 @@ namespace OpenDemo
 
             virtual void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) = 0;
             virtual void ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) = 0;
-        };
 
-        class IComputeCommandList : public ICopyCommandList
-        {
-        public:
-        };
+            // ---------------------------------------------------------------------------------------------
+            // Compute command list
+            // ---------------------------------------------------------------------------------------------
 
-        class IGraphicsCommandList : public IComputeCommandList
-        {
-        public:
-            virtual ~IGraphicsCommandList() {};
+            virtual void ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) = 0;
+            virtual void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) = 0;
+
+            // ---------------------------------------------------------------------------------------------
+            // Graphics command list
+            // ---------------------------------------------------------------------------------------------
 
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
-        class CommandList : public Resource<IGraphicsCommandList>
+        class CommandList : public Resource<ICommandList>
         {
         public:
             using SharedPtr = std::shared_ptr<CommandList>;
@@ -119,6 +124,9 @@ namespace OpenDemo
         public:
             using SharedPtr = std::shared_ptr<ComputeCommandList>;
             using SharedConstPtr = std::shared_ptr<const ComputeCommandList>;
+
+            inline void ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewUint(unorderedAcessView, clearValue); }
+            inline void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewFloat(unorderedAcessView, clearValue); };
 
         private:
             template <class Deleter>

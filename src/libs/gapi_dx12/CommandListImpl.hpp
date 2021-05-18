@@ -13,7 +13,7 @@ namespace OpenDemo
             class FenceImpl;
             class CommandQueueImpl;
 
-            class CommandListImpl final : public IGraphicsCommandList
+            class CommandListImpl final : public ICommandList
             {
             public:
                 CommandListImpl(const CommandListType commandListType);
@@ -21,6 +21,10 @@ namespace OpenDemo
                 void Init(const U8String& name);
 
                 void Close() override;
+
+                // ---------------------------------------------------------------------------------------------
+                // Copy command list
+                // ---------------------------------------------------------------------------------------------
 
                 void CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest) override;
                 void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
@@ -33,7 +37,20 @@ namespace OpenDemo
                 void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) override;
                 void ReadbackGpuResource(const std::shared_ptr<GpuResource>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
 
+                // ---------------------------------------------------------------------------------------------
+                // Compute command list
+                // ---------------------------------------------------------------------------------------------
+
+                void ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) override;
+                void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) override;
+
+                // ---------------------------------------------------------------------------------------------
+                // Graphics command list
+                // ---------------------------------------------------------------------------------------------
+
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
+
+                // ---------------------------------------------------------------------------------------------
 
                 void ReleaseD3DObjects();
                 void ResetAfterSubmit(CommandQueueImpl& commandQueue);

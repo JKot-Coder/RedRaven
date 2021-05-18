@@ -1,5 +1,6 @@
 #include "ResourceImpl.hpp"
 
+#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -70,9 +71,14 @@ namespace OpenDemo
 
             }
 
+            ResourceImpl::~ResourceImpl()
+            {
+            
+            }
+
             void ResourceImpl::ReleaseD3DObjects()
             {
-                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DResource_, allocation_);
+                ResourceReleaseContext::DeferredD3DResourceRelease(D3DResource_, allocation_);
             }
 
             void ResourceImpl::Init(const Texture& resource)

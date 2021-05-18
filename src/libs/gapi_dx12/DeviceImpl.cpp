@@ -11,11 +11,11 @@
 
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
+#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorHeapSet.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -62,9 +62,11 @@ namespace OpenDemo
                 waitForGpu();
                 waitForGpu();
 
-                DeviceContext::Terminate();
-
                 gpuWaitFence_ = nullptr;
+
+                DeviceContext::Terminate();
+                ResourceReleaseContext::Instance().Terminate();
+
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
 
@@ -117,14 +119,12 @@ namespace OpenDemo
                 auto& graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
                 graphicsCommandQueue->Init("Primary");
 
-                auto& resourceReleaseContext = std::make_shared<ResourceReleaseContext>();
-                resourceReleaseContext->Init();
+                ResourceReleaseContext::Instance().Init();
 
                 DeviceContext::Init(
                     allocator,
                     graphicsCommandQueue,
-                    descriptorHeapSet,
-                    resourceReleaseContext);
+                    descriptorHeapSet);
 
                 inited_ = true;
 
@@ -137,7 +137,7 @@ namespace OpenDemo
 
                 gpuWaitFence_->Signal(*DeviceContext::GetGraphicsCommandQueue().get());
                 gpuWaitFence_->SyncCPU(std::nullopt);
-                DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
+                ResourceReleaseContext::ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
             std::shared_ptr<CpuResourceData> const DeviceImpl::AllocateIntermediateTextureData(
@@ -390,7 +390,7 @@ namespace OpenDemo
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
 
-                DeviceContext::GetResourceReleaseContext()->ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
+                ResourceReleaseContext::ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
                 DeviceContext::GetAllocator()->SetCurrentFrameIndex(frameIndex);
             }
 

@@ -12,6 +12,7 @@ namespace OpenDemo
             ResourceReleaseContext::~ResourceReleaseContext()
             {
                 Threading::ReadWriteGuard lock(mutex_);
+                ASSERT(!fence_);
                 ASSERT(queue_.size() == 0);
             }
 
@@ -21,17 +22,25 @@ namespace OpenDemo
                 fence_->Init("ResourceRelease");
             }
 
+            void ResourceReleaseContext::Terminate()
+            {
+                fence_ = nullptr;
+            }
+
             void ResourceReleaseContext::deferredD3DResourceRelease(const ComSharedPtr<IUnknown>& resource, D3D12MA::Allocation* allocation)
             {
+                //Resource might be leaked. Ignore it
+                if (!fence_)
+                    return;
+                    
                 Threading::ReadWriteGuard lock(mutex_);
 
-                ASSERT(fence_);
                 ASSERT(resource);
 
                 queue_.push({ fence_->GetCpuValue(), resource, allocation });
             }
 
-            void ResourceReleaseContext::ExecuteDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
+            void ResourceReleaseContext::executeDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
             {
                 Threading::ReadWriteGuard lock(mutex_);
 
@@ -42,7 +51,7 @@ namespace OpenDemo
                 while (queue_.size() && queue_.front().cpuFrameIndex < gpuFenceValue)
                 {
                     auto& allocation = queue_.front().allocation;
-                    
+
                     if (allocation)
                         allocation->Release();
 

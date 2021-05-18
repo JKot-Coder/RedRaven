@@ -59,8 +59,13 @@ namespace OpenDemo
                 ASSERT(oldSnapshot->inited_);
                 ASSERT(newSnapshot->inited_);
 
+#if RELEASE
+                std::ignore = oldSnapshot;
+                std::ignore = newSnapshot;
+#endif
+
 #if OS_WINDOWS
-                _CrtMemState diffMemState;
+                _CrtMemState diffMemState {};
 
                 _CrtMemDifference(
                     &diffMemState,
@@ -75,6 +80,11 @@ namespace OpenDemo
             {
                 ASSERT(snapshot);
                 ASSERT(snapshot->inited_);
+
+#if RELEASE
+                std::ignore = snapshot;
+#endif
+
 #if OS_WINDOWS
                 _CrtMemDumpAllObjectsSince(&snapshot->state);
 #endif

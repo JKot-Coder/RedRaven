@@ -66,7 +66,7 @@ namespace OpenDemo
             void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects()
             {
                 for (auto& allocatorData : allocators_)
-                    DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(allocatorData.allocator);
+                    ResourceReleaseContext::DeferredD3DResourceRelease(allocatorData.allocator);
             }
 
             const ComSharedPtr<ID3D12CommandAllocator>& CommandListImpl::CommandAllocatorsPool::GetNextAllocator()
@@ -108,7 +108,7 @@ namespace OpenDemo
 
             void CommandListImpl::ReleaseD3DObjects()
             {
-                DeviceContext::GetResourceReleaseContext()->DeferredD3DResourceRelease(D3DCommandList_);
+                ResourceReleaseContext::DeferredD3DResourceRelease(D3DCommandList_);
                 commandAllocatorsPool_.ReleaseD3DObjects();
             }
 
@@ -132,6 +132,10 @@ namespace OpenDemo
                 const auto& allocator = commandAllocatorsPool_.GetNextAllocator();
                 D3DCall(D3DCommandList_->Reset(allocator.get(), nullptr));
             }
+
+            // ---------------------------------------------------------------------------------------------
+            // Copy command list
+            // ---------------------------------------------------------------------------------------------
 
             void CommandListImpl::CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest)
             {
@@ -351,6 +355,24 @@ namespace OpenDemo
             {
                 copyIntermediate(resource, resourceData, true);
             }
+
+            // ---------------------------------------------------------------------------------------------
+            // Compute command list
+            // ---------------------------------------------------------------------------------------------
+
+            void CommandListImpl::ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue)
+            {
+                ASSERT(unorderedAcessView);
+            }
+
+            void CommandListImpl::ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue)
+            {
+                ASSERT(unorderedAcessView);
+            }
+
+            // ---------------------------------------------------------------------------------------------
+            // Graphics command list
+            // ---------------------------------------------------------------------------------------------
 
             void CommandListImpl::ClearRenderTargetView(const RenderTargetView::SharedPtr& renderTargetView, const Vector4& color)
             {
