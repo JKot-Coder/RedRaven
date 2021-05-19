@@ -54,8 +54,6 @@ namespace OpenDemo
             std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
 
-            void ReleaseResource(GAPI::Object& resource) const;
-
         private:
             // TODO sync with GPU_MAX
             static constexpr int GpuFramesBuffered = 3;

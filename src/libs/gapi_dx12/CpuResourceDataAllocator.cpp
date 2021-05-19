@@ -42,9 +42,6 @@ namespace OpenDemo
             {
                 if (isMapped_)
                     Unmap();
-
-                resource_->ReleaseD3DObjects();
-                resource_.reset();
             }
 
             void* HeapAllocation::Map() const

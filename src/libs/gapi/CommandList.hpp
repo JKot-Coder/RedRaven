@@ -33,6 +33,7 @@ namespace OpenDemo
         class ICommandList
         {
         public:
+            virtual ~ICommandList() = default;
             virtual void Close() = 0;
 
             // ---------------------------------------------------------------------------------------------
@@ -103,10 +104,9 @@ namespace OpenDemo
             void ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData);
 
         private:
-            template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter)
+            static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new CopyCommandList(CommandListType::Copy, name), Deleter());
+                return SharedPtr(new CopyCommandList(CommandListType::Copy, name));
             }
 
         protected:
@@ -129,10 +129,9 @@ namespace OpenDemo
             inline void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewFloat(unorderedAcessView, clearValue); };
 
         private:
-            template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter)
+            static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name), Deleter());
+                return SharedPtr(new ComputeCommandList(CommandListType::Compute, name));
             }
 
         protected:
@@ -154,10 +153,9 @@ namespace OpenDemo
             inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:
-            template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter)
+            static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new GraphicsCommandList(name), Deleter());
+                return SharedPtr(new GraphicsCommandList(name));
             }
 
         protected:

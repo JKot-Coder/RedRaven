@@ -35,8 +35,6 @@ namespace OpenDemo
                 void InitBuffer(Buffer& resource) const override;
                 void InitGpuResourceView(GpuResourceView& view) const override;
 
-                void ReleaseResource(Object& resource) const override;
-
                 ID3D12Device* GetDevice() const
                 {
                     return d3dDevice_.get();

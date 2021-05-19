@@ -1,5 +1,6 @@
 #include "ResourceReleaseContext.hpp"
 
+#include "common/threading/Mutex.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
 
@@ -11,7 +12,7 @@ namespace OpenDemo
         {
             ResourceReleaseContext::~ResourceReleaseContext()
             {
-                Threading::ReadWriteGuard lock(mutex_);
+                Threading::ReadWriteGuard lock(spinlock_);
                 ASSERT(!fence_);
                 ASSERT(queue_.size() == 0);
             }
@@ -29,20 +30,20 @@ namespace OpenDemo
 
             void ResourceReleaseContext::deferredD3DResourceRelease(const ComSharedPtr<IUnknown>& resource, D3D12MA::Allocation* allocation)
             {
+                if (!resource)
+                    return;
+
                 //Resource might be leaked. Ignore it
                 if (!fence_)
                     return;
                     
-                Threading::ReadWriteGuard lock(mutex_);
-
-                ASSERT(resource);
-
+                Threading::ReadWriteGuard lock(spinlock_);
                 queue_.push({ fence_->GetCpuValue(), resource, allocation });
             }
 
             void ResourceReleaseContext::executeDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
             {
-                Threading::ReadWriteGuard lock(mutex_);
+                Threading::ReadWriteGuard lock(spinlock_);
 
                 ASSERT(fence_);
                 ASSERT(queue);

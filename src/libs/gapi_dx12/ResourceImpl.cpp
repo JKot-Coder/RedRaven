@@ -73,11 +73,6 @@ namespace OpenDemo
 
             ResourceImpl::~ResourceImpl()
             {
-            
-            }
-
-            void ResourceImpl::ReleaseD3DObjects()
-            {
                 ResourceReleaseContext::DeferredD3DResourceRelease(D3DResource_, allocation_);
             }
 

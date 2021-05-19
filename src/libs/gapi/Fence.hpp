@@ -35,10 +35,9 @@ namespace OpenDemo
             inline uint64_t GetCpuValue() const { return GetPrivateImpl()->GetCpuValue(); }
 
         private:
-            template <class Deleter>
-            static SharedPtr Create(const U8String& name, Deleter)
+            static SharedPtr Create(const U8String& name)
             {
-                return SharedPtr(new Fence(name), Deleter());
+                return SharedPtr(new Fence(name));
             }
 
             Fence(const U8String& name)

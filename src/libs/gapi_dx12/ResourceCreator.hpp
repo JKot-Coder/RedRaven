@@ -37,8 +37,6 @@ namespace OpenDemo
                 void InitCommandQueue(CommandQueue& resource);
                 void InitCommandList(CommandList& resource);
                 void InitGpuResourceView(GpuResourceView& view);
-
-                void ReleaseResource(Object& resource);
             }
         }
     }

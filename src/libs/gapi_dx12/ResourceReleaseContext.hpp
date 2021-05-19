@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Singleton.hpp"
-#include "common/threading/Mutex.hpp"
+#include "common/threading/SpinLock.hpp"
 
 #include <queue>
 
@@ -55,7 +55,7 @@ namespace OpenDemo
             private:
                 std::unique_ptr<FenceImpl> fence_;
                 std::queue<ResourceRelease> queue_;
-                Threading::Mutex mutex_;
+                Threading::SpinLock spinlock_;
             };
         }
     }

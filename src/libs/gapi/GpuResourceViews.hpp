@@ -96,13 +96,11 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<ShaderResourceView>;
 
         private:
-            template <class Deleter>
             static SharedPtr Create(
                 const std::weak_ptr<GpuResource>& gpuResource,
-                const GpuResourceViewDescription& desc,
-                Deleter)
+                const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new ShaderResourceView(gpuResource, desc), Deleter());
+                return SharedPtr(new ShaderResourceView(gpuResource, desc));
             };
 
             ShaderResourceView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
@@ -116,13 +114,11 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<DepthStencilView>;
 
         private:
-            template <class Deleter>
             static SharedPtr Create(
                 const std::weak_ptr<Texture>& texture,
-                const GpuResourceViewDescription& desc,
-                Deleter)
+                const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new DepthStencilView(texture, desc), Deleter());
+                return SharedPtr(new DepthStencilView(texture, desc));
             };
 
             DepthStencilView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
@@ -137,13 +133,11 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<RenderTargetView>;
 
         private:
-            template <class Deleter>
             static SharedPtr Create(
                 const std::shared_ptr<Texture>& texture,
-                const GpuResourceViewDescription& desc,
-                Deleter)
+                const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new RenderTargetView(texture, desc), Deleter());
+                return SharedPtr(new RenderTargetView(texture, desc));
             };
 
             RenderTargetView(const std::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
@@ -158,13 +152,11 @@ namespace OpenDemo
             using SharedConstPtr = std::shared_ptr<UnorderedAccessView>;
 
         private:
-            template <class Deleter>
             static SharedPtr Create(
                 const std::shared_ptr<GpuResource>& gpuResource,
-                const GpuResourceViewDescription& desc,
-                Deleter)
+                const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new UnorderedAccessView(gpuResource, desc), Deleter());
+                return SharedPtr(new UnorderedAccessView(gpuResource, desc));
             };
 
             UnorderedAccessView(const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);

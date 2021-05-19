@@ -20,8 +20,9 @@ namespace OpenDemo
                     D3DCommandQueue_(other.D3DCommandQueue_), 
                     fence_(other.fence_) {};
                 CommandQueueImpl(CommandQueueType type) : type_(type) {};
+                ~CommandQueueImpl();
 
-                void ReleaseD3DObjects();
+                void ImmediateD3DObjectRelease();
 
                 void Init(const U8String& name);
                 void Submit(const std::shared_ptr<CommandList>& commandList) override;

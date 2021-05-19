@@ -14,11 +14,10 @@ namespace OpenDemo
         {
             FenceImpl::~FenceImpl()
             {
-                if (!D3DFence_)
+                if (!event_)
                     return;
 
                 CloseHandle(event_);
-                ResourceReleaseContext::DeferredD3DResourceRelease(D3DFence_);
             }
 
             void FenceImpl::Init(const U8String& name)

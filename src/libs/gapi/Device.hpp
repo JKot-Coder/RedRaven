@@ -59,8 +59,6 @@ namespace OpenDemo
             virtual void InitTexture(Texture& resource) const = 0;
             virtual void InitBuffer(Buffer& resource) const = 0;
             virtual void InitGpuResourceView(GpuResourceView& view) const = 0;
-
-            virtual void ReleaseResource(Object& resource) const = 0;
         };
 
         class IDevice : public ISingleThreadDevice, public IMultiThreadDevice
@@ -100,8 +98,6 @@ namespace OpenDemo
             void InitTexture(Texture& resource) const override { GetPrivateImpl()->InitTexture(resource); };
             void InitBuffer(Buffer& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
             void InitGpuResourceView(GpuResourceView& view) const override { GetPrivateImpl()->InitGpuResourceView(view); };
-
-            void ReleaseResource(Object& resource) const override { GetPrivateImpl()->ReleaseResource(resource); }
 
         private:
             static SharedPtr Create(const Description& description, const U8String& name)

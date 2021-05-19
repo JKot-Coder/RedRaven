@@ -21,14 +21,12 @@ namespace OpenDemo
             std::shared_ptr<UnorderedAccessView> GetUAV(uint32_t mipLevel, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible);
 
         private:
-            template <class Deleter>
             static SharedPtr Create(
                 const GpuResourceDescription& description,
                 GpuResourceCpuAccess cpuAccess,
-                const U8String& name,
-                Deleter)
+                const U8String& name)
             {
-                return SharedPtr(new Texture(description, cpuAccess, name), Deleter());
+                return SharedPtr(new Texture(description, cpuAccess, name));
             }
 
             Texture(const GpuResourceDescription& description, GpuResourceCpuAccess cpuAccess, const U8String& name)

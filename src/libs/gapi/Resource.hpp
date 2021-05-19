@@ -10,7 +10,7 @@ namespace OpenDemo
         class Resource : public Object
         {
         public:
-            virtual ~Resource() {};
+            virtual ~Resource() = default;
 
             inline T* GetPrivateImpl()
             {

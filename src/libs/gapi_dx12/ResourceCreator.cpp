@@ -152,34 +152,7 @@ namespace OpenDemo
                     const auto& GpuResourceDescription = texture->GetDescription();
 
                     return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(GpuResourceDescription, description);
-                }
-
-                template <typename T, typename Impl>
-                void releaseResource(T& resource)
-                {
-                    static_assert(std::is_base_of<Object, T>::value, "T should be derived from Object");
-
-                    if (!resource.GetPrivateImpl())
-                        return;
-
-                    const auto impl = resource.GetPrivateImpl<Impl>();
-                    ASSERT(impl);
-
-                    impl->ReleaseD3DObjects();
-
-                    resource.SetPrivateImpl(nullptr);
-                }
-
-                template <>
-                void releaseResource<GpuResourceView, DescriptorHeap::Allocation>(GpuResourceView& resource)
-                {
-                    const auto impl = resource.GetPrivateImpl<DescriptorHeap::Allocation>();
-                    ASSERT(impl);
-
-                    // Todo delete?
-
-                    resource.SetPrivateImpl(nullptr);
-                }
+                }     
             }
 
             void ResourceCreator::InitSwapChain(SwapChain& resource)
@@ -266,29 +239,6 @@ namespace OpenDemo
                 }
 
                 object.SetPrivateImpl(allocation.release());
-            }
-
-            void ResourceCreator::ReleaseResource(Object& resource)
-            {
-#define CASE_RESOURCE(T, IMPL)                               \
-    case Object::Type::T:                                    \
-        ASSERT(dynamic_cast<T*>(&resource));                 \
-        releaseResource<T, IMPL>(static_cast<T&>(resource)); \
-        break;
-
-                switch (resource.GetType())
-                {
-                    CASE_RESOURCE(CommandList, CommandListImpl)
-                    CASE_RESOURCE(CommandQueue, CommandQueueImpl)
-                    CASE_RESOURCE(Fence, FenceImpl)
-                    CASE_RESOURCE(GpuResource, ResourceImpl)
-                    CASE_RESOURCE(GpuResourceView, DescriptorHeap::Allocation)
-                    CASE_RESOURCE(SwapChain, SwapChainImpl)
-                default:
-                    ASSERT_MSG(false, "Unsuported resource type");
-                }
-
-#undef CASE_RESOURCE
             }
         }
     }

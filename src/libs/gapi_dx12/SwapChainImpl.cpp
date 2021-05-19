@@ -25,7 +25,7 @@ namespace OpenDemo
                 }
             }
 
-            void SwapChainImpl::ReleaseD3DObjects()
+            SwapChainImpl::~SwapChainImpl()
             {
                 ResourceReleaseContext::DeferredD3DResourceRelease(D3DSwapChain_);
             }

@@ -20,8 +20,6 @@ namespace OpenDemo
                 ResourceImpl() = default;
                 ~ResourceImpl();
 
-                void ReleaseD3DObjects();
-
                 void Init(const Buffer& resource);
                 void Init(const Texture& resource);
                 void Init(const GpuResourceDescription& resourceDesc, GpuResourceCpuAccess cpuAccess, const U8String& name);

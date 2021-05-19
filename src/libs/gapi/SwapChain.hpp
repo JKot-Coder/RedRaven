@@ -58,10 +58,9 @@ namespace OpenDemo
             const SwapChainDescription& GetDescription() const { return description_; }
 
         private:
-            template <class Deleter>
-            static SharedPtr Create(const SwapChainDescription& description, const U8String& name, Deleter deleter)
+            static SharedPtr Create(const SwapChainDescription& description, const U8String& name)
             {
-                return SharedPtr(new SwapChain(description, name), std::move(deleter));
+                return SharedPtr(new SwapChain(description, name));
             }
 
             SwapChain(const SwapChainDescription& description, const U8String& name);

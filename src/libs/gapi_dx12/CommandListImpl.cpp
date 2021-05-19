@@ -45,6 +45,8 @@ namespace OpenDemo
 
             CommandListImpl::CommandAllocatorsPool::~CommandAllocatorsPool()
             {
+                for (auto& allocatorData : allocators_)
+                    ResourceReleaseContext::DeferredD3DResourceRelease(allocatorData.allocator);
             }
 
             void CommandListImpl::CommandAllocatorsPool::Init(
@@ -61,12 +63,6 @@ namespace OpenDemo
                     createAllocator(name, index, allocatorData.allocator);
                     allocatorData.cpuFenceValue = 0;
                 }
-            }
-
-            void CommandListImpl::CommandAllocatorsPool::ReleaseD3DObjects()
-            {
-                for (auto& allocatorData : allocators_)
-                    ResourceReleaseContext::DeferredD3DResourceRelease(allocatorData.allocator);
             }
 
             const ComSharedPtr<ID3D12CommandAllocator>& CommandListImpl::CommandAllocatorsPool::GetNextAllocator()
@@ -106,10 +102,9 @@ namespace OpenDemo
                 }
             }
 
-            void CommandListImpl::ReleaseD3DObjects()
+            CommandListImpl::~CommandListImpl()
             {
                 ResourceReleaseContext::DeferredD3DResourceRelease(D3DCommandList_);
-                commandAllocatorsPool_.ReleaseD3DObjects();
             }
 
             void CommandListImpl::Init(const U8String& name)

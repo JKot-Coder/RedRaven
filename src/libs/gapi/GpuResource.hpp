@@ -429,7 +429,7 @@ namespace OpenDemo
         class IGpuResource
         {
         public:
-            virtual ~IGpuResource() {};
+            virtual ~IGpuResource() = default;
         };
 
         class GpuResource : public Resource<IGpuResource>

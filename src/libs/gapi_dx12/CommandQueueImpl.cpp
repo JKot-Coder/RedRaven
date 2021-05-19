@@ -24,9 +24,14 @@ namespace OpenDemo
                 }
             }
 
-            void CommandQueueImpl::ReleaseD3DObjects()
+            CommandQueueImpl::~CommandQueueImpl()
             {
                 ResourceReleaseContext::DeferredD3DResourceRelease(D3DCommandQueue_);
+            }
+
+            void CommandQueueImpl::ImmediateD3DObjectRelease()
+            {
+                D3DCommandQueue_ = nullptr;
             }
 
             void CommandQueueImpl::Init(const U8String& name)

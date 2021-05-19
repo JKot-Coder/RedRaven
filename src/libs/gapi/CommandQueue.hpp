@@ -24,7 +24,7 @@ namespace OpenDemo
         class ICommandQueue
         {
         public:
-            virtual ~ICommandQueue() {};
+            virtual ~ICommandQueue() = default;
 
             virtual void Submit(const std::shared_ptr<CommandList>& commandList) = 0;
             virtual void WaitForGpu() = 0;
@@ -43,10 +43,9 @@ namespace OpenDemo
             inline const CommandQueueType GetCommandQueueType() const { return type_; }
 
         private:
-            template <class Deleter>
-            static SharedPtr Create(CommandQueueType type, const U8String& name, Deleter)
+            static SharedPtr Create(CommandQueueType type, const U8String& name)
             {
-                return SharedPtr(new CommandQueue(type, name), Deleter());
+                return SharedPtr(new CommandQueue(type, name));
             }
 
             CommandQueue(CommandQueueType type, const U8String& name)

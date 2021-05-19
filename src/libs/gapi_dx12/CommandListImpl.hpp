@@ -17,6 +17,7 @@ namespace OpenDemo
             {
             public:
                 CommandListImpl(const CommandListType commandListType);
+                ~CommandListImpl();
 
                 void Init(const U8String& name);
 
@@ -52,7 +53,6 @@ namespace OpenDemo
 
                 // ---------------------------------------------------------------------------------------------
 
-                void ReleaseD3DObjects();
                 void ResetAfterSubmit(CommandQueueImpl& commandQueue);
 
                 const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
@@ -64,14 +64,12 @@ namespace OpenDemo
 
                 void copyIntermediate(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData, bool readback) const;
 
-                class CommandAllocatorsPool
+                class CommandAllocatorsPool final
                 {
                 public:
                     ~CommandAllocatorsPool();
 
                     void Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
-
-                    void ReleaseD3DObjects();
 
                     const ComSharedPtr<ID3D12CommandAllocator>& GetNextAllocator();
                     void ResetAfterSubmit(CommandQueueImpl& commandQueue);

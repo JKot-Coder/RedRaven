@@ -19,25 +19,6 @@ namespace OpenDemo
 {
     namespace Render
     {
-        namespace
-        {
-            template <typename T>
-            struct GPIObjectsDeleter
-            {
-                void operator()(T* p)
-                {
-                    static_assert(std::is_convertible<T*, GAPI::Object*>::value, "T shoud be convertable to GAPI::Object");
-
-                    ASSERT(p);
-
-                    const auto& instance = DeviceContext::Instance();
-                    instance.ReleaseResource(*static_cast<GAPI::Object*>(p));
-
-                    delete p;
-                }
-            };
-        }
-
         DeviceContext::DeviceContext()
             : submission_(new Submission())
         {
@@ -175,7 +156,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::CopyCommandList::Create(name, GPIObjectsDeleter<GAPI::CopyCommandList>());
+            auto& resource = GAPI::CopyCommandList::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
 
             return resource;
@@ -185,7 +166,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::ComputeCommandList::Create(name, GPIObjectsDeleter<GAPI::ComputeCommandList>());
+            auto& resource = GAPI::ComputeCommandList::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
 
             return resource;
@@ -195,7 +176,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::GraphicsCommandList::Create(name, GPIObjectsDeleter<GAPI::GraphicsCommandList>());
+            auto& resource = GAPI::GraphicsCommandList::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
 
             return resource;
@@ -205,7 +186,7 @@ namespace OpenDemo
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::CommandQueue::Create(type, name, GPIObjectsDeleter<GAPI::CommandQueue>());
+            auto& resource = GAPI::CommandQueue::Create(type, name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandQueue(*resource.get());
 
             return resource;
@@ -215,7 +196,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Fence::Create(name, GPIObjectsDeleter<GAPI::Fence>());
+            auto& resource = GAPI::Fence::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitFence(*resource.get());
 
             return resource;
@@ -228,7 +209,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Buffer::Create(desc, cpuAccess, name, GPIObjectsDeleter<GAPI::Buffer>());
+            auto& resource = GAPI::Buffer::Create(desc, cpuAccess, name);
             submission_->GetIMultiThreadDevice().lock()->InitBuffer(*resource.get());
 
             return resource;
@@ -241,7 +222,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Texture::Create(desc, cpuAccess, name, GPIObjectsDeleter<GAPI::Texture>());
+            auto& resource = GAPI::Texture::Create(desc, cpuAccess, name);
             submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get());
 
             return resource;
@@ -258,7 +239,7 @@ namespace OpenDemo
             ASSERT(desc.GetDimension() == GAPI::GpuResourceDimension::Texture2D);
             ASSERT(desc.GetNumSubresources() == 1);
 
-            auto& resource = GAPI::Texture::Create(desc, GAPI::GpuResourceCpuAccess::None, name, GPIObjectsDeleter<GAPI::Texture>());
+            auto& resource = GAPI::Texture::Create(desc, GAPI::GpuResourceCpuAccess::None, name);
             swapchain->InitBackBufferTexture(backBufferIndex, resource);
 
             return resource;
@@ -270,7 +251,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::ShaderResourceView::Create(gpuResource, desc, GPIObjectsDeleter<GAPI::ShaderResourceView>());
+            auto& resource = GAPI::ShaderResourceView::Create(gpuResource, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -282,7 +263,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::DepthStencilView::Create(texture, desc, GPIObjectsDeleter<GAPI::DepthStencilView>());
+            auto& resource = GAPI::DepthStencilView::Create(texture, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -294,7 +275,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::RenderTargetView::Create(texture, desc, GPIObjectsDeleter<GAPI::RenderTargetView>());
+            auto& resource = GAPI::RenderTargetView::Create(texture, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -306,7 +287,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::UnorderedAccessView::Create(gpuResource, desc, GPIObjectsDeleter<GAPI::UnorderedAccessView>());
+            auto& resource = GAPI::UnorderedAccessView::Create(gpuResource, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -316,20 +297,10 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::SwapChain::Create(description, name, GPIObjectsDeleter<GAPI::SwapChain>());
+            auto& resource = GAPI::SwapChain::Create(description, name);
             submission_->GetIMultiThreadDevice().lock()->InitSwapChain(*resource.get());
 
             return resource;
-        }
-
-        void DeviceContext::ReleaseResource(GAPI::Object& resource) const
-        {
-            ASSERT(inited_);
-
-            if (!inited_) // Leaked resource release. We can't do nothing with it.
-                return;
-
-            submission_->GetIMultiThreadDevice().lock()->ReleaseResource(resource);
         }
     }
 }

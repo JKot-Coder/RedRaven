@@ -62,9 +62,10 @@ namespace OpenDemo
                 waitForGpu();
                 waitForGpu();
 
+                DeviceContext::GetGraphicsCommandQueue()->ImmediateD3DObjectRelease();
+                DeviceContext::Terminate();
                 gpuWaitFence_ = nullptr;
 
-                DeviceContext::Terminate();
                 ResourceReleaseContext::Instance().Terminate();
 
                 dxgiFactory_ = nullptr;
@@ -198,12 +199,6 @@ namespace OpenDemo
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
-            }
-
-            void DeviceImpl::ReleaseResource(Object& resource) const
-            {
-                ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::ReleaseResource(resource);
             }
 
             void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
