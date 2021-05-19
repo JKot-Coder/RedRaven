@@ -152,7 +152,7 @@ namespace OpenDemo
                     const auto& GpuResourceDescription = texture->GetDescription();
 
                     return CreateDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(GpuResourceDescription, description);
-                }     
+                }
             }
 
             void ResourceCreator::InitSwapChain(SwapChain& resource)
@@ -231,9 +231,12 @@ namespace OpenDemo
                     /*     case ResourceView::ViewType::RShaderResourceView:
                     break;
                 case ResourceView::ViewType::RDepthStencilView:
-                    break;
-                case ResourceView::ViewType::RUnorderedAccessView:
                     break;*/
+                case GpuResourceView::ViewType::UnorderedAccessView:
+                    //const auto& descriptorHeap = DeviceContext::GetDesciptorHeapSet()->GetRtvDescriptorHeap();
+                    LOG_FATAL("Unsupported resource view type");
+
+                    break;
                 default:
                     LOG_FATAL("Unsupported resource view type");
                 }

@@ -40,6 +40,7 @@ namespace OpenDemo
                     config.showDurations = Catch::ShowDurations::Always;
                     config.useColour = Catch::UseColour::No;
                     config.outputFilename = "%debug";
+                    config.testsOrTags.push_back("[ComputeCommandList]");
                     session.useConfigData(config);
                 }
 

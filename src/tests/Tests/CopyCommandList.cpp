@@ -229,11 +229,11 @@ namespace OpenDemo
                 return GAPI::GpuResourceDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
             }
 
-            GAPI::Buffer::SharedPtr initBufferWithData(const char* data, const GAPI::CopyCommandList::SharedPtr& commandList)
+            GAPI::Buffer::SharedPtr initBufferWithData(const char* data, const GAPI::CopyCommandList::SharedPtr& commandList, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::ShaderResource)
             {
                 auto& renderContext = Render::DeviceContext::Instance();
 
-                const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), GAPI::GpuResourceFormat::Unknown);
+                const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), GAPI::GpuResourceFormat::Unknown, bindFlags);
                 const auto bufferData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
 
                 const auto dataPointer = static_cast<char*>(bufferData->GetAllocation()->Map());
@@ -265,15 +265,15 @@ namespace OpenDemo
             }
         }
 
-        TEST_CASE_METHOD(TestContextFixture, "CopyBufferTests", "[CommandList][CopyCommmandList][CopyBuffer]")
+        TEST_CASE_METHOD(TestContextFixture, "CopyBuffer", "[CommandList][CopyCommmandList][CopyBuffer]")
         {
             auto& renderContext = Render::DeviceContext::Instance();
 
             auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
             REQUIRE(commandList != nullptr);
 
-            auto copyQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
-            REQUIRE(copyQueue != nullptr);
+            auto queue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
+            REQUIRE(queue != nullptr);
 
             std::array<GAPI::GpuResourceFormat, 3> formatsToTest = { GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
             for (const auto format : formatsToTest)
@@ -308,7 +308,7 @@ namespace OpenDemo
                     commandList->ReadbackGpuResource(testBuffer, readbackData);
                     commandList->Close();
 
-                    submitAndWait(copyQueue, commandList);
+                    submitAndWait(queue, commandList);
                     REQUIRE(isResourceEqual(cpuData, readbackData));
                 }
 
@@ -329,7 +329,7 @@ namespace OpenDemo
                     commandList->ReadbackGpuResource(testTexture, readbackData);
                     commandList->Close();
 
-                    submitAndWait(copyQueue, commandList);
+                    submitAndWait(queue, commandList);
                     REQUIRE(isResourceEqual(cpuData, readbackData));
                 }
 
@@ -351,7 +351,7 @@ namespace OpenDemo
 
                     commandList->Close();
 
-                    submitAndWait(copyQueue, commandList);
+                    submitAndWait(queue, commandList);
                     REQUIRE(isResourceEqual(sourceData, readbackData));
                 }
             }
@@ -384,7 +384,7 @@ namespace OpenDemo
 
                     commandList->Close();
 
-                    submitAndWait(copyQueue, commandList);
+                    submitAndWait(queue, commandList);
                     REQUIRE(isResourceEqual(sourceData, readbackData));
                 }
 
@@ -405,7 +405,7 @@ namespace OpenDemo
                     commandList->ReadbackGpuResource(dest, readbackData);
                     commandList->Close();
 
-                    submitAndWait(copyQueue, commandList);
+                    submitAndWait(queue, commandList);
 
                     const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
                     ON_SCOPE_EXIT(
@@ -419,7 +419,7 @@ namespace OpenDemo
             }
         }
 
-        TEST_CASE_METHOD(TestContextFixture, "CopyTextureTests", "[CommandList][CopyCommmandList][CopyTexture]")
+        TEST_CASE_METHOD(TestContextFixture, "CopyTexture", "[CommandList][CopyCommmandList][CopyTexture]")
         {
             auto& renderContext = Render::DeviceContext::Instance();
 

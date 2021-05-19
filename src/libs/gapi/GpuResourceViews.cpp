@@ -6,6 +6,26 @@ namespace OpenDemo
 {
     namespace GAPI
     {
+        namespace
+        {
+            bool isCompatable(const GpuResourceViewDescription& desc, const GpuResourceDescription& resourceDesc)
+            {
+                bool result = resourceDesc.IsValid();
+
+                if (resourceDesc.GetDimension() == GAPI::GpuResourceDimension::Buffer)
+                {
+                    result &= desc.buffer.firstElement + desc.buffer.elementCount <= resourceDesc.GetNumElements();
+                } 
+                else
+                {
+                    result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.GetMipCount();
+                    result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.GetArraySize();
+                }          
+
+                return result;
+            }
+        }
+
         ShaderResourceView::ShaderResourceView(
             const std::weak_ptr<GpuResource>& gpuResource,
             const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
@@ -13,24 +33,10 @@ namespace OpenDemo
             ASSERT(!gpuResource.expired());
 
             const auto sharedGpuResource = gpuResource.lock();
+            const auto& resoureDescription = sharedGpuResource->GetDescription();
 
-            if (sharedGpuResource->IsTexture())
-            {
-                const auto texture = sharedGpuResource->GetTyped<Texture>();
-                const auto& description = texture->GetDescription();
-
-                ASSERT(IsSet(description.GetBindFlags(), GpuResourceBindFlags::ShaderResource));
-                ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= description.GetMipCount());
-                ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= description.GetArraySize());
-            }
-            else
-            {
-                ASSERT(false);
-                // const auto buffer = sharedGpuResource->GetTyped<Buffer>();
-
-                // ASSERT(desc.buffer.firstElement + desc.buffer.elementCount <= buffer->GetDescription().eme);\\
-                ASSERT(IsSet(bindFlags, GpuResourceBindFlags::ShaderResource));
-            }
+            ASSERT(isCompatable(desc, resoureDescription));
+            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::ShaderResource));
         }
 
         DepthStencilView::DepthStencilView(
@@ -39,12 +45,12 @@ namespace OpenDemo
         {
             ASSERT(!texture.expired());
 
-            const auto sharedTexutre = texture.lock();
-            const auto& description = sharedTexutre->GetDescription();
+            const auto sharedGpuResource = texture.lock();
+            const auto& resoureDescription = sharedGpuResource->GetDescription();
 
-            ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= description.GetMipCount());
-            ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= description.GetArraySize());
-            ASSERT(IsSet(description.GetBindFlags(), GpuResourceBindFlags::RenderTarget));
+            ASSERT(isCompatable(desc, resoureDescription));
+            ASSERT(resoureDescription.GetDimension() != GAPI::GpuResourceDimension::Buffer);
+            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::RenderTarget));
         }
 
         RenderTargetView::RenderTargetView(
@@ -54,11 +60,11 @@ namespace OpenDemo
             ASSERT(!texture.expired());
 
             const auto sharedTexutre = texture.lock();
-            const auto& description = sharedTexutre->GetDescription();
+            const auto& resoureDescription = sharedTexutre->GetDescription();
 
-            ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= description.GetMipCount())
-            ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= description.GetArraySize())
-            ASSERT(IsSet(description.GetBindFlags(), GpuResourceBindFlags::RenderTarget));
+            ASSERT(isCompatable(desc, resoureDescription));
+            ASSERT(resoureDescription.GetDimension() != GAPI::GpuResourceDimension::Buffer);
+            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::RenderTarget));
         }
 
         UnorderedAccessView::UnorderedAccessView(
@@ -66,26 +72,11 @@ namespace OpenDemo
             const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {
             ASSERT(!gpuResource.expired());
-
             const auto sharedGpuResource = gpuResource.lock();
+            const auto& resoureDescription = sharedGpuResource->GetDescription();
 
-            if (sharedGpuResource->IsTexture())
-            {
-                const auto texture = sharedGpuResource->GetTyped<Texture>();
-                const auto& description = texture->GetDescription();
-
-                ASSERT(IsSet(description.GetBindFlags(), GpuResourceBindFlags::ShaderResource));
-                ASSERT(desc.texture.mipLevel + desc.texture.mipCount <= description.GetMipCount());
-                ASSERT(desc.texture.firstArraySlice + desc.texture.arraySliceCount <= description.GetArraySize());
-            }
-            else
-            {
-                ASSERT(false);
-                // const auto buffer = sharedGpuResource->GetTyped<Buffer>();
-
-                // ASSERT(desc.buffer.firstElement + desc.buffer.elementCount <= buffer->GetDescription().eme);
-                //ASSERT(IsSet(sharedGpuResource->GetBindFlags(), GpuResourceBindFlags::ShaderResource));
-            }
+            ASSERT(isCompatable(desc, resoureDescription));
+            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::UnorderedAccess));
         }
     }
 }

@@ -12,6 +12,8 @@ source_group( "" FILES ${SRC} )
 set(TESTS_SRC
     "Tests/CopyCommandList.cpp"
     "Tests/CopyCommandList.hpp" 
+    "Tests/ComputeCommandList.hpp" 
+    "Tests/ComputeCommandList.cpp" 
 )
 source_group( "Tests" FILES ${TESTS_SRC} )
 
