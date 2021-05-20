@@ -24,16 +24,16 @@ namespace OpenDemo
                 ASSERT(firstArraySlice < resArraySize);
                 ASSERT(mipLevel < resMipLevels);
 
-                if (mipCount == GpuResourceViewDescription::MaxPossible)
+                if (mipCount == Texture::MaxPossible)
                     mipCount = resMipLevels - mipLevel;
 
-                if (arraySliceCount == GpuResourceViewDescription::MaxPossible)
+                if (arraySliceCount == Texture::MaxPossible)
                     arraySliceCount = resArraySize - firstArraySlice;
 
                 ASSERT(firstArraySlice + arraySliceCount <= resArraySize);
                 ASSERT(mipLevel + mipCount <= resMipLevels);
 
-                return GpuResourceViewDescription(mipLevel, mipCount, firstArraySlice, arraySliceCount);
+                return GpuResourceViewDescription::Texture(mipLevel, mipCount, firstArraySlice, arraySliceCount);
             }
         }
 

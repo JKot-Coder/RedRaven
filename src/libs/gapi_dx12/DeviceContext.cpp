@@ -12,7 +12,6 @@ namespace OpenDemo
             ComSharedPtr<ID3D12Device> DeviceContext::device_;
             ComSharedPtr<IDXGIFactory2> DeviceContext::dxgiFactory_;
             std::shared_ptr<CommandQueueImpl> DeviceContext::graphicsCommandQueue_;
-            std::shared_ptr<DescriptorHeapSet> DeviceContext::descriptorHeapSet_;
 
             void DeviceContext::Init(const ComSharedPtr<ID3D12Device>& device,
                                      const ComSharedPtr<IDXGIFactory2>& dxgiFactory)
@@ -25,16 +24,13 @@ namespace OpenDemo
             }
 
             void DeviceContext::Init(D3D12MA::Allocator* allocator,
-                                     const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
-                                     const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet)
+                                     const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue)
             {
                 ASSERT(allocator);
-                ASSERT(descriptorHeapSet);
                 ASSERT(graphicsCommandQueue);
 
                 allocator_ = allocator;
                 graphicsCommandQueue_ = graphicsCommandQueue;
-                descriptorHeapSet_ = descriptorHeapSet;
             }
 
             void DeviceContext::Terminate()
@@ -44,7 +40,6 @@ namespace OpenDemo
                 device_ = nullptr;
                 dxgiFactory_ = nullptr;
                 graphicsCommandQueue_ = nullptr;
-                descriptorHeapSet_ = nullptr;
             }
         }
     }

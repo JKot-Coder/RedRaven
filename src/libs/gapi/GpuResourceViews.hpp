@@ -10,16 +10,15 @@ namespace OpenDemo
     {
         struct GpuResourceViewDescription
         {
-            static constexpr uint32_t MaxPossible = 0xFFFFFF;
-
-            GpuResourceViewDescription(uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
-                : texture({ mipLevel, mipsCount, firstArraySlice, arraySlicesCount })
+        public:
+            static GpuResourceViewDescription Buffer(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount)
             {
+                return GpuResourceViewDescription(format, firstElement, elementsCount);
             }
 
-            GpuResourceViewDescription(uint32_t firstElement, uint32_t elementsCount)
-                : buffer({ firstElement, elementsCount })
+            static GpuResourceViewDescription Texture(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
             {
+                return GpuResourceViewDescription(format, mipLevel, mipsCount, firstArraySlice, arraySlicesCount);
             }
 
             bool operator==(const GpuResourceViewDescription& other) const
@@ -47,6 +46,21 @@ namespace OpenDemo
                     uint32_t elementCount;
                 } buffer;
             };
+
+            GpuResourceFormat format;
+
+        private:
+            GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
+                : texture({ mipLevel, mipsCount, firstArraySlice, arraySlicesCount }),
+                  format(format)
+            {
+            }
+
+            GpuResourceViewDescription(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount)
+                : buffer({ firstElement, elementsCount }),
+                  format(format)
+            {
+            }
         };
 
         class IGpuResourceView

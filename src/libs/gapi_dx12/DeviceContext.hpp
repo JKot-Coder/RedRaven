@@ -21,8 +21,7 @@ namespace OpenDemo
                                  const ComSharedPtr<IDXGIFactory2>& dxgiFactory);
 
                 static void Init(D3D12MA::Allocator* allocator,
-                                 const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
-                                 const std::shared_ptr<DescriptorHeapSet>& descriptorHeapSet);
+                                 const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue);
 
                 static void Terminate();
 
@@ -50,18 +49,12 @@ namespace OpenDemo
                     return graphicsCommandQueue_;
                 }
 
-                static std::shared_ptr<DescriptorHeapSet> GetDesciptorHeapSet()
-                {
-                    ASSERT(descriptorHeapSet_);
-                    return descriptorHeapSet_;
-                }
 
             private:
                 static D3D12MA::Allocator* allocator_;
                 static ComSharedPtr<ID3D12Device> device_;
                 static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
-                static std::shared_ptr<DescriptorHeapSet> descriptorHeapSet_;
             };
         }
     }

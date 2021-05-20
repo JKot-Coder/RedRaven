@@ -13,7 +13,7 @@
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
-#include "gapi_dx12/DescriptorHeapSet.hpp"
+#include "gapi_dx12/DescriptorAllocator.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
@@ -67,6 +67,7 @@ namespace OpenDemo
                 gpuWaitFence_ = nullptr;
 
                 ResourceReleaseContext::Instance().Terminate();
+                DescriptorAllocator::Instance().Terminate();
 
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
@@ -104,9 +105,6 @@ namespace OpenDemo
 
                 DeviceContext::Init(d3dDevice_, dxgiFactory_);
 
-                auto& descriptorHeapSet = std::make_shared<DescriptorHeapSet>();
-                descriptorHeapSet->Init();
-
                 gpuWaitFence_ = std::make_unique<FenceImpl>();
                 gpuWaitFence_->Init("GpuWait");
 
@@ -121,11 +119,11 @@ namespace OpenDemo
                 graphicsCommandQueue->Init("Primary");
 
                 ResourceReleaseContext::Instance().Init();
+                DescriptorAllocator::Instance().Init();
 
                 DeviceContext::Init(
                     allocator,
-                    graphicsCommandQueue,
-                    descriptorHeapSet);
+                    graphicsCommandQueue);
 
                 inited_ = true;
 

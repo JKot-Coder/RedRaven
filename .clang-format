@@ -6,5 +6,6 @@ BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakConstructorInitializers: BeforeColon
 NamespaceIndentation: All
+IndentCaseLabels: true
 
 ...

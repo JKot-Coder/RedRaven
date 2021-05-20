@@ -208,6 +208,11 @@ namespace OpenDemo
             GpuResourceFormat GetFormat() const { return format_; }
             GpuResourceDimension GetDimension() const { return dimension_; }
             GpuResourceBindFlags GetBindFlags() const { return bindflags_; }
+            
+            bool IsTyped() const
+            {
+                return format_ != GpuResourceFormat::Unknown;
+            }
 
             uint32_t GetSize() const
             {
@@ -229,7 +234,6 @@ namespace OpenDemo
             uint32_t GetStructSize() const
             {
                 ASSERT(dimension_ == GpuResourceDimension::Buffer);
-                ASSERT(structSize_ > 0);
                 return structSize_;
             }
 

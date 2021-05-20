@@ -12,6 +12,23 @@ namespace OpenDemo
 {
     namespace GAPI
     {
+        namespace
+        {
+            const GpuResourceViewDescription& createDescription(const GpuResourceViewDescription& resourceDesc, uint32_t firstElement, uint32_t numElements)
+            {
+                ASSERT(firstElement < resourceDesc.buffer.elementCount);
+
+                if (numElements == Buffer::MaxPossible)
+                    numElements = resourceDesc.buffer.elementCount - firstElement;
+
+                auto format = resourceDesc.format;
+                if (format == GpuResourceFormat::Unknown)
+                    format = GpuResourceFormat::R32Uint;
+
+                const auto& viewDesc = GpuResourceViewDescription::Buffer(firstElement, numElements);
+                return GpuResourceViewDescription::Buffer(firstElement, numElements);
+            }
+        }
 
         ShaderResourceView::SharedPtr Buffer::GetSRV(uint32_t firstElement, uint32_t numElements)
         {
@@ -20,7 +37,7 @@ namespace OpenDemo
             ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width_);
 
             numElements = Min(numElements, description_.width_ - firstElement);
-            const auto& viewDesc = GpuResourceViewDescription(firstElement, numElements);
+            const auto& viewDesc = GpuResourceViewDescription::Buffer(firstElement, numElements);
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
@@ -39,7 +56,7 @@ namespace OpenDemo
             ASSERT(numElements == MaxPossible || firstElement + numElements < description_.width_);
 
             numElements = Min(numElements, description_.width_ - firstElement);
-            const auto& viewDesc = GpuResourceViewDescription(firstElement, numElements);
+            const auto& viewDesc = GpuResourceViewDescription::Buffer(firstElement, numElements);
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {
