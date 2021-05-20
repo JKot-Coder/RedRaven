@@ -13,7 +13,7 @@ namespace OpenDemo
         {
             namespace
             {
-                void GetOptimizedClearValue(GpuResourceBindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
+                void getOptimizedClearValue(GpuResourceBindFlags bindFlags, DXGI_FORMAT format, D3D12_CLEAR_VALUE*& value)
                 {
                     if (!IsAny(bindFlags, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::DepthStencil))
                     {
@@ -39,7 +39,7 @@ namespace OpenDemo
                     }
                 }
 
-                const D3D12_HEAP_PROPERTIES* GetHeapProperties(GpuResourceCpuAccess cpuAccess)
+                const D3D12_HEAP_PROPERTIES* getHeapProperties(GpuResourceCpuAccess cpuAccess)
                 {
                     switch (cpuAccess)
                     {
@@ -54,7 +54,7 @@ namespace OpenDemo
                     }
                 }
 
-                D3D12_RESOURCE_STATES GetDefaultResourceState(GpuResourceCpuAccess cpuAccess)
+                D3D12_RESOURCE_STATES getDefaultResourceState(GpuResourceCpuAccess cpuAccess)
                 {
                     switch (cpuAccess)
                     {
@@ -68,7 +68,6 @@ namespace OpenDemo
                         LOG_FATAL("Unsupported cpuAcess");
                     }
                 }
-
             }
 
             ResourceImpl::~ResourceImpl()
@@ -93,16 +92,16 @@ namespace OpenDemo
 
                 D3D12_CLEAR_VALUE optimizedClearValue;
                 D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
-                GetOptimizedClearValue(resourceDesc.GetBindFlags(), format, pOptimizedClearValue);
+                getOptimizedClearValue(resourceDesc.GetBindFlags(), format, pOptimizedClearValue);
 
                 const D3D12_RESOURCE_DESC& desc = D3DUtils::GetResourceDesc(resourceDesc);
 
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
-                        GetHeapProperties(cpuAccess),
+                        getHeapProperties(cpuAccess),
                         D3D12_HEAP_FLAG_NONE,
                         &desc,
-                        GetDefaultResourceState(cpuAccess),
+                        getDefaultResourceState(cpuAccess),
                         pOptimizedClearValue,
                         IID_PPV_ARGS(D3DResource_.put())));
 
