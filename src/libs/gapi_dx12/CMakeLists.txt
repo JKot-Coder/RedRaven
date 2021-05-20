@@ -45,8 +45,8 @@ set(GAPI_SRC
         DescriptorHeap.hpp
         CpuResourceDataAllocator.hpp
         CpuResourceDataAllocator.cpp
-        DescriptorHeapSet.cpp 
-        DescriptorHeapSet.hpp
+        DescriptorAllocator.cpp 
+        DescriptorAllocator.hpp
         DeviceContext.hpp
         DeviceContext.cpp
         Device.cpp
