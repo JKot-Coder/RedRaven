@@ -88,17 +88,17 @@ namespace OpenDemo
             {
                 switch (commandListType)
                 {
-                case CommandListType::Graphics:
-                    type_ = D3D12_COMMAND_LIST_TYPE_DIRECT;
-                    break;
-                case CommandListType::Compute:
-                    type_ = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-                    break;
-                case CommandListType::Copy:
-                    type_ = D3D12_COMMAND_LIST_TYPE_COPY;
-                    break;
-                default:
-                    ASSERT_MSG(false, "Unsuported command list type");
+                    case CommandListType::Graphics:
+                        type_ = D3D12_COMMAND_LIST_TYPE_DIRECT;
+                        break;
+                    case CommandListType::Compute:
+                        type_ = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+                        break;
+                    case CommandListType::Copy:
+                        type_ = D3D12_COMMAND_LIST_TYPE_COPY;
+                        break;
+                    default:
+                        ASSERT_MSG(false, "Unsuported command list type");
                 }
             }
 
@@ -358,6 +358,17 @@ namespace OpenDemo
             void CommandListImpl::ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue)
             {
                 ASSERT(unorderedAcessView);
+
+                const auto& resource = unorderedAcessView->GetGpuResource().lock();
+                ASSERT(resource);
+
+                const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
+                ASSERT(resourceImpl);
+
+                const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Allocation>();
+                ASSERT(resourceViewImpl);
+
+                D3DCommandList_->ClearUnorderedAccessViewUint(resourceViewImpl->GetGPUHandle(), resourceViewImpl->GetCPUHandle(), resourceImpl->GetD3DObject().get(), &clearValue.x, 0, nullptr);
             }
 
             void CommandListImpl::ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue)

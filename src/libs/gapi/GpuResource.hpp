@@ -170,14 +170,14 @@ namespace OpenDemo
         {
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static GpuResourceDescription Buffer(uint32_t size, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
+            static GpuResourceDescription Buffer(uint32_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
             {
-                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, format, bindFlags, 1, 1, 1);
+                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, GpuResourceFormat::Unknown, bindFlags, 1, 1, 1);
             }
 
-            static GpuResourceDescription StructuredBuffer(uint32_t size, uint32_t structSize, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
+            static GpuResourceDescription StructuredBuffer(uint32_t size, uint32_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
             {
-                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, format, bindFlags, 1, 1, 1, structSize);
+                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, GpuResourceFormat::Unknown, bindFlags, 1, 1, 1, structSize);
             }
 
             static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
@@ -208,7 +208,7 @@ namespace OpenDemo
             GpuResourceFormat GetFormat() const { return format_; }
             GpuResourceDimension GetDimension() const { return dimension_; }
             GpuResourceBindFlags GetBindFlags() const { return bindflags_; }
-            
+
             bool IsTyped() const
             {
                 return format_ != GpuResourceFormat::Unknown;
@@ -216,19 +216,14 @@ namespace OpenDemo
 
             uint32_t GetSize() const
             {
-                return GetNumElements() * GetElementSize();
+                ASSERT(dimension_ == GpuResourceDimension::Buffer);
+                return GetNumElements() * std::max(GetStructSize(), 1u);
             }
 
             uint32_t GetNumElements() const
             {
                 ASSERT(dimension_ == GpuResourceDimension::Buffer);
                 return width_;
-            }
-
-            uint32_t GetElementSize() const
-            {
-                ASSERT(dimension_ == GpuResourceDimension::Buffer);
-                return std::max(1u, structSize_) * std::max(1u, GpuResourceFormatInfo::GetBlockSize(format_));
             }
 
             uint32_t GetStructSize() const
@@ -402,22 +397,22 @@ namespace OpenDemo
                 size_t depthPitch;
             };
 
-            CpuResourceData(const std::shared_ptr<MemoryAllocation>& allocation, const GpuResourceDescription& resourceDescription, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
+            CpuResourceData(const std::shared_ptr<MemoryAllocation>& allocation, const GpuResourceDescription& description, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
                 : allocation_(allocation),
-                  resourceDescription_(resourceDescription),
+                  description_(description),
                   subresourceFootprints_(subresourceFootprints),
                   firstSubresource_(firstSubresource)
             {
                 ASSERT(allocation);
                 ASSERT(subresourceFootprints.size() > 0);
-                ASSERT(firstSubresource < resourceDescription.GetNumSubresources());
-                ASSERT(firstSubresource + subresourceFootprints.size() <= resourceDescription.GetNumSubresources());
+                ASSERT(firstSubresource < description.GetNumSubresources());
+                ASSERT(firstSubresource + subresourceFootprints.size() <= description.GetNumSubresources());
             };
 
             inline std::shared_ptr<MemoryAllocation> GetAllocation() const { return allocation_; }
             inline uint32_t GetFirstSubresource() const { return firstSubresource_; }
             inline size_t GetNumSubresources() const { return subresourceFootprints_.size(); }
-            inline const GpuResourceDescription& GetResourceDescription() const { return resourceDescription_; }
+            inline const GpuResourceDescription& GetResourceDescription() const { return description_; }
             inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
             inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
 
@@ -426,7 +421,7 @@ namespace OpenDemo
         private:
             std::shared_ptr<MemoryAllocation> allocation_;
             std::vector<SubresourceFootprint> subresourceFootprints_;
-            GpuResourceDescription resourceDescription_;
+            GpuResourceDescription description_;
             uint32_t firstSubresource_;
         };
 

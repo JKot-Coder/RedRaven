@@ -114,18 +114,16 @@ namespace OpenDemo
 
                 const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
                 const auto dataPointer = static_cast<uint8_t*>(resourceData->GetAllocation()->Map());
-                const auto blockSize = description.GetElementSize();
-
                 std::array<uint8_t, 10> testBufferData = { 0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42 };
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * blockSize == subresourceFootprint.rowSizeInBytes);
+                    ASSERT(subresourceFootprint.width == subresourceFootprint.rowSizeInBytes);
 
                     auto columnPointer = reinterpret_cast<uint8_t*>(dataPointer);
 
-                    for (uint32_t byte = 0; byte < subresourceFootprint.width * blockSize; byte++)
+                    for (uint32_t byte = 0; byte < subresourceFootprint.width; byte++)
                     {
                         *columnPointer = testBufferData[byte % testBufferData.size()];
                         columnPointer++;
@@ -233,7 +231,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::DeviceContext::Instance();
 
-                const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), GAPI::GpuResourceFormat::Unknown, bindFlags);
+                const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), bindFlags);
                 const auto bufferData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
 
                 const auto dataPointer = static_cast<char*>(bufferData->GetAllocation()->Map());
@@ -284,7 +282,7 @@ namespace OpenDemo
                 const auto testData = "QWE6789IOP";
                 const auto readbackData = renderContext.AllocateIntermediateTextureData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
-                const auto uav = source->GetUAV(4, 4);
+                const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 4);
 
                 commandList->ClearUnorderedAccessViewUint(uav, Vector4u(0,1,255, 0xFFFF42));
                 commandList->ReadbackGpuResource(source, readbackData);

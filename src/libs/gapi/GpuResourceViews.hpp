@@ -1,8 +1,8 @@
 #pragma once
 
-#include "gapi/Resource.hpp"
-
 #include "gapi/ForwardDeclarations.hpp"
+
+#include "gapi/Resource.hpp"
 
 namespace OpenDemo
 {
@@ -50,17 +50,8 @@ namespace OpenDemo
             GpuResourceFormat format;
 
         private:
-            GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
-                : texture({ mipLevel, mipsCount, firstArraySlice, arraySlicesCount }),
-                  format(format)
-            {
-            }
-
-            GpuResourceViewDescription(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount)
-                : buffer({ firstElement, elementsCount }),
-                  format(format)
-            {
-            }
+            GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount);
+            GpuResourceViewDescription(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount);
         };
 
         class IGpuResourceView

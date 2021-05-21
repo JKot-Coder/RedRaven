@@ -198,7 +198,13 @@ namespace OpenDemo
                 return false;
             }
 
-            if (format_ == GpuResourceFormat::Unknown && dimension_ != GpuResourceDimension::Buffer)
+            if (dimension_ == GpuResourceDimension::Buffer && format_ != GpuResourceFormat::Unknown)
+            {
+                LOG_WARNING("Buffer format should be Unknown");
+                return false;
+            }
+
+            if (dimension_ != GpuResourceDimension::Buffer && format_ == GpuResourceFormat::Unknown)
             {
                 LOG_WARNING("Unknown resource format");
                 return false;
@@ -213,68 +219,68 @@ namespace OpenDemo
 
             switch (dimension_)
             {
-            case GpuResourceDimension::Buffer:
-                if ((depth_ != 1) || (height_ != 1))
-                {
-                    LOG_WARNING("Wrong size of buffer");
-                    return false;
-                }
+                case GpuResourceDimension::Buffer:
+                    if ((depth_ != 1) || (height_ != 1))
+                    {
+                        LOG_WARNING("Wrong size of buffer");
+                        return false;
+                    }
 
-                if (arraySize_ != 1)
-                {
-                    LOG_WARNING("Wrong size of array");
-                    return false;
-                }
+                    if (arraySize_ != 1)
+                    {
+                        LOG_WARNING("Wrong size of array");
+                        return false;
+                    }
 
-                if (IsSet(bindflags_, GpuResourceBindFlags::RenderTarget))
-                {
-                    LOG_WARNING("Buffer can't be binded as RenderTarget");
-                    return false;
-                }
+                    if (IsSet(bindflags_, GpuResourceBindFlags::RenderTarget))
+                    {
+                        LOG_WARNING("Buffer can't be binded as RenderTarget");
+                        return false;
+                    }
 
-                if ((structSize_ != 0) && (format_ != GpuResourceFormat::Unknown))
-                {
-                    LOG_WARNING("Stuctured buffer must be Unknown resource format");
-                    return false;
-                }
-                break;
-            case GpuResourceDimension::Texture1D:
-                if ((depth_ != 1) || (height_ != 1))
-                {
-                    LOG_WARNING("Wrong texture size");
-                    return false;
-                }
-                break;
-            case GpuResourceDimension::Texture2D:
-            case GpuResourceDimension::TextureCube:
-                if (depth_ != 1)
-                {
-                    LOG_WARNING("Wrong texture size");
-                    return false;
-                }
-                break;
-            case GpuResourceDimension::Texture2DMS:
-                if (depth_ != 1)
-                {
-                    LOG_WARNING("Wrong texture size");
-                    return false;
-                }
+                    if ((structSize_ != 0) && (format_ != GpuResourceFormat::Unknown))
+                    {
+                        LOG_WARNING("Stuctured buffer must be Unknown resource format");
+                        return false;
+                    }
+                    break;
+                case GpuResourceDimension::Texture1D:
+                    if ((depth_ != 1) || (height_ != 1))
+                    {
+                        LOG_WARNING("Wrong texture size");
+                        return false;
+                    }
+                    break;
+                case GpuResourceDimension::Texture2D:
+                case GpuResourceDimension::TextureCube:
+                    if (depth_ != 1)
+                    {
+                        LOG_WARNING("Wrong texture size");
+                        return false;
+                    }
+                    break;
+                case GpuResourceDimension::Texture2DMS:
+                    if (depth_ != 1)
+                    {
+                        LOG_WARNING("Wrong texture size");
+                        return false;
+                    }
 
-                if (!IsSet(bindflags_, GpuResourceBindFlags::RenderTarget))
-                {
-                    LOG_WARNING("Multisampled texture must be allowed to bind as render target");
-                    return false;
-                }
-                break;
-            case GpuResourceDimension::Texture3D:
-                if (arraySize_ != 1)
-                {
-                    LOG_WARNING("Wrong size of array");
-                    return false;
-                }
-                break;
-            default:
-                LOG_FATAL("Unsupported resource dimension");
+                    if (!IsSet(bindflags_, GpuResourceBindFlags::RenderTarget))
+                    {
+                        LOG_WARNING("Multisampled texture must be allowed to bind as render target");
+                        return false;
+                    }
+                    break;
+                case GpuResourceDimension::Texture3D:
+                    if (arraySize_ != 1)
+                    {
+                        LOG_WARNING("Wrong size of array");
+                        return false;
+                    }
+                    break;
+                default:
+                    LOG_FATAL("Unsupported resource dimension");
             }
 
             if (GpuResourceFormatInfo::IsCompressed(format_))

@@ -43,7 +43,7 @@ namespace OpenDemo
                     if (currentChunk->GetNumAvailable() == 0)
                         freeChunks_.pop_front();
 
-                    allocation = Allocation(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap));
+                    allocation = Allocation(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap), getGpuHandle(indexInHeap));
 
                     allocated_++;
                 }
@@ -106,13 +106,20 @@ namespace OpenDemo
                         return cpuHandle_;
                     }
 
+                    CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const
+                    {
+                        ASSERT(heap_)
+                        return gpuHandle_;
+                    }
+
                 private:
                     friend DescriptorHeap;
 
-                    Allocation(const DescriptorHeap::SharedPtr& heap, uint32_t indexInHeap, const CD3DX12_CPU_DESCRIPTOR_HANDLE& CpuHandle)
+                    Allocation(const DescriptorHeap::SharedPtr& heap, uint32_t indexInHeap, const CD3DX12_CPU_DESCRIPTOR_HANDLE& cpuHandle, const CD3DX12_GPU_DESCRIPTOR_HANDLE& gpuHandle)
                         : heap_(heap),
                           indexInHeap_(indexInHeap),
-                          cpuHandle_(CpuHandle)
+                          cpuHandle_(cpuHandle),
+                          gpuHandle_(gpuHandle)
                     {
                         ASSERT(heap_)
                     }
@@ -125,12 +132,14 @@ namespace OpenDemo
                         heap_ = nullptr;
                         indexInHeap_ = 0;
                         cpuHandle_ = CD3DX12_DEFAULT();
+                        gpuHandle_ = CD3DX12_DEFAULT();
                     }
 
                 private:
                     DescriptorHeap::SharedPtr heap_ = nullptr;
                     uint32_t indexInHeap_ = 0;
                     CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle_ = CD3DX12_DEFAULT();
+                    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle_ = CD3DX12_DEFAULT();
                 };
 
             private:
@@ -174,6 +183,12 @@ namespace OpenDemo
                 {
                     ASSERT(d3d12Heap_)
                     return CD3DX12_CPU_DESCRIPTOR_HANDLE(d3d12Heap_->GetCPUDescriptorHandleForHeapStart(), index, descriptorSize_);
+                }
+
+                CD3DX12_GPU_DESCRIPTOR_HANDLE getGpuHandle(uint32_t index) const
+                {
+                    ASSERT(d3d12Heap_)
+                    return CD3DX12_GPU_DESCRIPTOR_HANDLE(d3d12Heap_->GetGPUDescriptorHandleForHeapStart(), index, descriptorSize_);
                 }
 
             private:

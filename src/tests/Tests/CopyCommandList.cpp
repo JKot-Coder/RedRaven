@@ -114,18 +114,17 @@ namespace OpenDemo
 
                 const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
                 const auto dataPointer = static_cast<uint8_t*>(resourceData->GetAllocation()->Map());
-                const auto blockSize = description.GetElementSize();
 
                 std::array<uint8_t, 10> testBufferData = { 0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42 };
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * blockSize == subresourceFootprint.rowSizeInBytes);
+                    ASSERT(subresourceFootprint.width == subresourceFootprint.rowSizeInBytes);
 
                     auto columnPointer = reinterpret_cast<uint8_t*>(dataPointer);
 
-                    for (uint32_t byte = 0; byte < subresourceFootprint.width * blockSize; byte++)
+                    for (uint32_t byte = 0; byte < subresourceFootprint.width; byte++)
                     {
                         *columnPointer = testBufferData[byte % testBufferData.size()];
                         columnPointer++;
@@ -137,19 +136,19 @@ namespace OpenDemo
             {
                 switch (description.GetFormat())
                 {
-                case GAPI::GpuResourceFormat::Unknown:
-                    fillBufferData(description, resourceData);
-                    break;
-                case GAPI::GpuResourceFormat::RGBA8Uint:
-                case GAPI::GpuResourceFormat::BGRA8Unorm:
-                    fillColorData<uint32_t>(description, resourceData);
-                    break;
-                case GAPI::GpuResourceFormat::RGBA16Float:
-                case GAPI::GpuResourceFormat::RGBA32Float:
-                    fillColorData<Vector4>(description, resourceData);
-                    break;
-                default:
-                    LOG_FATAL("Unsupported format");
+                    case GAPI::GpuResourceFormat::Unknown:
+                        fillBufferData(description, resourceData);
+                        break;
+                    case GAPI::GpuResourceFormat::RGBA8Uint:
+                    case GAPI::GpuResourceFormat::BGRA8Unorm:
+                        fillColorData<uint32_t>(description, resourceData);
+                        break;
+                    case GAPI::GpuResourceFormat::RGBA16Float:
+                    case GAPI::GpuResourceFormat::RGBA32Float:
+                        fillColorData<Vector4>(description, resourceData);
+                        break;
+                    default:
+                        LOG_FATAL("Unsupported format");
                 }
             }
 
@@ -213,16 +212,16 @@ namespace OpenDemo
 
                 switch (dimension)
                 {
-                case GAPI::GpuResourceDimension::Texture1D:
-                    return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture2D:
-                    return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture2DMS:
-                    return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture3D:
-                    return GAPI::GpuResourceDescription::Texture3D(size, size, size, format);
-                case GAPI::GpuResourceDimension::TextureCube:
-                    return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                    case GAPI::GpuResourceDimension::Texture1D:
+                        return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                    case GAPI::GpuResourceDimension::Texture2D:
+                        return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                    case GAPI::GpuResourceDimension::Texture2DMS:
+                        return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
+                    case GAPI::GpuResourceDimension::Texture3D:
+                        return GAPI::GpuResourceDescription::Texture3D(size, size, size, format);
+                    case GAPI::GpuResourceDimension::TextureCube:
+                        return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
                 }
 
                 ASSERT_MSG(false, "Unsupported GpuResourceDimension");
@@ -233,7 +232,7 @@ namespace OpenDemo
             {
                 auto& renderContext = Render::DeviceContext::Instance();
 
-                const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), GAPI::GpuResourceFormat::Unknown, bindFlags);
+                const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), bindFlags);
                 const auto bufferData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
 
                 const auto dataPointer = static_cast<char*>(bufferData->GetAllocation()->Map());
@@ -275,86 +274,84 @@ namespace OpenDemo
             auto queue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
             REQUIRE(queue != nullptr);
 
-            std::array<GAPI::GpuResourceFormat, 3> formatsToTest = { GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
-            for (const auto format : formatsToTest)
+            const auto format = GAPI::GpuResourceFormat::Unknown;
+            const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer data on CPU", formatName))
             {
-                const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128);
 
-                DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer data on CPU", formatName))
-                {
-                    const auto& description = GAPI::GpuResourceDescription::Buffer(128, format);
+                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                const auto destData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
 
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto destData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                initResourceData(description, sourceData);
+                destData->CopyDataFrom(sourceData);
 
-                    initResourceData(description, sourceData);
-                    destData->CopyDataFrom(sourceData);
-
-                    REQUIRE(isResourceEqual(sourceData, destData));
-                }
-
-                DYNAMIC_SECTION(fmt::format("[Buffer::{}] Upload buffer indirect", formatName))
-                {
-                    const auto& description = GAPI::GpuResourceDescription::Buffer(128, format);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initResourceData(description, cpuData);
-
-                    auto testBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Test");
-
-                    commandList->UpdateGpuResource(testBuffer, cpuData);
-                    commandList->ReadbackGpuResource(testBuffer, readbackData);
-                    commandList->Close();
-
-                    submitAndWait(queue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
-                }
-
-                DYNAMIC_SECTION(fmt::format("[Buffer::{}] Upload buffer direct", formatName))
-                {
-                    const auto& description = GAPI::GpuResourceDescription::Buffer(128, format);
-
-                    const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initResourceData(description, cpuData);
-                    sourceData->CopyDataFrom(cpuData);
-
-                    auto testTexture = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Test");
-
-                    commandList->UpdateGpuResource(testTexture, sourceData);
-                    commandList->ReadbackGpuResource(testTexture, readbackData);
-                    commandList->Close();
-
-                    submitAndWait(queue, commandList);
-                    REQUIRE(isResourceEqual(cpuData, readbackData));
-                }
-
-                DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer on GPU", formatName))
-                {
-                    const auto& description = GAPI::GpuResourceDescription::Buffer(128, format);
-
-                    const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-                    const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
-
-                    initResourceData(description, sourceData);
-
-                    auto source = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Source");
-                    auto dest = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Dest");
-
-                    commandList->UpdateGpuResource(source, sourceData);
-                    commandList->CopyGpuResource(source, dest);
-                    commandList->ReadbackGpuResource(dest, readbackData);
-
-                    commandList->Close();
-
-                    submitAndWait(queue, commandList);
-                    REQUIRE(isResourceEqual(sourceData, readbackData));
-                }
+                REQUIRE(isResourceEqual(sourceData, destData));
             }
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Upload buffer indirect", formatName))
+            {
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128);
+
+                const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                initResourceData(description, cpuData);
+
+                auto testBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Test");
+
+                commandList->UpdateGpuResource(testBuffer, cpuData);
+                commandList->ReadbackGpuResource(testBuffer, readbackData);
+                commandList->Close();
+
+                submitAndWait(queue, commandList);
+                REQUIRE(isResourceEqual(cpuData, readbackData));
+            }
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Upload buffer direct", formatName))
+            {
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128);
+
+                const auto cpuData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Upload);
+                const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                initResourceData(description, cpuData);
+                sourceData->CopyDataFrom(cpuData);
+
+                auto testTexture = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Test");
+
+                commandList->UpdateGpuResource(testTexture, sourceData);
+                commandList->ReadbackGpuResource(testTexture, readbackData);
+                commandList->Close();
+
+                submitAndWait(queue, commandList);
+                REQUIRE(isResourceEqual(cpuData, readbackData));
+            }
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer on GPU", formatName))
+            {
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128);
+
+                const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
+
+                initResourceData(description, sourceData);
+
+                auto source = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Source");
+                auto dest = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Dest");
+
+                commandList->UpdateGpuResource(source, sourceData);
+                commandList->CopyGpuResource(source, dest);
+                commandList->ReadbackGpuResource(dest, readbackData);
+
+                commandList->Close();
+
+                submitAndWait(queue, commandList);
+                REQUIRE(isResourceEqual(sourceData, readbackData));
+            }
+
             {
                 const auto format = GAPI::GpuResourceFormat::Unknown;
                 const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
@@ -368,7 +365,7 @@ namespace OpenDemo
                         bool a3;
                     };
 
-                    const auto& description = GAPI::GpuResourceDescription::StructuredBuffer(128, sizeof(TestStuct), format);
+                    const auto& description = GAPI::GpuResourceDescription::StructuredBuffer(128, sizeof(TestStuct));
 
                     const auto sourceData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                     const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
@@ -398,7 +395,7 @@ namespace OpenDemo
 
                     const auto testData = "QWE6789IOP";
 
-                    const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(destData), GAPI::GpuResourceFormat::Unknown);
+                    const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(destData));
                     const auto readbackData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::Readback);
 
                     commandList->CopyBufferRegion(source, 5, dest, 3, 4);

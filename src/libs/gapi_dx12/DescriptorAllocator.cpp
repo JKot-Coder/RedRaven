@@ -265,7 +265,15 @@ namespace OpenDemo
                     break;
                     case GpuResourceView::ViewType::UnorderedAccessView:
                     {
-                        const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDescription());
+                        //const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDescription());
+
+                        const auto& desc = createUavDesc(resourceSharedPtr,
+                                                         GpuResourceViewDescription::Buffer(GpuResourceFormat::R32Uint, 0,1 )
+                            
+                            );
+
+                        
+
                         DeviceContext::GetDevice()->CreateUnorderedAccessView(resourceD3dObject.get(), nullptr, &desc, allocation->GetCPUHandle());
                     }
                     break;

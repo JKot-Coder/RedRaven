@@ -15,8 +15,8 @@ namespace OpenDemo
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
         public:
-            std::shared_ptr<ShaderResourceView> GetSRV(uint32_t firstElement = 0, uint32_t numElements = MaxPossible);
-            std::shared_ptr<UnorderedAccessView> GetUAV(uint32_t firstElement = 0, uint32_t numElements = MaxPossible);
+            std::shared_ptr<ShaderResourceView> GetSRV(GpuResourceFormat format, uint32_t firstElement = 0, uint32_t numElements = MaxPossible);
+            std::shared_ptr<UnorderedAccessView> GetUAV(GpuResourceFormat format, uint32_t firstElement = 0, uint32_t numElements = MaxPossible);
 
         private:
             static SharedPtr Create(

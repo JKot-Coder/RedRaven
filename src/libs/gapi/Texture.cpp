@@ -16,7 +16,20 @@ namespace OpenDemo
     {
         namespace
         {
-            GpuResourceViewDescription createViewDesctiption(const GpuResourceDescription& resDesctiption, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
+            GpuResourceFormat getViewFormat(GpuResourceFormat resourceFormat, GpuResourceFormat viewFormat)
+            {
+                if (viewFormat == GpuResourceFormat::Unknown)
+                {
+                    const bool isDepthStencil = GpuResourceFormatInfo::IsDepth(resourceFormat) && GpuResourceFormatInfo::IsStencil(resourceFormat);
+                    ASSERT(!isDepthStencil);
+
+                    return resourceFormat;
+                }
+                // TODO VALIDATION
+                return viewFormat;
+            }
+
+            const GpuResourceViewDescription& createViewDesctiption(const GpuResourceDescription& resDesctiption, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
             {
                 const auto resArraySize = resDesctiption.GetArraySize();
                 const auto resMipLevels = resDesctiption.GetMipCount();
@@ -33,13 +46,14 @@ namespace OpenDemo
                 ASSERT(firstArraySlice + arraySliceCount <= resArraySize);
                 ASSERT(mipLevel + mipCount <= resMipLevels);
 
-                return GpuResourceViewDescription::Texture(mipLevel, mipCount, firstArraySlice, arraySliceCount);
+                viewFormat = getViewFormat(resDesctiption.GetFormat(), viewFormat);
+                return GpuResourceViewDescription::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
             }
         }
 
-        ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices)
+        ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
         {
-            const auto& viewDesc = createViewDesctiption(description_, mipLevel, 1, firstArraySlice, numArraySlices);
+            const const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
@@ -51,9 +65,10 @@ namespace OpenDemo
             return srvs_[viewDesc];
         }
 
-        DepthStencilView::SharedPtr Texture::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices)
+        DepthStencilView::SharedPtr Texture::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
         {
-            const auto& viewDesc = createViewDesctiption(description_, mipLevel, 1, firstArraySlice, numArraySlices);
+            const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+            // TODO VALIDATION VIEW DESC FORMAT
 
             if (dsvs_.find(viewDesc) == dsvs_.end())
             {
@@ -65,9 +80,9 @@ namespace OpenDemo
             return dsvs_[viewDesc];
         }
 
-        RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices)
+        RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
         {
-            const auto& viewDesc = createViewDesctiption(description_, mipLevel, 1, firstArraySlice, numArraySlices);
+            const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
             if (rtvs_.find(viewDesc) == rtvs_.end())
             {
@@ -79,9 +94,9 @@ namespace OpenDemo
             return rtvs_[viewDesc];
         }
 
-        UnorderedAccessView::SharedPtr Texture::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices)
+        UnorderedAccessView::SharedPtr Texture::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
         {
-            const auto& viewDesc = createViewDesctiption(description_, mipLevel, 1, firstArraySlice, numArraySlices);
+            const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {
