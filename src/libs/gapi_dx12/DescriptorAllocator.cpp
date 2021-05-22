@@ -100,9 +100,8 @@ namespace OpenDemo
                     if (!gpuResDesc.IsTyped())
                     {
                         description.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-                        description.Format = DXGI_FORMAT_R32_TYPELESS;
                     }
-
+                    description.Format = D3DUtils::GetDxgiTypelessFormat(viewDesc.format);
                     description.Buffer.FirstElement = viewDesc.buffer.firstElement;
                     description.Buffer.NumElements = viewDesc.buffer.elementCount;
                 }
@@ -265,15 +264,7 @@ namespace OpenDemo
                     break;
                     case GpuResourceView::ViewType::UnorderedAccessView:
                     {
-                        //const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDescription());
-
-                        const auto& desc = createUavDesc(resourceSharedPtr,
-                                                         GpuResourceViewDescription::Buffer(GpuResourceFormat::R32Uint, 0,1 )
-                            
-                            );
-
-                        
-
+                        const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDescription());
                         DeviceContext::GetDevice()->CreateUnorderedAccessView(resourceD3dObject.get(), nullptr, &desc, allocation->GetCPUHandle());
                     }
                     break;

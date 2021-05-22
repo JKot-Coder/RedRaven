@@ -94,6 +94,7 @@ namespace OpenDemo
                         std::swap(heap_, alloc.heap_);
                         std::swap(indexInHeap_, alloc.indexInHeap_);
                         std::swap(cpuHandle_, alloc.cpuHandle_);
+                        std::swap(gpuHandle_, alloc.gpuHandle_);
 
                         alloc.release();
 
@@ -115,7 +116,7 @@ namespace OpenDemo
                 private:
                     friend DescriptorHeap;
 
-                    Allocation(const DescriptorHeap::SharedPtr& heap, uint32_t indexInHeap, const CD3DX12_CPU_DESCRIPTOR_HANDLE& cpuHandle, const CD3DX12_GPU_DESCRIPTOR_HANDLE& gpuHandle)
+                    Allocation(const DescriptorHeap::SharedPtr& heap, uint32_t indexInHeap, CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle, CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle)
                         : heap_(heap),
                           indexInHeap_(indexInHeap),
                           cpuHandle_(cpuHandle),

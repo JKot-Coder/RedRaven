@@ -276,15 +276,15 @@ namespace OpenDemo
             const auto formatName = GAPI::GpuResourceFormatInfo::ToString(GAPI::GpuResourceFormat::Unknown);
             SECTION(fmt::format("[Buffer::{}] Copy buffer data on CPU", formatName))
             {
-                const auto sourceData = "1234567890";
+                const auto sourceData = "1234567890qwertyasdfg";
                 const auto source = initBufferWithData(sourceData, commandList, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
 
                 const auto testData = "QWE6789IOP";
                 const auto readbackData = renderContext.AllocateIntermediateTextureData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
-                const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 4);
+                const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);
 
-                commandList->ClearUnorderedAccessViewUint(uav, Vector4u(0,1,255, 0xFFFF42));
+                commandList->ClearUnorderedAccessViewUint(uav, Vector4u(61,64,255, 0xFFFF42));
                 commandList->ReadbackGpuResource(source, readbackData);
                 commandList->Close();
 
