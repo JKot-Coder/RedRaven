@@ -16,12 +16,16 @@ namespace OpenDemo
         {
             const GpuResourceViewDescription& createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
             {
-                ASSERT(firstElement < resourceDesc.GetNumElements());
+                const auto elementSize = GpuResourceFormatInfo::GetBlockSize(format);
+
+                //Dx12 requerement
+                ASSERT(firstElement % 4 == 0);
+                ASSERT(firstElement * elementSize < resourceDesc.GetNumElements());
 
                 if (numElements == Buffer::MaxPossible)
-                    numElements = resourceDesc.GetNumElements() - firstElement;
+                    numElements = (resourceDesc.GetNumElements() - firstElement) / 4;
 
-                ASSERT(firstElement + numElements < resourceDesc.GetNumElements());
+                ASSERT((firstElement + numElements) * elementSize < resourceDesc.GetNumElements());
 
                 return GpuResourceViewDescription::Buffer(format, firstElement, numElements);
             }

@@ -2,6 +2,8 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 
+#include "gapi/GpuResource.hpp"
+
 namespace OpenDemo
 {
     namespace Tests
@@ -9,11 +11,22 @@ namespace OpenDemo
         class TestContextFixture
         {
         public:
-            TestContextFixture() = default;
+            TestContextFixture();
             ~TestContextFixture() = default;
 
         protected:
+            const GAPI::GpuResourceDescription& createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format);
+            void initResourceData(const GAPI::GpuResourceDescription& description, const std::shared_ptr<GAPI::CpuResourceData>& resourceData);
+            std::shared_ptr<GAPI::Buffer> initBufferWithData(const char* data, const std::shared_ptr<GAPI::CopyCommandList>& commandList, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::ShaderResource);
+
+            bool isResourceEqual(const std::shared_ptr<GAPI::CpuResourceData>& lhs, const std::shared_ptr<GAPI::CpuResourceData>& rhs);
+            bool isSubresourceEqual(const std::shared_ptr<GAPI::CpuResourceData>& lhs, uint32_t lSubresourceIndex,
+                                    const std::shared_ptr<GAPI::CpuResourceData>& rhs, uint32_t rSubresourceIndex);
+
             void submitAndWait(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList);
+
+        protected:
+            Render::DeviceContext& renderContext;
         };
     }
 }
