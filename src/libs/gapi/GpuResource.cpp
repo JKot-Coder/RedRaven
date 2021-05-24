@@ -217,6 +217,12 @@ namespace OpenDemo
                 return false;
             }
 
+            if (width_ < 1)
+            {
+                LOG_WARNING("Wrong size of resource");
+                return false;
+            }
+
             switch (dimension_)
             {
                 case GpuResourceDimension::Buffer:
@@ -253,14 +259,14 @@ namespace OpenDemo
                     break;
                 case GpuResourceDimension::Texture2D:
                 case GpuResourceDimension::TextureCube:
-                    if (depth_ != 1)
+                    if ((height_ < 1) || (depth_ != 1))
                     {
                         LOG_WARNING("Wrong texture size");
                         return false;
                     }
                     break;
                 case GpuResourceDimension::Texture2DMS:
-                    if (depth_ != 1)
+                    if ((height_ < 1) || (depth_ != 1))
                     {
                         LOG_WARNING("Wrong texture size");
                         return false;
@@ -273,6 +279,12 @@ namespace OpenDemo
                     }
                     break;
                 case GpuResourceDimension::Texture3D:
+                    if ((height_ < 1) || (depth_ < 1))
+                    {
+                        LOG_WARNING("Wrong texture size");
+                        return false;
+                    }
+
                     if (arraySize_ != 1)
                     {
                         LOG_WARNING("Wrong size of array");

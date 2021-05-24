@@ -82,7 +82,7 @@ namespace OpenDemo
                     numSubresources = resourceDesc.GetNumSubresources();
 
                 ASSERT(resourceDesc.GetDimension() != GpuResourceDimension::Texture2DMS);
-                ASSERT(resourceDesc.GetSampleCount() == 1);
+                ASSERT((resourceDesc.GetSampleCount() == 1) || (resourceDesc.GetDimension() != GpuResourceDimension::Buffer));
                 ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources());
                 D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc);
 
@@ -96,17 +96,17 @@ namespace OpenDemo
                 IMemoryAllocation* memoryAllocation;
                 switch (memoryType)
                 {
-                case MemoryAllocationType::Upload:
-                    memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_UPLOAD, intermediateSize);
-                    break;
-                case MemoryAllocationType::Readback:
-                    memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_READBACK, intermediateSize);
-                    break;
-                case MemoryAllocationType::CpuReadWrite:
-                    memoryAllocation = new CpuAllocation(intermediateSize);
-                    break;
-                default:
-                    LOG_FATAL("Unsupported memory type");
+                    case MemoryAllocationType::Upload:
+                        memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_UPLOAD, intermediateSize);
+                        break;
+                    case MemoryAllocationType::Readback:
+                        memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_READBACK, intermediateSize);
+                        break;
+                    case MemoryAllocationType::CpuReadWrite:
+                        memoryAllocation = new CpuAllocation(intermediateSize);
+                        break;
+                    default:
+                        LOG_FATAL("Unsupported memory type");
                 }
 
                 ASSERT(memoryAllocation);

@@ -141,7 +141,7 @@ namespace OpenDemo
             });
         }
 
-        std::shared_ptr<GAPI::CpuResourceData> DeviceContext::AllocateIntermediateTextureData(
+        std::shared_ptr<GAPI::CpuResourceData> DeviceContext::AllocateIntermediateResourceData(
             const GAPI::GpuResourceDescription& desc,
             GAPI::MemoryAllocationType memoryType,
             uint32_t firstSubresourceIndex,
@@ -149,7 +149,7 @@ namespace OpenDemo
         {
             ASSERT(inited_);
 
-            return submission_->GetIMultiThreadDevice().lock()->AllocateIntermediateTextureData(desc, memoryType, firstSubresourceIndex, numSubresources);
+            return submission_->GetIMultiThreadDevice().lock()->AllocateIntermediateResourceData(desc, memoryType, firstSubresourceIndex, numSubresources);
         }
 
         GAPI::CopyCommandList::SharedPtr DeviceContext::CreateCopyCommandList(const U8String& name) const

@@ -34,7 +34,7 @@ namespace OpenDemo
             void ExecuteAsync(const Submission::CallbackFunction&& function);
             void ExecuteAwait(const Submission::CallbackFunction&& function);
 
-            std::shared_ptr<GAPI::CpuResourceData> AllocateIntermediateTextureData(
+            std::shared_ptr<GAPI::CpuResourceData> AllocateIntermediateResourceData(
                 const GAPI::GpuResourceDescription& desc,
                 GAPI::MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,

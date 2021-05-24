@@ -139,7 +139,7 @@ namespace OpenDemo
                 ResourceReleaseContext::ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
-            std::shared_ptr<CpuResourceData> const DeviceImpl::AllocateIntermediateTextureData(
+            std::shared_ptr<CpuResourceData> const DeviceImpl::AllocateIntermediateResourceData(
                 const GpuResourceDescription& resourceDesc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex,

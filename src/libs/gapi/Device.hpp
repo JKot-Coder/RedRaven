@@ -46,7 +46,7 @@ namespace OpenDemo
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            virtual std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
+            virtual std::shared_ptr<CpuResourceData> const AllocateIntermediateResourceData(
                 const GpuResourceDescription& desc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
@@ -82,13 +82,13 @@ namespace OpenDemo
             void Present(const std::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
 
-            std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
+            std::shared_ptr<CpuResourceData> const AllocateIntermediateResourceData(
                 const GpuResourceDescription& desc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const override
             {
-                return GetPrivateImpl()->AllocateIntermediateTextureData(desc, memoryType, firstSubresourceIndex, numSubresources);
+                return GetPrivateImpl()->AllocateIntermediateResourceData(desc, memoryType, firstSubresourceIndex, numSubresources);
             };
 
             void InitSwapChain(SwapChain& resource) const override { GetPrivateImpl()->InitSwapChain(resource); };

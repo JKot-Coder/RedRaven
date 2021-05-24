@@ -109,7 +109,7 @@ namespace OpenDemo
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width == subresourceFootprint.rowSizeInBytes);
+                    ASSERT(subresourceFootprint.width * std::max(description.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
 
                     auto columnPointer = reinterpret_cast<uint8_t*>(dataPointer);
 
@@ -172,7 +172,7 @@ namespace OpenDemo
         GAPI::Buffer::SharedPtr TestContextFixture::initBufferWithData(const char* data, const GAPI::CopyCommandList::SharedPtr& commandList, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(data), bindFlags);
-            const auto bufferData = renderContext.AllocateIntermediateTextureData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+            const auto bufferData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
 
             const auto dataPointer = static_cast<char*>(bufferData->GetAllocation()->Map());
             ON_SCOPE_EXIT(

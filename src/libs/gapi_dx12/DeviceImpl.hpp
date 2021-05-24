@@ -21,7 +21,7 @@ namespace OpenDemo
                 void Present(const std::shared_ptr<SwapChain>& swapChain) override;
                 void MoveToNextFrame(uint64_t frameIndex) override;
 
-                std::shared_ptr<CpuResourceData> const AllocateIntermediateTextureData(
+                std::shared_ptr<CpuResourceData> const AllocateIntermediateResourceData(
                     const GpuResourceDescription& desc,
                     MemoryAllocationType memoryType,
                     uint32_t firstSubresourceIndex = 0,
