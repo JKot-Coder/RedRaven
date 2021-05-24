@@ -39,7 +39,7 @@ namespace OpenDemo
             auto queue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "ComputeQueue");
             REQUIRE(queue != nullptr);
 
-            SECTION(fmt::format("[Buffer::RawBuffer] UAV clear"))
+            SECTION(fmt::format("[Buffer::RawBuffer] UAV clear UINT"))
             {
                 const auto sourceData = "1234567890qwertyasdfg";
                 const auto source = initBufferWithData(sourceData, commandList, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
@@ -64,7 +64,7 @@ namespace OpenDemo
                 REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
             }
 
-            SECTION(fmt::format("[Buffer::RawBuffer] Partical UAV clear"))
+            SECTION(fmt::format("[Buffer::RawBuffer] Partical UAV clear UINT"))
             {
                 const auto sourceData = "1234567890qwertyasdfg";
                 const auto source = initBufferWithData(sourceData, commandList, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
@@ -73,6 +73,32 @@ namespace OpenDemo
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);
 
                 commandList->ClearUnorderedAccessViewUint(uav, Vector4u(0x61626365, 13, 8, 64));
+                commandList->ReadbackGpuResource(source, readbackData);
+                commandList->Close();
+
+                submitAndWait(queue, commandList);
+
+                const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
+                ON_SCOPE_EXIT(
+                    {
+                        readbackData->GetAllocation()->Unmap();
+                    });
+
+                const auto testData = "1234567890qwertyecbag";
+                const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
+                REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
+            }
+
+
+            SECTION(fmt::format("[Buffer::RawBuffer] Partical UAV clear sdT"))
+            {
+                const auto sourceData = "1234567890qwertyasdfg";
+                const auto source = initBufferWithData(sourceData, commandList, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto readbackData = renderContext.AllocateIntermediateTextureData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+
+                const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);
+
+                commandList->ClearUnorderedAccessViewFloat(uav, Vector4(0x61626365, 13, 8, 64));
                 commandList->ReadbackGpuResource(source, readbackData);
                 commandList->Close();
 

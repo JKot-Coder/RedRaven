@@ -368,7 +368,7 @@ namespace OpenDemo
                 const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Allocation>();
                 ASSERT(resourceViewImpl);
 
-                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
+                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
 
                 D3DCommandList_->ClearUnorderedAccessViewUint(resourceViewImpl->GetGPUHandle(), resourceViewImpl->GetCPUHandle(), resourceImpl->GetD3DObject().get(), &clearValue.x, 0, nullptr);
@@ -380,6 +380,23 @@ namespace OpenDemo
             void CommandListImpl::ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue)
             {
                 ASSERT(unorderedAcessView);
+
+                const auto& resource = unorderedAcessView->GetGpuResource().lock();
+                ASSERT(resource);
+
+                const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
+                ASSERT(resourceImpl);
+
+                const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Allocation>();
+                ASSERT(resourceViewImpl);
+
+                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+                D3DCommandList_->ResourceBarrier(1, &barrier);
+
+                D3DCommandList_->ClearUnorderedAccessViewFloat(resourceViewImpl->GetGPUHandle(), resourceViewImpl->GetCPUHandle(), resourceImpl->GetD3DObject().get(), &clearValue.x, 0, nullptr);
+
+                barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+                D3DCommandList_->ResourceBarrier(1, &barrier);
             }
 
             // ---------------------------------------------------------------------------------------------

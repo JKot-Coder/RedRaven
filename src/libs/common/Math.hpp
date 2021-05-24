@@ -748,15 +748,6 @@ namespace OpenDemo
             constexpr Vector() = default;
             constexpr Vector(T s) : x(s), y(s), z(s), w(s) { }
             constexpr Vector(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) { }
-
-            template <typename U>
-            constexpr Vector(const Vector<SIZE, U>& vector) : x(static_cast<T>(vector.x)),
-                                                              y(static_cast<T>(vector.y)),
-                                                              z(static_cast<T>(vector.z)),
-                                                              w(static_cast<T>(vector.w))
-            {
-            }
-
             constexpr Vector(const Vector<SIZE - 1, T>& xyz, float w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) { }
             constexpr Vector(const Vector<SIZE - 2, T>& xy, const Vector<SIZE - 2, T>& zw) : x(xy.x), y(xy.y), z(zw.x), w(zw.y) { }
 
@@ -1605,10 +1596,6 @@ namespace OpenDemo
             {
             }
 
-            template <typename U>
-            explicit Rect(const Rect<U>& rectangle)
-                : left(static_cast<T>(rectangle.left)), top(static_cast<T>(rectangle.top)), width(static_cast<T>(rectangle.width)), height(static_cast<T>(rectangle.height)) {};
-
             bool Contains(T x, T y) const;
             bool Contains(const Vector<2, T>& point) const;
             bool Intersects(const Rect<T>& rect) const;
@@ -1729,11 +1716,6 @@ namespace OpenDemo
             Box(const Vector<3, T>& position, const Vector<3, T>& size)
                 : left(position.x), top(position.y), front(position.z),
                   width(size.x), height(size.y), depth(size.z) { }
-
-            template <typename U>
-            explicit Box(const Box<U>& rectangle)
-                : left(static_cast<T>(rectangle.left)), top(static_cast<T>(rectangle.top)), front(static_cast<T>(rectangle.front)),
-                  width(static_cast<T>(rectangle.width)), height(static_cast<T>(rectangle.height)), depth(static_cast<T>(rectangle.depth)) {};
 
             bool Contains(T x, T y, T z) const;
             bool Contains(const Vector<3, T>& point) const;
