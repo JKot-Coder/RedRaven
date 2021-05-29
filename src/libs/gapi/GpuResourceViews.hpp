@@ -23,11 +23,26 @@ namespace OpenDemo
 
             bool operator==(const GpuResourceViewDescription& other) const
             {
-                return (texture.mipLevel == other.texture.mipLevel) &&
+                static_assert(sizeof(GpuResourceViewDescription) == 20);
+                return (format == other.format) &&
+                       (texture.mipLevel == other.texture.mipLevel) &&
                        (texture.mipCount == other.texture.mipCount) &&
                        (texture.firstArraySlice == other.texture.firstArraySlice) &&
                        (texture.arraySliceCount == other.texture.arraySliceCount);
             }
+
+            struct HashFunc
+            {
+                std::size_t operator()(const GpuResourceViewDescription& desc) const
+                {
+                    static_assert(sizeof(GpuResourceViewDescription) == 20);
+                    return (std::hash<uint32_t>()(static_cast<uint32_t>(desc.format))) ^
+                           (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1) ^
+                           (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3) ^
+                           (std::hash<uint32_t>()(desc.texture.mipCount) << 5) ^
+                           (std::hash<uint32_t>()(desc.texture.mipLevel) << 7);
+                }
+            };
 
         public:
             union
@@ -36,8 +51,8 @@ namespace OpenDemo
                 {
                     uint32_t mipLevel;
                     uint32_t mipCount;
-                    uint32_t firstArraySlice;
-                    uint32_t arraySliceCount;
+                    uint32_t firstArraySlice = 0;
+                    uint32_t arraySliceCount = 0;
                 } texture;
 
                 struct

@@ -77,9 +77,7 @@ namespace OpenDemo
                 struct Allocation final : public IGpuResourceView
                 {
                     Allocation() = default;
-
                     Allocation(Allocation&& donor) noexcept = delete;
-
                     ~Allocation() { release(); }
 
                     bool operator==(const Allocation& alloc) const
@@ -91,6 +89,8 @@ namespace OpenDemo
 
                     Allocation& operator=(Allocation&& alloc) noexcept
                     {
+                        static_assert(sizeof(Allocation) == 48);
+
                         std::swap(heap_, alloc.heap_);
                         std::swap(indexInHeap_, alloc.indexInHeap_);
                         std::swap(cpuHandle_, alloc.cpuHandle_);
