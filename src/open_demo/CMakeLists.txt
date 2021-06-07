@@ -1,4 +1,4 @@
-project(OpenDemo)
+project(RedRaven)
 
 set(definitions)
 

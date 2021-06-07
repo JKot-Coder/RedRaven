@@ -8,8 +8,6 @@ message(warning ${CMAKE_BINARY_DIR})
 
 include(FetchContent)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-
 set (CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -17,7 +15,9 @@ if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/build/bin)
+set(CMAKE_DEBUG_POSTFIX "_d")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
@@ -115,4 +115,5 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/inputting)
 
 add_subdirectory(src/open_demo)
 add_subdirectory(src/tests)
+add_subdirectory(src/rfx)
 ##add_subdirectory(src)
