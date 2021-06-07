@@ -115,7 +115,6 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/common)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/windowing)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/inputting)
 
-add_subdirectory(src/open_demo)
+add_subdirectory(src/demo)
 add_subdirectory(src/tests)
 add_subdirectory(src/rfx)
-##add_subdirectory(src)

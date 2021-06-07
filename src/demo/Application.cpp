@@ -367,7 +367,7 @@ namespace OpenDemo
         Windowing::Window::Description windowDesc;
         windowDesc.Width = 800;
         windowDesc.Height = 600;
-        windowDesc.Title = "OpenDemo";
+        windowDesc.Title = "Demo";
 
         auto& windowSystem = Windowing::WindowSystem::Instance();
         windowSystem.Init();
