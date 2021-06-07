@@ -7,7 +7,7 @@
 #include "common/Singleton.hpp"
 #include "render/Submission.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Render
     {

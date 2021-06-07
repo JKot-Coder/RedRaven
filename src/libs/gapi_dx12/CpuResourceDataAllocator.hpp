@@ -2,7 +2,7 @@
 
 #include "gapi/MemoryAllocation.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

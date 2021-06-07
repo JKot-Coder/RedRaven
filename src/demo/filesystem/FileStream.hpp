@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-namespace OpenDemo
+namespace RR
 {
     namespace FileSystem
     {

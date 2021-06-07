@@ -3,7 +3,7 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/SwapChain.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

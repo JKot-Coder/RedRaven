@@ -8,7 +8,7 @@ static_assert(false, "platform is not supported");
 #include "windowing/GlfwWindowImpl.hpp"
 #endif
 
-namespace OpenDemo
+namespace RR
 {
     namespace Windowing
     {

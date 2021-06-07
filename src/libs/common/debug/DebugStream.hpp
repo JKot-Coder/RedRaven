@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

@@ -2,7 +2,7 @@
 
 #include <mutex>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

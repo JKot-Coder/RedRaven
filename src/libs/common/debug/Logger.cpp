@@ -10,7 +10,7 @@
 #include <csignal>
 #endif
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

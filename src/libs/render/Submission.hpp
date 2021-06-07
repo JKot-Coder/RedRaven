@@ -8,7 +8,7 @@
 
 #define ENABLE_SUBMISSION_THREAD true
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

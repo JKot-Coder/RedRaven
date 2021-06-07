@@ -2,7 +2,7 @@
 
 #include "gapi/CommandQueue.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

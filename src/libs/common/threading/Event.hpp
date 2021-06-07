@@ -3,7 +3,7 @@
 #include "common/threading/ConditionVariable.hpp"
 #include "common/threading/Mutex.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

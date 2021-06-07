@@ -4,7 +4,7 @@
 
 #include "windowing/Window.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     using namespace Common;
 

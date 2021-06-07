@@ -8,7 +8,7 @@ namespace fs = std::filesystem;
 namespace fs = ghc::filesystem;
 #endif
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

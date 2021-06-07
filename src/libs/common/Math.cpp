@@ -1,6 +1,6 @@
 #include "Math.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

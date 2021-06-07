@@ -2,7 +2,7 @@
 
 #include "rendering/Texture.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Rendering
     {

@@ -7,7 +7,7 @@
 #include <atomic>
 #include <optional>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

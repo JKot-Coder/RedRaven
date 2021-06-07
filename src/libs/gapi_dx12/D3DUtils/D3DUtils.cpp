@@ -7,7 +7,7 @@
 
 #include <comdef.h>
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

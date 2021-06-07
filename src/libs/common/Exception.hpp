@@ -2,7 +2,7 @@
 
 #include <exception>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

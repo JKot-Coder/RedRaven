@@ -3,7 +3,7 @@
 #include "gapi/Device.hpp"
 #include "windowing/WindowSystem.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Windowing
     {

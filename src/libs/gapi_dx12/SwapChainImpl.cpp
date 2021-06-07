@@ -11,7 +11,7 @@
 #include "windowing/Window.hpp"
 #include <Windows.h>
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

@@ -28,7 +28,7 @@
         return static_cast<EnumType>(Op static_cast<UnderlyingType>(val));                                \
     }
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

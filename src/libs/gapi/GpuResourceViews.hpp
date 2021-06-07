@@ -4,7 +4,7 @@
 
 #include "gapi/Resource.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

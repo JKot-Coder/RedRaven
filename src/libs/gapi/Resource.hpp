@@ -2,7 +2,7 @@
 
 #include "gapi/Object.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

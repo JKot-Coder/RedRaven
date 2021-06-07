@@ -2,7 +2,7 @@
 
 #include <istream>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

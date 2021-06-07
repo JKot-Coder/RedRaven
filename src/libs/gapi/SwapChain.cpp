@@ -5,7 +5,7 @@
 
 #include "render/DeviceContext.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

@@ -3,7 +3,7 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

@@ -1,6 +1,6 @@
 #include "Time.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

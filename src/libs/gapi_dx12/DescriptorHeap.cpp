@@ -2,7 +2,7 @@
 
 #include "DeviceContext.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

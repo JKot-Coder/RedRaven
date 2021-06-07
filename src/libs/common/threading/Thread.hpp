@@ -6,7 +6,7 @@
 #include <windows.h>
 #endif // OS_WINDOWS
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

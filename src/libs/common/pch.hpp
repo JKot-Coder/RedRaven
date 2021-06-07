@@ -14,6 +14,6 @@
 #include <vector>
 #include <functional>
 
-using namespace OpenDemo::Common;
-using namespace OpenDemo::Common::Debug;
+using namespace RR::Common;
+using namespace RR::Common::Debug;
 #endif // __cplusplus

@@ -3,7 +3,7 @@
 #include "gapi/Texture.hpp"
 #endif
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

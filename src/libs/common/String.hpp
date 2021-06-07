@@ -10,7 +10,7 @@
 #include "dependencies/utfcpp/source/utf8.h"
 #include <string>
 
-namespace OpenDemo
+namespace RR
 {
 #if __cplusplus > 201703L
     // C++20

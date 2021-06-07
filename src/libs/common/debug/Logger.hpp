@@ -4,7 +4,7 @@
 
 #include "common/String.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

@@ -6,7 +6,7 @@
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

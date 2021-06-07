@@ -7,7 +7,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Windowing
     {

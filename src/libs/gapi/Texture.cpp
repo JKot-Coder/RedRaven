@@ -10,7 +10,7 @@
 #include "common/Math.hpp"
 #include "common/OnScopeExit.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

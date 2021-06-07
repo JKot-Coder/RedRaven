@@ -10,7 +10,7 @@ namespace D3D12MA
     class Allocation;
 }
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

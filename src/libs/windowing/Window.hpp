@@ -4,7 +4,7 @@
 
 #include <any>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Windowing
     {

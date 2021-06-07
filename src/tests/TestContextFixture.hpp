@@ -4,7 +4,7 @@
 
 #include "gapi/GpuResource.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Tests
     {

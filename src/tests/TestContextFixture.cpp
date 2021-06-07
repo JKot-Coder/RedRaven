@@ -8,7 +8,7 @@
 
 #include "common/OnScopeExit.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Tests
     {

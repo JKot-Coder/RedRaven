@@ -5,7 +5,7 @@
 
 #include "common/Singleton.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace WindowSystem
     {

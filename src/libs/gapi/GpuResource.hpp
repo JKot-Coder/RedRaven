@@ -8,7 +8,7 @@
 
 #include <unordered_map>
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

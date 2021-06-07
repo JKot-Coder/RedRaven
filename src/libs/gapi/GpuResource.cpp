@@ -5,7 +5,7 @@
 
 #include "common/Math.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

@@ -2,7 +2,7 @@
 
 #include "DirectXTex.h"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Tests
     {

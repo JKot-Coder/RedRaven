@@ -12,7 +12,7 @@
 
 #include "ApprovalIntegration/ImageComparator.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Tests
     {

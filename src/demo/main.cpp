@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     (void)argv;
 #endif
 
-    auto app = new OpenDemo::Application;
+    auto app = new RR::Application;
 
     app->Start();
 

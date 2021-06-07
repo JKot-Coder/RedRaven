@@ -3,7 +3,7 @@
 #include "common/Math.hpp"
 #include "rendering/SceneGraph.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Rendering
     {

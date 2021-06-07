@@ -6,7 +6,7 @@
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

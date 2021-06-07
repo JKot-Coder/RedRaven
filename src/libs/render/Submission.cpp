@@ -25,7 +25,7 @@
 
 using namespace std::chrono;
 
-namespace OpenDemo
+namespace RR
 {
     namespace Render
     {

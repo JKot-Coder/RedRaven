@@ -6,7 +6,7 @@
 
 #include "windowing/InputtingWindow.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Inputting
     {

@@ -5,7 +5,7 @@ namespace D3D12MA
     class Allocator;
 }
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

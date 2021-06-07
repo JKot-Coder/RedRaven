@@ -2,7 +2,7 @@
 
 #include <winrt/base.h>
 
-namespace OpenDemo
+namespace RR
 {
     template <typename T>
     using ComSharedPtr = winrt::com_ptr<T>;

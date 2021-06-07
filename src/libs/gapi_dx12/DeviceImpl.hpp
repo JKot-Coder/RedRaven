@@ -2,7 +2,7 @@
 
 #include "gapi/Device.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

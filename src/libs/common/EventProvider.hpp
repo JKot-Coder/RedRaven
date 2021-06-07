@@ -3,7 +3,7 @@
 #include "common/EnumClassOperators.hpp"
 #include <map>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

@@ -18,7 +18,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

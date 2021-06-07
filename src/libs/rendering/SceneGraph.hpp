@@ -1,6 +1,6 @@
 #pragma once
 
-namespace OpenDemo
+namespace RR
 {
     namespace Rendering
     {

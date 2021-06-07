@@ -6,7 +6,7 @@
 
 using HRESULT = long;
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

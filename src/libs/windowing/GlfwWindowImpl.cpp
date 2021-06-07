@@ -11,7 +11,7 @@ static_assert(false, "platform is not supported");
 #include <GLFW/glfw3native.h>
 #endif
 
-namespace OpenDemo
+namespace RR
 {
     namespace Windowing
     {

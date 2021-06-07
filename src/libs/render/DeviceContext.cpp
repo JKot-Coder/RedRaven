@@ -15,7 +15,7 @@
 
 #include "common/threading/Event.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Render
     {

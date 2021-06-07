@@ -37,7 +37,7 @@
 
 using namespace std::chrono_literals;
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

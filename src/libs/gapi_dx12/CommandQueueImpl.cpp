@@ -8,7 +8,7 @@
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

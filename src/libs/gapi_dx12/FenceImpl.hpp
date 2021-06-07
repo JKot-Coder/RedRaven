@@ -2,7 +2,7 @@
 
 #include "gapi/Fence.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

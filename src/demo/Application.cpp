@@ -22,7 +22,7 @@
 #include "scenes/Scene_1.hpp"
 #include "scenes/Scene_2.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     using namespace Common;
 
@@ -117,16 +117,16 @@ namespace OpenDemo
         {
             switch (description.GetFormat())
             {
-            case GAPI::GpuResourceFormat::RGBA8Uint:
-            case GAPI::GpuResourceFormat::BGRA8Unorm:
-                fillTextureData<uint32_t>(description, textureData);
-                break;
-            case GAPI::GpuResourceFormat::RGBA16Float:
-            case GAPI::GpuResourceFormat::RGBA32Float:
-                fillTextureData<Vector4>(description, textureData);
-                break;
-            default:
-                LOG_FATAL("Unsupported format");
+                case GAPI::GpuResourceFormat::RGBA8Uint:
+                case GAPI::GpuResourceFormat::BGRA8Unorm:
+                    fillTextureData<uint32_t>(description, textureData);
+                    break;
+                case GAPI::GpuResourceFormat::RGBA16Float:
+                case GAPI::GpuResourceFormat::RGBA32Float:
+                    fillTextureData<Vector4>(description, textureData);
+                    break;
+                default:
+                    LOG_FATAL("Unsupported format");
             }
         }
 

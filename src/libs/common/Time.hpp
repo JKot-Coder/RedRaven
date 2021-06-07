@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

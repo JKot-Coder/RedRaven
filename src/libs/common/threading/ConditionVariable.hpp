@@ -2,7 +2,7 @@
 
 #include <condition_variable>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

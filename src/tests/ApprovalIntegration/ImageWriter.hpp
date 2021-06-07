@@ -5,7 +5,7 @@
 #include "ApprovalTests/ApprovalTests.hpp"
 #include <catch2/catch.hpp>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Tests
     {

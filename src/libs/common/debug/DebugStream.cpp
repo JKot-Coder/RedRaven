@@ -4,7 +4,7 @@
 
 #include <windows.h>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

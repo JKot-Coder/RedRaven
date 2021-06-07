@@ -11,7 +11,7 @@
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

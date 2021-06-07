@@ -5,7 +5,7 @@
 
 #include "gapi/GpuResourceViews.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace GAPI
     {

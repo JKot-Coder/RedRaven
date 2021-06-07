@@ -4,7 +4,7 @@
 #include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
 
-namespace OpenDemo
+namespace RR
 {
     namespace Windowing
     {

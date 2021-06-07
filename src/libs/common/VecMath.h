@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

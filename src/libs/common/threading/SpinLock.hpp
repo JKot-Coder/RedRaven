@@ -3,7 +3,7 @@
 #include <atomic>
 #include <thread>
 
-namespace OpenDemo
+namespace RR
 {
     namespace Common
     {

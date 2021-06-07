@@ -6,8 +6,8 @@ namespace
 {
     int runApp(int argc, char** argv)
     {
-        const auto& leakDetector = OpenDemo::Common::Debug::LeakDetector::Instance();
-        auto& application = OpenDemo::Tests::Application::Instance();
+        const auto& leakDetector = RR::Common::Debug::LeakDetector::Instance();
+        auto& application = RR::Tests::Application::Instance();
 
         return application.Run(argc, argv);
     }
