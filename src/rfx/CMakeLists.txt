@@ -2,13 +2,26 @@ project(rfx)
 
 set(RFX_SRC
     "pch.hpp"
+    "include/rfx.hpp"
     "main.cpp")
 source_group( "" FILES ${RFX_SRC} )
 
+set(RFX_COMPILER_SRC
+    "compiler/Session.hpp"
+    "compiler/Session.cpp"
+    "compiler/CompileRequest.hpp"
+    "compiler/CompileRequest.cpp"
+    "compiler/Program.hpp"
+    "compiler/Program.cpp")
+source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
+
+
 set(RFX_SRC
-    ${RFX_SRC})
+    ${RFX_SRC}
+    ${RFX_COMPILER_SRC})
 
 set(RFX_LINK_LIBRARIES
+    common
     slang)
 
 set(RFX_INCLUDE_DIRS
@@ -45,3 +58,10 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+
+if(MSVC)
+	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+endif(MSVC)
