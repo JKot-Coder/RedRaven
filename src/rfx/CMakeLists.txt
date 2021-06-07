@@ -1,12 +1,12 @@
 project(rfx)
 
-set(SRC
+set(RFX_SRC
     "pch.hpp"
     "main.cpp")
-source_group( "" FILES ${SRC} )
+source_group( "" FILES ${RFX_SRC} )
 
-set(SRC
-    ${SRC})
+set(RFX_SRC
+    ${RFX_SRC})
 
 set(RFX_LINK_LIBRARIES
     slang)
@@ -14,6 +14,8 @@ set(RFX_LINK_LIBRARIES
 set(RFX_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs
     ${PROJECT_SOURCE_DIR})
+
+#================================ Slang ===============================#
 
 FetchContent_Declare(slang_download
   URL https://github.com/shader-slang/slang/releases/download/v0.18.24/slang-0.18.24-win64.zip
@@ -34,7 +36,9 @@ set_target_properties(slang PROPERTIES
 
 add_dependencies(slang slang_download)
 
-add_executable(${PROJECT_NAME} WIN32 ${SRC})
+#=============================== Target ===============================#
+
+add_executable(${PROJECT_NAME} WIN32 ${RFX_SRC})
 target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${RFX_INCLUDE_DIRS})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)

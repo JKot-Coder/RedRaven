@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.16.0)
 
+project(RedRaven VERSION 0.0.3 LANGUAGES CXX)
+
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/MP>")
@@ -32,21 +34,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 add_compile_definitions( $<$<CONFIG:Debug>:DEBUG>)
 add_compile_definitions( $<$<CONFIG:Release>:RELEASE> )
 
-set(OPEN_DEMO_PLATFORM_DEFINITIONS)
+set(PLATFORM_DEFINITIONS)
 
 if (WIN32)
-    set(OPEN_DEMO_PLATFORM_DEFINITIONS -DOS_WINDOWS -DNOMINMAX -DUNICODE -D_UNICODE)
+    set(PLATFORM_DEFINITIONS -DOS_WINDOWS -DNOMINMAX -DUNICODE -D_UNICODE)
 endif ()
 
 if (APPLE)
-    set(OPEN_DEMO_PLATFORM_DEFINITIONS -DOS_APPLE)
+    set(PLATFORM_DEFINITIONS -DOS_APPLE)
 endif ()
 
 if (LINUX)
-    set(OPEN_DEMO_PLATFORM_DEFINITIONS -DOS_LINUX)
+    set(PLATFORM_DEFINITIONS -DOS_LINUX)
 endif ()
                         
-add_definitions(${OPEN_DEMO_PLATFORM_DEFINITIONS})
+add_definitions(${PLATFORM_DEFINITIONS})
 
 include_directories(src)
 

@@ -288,21 +288,21 @@ namespace OpenDemo
                         auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
 
                         initTextureData(sourceDescription, sourceData);
-                        commandList->UpdateTexture(source, sourceData);
+                        commandList->UpdateGpuResource(source, sourceData);
 
                         const auto& destDescription = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
                         const auto destData = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Upload);
                         auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
 
                         initTextureData(destDescription, destData);
-                        commandList->UpdateTexture(dest, destData);
+                        commandList->UpdateGpuResource(dest, destData);
 
                         commandList->CopyTextureSubresourceRegion(source, 1, Box3u(7, 42, 13, 64, 64, 64), dest, 0, Vector3u(32, 32, 32));
                         commandList->CopyTextureSubresourceRegion(source, 2, Box3u(0, 0, 0, 32, 32, 32), dest, 1, Vector3u(16, 16, 16));
                         commandList->CopyTextureSubresourceRegion(source, 0, Box3u(45, 128, 205, 16, 16, 16), dest, 2, Vector3u(0, 0, 0));
 
                         readbackData1 = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Readback);
-                        commandList->ReadbackTexture(dest, readbackData1);
+                        commandList->ReadbackGpuResource(dest, readbackData1);
 
                         commandList->Close();
                     }
@@ -314,13 +314,13 @@ namespace OpenDemo
                     commandList->ClearRenderTargetView(swapChainRtv, Vector4(static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX), 0, 0, 0));
                     // commandList->CopyTextureSubresourceRegion(texture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
 
-                    commandList->UpdateTexture(testTexture, cpuData);
-                    commandList->ReadbackTexture(testTexture, readbackData);
+                    commandList->UpdateGpuResource(testTexture, cpuData);
+                    commandList->ReadbackGpuResource(testTexture, readbackData);
                     //commandList->Close();
 
-                    // commandList->UpdateTexture(testTexture, cpuData);
+                    // commandList->UpdateGpuResource(testTexture, cpuData);
                     //commandList->CopyTextureSubresourceRegion(testTexture, 0, Box3u(0, 0, 0, 50, 50, 1), swapChainTexture, 0, Vector3::ZERO);
-                    //commandList->ReadbackTexture(testTexture, readbackData);
+                    //commandList->ReadbackGpuResource(testTexture, readbackData);
 
                     commandList->Close();*/
                 });
