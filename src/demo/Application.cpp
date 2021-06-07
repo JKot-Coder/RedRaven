@@ -4,8 +4,6 @@
 #include "common/Time.hpp"
 #include "common/debug/LeakDetector.hpp"
 
-#include "resource_manager/ResourceManager.hpp"
-
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
@@ -18,9 +16,6 @@
 
 #include "windowing/Window.hpp"
 #include "windowing/WindowSystem.hpp"
-
-#include "scenes/Scene_1.hpp"
-#include "scenes/Scene_2.hpp"
 
 namespace RR
 {
