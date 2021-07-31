@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
     std::string log;
 
-    const auto loaded = request->LoadModule("test", log);
+    const auto loaded = request->LoadModule("test.slang", log);
     if (!loaded)
     {
         Log::Print::Warning(log);

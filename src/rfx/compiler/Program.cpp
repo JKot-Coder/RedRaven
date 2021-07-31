@@ -12,18 +12,32 @@ namespace Rfx
 
         bool Program::GetShaderProgram(std::string& log)
         {
-            auto programReflection = composedProgram_->getLayout();
+            Slang::ComPtr<ISlangBlob> diagnostics;
+            auto programReflection = composedProgram_->getLayout(0, diagnostics.writeRef());
+
+            if (diagnostics)
+            {
+                log += (char*)diagnostics->getBufferPointer();
+                return false;
+            }
+
             for (uint32_t i = 0; i < programReflection->getEntryPointCount(); i++)
             {
-              //  auto entryPointInfo = programReflection->getEntryPointByIndex(i);
-               // auto stage = entryPointInfo->getStage();
+                //  auto entryPointInfo = programReflection->getEntryPointByIndex(i);
+                // auto stage = entryPointInfo->getStage();
                 Slang::ComPtr<ISlangBlob> kernelCode;
-                Slang::ComPtr<ISlangBlob> diagnostics;
+
                 auto compileResult = composedProgram_->getEntryPointCode(
                     i, 0, kernelCode.writeRef(), diagnostics.writeRef());
 
+                const auto code = kernelCode->getBufferPointer();
+                const auto size = kernelCode->getBufferSize();
+
+                std::ignore = code;
+                std::ignore = size;
+
                 if (diagnostics)
-                    log = (char*)diagnostics->getBufferPointer();
+                    log += (char*)diagnostics->getBufferPointer();
 
                 if (!compileResult)
                     return false;

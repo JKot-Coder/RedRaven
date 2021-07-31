@@ -38,9 +38,22 @@ namespace Rfx
         {
             ASSERT(globalSesion);
 
+            slang::TargetDesc targetDesc = {};
+            targetDesc.format = SLANG_DXBC_ASM;
+            targetDesc.profile = globalSesion->findProfile("sm_5_0");
+            targetDesc.optimizationLevel = SLANG_OPTIMIZATION_LEVEL_MAXIMAL;
+            targetDesc.floatingPointMode = SLANG_FLOATING_POINT_MODE_DEFAULT;
+            targetDesc.lineDirectiveMode = SLANG_LINE_DIRECTIVE_MODE_DEFAULT;
+            targetDesc.flags = 0;
+
             slang::SessionDesc desc = {};
+            desc.targets = &targetDesc;
+            desc.targetCount = 1;
             globalSesion->createSession(desc, session_.writeRef());
             ASSERT(session_);
+
+            session_->createCompileRequest(request_.writeRef());
+            ASSERT(request_);
         }
 
         CompileRequest::~CompileRequest()
@@ -50,23 +63,17 @@ namespace Rfx
 
         void CompileRequest::clearModules()
         {
-            components_.clear();
+            // components_.clear();
         }
 
         bool CompileRequest::LoadModule(const std::string& name, std::string& log)
         {
             ASSERT(session_);
 
-            Slang::ComPtr<slang::IBlob> diagnosticsBlob;
-            slang::IModule* module = session_->loadModule(name.c_str(), diagnosticsBlob.writeRef());
+            std::ignore = log;
 
-            if (diagnosticsBlob)
-                log += (const char*)diagnosticsBlob->getBufferPointer();
-
-            if (!module)
-                return false;
-
-            components_.push_back(module);
+            const auto index = request_->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, nullptr);
+            request_->addTranslationUnitSourceFile(index, name.c_str());
 
             return true;
         }
@@ -75,42 +82,66 @@ namespace Rfx
         {
             ASSERT(session_);
 
-            for (auto component : components_)
-            {
-                slang::IModule* module;
-                if (SLANG_FAILED(component->queryInterface(slang::IModule::getTypeGuid(), (void**)&module)))
-                    continue;
-
-                Slang::ComPtr<slang::IEntryPoint> entryPoint;
-                if (SLANG_FAILED(module->findEntryPointByName("weq", entryPoint.writeRef())))
-                    continue;
-            }
-
-            return false;
+            return true;
         }
 
         Program::SharedPtr CompileRequest::Compile(std::string& log)
         {
             ASSERT(session_);
 
-            Slang::ComPtr<slang::IComponentType> composedProgram;
-            Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+            auto entryPointIndex = request_->addEntryPoint(0, "computeMain", SLANG_STAGE_COMPUTE);
+            ::Slang::ComPtr<slang::IComponentType> entryPoint;
 
-            const auto result = session_->createCompositeComponentType(
-                components_.empty() ? nullptr : &components_.front(),
-                components_.size(),
-                composedProgram.writeRef(),
-                diagnosticsBlob.writeRef());
-
-            if (diagnosticsBlob)
-                log += (const char*)diagnosticsBlob->getBufferPointer();
-
-            if (SLANG_FAILED(result))
+            if (SLANG_FAILED(request_->compile()))
             {
+                log = request_->getDiagnosticOutput();
                 clearModules();
+                request_.setNull();
                 session_.setNull();
                 return nullptr;
             }
+
+            // Slang::ComPtr<slang::IComponentType> composedProgram;
+            Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+
+            if (diagnosticsBlob)
+                log = (const char*)diagnosticsBlob->getBufferPointer();
+
+            //         if (SLANG_FAILED(result))
+
+            Slang::ComPtr<slang::IComponentType> composedProgram;
+            if (SLANG_FAILED(request_->getProgram(composedProgram.writeRef())))
+            {
+                log = "";
+                return nullptr;
+            }
+
+            std::ignore = entryPointIndex;
+           
+            const auto result = request_->getEntryPoint(entryPointIndex, entryPoint.writeRef());
+            ASSERT(SLANG_SUCCEEDED(request_->getEntryPoint(entryPointIndex, entryPoint.writeRef())));
+
+            std::vector<slang::IComponentType*> components;
+            components.push_back(composedProgram);
+            components.push_back(entryPoint);
+            /*
+            if (SLANG_FAILED(entryPoint->link(composedProgram.writeRef(), diagnosticsBlob.writeRef())))
+            {
+                log = "";
+                return nullptr;
+            }
+         */
+            if (SLANG_FAILED(session_->createCompositeComponentType(
+                    components.data(),
+                    components.size(),
+                    composedProgram.writeRef(),
+                    diagnosticsBlob.writeRef())))
+            {
+                log = "";
+                return nullptr;
+            }
+
+            //   entryPoint->link(linkedProgram.writeRef());
 
             return Program::SharedPtr(new Program(composedProgram));
         }

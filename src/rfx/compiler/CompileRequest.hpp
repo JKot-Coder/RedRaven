@@ -42,7 +42,8 @@ namespace Rfx
 
         private:
             ::Slang::ComPtr<slang::ISession> session_;
-            std::list<slang::IComponentType*> components_;
+            ::Slang::ComPtr<slang::ICompileRequest> request_;
+            std::vector<::Slang::ComPtr<slang::IComponentType>> entryPoints_;
 
             friend class Session;
         };
