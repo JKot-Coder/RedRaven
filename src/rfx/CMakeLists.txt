@@ -12,7 +12,9 @@ set(RFX_COMPILER_SRC
     "compiler/CompileRequest.hpp"
     "compiler/CompileRequest.cpp"
     "compiler/Program.hpp"
-    "compiler/Program.cpp")
+    "compiler/Program.cpp"
+    "compiler/Effect.hpp"
+    "compiler/Effect.cpp")
 source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
 
 
@@ -22,7 +24,8 @@ set(RFX_SRC
 
 set(RFX_LINK_LIBRARIES
     common
-    slang)
+    slang
+    nlohmann_json::nlohmann_json)
 
 set(RFX_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs
@@ -48,6 +51,17 @@ set_target_properties(slang PROPERTIES
 )
 
 add_dependencies(slang slang_download)
+
+#============================ FetchContent ============================#
+
+FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.9.1)
+
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install  OFF CACHE INTERNAL "")
+
+FetchContent_MakeAvailable(json)
 
 #=============================== Target ===============================#
 

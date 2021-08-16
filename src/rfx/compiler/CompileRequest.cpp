@@ -89,7 +89,7 @@ namespace Rfx
         {
             ASSERT(session_);
 
-            auto entryPointIndex = request_->addEntryPoint(0, "computeMain", SLANG_STAGE_COMPUTE);
+            auto entryPointIndex = request_->addEntryPoint(0, "mainCS", SLANG_STAGE_COMPUTE);
             ::Slang::ComPtr<slang::IComponentType> entryPoint;
 
             if (SLANG_FAILED(request_->compile()))

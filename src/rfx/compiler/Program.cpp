@@ -37,7 +37,7 @@ namespace Rfx
                 std::ignore = size;
 
                 if (diagnostics)
-                    log += (char*)diagnostics->getBufferPointer();
+                    log += (char*)diagnostics->getBufferPointer(); 
 
                 if (!compileResult)
                     return false;
