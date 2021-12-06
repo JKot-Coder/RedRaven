@@ -1,4 +1,10 @@
-//#include "CAS_Shader.hlsl"
+//#include "CAS_Shader.hlsl" а это комментарии на русском. Найс!
+
+#include
+ 	#include
+ 			#include 
+ 					#include
+
 
 StructuredBuffer<float> buffer0;
 StructuredBuffer<float> buffer1;
@@ -10,4 +16,3 @@ void computeMain(uint3 threadId : SV_DispatchThreadID)
 {
     uint index = threadId.x;
     result[index] = buffer0[index] + buffer1[index];
-}

@@ -15,8 +15,10 @@ namespace RR
 #if __cplusplus > 201703L
     // C++20
     using U8String = std::u8string;
+    using U8Char = char8_t;
 #else
     using U8String = std::string;
+    using U8Char = char;
 #endif
 
     namespace StringConversions

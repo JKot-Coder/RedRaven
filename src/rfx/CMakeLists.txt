@@ -2,6 +2,8 @@ project(rfx)
 
 set(RFX_SRC
     "pch.hpp"
+    "experement.hpp"
+    "experement.cpp"
     "include/rfx.hpp"
     "main.cpp")
 source_group( "" FILES ${RFX_SRC} )
@@ -14,7 +16,15 @@ set(RFX_COMPILER_SRC
     "compiler/Program.hpp"
     "compiler/Program.cpp"
     "compiler/Effect.hpp"
-    "compiler/Effect.cpp")
+    "compiler/Effect.cpp"
+    "compiler/Lexer.hpp"
+    "compiler/Lexer.cpp"
+    "compiler/Tokenizer.hpp"
+    "compiler/Tokenizer.cpp"  
+    "compiler/PreprocessorContext.hpp"
+    "compiler/PreprocessorContext.cpp"   
+    "compiler/InputString.hpp"
+    )
 source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
 
 

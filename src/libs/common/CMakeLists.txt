@@ -41,6 +41,9 @@ set( COMMON_SRC
         Singleton.hpp
         EnumClassOperators.hpp
         EventProvider.hpp
+        LinearAllocator.cpp
+        LinearAllocator.hpp
+        LinearAllocator.inl
 )
 source_group( "" FILES ${COMMON_SRC} )
 

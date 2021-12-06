@@ -1,6 +1,7 @@
 #include "compiler/CompileRequest.hpp"
 #include "compiler/Program.hpp"
 #include "compiler/Session.hpp"
+#include "experement.hpp"
 
 #ifdef OS_WINDOWS
 #include <Windows.h>
@@ -18,6 +19,8 @@ int main(int argc, char** argv)
     (void)argv;
 #endif
 
+    test2();
+    /*
     auto session = new Rfx::Compiler::Session();
 
     auto request = session->CreateCompileRequest();
@@ -51,7 +54,7 @@ int main(int argc, char** argv)
     {
         Log::Print::Warning(log);
         return -1;
-    }
+    }*/
 
     /*
     SlangSession* session = spCreateSession(NULL);

@@ -5,22 +5,30 @@
     ENUM_CLASS_BINARY_OPERATOR(EnumType, |) \
     ENUM_CLASS_UNARY_OPERATOR(EnumType, ~)
 
-#define ENUM_CLASS_BINARY_OPERATOR(EnumType, Op)                                                                  \
-    constexpr inline EnumType operator Op(EnumType lhs, EnumType rhs)                                             \
+#define ENUM_CLASS_FRIEND_OPERATORS(EnumType)      \
+    ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, &) \
+    ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, |) \
+    ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, ~)
+
+#define ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, Op) ENUM_CLASS_BINARY_OPERATOR(EnumType, Op, friend)
+#define ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR(EnumType, Op, friend)
+
+#define ENUM_CLASS_BINARY_OPERATOR(EnumType, Op, Friend)                                                          \
+    constexpr Friend inline EnumType operator Op(EnumType lhs, EnumType rhs)                                      \
     {                                                                                                             \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                              \
         static_assert(std::is_enum<EnumType>::value, "EnumType shoud be be an enum.");                            \
         static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected.");         \
         return static_cast<EnumType>(static_cast<UnderlyingType>(lhs) Op static_cast<UnderlyingType>(rhs));       \
     }                                                                                                             \
-    inline EnumType operator Op##=(EnumType& lhs, EnumType rhs)                                                   \
+    inline EnumType Friend operator Op##=(EnumType& lhs, EnumType rhs)                                            \
     {                                                                                                             \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                              \
         return lhs = static_cast<EnumType>(static_cast<UnderlyingType>(lhs) Op static_cast<UnderlyingType>(rhs)); \
     }
 
-#define ENUM_CLASS_UNARY_OPERATOR(EnumType, Op)                                                           \
-    constexpr inline EnumType operator Op(EnumType val)                                                   \
+#define ENUM_CLASS_UNARY_OPERATOR(EnumType, Op, Friend)                                                   \
+    constexpr Friend inline EnumType operator Op(EnumType val)                                            \
     {                                                                                                     \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                      \
         static_assert(std::is_enum<EnumType>::value, "EnumType shoud be be an enum.");                    \

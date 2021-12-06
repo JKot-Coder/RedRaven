@@ -11,9 +11,6 @@ set(GAPI_SRC
         ForwardDeclarations.hpp
         Frame.hpp
         Limits.hpp
-        LinearAllocator.cpp
-        LinearAllocator.hpp
-        LinearAllocator.inl
         Object.hpp
         Resource.hpp
         MemoryAllocation.hpp
