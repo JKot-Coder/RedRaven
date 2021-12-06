@@ -2,7 +2,7 @@
 
 namespace RR
 {
-    namespace GAPI
+    namespace Common
     {
         INLINE void* LinearAllocator::Page::Allocate(size_t size, size_t aligment,
 #ifdef CACHE_LINE_ALIGN

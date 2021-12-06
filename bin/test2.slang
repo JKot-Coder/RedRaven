@@ -1,3 +1,14 @@
+/\
+*
+Я\
+ Блядь\
+ 	Упоролся\
+*\
+/
+
+/\
+/A это тупой комментарий
+
 //#include "CAS_Shader.hlsl" а это комментарии на русском. Найс!
 
 #include
@@ -15,4 +26,4 @@ RWStructuredBuffer<float> result;
 void computeMain(uint3 threadId : SV_DispatchThreadID)
 {
     uint index = threadId.x;
-    result[index] = buffer0[index] + buffer1[index];
+    result[index] = buffer0[index] + buffer1[index] + 10.0f;

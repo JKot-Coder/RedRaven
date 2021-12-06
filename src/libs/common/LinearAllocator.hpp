@@ -2,7 +2,7 @@
 
 namespace RR
 {
-    namespace GAPI
+    namespace Common
     {
         //#define CACHE_LINE_ALIGN
 

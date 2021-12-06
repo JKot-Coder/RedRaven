@@ -6,32 +6,44 @@
 
 namespace RR
 {
+    namespace Common
+    {
+        class LinearAllocator;
+    }
+
     namespace Rfx
     {
         namespace Compiler
         {
 
-            struct Token
+            struct Token : NonCopyable
             {
                 enum class Type : uint32_t
                 {
-                    Lex,
-                    WhiteSpace,
+                    Lexeme,
                     NewLine,
                     Eof,
                 };
 
                 Token() = delete;
 
-                Token(Type inType, const U8String::const_iterator inBegin, const U8String::const_iterator inEnd, uint32_t inLine)
-                    : type(inType), begin(inBegin), end(inEnd), line(inLine)
+                Token(Type inType, const U8Char* inBegin, size_t inLenght, uint32_t inLine)
+                    : type(inType), begin(inBegin), lenght(inLenght), line(inLine)
                 {
                 }
 
+                U8String GetContentString() const
+                {
+                    if (!begin || !lenght)
+                        return "";
+
+                    return U8String(begin, lenght);
+                }
+
                 Type type;
-                const U8String::const_iterator begin;
-                const U8String::const_iterator end;
-                uint32_t line;               
+                const U8Char* begin;
+                size_t lenght;
+                uint32_t line;
             };
 
             class Tokenizer final
@@ -42,6 +54,8 @@ namespace RR
 
                 Tokenizer() = delete;
                 Tokenizer(const U8String& source);
+
+                ~Tokenizer();
 
                 Token GetNextToken();
 
@@ -71,6 +85,7 @@ namespace RR
                 uint32_t line_ = 1;
                 const_iterator cursor_;
                 const_iterator end_;
+                std::unique_ptr<LinearAllocator> allocator_;
             };
 
         }

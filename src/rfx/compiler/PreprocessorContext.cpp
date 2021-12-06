@@ -1,6 +1,7 @@
 #include "PreprocessorContext.hpp"
 
 #include "compiler/Lexer.hpp"
+//#include "compiler/Tokenizer.hpp"
 
 namespace RR
 {
@@ -12,34 +13,31 @@ namespace RR
             {
             }
 
-            U8String getTokenName(Token::Type type)
-            {
-                switch (type)
-                {
-                    case Token::Type::Eof:
-                        return "Eof";
-                    case Token::Type::NewLine:
-                        return "NewLine";
-                    case Token::Type::WhiteSpace:
-                        return "WhiteSpace";
-                    case Token::Type::Include:
-                        return "Include";
-                    default:
-                        return "???";
-                }
-            }
 
             void PreprocessorContext::Parse(const U8String& source)
             {
+               /* Tokenizer tokenizer(source);
+
+                for (;;)
+                {
+                    const auto& token = tokenizer.GetNextToken();
+
+                    Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\"}}", getTokenName(token.type), token.GetContentString());
+
+                    if (token.type == TokenType::Eof)
+                        break;
+                }*/
+
+               
                 Lexer lexer(source);
 
                 for (;;)
                 {
-                    const auto& token = lexer.GetNextToken();
+                    const auto& Token = lexer.GetNextToken();
 
-                    Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\"}}", getTokenName(token.type), token.GetContentString());
+                    Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\"}}", TokenTypeToString(Token.type), Token.GetContentString());
 
-                    if (token.type == Token::Type::Eof)
+                    if (Token.type == TokenType::EndOfFile)
                         break;
                 }
             }

@@ -1,5 +1,7 @@
 #include "Tokenizer.hpp"
 
+#include "common/LinearAllocator.hpp"
+
 #include <iterator>
 
 namespace RR
@@ -10,11 +12,6 @@ namespace RR
         {
             namespace
             {
-                inline bool isWhiteSpace(U8Char ch)
-                {
-                    return (ch == ' ' || ch == '\t');
-                }
-
                 inline bool isNewLineChar(U8Char ch)
                 {
                     return (ch == '\n' || ch == '\r');
@@ -61,18 +58,17 @@ namespace RR
                     handleNewlineSequence(cursor, end);
                 }
 
-                uint32_t scrubbingToken(const Tokenizer::const_iterator srcBegin, const Tokenizer::const_iterator srcEnd,
-                                    const Tokenizer::iterator dstBegin, Tokenizer::const_iterator& dstEnd)
+                size_t scrubbingToken(const Tokenizer::const_iterator srcBegin, const Tokenizer::const_iterator srcEnd,
+                                      U8Char* dstBegin, uint32_t& escapedLines)
                 {
-                    uint32_t escapedLines = 0;
+                    escapedLines = 0;
+                    size_t lenght = 0;
                     auto cursor = srcBegin;
                     auto dst = dstBegin;
 
                     while (cursor != srcEnd)
                     {
-                        const auto ch = *cursor++;
-
-                        if (ch == '/')
+                        if (*cursor == '\\')
                         {
                             if (checkForEscapedNewline(cursor, srcEnd))
                             {
@@ -81,26 +77,31 @@ namespace RR
                                 continue;
                             }
                         }
-
-                        *dst++ = ch;
+                       
+                        lenght++;
+                        *dst++ = *cursor++;
                     }
-                    dstEnd = dst;
 
-                    return escapedLines;
+                    return lenght;
                 }
 
             }
 
             Tokenizer::Tokenizer(const U8String& source)
                 : cursor_(source.begin()),
-                  end_(source.end())
+                  end_(source.end()),
+                  allocator_(new LinearAllocator(1024))
+            {
+            }
+
+            Tokenizer::~Tokenizer()
             {
             }
 
             Token Tokenizer::GetNextToken()
             {
                 if (isReachEOF())
-                    return Token(Token::Type::Eof, end_, end_, line_);
+                    return Token(Token::Type::Eof, nullptr, 0, line_);
 
                 const auto tokenBegin = cursor_;
 
@@ -120,23 +121,25 @@ namespace RR
                     // Only perform this work if we encountered an escaped newline while lexing this token
                     // Allocate space that will always be more than enough for stripped contents
                     const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
-                    const Tokenizer::iterator beginDst = (char*)m_memoryArena->allocateUnaligned(allocationSize);
-                    Tokenizer::const_iterator endDst = beginDst + allocationSize;
+                    const auto beginDst = (U8Char*)allocator_->Allocate(allocationSize);
 
-                    // count scrubbing lines. Because of scrambling count of NewLineTokens != ñount of lines in file.
-                    line_ += scrubbingToken(tokenBegin, tokenEnd, beginDst, endDst);
+                    uint32_t escapedLines;
+                    const auto scrubbledTokenLenght = scrubbingToken(tokenBegin, tokenEnd, beginDst, escapedLines);
 
-                    return Token(tokenType, beginDst, endDst, tokenLine);
+                    // count escaped lines. Because of scrambling count of NewLineTokens != ñount of lines in file.
+                    line_ += escapedLines;
+
+                    return Token(tokenType, beginDst, scrubbledTokenLenght, tokenLine);
                 }
 
-                return Token(tokenType, tokenBegin, tokenEnd, tokenLine);
+                return Token(tokenType, &*tokenBegin, std::distance(tokenBegin, tokenEnd), tokenLine);
             }
 
             Token::Type Tokenizer::scanToken(bool& scrubbingNeeded)
             {
                 ASSERT(!isReachEOF())
 
-                bool scrubbingNeeded = false;
+                scrubbingNeeded = false;
                 auto ch = peek();
 
                 switch (ch)
@@ -147,34 +150,11 @@ namespace RR
                         handleNewlineSequence(cursor_, end_);
                         return Token::Type::NewLine;
                     }
-                    case ' ':
-                    case '\t':
-                    {
-                        for (;;)
-                        {
-                            if (peek() == '/')
-                            {
-                                if (checkForEscapedNewline(cursor_, end_))
-                                {
-                                    scrubbingNeeded = true;
-                                    handleEscapedNewline(cursor_, end_);
-                                }
-                            }
-
-                            if (!isWhiteSpace(peek()))
-                                break;
-
-                            if (!advance())
-                                break;
-                        }
-
-                        return Token::Type::WhiteSpace;
-                    }
                     default:
                     {
                         for (;;)
                         {
-                            if (peek() == '/')
+                            if (peek() == '\\')
                             {
                                 if (checkForEscapedNewline(cursor_, end_))
                                 {
@@ -183,14 +163,14 @@ namespace RR
                                 }
                             }
 
-                            if (isWhiteSpace(peek()) || isNewLineChar(peek()))
+                            if (isNewLineChar(peek()))
                                 break;
 
                             if (!advance())
                                 break;
                         }
 
-                        return Token::Type::Lex;
+                        return Token::Type::Lexeme;
                     }
                 }
             }
