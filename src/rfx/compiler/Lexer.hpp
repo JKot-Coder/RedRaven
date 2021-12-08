@@ -1,6 +1,7 @@
 #pragma once
 
 #include "compiler/InputString.hpp"
+#include "compiler/SourceLocation.hpp"
 #include "compiler/Token.hpp"
 
 #include "common/EnumClassOperators.hpp"
@@ -16,15 +17,15 @@ namespace RR
     {
         namespace Compiler
         {
+            class DiagnosticSink;
 
             class Lexer final
             {
             public:
-                using const_iterator = U8String::const_iterator;
-                using iterator = U8String::iterator;
+                static constexpr U8Glyph kEOF = 0xFFFFFF;
 
                 Lexer() = delete;
-                Lexer(const U8String& source);
+                Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
                 ~Lexer();
 
                 Token GetNextToken();
@@ -38,42 +39,64 @@ namespace RR
                 };
                 ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
+                class Counter final
+                {
+                public:
+                    Counter(uint32_t initialValue) : counter_(initialValue) {};
+                    inline void Reset(uint32_t initialValue = 0) { counter_ = initialValue; }
+                    inline void Increment() { counter_++; }
+                    inline uint32_t Value() const { return counter_; }
+
+                private:
+                    uint32_t counter_ = 0;
+                };
+
             private:
                 inline bool isReachEOF()
                 {
                     return cursor_ == end_;
                 }
 
-                inline U8Char peek()
+                inline U8Glyph peek()
                 {
-                    ASSERT(!isReachEOF());
-                    return *cursor_;
+                    if (isReachEOF())
+                        return kEOF;
+
+                    return utf8::peek_next(cursor_, end_);
                 }
 
-                TokenType scanToken(uint32_t& escapedLines);
+                TokenType scanToken();
 
-                bool advance(uint32_t& escapedLines);
-                void handleWhiteSpace(uint32_t& escapedLines);
-                void handleLineComment(uint32_t& escapedLines);
-                void handleBlockComment(uint32_t& escapedLines);
+                void advance();
 
-                void lexNumberSuffix(uint32_t& escapedLines);
-                void lexDigits(uint32_t& escapedLines, uint32_t base);
-                TokenType lexNumber(uint32_t& escapedLines, uint32_t base);
-                void lexNumberAfterDecimalPoint(uint32_t& escapedLines, uint32_t base);
-                bool maybeLexNumberExponent(uint32_t& escapedLines, uint32_t base);
+                SourceLocation getSourceLocation();
 
-                void lexIdentifier(uint32_t& escapedLines);
-                void lexStringLiteralBody(uint32_t& escapedLines, U8Char quote);
+                void handleWhiteSpace();
+                void handleLineComment();
+                void handleBlockComment();
+                void handleNewlineSequence();
+                void handleEscapedNewline();
+
+                void lexNumberSuffix();
+                void lexDigits(uint32_t base);
+                TokenType lexNumber(uint32_t base);
+                void lexNumberAfterDecimalPoint(uint32_t base);
+                bool maybeLexNumberExponent(uint32_t base);
+
+                void lexIdentifier();
+                void lexStringLiteralBody(U8Glyph quote);
 
             private:
-                Flags flags_;
-                uint32_t line_ = 1;
-
-                const_iterator cursor_;
-                const_iterator end_;
+                const char* cursor_;
+                const char* end_;
+                Counter linesCounter_ = 1;
+                Counter columnCounter_ = 1;
+                Counter escapedLinesCounter_ = 0;
+                Flags flags_ = Flags::None;
 
                 std::unique_ptr<LinearAllocator> allocator_;
+                std::shared_ptr<SourceView> sourceView_;
+                std::shared_ptr<DiagnosticSink> sink_;
             };
         }
     }

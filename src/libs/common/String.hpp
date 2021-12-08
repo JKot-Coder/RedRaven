@@ -16,9 +16,11 @@ namespace RR
     // C++20
     using U8String = std::u8string;
     using U8Char = char8_t;
+    using U8Glyph = uint32_t;
 #else
     using U8String = std::string;
     using U8Char = char;
+    using U8Glyph = uint32_t;
 #endif
 
     namespace StringConversions

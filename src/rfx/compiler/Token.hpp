@@ -1,5 +1,8 @@
 #pragma once
 
+#include "compiler/UnownedStringSlice.hpp"
+#include "compiler/SourceLocation.hpp"
+
 namespace RR
 {
     namespace Rfx
@@ -16,26 +19,23 @@ namespace RR
 
             struct Token : NonCopyable
             {
-
                 Token() = delete;
 
-                Token(TokenType inType, const U8Char* inContent, size_t inLength, uint32_t inLine)
-                    : type(inType), content(inContent), length(inLength), line(inLine)
+                Token(TokenType inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation)
+                    : type(inType), stringSlice(stringSlice), SourceLocation(SourceLocation)
                 {
                 }
 
                 U8String GetContentString() const
                 {
-                    if (!content || !length)
+                    if (stringSlice.GetLength() == 0)
                         return "";
 
-                    return U8String(content, length);
+                    return U8String(stringSlice.Begin(), stringSlice.End());
                 }
 
-                const U8Char* content;
-                size_t length;
-                uint32_t line;
-
+                UnownedStringSlice stringSlice;
+                SourceLocation SourceLocation;
                 TokenType type;
             };
         }

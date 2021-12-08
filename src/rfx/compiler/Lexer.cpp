@@ -1,7 +1,8 @@
 #include "Lexer.hpp"
 
+#include "compiler/DiagnosticCore.hpp"
+
 #include "common/LinearAllocator.hpp"
-#include "common/OnScopeExit.hpp"
 
 #include <iterator>
 
@@ -13,17 +14,22 @@ namespace RR
         {
             namespace
             {
-                inline bool isWhiteSpace(U8Char ch)
+                inline bool isWhiteSpace(U8Glyph ch)
                 {
                     return (ch == ' ' || ch == '\t');
                 }
 
-                inline bool isNewLineChar(U8Char ch)
+                inline bool isNewLineChar(U8Glyph ch)
                 {
                     return (ch == '\n' || ch == '\r');
                 }
 
-                bool isNumberExponent(U8Char ch, uint32_t base)
+                inline bool isEOF(U8Glyph ch)
+                {
+                    return ch == Lexer::kEOF;
+                }
+
+                bool isNumberExponent(U8Glyph ch, uint32_t base)
                 {
                     switch (ch)
                     { // clang-format off
@@ -33,11 +39,11 @@ namespace RR
                     } // clang-format on
                 }
 
-                bool checkForEscapedNewline(const Lexer::const_iterator cursor, const Lexer::const_iterator end)
+                bool checkForEscapedNewline(const U8Char* cursor, const U8Char* end)
                 {
                     ASSERT(*cursor == '\\')
 
-                    U8Char next = 0;
+                    U8Glyph next = 0;
 
                     // Peak next char if exist
                     if (std::distance(cursor, end) > 1)
@@ -46,38 +52,8 @@ namespace RR
                     return isNewLineChar(next);
                 }
 
-                void handleNewlineSequence(Lexer::const_iterator& cursor, const Lexer::const_iterator end)
+                char* scrubbingToken(const U8Char* srcBegin, const U8Char* srcEnd, U8Char* dstBegin)
                 {
-                    ASSERT(isNewLineChar(*cursor))
-
-                    const auto first = *cursor;
-
-                    if (++cursor == end)
-                        return;
-
-                    const auto second = *cursor;
-
-                    // Handle all newline sequences
-                    //  "\n"
-                    //  "\r"
-                    //  "\r\n"
-                    //  "\n\r"
-                    if (isNewLineChar(second) && first != second)
-                        cursor++;
-                }
-
-                void handleEscapedNewline(Lexer::const_iterator& cursor, const Lexer::const_iterator end)
-                {
-                    ASSERT(checkForEscapedNewline(cursor, end))
-
-                    cursor++;
-                    handleNewlineSequence(cursor, end);
-                }
-
-                size_t scrubbingToken(const Lexer::const_iterator srcBegin, const Lexer::const_iterator srcEnd,
-                                      U8Char* dstBegin)
-                {
-                    size_t lenght = 0;
                     auto cursor = srcBegin;
                     auto dst = dstBegin;
 
@@ -87,16 +63,28 @@ namespace RR
                         {
                             if (checkForEscapedNewline(cursor, srcEnd))
                             {
-                                handleEscapedNewline(cursor, srcEnd);
+                                const auto first = *cursor;
+
+                                if (++cursor == srcEnd)
+                                    return dst;
+
+                                const auto second = *cursor;
+
+                                // Handle all newline sequences
+                                //  "\n"
+                                //  "\r"
+                                //  "\r\n"
+                                //  "\n\r"
+                                if (isNewLineChar(second) && first != second)
+                                    cursor++;
+
                                 continue;
                             }
                         }
-
-                        lenght++;
                         *dst++ = *cursor++;
                     }
 
-                    return lenght;
+                    return dst;
                 }
 
                 /*
@@ -127,11 +115,17 @@ namespace RR
                 }*/
             }
 
-            Lexer::Lexer(const U8String& source)
-                : cursor_(source.begin()),
-                  end_(source.end()),
+            Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+                : sourceView_(sourceView),
+                  sink_(diagnosticSink),
                   allocator_(new LinearAllocator(1024))
             {
+                ASSERT(sourceView)
+                ASSERT(diagnosticSink)                   
+
+                auto content = sourceView->GetContent();
+                cursor_ = content.Begin();
+                end_ = content.End();
             }
 
             Lexer::~Lexer()
@@ -140,38 +134,36 @@ namespace RR
 
             Token Lexer::GetNextToken()
             {
+                const auto& SourceLocation = getSourceLocation();
+
                 if (isReachEOF())
-                    return Token(TokenType::EndOfFile, nullptr, 0, line_);
+                {
+                    const auto tokenSlice = UnownedStringSlice(nullptr, nullptr);
+                    return Token(TokenType::EndOfFile, tokenSlice, SourceLocation);
+                }
+
+                escapedLinesCounter_.Reset();
 
                 const auto tokenBegin = cursor_;
-
-                uint32_t escapedLines = 0;
-                const auto tokenType = scanToken(escapedLines);
-
+                const auto tokenType = scanToken();
                 const auto tokenEnd = cursor_;
+                const auto tokenLine = linesCounter_.Value();
 
-                const auto tokenLine = line_;
-
-                if (tokenType == TokenType::NewLine)
-                    line_++;
-
-                if (escapedLines > 0)
+                if (escapedLinesCounter_.Value() > 0)
                 {
                     // "scrubbing" token value here to remove escaped newlines...
                     // Only perform this work if we encountered an escaped newline while lexing this token
                     // Allocate space that will always be more than enough for stripped contents
                     const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
-                    const auto beginDst = (U8Char*)allocator_->Allocate(allocationSize);
 
-                    const auto scrubbledTokenLenght = scrubbingToken(tokenBegin, tokenEnd, beginDst);
+                    const auto dstBegin = (char*)allocator_->Allocate(allocationSize);
+                    const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin);
 
-                    // count escaped lines. Because of scrambling count of NewLineTokens != ñount of lines in file.
-                    line_ += escapedLines;
+                    const auto tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
 
-                    return Token(tokenType, beginDst, scrubbledTokenLenght, tokenLine);
+                    return Token(tokenType, tokenSlice, SourceLocation);
                 }
 
-                /*
                 switch (tokenType)
                 {
                     case TokenType::NewLine:
@@ -179,21 +171,20 @@ namespace RR
                         // If we just reached the end of a line, then the next token
                         // should count as being at the start of a line, and also after
                         // whitespace.
-                        //flags = Flags::AtStartOfLine | Flags::AfterWhitespace;
+                        flags_ = Flags::AtStartOfLine | Flags::AfterWhitespace;
                         break;
                     }
                     case TokenType::WhiteSpace:
-                        // case TokenType::BlockComment:
-                        // case TokenType::LineComment:
-                        {
-                            // True horizontal whitespace and comments both count as whitespace.
-                            //
-                            // Note that a line comment does not include the terminating newline,
-                            // we do not need to set `AtStartOfLine` here.
-                            flags_ |= Flags::AfterWhitespace;
-                            break;
-                        }
-
+                    case TokenType::BlockComment:
+                    case TokenType::LineComment:
+                    {
+                        // True horizontal whitespace and comments both count as whitespace.
+                        //
+                        // Note that a line comment does not include the terminating newline,
+                        // we do not need to set `AtStartOfLine` here.
+                        flags_ |= Flags::AfterWhitespace;
+                        break;
+                    }
                     default:
                     {
                         // If we read some token other then the above cases, then we are
@@ -201,42 +192,45 @@ namespace RR
                         flags_ = Flags::None;
                         break;
                     }
-                }*/
+                }
 
-                return Token(tokenType, &*tokenBegin, uint32_t(std::distance(tokenBegin, tokenEnd)), line_);
+                const auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
+                return Token(tokenType, tokenSlice, SourceLocation);
             }
 
-            TokenType Lexer::scanToken(uint32_t& escapedLines)
+            TokenType Lexer::scanToken()
             {
                 ASSERT(!isReachEOF())
 
-                escapedLines = 0;
-
                 switch (peek())
                 {
+                    default:
+                        break;
+
                     case '\r':
                     case '\n':
                     {
-                        handleNewlineSequence(cursor_, end_);
+                        handleNewlineSequence();
                         return TokenType::NewLine;
                     }
+
                     case ' ':
                     case '\t':
                     {
-                        handleWhiteSpace(escapedLines);
+                        handleWhiteSpace();
                         return TokenType::WhiteSpace;
                     }
+
                     case '.':
                     {
-                        if (!advance(escapedLines))
-                            return TokenType::Dot;
+                        advance();
 
                         switch (peek())
                         {
                             // clang-format off
                             case '0': case '1': case '2': case '3': case '4':
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
-                                lexNumberAfterDecimalPoint(escapedLines, 10);
+                                lexNumberAfterDecimalPoint(10);
                                 return TokenType::FloatingPointLiteral;
 
                             case '.':
@@ -246,13 +240,11 @@ namespace RR
                                 // `.`, `..`, and `...` even though the `..` case is
                                 // not part of HLSL.
                                 //
-                                if (!advance(escapedLines))
-                                    return TokenType::DotDot;
-
+                                advance();
                                 switch (peek())
                                 {
                                     case '.':
-                                        advance(escapedLines);
+                                        advance();
                                         return TokenType::Ellipsis;
 
                                     default:
@@ -267,57 +259,40 @@ namespace RR
                     // clang-format off
                     case '1': case '2': case '3': case '4': case '5':
                     case '6': case '7': case '8': case '9': // clang-format on
-                        return lexNumber(escapedLines, 10);
+                        return lexNumber(10);
+
                     case '0':
                     {
-                        // auto loc = _getSourceLoc(lexer);
-                        if (!advance(escapedLines))
-                            return TokenType::IntegerLiteral;
+                        const auto& loc = getSourceLocation();
+
+                        advance();
 
                         switch (peek())
                         {
                             default:
-                                lexNumberSuffix(escapedLines);
+                                lexNumberSuffix();
                                 return TokenType::IntegerLiteral;
 
                             case '.':
-                                if (!advance(escapedLines))
-                                    return TokenType::FloatingPointLiteral;
-
-                                lexNumberAfterDecimalPoint(escapedLines, 10);
+                                advance();
+                                lexNumberAfterDecimalPoint(10);
                                 return TokenType::FloatingPointLiteral;
 
                             case 'x':
                             case 'X':
-                                if (!advance(escapedLines))
-                                {
-                                    // TODO Diagnostic
-                                    return TokenType::Unknown;
-                                }
-
-                                return lexNumber(escapedLines, 16);
+                                advance();
+                                return lexNumber(16);
 
                             case 'b':
                             case 'B':
-                                if (!advance(escapedLines))
-                                {
-                                    // TODO Diagnostic
-                                    return TokenType::Unknown;
-                                }
-
-                                return lexNumber(escapedLines, 2);
+                                advance();
+                                return lexNumber(2);
 
                             // clang-format off
                             case '0': case '1': case '2': case '3': case '4': 
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
-                                /*
-                                // TODO DIAGNOSTIC 
-                                
-                                if (auto sink = lexer->getDiagnosticSink())
-                                {
-                                    sink->diagnose(loc, LexerDiagnostics::octalLiteral);
-                                }*/
-                                return lexNumber(escapedLines, 8);
+                                sink_->Dispatch(loc, LexerDiagnostics::octalLiteral);
+                                return lexNumber(8);
                         }
                     }
 
@@ -335,212 +310,176 @@ namespace RR
                     case 'U': case 'V': case 'W': case 'X': case 'Y':
                     case 'Z': 
                     case '_': // clang-format on
-                        lexIdentifier(escapedLines);
+                        lexIdentifier();
                         return TokenType::Identifier;
 
                     case '\"':
-                        if (!advance(escapedLines))
-                            // TODO diagnostic
-                            return TokenType::StringLiteral;
-
-                        lexStringLiteralBody(escapedLines, '\"');
+                        advance();
+                        lexStringLiteralBody('\"');
                         return TokenType::StringLiteral;
 
                     case '\'':
-                        if (!advance(escapedLines))
-                            // TODO diagnostic
-                            return TokenType::CharLiteral;
-
-                        lexStringLiteralBody(escapedLines, '\'');
+                        advance();
+                        lexStringLiteralBody('\'');
                         return TokenType::CharLiteral;
 
                     case '+':
-                        if (!advance(escapedLines))
-                            return TokenType::OpAdd;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '+': advance(escapedLines); return TokenType::OpInc;
-                            case '=': advance(escapedLines); return TokenType::OpAddAssign;
+                            case '+': advance(); return TokenType::OpInc;
+                            case '=': advance(); return TokenType::OpAddAssign;
                             default: return TokenType::OpAdd; 
                         } // clang-format on
 
                     case '-':
-                        if (!advance(escapedLines))
-                            return TokenType::OpAdd;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '-': advance(escapedLines); return TokenType::OpDec;
-                            case '=': advance(escapedLines); return TokenType::OpSubAssign;
-                            case '>': advance(escapedLines); return TokenType::RightArrow;
+                            case '-': advance(); return TokenType::OpDec;
+                            case '=': advance(); return TokenType::OpSubAssign;
+                            case '>': advance(); return TokenType::RightArrow;
                             default: return TokenType::OpSub;
                         } // clang-format on
 
                     case '*':
-                        if (!advance(escapedLines))
-                            return TokenType::OpMul;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '=': advance(escapedLines); return TokenType::OpMulAssign;
+                            case '=': advance(); return TokenType::OpMulAssign;
                             default: return TokenType::OpMul;
                         } // clang-format on
 
                     case '/':
-                        if (!advance(escapedLines))
-                            return TokenType::OpDiv;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '=': advance(escapedLines); return TokenType::OpDivAssign;
-                            case '/': handleLineComment(escapedLines); return TokenType::LineComment;
-                            case '*': handleBlockComment(escapedLines); return TokenType::BlockComment;     
+                            case '=': advance(); return TokenType::OpDivAssign;
+                            case '/': handleLineComment(); return TokenType::LineComment;
+                            case '*': handleBlockComment(); return TokenType::BlockComment;     
                             default: return TokenType::OpDiv;
                         } // clang-format on  
 
                     case '%':
-                        if (!advance(escapedLines))
-                            return TokenType::OpMod;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '=': advance(escapedLines); return TokenType::OpModAssign;
+                            case '=': advance(); return TokenType::OpModAssign;
                             default: return TokenType::OpMod;
                         } // clang-format on  
-                    case '|':
-                        if (!advance(escapedLines))
-                            return TokenType::OpBitOr;
 
+                    case '|':
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '|': advance(escapedLines); return TokenType::OpOr;
-                            case '=': advance(escapedLines); return TokenType::OpOrAssign;
+                            case '|': advance(); return TokenType::OpOr;
+                            case '=': advance(); return TokenType::OpOrAssign;
                             default: return TokenType::OpBitOr;
                         } // clang-format on  
 
                     case '&':
-                        if (!advance(escapedLines))
-                            return TokenType::OpBitAnd;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '&': advance(escapedLines); return TokenType::OpAnd;
-                            case '=': advance(escapedLines); return TokenType::OpAndAssign;
+                            case '&': advance(); return TokenType::OpAnd;
+                            case '=': advance(); return TokenType::OpAndAssign;
                             default: return TokenType::OpBitAnd;
                         } // clang-format on  
 
                     case '^':
-                        if (!advance(escapedLines))
-                            return TokenType::OpBitXor;
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '=': advance(escapedLines); return TokenType::OpXorAssign;
+                            case '=': advance(); return TokenType::OpXorAssign;
                             default: return TokenType::OpBitXor;
                         } // clang-format on  
 
                     case '>':
-                        if (!advance(escapedLines))
-                            return TokenType::OpGreater;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
                             case '>':
-                                if (!advance(escapedLines))
-                                    return TokenType::OpRsh;
-
+                                advance();
                                 switch (peek())
                                 {
-                                    case '=': advance(escapedLines); return TokenType::OpShrAssign;
+                                    case '=': advance(); return TokenType::OpShrAssign;
                                     default: return TokenType::OpRsh;
                                 }
 
-                            case '=': advance(escapedLines); return TokenType::OpGeq;
+                            case '=': advance(); return TokenType::OpGeq;
                             default: return TokenType::OpGreater;
                         } // clang-format on 
 
                     case '<':
-                        if (!advance(escapedLines))
-                            return TokenType::OpLess;
-
+                       advance();
                         switch (peek())
                         { // clang-format off
                             case '<': 
-                                if (!advance(escapedLines)) 
-                                    return TokenType::OpLsh;
-
+                                advance();
                                 switch (peek())
                                 {
-                                    case '=': advance(escapedLines); return TokenType::OpShlAssign;
+                                    case '=': advance(); return TokenType::OpShlAssign;
                                     default: return TokenType::OpLsh;
                                 }
-                            case '=': advance(escapedLines); return TokenType::OpLeq;
+                            case '=': advance(); return TokenType::OpLeq;
                             default: return TokenType::OpLess;
                         } // clang-format on 
 
                     case '=':
-                        if (!advance(escapedLines))
-                            return TokenType::OpAssign;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '=': advance(escapedLines); return TokenType::OpEql;
+                            case '=': advance(); return TokenType::OpEql;
                             default: return TokenType::OpAssign;
                         } // clang-format on 
 
                     case '!':
-                        if (!advance(escapedLines))
-                            return TokenType::OpNot;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '=': advance(escapedLines); return TokenType::OpNeq;
+                            case '=': advance(); return TokenType::OpNeq;
                             default: return TokenType::OpNot;
                         } // clang-format on 
 
                     case '#':
-                        if (!advance(escapedLines))
-                            return TokenType::Pound;
-
+                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '#': advance(escapedLines); return TokenType::PoundPound;
+                            case '#': advance(); return TokenType::PoundPound;
                             default: return TokenType::Pound;
                         } // clang-format on 
 
                     case '~':
-                        advance(escapedLines);
+                        advance();
                         return TokenType::OpBitNot;
 
                     case ':':
                     {
-                        if (!advance(escapedLines))
-                            return TokenType::Colon;
-
+                        advance();
                         if (peek() == ':')
                         {
-                            advance(escapedLines);
+                            advance();
                             return TokenType::Scope;
                         }
                         return TokenType::Colon;
                     }
                     // clang-format off
-                    case ';': advance(escapedLines); return TokenType::Semicolon;
-                    case ',': advance(escapedLines); return TokenType::Comma;
+                    case ';': advance(); return TokenType::Semicolon;
+                    case ',': advance(); return TokenType::Comma;
 
-                    case '{': advance(escapedLines); return TokenType::LBrace;
-                    case '}': advance(escapedLines); return TokenType::RBrace;
-                    case '[': advance(escapedLines); return TokenType::LBracket;
-                    case ']': advance(escapedLines); return TokenType::RBracket;
-                    case '(': advance(escapedLines); return TokenType::LParent;
-                    case ')': advance(escapedLines); return TokenType::RParent;
+                    case '{': advance(); return TokenType::LBrace;
+                    case '}': advance(); return TokenType::RBrace;
+                    case '[': advance(); return TokenType::LBracket;
+                    case ']': advance(); return TokenType::RBracket;
+                    case '(': advance(); return TokenType::LParent;
+                    case ')': advance(); return TokenType::RParent;
 
-                    case '?': advance(escapedLines); return TokenType::QuestionMark;
-                    case '@': advance(escapedLines); return TokenType::At;
-                    case '$': advance(escapedLines); return TokenType::Dollar;
-                    // clang-format on
+                    case '?': advance(); return TokenType::QuestionMark;
+                    case '@': advance(); return TokenType::At;
+                    case '$': advance(); return TokenType::Dollar;
+                        // clang-format on
 
-                    /*
+                        /*
                     case '#':
                     {
                         if (!increment())
@@ -564,94 +503,161 @@ namespace RR
                         }
                     }
                     */
-                    default:
+                }
+
+                // TODO(tfoley): If we ever wanted to support proper Unicode
+                // in identifiers, etc., then this would be the right place
+                // to perform a more expensive dispatch based on the actual
+                // code point (and not just the first byte).
+
+                {
+                    // If none of the above cases matched, then we have an
+                    // unexpected/invalid character.
+
+                    //auto loc = _getSourceLocation(lexer);
+
+                    //TODO diagnostic
+                    //   if (auto sink = lexer->getDiagnosticSink())
                     {
-                        for (;;)
+                        const auto ch = peek();
+
+                        if (ch >= 0x20 && ch <= 0x7E)
                         {
-                            if (!advance(escapedLines))
-                                break;
-
-                            if (isNewLineChar(peek()) || isWhiteSpace(peek()))
-                                break;
+                            U8Glyph buffer[] = { ch, 0 };
+                            // sink->diagnose(loc, LexerDiagnostics::illegalCharacterPrint, buffer);
                         }
-
-                        return TokenType::Unknown;
+                        else
+                        {
+                            // Fallback: print as hexadecimal
+                            // sink->diagnose(loc, LexerDiagnostics::illegalCharacterHex, String((unsigned char)c, 16));
+                        }
                     }
+
+                    for (;;)
+                    {
+                        advance();
+                        const auto ch = peek();
+
+                        if (isWhiteSpace(ch) || isNewLineChar(ch) || isEOF(ch))
+                            break;
+                    }
+
+                    return TokenType::Invalid;
                 }
             }
 
-            void Lexer::handleWhiteSpace(uint32_t& escapedLines)
+            void Lexer::handleWhiteSpace()
             {
                 ASSERT(isWhiteSpace(peek()))
 
                 for (;;)
                 {
-                    if (!advance(escapedLines))
-                        break;
+                    advance();
 
                     if (!isWhiteSpace(peek()))
                         break;
                 }
             }
 
-            void Lexer::handleLineComment(uint32_t& escapedLines)
+            void Lexer::handleLineComment()
             {
                 ASSERT(peek() == '/')
 
                 for (;;)
                 {
-                    if (!advance(escapedLines))
-                        break;
+                    advance();
 
-                    if (isNewLineChar(peek()))
+                    if (isNewLineChar(peek()) || isEOF(peek()))
                         break;
                 }
             }
 
-            void Lexer::handleBlockComment(uint32_t& escapedLines)
+            void Lexer::handleBlockComment()
             {
                 ASSERT(peek() == '*')
 
                 for (;;)
                 {
-                    if (!advance(escapedLines))
-                        // TODO diagnostic
-                        return;
-
-                    if (peek() == '*')
+                    switch (peek())
                     {
-                        if (!advance(escapedLines))
-                            // TODO diagnostic
+                        case kEOF:
+                            // TODO(tfoley) diagnostic!
                             return;
 
-                        switch (peek())
-                        {
-                            case '/':
-                                advance(escapedLines);
-                                return;
+                        case '\r':
+                        case '\n':
+                            handleNewlineSequence();
+                            continue;
 
-                            default:
-                                continue;
-                        }
+                        case '*':
+                            advance();
+                            switch (peek())
+                            {
+                                case '/':
+                                    advance();
+                                    return;
+
+                                default:
+                                    continue;
+                            }
+
+                        default:
+                            advance();
+                            continue;
                     }
                 }
             }
 
-            void Lexer::lexNumberSuffix(uint32_t& escapedLines)
+            void Lexer::handleNewlineSequence()
+            {
+                ASSERT(isNewLineChar(*cursor_))
+
+                const auto first = peek();
+
+                advance();
+
+                columnCounter_.Reset(1);
+                linesCounter_.Increment();
+
+                const auto second = peek();
+
+                if (second == kEOF)
+                    return;
+
+                // Handle all newline sequences
+                //  "\n"
+                //  "\r"
+                //  "\r\n"
+                //  "\n\r"
+                if (isNewLineChar(second) && first != second)
+                    advance();
+
+                columnCounter_.Reset(1);
+            }
+
+            void Lexer::handleEscapedNewline()
+            {
+                ASSERT(checkForEscapedNewline(cursor_, end_));
+
+                escapedLinesCounter_.Increment();
+
+                advance();
+                handleNewlineSequence();
+            }
+
+            void Lexer::lexNumberSuffix()
             {
                 // Be liberal in what we accept here, so that figuring out
                 // the semantics of a numeric suffix is left up to the parser
                 // and semantic checking logic.
                 for (;;)
                 {
-                    U8Char ch = peek();
+                    U8Glyph ch = peek();
 
                     // Accept any alphanumeric character, plus underscores.
                     if (('a' <= ch) && (ch <= 'z') || ('A' <= ch) && (ch <= 'Z') || ('0' <= ch) && (ch <= '9') || (ch == '_'))
                     {
-                        if (!advance(escapedLines))
-                            return;
-
+                        advance();
                         continue;
                     }
 
@@ -661,11 +667,11 @@ namespace RR
                 }
             }
 
-            void Lexer::lexDigits(uint32_t& escapedLines, uint32_t base)
+            void Lexer::lexDigits(uint32_t base)
             {
                 for (;;)
                 {
-                    U8Char ch = peek();
+                    U8Glyph ch = peek();
 
                     int32_t digitVal = 0;
                     switch (ch)
@@ -695,78 +701,67 @@ namespace RR
                         if (auto sink = lexer->getDiagnosticSink())
                         {
                             char buffer[] = { (char)c, 0 };
-                            sink->diagnose(_getSourceLoc(lexer), LexerDiagnostics::invalidDigitForBase, buffer, base);
+                            sink->diagnose(_getSourceLocation(lexer), LexerDiagnostics::invalidDigitForBase, buffer, base);
                         }*/
                         // TODO Diagnose
                     }
 
-                    if (!advance(escapedLines))
-                        return;
+                    advance();
                 }
             }
 
-            TokenType Lexer::lexNumber(uint32_t& escapedLines, uint32_t base)
+            TokenType Lexer::lexNumber(uint32_t base)
             {
                 TokenType tokenType = TokenType::IntegerLiteral;
 
                 // At the start of things, we just concern ourselves with digits
-                lexDigits(escapedLines, base);
+                lexDigits(base);
 
                 if (peek() == '.')
                 {
-                    if (!advance(escapedLines))
-                        return TokenType::FloatingPointLiteral;
-
-                    lexNumberAfterDecimalPoint(escapedLines, base);
+                    advance();
+                    lexNumberAfterDecimalPoint(base);
                     return TokenType::FloatingPointLiteral;
                 }
 
-                if (maybeLexNumberExponent(escapedLines, base))
+                if (maybeLexNumberExponent(base))
                     tokenType = TokenType::FloatingPointLiteral;
 
-                lexNumberSuffix(escapedLines);
+                lexNumberSuffix();
                 return tokenType;
             }
 
-            void Lexer::lexNumberAfterDecimalPoint(uint32_t& escapedLines, uint32_t base)
+            void Lexer::lexNumberAfterDecimalPoint(uint32_t base)
             {
-                lexDigits(escapedLines, base);
-                maybeLexNumberExponent(escapedLines, base);
-                lexNumberSuffix(escapedLines);
+                lexDigits(base);
+                maybeLexNumberExponent(base);
+                lexNumberSuffix();
             }
 
-            bool Lexer::maybeLexNumberExponent(uint32_t& escapedLines, uint32_t base)
+            bool Lexer::maybeLexNumberExponent(uint32_t base)
             {
                 if (!isNumberExponent(peek(), base))
                     return false;
 
                 // we saw an exponent marker
-                if (advance(escapedLines))
-                {
-                    // TODO Diagnose
-                    return true;
-                }
+                advance();
 
                 // Now start to read the exponent
                 switch (peek())
                 {
                     case '+':
                     case '-':
-                        if (advance(escapedLines))
-                        {
-                            // TODO Diagnose
-                            return true;
-                        }
+                        advance();
                         break;
                 }
 
                 // TODO(tfoley): it would be an error to not see digits here...
-                lexDigits(escapedLines, 10);
+                lexDigits(10);
 
                 return true;
             }
 
-            void Lexer::lexIdentifier(uint32_t& escapedLines)
+            void Lexer::lexIdentifier()
             {
                 for (;;)
                 {
@@ -774,9 +769,7 @@ namespace RR
 
                     if (('a' <= ch) && (ch <= 'z') || ('A' <= ch) && (ch <= 'Z') || ('0' <= ch) && (ch <= '9') || (ch == '_'))
                     {
-                        if (!advance(escapedLines))
-                            return;
-
+                        advance();
                         continue;
                     }
 
@@ -784,35 +777,33 @@ namespace RR
                 }
             }
 
-            void Lexer::lexStringLiteralBody(uint32_t& escapedLines, U8Char quote)
+            void Lexer::lexStringLiteralBody(U8Glyph quote)
             {
-                bool diagnostic = true;
-
-                // Every eof during lexing will produce diagnostic message
-                ON_SCOPE_EXIT({ ASSERT(!diagnostic) });
-
                 for (;;)
                 {
                     const auto ch = peek();
                     if (ch == quote)
                     {
-                        advance(escapedLines);
+                        advance();
                         break;
                     }
 
                     switch (ch)
                     {
+                        case kEOF:
+                            sink_->Dispatch(getSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
+                            return;
+
                         case '\n':
                         case '\r':
                             /*   if (auto sink = lexer->getDiagnosticSink())
                             {
-                                sink->diagnose(_getSourceLoc(lexer), LexerDiagnostics::newlineInLiteral);
+                                sink->diagnose(_getSourceLocation(lexer), LexerDiagnostics::newlineInLiteral);
                             }*/
                             return;
 
                         case '\\': // Need to handle various escape sequence cases
-                            if (!advance(escapedLines))
-                                return;
+                            advance();
 
                             switch (peek())
                             {
@@ -827,25 +818,21 @@ namespace RR
                                 case 'r':
                                 case 't':
                                 case 'v':
-                                    if (!advance(escapedLines))
-                                        return;
+                                    advance();
                                     break;
 
                                     // clang-format off
                                 case '0': case '1': case '2': case '3':
                                 case '4': case '5': case '6': case '7': // clang-format on
                                     // octal escape: up to 3 characters
-                                    if (!advance(escapedLines))
-                                        return;
+                                    advance();
 
                                     for (int ii = 0; ii < 3; ++ii)
                                     {
                                         int d = peek();
                                         if (('0' <= d) && (d <= '7'))
                                         {
-                                            if (!advance(escapedLines))
-                                                return;
-
+                                            advance();
                                             continue;
                                         }
                                         else
@@ -855,17 +842,14 @@ namespace RR
 
                                 case 'x':
                                     // hexadecimal escape: any number of characters
-                                    if (!advance(escapedLines))
-                                        return;
+                                    advance();
 
                                     for (;;)
                                     {
                                         int d = peek();
                                         if (('0' <= d) && (d <= '9') || ('a' <= d) && (d <= 'f') || ('A' <= d) && (d <= 'F'))
                                         {
-                                            if (!advance(escapedLines))
-                                                return;
-
+                                            advance();
                                             continue;
                                         }
                                         else
@@ -879,37 +863,32 @@ namespace RR
                             break;
 
                         default:
-                            if (!advance(escapedLines))
-                            {
-                                // TODO Diagnostic
-                                // sink->diagnose(_getSourceLoc(lexer), LexerDiagnostics::endOfFileInLiteral);
-                                return;
-                            }
+                            advance();
                             continue;
                     }
                 }
-
-                // If we are reached this point. We didn't occur any eof. Disable diagnosting message.
-                diagnostic = false;
             }
 
-            bool Lexer::advance(uint32_t& escapedLines)
+            void Lexer::advance()
             {
                 ASSERT(!isReachEOF());
 
-                cursor_++;
+                utf8::next(cursor_, end_);
+
+                columnCounter_.Increment();
 
                 if (!isReachEOF() && peek() == '\\')
                 {
                     if (checkForEscapedNewline(cursor_, end_))
-                    {
-                        escapedLines++;
-                        handleEscapedNewline(cursor_, end_);
-                    }
+                        handleEscapedNewline();
                 }
-
-                return !isReachEOF();
             }
+
+            SourceLocation Lexer::getSourceLocation()
+            {
+                return SourceLocation(linesCounter_.Value(), columnCounter_.Value());
+            }
+
         }
     }
 }
