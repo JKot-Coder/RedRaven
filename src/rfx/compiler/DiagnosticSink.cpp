@@ -33,6 +33,8 @@ namespace RR
                     errorCount_++;
 
                 (void)formattedMessage;
+
+                Log::Print::Error(formattedMessage);
                 /*
             if (writer)
             {

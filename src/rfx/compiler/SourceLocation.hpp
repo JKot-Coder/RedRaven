@@ -118,7 +118,7 @@ namespace RR
 
             public:
                 //  SourceFile(SourceManager* sourceManager, const PathInfo& pathInfo, size_t contentSize);
-                ~SourceFile();
+                ~SourceFile() = default;
 
                 /// True if has full set content
                 // bool HasContent() const { return contentBlob_ != nullptr; }

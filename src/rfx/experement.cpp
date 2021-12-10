@@ -2,20 +2,37 @@
 
 #include <slang.h>
 
+#include "compiler/DiagnosticCore.hpp"
 #include "compiler/PreprocessorContext.hpp"
+#include "compiler/SourceLocation.hpp"
+#include "compiler/Token.hpp"
 
 #include <fstream>
 
 void test2()
 {
-    RR::Rfx::Compiler::PreprocessorContext preprocessor;
-
     std::ifstream instream("test2.slang");
     RR::U8String input(
         std::istreambuf_iterator<char>(instream.rdbuf()),
         std::istreambuf_iterator<char>());
 
-    preprocessor.Parse(input);
+    auto sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>(); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
+    sourceFile->SetContents(input);
+
+    auto diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();
+    auto preprocessor = std::make_shared<RR::Rfx::Compiler::PreprocessorContext>(sourceFile, diagnosticSink);
+    auto tokens = preprocessor->ReadAllTokens();
+
+    std::vector<RR::Rfx::Compiler::Token> tokens2 = *tokens;
+
+
+    for (auto token : tokens2)
+    {
+        Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}", RR::Rfx::Compiler::TokenTypeToString(token.type), token.GetContentString(), token.SourceLocation.line, token.SourceLocation.column);
+
+        if (token.type == RR::Rfx::Compiler::TokenType::EndOfFile)
+            break;
+    }
 }
 
 void test()
@@ -41,10 +58,9 @@ void test()
     session->createCompileRequest(request.writeRef());
 
     //request->setCodeGenTarget(SLANG_TARGET_NONE);
-  // request->setOutputContainerFormat(SLANG_CONTAINER_FORMAT_SLANG_MODULE);
+    // request->setOutputContainerFormat(SLANG_CONTAINER_FORMAT_SLANG_MODULE);
 
     Slang::ComPtr<slang::IBlob> codeBlob;
-
 
     int translationUnitIndex = spAddTranslationUnit(request, SLANG_SOURCE_LANGUAGE_SLANG, "");
     spAddTranslationUnitSourceFile(request, translationUnitIndex, "test.slang");
@@ -60,16 +76,14 @@ void test()
         session.setNull();
     }
 
-
- //   int entryPointIndex = 0; // only one entry point
-  //  int targetIndex = 0; // only one target
+    //   int entryPointIndex = 0; // only one entry point
+    //  int targetIndex = 0; // only one target
     ::Slang::ComPtr<slang::IBlob> kernelBlob;
     ::Slang::ComPtr<slang::IBlob> diagnostics;
 
     const char* casda = (const char*)request->getEntryPointSource(0);
     Log::Print::Warning(casda);
 
-    
     request->getContainerCode(codeBlob.writeRef());
 
     if (codeBlob)

@@ -20,14 +20,16 @@
 // 1xxxx - Lexical analysis
 //
 
-DIAGNOSTIC(10000, Error, illegalCharacterPrint, "illegal character '$0'")
-DIAGNOSTIC(10000, Error, illegalCharacterHex, "illegal character (0x$0)")
+DIAGNOSTIC(10000, Error, illegalCharacterPrint, "illegal character '{}'")
+DIAGNOSTIC(10000, Error, illegalCharacterHex, "illegal character ({:#x})")
 DIAGNOSTIC(10001, Error, illegalCharacterLiteral, "illegal character literal")
 
 DIAGNOSTIC(10002, Warning, octalLiteral, "'0' prefix indicates octal literal")
-DIAGNOSTIC(10003, Error, invalidDigitForBase, "invalid digit for base-$1 literal: '$0'")
+DIAGNOSTIC(10003, Error, invalidDigitForBase, "invalid digit for base-{1} literal: '{0}'")
 
 DIAGNOSTIC(10004, Error, endOfFileInLiteral, "end of file in literal")
 DIAGNOSTIC(10005, Error, newlineInLiteral, "newline in literal")
+
+DIAGNOSTIC(10006, Error, endOfFileInBlockComment, "end of file in block comment")
 
 #undef DIAGNOSTIC

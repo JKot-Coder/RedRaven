@@ -55,7 +55,7 @@ namespace RR
                 DiagnosticSink() = default;
 
                 template <typename... Args>
-                inline void Dispatch(SourceLocation const& location, const DiagnosticInfo& info, Args&&... args)
+                inline void Diagnose(SourceLocation const& location, const DiagnosticInfo& info, Args&&... args)
                 {
                     Diagnostic diagnostic;
                     diagnostic.errorID = info.id;

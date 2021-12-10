@@ -17,7 +17,7 @@ namespace RR
 
             U8String TokenTypeToString(TokenType type);
 
-            struct Token : NonCopyable
+            struct Token 
             {
                 Token() = delete;
 

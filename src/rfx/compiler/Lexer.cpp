@@ -121,7 +121,7 @@ namespace RR
                   allocator_(new LinearAllocator(1024))
             {
                 ASSERT(sourceView)
-                ASSERT(diagnosticSink)                   
+                ASSERT(diagnosticSink)
 
                 auto content = sourceView->GetContent();
                 cursor_ = content.Begin();
@@ -196,6 +196,33 @@ namespace RR
 
                 const auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
                 return Token(tokenType, tokenSlice, SourceLocation);
+            }
+
+            std::shared_ptr<std::vector<Token>> Lexer::LexAllSemanticTokens()
+            {
+                auto tokenList = std::make_shared<std::vector<Token>>();
+
+                for (;;)
+                {
+                    const auto& token = GetNextToken();
+
+                    switch (token.type)
+                    {
+                        default:
+                            break;
+
+                        case TokenType::WhiteSpace:
+                        case TokenType::BlockComment:
+                        case TokenType::LineComment:
+                        case TokenType::NewLine:
+                            continue;
+                    }
+
+                    tokenList->push_back(token);
+
+                    if (token.type == TokenType::EndOfFile)
+                        return tokenList;
+                }
             }
 
             TokenType Lexer::scanToken()
@@ -291,7 +318,7 @@ namespace RR
                             // clang-format off
                             case '0': case '1': case '2': case '3': case '4': 
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
-                                sink_->Dispatch(loc, LexerDiagnostics::octalLiteral);
+                                sink_->Diagnose(loc, LexerDiagnostics::octalLiteral);
                                 return lexNumber(8);
                         }
                     }
@@ -514,22 +541,21 @@ namespace RR
                     // If none of the above cases matched, then we have an
                     // unexpected/invalid character.
 
-                    //auto loc = _getSourceLocation(lexer);
-
-                    //TODO diagnostic
-                    //   if (auto sink = lexer->getDiagnosticSink())
+                    auto loc = getSourceLocation();
                     {
                         const auto ch = peek();
 
                         if (ch >= 0x20 && ch <= 0x7E)
                         {
-                            U8Glyph buffer[] = { ch, 0 };
-                            // sink->diagnose(loc, LexerDiagnostics::illegalCharacterPrint, buffer);
+                            U8String charString;
+                            utf8::append(ch, charString);
+
+                            sink_->Diagnose(loc, LexerDiagnostics::illegalCharacterPrint, charString);
                         }
                         else
                         {
                             // Fallback: print as hexadecimal
-                            // sink->diagnose(loc, LexerDiagnostics::illegalCharacterHex, String((unsigned char)c, 16));
+                            sink_->Diagnose(loc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
                         }
                     }
 
@@ -581,7 +607,7 @@ namespace RR
                     switch (peek())
                     {
                         case kEOF:
-                            // TODO(tfoley) diagnostic!
+                            sink_->Diagnose(getSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
                             return;
 
                         case '\r':
@@ -697,13 +723,10 @@ namespace RR
                     } // clang-format on
 
                     if (digitVal >= int32_t(base))
-                    { /*
-                        if (auto sink = lexer->getDiagnosticSink())
-                        {
-                            char buffer[] = { (char)c, 0 };
-                            sink->diagnose(_getSourceLocation(lexer), LexerDiagnostics::invalidDigitForBase, buffer, base);
-                        }*/
-                        // TODO Diagnose
+                    {
+                        U8String charString;
+                        utf8::append(ch, charString);
+                        sink_->Diagnose(getSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
                     }
 
                     advance();
@@ -791,15 +814,12 @@ namespace RR
                     switch (ch)
                     {
                         case kEOF:
-                            sink_->Dispatch(getSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
+                            sink_->Diagnose(getSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
                             return;
 
                         case '\n':
                         case '\r':
-                            /*   if (auto sink = lexer->getDiagnosticSink())
-                            {
-                                sink->diagnose(_getSourceLocation(lexer), LexerDiagnostics::newlineInLiteral);
-                            }*/
+                            sink_->Diagnose(getSourceLocation(), LexerDiagnostics::newlineInLiteral);
                             return;
 
                         case '\\': // Need to handle various escape sequence cases

@@ -12,16 +12,16 @@ namespace RR
 {
     namespace Common
     {
-        inline const float EPS = FLT_EPSILON;
-        inline const float INF = INFINITY;
-        inline const float PI = 3.14159265358979323846f;
-        inline const float PI2 = PI * 2.0f;
-        inline const float HALF_PI = PI / 2.0f;
-        inline const float DEG2RAD = PI / 180.0f;
-        inline const float RAD2DEG = 180.0f / PI;
-        inline const float COS30 = 0.86602540378f;
-        inline const float COS45 = 0.70710678118f;
-        inline const float COS60 = 0.50000000000f;
+        static constexpr float EPS = FLT_EPSILON;
+        static constexpr float INF = INFINITY;
+        static constexpr float PI = 3.14159265358979323846f;
+        static constexpr float PI2 = PI * 2.0f;
+        static constexpr float HALF_PI = PI / 2.0f;
+        static constexpr float DEG2RAD = PI / 180.0f;
+        static constexpr float RAD2DEG = 180.0f / PI;
+        static constexpr float COS30 = 0.86602540378f;
+        static constexpr float COS45 = 0.70710678118f;
+        static constexpr float COS60 = 0.50000000000f;
 
         template <typename T>
         inline constexpr T Sqr(T x) { return x * x; };

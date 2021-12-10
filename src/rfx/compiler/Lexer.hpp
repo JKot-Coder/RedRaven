@@ -29,6 +29,7 @@ namespace RR
                 ~Lexer();
 
                 Token GetNextToken();
+                std::shared_ptr<std::vector<Token>> LexAllSemanticTokens();
 
             private:
                 enum class Flags : uint32_t
