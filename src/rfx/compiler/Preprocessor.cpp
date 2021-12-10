@@ -1,4 +1,4 @@
-#include "PreprocessorContext.hpp"
+#include "Preprocessor.hpp"
 
 #include "compiler/DiagnosticSink.hpp"
 #include "compiler/Lexer.hpp"
@@ -9,7 +9,7 @@ namespace RR
     {
         namespace Compiler
         {
-            struct PreprocessorContext::InputFile
+            struct Preprocessor::InputFile
             {
                 InputFile(
                     // Preprocessor* preprocessor,
@@ -53,7 +53,7 @@ namespace RR
                 //ExpansionInputStream* getExpansionStream() { return m_expansionStream; }
 
             private:
-                friend class PreprocessorContext;
+                friend class Preprocessor;
 
                 /// The parent preprocessor
                 //Preprocessor* m_preprocessor = nullptr;
@@ -75,11 +75,11 @@ namespace RR
                 // ExpansionInputStream* m_expansionStream;
             };
 
-            PreprocessorContext::~PreprocessorContext()
+            Preprocessor::~Preprocessor()
             {
             }
 
-            PreprocessorContext::PreprocessorContext(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+            Preprocessor::Preprocessor(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
                 : sourceFile_(sourceFile),
                   sink_(diagnosticSink)
             {
@@ -88,17 +88,17 @@ namespace RR
                 lexer_ = std::make_unique<Lexer>(sourceView, diagnosticSink);
             }
 
-            void PreprocessorContext::pushInputFile(const std::shared_ptr<InputFile>& inputFile)
+            void Preprocessor::pushInputFile(const std::shared_ptr<InputFile>& inputFile)
             {
                 inputFile->parent_ = currentInputFile_;
                 currentInputFile_ = inputFile;
             }
 
-            void PreprocessorContext::popInputFile()
+            void Preprocessor::popInputFile()
             {
             }
 
-            std::shared_ptr<std::vector<Token>> PreprocessorContext::ReadAllTokens()
+            std::shared_ptr<std::vector<Token>> Preprocessor::ReadAllTokens()
             {
                 auto tokens = std::make_shared<std::vector<Token>>();
                 for (;;)
@@ -127,7 +127,7 @@ namespace RR
                 }
             }
 
-            Token PreprocessorContext::ReadToken()
+            Token Preprocessor::ReadToken()
             {
                 return lexer_->GetNextToken();
             }

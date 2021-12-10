@@ -3,7 +3,7 @@
 #include <slang.h>
 
 #include "compiler/DiagnosticCore.hpp"
-#include "compiler/PreprocessorContext.hpp"
+#include "compiler/Preprocessor.hpp"
 #include "compiler/SourceLocation.hpp"
 #include "compiler/Token.hpp"
 
@@ -20,7 +20,7 @@ void test2()
     sourceFile->SetContents(input);
 
     auto diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();
-    auto preprocessor = std::make_shared<RR::Rfx::Compiler::PreprocessorContext>(sourceFile, diagnosticSink);
+    auto preprocessor = std::make_shared<RR::Rfx::Compiler::Preprocessor>(sourceFile, diagnosticSink);
     auto tokens = preprocessor->ReadAllTokens();
 
     std::vector<RR::Rfx::Compiler::Token> tokens2 = *tokens;

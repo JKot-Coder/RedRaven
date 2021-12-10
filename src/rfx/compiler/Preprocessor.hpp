@@ -11,16 +11,16 @@ namespace RR
             class Lexer;
             struct Token;
 
-            class PreprocessorContext final
+            class Preprocessor final
             {
             public:
-                PreprocessorContext() = delete;
-                PreprocessorContext(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
-                ~PreprocessorContext();
+                Preprocessor() = delete;
+                Preprocessor(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+                ~Preprocessor();
 
                 // read the entire input into tokens
                 std::shared_ptr<std::vector<Token>> ReadAllTokens();
-                Token PreprocessorContext::ReadToken();
+                Token Preprocessor::ReadToken();
 
             private:
                 struct InputFile;
