@@ -129,7 +129,59 @@ namespace RR
 
             Token Preprocessor::ReadToken()
             {
-                return lexer_->GetNextToken();
+                for (;;)
+                {
+                    /* auto inputFile = currentInputFile_;
+                    if (!inputFile)
+                        return preprocessor->endOfFileToken;
+
+                    auto expansionStream = inputFile->getExpansionStream();
+
+                    // Look at the next raw token in the input.
+                    Token token = expansionStream->peekRawToken();     */
+                    Token token = lexer_->GetNextToken();
+                    if (token.type == TokenType::EndOfFile)
+                    {
+                        //  preprocessor->popInputFile();
+                        //  continue;
+                        return token;
+                    }
+
+                    // If we have a directive (`#` at start of line) then handle it
+                    if ((token.type == TokenType::Pound) && (token.flags & TokenFlag::AtStartOfLine))
+                    {
+                        // Skip the `#`
+                        expansionStream->readRawToken();
+
+                        // Create a context for parsing the directive
+                        PreprocessorDirectiveContext directiveContext;
+                        directiveContext.m_preprocessor = preprocessor;
+                        directiveContext.m_parseError = false;
+                        directiveContext.m_haveDoneEndOfDirectiveChecks = false;
+                        directiveContext.m_inputFile = inputFile;
+
+                        // Parse and handle the directive
+                        HandleDirective(&directiveContext);
+                        continue;
+                    }
+
+                    // otherwise, if we are currently in a skipping mode, then skip tokens
+                    if (inputFile->isSkipping())
+                    {
+                        expansionStream->readRawToken();
+                        continue;
+                    }
+
+                    token = expansionStream->peekToken();
+                    if (token.type == TokenType::EndOfFile)
+                    {
+                        preprocessor->popInputFile();
+                        continue;
+                    }
+
+                    expansionStream->readToken();
+                    return token;
+                }
             }
         }
     }
