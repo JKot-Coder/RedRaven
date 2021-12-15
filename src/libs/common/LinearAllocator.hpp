@@ -88,7 +88,6 @@ namespace RR
 
             inline void Free()
             {
-                const size_t baseCapasity = pages_.front()->GetSize();
                 pages_.clear();
             }
 
@@ -98,7 +97,7 @@ namespace RR
                 return pages_.back().get();
             }
 
-            inline void addNewPage(size_t size);
+            INLINE void addNewPage(size_t size);
 
             std::vector<std::unique_ptr<Page>> pages_;
             static constexpr inline size_t alignment_ = 16;

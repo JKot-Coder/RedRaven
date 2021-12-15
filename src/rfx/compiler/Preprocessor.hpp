@@ -20,7 +20,7 @@ namespace RR
 
                 // read the entire input into tokens
                 std::shared_ptr<std::vector<Token>> ReadAllTokens();
-                Token Preprocessor::ReadToken();
+                Token ReadToken();
 
             private:
                 struct InputFile;

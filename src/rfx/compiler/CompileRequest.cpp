@@ -22,12 +22,13 @@ namespace
 
     static_assert(std::is_same<std::underlying_type<Rfx::CompileTarget>::type, uint32_t>::value);
     static_assert(std::size(compileTargetConversion) == static_cast<uint32_t>(Rfx::CompileTarget::Count));
-
+/*
     SlangCompileTarget getCompileTargetConversion(Rfx::CompileTarget target)
     {
         ASSERT(compileTargetConversion[static_cast<uint32_t>(target)].from == target);
         return compileTargetConversion[static_cast<uint32_t>(target)].to;
     }
+    */
 }
 
 namespace Rfx
@@ -119,6 +120,7 @@ namespace Rfx
             std::ignore = entryPointIndex;
            
             const auto result = request_->getEntryPoint(entryPointIndex, entryPoint.writeRef());
+            (void) result;
             ASSERT(SLANG_SUCCEEDED(request_->getEntryPoint(entryPointIndex, entryPoint.writeRef())));
 
             std::vector<slang::IComponentType*> components;

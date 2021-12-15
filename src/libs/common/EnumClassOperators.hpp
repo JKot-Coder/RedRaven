@@ -48,7 +48,7 @@ namespace RR
                 using uderlyingType = std::underlying_type<T>;
 
                 static_assert(std::is_enum<T>::value, "Must be a scoped enum!");
-                static_assert(!std::is_convertible<T, typename uderlyingType>::value, "Must be a scoped enum!");
+                static_assert(!std::is_convertible<T, typename uderlyingType::type>::value, "Must be a scoped enum!");
 
                 return std::hash<typename uderlyingType::type> {}(static_cast<typename uderlyingType::type>(value));
             }
@@ -57,7 +57,7 @@ namespace RR
         template <typename EnumT>
         bool IsSet(EnumT value, EnumT flag)
         {
-            using UnderlyingType = std::underlying_type<EnumT>::type;
+            using UnderlyingType = std::underlying_type<EnumT>;
             static_assert(std::is_enum<EnumT>::value, "EnumType shoud be be an enum.");
             static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected.");
             return ((static_cast<UnderlyingType>(value) & static_cast<UnderlyingType>(flag)) == static_cast<UnderlyingType>(flag));
@@ -66,7 +66,7 @@ namespace RR
         template <typename EnumT>
         bool IsAny(EnumT value, EnumT flag)
         {
-            using UnderlyingType = std::underlying_type<EnumT>::type;
+            using UnderlyingType = std::underlying_type<EnumT>;
             static_assert(std::is_enum<EnumT>::value, "EnumType shoud be be an enum.");
             static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected.");
             return ((static_cast<UnderlyingType>(value) & static_cast<UnderlyingType>(flag)) != static_cast<UnderlyingType>(0));

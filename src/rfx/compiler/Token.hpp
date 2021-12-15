@@ -34,9 +34,9 @@ namespace RR
                     return U8String(stringSlice.Begin(), stringSlice.End());
                 }
 
+                TokenType type;
                 UnownedStringSlice stringSlice;
                 SourceLocation SourceLocation;
-                TokenType type;
             };
         }
     }

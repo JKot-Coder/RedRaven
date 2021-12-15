@@ -12,8 +12,8 @@ namespace RR
 {
     namespace Common
     {
-        static constexpr float EPS = FLT_EPSILON;
-        static constexpr float INF = INFINITY;
+        static constexpr float EPS = std::numeric_limits<float>::epsilon();
+        static constexpr float INF = std::numeric_limits<float>::infinity();
         static constexpr float PI = 3.14159265358979323846f;
         static constexpr float PI2 = PI * 2.0f;
         static constexpr float HALF_PI = PI / 2.0f;
@@ -38,26 +38,24 @@ namespace RR
         constexpr auto Identity = Initialization::Identity;
 
         // Angles
-        enum class AngleUnitType
+        enum class AngleUnitType : uint32_t
         {
             Radian,
             Degree
         };
 
-        using UT = AngleUnitType;
-
         template <AngleUnitType UT, typename T>
         struct AngleUnitLimits;
 
         template <>
-        struct AngleUnitLimits<UT::Degree, float>
+        struct AngleUnitLimits<AngleUnitType::Degree, float>
         {
             static inline float MAX = 360.0f;
             static inline float MIN = 0.0f;
         };
 
         template <>
-        struct AngleUnitLimits<UT::Radian, float>
+        struct AngleUnitLimits<AngleUnitType::Radian, float>
         {
             static inline float MAX = PI2;
             static inline float MIN = 0.0f;
@@ -66,8 +64,8 @@ namespace RR
         template <AngleUnitType UT>
         struct AngleUnit;
 
-        using Radian = AngleUnit<UT::Radian>;
-        using Degree = AngleUnit<UT::Degree>;
+        using Radian = AngleUnit<AngleUnitType::Radian>;
+        using Degree = AngleUnit<AngleUnitType::Degree>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Common
@@ -176,32 +174,34 @@ namespace RR
                 return *this;
             };
 
-            template <AngleUnitType T, typename = std::enable_if<UT != T, void>::type>
+            template <AngleUnitType T, typename =  std::enable_if_t<UT != T, void>>
+            constexpr AngleUnit(AngleUnit<T> d) : value_(cast<T, UT>(d.Value())) { }
+
+            template <AngleUnitType T, std::enable_if_t<UT != T, void>>
             constexpr AngleUnit(const AngleUnit<T>& d) : value_(cast<T, UT>(d.Value())) { }
 
-            template <AngleUnitType T, typename = std::enable_if<UT != T, void>::type>
+            template <AngleUnitType T, std::enable_if_t<UT != T, void>>
             AngleUnit<UT>& operator=(const AngleUnit<T>& d)
             {
                 value_ = cast<T, UT>(d.Value());
                 return *this;
             }
 
-            template <typename = std::enable_if<UT == UT::Radian, void>::type>
-            inline constexpr AngleUnit<UT::Degree> ToDegree() const
+            // todo degree.ToDegree() is workning?
+            inline constexpr AngleUnit<AngleUnitType::Degree> ToDegree() const
             {
-                return AngleUnit<UT::Degree>(cast<UT, UT::Degree>(value_));
+                return AngleUnit<AngleUnitType::Degree>(cast<UT, AngleUnitType::Degree>(value_));
             }
 
-            template <typename = std::enable_if<UT == UT::Degree, void>::type>
-            inline constexpr AngleUnit<UT::Radian> ToRadian() const
+            inline constexpr AngleUnit<AngleUnitType::Radian> ToRadian() const
             {
-                return AngleUnit<UT::Radian>(cast<UT, UT::Radian>(value_));
+                return AngleUnit<AngleUnitType::Radian>(cast<UT, AngleUnitType::Radian>(value_));
             }
 
             constexpr FloatFormat Value() const { return value_; }
 
             /** Wraps the angle */
-            AngleUnit<UT> Wrap()
+          /*  AngleUnit<UT> Wrap()
             {
                 T result = fmod(mDeg, AngleUnitLimits<UT, FloatFormat>::MAX);
 
@@ -209,7 +209,7 @@ namespace RR
                     result += static_cast<T>(AngleUnitLimits<UT, FloatFormat>::MAX);
 
                 return AngleUnit<UT>(result);
-            }
+            }*/
 
             const AngleUnit<UT>& operator+() const { return *this; }
             AngleUnit<UT> operator+(const AngleUnit<UT>& d) const { return AngleUnit<UT>(value_ + d.value_); }
@@ -255,22 +255,22 @@ namespace RR
                 return *this;
             }
 
-            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
-            AngleUnit<UT> operator+(const AngleUnit<T>& d) const { return AngleUnit<UT>(value_ + d.cast<UT>()); }
-            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
-            AngleUnit<UT> operator-(const AngleUnit<T>& d) const { return AngleUnit<UT>(value_ - d.cast<UT>()); }
+            template <AngleUnitType T, std::enable_if_t<UT != T>>
+            AngleUnit<UT> operator+(const AngleUnit<T>& d) const { return AngleUnit<UT>(value_ + d.template cast<UT>()); }
+            template <AngleUnitType T, std::enable_if_t<UT != T>>
+            AngleUnit<UT> operator-(const AngleUnit<T>& d) const { return AngleUnit<UT>(value_ - d.template cast<UT>()); }
 
-            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
+            template <AngleUnitType T, std::enable_if_t<UT != T>>
             AngleUnit<UT>& operator+=(const AngleUnit<T>& d)
             {
-                value_ += d.cast<UT>();
+                value_ += d.template cast<UT>();
                 return *this;
             }
 
-            template <AngleUnitType T, typename = std::enable_if<UT != T>::type>
+            template <AngleUnitType T, typename std::enable_if<UT != T>::type>
             AngleUnit<UT>& operator-=(const AngleUnit<T>& d)
             {
-                value_ -= d.cast<UT>();
+                value_ -= d.template cast<UT>();
                 return *this;
             }
 
@@ -293,10 +293,10 @@ namespace RR
             static inline constexpr FloatFormat cast(FloatFormat value);
 
             template <>
-            static inline constexpr FloatFormat cast<UT::Degree, UT::Radian>(FloatFormat value) { return value * DEG2RAD; }
+            static inline constexpr FloatFormat cast<AngleUnitType::Degree, AngleUnitType::Radian>(FloatFormat value) { return value * DEG2RAD; }
 
             template <>
-            static inline constexpr FloatFormat cast<UT::Radian, UT::Degree>(FloatFormat value) { return value * RAD2DEG; }
+            static inline constexpr FloatFormat cast<AngleUnitType::Radian, AngleUnitType::Degree>(FloatFormat value) { return value * RAD2DEG; }
 
             FloatFormat value_ = 0.0f;
         };
@@ -487,7 +487,7 @@ namespace RR
 
             FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
-            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            template <typename = std::enable_if_t<std::is_floating_point<T>::value>>
             Vector<SIZE, T> Normal() const
             {
                 FloatFormat s = Length();
@@ -500,16 +500,16 @@ namespace RR
         };
 
         template <typename T>
-        inline const Vector<2, T> Vector<2, T>::ZERO = Vector<2, T>(0);
+        inline const Vector<Vector<2, T>::SIZE, T> Vector<2, T>::ZERO = Vector<2, T>(0);
 
         template <typename T>
-        inline const Vector<2, T> Vector<2, T>::ONE = Vector<2, T>(1);
+        inline const Vector<Vector<2, T>::SIZE, T> Vector<2, T>::ONE = Vector<2, T>(1);
 
         template <typename T>
-        inline const Vector<2, T> Vector<2, T>::UNIT_X = Vector<2, T>(1, 0);
+        inline const Vector<Vector<2, T>::SIZE, T> Vector<2, T>::UNIT_X = Vector<2, T>(1, 0);
 
         template <typename T>
-        inline const Vector<2, T> Vector<2, T>::UNIT_Y = Vector<2, T>(0, 1);
+        inline const Vector<Vector<2, T>::SIZE, T> Vector<2, T>::UNIT_Y = Vector<2, T>(0, 1);
 
         using Vector2 = Vector<2, float>;
         using Vector2i = Vector<2, int32_t>;
@@ -555,7 +555,7 @@ namespace RR
                 return Vector<SIZE, U>(
                     static_cast<U>(x),
                     static_cast<U>(y),
-                    static_cast<U>(z), );
+                    static_cast<U>(z));
             }
 
             bool operator==(const Vector<SIZE, T>& v) const { return x == v.x && y == v.y && z == v.z; }
@@ -653,18 +653,18 @@ namespace RR
                 return vec3(x * c - z * s, y, x * s + z * c);
             }
 
-            Radian AngleBetween(const Vector<SIZE, T>& destv) const
+            Radian AngleBetween(const Vector<SIZE, T>& dest) const
             {
                 float lenProduct = static_cast<float>(Length() * dest.length());
 
                 // Divide by zero check
-                if (lenProduct < std::numeric_limits<float>::epsilon)
-                    lenProduct = std::numeric_limits<float>::epsilon;
+                if (lenProduct < std::numeric_limits<float>::epsilon())
+                    lenProduct = std::numeric_limits<float>::epsilon();
 
                 float f = Dot(dest) / lenProduct;
-                f = Math::Clamp(f, -1.0f, 1.0f);
+                f = Clamp(f, -1.0f, 1.0f);
 
-                return Math::acos(f);
+                return Acos(f);
             }
 
             Radian AngleX() const { return atan2f(sqrtf(x * x + z * z), y); }
@@ -674,7 +674,7 @@ namespace RR
             // Shared vectors functions
             T& operator[](int index) const
             {
-                ASSERT(index >= 0 && index < Len)
+                ASSERT(index >= 0 && index < SIZE)
                 return ((T*)this)[index];
             }
 
@@ -691,7 +691,7 @@ namespace RR
 
             FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
-            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            template <typename = std::enable_if_t<std::is_floating_point<T>::value>>
             Vector<SIZE, T> Normal() const
             {
                 FloatFormat s = Length();
@@ -705,25 +705,25 @@ namespace RR
         };
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::ZERO = Vector<3, T>(0);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::ZERO = Vector<3, T>(0);
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::ONE = Vector<3, T>(1);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::ONE = Vector<3, T>(1);
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::UNIT_X = Vector<3, T>(1, 0, 0);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::UNIT_X = Vector<3, T>(1, 0, 0);
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::UNIT_Y = Vector<3, T>(0, 1, 0);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::UNIT_Y = Vector<3, T>(0, 1, 0);
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::UNIT_Z = Vector<3, T>(0, 0, 1);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::UNIT_Z = Vector<3, T>(0, 0, 1);
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::UP = Vector<3, T>(0, 1, 0);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::UP = Vector<3, T>(0, 1, 0);
 
         template <typename T>
-        inline const Vector<3, T> Vector<3, T>::FORWARD = Vector<3, T>(0, 0, 1);
+        inline const Vector<Vector<3, T>::SIZE, T> Vector<3, T>::FORWARD = Vector<3, T>(0, 0, 1);
 
         using Vector3 = Vector<3, float>;
         using Vector3u = Vector<3, uint32_t>;
@@ -876,7 +876,7 @@ namespace RR
 
             FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
-            template <typename = std::enable_if<std::is_floating_point<T>::value>::type>
+            template <typename = std::enable_if_t<std::is_floating_point<T>::value>>
             Vector<SIZE, T> Normal() const
             {
                 FloatFormat s = Length();
@@ -891,22 +891,22 @@ namespace RR
         };
 
         template <typename T>
-        inline const Vector<4, T> Vector<4, T>::ZERO = Vector<4, T>(0);
+        inline const Vector<Vector<4, T>::SIZE, T> Vector<4, T>::ZERO = Vector<4, T>(0);
 
         template <typename T>
-        inline const Vector<4, T> Vector<4, T>::ONE = Vector<4, T>(1);
+        inline const Vector<Vector<4, T>::SIZE, T> Vector<4, T>::ONE = Vector<4, T>(1);
 
         template <typename T>
-        inline const Vector<4, T> Vector<4, T>::UNIT_X = Vector<4, T>(1, 0, 0, 0);
+        inline const Vector<Vector<4, T>::SIZE, T> Vector<4, T>::UNIT_X = Vector<4, T>(1, 0, 0, 0);
 
         template <typename T>
-        inline const Vector<4, T> Vector<4, T>::UNIT_Y = Vector<4, T>(0, 1, 0, 0);
+        inline const Vector<Vector<4, T>::SIZE, T> Vector<4, T>::UNIT_Y = Vector<4, T>(0, 1, 0, 0);
 
         template <typename T>
-        inline const Vector<4, T> Vector<4, T>::UNIT_Z = Vector<4, T>(0, 0, 1, 0);
+        inline const Vector<Vector<4, T>::SIZE, T> Vector<4, T>::UNIT_Z = Vector<4, T>(0, 0, 1, 0);
 
         template <typename T>
-        inline const Vector<4, T> Vector<4, T>::UNIT_W = Vector<4, T>(0, 0, 0, 1);
+        inline const Vector<Vector<4, T>::SIZE, T> Vector<4, T>::UNIT_W = Vector<4, T>(0, 0, 0, 1);
 
         using Vector4 = Vector<4, float>;
 
@@ -1762,7 +1762,7 @@ namespace RR
         bool Box<T>::Intersects(const Box<T>& box) const
         {
             Box<T> intersection;
-            return intersects(rect, intersection);
+            return intersects(box, intersection);
         }
 
         template <typename T>

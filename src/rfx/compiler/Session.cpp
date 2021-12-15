@@ -10,7 +10,7 @@ namespace Rfx
     {
         Session::Session()
         {
-            slang::createGlobalSession(session_.writeRef());
+           // slang::createGlobalSession(session_.writeRef());
             ASSERT(session_);            
         }
 

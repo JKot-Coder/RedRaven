@@ -88,7 +88,7 @@ namespace RR
             ASSERT(size <= MAX_PAGE_SIZE)
             ASSERT(Common::IsPowerOfTwo(size))
 
-            pages_.push_back(std::move(std::make_unique<Page>(size)));
+            pages_.push_back(std::make_unique<Page>(size));
         }
     }
 }

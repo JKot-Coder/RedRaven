@@ -12,6 +12,9 @@ namespace Rfx
 
         bool Program::GetShaderProgram(std::string& log)
         {
+            (void) log;
+            return false;
+            /*
             Slang::ComPtr<ISlangBlob> diagnostics;
             auto programReflection = composedProgram_->getLayout(0, diagnostics.writeRef());
 
@@ -43,7 +46,7 @@ namespace Rfx
                     return false;
             }
 
-            return true;
+            return true;*/
         }
     }
 }

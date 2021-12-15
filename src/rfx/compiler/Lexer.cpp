@@ -116,9 +116,9 @@ namespace RR
             }
 
             Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-                : sourceView_(sourceView),
-                  sink_(diagnosticSink),
-                  allocator_(new LinearAllocator(1024))
+                :  allocator_(new LinearAllocator(1024)),
+                  sourceView_(sourceView),
+                  sink_(diagnosticSink)
             {
                 ASSERT(sourceView)
                 ASSERT(diagnosticSink)
@@ -147,7 +147,6 @@ namespace RR
                 const auto tokenBegin = cursor_;
                 const auto tokenType = scanToken();
                 const auto tokenEnd = cursor_;
-                const auto tokenLine = linesCounter_.Value();
 
                 if (escapedLinesCounter_.Value() > 0)
                 {
@@ -681,7 +680,10 @@ namespace RR
                     U8Glyph ch = peek();
 
                     // Accept any alphanumeric character, plus underscores.
-                    if (('a' <= ch) && (ch <= 'z') || ('A' <= ch) && (ch <= 'Z') || ('0' <= ch) && (ch <= '9') || (ch == '_'))
+                    if ((('a' <= ch) && (ch <= 'z')) ||
+                        (('A' <= ch) && (ch <= 'Z')) ||
+                        (('0' <= ch) && (ch <= '9')) ||
+                        (ch == '_'))
                     {
                         advance();
                         continue;
@@ -790,7 +792,10 @@ namespace RR
                 {
                     const auto ch = peek();
 
-                    if (('a' <= ch) && (ch <= 'z') || ('A' <= ch) && (ch <= 'Z') || ('0' <= ch) && (ch <= '9') || (ch == '_'))
+                    if ((('a' <= ch) && (ch <= 'z')) ||
+                        (('A' <= ch) && (ch <= 'Z')) ||
+                        (('0' <= ch) && (ch <= '9')) ||
+                        (ch == '_'))
                     {
                         advance();
                         continue;
@@ -867,7 +872,9 @@ namespace RR
                                     for (;;)
                                     {
                                         int d = peek();
-                                        if (('0' <= d) && (d <= '9') || ('a' <= d) && (d <= 'f') || ('A' <= d) && (d <= 'F'))
+                                        if ((('0' <= d) && (d <= '9')) ||
+                                            (('a' <= d) && (d <= 'f')) ||
+                                            (('A' <= d) && (d <= 'F')))
                                         {
                                             advance();
                                             continue;

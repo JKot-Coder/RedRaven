@@ -43,9 +43,10 @@ namespace RR
                 }*/
 
                 /// Read one token using all the expansion and directive-handling logic
-                Token readToken()
+                void readToken()
                 {
                     // return m_expansionStream->readToken();
+
                 }
 
                 // Lexer* getLexer() { return m_lexerStream->getLexer(); }
@@ -147,6 +148,8 @@ namespace RR
                         return token;
                     }
 
+                    return token;
+                    /*
                     // If we have a directive (`#` at start of line) then handle it
                     if ((token.type == TokenType::Pound) && (token.flags & TokenFlag::AtStartOfLine))
                     {
@@ -179,7 +182,7 @@ namespace RR
                         continue;
                     }
 
-                    expansionStream->readToken();
+                    expansionStream->readToken();*/
                     return token;
                 }
             }

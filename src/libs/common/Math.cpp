@@ -11,7 +11,7 @@ namespace RR
 
             Vector2 asd = cc + bb;
             Vector2 norm = asd.Normal();
-            Vector2::ZERO;
+            (void)norm;
 
             Radian pi = Radian(PI);
             Degree c = pi;

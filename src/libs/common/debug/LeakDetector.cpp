@@ -73,6 +73,8 @@ namespace RR
                     &newSnapshot->state);
 
                 return diffMemState.lTotalCount;
+#else
+                return 0; // TODO implement different platforms
 #endif
             }
 

@@ -37,8 +37,8 @@ namespace RR
                     int id,
                     // const SourceLocation& pos,
                     Severity inSeverity)
-                    : errorID(id),
-                      message(inMessage),
+                    : message(inMessage),
+                      errorID(id),
                       severity(inSeverity)
                 {
                 }

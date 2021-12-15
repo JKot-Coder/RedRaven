@@ -11,11 +11,16 @@ namespace RR
         namespace Debug
         {
 #ifdef ENABLE_ASSERTS
+#ifdef MSVVVvVV
 #define ASSERT(exp, ...)                                                                                                                        \
     static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "ASSERT takes only one argument use ASSET_MSG instead"); \
     if (!(exp))                                                                                                                                 \
         Log::Format::Fatal("ASSERT:  {3}\n  {0}({1}):\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp);
-
+#else
+#define ASSERT(exp)                                                                                                                        \
+    if (!(exp))                                                                                                                                 \
+        Log::Format::Fatal("ASSERT:  {3}\n  {0}({1}):\n  {2}\n", __FILE__, __LINE__, __FUNCTION__, #exp);
+#endif
 #define ASSERT_MSG(exp, ...) \
     if (!(exp))              \
         Log::Format::Fatal("ASSERT:  {3}\n  {0}({1}):\n  {2}\n  {4}\n", __FILE__, __LINE__, __FUNCTION__, #exp, fmt::sprintf(__VA_ARGS__));

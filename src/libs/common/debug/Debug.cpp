@@ -14,6 +14,8 @@ namespace RR
             {
 #if OS_WINDOWS
                 return ::IsDebuggerPresent();
+#else
+                return false; // TODO implement different platforms
 #endif
             }
         }

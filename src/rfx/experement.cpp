@@ -34,7 +34,7 @@ void test2()
             break;
     }
 }
-
+/*
 void test()
 {
     ::Slang::ComPtr<slang::IGlobalSession> globalSesion;
@@ -93,3 +93,4 @@ void test()
 
     (void)entryPointIndex;
 }
+ */
