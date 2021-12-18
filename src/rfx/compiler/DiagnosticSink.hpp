@@ -1,6 +1,7 @@
 #pragma once
 
 #include "compiler/SourceLocation.hpp"
+#include "compiler/Token.hpp"
 
 namespace RR
 {
@@ -25,26 +26,18 @@ namespace RR
             {
                 int32_t id;
                 Severity severity;
-                U8String name; ///< Unique name
-                U8String messageFormat;
+                const char* name; ///< Unique name
+                const char* messageFormat;
             };
 
             struct Diagnostic
             {
                 Diagnostic() = default;
-                Diagnostic(
-                    const U8String& inMessage,
-                    int id,
-                    // const SourceLocation& pos,
-                    Severity inSeverity)
-                    : message(inMessage),
-                      errorID(id),
-                      severity(inSeverity)
-                {
-                }
 
                 U8String message;
                 SourceLocation location;
+                HumaneSourceLocation humaneSourceLocation;
+                Token token;
                 int32_t errorID = -1;
                 Severity severity;
             };
@@ -55,16 +48,36 @@ namespace RR
                 DiagnosticSink() = default;
 
                 template <typename... Args>
-                inline void Diagnose(SourceLocation const& location, const DiagnosticInfo& info, Args&&... args)
+                inline void Diagnose(const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
                 {
                     Diagnostic diagnostic;
                     diagnostic.errorID = info.id;
                     diagnostic.message = fmt::format(info.messageFormat, args...);
                     diagnostic.location = location;
+                    diagnostic.humaneSourceLocation = humaneSourceLocation;
+
                     diagnostic.severity = info.severity;
 
                     diagnoseImpl(info, formatDiagnostic(diagnostic));
                 }
+
+                template <typename... Args>
+                inline void Diagnose(const Token& token, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
+                {
+                    Diagnostic diagnostic;
+                    diagnostic.errorID = info.id;
+                    diagnostic.message = fmt::format(info.messageFormat, args...);
+                    diagnostic.location = token.sourceLocation;
+                    diagnostic.humaneSourceLocation = humaneSourceLocation;
+                    diagnostic.token = token;
+                    diagnostic.severity = info.severity;
+
+                    diagnoseImpl(info, formatDiagnostic(diagnostic));
+                }
+
+                /// Set the maximum length (in chars) of a source line displayed. Set to 0 for no limit
+                void SetSourceLineMaxLength(size_t length) { sourceLineMaxLength_ = length; }
+                size_t GetSourceLineMaxLength() const { return sourceLineMaxLength_; }
 
                 /// Get the total amount of errors that have taken place on this DiagnosticSink
                 inline uint32_t GetErrorCount() { return errorCount_; }
@@ -76,6 +89,7 @@ namespace RR
 
             private:
                 uint32_t errorCount_ = 0;
+                size_t sourceLineMaxLength_ = 120;
             };
         }
     }

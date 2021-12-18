@@ -5,6 +5,7 @@
 #include "common/LinearAllocator.hpp"
 
 #include <iterator>
+#include <unordered_map>
 
 namespace RR
 {
@@ -86,37 +87,10 @@ namespace RR
 
                     return dst;
                 }
-
-                /*
-                TokenType getTokenForPreprocessorDirective(U8String directive)
-                {
-                    static const std::unordered_map<U8String, TokenType> directives = {
-                        { "if", TokenType::If },
-                        { "ifdef", TokenType::IfDef },
-                        { "ifndef", TokenType::IfNdef },
-                        { "else", TokenType::Else },
-                        { "elif", TokenType::Elif },
-                        { "endif", TokenType::EndIf },
-                        { "include", TokenType::Include },
-                        { "define", TokenType::Define },
-                        { "undef", TokenType::Undef },
-                        { "warning", TokenType::Warning },
-                        { "error", TokenType::Error },
-                        { "line", TokenType::Line },
-                        { "pragma", TokenType::Pragma },
-                        { "", TokenType::Pound }
-                    };
-
-                    auto search = directives.find(directive);
-                    if (search == directives.end())
-                        return TokenType::UnknownDirective;
-
-                    return search->second;
-                }*/
             }
 
             Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-                :  allocator_(new LinearAllocator(1024)),
+                : allocator_(new LinearAllocator(1024)),
                   sourceView_(sourceView),
                   sink_(diagnosticSink)
             {
@@ -124,7 +98,9 @@ namespace RR
                 ASSERT(diagnosticSink)
 
                 auto content = sourceView->GetContent();
-                cursor_ = content.Begin();
+
+                begin_ = content.Begin();
+                cursor_ = begin_;
                 end_ = content.End();
             }
 
@@ -142,14 +118,15 @@ namespace RR
                     return Token(TokenType::EndOfFile, tokenSlice, SourceLocation);
                 }
 
-                escapedLinesCounter_.Reset();
-
                 const auto tokenBegin = cursor_;
                 const auto tokenType = scanToken();
                 const auto tokenEnd = cursor_;
 
-                if (escapedLinesCounter_.Value() > 0)
+                if ((flags_ & Flags::EscapedNewLines) == Flags::EscapedNewLines)
                 {
+                    // Reset flag
+                    flags_ &= ~Flags::EscapedNewLines;
+
                     // "scrubbing" token value here to remove escaped newlines...
                     // Only perform this work if we encountered an escaped newline while lexing this token
                     // Allocate space that will always be more than enough for stripped contents
@@ -290,6 +267,7 @@ namespace RR
                     case '0':
                     {
                         const auto& loc = getSourceLocation();
+                        const auto& humaneLoc = getHumaneSourceLocation();
 
                         advance();
 
@@ -317,7 +295,7 @@ namespace RR
                             // clang-format off
                             case '0': case '1': case '2': case '3': case '4': 
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
-                                sink_->Diagnose(loc, LexerDiagnostics::octalLiteral);
+                                sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::octalLiteral);
                                 return lexNumber(8);
                         }
                     }
@@ -468,7 +446,15 @@ namespace RR
                         } // clang-format on 
 
                     case '#':
+                        // Preprocessor directives always on start the line or after whitspace
+                        if ((flags_ & Flags::AtStartOfLine) != Flags::None ||
+                            (flags_ & Flags::AfterWhitespace) != Flags::None)
+                        {
+                            return lexDirective();
+                        }
+
                         advance();
+
                         switch (peek())
                         { // clang-format off
                             case '#': advance(); return TokenType::PoundPound;
@@ -502,33 +488,7 @@ namespace RR
 
                     case '?': advance(); return TokenType::QuestionMark;
                     case '@': advance(); return TokenType::At;
-                    case '$': advance(); return TokenType::Dollar;
-                        // clang-format on
-
-                        /*
-                    case '#':
-                    {
-                        if (!increment())
-                            return TokenType::Pound;
-
-                        // Preprocessor directives always on start the line or after whitspace
-                        if ((flags_ & Flags::AtStartOfLine) != Flags::None ||
-                            (flags_ & Flags::AfterWhitespace) != Flags::None)
-                        {
-                            const auto begin = cursor_;
-
-                            while (!isWhiteSpace(peek())) // Not line ending // Not
-                            {
-                                if (!increment())
-                                    break;
-                            }
-
-                            const auto end = cursor_;
-
-                            return getTokenForPreprocessorDirective(U8String(begin, end));
-                        }
-                    }
-                    */
+                    case '$': advance(); return TokenType::Dollar; // clang-format on
                 }
 
                 // TODO(tfoley): If we ever wanted to support proper Unicode
@@ -541,20 +501,21 @@ namespace RR
                     // unexpected/invalid character.
 
                     auto loc = getSourceLocation();
+                    auto humaneLoc = getHumaneSourceLocation();
                     {
                         const auto ch = peek();
 
-                        if (ch >= 0x20 && ch <= 0x7E)
+                        if (ch >= 0x20)
                         {
                             U8String charString;
                             utf8::append(ch, charString);
 
-                            sink_->Diagnose(loc, LexerDiagnostics::illegalCharacterPrint, charString);
+                            sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::illegalCharacterPrint, charString);
                         }
                         else
                         {
                             // Fallback: print as hexadecimal
-                            sink_->Diagnose(loc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
+                            sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
                         }
                     }
 
@@ -606,7 +567,7 @@ namespace RR
                     switch (peek())
                     {
                         case kEOF:
-                            sink_->Diagnose(getSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
+                            sink_->Diagnose(getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
                             return;
 
                         case '\r':
@@ -664,7 +625,7 @@ namespace RR
             {
                 ASSERT(checkForEscapedNewline(cursor_, end_));
 
-                escapedLinesCounter_.Increment();
+                flags_ |= Flags::EscapedNewLines;
 
                 advance();
                 handleNewlineSequence();
@@ -728,10 +689,45 @@ namespace RR
                     {
                         U8String charString;
                         utf8::append(ch, charString);
-                        sink_->Diagnose(getSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
+                        sink_->Diagnose(getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
                     }
 
                     advance();
+                }
+            }
+
+            TokenType Lexer::lexDirective()
+            {
+                ASSERT(peek() == '#')
+
+                advance();
+
+                for (;;)
+                {
+                    const auto ch = peek();
+                    switch (ch)
+                    {
+                        case ' ':
+                        case '\t':
+                            handleWhiteSpace();
+                            continue;
+                        case '\r':
+                        case '\n':
+                            handleNewlineSequence();
+                            return TokenType::NullDirective;
+
+                        default:
+                        {
+                            const auto loc = getSourceLocation();
+
+                            const auto begin = cursor_;
+                            lexIdentifier();
+                            const auto end = cursor_;
+
+                            const auto identifier = U8String(begin, end);
+                            return getDirectiveTokenFromName(loc, identifier);
+                        }
+                    }
                 }
             }
 
@@ -819,12 +815,12 @@ namespace RR
                     switch (ch)
                     {
                         case kEOF:
-                            sink_->Diagnose(getSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
+                            sink_->Diagnose(getSourceLocation(),getHumaneSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
                             return;
 
                         case '\n':
                         case '\r':
-                            sink_->Diagnose(getSourceLocation(), LexerDiagnostics::newlineInLiteral);
+                            sink_->Diagnose(getSourceLocation(),getHumaneSourceLocation(), LexerDiagnostics::newlineInLiteral);
                             return;
 
                         case '\\': // Need to handle various escape sequence cases
@@ -846,7 +842,7 @@ namespace RR
                                     advance();
                                     break;
 
-                                    // clang-format off
+                                // clang-format off
                                 case '0': case '1': case '2': case '3':
                                 case '4': case '5': case '6': case '7': // clang-format on
                                     // octal escape: up to 3 characters
@@ -913,9 +909,42 @@ namespace RR
 
             SourceLocation Lexer::getSourceLocation()
             {
-                return SourceLocation(linesCounter_.Value(), columnCounter_.Value());
+                return sourceView_->GetSourceLocation(std::distance(begin_, cursor_));
             }
 
+            HumaneSourceLocation Lexer::getHumaneSourceLocation()
+            {
+                return HumaneSourceLocation(linesCounter_.Value(), columnCounter_.Value());
+            }
+
+            TokenType Lexer::getDirectiveTokenFromName(const SourceLocation& location, const U8String& name)
+            {
+                static const std::unordered_map<U8String, TokenType> directives = {
+                    { "if", TokenType::IfDirective },
+                    { "ifdef", TokenType::IfDefDirective },
+                    { "ifndef", TokenType::IfNDefDirective },
+                    { "else", TokenType::ElseDirective },
+                    { "elif", TokenType::ElifDirective },
+                    { "endif", TokenType::EndIfDirective },
+                    { "include", TokenType::IncludeDirective },
+                    { "define", TokenType::DefineDirective },
+                    { "undef", TokenType::UndefDirective },
+                    { "warning", TokenType::WarningDirective },
+                    { "error", TokenType::ErrorDirective },
+                    { "line", TokenType::LineDirective },
+                    { "pragma", TokenType::PragmaDirective },
+                    { "", TokenType::NullDirective }
+                };
+
+                auto search = directives.find(name);
+                if (search == directives.end())
+                {
+                    sink_->Diagnose(location, getHumaneSourceLocation(), LexerDiagnostics::unknownDirective, name);
+                    return TokenType::Unknown;
+                }
+
+                return search->second;
+            }
         }
     }
 }

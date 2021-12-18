@@ -28,7 +28,7 @@ void test2()
 
     for (auto token : tokens2)
     {
-        Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}", RR::Rfx::Compiler::TokenTypeToString(token.type), token.GetContentString(), token.SourceLocation.line, token.SourceLocation.column);
+       // Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}", RR::Rfx::Compiler::TokenTypeToString(token.type), token.GetContentString(), token.SourceLocation.line, token.SourceLocation.column);
 
         if (token.type == RR::Rfx::Compiler::TokenType::EndOfFile)
             break;

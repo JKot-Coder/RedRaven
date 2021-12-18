@@ -116,10 +116,10 @@ namespace RR
 
                 bool endsWith(UnownedStringSlice const& other) const;
                 bool endsWith(char const* str) const;
-
+*/
                 /// Trims any horizontal whitespace from the start and end and returns as a substring
-                UnownedStringSlice trim() const;
-                /// Trims any 'c' from the start or the end, and returns as a substring
+                UnownedStringSlice Trim() const;
+            /*    /// Trims any 'c' from the start or the end, and returns as a substring
                 UnownedStringSlice trim(char c) const;
 
                 /// Trims any horizonatl whitespace from start and returns as a substring

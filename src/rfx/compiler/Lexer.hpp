@@ -37,6 +37,7 @@ namespace RR
                     None = 0 << 0,
                     AtStartOfLine = 1 << 0,
                     AfterWhitespace = 1 << 1,
+                    EscapedNewLines= 1 << 2,
                 };
                 ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
@@ -67,28 +68,29 @@ namespace RR
                 }
 
                 TokenType scanToken();
-
                 void advance();
-
                 SourceLocation getSourceLocation();
+                HumaneSourceLocation getHumaneSourceLocation();
+                TokenType getDirectiveTokenFromName(const SourceLocation& location, const U8String& name);
 
-                void handleWhiteSpace();
-                void handleLineComment();
                 void handleBlockComment();
-                void handleNewlineSequence();
                 void handleEscapedNewline();
+                void handleLineComment();
+                void handleNewlineSequence();
+                void handleWhiteSpace();
 
-                void lexNumberSuffix();
-                void lexDigits(uint32_t base);
                 TokenType lexNumber(uint32_t base);
-                void lexNumberAfterDecimalPoint(uint32_t base);
                 bool maybeLexNumberExponent(uint32_t base);
-
+                void lexDigits(uint32_t base);
+                TokenType lexDirective();
                 void lexIdentifier();
+                void lexNumberAfterDecimalPoint(uint32_t base);
+                void lexNumberSuffix();
                 void lexStringLiteralBody(U8Glyph quote);
 
             private:
                 const char* cursor_;
+                const char* begin_;
                 const char* end_;
                 Counter linesCounter_ = 1;
                 Counter columnCounter_ = 1;

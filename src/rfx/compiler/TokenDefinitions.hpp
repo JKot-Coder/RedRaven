@@ -26,6 +26,21 @@ TOKEN(NewLine, "end of line")
 TOKEN(LineComment, "line comment")
 TOKEN(BlockComment, "block comment")
 
+TOKEN(NullDirective, "null directive")
+TOKEN(IfDirective, "if directive")
+TOKEN(IfDefDirective, "ifdef directive")
+TOKEN(IfNDefDirective, "ifndef directive")
+TOKEN(ElseDirective, "else directive")
+TOKEN(ElifDirective, "elif directive")
+TOKEN(EndIfDirective, "endif directive")
+TOKEN(IncludeDirective, "include directive")
+TOKEN(DefineDirective, "define directive")
+TOKEN(UndefDirective, "undef directive")
+TOKEN(WarningDirective, "warning directive")
+TOKEN(ErrorDirective, "error directive")
+TOKEN(LineDirective, "line directive")
+TOKEN(PragmaDirective, "pragma directive")
+
 #define PUNCTUATION(id, text) \
     TOKEN(id, "'" text "'")
 

@@ -9,12 +9,18 @@
 /\
 /A это тупой комментарий
 
+#      define qweqwe
+
+#      ifdef qweqwe
+
 //#include "CAS_Shader.hlsl" а это комментарии на русском. Найс!
 
 #include
- 	#include
+ 	 /* 		 														ываыва */ #йцуцйуldeqweqweqweqweqweqweqweqweqqweqwe йцуйцууй
  			#include 
  					#include
+
+ 					#INCLUDE
 
 о тупой ко
 StructuredBuffer<float> buffer0;

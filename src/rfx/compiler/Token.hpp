@@ -19,10 +19,9 @@ namespace RR
 
             struct Token 
             {
-                Token() = delete;
-
+                Token() = default;
                 Token(TokenType inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation)
-                    : type(inType), stringSlice(stringSlice), SourceLocation(SourceLocation)
+                    : type(inType), stringSlice(stringSlice), sourceLocation(SourceLocation)
                 {
                 }
 
@@ -34,9 +33,11 @@ namespace RR
                     return U8String(stringSlice.Begin(), stringSlice.End());
                 }
 
-                TokenType type;
+                inline bool isValid() const { return type != TokenType::Unknown; }
+
+                TokenType type = TokenType::Unknown;
                 UnownedStringSlice stringSlice;
-                SourceLocation SourceLocation;
+                SourceLocation sourceLocation;
             };
         }
     }

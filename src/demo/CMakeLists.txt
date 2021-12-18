@@ -13,11 +13,14 @@ endif()
 
 set(DEMO_LINK_LIBRARIES
         common
-        gapi_dx12
         windowing
         render
         STB
         ghc_filesystem)
+
+if (WIN32)
+    set(DEMO_LINK_LIBRARIES ${DEMO_LINK_LIBRARIES} gapi_dx12)
+endif()
         
 set(DEMO_DEFINITIONS
         ${DEMO_PLATFORM_DEFINITIONS}
