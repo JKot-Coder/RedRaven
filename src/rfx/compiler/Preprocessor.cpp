@@ -257,7 +257,7 @@ namespace RR
                 : sourceFile_(sourceFile),
                   sink_(diagnosticSink)
             {
-                auto sourceView = SourceView::Create(sourceFile_, sourceFile_->GetPathInfo());
+                auto sourceView = SourceView::Create(sourceFile_, IncludeInfo());
 
                 lexer_ = std::make_unique<Lexer>(sourceView, diagnosticSink);
             }
@@ -374,22 +374,22 @@ namespace RR
 
             bool Preprocessor::expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic)
             {
-                (void) context;
-                (void) expected;
-                (void) diagnostic;
-             /*   if (peekRawTokenType() != expected)
-                {
-                    // Only report the first parse error within a directive
-                    if (!context.parseError)
-                    {
-                        sink_->Diagnose(peekLoc(), diagnostic, expected, getDirectiveName(context));
-                    }
-                    context.parseError = true;
-                    return false;
-                }
-                Token const& token = AdvanceRawToken(context);
-                if (outToken)
-                    *outToken = token;*/
+                (void)context;
+                (void)expected;
+                (void)diagnostic;
+                /*   if (peekRawTokenType() != expected)
+                   {
+                       // Only report the first parse error within a directive
+                       if (!context.parseError)
+                       {
+                           sink_->Diagnose(peekLoc(), diagnostic, expected, getDirectiveName(context));
+                       }
+                       context.parseError = true;
+                       return false;
+                   }
+                   Token const& token = AdvanceRawToken(context);
+                   if (outToken)
+                       *outToken = token;*/
                 return true;
             }
 
@@ -401,6 +401,10 @@ namespace RR
                 {
                     case TokenType::DefineDirective:
                         handleDefineDirective(directiveContext);
+                        return;
+
+                    case TokenType::LineDirective:
+                        handleLineDirective(directiveContext);
                         return;
 
                     default:
@@ -416,6 +420,45 @@ namespace RR
                 if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
                     return;
                 // Name* name = nameToken.getName();
+            }
+
+            void Preprocessor::handleLineDirective(DirectiveContext& directiveContext)
+            {
+                ASSERT(directiveContext.token.type == TokenType::LineDirective)
+
+                Token nameToken;
+                if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
+                    return;
+
+                //auto inputStream = getInputFile(context);
+
+                uint32_t line = 0;
+
+               // SourceLoc directiveLoc = GetDirectiveLoc(context);
+
+                switch(PeekTokenType())
+                {
+                    case TokenType::IntegerLiteral:
+                        line = StringToInt(AdvanceToken(context).getContent());
+                        break;
+
+                    case TokenType::EndOfFile:
+                    case TokenType::NewLine:
+                        // `#line`
+                        _handleDefaultLineDirective(context);
+                        return;
+
+                    case TokenType::Identifier:
+                        if (PeekToken(context).getContent() == "default")
+                        {
+                            AdvanceToken(context);
+                            _handleDefaultLineDirective(context);
+                            return;
+                        }
+                        /* else, fall through to: */
+                    default:
+                        _diagnoseInvalidLineDirective(context);
+                        return;
             }
 
         }

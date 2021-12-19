@@ -206,7 +206,10 @@ namespace RR
                     }
 
                     humaneLocation = diagnostic.humaneSourceLocation;
-                    humaneLocString = fmt::format("{0}({1}):", "example.cpp", humaneLocation.line);
+                    humaneLocString = fmt::format("{0}:{1}:{2}: ",
+                                                  sourceView->GetSourceFile()->GetFileName(),
+                                                  humaneLocation.line,
+                                                  humaneLocation.column);
                 }
 
                 U8String format = (diagnostic.errorID >= 0) ? "{0} {1}: {2}\n" : "{0}: {2}\n";

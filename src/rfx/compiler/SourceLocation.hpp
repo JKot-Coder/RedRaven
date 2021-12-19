@@ -66,7 +66,9 @@ namespace RR
             interpretation for that lex/parse.
             */
 
-            struct PathInfo
+            struct HumaneSourceLocation;
+
+            struct IncludeInfo
             {
             public:
                 /// To be more rigorous about where a path comes from, the type identifies what a paths origin is
@@ -75,20 +77,11 @@ namespace RR
                     Unknown, ///< The path is not known
                     Normal, ///< Normal has both path and uniqueIdentity
                 };
-                PathInfo() = default;
-                PathInfo(U8String path) : type_(Type::Normal)
-                {
-                    pathStack.push_back(path);
-                }
-
-                const std::vector<U8String>& GetPathStack()
-                {
-                    return pathStack;
-                }
+                IncludeInfo() = default;
 
             private:
-                Type type_ = Type::Unknown; ///< The type of path
-                std::vector<U8String> pathStack;
+                std::vector<HumaneSourceLocation> includeStack_;
+                // Type type_ = Type::Unknown; ///< The type of path
             };
 
             struct SourceLocation
@@ -183,7 +176,7 @@ namespace RR
                 };
 
             public:
-                //  SourceFile(SourceManager* sourceManager, const PathInfo& pathInfo, size_t contentSize);
+                SourceFile(const U8String& fileName) : fileName_(fileName) {};
                 ~SourceFile() = default;
 
                 /// Returns the line break offsets (in bytes from start of content)
@@ -198,6 +191,8 @@ namespace RR
 
                 /// True if has full set content
                 // bool HasContent() const { return contentBlob_ != nullptr; }
+
+                U8String GetFileName() const { return fileName_; }
 
                 /// Get the content size
                 size_t GetContentSize() const { return contentSize_; }
@@ -223,6 +218,8 @@ namespace RR
                 UnownedStringSlice content_; ///< The actual contents of the file.
                 size_t contentSize_; ///< The size of the actual contents
 
+                U8String fileName_;
+
                 // In order to speed up lookup of line number information,
                 // we will cache the starting offset of each line break in
                 // the input file:
@@ -239,12 +236,11 @@ namespace RR
             struct HumaneSourceLocation
             {
                 HumaneSourceLocation() = default;
-                HumaneSourceLocation(uint32_t line, uint32_t column, const PathInfo& pathInfo)
-                    : line(line), column(column), pathInfo(pathInfo) {};
+                HumaneSourceLocation(uint32_t line, uint32_t column)
+                    : line(line), column(column) {};
 
                 uint32_t line = 0;
                 uint32_t column = 0;
-                PathInfo pathInfo;
             };
 
             /* A SourceView maps to a single span of SourceLocation range and is equivalent to a single include or more precisely use of a source file.
@@ -266,7 +262,7 @@ namespace RR
 
                 /// Gets the pathInfo for this view. It may be different from the m_sourceFile's if the path has been
                 /// overridden by m_viewPath
-                PathInfo getPathInfo() const { return pathInfo_; }
+                IncludeInfo GetIncludeInfo() const { return includeInfo_; }
 
                 /// Get the size of the content
                 size_t GetContentSize() const { return sourceFile_->GetContentSize(); }
@@ -280,20 +276,20 @@ namespace RR
                 UnownedStringSlice ExtractLineContainingLocation(const SourceLocation& loc);
 
             public:
-                [[nodiscard]] static std::shared_ptr<SourceView> Create(const std::shared_ptr<SourceFile>& sourceFile, const PathInfo& pathInfo)
+                [[nodiscard]] static std::shared_ptr<SourceView> Create(const std::shared_ptr<SourceFile>& sourceFile, const IncludeInfo& includeInfo)
                 {
-                    return std::shared_ptr<SourceView>(new SourceView(sourceFile, pathInfo));
+                    return std::shared_ptr<SourceView>(new SourceView(sourceFile, includeInfo));
                 }
 
             private:
-                SourceView(const std::shared_ptr<SourceFile>& sourceFile, const PathInfo& pathInfo)
+                SourceView(const std::shared_ptr<SourceFile>& sourceFile, const IncludeInfo& includeInfo)
                     : sourceFile_(sourceFile),
-                      pathInfo_(pathInfo)
+                      includeInfo_(includeInfo)
                 {
                 }
 
                 std::shared_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
-                PathInfo pathInfo_; ///< Path to this view. If empty the path is the path to the SourceView
+                IncludeInfo includeInfo_; ///< Path to this view. If empty the path is the path to the SourceView
                 SourceLocation initiatingSourceLocation_; ///< An optional source loc that defines where this view was initiated from. SourceLocation(0) if not defined.
             };
         }

@@ -16,7 +16,7 @@ void test2()
         std::istreambuf_iterator<char>(instream.rdbuf()),
         std::istreambuf_iterator<char>());
 
-    auto sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>(); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
+    auto sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>("test2.slang"); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
     sourceFile->SetContents(input);
 
     auto diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();

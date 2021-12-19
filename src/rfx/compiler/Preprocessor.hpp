@@ -7,11 +7,16 @@ namespace RR
         namespace Compiler
         {
             class SourceFile;
+
+            struct PathInfo;
             struct SourceLocation;
+
             class DiagnosticSink;
             struct DiagnosticInfo;
+
             class Lexer;
             struct Token;
+
             enum class TokenType : uint32_t;
 
             class Preprocessor final
@@ -48,6 +53,7 @@ namespace RR
                 void handleDirective(DirectiveContext& directiveContext);
 
                 void handleDefineDirective(DirectiveContext& directiveContext);
+                void handleLineDirective(DirectiveContext& directiveContext);
 
             private:
                 std::shared_ptr<InputSource> currentInputSource_;
