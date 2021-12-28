@@ -22,7 +22,16 @@
 
  					#INCLUDE
 
-о тупой ко
+#line 00111111000000000000000		wqe
+#line 000010
+о тупой ко\
+ Блядь\
+ 	Упоролся\
+
+#line -00001
+#line default
+
+
 StructuredBuffer<float> buffer0;
 StructuredBuffer<float> buffer1;
 RWStructuredBuffer<float> result;
@@ -33,3 +42,4 @@ void computeMain(uint3 threadId : SV_DispatchThreadID)
 {
     uint index = threadId.x;
     result[index] = buffer0[index] + buffer1[index] + 0010 + 009; 
+#line 12

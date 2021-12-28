@@ -37,7 +37,7 @@ namespace RR
                     None = 0 << 0,
                     AtStartOfLine = 1 << 0,
                     AfterWhitespace = 1 << 1,
-                    EscapedNewLines= 1 << 2,
+                    EscapedNewLines = 1 << 2,
                 };
                 ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
@@ -94,8 +94,7 @@ namespace RR
                 const char* end_;
                 Counter linesCounter_ = 1;
                 Counter columnCounter_ = 1;
-                Counter escapedLinesCounter_ = 0;
-                Flags flags_ = Flags::None;
+                Flags flags_ = Flags::AtStartOfLine;
 
                 std::unique_ptr<LinearAllocator> allocator_;
                 std::shared_ptr<SourceView> sourceView_;

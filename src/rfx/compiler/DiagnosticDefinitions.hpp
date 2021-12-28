@@ -1,5 +1,8 @@
 //
-
+//TODO remove Slange
+// TODO change format
+// TODO remove unused
+// 
 // The file is meant to be included multiple times, to produce different
 // pieces of declaration/definition code related to diagnostic messages
 //
@@ -146,9 +149,8 @@ DIAGNOSTIC(-1, Note, seeDirective, "see '$0' directive")
 // 151xx - directive parsing
 DIAGNOSTIC(15100, Error, expectedPreprocessorDirectiveName, "expected preprocessor directive name")
 DIAGNOSTIC(15101, Error, unknownPreprocessorDirective, "unknown preprocessor directive '$0'")
-DIAGNOSTIC(15102, Error, expectedTokenInPreprocessorDirective, "expected '$0' in '$1' directive")
-DIAGNOSTIC(15102, Error, expected2TokensInPreprocessorDirective, "expected '$0' or '$1' in '$2' directive")
-DIAGNOSTIC(15103, Error, unexpectedTokensAfterDirective, "unexpected tokens following '$0' directive")
+DIAGNOSTIC(15102, Error, expectedTokenInPreprocessorDirective, "expected '{0}' in '{1}' directive")
+DIAGNOSTIC(15103, Error, unexpectedTokensAfterDirective, "unexpected tokens following '{0}' directive")
 
 
 // 152xx - preprocessor expressions
@@ -195,6 +197,10 @@ DIAGNOSTIC(15602, Warning, pragmaOnceIgnored, "pragma once was ignored - this is
 // 159xx - user-defined error/warning
 DIAGNOSTIC(15900, Error,    userDefinedError,   "#error: $0")
 DIAGNOSTIC(15901, Warning,  userDefinedWarning, "#warning: $0")
+
+// 15999 waiting to be placed in the right range
+DIAGNOSTIC(15999, Error, integerLiteralInvalidBase, "integer literal '{0}' has an invalid base, expected base '{1}'")
+DIAGNOSTIC(15999, Error, integerLiteralOutOfRange, "integer literal '{0}' too large for type '{1}'")
 
 //
 // 2xxxx - Parsing
@@ -571,7 +577,7 @@ DIAGNOSTIC(52006, Error, compilerNotDefinedForTransition, "compiler not defined 
 // 99999 - Internal compiler errors, and not-yet-classified diagnostics.
 
 DIAGNOSTIC(99999, Internal, unimplemented, "unimplemented feature in Slang compiler: $0")
-DIAGNOSTIC(99999, Internal, unexpected, "unexpected condition encountered in Slang compiler: $0")
+DIAGNOSTIC(99999, Internal, unexpected, "unexpected condition encountered in Slang compiler: {0}")
 DIAGNOSTIC(99999, Internal, internalCompilerError, "Slang internal compiler error")
 DIAGNOSTIC(99999, Error, compilationAborted, "Slang compilation aborted due to internal error")
 DIAGNOSTIC(99999, Error, compilationAbortedDueToException, "Slang compilation aborted due to an exception of $0: $1")

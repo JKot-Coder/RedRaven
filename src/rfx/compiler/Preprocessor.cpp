@@ -13,6 +13,7 @@ namespace RR
             {
                 Token token;
                 bool parseError = false;
+                bool haveDoneEndOfDirectiveChecks = false;
             };
 
             namespace
@@ -22,11 +23,11 @@ namespace RR
                     return (type >= TokenType::NullDirective && type <= TokenType::PragmaDirective);
                 }
 
-                /*UnownedStringSlice getDirectiveName(const Preprocessor::DirectiveContext& context)
+                U8String getDirectiveName(const Preprocessor::DirectiveContext& context)
                 {
                     ASSERT(isDirective(context.token.type))
-                    return context.token.stringSlice;
-                }*/
+                    return context.token.GetContentString();
+                }
             }
 
             //
@@ -128,7 +129,7 @@ namespace RR
             /// An input stream that reads tokens directly using the Slang `Lexer`
             struct LexerInputStream : InputStream
             {
-                typedef InputStream Super;
+                LexerInputStream() = delete;
 
                 LexerInputStream(
                     const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
@@ -183,72 +184,6 @@ namespace RR
                 Token lookaheadToken_;
             };
 
-            struct Preprocessor::InputSource
-            {
-                InputSource(
-                    // Preprocessor* preprocessor,
-                    // SourceView* sourceView
-                )
-                {
-                }
-
-                ~InputSource() = default;
-
-                /// Is this input file skipping tokens (because the current location is inside a disabled condition)?
-                //  bool isSkipping();
-
-                /// Get the inner-most conditional that is in efffect at the current location
-                // Conditional* getInnerMostConditional() { return m_conditional; }
-
-                /// Push a new conditional onto the stack of conditionals in effect
-                /* void pushConditional(Conditional* conditional)
-                {
-                    conditional->parent = m_conditional;
-                    m_conditional = conditional;
-                }*/
-
-                /// Pop the inner-most conditional
-                /* void popConditional()
-                {
-                    auto conditional = m_conditional;
-                    ASSERT(conditional);
-                    m_conditional = conditional->parent;
-                    delete conditional;
-                }*/
-
-                /// Read one token using all the expansion and directive-handling logic
-                void readToken()
-                {
-                    // return m_expansionStream->readToken();
-                }
-
-                // Lexer* getLexer() { return m_lexerStream->getLexer(); }
-
-                // ExpansionInputStream* getExpansionStream() { return m_expansionStream; }
-
-            private:
-                friend class Preprocessor;
-
-                /// The parent preprocessor
-                // Preprocessor* m_preprocessor = nullptr;
-
-                /// The next outer input file
-                ///
-                /// E.g., if this file was `#include`d from another file, then `parent_` would be
-                /// the file with the `#include` directive.
-                ///
-                std::shared_ptr<InputSource> parent_;
-
-                /// The inner-most preprocessor conditional active for this file.
-                // Conditional* m_conditional = nullptr;
-
-                /// The lexer input stream that unexpanded tokens will be read from
-                //  LexerInputStream* m_lexerStream;
-
-                /// An input stream that applies macro expansion to `m_lexerStream`
-                // ExpansionInputStream* m_expansionStream;
-            };
-
             Preprocessor::~Preprocessor()
             {
             }
@@ -257,38 +192,112 @@ namespace RR
                 : sourceFile_(sourceFile),
                   sink_(diagnosticSink)
             {
+                ASSERT(sourceFile)
+                ASSERT(diagnosticSink)
+
                 auto sourceView = SourceView::Create(sourceFile_, IncludeInfo());
 
-                lexer_ = std::make_unique<Lexer>(sourceView, diagnosticSink);
+                endOfFileToken_.type = TokenType::EndOfFile;
+
+                currentInputStream_ = std::make_shared<LexerInputStream>(sourceView, diagnosticSink);
+                // lexer_ = std::make_unique<Lexer>(sourceView, diagnosticSink);
             }
 
-            void Preprocessor::pushInputSource(const std::shared_ptr<InputSource>& InputSource)
+            int32_t Preprocessor::tokenToInt(const Token& token, int radix)
             {
-                InputSource->parent_ = currentInputSource_;
-                currentInputSource_ = InputSource;
+                ASSERT(token.type == TokenType::IntegerLiteral)
+
+                errno = 0;
+
+                auto end = const_cast<U8Char*>(token.stringSlice.End());
+                const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
+
+                if (errno == ERANGE)
+                    sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int32_t");
+
+                if (end == token.stringSlice.End())
+                    return result;
+
+                sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+                return 0;
             }
 
-            void Preprocessor::popInputSource()
+            uint32_t Preprocessor::tokenToUInt(const Token& token, int radix)
             {
+                ASSERT(token.type == TokenType::IntegerLiteral)
+
+                errno = 0;
+
+                auto end = const_cast<U8Char*>(token.stringSlice.End());
+                const auto result = std::strtoul(token.stringSlice.Begin(), &end, radix);
+
+                if (errno == ERANGE)
+                    sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
+
+                if (end == token.stringSlice.End())
+                    return result;
+
+                sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+                return 0;
             }
 
-            std::shared_ptr<std::vector<Token>> Preprocessor::ReadAllTokens()
+            void Preprocessor::pushInputStream(const std::shared_ptr<InputStream>& inputStream)
             {
-                auto tokens = std::make_shared<std::vector<Token>>();
+                // inputStream->parent_ = currentInputStream_;
+                currentInputStream_ = inputStream;
+            }
+
+            void Preprocessor::popInputStream()
+            {
+                const auto& inputStream = currentInputStream_;
+                ASSERT(inputStream)
+
+                // We expect the file to be at its end, so that the
+                // next token read would be an end-of-file token.
+                Token eofToken = inputStream->PeekToken(); //TODO PeekRaw
+                ASSERT(eofToken.type == TokenType::EndOfFile);
+
+                // If there are any open preprocessor conditionals in the file, then
+                // we need to diagnose them as an error, because they were not closed
+                // at the end of the file. TODO
+                /* for (auto conditional = inputFile->getInnerMostConditional(); conditional; conditional = conditional->parent)
+                {
+                    GetSink(this)->diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
+                    GetSink(this)->diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.getContent());
+                */
+
+                // We will update the current file to the parent of whatever
+                // the `inputFile` was (usually the file that `#include`d it).
+                //
+                auto parentFile = inputStream->GetParent();
+                currentInputStream_ = parentFile;
+
+                // As a subtle special case, if this is the *last* file to be popped,
+                // then we will update the canonical EOF token used by the preprocessor
+                // to be the EOF token for `inputFile`, so that the source location
+                // information returned will be accurate.
+                if (!parentFile)
+                    endOfFileToken_ = eofToken;
+            }
+
+            std::vector<Token> Preprocessor::ReadAllTokens()
+            {
+                std::vector<Token> tokens;
+
                 for (;;)
                 {
-                    Token token = ReadToken();
+                    const auto& token = ReadToken();
 
                     switch (token.type)
                     {
                         default:
-                            tokens->push_back(token);
+                            tokens.push_back(token);
                             break;
 
                         case TokenType::EndOfFile:
                             // Note: we include the EOF token in the list,
                             // since that is expected by the `TokenList` type.
-                            tokens->push_back(token);
+                            tokens.push_back(token);
                             return tokens;
 
                         case TokenType::WhiteSpace:
@@ -301,24 +310,66 @@ namespace RR
                 }
             }
 
+            Token Preprocessor::peekToken()
+            {
+                // TODO
+                return currentInputStream_->PeekToken();
+            }
+
+            Token Preprocessor::peekRawToken()
+            {
+                return currentInputStream_->PeekToken();
+            }
+
+            Token Preprocessor::advanceToken()
+            {
+                if (isEndOfLine())
+                    return peekRawToken();
+                return currentInputStream_->ReadToken();
+            }
+
+            Token Preprocessor::advanceRawToken()
+            {
+                // TODO read rawtoken
+                return currentInputStream_->ReadToken();
+            }
+
+            void Preprocessor::skipToEndOfLine()
+            {
+                while (!isEndOfLine())
+                    advanceRawToken();
+            }
+
+            bool Preprocessor::isEndOfLine()
+            {
+                switch (currentInputStream_->PeekTokenType())
+                {
+                    case TokenType::EndOfFile:
+                    case TokenType::NewLine:
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
             Token Preprocessor::ReadToken()
             {
                 for (;;)
                 {
-                    /* auto InputSource = currentInputSource_;
-                    if (!InputSource)
-                        return preprocessor->endOfFileToken;
-
+                    auto inputStream = currentInputStream_;
+                    if (!inputStream)
+                        return endOfFileToken_;
+                    /*
                     auto expansionStream = InputSource->getExpansionStream();
 
                     // Look at the next raw token in the input.
                     Token token = expansionStream->peekRawToken();     */
-                    Token token = lexer_->GetNextToken();
+                    Token token = inputStream->PeekToken(); // PeekRawToken
                     if (token.type == TokenType::EndOfFile)
                     {
-                        //  preprocessor->popInputSource();
-                        //  continue;
-                        return token;
+                        popInputStream();
+                        continue;
                     }
 
                     if (isDirective(token.type))
@@ -328,7 +379,7 @@ namespace RR
 
                         handleDirective(context);
                     }
-                    return token;
+
                     /*
                     // If we have a directive (`#` at start of line) then handle it
                     if ((token.type == TokenType::Pound) && (token.flags & TokenFlag::AtStartOfLine))
@@ -353,23 +404,18 @@ namespace RR
                     {
                         expansionStream->readRawToken();
                         continue;
-                    }
+                    }*/
 
-                    token = expansionStream->peekToken();
+                    token = inputStream->PeekToken();
                     if (token.type == TokenType::EndOfFile)
                     {
-                        preprocessor->popInputSource();
+                        popInputStream();
                         continue;
                     }
 
-                    expansionStream->readToken();*/
+                    inputStream->ReadToken();
                     return token;
                 }
-            }
-
-            TokenType Preprocessor::peekRawTokenType()
-            {
-                return TokenType::Unknown;
             }
 
             bool Preprocessor::expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic)
@@ -416,9 +462,9 @@ namespace RR
             {
                 ASSERT(directiveContext.token.type == TokenType::DefineDirective)
 
-                Token nameToken;
-                if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
-                    return;
+                // Token nameToken;
+                // if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
+                //    return;
                 // Name* name = nameToken.getName();
             }
 
@@ -426,39 +472,61 @@ namespace RR
             {
                 ASSERT(directiveContext.token.type == TokenType::LineDirective)
 
-                Token nameToken;
-                if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
-                    return;
-
-                //auto inputStream = getInputFile(context);
-
                 uint32_t line = 0;
 
-               // SourceLoc directiveLoc = GetDirectiveLoc(context);
+                advanceRawToken();
 
-                switch(PeekTokenType())
+                switch (peekTokenType())
                 {
                     case TokenType::IntegerLiteral:
-                        line = StringToInt(AdvanceToken(context).getContent());
+                        line = tokenToUInt(advanceToken(), 10);
                         break;
 
-                    case TokenType::EndOfFile:
-                    case TokenType::NewLine:
-                        // `#line`
-                        _handleDefaultLineDirective(context);
-                        return;
-
-                    case TokenType::Identifier:
-                        if (PeekToken(context).getContent() == "default")
-                        {
-                            AdvanceToken(context);
-                            _handleDefaultLineDirective(context);
-                            return;
-                        }
-                        /* else, fall through to: */
+                    /* else, fall through to: */
+                    // `#line` and `#line default` directives are not supported
                     default:
-                        _diagnoseInvalidLineDirective(context);
+                        sink_->Diagnose(directiveContext.token, Diagnostics::expectedTokenInPreprocessorDirective,
+                                        TokenType::IntegerLiteral,
+                                        getDirectiveName(directiveContext));
+                        directiveContext.parseError = true;
                         return;
+                }
+
+                // TODO handle filename
+
+                // Do all checking related to the end of this directive before we push a new stream,
+                // just to avoid complications where that check would need to deal with
+                // a switch of input stream
+                expectEndOfDirective(directiveContext);
+
+                const auto& nextToken = currentInputStream_->PeekToken();
+
+                HumaneSourceLocation humaneLocation(line, 1);
+
+                // Start new source view from end of new line sequence.
+                const auto& sourceView = SourceView::Create(nextToken.sourceLocation + nextToken.stringSlice.GetLength(), humaneLocation);
+                const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, sink_);
+
+                pushInputStream(inputStream);
+            }
+
+            void Preprocessor::expectEndOfDirective(DirectiveContext& context)
+            {
+                if (context.haveDoneEndOfDirectiveChecks)
+                    return;
+
+                context.haveDoneEndOfDirectiveChecks = true;
+
+                if (!isEndOfLine())
+                {
+                    // If we already saw a previous parse error, then don't
+                    // emit another one for the same directive.
+                    if (!context.parseError)
+                    {
+                        sink_->Diagnose(context.token, Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
+                    }
+                    skipToEndOfLine();
+                }
             }
 
         }

@@ -95,6 +95,8 @@ namespace RR
                 inline bool operator!=(const SourceLocation& rhs) const { return (raw_ != rhs.raw_) && (sourceView_ != rhs.sourceView_); }
 
                 inline SourceLocation& operator=(const SourceLocation& rhs) = default;
+                inline SourceLocation operator+(int32_t offset) const { return SourceLocation(RawValue(int64_t(raw_) + offset), sourceView_); }
+                inline SourceLocation operator+(RawValue offset) const { return SourceLocation(raw_ + offset, sourceView_); }
 
                 inline std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
                 inline bool IsValid() const { return sourceView_ != nullptr; }
@@ -111,6 +113,7 @@ namespace RR
                 RawValue raw_ = 0;
                 std::shared_ptr<SourceView> sourceView_;
             };
+
             /*
             // A range of locations in the input source
             struct SourceRange
@@ -250,13 +253,14 @@ namespace RR
             class SourceView final : public std::enable_shared_from_this<SourceView>
             {
             public:
+                ~SourceView() { }
                 /// Get the source file holds the contents this view
                 std::shared_ptr<SourceFile> GetSourceFile() const { return sourceFile_; }
                 /// Get the source manager
                 // SourceManager* GetSourceManager() const { return sourceFile_->getSourceManager(); }
 
                 /// Get the associated 'content' (the source text)
-                const UnownedStringSlice& GetContent() const { return sourceFile_->GetContent(); }
+                UnownedStringSlice GetContent() const { return content_; }
 
                 const U8Char* GetContentFrom(const SourceLocation& loc) const;
 
@@ -265,13 +269,15 @@ namespace RR
                 IncludeInfo GetIncludeInfo() const { return includeInfo_; }
 
                 /// Get the size of the content
-                size_t GetContentSize() const { return sourceFile_->GetContentSize(); }
+                size_t GetContentSize() const { return content_.GetLength(); }
 
                 SourceLocation GetSourceLocation(size_t offset);
 
                 /// Get the humane location
                 /// Type determines if the location wanted is the original, or the 'normal' (which modifys behavior based on #line directives)
                 HumaneSourceLocation GetHumaneLocation(const SourceLocation& loc, SourceLocationType type = SourceLocationType::Nominal);
+
+                HumaneSourceLocation GetInitiatingHumaneLocation() { return initiatingHumaneLocation_; }
 
                 UnownedStringSlice ExtractLineContainingLocation(const SourceLocation& loc);
 
@@ -281,16 +287,39 @@ namespace RR
                     return std::shared_ptr<SourceView>(new SourceView(sourceFile, includeInfo));
                 }
 
+                [[nodiscard]] static std::shared_ptr<SourceView> Create(const SourceLocation& sourceLoc, const HumaneSourceLocation& humaneSourceLoc)
+                {
+                    return std::shared_ptr<SourceView>(new SourceView(sourceLoc, humaneSourceLoc));
+                }
+
             private:
                 SourceView(const std::shared_ptr<SourceFile>& sourceFile, const IncludeInfo& includeInfo)
                     : sourceFile_(sourceFile),
                       includeInfo_(includeInfo)
                 {
+                    ASSERT(sourceFile)
+
+                    content_ = sourceFile_->GetContent();
+                    initiatingHumaneLocation_ = HumaneSourceLocation(1, 1); 
+                }
+
+                SourceView(const SourceLocation& sourceLoc, const HumaneSourceLocation& humaneSourceLoc)
+                {
+                    ASSERT(sourceLoc.IsValid())
+
+                    const auto& sourceView = sourceLoc.GetSourceView();
+
+                    sourceFile_ = sourceView->GetSourceFile();
+                    includeInfo_ = sourceView->GetIncludeInfo();
+                    content_ = UnownedStringSlice(sourceView->GetContentFrom(sourceLoc), sourceFile_->GetContent().End());
+                    initiatingHumaneLocation_ = humaneSourceLoc;
                 }
 
                 std::shared_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
                 IncludeInfo includeInfo_; ///< Path to this view. If empty the path is the path to the SourceView
+                UnownedStringSlice content_;
                 SourceLocation initiatingSourceLocation_; ///< An optional source loc that defines where this view was initiated from. SourceLocation(0) if not defined.
+                HumaneSourceLocation initiatingHumaneLocation_;
             };
         }
     }

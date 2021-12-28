@@ -62,13 +62,13 @@ namespace RR
                 }
 
                 template <typename... Args>
-                inline void Diagnose(const Token& token, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
+                inline void Diagnose(const Token& token, const DiagnosticInfo& info, Args&&... args)
                 {
                     Diagnostic diagnostic;
                     diagnostic.errorID = info.id;
                     diagnostic.message = fmt::format(info.messageFormat, args...);
                     diagnostic.location = token.sourceLocation;
-                    diagnostic.humaneSourceLocation = humaneSourceLocation;
+                    diagnostic.humaneSourceLocation = token.humaneSourceLocation;
                     diagnostic.token = token;
                     diagnostic.severity = info.severity;
 

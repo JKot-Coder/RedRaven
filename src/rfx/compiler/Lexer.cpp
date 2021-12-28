@@ -99,6 +99,9 @@ namespace RR
 
                 auto content = sourceView->GetContent();
 
+                linesCounter_ = sourceView_->GetInitiatingHumaneLocation().line;
+                columnCounter_ = sourceView_->GetInitiatingHumaneLocation().column;
+
                 begin_ = content.Begin();
                 cursor_ = begin_;
                 end_ = content.End();
@@ -115,7 +118,7 @@ namespace RR
                 if (isReachEOF())
                 {
                     const auto tokenSlice = UnownedStringSlice(nullptr, nullptr);
-                    return Token(TokenType::EndOfFile, tokenSlice, SourceLocation);
+                    return Token(TokenType::EndOfFile, tokenSlice, SourceLocation, getHumaneSourceLocation());
                 }
 
                 const auto tokenBegin = cursor_;
@@ -137,7 +140,7 @@ namespace RR
 
                     const auto tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
 
-                    return Token(tokenType, tokenSlice, SourceLocation);
+                    return Token(tokenType, tokenSlice, SourceLocation, getHumaneSourceLocation());
                 }
 
                 switch (tokenType)
@@ -171,7 +174,7 @@ namespace RR
                 }
 
                 const auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
-                return Token(tokenType, tokenSlice, SourceLocation);
+                return Token(tokenType, tokenSlice, SourceLocation, getHumaneSourceLocation());
             }
 
             std::shared_ptr<std::vector<Token>> Lexer::LexAllSemanticTokens()

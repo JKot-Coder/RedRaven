@@ -44,19 +44,19 @@ namespace RR
 
                 U8String reduceLengthFromHead(size_t startIndex, const U8String& string)
                 {
-                    auto head = utf8::iterator<const U8Char*>(&*string.begin(), &*string.begin(), &*string.end());
+                    auto head = utf8::iterator<U8String::const_iterator>(string.begin(), string.begin(), string.end());
 
                     while (startIndex--)
                         head++;
 
-                    return U8String(head.base(), &*string.end());
+                    return U8String(head.base(), string.end());
                 }
 
                 U8String reduceLengthFromTail(size_t maxLength, const U8String& string)
                 {
-                    auto tail = utf8::iterator<const U8Char*>(&*string.end(), &*string.begin(), &*string.end());
+                    auto tail = utf8::iterator<U8String::const_iterator>(string.end(), string.begin(), string.end());
 
-                    size_t length = utf8::distance(&*string.begin(), tail.base());
+                    size_t length = utf8::distance(string.begin(), string.end());
                     ASSERT(length > maxLength)
 
                     size_t reduceLength = length - maxLength;
@@ -64,7 +64,7 @@ namespace RR
                     while (reduceLength--)
                         tail--;
 
-                    return U8String(&*string.begin(), &*string.end());
+                    return U8String(string.begin(), tail.base());
                 }
 
                 U8String sourceLocationNoteDiagnostic(const Diagnostic& diagnostic, size_t maxLineLength)
@@ -82,9 +82,9 @@ namespace RR
                     // For now just go with 4.
                     const uint32_t tabSize = 4;
 
-                    auto lineToLocation = UnownedStringSlice(sourceLineSlice.Begin(), sourceView->GetContentFrom(diagnostic.location));
+                    U8String lineToLocation = U8String(sourceLineSlice.Begin(), sourceView->GetContentFrom(diagnostic.location));
                     lineToLocation = replaceTabWithSpaces(lineToLocation, tabSize);
-                    size_t caretOffset = utf8::distance(lineToLocation.Begin(), lineToLocation.End());
+                    size_t caretOffset = utf8::distance(lineToLocation.begin(), lineToLocation.end());
 
                     auto sourceLine = replaceTabWithSpaces(sourceLineSlice, tabSize);
                     U8String caretLine;
@@ -102,7 +102,7 @@ namespace RR
                             const auto length = diagnostic.token.stringSlice.GetLength();
 
                             if (length > 1)
-                                caretLine.append('~', length - 1);
+                                caretLine.append(length - 1, '~');
                         }
 
                         if (maxLineLength > 0)
@@ -183,7 +183,8 @@ namespace RR
             }
             */
 
-                if (info.severity >= Severity::Fatal)
+                //TODO replace
+                if (info.severity > Severity::Internal)
                 {
                     // TODO: figure out a better policy for aborting compilation
                     RFX_ABORT_COMPILATION("");
@@ -202,11 +203,21 @@ namespace RR
                     const auto sourceView = diagnostic.location.GetSourceView();
                     if (sourceView)
                     {
-                        humaneLocation = sourceView->GetHumaneLocation(diagnostic.location);
+                    //    humaneLocation = sourceView->GetHumaneLocation(diagnostic.location);
                     }
 
                     humaneLocation = diagnostic.humaneSourceLocation;
+
+                    /* 
+                    CLion fomat
                     humaneLocString = fmt::format("{0}:{1}:{2}: ",
+                                                  sourceView->GetSourceFile()->GetFileName(),
+                                                  humaneLocation.line,
+                                                  humaneLocation.column);
+                    
+                    */
+
+                    humaneLocString = fmt::format("{0}({1}): ",
                                                   sourceView->GetSourceFile()->GetFileName(),
                                                   humaneLocation.line,
                                                   humaneLocation.column);

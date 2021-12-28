@@ -12,7 +12,7 @@ namespace RR
                 UnownedStringSlice() = default;
 
                 UnownedStringSlice(const U8String& string)
-                    : begin_(&*string.begin()), end_(&*string.begin() + string.length())
+                    : begin_(string.c_str()), end_(string.c_str() + string.length())
                 {
                 }
 
@@ -88,9 +88,9 @@ namespace RR
                 {
                     assert(i >= 0 && i < Index(m_end - m_begin));
                     return m_begin[i];
-                }
+                }*/
 
-                bool operator==(ThisType const& other) const;
+                bool operator==(UnownedStringSlice const& other) const;
                 bool operator!=(UnownedStringSlice const& other) const
                 {
                     return !(*this == other);
@@ -103,7 +103,7 @@ namespace RR
                 bool operator!=(char const* str) const
                 {
                     return !(*this == str);
-                }
+                } /*
 
                 /// True if contents is a single char of c
                 SLANG_FORCE_INLINE bool isChar(char c) const

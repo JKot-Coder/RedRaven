@@ -23,12 +23,9 @@ void test2()
     auto preprocessor = std::make_shared<RR::Rfx::Compiler::Preprocessor>(sourceFile, diagnosticSink);
     auto tokens = preprocessor->ReadAllTokens();
 
-    std::vector<RR::Rfx::Compiler::Token> tokens2 = *tokens;
-
-
-    for (auto token : tokens2)
+    for (auto token : tokens)
     {
-       // Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}", RR::Rfx::Compiler::TokenTypeToString(token.type), token.GetContentString(), token.SourceLocation.line, token.SourceLocation.column);
+        Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}\n", RR::Rfx::Compiler::TokenTypeToString(token.type), token.GetContentString(), token.humaneSourceLocation.line, token.humaneSourceLocation.column);
 
         if (token.type == RR::Rfx::Compiler::TokenType::EndOfFile)
             break;

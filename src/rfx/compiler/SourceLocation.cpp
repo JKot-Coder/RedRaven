@@ -105,9 +105,9 @@ namespace RR
 
                 while (lo + 1 < hi)
                 {
-                    const uint32_t mid = (hi + lo) >> 1;
-                    const uint32_t midOffset = lineBreakOffsets[mid];
-                    if (midOffset <= uint32_t(offset))
+                    const size_t mid = (hi + lo) >> 1;
+                    const size_t midOffset = lineBreakOffsets[mid];
+                    if (midOffset <= size_t(offset))
                     {
                         lo = mid;
                     }
@@ -127,7 +127,7 @@ namespace RR
                 ASSERT(line < lineBreakOffsets.size())
                 const auto lineBegin = content_.Begin() + lineBreakOffsets[line];
 
-                return utf8::distance(lineBegin, content_.Begin() + offset);
+                return uint32_t(utf8::distance(lineBegin, content_.Begin() + offset));
             }
 
             const U8Char* SourceView::GetContentFrom(const SourceLocation& loc) const
