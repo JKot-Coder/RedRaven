@@ -2,7 +2,7 @@
 //TODO remove Slange
 // TODO change format
 // TODO remove unused
-// 
+//
 // The file is meant to be included multiple times, to produce different
 // pieces of declaration/definition code related to diagnostic messages
 //
@@ -52,87 +52,87 @@ DIAGNOSTIC(-1, Note, includeOutput, "include $0")
 // 0xxxx -  Command line and interaction with host platform APIs.
 //
 
-DIAGNOSTIC(    1, Error, cannotOpenFile, "cannot open file '$0'.")
-DIAGNOSTIC(    2, Error, cannotFindFile, "cannot find file '$0'.")
-DIAGNOSTIC(    2, Error, unsupportedCompilerMode, "unsupported compiler mode.")
-DIAGNOSTIC(    4, Error, cannotWriteOutputFile, "cannot write output file '$0'.")
-DIAGNOSTIC(    5, Error, failedToLoadDynamicLibrary, "failed to load dynamic library '$0'")
-DIAGNOSTIC(    6, Error, tooManyOutputPathsSpecified, "$0 output paths specified, but only $1 entry points given")
+DIAGNOSTIC(1, Error, cannotOpenFile, "cannot open file '$0'.")
+DIAGNOSTIC(2, Error, cannotFindFile, "cannot find file '$0'.")
+DIAGNOSTIC(2, Error, unsupportedCompilerMode, "unsupported compiler mode.")
+DIAGNOSTIC(4, Error, cannotWriteOutputFile, "cannot write output file '$0'.")
+DIAGNOSTIC(5, Error, failedToLoadDynamicLibrary, "failed to load dynamic library '$0'")
+DIAGNOSTIC(6, Error, tooManyOutputPathsSpecified, "$0 output paths specified, but only $1 entry points given")
 
-DIAGNOSTIC(    7, Error, noOutputPathSpecifiedForEntryPoint,
+DIAGNOSTIC(7, Error, noOutputPathSpecifiedForEntryPoint,
            "no output path specified for entry point '$0' (the '-o' option for an entry point must precede the corresponding '-entry')")
 
-DIAGNOSTIC(    8, Error, outputPathsImplyDifferentFormats,
+DIAGNOSTIC(8, Error, outputPathsImplyDifferentFormats,
            "the output paths '$0' and '$1' require different code-generation targets")
 
-DIAGNOSTIC(    10, Error, explicitOutputPathsAndMultipleTargets, "canot use both explicit output paths ('-o') and multiple targets ('-target')")
-DIAGNOSTIC(    11, Error, glslIsNotSupported, "the Slang compiler does not support GLSL as a source language")
-DIAGNOSTIC(    12, Error, cannotDeduceSourceLanguage, "can't deduce language for input file '$0'")
-DIAGNOSTIC(    13, Error, unknownCodeGenerationTarget, "unknown code generation target '$0'")
-DIAGNOSTIC(    14, Error, unknownProfile, "unknown profile '$0'")
-DIAGNOSTIC(    15, Error, unknownStage, "unknown stage '$0'")
-DIAGNOSTIC(    16, Error, unknownPassThroughTarget, "unknown pass-through target '$0'")
-DIAGNOSTIC(    17, Error, unknownCommandLineOption, "unknown command-line option '$0'")
-DIAGNOSTIC(    18, Error, unknownFileSystemOption, "unknown file-system option '$0'")
-DIAGNOSTIC(    19, Error, unknownSourceLanguage, "unknown source language '$0'")
+DIAGNOSTIC(10, Error, explicitOutputPathsAndMultipleTargets, "canot use both explicit output paths ('-o') and multiple targets ('-target')")
+DIAGNOSTIC(11, Error, glslIsNotSupported, "the Slang compiler does not support GLSL as a source language")
+DIAGNOSTIC(12, Error, cannotDeduceSourceLanguage, "can't deduce language for input file '$0'")
+DIAGNOSTIC(13, Error, unknownCodeGenerationTarget, "unknown code generation target '$0'")
+DIAGNOSTIC(14, Error, unknownProfile, "unknown profile '$0'")
+DIAGNOSTIC(15, Error, unknownStage, "unknown stage '$0'")
+DIAGNOSTIC(16, Error, unknownPassThroughTarget, "unknown pass-through target '$0'")
+DIAGNOSTIC(17, Error, unknownCommandLineOption, "unknown command-line option '$0'")
+DIAGNOSTIC(18, Error, unknownFileSystemOption, "unknown file-system option '$0'")
+DIAGNOSTIC(19, Error, unknownSourceLanguage, "unknown source language '$0'")
 
-DIAGNOSTIC(    20, Error, entryPointsNeedToBeAssociatedWithTranslationUnits, "when using multiple source files, entry points must be specified after their corresponding source file(s)")
-DIAGNOSTIC(    22, Error, unknownDownstreamCompiler, "unknown downstream compiler '$0'")
+DIAGNOSTIC(20, Error, entryPointsNeedToBeAssociatedWithTranslationUnits, "when using multiple source files, entry points must be specified after their corresponding source file(s)")
+DIAGNOSTIC(22, Error, unknownDownstreamCompiler, "unknown downstream compiler '$0'")
 
-DIAGNOSTIC(    24, Error, unknownLineDirectiveMode, "unknown '#line' directive mode '$0'")
-DIAGNOSTIC(    25, Error, unknownFloatingPointMode, "unknown floating-point mode '$0'")
-DIAGNOSTIC(    26, Error, unknownOptimiziationLevel, "unknown optimization level '$0'")
-DIAGNOSTIC(    27, Error, unknownDebugInfoLevel, "unknown debug info level '$0'")
+DIAGNOSTIC(24, Error, unknownLineDirectiveMode, "unknown '#line' directive mode '$0'")
+DIAGNOSTIC(25, Error, unknownFloatingPointMode, "unknown floating-point mode '$0'")
+DIAGNOSTIC(26, Error, unknownOptimiziationLevel, "unknown optimization level '$0'")
+DIAGNOSTIC(27, Error, unknownDebugInfoLevel, "unknown debug info level '$0'")
 
-DIAGNOSTIC(    28, Error, unableToGenerateCodeForTarget, "unable to generate code for target '$0'")
+DIAGNOSTIC(28, Error, unableToGenerateCodeForTarget, "unable to generate code for target '$0'")
 
-DIAGNOSTIC(    30, Warning, sameStageSpecifiedMoreThanOnce, "the stage '$0' was specified more than once for entry point '$1'")
-DIAGNOSTIC(    31, Error, conflictingStagesForEntryPoint, "conflicting stages have been specified for entry point '$0'")
-DIAGNOSTIC(    32, Warning, explicitStageDoesntMatchImpliedStage, "the stage specified for entry point '$0' ('$1') does not match the stage implied by the source file name ('$2')")
-DIAGNOSTIC(    33, Error, stageSpecificationIgnoredBecauseNoEntryPoints, "one or more stages were specified, but no entry points were specified with '-entry'")
-DIAGNOSTIC(    34, Error, stageSpecificationIgnoredBecauseBeforeAllEntryPoints, "when compiling multiple entry points, any '-stage' options must follow the '-entry' option that they apply to")
-DIAGNOSTIC(    35, Error, noStageSpecifiedInPassThroughMode, "no stage was specified for entry point '$0'; when using the '-pass-through' option, stages must be fully specified on the command line")
+DIAGNOSTIC(30, Warning, sameStageSpecifiedMoreThanOnce, "the stage '$0' was specified more than once for entry point '$1'")
+DIAGNOSTIC(31, Error, conflictingStagesForEntryPoint, "conflicting stages have been specified for entry point '$0'")
+DIAGNOSTIC(32, Warning, explicitStageDoesntMatchImpliedStage, "the stage specified for entry point '$0' ('$1') does not match the stage implied by the source file name ('$2')")
+DIAGNOSTIC(33, Error, stageSpecificationIgnoredBecauseNoEntryPoints, "one or more stages were specified, but no entry points were specified with '-entry'")
+DIAGNOSTIC(34, Error, stageSpecificationIgnoredBecauseBeforeAllEntryPoints, "when compiling multiple entry points, any '-stage' options must follow the '-entry' option that they apply to")
+DIAGNOSTIC(35, Error, noStageSpecifiedInPassThroughMode, "no stage was specified for entry point '$0'; when using the '-pass-through' option, stages must be fully specified on the command line")
 
-DIAGNOSTIC(    40, Warning, sameProfileSpecifiedMoreThanOnce, "the '$0' was specified more than once for target '$0'")
-DIAGNOSTIC(    41, Error, conflictingProfilesSpecifiedForTarget, "conflicting profiles have been specified for target '$0'")
+DIAGNOSTIC(40, Warning, sameProfileSpecifiedMoreThanOnce, "the '$0' was specified more than once for target '$0'")
+DIAGNOSTIC(41, Error, conflictingProfilesSpecifiedForTarget, "conflicting profiles have been specified for target '$0'")
 
-DIAGNOSTIC(    42, Error, profileSpecificationIgnoredBecauseNoTargets, "a '-profile' option was specified, but no target was specified with '-target'")
-DIAGNOSTIC(    43, Error, profileSpecificationIgnoredBecauseBeforeAllTargets, "when using multiple targets, any '-profile' option must follow the '-target' it applies to")
+DIAGNOSTIC(42, Error, profileSpecificationIgnoredBecauseNoTargets, "a '-profile' option was specified, but no target was specified with '-target'")
+DIAGNOSTIC(43, Error, profileSpecificationIgnoredBecauseBeforeAllTargets, "when using multiple targets, any '-profile' option must follow the '-target' it applies to")
 
-DIAGNOSTIC(    42, Error, targetFlagsIgnoredBecauseNoTargets, "target options were specified, but no target was specified with '-target'")
-DIAGNOSTIC(    43, Error, targetFlagsIgnoredBecauseBeforeAllTargets, "when using multiple targets, any target options must follow the '-target' they apply to")
+DIAGNOSTIC(42, Error, targetFlagsIgnoredBecauseNoTargets, "target options were specified, but no target was specified with '-target'")
+DIAGNOSTIC(43, Error, targetFlagsIgnoredBecauseBeforeAllTargets, "when using multiple targets, any target options must follow the '-target' they apply to")
 
-DIAGNOSTIC(    50, Error, duplicateTargets, "the target '$0' has been specified more than once")
+DIAGNOSTIC(50, Error, duplicateTargets, "the target '$0' has been specified more than once")
 
-DIAGNOSTIC(    60, Error, cannotDeduceOutputFormatFromPath, "cannot infer an output format from the output path '$0'")
-DIAGNOSTIC(    61, Error, cannotMatchOutputFileToTarget, "no specified '-target' option matches the output path '$0', which implies the '$1' format")
+DIAGNOSTIC(60, Error, cannotDeduceOutputFormatFromPath, "cannot infer an output format from the output path '$0'")
+DIAGNOSTIC(61, Error, cannotMatchOutputFileToTarget, "no specified '-target' option matches the output path '$0', which implies the '$1' format")
 
-DIAGNOSTIC(    70, Error, cannotMatchOutputFileToEntryPoint, "the output path '$0' is not associated with any entry point; a '-o' option for a compiled kernel must follow the '-entry' option for its corresponding entry point")
+DIAGNOSTIC(70, Error, cannotMatchOutputFileToEntryPoint, "the output path '$0' is not associated with any entry point; a '-o' option for a compiled kernel must follow the '-entry' option for its corresponding entry point")
 
-DIAGNOSTIC(    80, Error, duplicateOutputPathsForEntryPointAndTarget, "multiple output paths have been specified entry point '$0' on target '$1'")
-DIAGNOSTIC(    81, Error, duplicateOutputPathsForTarget, "multiple output paths have been specified for target '$0'")
+DIAGNOSTIC(80, Error, duplicateOutputPathsForEntryPointAndTarget, "multiple output paths have been specified entry point '$0' on target '$1'")
+DIAGNOSTIC(81, Error, duplicateOutputPathsForTarget, "multiple output paths have been specified for target '$0'")
 
-DIAGNOSTIC(    82, Error, unableToWriteReproFile, "unable to write repro file '%0'")
-DIAGNOSTIC(    83, Error, unableToWriteModuleContainer, "unable to write module container '%0'")
-DIAGNOSTIC(    84, Error, unableToReadModuleContainer, "unable to read module container '%0'")
-DIAGNOSTIC(    85, Error, unableToAddReferenceToModuleContainer, "unable to add a reference to a module container")
-DIAGNOSTIC(    86, Error, unableToCreateModuleContainer, "unable to create module container")
+DIAGNOSTIC(82, Error, unableToWriteReproFile, "unable to write repro file '%0'")
+DIAGNOSTIC(83, Error, unableToWriteModuleContainer, "unable to write module container '%0'")
+DIAGNOSTIC(84, Error, unableToReadModuleContainer, "unable to read module container '%0'")
+DIAGNOSTIC(85, Error, unableToAddReferenceToModuleContainer, "unable to add a reference to a module container")
+DIAGNOSTIC(86, Error, unableToCreateModuleContainer, "unable to create module container")
 
-DIAGNOSTIC(    87, Error, unableToSetDefaultDownstreamCompiler, "unable to set default downstream compiler for source language '%0' to '%1'")
+DIAGNOSTIC(87, Error, unableToSetDefaultDownstreamCompiler, "unable to set default downstream compiler for source language '%0' to '%1'")
 
-DIAGNOSTIC(    88, Error, unknownArchiveType, "archive type '%0' is unknown")
-DIAGNOSTIC(    89, Error, expectingSlangRiffContainer, "expecting a slang riff container")
-DIAGNOSTIC(    90, Error, incompatibleRiffSemanticVersion, "incompatible riff semantic version %0 expecting %1")
-DIAGNOSTIC(    91, Error, riffHashMismatch, "riff hash mismatch - incompatible riff")
-DIAGNOSTIC(    92, Error, unableToCreateDirectory, "unable to create directory '$0'")
-DIAGNOSTIC(    93, Error, unableExtractReproToDirectory, "unable to extract repro to directory '$0'")
-DIAGNOSTIC(    94, Error, unableToReadRiff, "unable to read as 'riff'/not a 'riff' file")
+DIAGNOSTIC(88, Error, unknownArchiveType, "archive type '%0' is unknown")
+DIAGNOSTIC(89, Error, expectingSlangRiffContainer, "expecting a slang riff container")
+DIAGNOSTIC(90, Error, incompatibleRiffSemanticVersion, "incompatible riff semantic version %0 expecting %1")
+DIAGNOSTIC(91, Error, riffHashMismatch, "riff hash mismatch - incompatible riff")
+DIAGNOSTIC(92, Error, unableToCreateDirectory, "unable to create directory '$0'")
+DIAGNOSTIC(93, Error, unableExtractReproToDirectory, "unable to extract repro to directory '$0'")
+DIAGNOSTIC(94, Error, unableToReadRiff, "unable to read as 'riff'/not a 'riff' file")
 
 //
 // 001xx - Downstream Compilers
 //
 
-DIAGNOSTIC(  100, Error, failedToLoadDownstreamCompiler, "failed to load downstream compiler '$0'")
+DIAGNOSTIC(100, Error, failedToLoadDownstreamCompiler, "failed to load downstream compiler '$0'")
 DIAGNOSTIC(99999, Note, noteFailedToLoadDynamicLibrary, "failed to load dynamic library '$0'")
 
 //
@@ -142,16 +142,15 @@ DIAGNOSTIC(99999, Note, noteFailedToLoadDynamicLibrary, "failed to load dynamic 
 // 150xx - conditionals
 DIAGNOSTIC(15000, Error, endOfFileInPreprocessorConditional, "end of file encountered during preprocessor conditional")
 DIAGNOSTIC(15001, Error, directiveWithoutIf, "'$0' directive without '#if'")
-DIAGNOSTIC(15002, Error, directiveAfterElse , "'$0' directive without '#if'")
+DIAGNOSTIC(15002, Error, directiveAfterElse, "'$0' directive without '#if'")
 
 DIAGNOSTIC(-1, Note, seeDirective, "see '$0' directive")
 
 // 151xx - directive parsing
 DIAGNOSTIC(15100, Error, expectedPreprocessorDirectiveName, "expected preprocessor directive name")
-DIAGNOSTIC(15101, Error, unknownPreprocessorDirective, "unknown preprocessor directive '$0'")
+DIAGNOSTIC(15101, Error, unknownPreprocessorDirective, "unknown preprocessor directive '{0}'")
 DIAGNOSTIC(15102, Error, expectedTokenInPreprocessorDirective, "expected '{0}' in '{1}' directive")
 DIAGNOSTIC(15103, Error, unexpectedTokensAfterDirective, "unexpected tokens following '{0}' directive")
-
 
 // 152xx - preprocessor expressions
 DIAGNOSTIC(15200, Error, expectedTokenInPreprocessorExpression, "expected '$0' in preprocessor expression")
@@ -164,11 +163,8 @@ DIAGNOSTIC(15205, Warning, undefinedIdentifierInPreprocessorExpression, "undefin
 DIAGNOSTIC(-1, Note, seeOpeningToken, "see opening '$0'")
 
 // 153xx - #include
-DIAGNOSTIC(15300, Error, includeFailed, "failed to find include file '$0'")
-DIAGNOSTIC(15301, Error, importFailed, "failed to find imported file '$0'")
-DIAGNOSTIC(-1, Error, noIncludeHandlerSpecified, "no `#include` handler was specified")
-DIAGNOSTIC(15302, Error, noUniqueIdentity, "`#include` handler didn't generate a unique identity for file '$0'")
-
+DIAGNOSTIC(15300, Error, includeFailed, "failed to find include file '{0}'")
+DIAGNOSTIC(15301, Error, noUniqueIdentity, "`#include` handler didn't generate a unique identity for file '{0}'")
 
 // 154xx - macro definition
 DIAGNOSTIC(15400, Warning, macroRedefinition, "redefinition of macro '$0'")
@@ -195,8 +191,8 @@ DIAGNOSTIC(15601, Warning, unknownPragmaDirectiveIgnored, "ignoring unknown dire
 DIAGNOSTIC(15602, Warning, pragmaOnceIgnored, "pragma once was ignored - this is typically because is not placed in an include")
 
 // 159xx - user-defined error/warning
-DIAGNOSTIC(15900, Error,    userDefinedError,   "#error: $0")
-DIAGNOSTIC(15901, Warning,  userDefinedWarning, "#warning: $0")
+DIAGNOSTIC(15900, Error, userDefinedError, "#error: $0")
+DIAGNOSTIC(15901, Warning, userDefinedWarning, "#warning: $0")
 
 // 15999 waiting to be placed in the right range
 DIAGNOSTIC(15999, Error, integerLiteralInvalidBase, "integer literal '{0}' has an invalid base, expected base '{1}'")
@@ -232,7 +228,7 @@ DIAGNOSTIC(20013, Error, invalidCUDASMVersion, "Expecting CUDA SM version as eit
 DIAGNOSTIC(30003, Error, breakOutsideLoop, "'break' must appear inside loop constructs.")
 DIAGNOSTIC(30004, Error, continueOutsideLoop, "'continue' must appear inside loop constructs.")
 DIAGNOSTIC(30005, Error, whilePredicateTypeError, "'while': expression must evaluate to int.")
-DIAGNOSTIC(30006, Error, ifPredicateTypeError,  "'if': expression must evaluate to int.")
+DIAGNOSTIC(30006, Error, ifPredicateTypeError, "'if': expression must evaluate to int.")
 DIAGNOSTIC(30006, Error, returnNeedsExpression, "'return' should have an expression.")
 DIAGNOSTIC(30007, Error, componentReturnTypeMismatch, "expression type '$0' does not match component's type '$1'")
 DIAGNOSTIC(30007, Error, functionReturnTypeMismatch, "expression type '$0' does not match function's return type '$1'")
@@ -261,9 +257,9 @@ DIAGNOSTIC(30033, Error, invalidTypeForLocalVariable, "cannot declare a local va
 DIAGNOSTIC(30035, Error, componentOverloadTypeMismatch, "'$0': type of overloaded component mismatches previous definition.")
 DIAGNOSTIC(30041, Error, bitOperationNonIntegral, "bit operation: operand must be integral type.")
 DIAGNOSTIC(30047, Error, argumentExpectedLValue, "argument passed to parameter '$0' must be l-value.")
-DIAGNOSTIC(30048, Note,  implicitCastUsedAsLValue, "argument was implicitly cast from '$0' to '$1', and Slang does not support using an implicit cast as an l-value")
-DIAGNOSTIC(30049, Note,  thisIsImmutableByDefault, "a 'this' parameter is an immutable parameter by default in Slang; apply the `[mutating]` attribute to the function declaration to opt in to a mutable `this`")
-DIAGNOSTIC(30050, Error,  mutatingMethodOnImmutableValue, "mutating method '$0' cannot be called on an immutable value")
+DIAGNOSTIC(30048, Note, implicitCastUsedAsLValue, "argument was implicitly cast from '$0' to '$1', and Slang does not support using an implicit cast as an l-value")
+DIAGNOSTIC(30049, Note, thisIsImmutableByDefault, "a 'this' parameter is an immutable parameter by default in Slang; apply the `[mutating]` attribute to the function declaration to opt in to a mutable `this`")
+DIAGNOSTIC(30050, Error, mutatingMethodOnImmutableValue, "mutating method '$0' cannot be called on an immutable value")
 
 DIAGNOSTIC(30051, Error, invalidValueForArgument, "invalid value for argument '$0'")
 DIAGNOSTIC(30052, Error, invalidSwizzleExpr, "invalid swizzle pattern '$0' on type '$1'")
@@ -278,11 +274,10 @@ DIAGNOSTIC(30200, Error, redeclaration, "declaration of '$0' conflicts with exis
 DIAGNOSTIC(30201, Error, functionRedefinition, "function '$0' already has a body")
 DIAGNOSTIC(30202, Error, functionRedeclarationWithDifferentReturnType, "function '$0' declared to return '$1' was previously declared to return '$2'")
 
-
 DIAGNOSTIC(33070, Error, expectedFunction, "expected a function, got '$0'")
 DIAGNOSTIC(33071, Error, expectedAStringLiteral, "expected a string literal")
 
-DIAGNOSTIC(   -1, Note, noteExplicitConversionPossible, "explicit conversion from '$0' to '$1' is possible")
+DIAGNOSTIC(-1, Note, noteExplicitConversionPossible, "explicit conversion from '$0' to '$1' is possible")
 DIAGNOSTIC(30080, Error, ambiguousConversion, "more than one implicit conversion exists from '$0' to '$1'")
 
 // Attributes
@@ -307,10 +302,8 @@ DIAGNOSTIC(31120, Error, invalidAttributeTarget, "invalid syntax target for user
 DIAGNOSTIC(31121, Error, anyValueSizeExceedsLimit, "'anyValueSize' cannot exceed $0")
 // Enums
 
-DIAGNOSTIC(32000, Error, invalidEnumTagType,        "invalid tag type for 'enum': '$0'")
-DIAGNOSTIC(32003, Error, unexpectedEnumTagExpr,     "unexpected form for 'enum' tag value expression")
-
-
+DIAGNOSTIC(32000, Error, invalidEnumTagType, "invalid tag type for 'enum': '$0'")
+DIAGNOSTIC(32003, Error, unexpectedEnumTagExpr, "unexpected form for 'enum' tag value expression")
 
 // 303xx: interfaces and associated types
 DIAGNOSTIC(30300, Error, assocTypeInInterfaceOnly, "'associatedtype' can only be defined in an 'interface'.")
@@ -405,7 +398,7 @@ DIAGNOSTIC(39999, Warning, floatLiteralTooSmall, "'$1' is smaller than the small
 
 DIAGNOSTIC(39999, Error, unableToFindSymbolInModule, "unable to find the mangled symbol '$0' in module '$1'")
 
-// 38xxx 
+// 38xxx
 
 DIAGNOSTIC(38000, Error, entryPointFunctionNotFound, "no function found matching entry point name '$0'")
 DIAGNOSTIC(38001, Error, ambiguousEntryPoint, "more than one function matches entry point name '$0'")
@@ -434,7 +427,6 @@ DIAGNOSTIC(38021, Error, typeArgumentForGenericParameterDoesNotConformToInterfac
 DIAGNOSTIC(38022, Error, cannotSpecializeGlobalGenericToItself, "the global type parameter '$0' cannot be specialized to itself")
 DIAGNOSTIC(38023, Error, cannotSpecializeGlobalGenericToAnotherGenericParam, "the global type parameter '$0' cannot be specialized using another global type parameter ('$1')")
 
-
 DIAGNOSTIC(38024, Error, invalidDispatchThreadIDType, "parameter with SV_DispatchThreadID must be either scalar or vector (1 to 3) of uint/int but is $0")
 
 DIAGNOSTIC(-1, Note, noteWhenCompilingEntryPoint, "when compiling entry point '$0'")
@@ -443,7 +435,7 @@ DIAGNOSTIC(38025, Error, mismatchSpecializationArguments, "expected $0 specializ
 DIAGNOSTIC(38026, Error, globalTypeArgumentDoesNotConformToInterface, "type argument `$1` for global generic parameter `$0` does not conform to interface `$2`.")
 
 DIAGNOSTIC(38027, Error, mismatchExistentialSlotArgCount, "expected $0 existential slot arguments ($1 provided)")
-DIAGNOSTIC(38029, Error,typeArgumentDoesNotConformToInterface, "type argument '$0' does not conform to the required interface '$1'")
+DIAGNOSTIC(38029, Error, typeArgumentDoesNotConformToInterface, "type argument '$0' does not conform to the required interface '$1'")
 
 DIAGNOSTIC(38200, Error, recursiveModuleImport, "module `$0` recursively imports itself")
 DIAGNOSTIC(39999, Error, errorInImportedModule, "import of module '$0' failed because of a compilation error")
@@ -453,7 +445,6 @@ DIAGNOSTIC(39999, Fatal, complationCeased, "compilation ceased")
 
 DIAGNOSTIC(39000, Error, conflictingExplicitBindingsForParameter, "conflicting explicit bindings for parameter '$0'")
 DIAGNOSTIC(39001, Warning, parameterBindingsOverlap, "explicit binding for parameter '$0' overlaps with parameter '$1'")
-
 
 DIAGNOSTIC(39002, Error, shaderParameterDeclarationsDontMatch, "declarations of shader parameter '$0' in different translation units don't match")
 
@@ -493,7 +484,6 @@ DIAGNOSTIC(40003, Error, bindingExceedsLimit, "binding location '$0' assigned to
 DIAGNOSTIC(40004, Error, bindingAlreadyOccupiedByModule, "DescriptorSet ID '$0' is already occupied by module instance '$1'.")
 DIAGNOSTIC(40005, Error, topLevelModuleUsedWithoutSpecifyingBinding, "top level module '$0' is being used without specifying binding location. Use [Binding: \"index\"] attribute to provide a binding location.")
 
-
 DIAGNOSTIC(49999, Error, unknownSystemValueSemantic, "unknown system-value semantic '$0'")
 
 DIAGNOSTIC(40006, Error, needCompileTimeConstant, "expected a compile-time constant")
@@ -506,7 +496,6 @@ DIAGNOSTIC(40009, Error, dynamicInterfaceLacksAnyValueSizeAttribute, "interface 
 DIAGNOSTIC(40010, Note, seeInterfaceUsage, "see usage of interface '$0'.")
 
 DIAGNOSTIC(40011, Error, unconstrainedGenericParameterNotAllowedInDynamicFunction, "unconstrained generic paramter '$0' is not allowed in a dynamic function.")
-
 
 // 41000 - IR-level validation issues
 
@@ -524,12 +513,12 @@ DIAGNOSTIC(41012, Error, typeCannotBePackedIntoAnyValue, "type '$0' contains fie
 
 DIAGNOSTIC(50010, Internal, missingExistentialBindingsForParameter, "missing argument for existential parameter slot")
 
-DIAGNOSTIC(50020, Error, invalidTessCoordType,          "TessCoord must have vec2 or vec3 type.")
-DIAGNOSTIC(50020, Error, invalidFragCoordType,          "FragCoord must be a vec4.")
-DIAGNOSTIC(50020, Error, invalidInvocationIdType,       "InvocationId must have int type.")
-DIAGNOSTIC(50020, Error, invalidThreadIdType,           "ThreadId must have int type.")
-DIAGNOSTIC(50020, Error, invalidPrimitiveIdType,        "PrimitiveId must have int type.")
-DIAGNOSTIC(50020, Error, invalidPatchVertexCountType,    "PatchVertexCount must have int type.")
+DIAGNOSTIC(50020, Error, invalidTessCoordType, "TessCoord must have vec2 or vec3 type.")
+DIAGNOSTIC(50020, Error, invalidFragCoordType, "FragCoord must be a vec4.")
+DIAGNOSTIC(50020, Error, invalidInvocationIdType, "InvocationId must have int type.")
+DIAGNOSTIC(50020, Error, invalidThreadIdType, "ThreadId must have int type.")
+DIAGNOSTIC(50020, Error, invalidPrimitiveIdType, "PrimitiveId must have int type.")
+DIAGNOSTIC(50020, Error, invalidPatchVertexCountType, "PatchVertexCount must have int type.")
 DIAGNOSTIC(50022, Error, worldIsNotDefined, "world '$0' is not defined.")
 DIAGNOSTIC(50023, Error, stageShouldProvideWorldAttribute, "'$0' should provide 'World' attribute.")
 DIAGNOSTIC(50040, Error, componentHasInvalidTypeForPositionOutput, "'$0': component used as 'loc' output must be of vec4 type.")
@@ -550,7 +539,7 @@ DIAGNOSTIC(50052, Error, hullShaderRequiresTessLevelOuter, "'HullShader' require
 DIAGNOSTIC(50053, Error, invalidTessellationDomian, "'Domain' should be either 'triangles' or 'quads'.")
 DIAGNOSTIC(50053, Error, invalidTessellationOutputTopology, "'OutputTopology' must be one of: 'point', 'line', 'triangle_cw', or 'triangle_ccw'.")
 DIAGNOSTIC(50053, Error, invalidTessellationPartitioning, "'Partitioning' must be one of: 'integer', 'pow2', 'fractional_even', or 'fractional_odd'.")
-DIAGNOSTIC(50053, Error, invalidTessellationDomain,     "'Domain' should be either 'triangles' or 'quads'.")
+DIAGNOSTIC(50053, Error, invalidTessellationDomain, "'Domain' should be either 'triangles' or 'quads'.")
 
 DIAGNOSTIC(50082, Error, importingFromPackedBufferUnsupported, "importing type '$0' from PackedBuffer is not supported by the GLSL backend.")
 DIAGNOSTIC(51090, Error, cannotGenerateCodeForExternComponentType, "cannot generate code for extern component type '$0'.")

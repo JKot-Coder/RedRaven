@@ -6,6 +6,59 @@ namespace RR
     {
         namespace Compiler
         {
+
+            /* !!!!!!!!!!!!!!!!!!!!!!!!!! PathInfo !!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+            const U8String PathInfo::getMostUniqueIdentity() const
+            {
+                switch (type)
+                {
+                    case Type::Normal:
+                        return uniqueIdentity;
+                    case Type::FoundPath:
+                    case Type::FromString:
+                    {
+                        return foundPath;
+                    }
+                    default:
+                        return "";
+                }
+            }
+
+            bool PathInfo::operator==(const ThisType& rhs) const
+            {
+                // They must be the same type
+                if (type != rhs.type)
+                {
+                    return false;
+                }
+
+                switch (type)
+                {
+                    case Type::TokenPaste:
+                    case Type::TypeParse:
+                    case Type::Unknown:
+                    case Type::CommandLine:
+                    {
+                        return true;
+                    }
+                    case Type::Normal:
+                    {
+                        return foundPath == rhs.foundPath && uniqueIdentity == rhs.uniqueIdentity;
+                    }
+                    case Type::FromString:
+                    case Type::FoundPath:
+                    {
+                        // Only have a found path
+                        return foundPath == rhs.foundPath;
+                    }
+                    default:
+                        break;
+                }
+
+                return false;
+            }
+
             void SourceFile::SetContents(const U8String& content)
             {
                 contentSize_ = content.length();

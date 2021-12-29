@@ -3,6 +3,7 @@
 #include <slang.h>
 
 #include "compiler/DiagnosticCore.hpp"
+#include "compiler/IncludeSystem.hpp"
 #include "compiler/Preprocessor.hpp"
 #include "compiler/SourceLocation.hpp"
 #include "compiler/Token.hpp"
@@ -16,12 +17,14 @@ void test2()
         std::istreambuf_iterator<char>(instream.rdbuf()),
         std::istreambuf_iterator<char>());
 
-    auto sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>("test2.slang"); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
+    const auto& pathInfo = RR::Rfx::Compiler::PathInfo::makeNormal("test2.slang", "test2.slang");
+    const auto& sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>(pathInfo); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
     sourceFile->SetContents(input);
 
-    auto diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();
-    auto preprocessor = std::make_shared<RR::Rfx::Compiler::Preprocessor>(sourceFile, diagnosticSink);
-    auto tokens = preprocessor->ReadAllTokens();
+    const auto& includeSystem = RR::Rfx::Compiler::IncludeSystem::Create();
+    const auto& diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();
+    const auto& preprocessor = std::make_shared<RR::Rfx::Compiler::Preprocessor>(sourceFile, diagnosticSink, includeSystem);
+    const auto& tokens = preprocessor->ReadAllTokens();
 
     for (auto token : tokens)
     {

@@ -71,7 +71,6 @@ namespace RR
                 void advance();
                 SourceLocation getSourceLocation();
                 HumaneSourceLocation getHumaneSourceLocation();
-                TokenType getDirectiveTokenFromName(const SourceLocation& location, const U8String& name);
 
                 void handleBlockComment();
                 void handleEscapedNewline();

@@ -49,7 +49,6 @@ namespace RR
                     return graphicsCommandQueue_;
                 }
 
-
             private:
                 static D3D12MA::Allocator* allocator_;
                 static ComSharedPtr<ID3D12Device> device_;

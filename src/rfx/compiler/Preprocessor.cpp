@@ -18,15 +18,23 @@ namespace RR
 
             namespace
             {
-                inline bool isDirective(TokenType type)
-                {
-                    return (type >= TokenType::NullDirective && type <= TokenType::PragmaDirective);
-                }
-
+                // Get the name of the directive being parsed.
                 U8String getDirectiveName(const Preprocessor::DirectiveContext& context)
                 {
-                    ASSERT(isDirective(context.token.type))
                     return context.token.GetContentString();
+                }
+
+                U8String getFileNameTokenValue(const Token& token)
+                {
+                    const UnownedStringSlice& content = token.stringSlice;
+
+                    // A file name usually doesn't process escape sequences
+                    // (this is import on Windows, where `\\` is a valid
+                    // path separator character).
+
+                    // Just trim off the first and last characters to remove the quotes
+                    // (whether they were `""` or `<>`.
+                    return U8String(content.Begin() + 1, content.End() - 1);
                 }
             }
 
@@ -188,19 +196,50 @@ namespace RR
             {
             }
 
-            Preprocessor::Preprocessor(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-                : sourceFile_(sourceFile),
-                  sink_(diagnosticSink)
+            Preprocessor::Preprocessor(const std::shared_ptr<SourceFile>& sourceFile,
+                                       const std::shared_ptr<DiagnosticSink>& diagnosticSink,
+                                       const std::shared_ptr<IncludeSystem>& includeSystem)
+                : sink_(diagnosticSink),
+                  includeSystem_(includeSystem),
+                  sourceFile_(sourceFile)
             {
                 ASSERT(sourceFile)
                 ASSERT(diagnosticSink)
+                ASSERT(includeSystem)
 
-                auto sourceView = SourceView::Create(sourceFile_, IncludeInfo());
+                auto sourceView = SourceView::Create(sourceFile_);
 
                 endOfFileToken_.type = TokenType::EndOfFile;
 
                 currentInputStream_ = std::make_shared<LexerInputStream>(sourceView, diagnosticSink);
                 // lexer_ = std::make_unique<Lexer>(sourceView, diagnosticSink);
+            }
+
+            const std::unordered_map<U8String, Preprocessor::HandleDirectiveFunc> Preprocessor::handleDirectiveFuncMap = {
+                //  { "if", nullptr },
+                //  { "ifdef", nullptr },
+                //  { "ifndef", nullptr },
+                //   { "else", nullptr },
+                //  { "elif", nullptr },
+                //  { "endif", nullptr },
+                //  { "include", nullptr },
+                { "define", &Preprocessor::handleDefineDirective },
+                //  { "undef", nullptr },
+                //  { "warning", nullptr },
+                //  { "error", nullptr },
+                { "line", &Preprocessor::handleLineDirective },
+                //   { "pragma", nullptr }
+            };
+
+            // Look up the directive with the given name.
+            Preprocessor::HandleDirectiveFunc Preprocessor::findHandleDirectiveFunc(const U8String& name)
+            {
+                auto search = handleDirectiveFuncMap.find(name);
+
+                if (search == handleDirectiveFuncMap.end())
+                    return &Preprocessor::handleInvalidDirective;
+
+                return search->second;
             }
 
             int32_t Preprocessor::tokenToInt(const Token& token, int radix)
@@ -357,42 +396,31 @@ namespace RR
             {
                 for (;;)
                 {
-                    auto inputStream = currentInputStream_;
-                    if (!inputStream)
+                    if (!currentInputStream_)
                         return endOfFileToken_;
                     /*
                     auto expansionStream = InputSource->getExpansionStream();
 
                     // Look at the next raw token in the input.
                     Token token = expansionStream->peekRawToken();     */
-                    Token token = inputStream->PeekToken(); // PeekRawToken
+                    Token token = currentInputStream_->PeekToken(); // PeekRawToken
                     if (token.type == TokenType::EndOfFile)
                     {
                         popInputStream();
                         continue;
                     }
 
-                    if (isDirective(token.type))
-                    {
-                        DirectiveContext context;
-                        context.token = token;
-
-                        handleDirective(context);
-                    }
+                    // If we have a directive (`#` at start of line) then handle it
+                    if (token.type == TokenType::Directive)
+                        handleDirective();
 
                     /*
-                    // If we have a directive (`#` at start of line) then handle it
+                 
                     if ((token.type == TokenType::Pound) && (token.flags & TokenFlag::AtStartOfLine))
                     {
-                        // Skip the `#`
-                        expansionStream->readRawToken();
+                        
 
-                        // Create a context for parsing the directive
-                        PreprocessorDirectiveContext directiveContext;
-                        directiveContext.m_preprocessor = preprocessor;
-                        directiveContext.m_parseError = false;
-                        directiveContext.m_haveDoneEndOfDirectiveChecks = false;
-                        directiveContext.m_InputSource = InputSource;
+
 
                         // Parse and handle the directive
                         HandleDirective(&directiveContext);
@@ -406,16 +434,33 @@ namespace RR
                         continue;
                     }*/
 
-                    token = inputStream->PeekToken();
+                    token = currentInputStream_->PeekToken();
                     if (token.type == TokenType::EndOfFile)
                     {
                         popInputStream();
                         continue;
                     }
 
-                    inputStream->ReadToken();
+                    currentInputStream_->ReadToken();
                     return token;
                 }
+            }
+
+            bool Preprocessor::expect(DirectiveContext& context, TokenType tokenType, DiagnosticInfo const& diagnostic, Token& outToken)
+            {
+                if (peekTokenType() != tokenType)
+                {
+                    // Only report the first parse error within a directive
+                    if (!context.parseError)
+                    {
+                        sink_->Diagnose(context.token, diagnostic, tokenType, getDirectiveName(context));
+                        context.parseError = true;
+                    }
+                    return false;
+                }
+
+                outToken = advanceToken();
+                return true;
             }
 
             bool Preprocessor::expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic)
@@ -439,28 +484,58 @@ namespace RR
                 return true;
             }
 
-            void Preprocessor::handleDirective(DirectiveContext& directiveContext)
+            void Preprocessor::handleDirective()
             {
-                ASSERT(isDirective(directiveContext.token.type))
+                ASSERT(peekRawTokenType() == TokenType::Directive)
 
-                switch (directiveContext.token.type)
+                // Skip the `#`
+                currentInputStream_->ReadToken(); // TODO ReadRawToken
+
+                // Create a context for parsing the directive
+                DirectiveContext context;
+
+                // Try to read the directive name.
+                context.token = peekRawToken();
+
+                TokenType directiveTokenType = context.token.type;
+
+                // An empty directive is allowed, and ignored.
+                switch (directiveTokenType)
                 {
-                    case TokenType::DefineDirective:
-                        handleDefineDirective(directiveContext);
-                        return;
-
-                    case TokenType::LineDirective:
-                        handleLineDirective(directiveContext);
+                    case TokenType::EndOfFile:
+                    case TokenType::NewLine:
                         return;
 
                     default:
-                        return;
+                        break;
                 }
+
+                // Otherwise the directive name had better be an identifier
+                if (directiveTokenType != TokenType::Identifier)
+                {
+                    sink_->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
+                    skipToEndOfLine();
+                    return;
+                }
+
+                // Consume the directive
+                advanceRawToken();
+
+                // Look up the handler for the directive.
+                const auto directiveHandler = findHandleDirectiveFunc(getDirectiveName(context));
+
+                // Call the directive-specific handler
+                (this->*directiveHandler)(context);
             }
 
-            void Preprocessor::handleDefineDirective(DirectiveContext& directiveContext)
+            void Preprocessor::handleInvalidDirective(DirectiveContext& directiveContext)
             {
-                ASSERT(directiveContext.token.type == TokenType::DefineDirective)
+                sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, getDirectiveName(directiveContext));
+                skipToEndOfLine();
+            }
+
+            void Preprocessor::handleDefineDirective(DirectiveContext&)
+            {
 
                 // Token nameToken;
                 // if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
@@ -468,13 +543,39 @@ namespace RR
                 // Name* name = nameToken.getName();
             }
 
+            void Preprocessor::handleIncludeDirective(DirectiveContext& directiveContext)
+            {
+                Token pathToken;
+                if (!expect(directiveContext, TokenType::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
+                    return;
+
+                U8String path = getFileNameTokenValue(pathToken);
+
+                const auto& sourceView = directiveContext.token.sourceLocation.GetSourceView();
+                const auto& includedFromPathInfo = sourceView->GetSourceFile();
+
+                (void)includedFromPathInfo;
+
+                /* Find the path relative to the foundPath */
+                /*   PathInfo filePathInfo;
+                if (SLANG_FAILED(includeSystem->findFile(path, includedFromPathInfo.foundPath, filePathInfo)))
+                {
+                    GetSink(context)->diagnose(pathToken.loc, Diagnostics::includeFailed, path);
+                    return;
+                }
+            
+                // We must have a uniqueIdentity to be compare
+                if (!filePathInfo.hasUniqueIdentity())
+                {
+                    GetSink(context)->diagnose(pathToken.loc, Diagnostics::noUniqueIdentity, path);
+                    return;
+                }
+                */
+            }
+
             void Preprocessor::handleLineDirective(DirectiveContext& directiveContext)
             {
-                ASSERT(directiveContext.token.type == TokenType::LineDirective)
-
                 uint32_t line = 0;
-
-                advanceRawToken();
 
                 switch (peekTokenType())
                 {
@@ -485,7 +586,7 @@ namespace RR
                     /* else, fall through to: */
                     // `#line` and `#line default` directives are not supported
                     default:
-                        sink_->Diagnose(directiveContext.token, Diagnostics::expectedTokenInPreprocessorDirective,
+                        sink_->Diagnose(peekToken(), Diagnostics::expectedTokenInPreprocessorDirective,
                                         TokenType::IntegerLiteral,
                                         getDirectiveName(directiveContext));
                         directiveContext.parseError = true;
@@ -500,11 +601,11 @@ namespace RR
                 expectEndOfDirective(directiveContext);
 
                 const auto& nextToken = currentInputStream_->PeekToken();
+                // Start new source view from end of new line sequence.
+                const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
 
                 HumaneSourceLocation humaneLocation(line, 1);
-
-                // Start new source view from end of new line sequence.
-                const auto& sourceView = SourceView::Create(nextToken.sourceLocation + nextToken.stringSlice.GetLength(), humaneLocation);
+                const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, sourceLocation.GetSourceView()->GetPathInfo());
                 const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, sink_);
 
                 pushInputStream(inputStream);
@@ -528,7 +629,6 @@ namespace RR
                     skipToEndOfLine();
                 }
             }
-
         }
     }
 }

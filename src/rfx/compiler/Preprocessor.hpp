@@ -8,17 +8,14 @@ namespace RR
     {
         namespace Compiler
         {
+            class DiagnosticSink;
+            class IncludeSystem;
+            class Lexer;
             class SourceFile;
-
+            struct DiagnosticInfo;
             struct InputStream;
-
             struct PathInfo;
             struct SourceLocation;
-
-            class DiagnosticSink;
-            struct DiagnosticInfo;
-
-            class Lexer;
 
             class Preprocessor final
             {
@@ -27,7 +24,10 @@ namespace RR
 
             public:
                 Preprocessor() = delete;
-                Preprocessor(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+                Preprocessor(const std::shared_ptr<SourceFile>& sourceFile,
+                             const std::shared_ptr<DiagnosticSink>& diagnosticSink,
+                             const std::shared_ptr<IncludeSystem>& includeSystem);
+
                 ~Preprocessor();
 
                 // read the entire input into tokens
@@ -35,8 +35,14 @@ namespace RR
                 Token ReadToken();
 
             private:
+                typedef void (Preprocessor::*HandleDirectiveFunc)(DirectiveContext& context);
+                static const std::unordered_map<U8String, HandleDirectiveFunc> handleDirectiveFuncMap;
+
+            private:
                 int32_t tokenToInt(const Token& token, int radix);
                 uint32_t tokenToUInt(const Token& str, int radix);
+
+                HandleDirectiveFunc findHandleDirectiveFunc(const U8String& name);
 
                 // TODO comments
                 /// Push a new input source onto the input stack of the preprocessor
@@ -60,13 +66,16 @@ namespace RR
                 // Skip to the end of the line (useful for recovering from errors in a directive)
                 void skipToEndOfLine();
 
+                bool expect(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken);
                 bool expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic);
 
                 // Determine if we have read everything on the directive's line.
                 bool isEndOfLine();
 
-                void handleDirective(DirectiveContext& directiveContext);
+                void handleDirective();
+                void handleInvalidDirective(DirectiveContext& directiveContext);
                 void handleDefineDirective(DirectiveContext& directiveContext);
+                void handleIncludeDirective(DirectiveContext& directiveContext);
                 void handleLineDirective(DirectiveContext& directiveContext);
 
                 // Helper routine to check that we find the end of a directive where
@@ -79,9 +88,10 @@ namespace RR
                 void expectEndOfDirective(DirectiveContext& context);
 
             private:
+                std::shared_ptr<DiagnosticSink> sink_;
+                std::shared_ptr<IncludeSystem> includeSystem_;
                 std::shared_ptr<InputStream> currentInputStream_;
                 std::shared_ptr<SourceFile> sourceFile_;
-                std::shared_ptr<DiagnosticSink> sink_;
                 // std::unique_ptr<Lexer> lexer_;
 
                 /// A pre-allocated token that can be returned to represent end-of-input situations.

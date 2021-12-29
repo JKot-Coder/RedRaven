@@ -453,7 +453,8 @@ namespace RR
                         if ((flags_ & Flags::AtStartOfLine) != Flags::None ||
                             (flags_ & Flags::AfterWhitespace) != Flags::None)
                         {
-                            return lexDirective();
+                            advance();
+                            return TokenType::Directive;
                         }
 
                         advance();
@@ -717,19 +718,9 @@ namespace RR
                         case '\r':
                         case '\n':
                             handleNewlineSequence();
-                            return TokenType::NullDirective;
-
+                            return TokenType::Directive;
                         default:
-                        {
-                            const auto loc = getSourceLocation();
-
-                            const auto begin = cursor_;
-                            lexIdentifier();
-                            const auto end = cursor_;
-
-                            const auto identifier = U8String(begin, end);
-                            return getDirectiveTokenFromName(loc, identifier);
-                        }
+                            break;
                     }
                 }
             }
@@ -918,35 +909,6 @@ namespace RR
             HumaneSourceLocation Lexer::getHumaneSourceLocation()
             {
                 return HumaneSourceLocation(linesCounter_.Value(), columnCounter_.Value());
-            }
-
-            TokenType Lexer::getDirectiveTokenFromName(const SourceLocation& location, const U8String& name)
-            {
-                static const std::unordered_map<U8String, TokenType> directives = {
-                    { "if", TokenType::IfDirective },
-                    { "ifdef", TokenType::IfDefDirective },
-                    { "ifndef", TokenType::IfNDefDirective },
-                    { "else", TokenType::ElseDirective },
-                    { "elif", TokenType::ElifDirective },
-                    { "endif", TokenType::EndIfDirective },
-                    { "include", TokenType::IncludeDirective },
-                    { "define", TokenType::DefineDirective },
-                    { "undef", TokenType::UndefDirective },
-                    { "warning", TokenType::WarningDirective },
-                    { "error", TokenType::ErrorDirective },
-                    { "line", TokenType::LineDirective },
-                    { "pragma", TokenType::PragmaDirective },
-                    { "", TokenType::NullDirective }
-                };
-
-                auto search = directives.find(name);
-                if (search == directives.end())
-                {
-                    sink_->Diagnose(location, getHumaneSourceLocation(), LexerDiagnostics::unknownDirective, name);
-                    return TokenType::Unknown;
-                }
-
-                return search->second;
             }
         }
     }

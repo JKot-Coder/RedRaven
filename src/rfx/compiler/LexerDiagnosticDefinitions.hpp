@@ -31,6 +31,5 @@ DIAGNOSTIC(10004, Error, endOfFileInLiteral, "end of file in literal")
 DIAGNOSTIC(10005, Error, newlineInLiteral, "newline in literal")
 
 DIAGNOSTIC(10006, Error, endOfFileInBlockComment, "end of file in block comment")
-DIAGNOSTIC(10007, Error, unknownDirective, "unknown preprocessor directive '{}'")
 
 #undef DIAGNOSTIC

@@ -1,3 +1,9 @@
+#line 100
+фывфыв
+
+
+/*
+
 /\
 *
 Я\
@@ -5,7 +11,7 @@
  	Упоролся\
 *\
 /
-
+/*
 /\
 /A это тупой комментарий
 
@@ -16,12 +22,12 @@
 //#include "CAS_Shader.hlsl" а это комментарии на русском. Найс!
 
 #include
- 	 /* 		 														ываыва */ #йцуцйуldeqweqweqweqweqweqweqweqweqqweqwe йцуйцууй
- 			#include 
+ 	 /* 		 														ываыва */ /*#йцуцйуldeqweqweqweqweqweqweqweqweqqweqwe йцуйцууй
+ 			#include "qweqwe.cpp"
  					#include
 
  					#INCLUDE
-
+#slang
 #line 00111111000000000000000		wqe
 #line 000010
 о тупой ко\
@@ -42,4 +48,4 @@ void computeMain(uint3 threadId : SV_DispatchThreadID)
 {
     uint index = threadId.x;
     result[index] = buffer0[index] + buffer1[index] + 0010 + 009; 
-#line 12
+*/

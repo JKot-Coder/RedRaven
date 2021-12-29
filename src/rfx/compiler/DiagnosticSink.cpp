@@ -218,7 +218,7 @@ namespace RR
                     */
 
                     humaneLocString = fmt::format("{0}({1}): ",
-                                                  sourceView->GetSourceFile()->GetFileName(),
+                                                  sourceView->GetPathInfo().getMostUniqueIdentity(),
                                                   humaneLocation.line,
                                                   humaneLocation.column);
                 }
