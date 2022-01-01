@@ -27,7 +27,7 @@ SourceViews are created, with unique SourceRanges. This is so that it is possibl
 interpretation for that lex/parse.
 */
 
-#include "compiler/UnownedStringSlice.hpp"
+#include "core/UnownedStringSlice.hpp"
 
 namespace RR
 {

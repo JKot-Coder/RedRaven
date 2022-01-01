@@ -48,6 +48,11 @@ namespace RR
             {
                 U8String combinedPath;
 
+                (void)fromPathType;
+                (void)fromPath;
+                (void)path;
+                (void)outPathInfo;
+                /*
                 if (fromPath.length() == 0 || std::filesystem::path(path).is_absolute())
                 {
                     // If the path is absolute or the fromPath is empty, the combined path is just the path
@@ -76,7 +81,7 @@ namespace RR
                 if (uniqueIdentity.length() <= 0)
                     return RfxResult::Fail; // Unique identity can't be empty
 
-                outPathInfo = PathInfo::makeNormal(combinedPath, uniqueIdentity);
+                outPathInfo = PathInfo::makeNormal(combinedPath, uniqueIdentity);*/
                 return RfxResult::Ok;
             }
         }

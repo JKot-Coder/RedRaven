@@ -558,12 +558,12 @@ namespace RR
 
                 /* Find the path relative to the foundPath */
                   PathInfo filePathInfo;  
-                if (RFX_FAILED(includeSystem->FindFile(path, includedFromPathInfo.foundPath, filePathInfo)))
+              /*   if (RFX_FAILED(includeSystem->FindFile(path, includedFromPathInfo.foundPath, filePathInfo)))
                 {
                     GetSink(context)->diagnose(pathToken.loc, Diagnostics::includeFailed, path);
                     return;
                 }
-                /*
+               
                 // We must have a uniqueIdentity to be compare
                 if (!filePathInfo.hasUniqueIdentity())
                 {

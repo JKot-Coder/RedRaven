@@ -2,8 +2,10 @@
 
 #include <slang.h>
 
+#include "core/FileSystem.hpp"
+#include "core/IncludeSystem.hpp"
+
 #include "compiler/DiagnosticCore.hpp"
-#include "compiler/IncludeSystem.hpp"
 #include "compiler/Preprocessor.hpp"
 #include "compiler/SourceLocation.hpp"
 #include "compiler/Token.hpp"
@@ -21,7 +23,8 @@ void test2()
     const auto& sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>(pathInfo); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
     sourceFile->SetContents(input);
 
-    const auto& includeSystem = RR::Rfx::Compiler::IncludeSystem::Create();
+    const auto& fileSystem = std::make_shared<RR::Rfx::Compiler::OSFileSystem>();
+    const auto& includeSystem = std::make_shared<RR::Rfx::Compiler::IncludeSystem>(fileSystem);
     const auto& diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();
     const auto& preprocessor = std::make_shared<RR::Rfx::Compiler::Preprocessor>(sourceFile, diagnosticSink, includeSystem);
     const auto& tokens = preprocessor->ReadAllTokens();
