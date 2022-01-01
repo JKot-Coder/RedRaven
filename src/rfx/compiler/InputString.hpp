@@ -4,34 +4,31 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        class IInputStream
         {
-            class IInputStream
-            {
-            public:
-                IInputStream() = default;
-                virtual ~IInputStream() = default;
+        public:
+            IInputStream() = default;
+            virtual ~IInputStream() = default;
 
-                virtual U8String ReadLine() = 0;
-                virtual bool HasNextLine() const = 0;
-            };
+            virtual U8String ReadLine() = 0;
+            virtual bool HasNextLine() const = 0;
+        };
 
-            class StringInputStream : public IInputStream
-            {
-            public:
-                StringInputStream() = delete;
-                StringInputStream(const U8String& source);
-                
-                StringInputStream(const StringInputStream& inputStream);
-                StringInputStream(StringInputStream&& inputStream);
-                virtual ~StringInputStream() = default;
+        class StringInputStream : public IInputStream
+        {
+        public:
+            StringInputStream() = delete;
+            StringInputStream(const U8String& source);
 
-                U8String ReadLine() override;
-                bool HasNextLine() const override;
+            StringInputStream(const StringInputStream& inputStream);
+            StringInputStream(StringInputStream&& inputStream);
+            virtual ~StringInputStream() = default;
 
-            private:
-                U8String sourceString_;
-            };
-        }
+            U8String ReadLine() override;
+            bool HasNextLine() const override;
+
+        private:
+            U8String sourceString_;
+        };
     }
 }

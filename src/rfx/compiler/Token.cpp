@@ -4,16 +4,13 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        U8String TokenTypeToString(TokenType type)
         {
-
-            U8String TokenTypeToString(TokenType type)
+            switch (type)
             {
-                switch (type)
-                {
-                    default:
-                        ASSERT(!"unexpected");
-                        return "<uknown>";
+                default:
+                    ASSERT(!"unexpected");
+                    return "<uknown>";
 
                     // clang-format off
                     #define TOKEN(NAME, DESC) \
@@ -21,9 +18,7 @@ namespace RR
                             return DESC;
                     #include "TokenDefinitions.hpp"
                     // clang-format on
-                }
             }
-
         }
     }
 }

@@ -4,22 +4,18 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        enum class SignalType
         {
+            Unexpected,
+            Unimplemented,
+            AssertFailure,
+            Unreachable,
+            InvalidOperation,
+            AbortCompilation,
+        };
 
-            enum class SignalType
-            {
-                Unexpected,
-                Unimplemented,
-                AssertFailure,
-                Unreachable,
-                InvalidOperation,
-                AbortCompilation,
-            };
-
-            void handleSignal(SignalType type, const U8String& message);
-
-            // clang-format off
+        void handleSignal(SignalType type, const U8String& message);
+        // clang-format off
             #define RFX_UNEXPECTED(reason) \
                 handleSignal(SignalType::Unexpected, reason)
 
@@ -29,6 +25,7 @@ namespace RR
             #define RFX_UNREACHABLE(msg) \
                 handleSignal(SignalType::Unreachable, msg)
 
+            //TODO ?
             #define RFX_ASSERT_FAILURE(msg) \
                 handleSignal(SignalType::AssertFailure, msg)
 
@@ -37,7 +34,6 @@ namespace RR
 
             #define RFX_ABORT_COMPILATION(msg) \
                 handleSignal(SignalType::AbortCompilation, msg)
-            // clang-format on
-        }
+        // clang-format on
     }
 }

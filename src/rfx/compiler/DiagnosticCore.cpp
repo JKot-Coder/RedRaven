@@ -4,9 +4,6 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
-        {
 
-        }
     }
 }

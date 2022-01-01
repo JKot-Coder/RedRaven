@@ -4,10 +4,10 @@
 
 #include "core/FileSystem.hpp"
 #include "core/IncludeSystem.hpp"
+#include "core/SourceLocation.hpp"
 
 #include "compiler/DiagnosticCore.hpp"
 #include "compiler/Preprocessor.hpp"
-#include "compiler/SourceLocation.hpp"
 #include "compiler/Token.hpp"
 
 #include <fstream>
@@ -19,21 +19,21 @@ void test2()
         std::istreambuf_iterator<char>(instream.rdbuf()),
         std::istreambuf_iterator<char>());
 
-    const auto& pathInfo = RR::Rfx::Compiler::PathInfo::makeNormal("test2.slang", "test2.slang");
-    const auto& sourceFile = std::make_shared<RR::Rfx::Compiler::SourceFile>(pathInfo); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
+    const auto& pathInfo = RR::Rfx::PathInfo::makeNormal("test2.slang", "test2.slang");
+    const auto& sourceFile = std::make_shared<RR::Rfx::SourceFile>(pathInfo); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
     sourceFile->SetContents(input);
 
-    const auto& fileSystem = std::make_shared<RR::Rfx::Compiler::OSFileSystem>();
-    const auto& includeSystem = std::make_shared<RR::Rfx::Compiler::IncludeSystem>(fileSystem);
-    const auto& diagnosticSink = std::make_shared<RR::Rfx::Compiler::DiagnosticSink>();
-    const auto& preprocessor = std::make_shared<RR::Rfx::Compiler::Preprocessor>(sourceFile, diagnosticSink, includeSystem);
+    const auto& fileSystem = std::make_shared<RR::Rfx::OSFileSystem>();
+    const auto& includeSystem = std::make_shared<RR::Rfx::IncludeSystem>(fileSystem);
+    const auto& diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
+    const auto& preprocessor = std::make_shared<RR::Rfx::Preprocessor>(sourceFile, diagnosticSink, includeSystem);
     const auto& tokens = preprocessor->ReadAllTokens();
 
     for (auto token : tokens)
     {
-        Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}\n", RR::Rfx::Compiler::TokenTypeToString(token.type), token.GetContentString(), token.humaneSourceLocation.line, token.humaneSourceLocation.column);
+        Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}\n", RR::Rfx::TokenTypeToString(token.type), token.GetContentString(), token.humaneSourceLocation.line, token.humaneSourceLocation.column);
 
-        if (token.type == RR::Rfx::Compiler::TokenType::EndOfFile)
+        if (token.type == RR::Rfx::TokenType::EndOfFile)
             break;
     }
 }

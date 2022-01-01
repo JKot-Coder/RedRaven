@@ -4,27 +4,25 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Core
+        struct UnownedStringSlice
         {
-            struct UnownedStringSlice
+        public:
+            UnownedStringSlice() = default;
+
+            UnownedStringSlice(const U8String& string)
+                : begin_(string.c_str()), end_(string.c_str() + string.length())
             {
-            public:
-                UnownedStringSlice() = default;
+            }
 
-                UnownedStringSlice(const U8String& string)
-                    : begin_(string.c_str()), end_(string.c_str() + string.length())
-                {
-                }
+            UnownedStringSlice(const U8Char* begin, const U8Char* end)
+                : begin_(begin), end_(end)
+            {
+            }
 
-                UnownedStringSlice(const U8Char* begin, const U8Char* end)
-                    : begin_(begin), end_(end)
-                {
-                }
+            const U8Char* Begin() const { return begin_; }
+            const U8Char* End() const { return end_; }
 
-                const U8Char* Begin() const { return begin_; }
-                const U8Char* End() const { return end_; }
-
-                /*
+            /*
                 /// True if slice is strictly contained in memory.
                 bool IsMemoryContained(const UnownedStringSlice& slice) const
                 {
@@ -38,12 +36,12 @@ namespace RR
                 }
                 */
 
-                size_t GetLength() const
-                {
-                    return std::distance(begin_, end_);
-                }
+            size_t GetLength() const
+            {
+                return std::distance(begin_, end_);
+            }
 
-                /*
+            /*
                 /// Finds first index of char 'c'. If not found returns -1.
                 Index indexOf(char c) const;
                 /// Find first index of slice. If not found returns -1
@@ -90,20 +88,20 @@ namespace RR
                     return m_begin[i];
                 }*/
 
-                bool operator==(UnownedStringSlice const& other) const;
-                bool operator!=(UnownedStringSlice const& other) const
-                {
-                    return !(*this == other);
-                }
+            bool operator==(UnownedStringSlice const& other) const;
+            bool operator!=(UnownedStringSlice const& other) const
+            {
+                return !(*this == other);
+            }
 
-                bool operator==(char const* str) const
-                {
-                    return (*this) == UnownedStringSlice(str);
-                }
-                bool operator!=(char const* str) const
-                {
-                    return !(*this == str);
-                } /*
+            bool operator==(char const* str) const
+            {
+                return (*this) == UnownedStringSlice(str);
+            }
+            bool operator!=(char const* str) const
+            {
+                return !(*this == str);
+            } /*
 
                 /// True if contents is a single char of c
                 SLANG_FORCE_INLINE bool isChar(char c) const
@@ -117,8 +115,8 @@ namespace RR
                 bool endsWith(UnownedStringSlice const& other) const;
                 bool endsWith(char const* str) const;
 */
-                /// Trims any horizontal whitespace from the start and end and returns as a substring
-                UnownedStringSlice Trim() const;
+            /// Trims any horizontal whitespace from the start and end and returns as a substring
+            UnownedStringSlice Trim() const;
             /*    /// Trims any 'c' from the start or the end, and returns as a substring
                 UnownedStringSlice trim(char c) const;
 
@@ -137,10 +135,9 @@ namespace RR
                 } 
                 */
 
-            private:
-                const U8Char* begin_;
-                const U8Char* end_;
-            };
-        }
+        private:
+            const U8Char* begin_;
+            const U8Char* end_;
+        };
     }
 }

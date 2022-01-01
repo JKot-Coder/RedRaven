@@ -4,15 +4,12 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Core
+        class IRfxFileSystemExt
         {
-            class IRfxFileSystemExt
-            {
-            };
+        };
 
-            class OSFileSystem final : public IRfxFileSystemExt
-            {
-            };
-        }
+        class OSFileSystem final : public IRfxFileSystemExt
+        {
+        };
     }
 }
