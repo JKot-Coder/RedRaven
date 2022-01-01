@@ -10,19 +10,19 @@ namespace
 {
     struct CompileTargetConversion
     {
-        Rfx::CompileTarget from;
+        RR::Rfx::CompileTarget from;
         SlangCompileTarget to;
     };
 
     // clang-format off
     static CompileTargetConversion compileTargetConversion[] = {
-        { Rfx::CompileTarget::Dxil,             SLANG_DXIL },
-        { Rfx::CompileTarget::Dxil_asm,         SLANG_DXIL_ASM },
+        { RR::Rfx::CompileTarget::Dxil,             SLANG_DXIL },
+        { RR::Rfx::CompileTarget::Dxil_asm,         SLANG_DXIL_ASM },
     }; // clang-format on
 
-    static_assert(std::is_same<std::underlying_type<Rfx::CompileTarget>::type, uint32_t>::value);
-    static_assert(std::size(compileTargetConversion) == static_cast<uint32_t>(Rfx::CompileTarget::Count));
-/*
+    static_assert(std::is_same<std::underlying_type<RR::Rfx::CompileTarget>::type, uint32_t>::value);
+    static_assert(std::size(compileTargetConversion) == static_cast<uint32_t>(RR::Rfx::CompileTarget::Count));
+    /*
     SlangCompileTarget getCompileTargetConversion(Rfx::CompileTarget target)
     {
         ASSERT(compileTargetConversion[static_cast<uint32_t>(target)].from == target);
@@ -118,9 +118,9 @@ namespace Rfx
             }
 
             std::ignore = entryPointIndex;
-           
+
             const auto result = request_->getEntryPoint(entryPointIndex, entryPoint.writeRef());
-            (void) result;
+            (void)result;
             ASSERT(SLANG_SUCCEEDED(request_->getEntryPoint(entryPointIndex, entryPoint.writeRef())));
 
             std::vector<slang::IComponentType*> components;

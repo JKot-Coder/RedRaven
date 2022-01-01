@@ -557,13 +557,13 @@ namespace RR
                 (void)includedFromPathInfo;
 
                 /* Find the path relative to the foundPath */
-                /*   PathInfo filePathInfo;
-                if (SLANG_FAILED(includeSystem->findFile(path, includedFromPathInfo.foundPath, filePathInfo)))
+                  PathInfo filePathInfo;  
+                if (RFX_FAILED(includeSystem->FindFile(path, includedFromPathInfo.foundPath, filePathInfo)))
                 {
                     GetSink(context)->diagnose(pathToken.loc, Diagnostics::includeFailed, path);
                     return;
                 }
-            
+                /*
                 // We must have a uniqueIdentity to be compare
                 if (!filePathInfo.hasUniqueIdentity())
                 {
@@ -583,8 +583,16 @@ namespace RR
                         line = tokenToUInt(advanceToken(), 10);
                         break;
 
-                    /* else, fall through to: */
                     // `#line` and `#line default` directives are not supported
+                    case TokenType::EndOfFile:
+                    case TokenType::NewLine:
+                        sink_->Diagnose(directiveContext.token, Diagnostics::expectedTokenInPreprocessorDirective,
+                                        TokenType::IntegerLiteral,
+                                        getDirectiveName(directiveContext));
+                        directiveContext.parseError = true;
+                        return;
+
+                    /* else, fall through to: */
                     default:
                         sink_->Diagnose(peekToken(), Diagnostics::expectedTokenInPreprocessorDirective,
                                         TokenType::IntegerLiteral,

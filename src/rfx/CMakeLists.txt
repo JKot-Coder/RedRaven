@@ -8,6 +8,17 @@ set(RFX_SRC
     "main.cpp")
 source_group( "" FILES ${RFX_SRC} )
 
+set(RFX_CORE_SRC
+    "core/Exception.hpp"
+    "core/IncludeSystem.cpp"
+    "core/IncludeSystem.hpp"
+    "core/FileSystem.cpp"
+    "core/FileSystem.hpp"
+    "core/UnownedStringSlice.cpp"
+    "core/UnownedStringSlice.hpp"
+    )
+source_group( "core" FILES ${RFX_CORE_SRC} )
+
 set(RFX_COMPILER_SRC
     "compiler/CompileRequest.cpp"
     "compiler/CompileRequest.hpp"
@@ -18,9 +29,6 @@ set(RFX_COMPILER_SRC
     "compiler/DiagnosticSink.hpp"
     "compiler/Effect.cpp"
     "compiler/Effect.hpp"
-    "compiler/Exception.hpp"
-    "compiler/IncludeSystem.cpp"
-    "compiler/IncludeSystem.hpp"
     "compiler/InputString.hpp"
     "compiler/Lexer.cpp"
     "compiler/Lexer.hpp"
@@ -38,14 +46,13 @@ set(RFX_COMPILER_SRC
     "compiler/Token.cpp"
     "compiler/Token.hpp"
     "compiler/TokenDefinitions.hpp"
-    "compiler/UnownedStringSlice.cpp"
-    "compiler/UnownedStringSlice.hpp"
     )
 source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
 
 
 set(RFX_SRC
     ${RFX_SRC}
+    ${RFX_CORE_SRC}
     ${RFX_COMPILER_SRC})
 
 set(RFX_LINK_LIBRARIES
