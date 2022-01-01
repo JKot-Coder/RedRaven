@@ -1,6 +1,6 @@
 #pragma once
 
-#include "compiler/SourceLocation.hpp"
+#include "core/SourceLocation.hpp"
 
 namespace RR
 {

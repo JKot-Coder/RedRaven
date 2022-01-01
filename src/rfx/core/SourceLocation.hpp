@@ -33,7 +33,7 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        namespace Core
         {
             class SourceView;
 

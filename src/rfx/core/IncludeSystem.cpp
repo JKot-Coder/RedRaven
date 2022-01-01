@@ -8,8 +8,10 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        namespace Core
         {
+
+
             RfxResult IncludeSystem::FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo)
             {
                 outPathInfo.type = PathInfo::Type::Unknown;

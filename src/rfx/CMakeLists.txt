@@ -10,10 +10,12 @@ source_group( "" FILES ${RFX_SRC} )
 
 set(RFX_CORE_SRC
     "core/Exception.hpp"
-    "core/IncludeSystem.cpp"
-    "core/IncludeSystem.hpp"
     "core/FileSystem.cpp"
     "core/FileSystem.hpp"
+    "core/IncludeSystem.cpp"
+    "core/IncludeSystem.hpp"
+    "core/SourceLocation.cpp"
+    "core/SourceLocation.hpp"
     "core/UnownedStringSlice.cpp"
     "core/UnownedStringSlice.hpp"
     )
@@ -41,8 +43,6 @@ set(RFX_COMPILER_SRC
     "compiler/Session.hpp"
     "compiler/Signal.cpp"
     "compiler/Signal.hpp"
-    "compiler/SourceLocation.cpp"
-    "compiler/SourceLocation.hpp"
     "compiler/Token.cpp"
     "compiler/Token.hpp"
     "compiler/TokenDefinitions.hpp"

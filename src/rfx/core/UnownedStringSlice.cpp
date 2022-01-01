@@ -4,7 +4,7 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        namespace Core
         {
             bool UnownedStringSlice::operator==(UnownedStringSlice const& other) const
             {

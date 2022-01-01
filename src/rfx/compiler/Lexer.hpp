@@ -1,7 +1,8 @@
 #pragma once
 
+#include "core/SourceLocation.hpp"
+
 #include "compiler/InputString.hpp"
-#include "compiler/SourceLocation.hpp"
 #include "compiler/Token.hpp"
 
 #include "common/EnumClassOperators.hpp"

@@ -6,7 +6,7 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace Compiler
+        namespace Core
         {
             // Exceptions should not generally be used in core/compiler-core, use the 'signal' mechanism
             // ideally using the macros in the signal.hpp such as `RFX_UNEXPECTED`
