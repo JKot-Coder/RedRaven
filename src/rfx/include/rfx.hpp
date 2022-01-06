@@ -85,5 +85,56 @@ namespace RR
             NotAvailable = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 7), //! Could not complete because some underlying feature (hardware or software) was not available
             TimeOut = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 8) //! Could not complete because the operation times out.
         };
+
+        /* !!!!!!!!!!!!!!!!!!!!! Macros to help checking RfxResult !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+//! Helper macro, that makes it easy to add result checking to calls in functions/methods that themselves return Result.
+#define RFX_RETURN_ON_FAIL(x) \
+    {                         \
+        RfxResult _res = (x); \
+        if (RFX_FAILED(_res)) \
+            return _res;      \
+    }
+//! Helper macro that can be used to test the return value from a call, and will return in a void method/function
+#define RFX_RETURN_VOID_ON_FAIL(x) \
+    {                              \
+        RfxResult _res = (x);      \
+        if (RFX_FAILED(_res))      \
+            return;                \
+    }
+//! Helper macro that will return false on failure.
+#define RFX_RETURN_FALSE_ON_FAIL(x) \
+    {                               \
+        RfxResult _res = (x);       \
+        if (RFX_FAILED(_res))       \
+            return false;           \
+    }
+//! Helper macro that will return nullptr on failure.
+#define RFX_RETURN_NULL_ON_FAIL(x) \
+    {                              \
+        RfxResult _res = (x);      \
+        if (RFX_FAILED(_res))      \
+            return nullptr;        \
+    }
+
+//! Helper macro that will assert if the return code from a call is failure, also returns the failure.
+#define RFX_ASSERT_ON_FAIL(x) \
+    {                         \
+        RfxResult _res = (x); \
+        if (RFX_FAILED(_res)) \
+        {                     \
+            ASSERT(false);    \
+            return _res;      \
+        }                     \
+    }
+//! Helper macro that will assert if the result from a call is a failure, also returns.
+#define RFX_ASSERT_VOID_ON_FAIL(x) \
+    {                              \
+        RfxResult _res = (x);      \
+        if (RFX_FAILED(_res))      \
+        {                          \
+            ASSERT(false);         \
+            return;                \
+        }                          \
+    }
     }
 }

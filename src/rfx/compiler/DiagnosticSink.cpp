@@ -212,13 +212,23 @@ namespace RR
                                                   sourceView->GetSourceFile()->GetFileName(),
                                                   humaneLocation.line,
                                                   humaneLocation.column);
-                    
-                    */
+                                    */
 
-                humaneLocString = fmt::format("{0}({1}): ",
-                                              sourceView->GetPathInfo().getMostUniqueIdentity(),
-                                              humaneLocation.line,
-                                              humaneLocation.column);
+                const auto includeStack = sourceView->GetIncludeStack().GetStack();
+
+                for (auto it = includeStack.begin(); it != std::prev(includeStack.end()); ++it)
+                {
+                    const auto& includeInfo = *it;
+                    humaneLocString += fmt::format("In file included from {0}({1}):\n",
+                                                   includeInfo.pathInfo.getMostUniqueIdentity(),
+                                                   includeInfo.humaneSourceLocation.line,
+                                                   includeInfo.humaneSourceLocation.column);
+                }
+
+                humaneLocString += fmt::format("{0}({1}): ",
+                                               sourceView->GetPathInfo().getMostUniqueIdentity(),
+                                               humaneLocation.line,
+                                               humaneLocation.column);
             }
 
             U8String format = (diagnostic.errorID >= 0) ? "{0} {1}: {2}\n" : "{0}: {2}\n";

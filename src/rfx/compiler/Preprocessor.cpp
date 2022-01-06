@@ -1,7 +1,12 @@
 #include "Preprocessor.hpp"
 
+#include "core/IncludeSystem.hpp"
+
 #include "compiler/DiagnosticCore.hpp"
 #include "compiler/Lexer.hpp"
+
+#include <filesystem>
+#include <sstream>
 
 namespace RR
 {
@@ -33,6 +38,143 @@ namespace RR
                 // Just trim off the first and last characters to remove the quotes
                 // (whether they were `""` or `<>`.
                 return U8String(content.Begin() + 1, content.End() - 1);
+            }
+
+            U8String getStringLiteralTokenValue(const Token& token)
+            {
+                ASSERT(token.type == TokenType::StringLiteral || token.type == TokenType::CharLiteral);
+
+                const UnownedStringSlice content = token.stringSlice;
+
+                auto cursor = utf8::iterator<const char*>(content.Begin(), content.Begin(), content.End());
+                auto end = utf8::iterator<const char*>(content.End(), content.Begin(), content.End());
+
+                auto quote = *cursor++;
+                ASSERT(quote == '\'' || quote == '"');
+
+                U8String result;
+                for (;;)
+                {
+                    ASSERT(cursor != end);
+
+                    char32_t ch = *cursor++;
+
+                    // If we see a closing quote, then we are at the end of the string literal
+                    if (ch == quote)
+                    {
+                        ASSERT(cursor == end);
+                        return result;
+                    }
+
+                    // Characters that don't being escape sequences are easy;
+                    // just append them to the buffer and move on.
+                    if (ch != '\\')
+                    {
+                        utf8::append(ch, result);
+                        continue;
+                    }
+
+                    // Now we look at another character to figure out the kind of
+                    // escape sequence we are dealing with:
+
+                    char32_t d = *cursor++;
+
+                    switch (d)
+                    {
+                        // Simple characters that just needed to be escaped
+                        case '\'':
+                        case '\"':
+                        case '\\':
+                        case '?':
+                            utf8::append(d, result);
+                            continue;
+
+                        // Traditional escape sequences for special characters
+                        case 'a':
+                            utf8::append('\a', result);
+                            continue;
+                        case 'b':
+                            utf8::append('\b', result);
+                            continue;
+                        case 'f':
+                            utf8::append('\f', result);
+                            continue;
+                        case 'n':
+                            utf8::append('\n', result);
+                            continue;
+                        case 'r':
+                            utf8::append('\r', result);
+                            continue;
+                        case 't':
+                            utf8::append('\t', result);
+                            continue;
+                        case 'v':
+                            utf8::append('\v', result);
+                            continue;
+
+                        // clang-format off
+                        // Octal escape: up to 3 characterws 
+                        case '0': case '1': case '2': case '3': case '4': 
+                        case '5': case '6': case '7': 
+                        { // clang-format on
+                            cursor--;
+                            int value = 0;
+                            for (int ii = 0; ii < 3; ++ii)
+                            {
+                                d = *cursor;
+                                if (('0' <= d) && (d <= '7'))
+                                {
+                                    value = value * 8 + (d - '0');
+
+                                    cursor++;
+                                    continue;
+                                }
+                                else
+                                    break;
+                            }
+
+                            // TODO: add support for appending an arbitrary code point?
+                            utf8::append(value, result);
+                        }
+                            continue;
+
+                        // Hexadecimal escape: any number of characters
+                        case 'x':
+                        {
+                            char32_t value = 0;
+                            for (;;)
+                            {
+                                d = *cursor++;
+                                int digitValue = 0;
+                                if (('0' <= d) && (d <= '9'))
+                                {
+                                    digitValue = d - '0';
+                                }
+                                else if (('a' <= d) && (d <= 'f'))
+                                {
+                                    digitValue = d - 'a';
+                                }
+                                else if (('A' <= d) && (d <= 'F'))
+                                {
+                                    digitValue = d - 'A';
+                                }
+                                else
+                                {
+                                    cursor--;
+                                    break;
+                                }
+
+                                value = value * 16 + digitValue;
+                            }
+
+                            // TODO: add support for appending an arbitrary code point?
+                            utf8::append(value, result);
+                        }
+                            continue;
+
+                            // TODO: Unicode escape sequences
+                    }
+                }
             }
         }
 
@@ -190,6 +332,8 @@ namespace RR
             Token lookaheadToken_;
         };
 
+        Token Preprocessor::dummyToken;
+
         Preprocessor::~Preprocessor()
         {
         }
@@ -220,7 +364,7 @@ namespace RR
             //   { "else", nullptr },
             //  { "elif", nullptr },
             //  { "endif", nullptr },
-            //  { "include", nullptr },
+            { "include", &Preprocessor::handleIncludeDirective },
             { "define", &Preprocessor::handleDefineDirective },
             //  { "undef", nullptr },
             //  { "warning", nullptr },
@@ -280,7 +424,7 @@ namespace RR
 
         void Preprocessor::pushInputStream(const std::shared_ptr<InputStream>& inputStream)
         {
-            // inputStream->parent_ = currentInputStream_;
+            inputStream->SetParent(currentInputStream_);
             currentInputStream_ = inputStream;
         }
 
@@ -410,8 +554,10 @@ namespace RR
 
                 // If we have a directive (`#` at start of line) then handle it
                 if (token.type == TokenType::Directive)
+                {
                     handleDirective();
-
+                    continue;
+                }
                 /*
                  
                     if ((token.type == TokenType::Pound) && (token.flags & TokenFlag::AtStartOfLine))
@@ -444,16 +590,15 @@ namespace RR
             }
         }
 
-        bool Preprocessor::expect(DirectiveContext& context, TokenType tokenType, DiagnosticInfo const& diagnostic, Token& outToken)
+        bool Preprocessor::expect(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken)
         {
-            if (peekTokenType() != tokenType)
+            if (peekTokenType() != expected)
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                {
-                    sink_->Diagnose(context.token, diagnostic, tokenType, getDirectiveName(context));
-                    context.parseError = true;
-                }
+                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
+
+                context.parseError = true;
                 return false;
             }
 
@@ -461,24 +606,19 @@ namespace RR
             return true;
         }
 
-        bool Preprocessor::expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic)
+        bool Preprocessor::expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken)
         {
-            (void)context;
-            (void)expected;
-            (void)diagnostic;
-            /*   if (peekRawTokenType() != expected)
-                   {
-                       // Only report the first parse error within a directive
-                       if (!context.parseError)
-                       {
-                           sink_->Diagnose(peekLoc(), diagnostic, expected, getDirectiveName(context));
-                       }
-                       context.parseError = true;
-                       return false;
-                   }
-                   Token const& token = AdvanceRawToken(context);
-                   if (outToken)
-                       *outToken = token;*/
+            if (peekRawTokenType() != expected)
+            {
+                // Only report the first parse error within a directive
+                if (!context.parseError)
+                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
+
+                context.parseError = true;
+                return false;
+            }
+
+            outToken = advanceRawToken();
             return true;
         }
 
@@ -556,19 +696,43 @@ namespace RR
 
             /* Find the path relative to the foundPath */
             PathInfo filePathInfo;
-            /*   if (RFX_FAILED(includeSystem->FindFile(path, includedFromPathInfo.foundPath, filePathInfo)))
-                {
-                    GetSink(context)->diagnose(pathToken.loc, Diagnostics::includeFailed, path);
-                    return;
-                }
-               
-                // We must have a uniqueIdentity to be compare
-                if (!filePathInfo.hasUniqueIdentity())
-                {
-                    GetSink(context)->diagnose(pathToken.loc, Diagnostics::noUniqueIdentity, path);
-                    return;
-                }
-                */
+            if (RFX_FAILED(includeSystem_->FindFile(path, includedFromPathInfo->GetPathInfo().foundPath, filePathInfo)))
+            {
+                sink_->Diagnose(peekRawToken(), Diagnostics::includeFailed, path);
+                return;
+            }
+
+            // We must have a uniqueIdentity to be compare
+            if (!filePathInfo.hasUniqueIdentity())
+            {
+                sink_->Diagnose(peekRawToken(), Diagnostics::noUniqueIdentity, path);
+                return;
+            }
+
+            // Do all checking related to the end of this directive before we push a new stream,
+            // just to avoid complications where that check would need to deal with
+            // a switch of input stream
+            expectEndOfDirective(directiveContext);
+
+            // Check whether we've previously included this file and seen a `#pragma once` directive
+            if (pragmaOnceUniqueIdentities_.find(filePathInfo.uniqueIdentity) != pragmaOnceUniqueIdentities_.end())
+                return;
+
+            // Simplify the path
+            filePathInfo.foundPath = std::filesystem::path(filePathInfo.foundPath).lexically_normal().u8string();
+
+            std::shared_ptr<SourceFile> includedFile;
+
+            if (RFX_FAILED(includeSystem_->LoadFile(filePathInfo, includedFile)))
+            {
+                sink_->Diagnose(peekRawToken(), Diagnostics::includeFailed, path);
+                return;
+            }
+
+            const auto& includedView = SourceView::CreateIncluded(includedFile, sourceView, directiveContext.token.humaneSourceLocation);
+            const auto& inputStream = std::make_shared<LexerInputStream>(includedView, sink_);
+
+            pushInputStream(inputStream);
         }
 
         void Preprocessor::handleLineDirective(DirectiveContext& directiveContext)
@@ -584,22 +748,31 @@ namespace RR
                 // `#line` and `#line default` directives are not supported
                 case TokenType::EndOfFile:
                 case TokenType::NewLine:
-                    sink_->Diagnose(directiveContext.token, Diagnostics::expectedTokenInPreprocessorDirective,
-                                    TokenType::IntegerLiteral,
-                                    getDirectiveName(directiveContext));
-                    directiveContext.parseError = true;
+                    expect(directiveContext, TokenType::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
                     return;
 
                 /* else, fall through to: */
                 default:
-                    sink_->Diagnose(peekToken(), Diagnostics::expectedTokenInPreprocessorDirective,
-                                    TokenType::IntegerLiteral,
-                                    getDirectiveName(directiveContext));
-                    directiveContext.parseError = true;
+                    expect(directiveContext, TokenType::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
                     return;
             }
 
-            // TODO handle filename
+            PathInfo pathInfo;
+            switch (peekTokenType())
+            {
+                case TokenType::EndOfFile:
+                case TokenType::NewLine:
+                    pathInfo = directiveContext.token.sourceLocation.GetSourceView()->GetPathInfo();
+                    break;
+
+                case TokenType::StringLiteral:
+                    pathInfo = PathInfo::makePath(getStringLiteralTokenValue(advanceToken()));
+                    break;
+
+                default:
+                    expect(directiveContext, TokenType::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
+                    return;
+            }
 
             // Do all checking related to the end of this directive before we push a new stream,
             // just to avoid complications where that check would need to deal with
@@ -611,7 +784,7 @@ namespace RR
             const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
 
             HumaneSourceLocation humaneLocation(line, 1);
-            const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, sourceLocation.GetSourceView()->GetPathInfo());
+            const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
             const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, sink_);
 
             pushInputStream(inputStream);

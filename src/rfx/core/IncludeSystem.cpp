@@ -1,28 +1,31 @@
 #include "IncludeSystem.hpp"
 
+#include "core/FileSystem.hpp"
 #include "core/SourceLocation.hpp"
 
-#include <filesystem>
+#include "common/LinearAllocator.hpp"
+
+#include <fstream>
 
 namespace RR
 {
     namespace Rfx
     {
-        RfxResult IncludeSystem::FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo)
+        RfxResult IncludeSystem::FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const
         {
             outPathInfo.type = PathInfo::Type::Unknown;
 
             // If it's absolute we only have to try and find if it's there - no need to look at search paths
-            if (std::filesystem::path(pathToInclude).is_absolute())
+            if (fs::path(pathToInclude).is_absolute())
             {
                 // We pass in "" as the from path, so ensure no from path is taken into account
                 // and to allow easy identification that this is in effect absolute
-                return FindFile(PathType::Directory, "", pathToInclude, outPathInfo);
+                return findFileImpl("", pathToInclude, outPathInfo);
             }
 
             // Try just relative to current path
             {
-                RfxResult result = FindFile(PathType::File, pathIncludedFrom, pathToInclude, outPathInfo);
+                RfxResult result = findFileImpl(pathToInclude, pathIncludedFrom, outPathInfo);
                 // It either succeeded or wasn't found, anything else is a failure passed back
                 if (RFX_SUCCEEDED(result) || result != RfxResult::NotFound)
                     return result;
@@ -42,44 +45,73 @@ namespace RR
             return RfxResult::NotFound;
         }
 
-        RfxResult IncludeSystem::FindFile(PathType fromPathType, const U8String& fromPath, const U8String& path, PathInfo& outPathInfo)
+        RfxResult IncludeSystem::findFileImpl(const fs::path& path, const fs::path& fromPath, PathInfo& outPathInfo) const
         {
-            U8String combinedPath;
+            fs::path combinedPath;
 
-            (void)fromPathType;
-            (void)fromPath;
-            (void)path;
-            (void)outPathInfo;
-            /*
-                if (fromPath.length() == 0 || std::filesystem::path(path).is_absolute())
-                {
-                    // If the path is absolute or the fromPath is empty, the combined path is just the path
-                    combinedPath = path;
-                }
-                else
-                {
-                    // Get relative path
-                    SLANG_RETURN_ON_FAIL(m_fileSystemExt->calcCombinedPath(fromPathType, fromPath.begin(), path.begin(), combinedPathBlob.writeRef()));
-                    combinedPath = StringUtil::getString(combinedPathBlob);
-                    if (combinedPath.length() <= 0)
-                        return RfxResult::Fail;
-                }
+            if (fromPath.empty() || path.is_absolute())
+            {
+                // If the path is absolute or the fromPath is empty, the combined path is just the path
+                combinedPath = path;
+            }
+            else
+            {
+                // Get relative path
+                combinedPath = fromPath.parent_path() / path;
+            }
 
-                // This checks the path exists
-                SlangPathType pathType;
-                SLANG_RETURN_ON_FAIL(m_fileSystemExt->getPathType(combinedPath.begin(), &pathType));
-                if (pathType != SLANG_PATH_TYPE_FILE)
-                    return RfxResult::NotFound;
+            // This checks the path exists
+            fs::file_status status = fileSystemExt_->GetPathStatus(combinedPath);
+            if (status.type() != fs::file_type::regular)
+                return RfxResult::NotFound;
 
-                // Get the uniqueIdentity
-                SLANG_RETURN_ON_FAIL(m_fileSystemExt->getFileUniqueIdentity(combinedPath.begin(), uniqueIdentityBlob.writeRef()));
+            // Get the uniqueIdentity
+            U8String uniqueIdentity;
+            RFX_RETURN_ON_FAIL(fileSystemExt_->GetPathUniqueIdentity(combinedPath, uniqueIdentity));
 
-                // If the rel path exists -> a uniqueIdentity MUST exists too
-                U8String uniqueIdentity(StringUtil::getString(uniqueIdentityBlob));
-                if (uniqueIdentity.length() <= 0)
-                    return RfxResult::Fail; // Unique identity can't be empty
+            // If the rel path exists -> a uniqueIdentity MUST exists too
+            if (uniqueIdentity.length() <= 0)
+                return RfxResult::Fail; // Unique identity can't be empty
 
-                outPathInfo = PathInfo::makeNormal(combinedPath, uniqueIdentity);*/
+            outPathInfo = PathInfo::makeNormal(combinedPath.string(), uniqueIdentity);
+
+            return RfxResult::Ok;
+        }
+
+        RfxResult IncludeSystem::LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile)
+        {
+            ASSERT(pathInfo.type == PathInfo::Type::Normal);
+
+            const auto& path = fs::path(pathInfo.foundPath);
+
+            if (!fs::exists(path))
+                return RfxResult::NotFound;
+
+            std::ifstream stream(pathInfo.foundPath, std::ios::binary);
+
+            if (!stream)
+                return RfxResult::Fail;
+
+            stream.seekg(0, stream.end);
+            uint64_t sizeInBytes = stream.tellg();
+            stream.seekg(0, stream.beg);
+
+            const uint64_t MaxFileSize = 0x40000000; // 1 Gib
+            if (sizeInBytes > MaxFileSize)
+                return RfxResult::Fail; // It's too large to fit in memory.
+
+            U8String content;
+            content.resize(sizeInBytes);
+
+            stream.read(&content[0], content.size());
+            stream.close();   
+
+            if (!stream) // If not all read just return an error
+                return RfxResult::Fail;
+
+            outSourceFile = std::make_shared<SourceFile>(pathInfo);
+            outSourceFile->SetContent(std::move(content));
+
             return RfxResult::Ok;
         }
     }

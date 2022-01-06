@@ -36,7 +36,7 @@ namespace RR
                 None = 0 << 0,
                 AtStartOfLine = 1 << 0,
                 AfterWhitespace = 1 << 1,
-                EscapedNewLines = 1 << 2,
+                EscapedNewLines = 1 << 2
             };
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 

@@ -115,70 +115,10 @@ namespace RR
             U8String uniqueIdentity; ///< The unique identity of the file on the path found
         };
 
-        /*
-            // A range of locations in the input source
-            struct SourceRange
-            {
-            public:
-                SourceRange() = default;
-                SourceRange(SourceLocation loc) : begin(loc), end(loc) { }
-                SourceRange(SourceLocation begin, SourceLocation end) : begin(begin), end(end) { ASSERT(end.GetRaw() > begin.GetRaw()); }
-
-                /// True if the loc is in the range. Range is inclusive on begin to end.
-                bool Contains(SourceLocation loc) const
-                {
-                    const auto rawLoc = loc.GetRaw();
-                    return rawLoc >= begin.GetRaw() && rawLoc <= end.GetRaw();
-                }
-
-                /// Get the total size
-                size_t GetSize() const { return uint32_t(end.GetRaw() - begin.GetRaw()); }
-
-                /// Get the offset of a loc in this range
-                size_t GetOffset(SourceLocation loc) const
-                {
-                    ASSERT(Contains(loc))
-                    return (loc.GetRaw() - begin.GetRaw());
-                }
-
-                /// Convert an offset to a loc
-                SourceLocation GetSourceLocationFromOffset(uint32_t offset) const
-                {
-                    ASSERT(offset <= GetSize());
-                    return begin + int32_t(offset);
-                }
-
-                SourceLocation begin;
-                SourceLocation end;
-            };*/
-
         // A logical or physical storage object for a range of input code
         // that has logically contiguous source locations.
         class SourceFile final
         {
-        public:
-            struct OffsetRange
-            {
-                /// We need a value to indicate an invalid range. We can't use 0 as that is valid for an offset range
-                /// We can't use a negative number, and don't want to make signed so we get the full 32-bits.
-                /// So we just use the max value as invalid
-                static const uint32_t kInvalid = 0xffffffff;
-
-                /// True if the range is valid
-                inline bool IsValid() const { return end >= start && start != kInvalid; }
-                /// True if offset is within range (inclusively)
-                inline bool ContainsInclusive(uint32_t offset) const { return offset >= start && offset <= end; }
-
-                /// Get the count
-                inline uint32_t GetCount() const { return end - start; }
-
-                /// Return an invalid range.
-                static OffsetRange MakeInvalid() { return OffsetRange { kInvalid, kInvalid }; }
-
-                uint32_t start;
-                uint32_t end;
-            };
-
         public:
             SourceFile(const PathInfo& pathInfo) : pathInfo_(pathInfo) {};
             ~SourceFile() = default;
@@ -193,31 +133,23 @@ namespace RR
             /// Calculate the offset for a line
             uint32_t CalcColumnIndex(uint32_t line, size_t offset);
 
-            /// True if has full set content
-            // bool HasContent() const { return contentBlob_ != nullptr; }
-
             /// Get the content size
             size_t GetContentSize() const { return contentSize_; }
 
             /// Get the content
-            const UnownedStringSlice& GetContent() const { return content_; }
+            UnownedStringSlice GetContent() const { return UnownedStringSlice(content_.data(), content_.data() + contentSize_); }
 
             /// Get path info
             const PathInfo& GetPathInfo() const { return pathInfo_; }
 
             // Set the content as a string
-            void SetContents(const U8String& content);
+            void SetContent(const U8String&& content);
 
             /// Calculate a display path -> can canonicalize if necessary
             U8String CalcVerbosePath() const;
 
-            /// Get the source manager this was created on
-            // SourceManager* GetSourceManager() const { return m_sourceManager; }
-
         private:
-            // SourceManager* sourceManager_; ///< The source manager this belongs to
-            // ComPtr<ISlangBlob> contentBlob_; ///< A blob that owns the storage for the file contents. If nullptr, there is no contents
-            UnownedStringSlice content_; ///< The actual contents of the file.
+            U8String content_; ///< The actual contents of the file.
             size_t contentSize_; ///< The size of the actual contents
             PathInfo pathInfo_; ///< The path The logical file path to report for locations inside this span.
 
@@ -264,8 +196,10 @@ namespace RR
                 if (stack_.empty())
                     return PathInfo::makeUnknown();
 
-                return stack_.front().pathInfo;
+                return stack_.back().pathInfo;
             }
+
+            const std::vector<IncludeInfo>& GetStack() { return stack_; }
 
             bool IsValid() const { return !stack_.empty(); }
 
@@ -273,11 +207,10 @@ namespace RR
             {
                 ASSERT(parentStack.IsValid())
 
-                IncludeStack includeStack(ownPathInfo);
-                includeStack.stack_.insert(includeStack.stack_.end(), parentStack.stack_.begin(), parentStack.stack_.end());
-
-                // Update parent include infor with human source
-                includeStack.stack_[1].humaneSourceLocation = includeLocationInParent;
+                IncludeStack includeStack(parentStack);
+                // Update parent include info with human source
+                includeStack.stack_.back().humaneSourceLocation = includeLocationInParent;
+                includeStack.stack_.push_back({ ownPathInfo, HumaneSourceLocation() });
 
                 return includeStack;
             }
@@ -325,8 +258,6 @@ namespace RR
         public:
             /// Get the source file holds the contents this view
             std::shared_ptr<SourceFile> GetSourceFile() const { return sourceFile_; }
-            /// Get the source manager
-            // SourceManager* GetSourceManager() const { return sourceFile_->getSourceManager(); }
 
             /// Get the associated 'content' (the source text)
             UnownedStringSlice GetContent() const { return content_; }
@@ -356,12 +287,18 @@ namespace RR
         public:
             [[nodiscard]] static std::shared_ptr<SourceView> Create(const std::shared_ptr<SourceFile>& sourceFile)
             {
-                return std::shared_ptr<SourceView>(new SourceView(sourceFile));
+                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile));
+                sourceView->advanceBom();
+
+                return sourceView;
             }
 
             [[nodiscard]] static std::shared_ptr<SourceView> CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<SourceView>& parentView, const HumaneSourceLocation& parentHumanLocation)
             {
-                return std::shared_ptr<SourceView>(new SourceView(sourceFile, parentView, parentHumanLocation));
+                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, parentView, parentHumanLocation));
+                sourceView->advanceBom();
+
+                return sourceView;
             }
 
             [[nodiscard]] static std::shared_ptr<SourceView> CreateSplited(const SourceLocation& splitLocation, const HumaneSourceLocation& splitHumanLocation, const PathInfo& ownPathInfo)
@@ -373,7 +310,7 @@ namespace RR
             SourceView(const std::shared_ptr<SourceFile>& sourceFile)
                 : sourceFile_(sourceFile)
             {
-                ASSERT(sourceFile)
+                ASSERT(sourceFile) //TODO validate file
 
                 includeStack_ = IncludeStack(sourceFile->GetPathInfo());
                 content_ = sourceFile_->GetContent();
@@ -383,7 +320,7 @@ namespace RR
             SourceView(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<SourceView>& parentView, const HumaneSourceLocation& parentHumanLocation)
                 : sourceFile_(sourceFile)
             {
-                ASSERT(sourceFile)
+                ASSERT(sourceFile) //TODO validate file
                 ASSERT(parentView)
 
                 includeStack_ = IncludeStack::CreateAppended(parentView->GetIncludeStack(), sourceFile->GetPathInfo(), parentHumanLocation);
@@ -401,6 +338,16 @@ namespace RR
                 includeStack_ = IncludeStack::CreateAppended(sourceView->GetIncludeStack(), ownPathInfo, splitHumanLocation);
                 content_ = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceFile_->GetContent().End());
                 initiatingHumaneLocation_ = splitHumanLocation;
+            }
+
+            void advanceBom()
+            {
+                auto begin = content_.Begin();
+
+                if (utf8::starts_with_bom(begin))
+                    utf8::next(begin, content_.End());
+
+                content_ = UnownedStringSlice(begin, content_.End());
             }
 
             std::shared_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks

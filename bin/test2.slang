@@ -1,7 +1,6 @@
-#line
 фывфыв
 
-
+#include "test_A.slang"
 /*
 
 /\

@@ -55,10 +55,10 @@ namespace RR
             return false;
         }
 
-        void SourceFile::SetContents(const U8String& content)
+        void SourceFile::SetContent(const U8String&& content)
         {
             contentSize_ = content.length();
-            content_ = UnownedStringSlice(content);
+            content_ = content;
         }
 
         bool extractLine(UnownedStringSlice& ioText, UnownedStringSlice& outLine)
@@ -174,9 +174,9 @@ namespace RR
         {
             const auto& lineBreakOffsets = GetLineBreakOffsets();
             ASSERT(line < lineBreakOffsets.size())
-            const auto lineBegin = content_.Begin() + lineBreakOffsets[line];
+            const auto lineBegin = content_.data() + lineBreakOffsets[line];
 
-            return uint32_t(utf8::distance(lineBegin, content_.Begin() + offset));
+            return uint32_t(utf8::distance(lineBegin, content_.data() + offset));
         }
 
         const U8Char* SourceView::GetContentFrom(const SourceLocation& loc) const

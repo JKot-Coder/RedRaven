@@ -2,6 +2,8 @@
 
 #include "compiler/Token.hpp"
 
+#include <unordered_set>
+
 namespace RR
 {
     namespace Rfx
@@ -64,8 +66,8 @@ namespace RR
             // Skip to the end of the line (useful for recovering from errors in a directive)
             void skipToEndOfLine();
 
-            bool expect(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken);
-            bool expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic);
+            bool expect(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+            bool expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
 
             // Determine if we have read everything on the directive's line.
             bool isEndOfLine();
@@ -86,11 +88,18 @@ namespace RR
             void expectEndOfDirective(DirectiveContext& context);
 
         private:
+            static Token dummyToken;
+
+        private:
             std::shared_ptr<DiagnosticSink> sink_;
             std::shared_ptr<IncludeSystem> includeSystem_;
             std::shared_ptr<InputStream> currentInputStream_;
             std::shared_ptr<SourceFile> sourceFile_;
             // std::unique_ptr<Lexer> lexer_;
+
+            /// The unique identities of any paths that have issued `#pragma once` directives to
+            /// stop them from being included again.
+            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
 
             /// A pre-allocated token that can be returned to represent end-of-input situations.
             Token endOfFileToken_;

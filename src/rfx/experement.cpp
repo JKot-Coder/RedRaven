@@ -10,21 +10,18 @@
 #include "compiler/Preprocessor.hpp"
 #include "compiler/Token.hpp"
 
-#include <fstream>
-
 void test2()
 {
-    std::ifstream instream("test2.slang");
-    RR::U8String input(
-        std::istreambuf_iterator<char>(instream.rdbuf()),
-        std::istreambuf_iterator<char>());
-
-    const auto& pathInfo = RR::Rfx::PathInfo::makeNormal("test2.slang", "test2.slang");
-    const auto& sourceFile = std::make_shared<RR::Rfx::SourceFile>(pathInfo); //, SourceRange range, const U8String* viewPath, SourceLocation initiatingSourceLocation)
-    sourceFile->SetContents(input);
+    RR::Rfx::PathInfo pathInfo;
 
     const auto& fileSystem = std::make_shared<RR::Rfx::OSFileSystem>();
     const auto& includeSystem = std::make_shared<RR::Rfx::IncludeSystem>(fileSystem);
+    includeSystem->FindFile("test2.slang", "", pathInfo);
+    std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
+
+    if (RFX_FAILED(includeSystem->LoadFile(pathInfo, sourceFile)))
+        return;
+
     const auto& diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
     const auto& preprocessor = std::make_shared<RR::Rfx::Preprocessor>(sourceFile, diagnosticSink, includeSystem);
     const auto& tokens = preprocessor->ReadAllTokens();
