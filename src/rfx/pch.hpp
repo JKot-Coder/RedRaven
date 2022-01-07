@@ -1,3 +1,3 @@
 #include <slang-com-ptr.h>
 
-#include "include\rfx.hpp"
+#include "include/rfx.hpp"

@@ -203,7 +203,19 @@ namespace RR
 
             bool IsValid() const { return !stack_.empty(); }
 
-            static IncludeStack CreateAppended(const IncludeStack& parentStack, const PathInfo& ownPathInfo, const HumaneSourceLocation& includeLocationInParent)
+            static IncludeStack CreateIncluded(const IncludeStack& parentStack, const PathInfo& ownPathInfo, const HumaneSourceLocation& includeLocationInParent)
+            {
+                ASSERT(parentStack.IsValid())
+
+                IncludeStack includeStack(parentStack);
+                // Update parent include info with human source
+                includeStack.stack_.back().humaneSourceLocation = includeLocationInParent;
+                includeStack.stack_.push_back({ ownPathInfo, HumaneSourceLocation() });
+
+                return includeStack;
+            }
+
+            static IncludeStack CreateSplitted(const IncludeStack& parentStack, const PathInfo& ownPathInfo)
             {
                 ASSERT(parentStack.IsValid())
 
@@ -335,7 +347,7 @@ namespace RR
                 const auto& sourceView = splitLocation.GetSourceView();
 
                 sourceFile_ = sourceView->GetSourceFile();
-                includeStack_ = IncludeStack::CreateAppended(sourceView->GetIncludeStack(), ownPathInfo, splitHumanLocation);
+                includeStack_ = IncludeStack::CreateSplit(sourceView->GetIncludeStack(), ownPathInfo);
                 content_ = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceFile_->GetContent().End());
                 initiatingHumaneLocation_ = splitHumanLocation;
             }

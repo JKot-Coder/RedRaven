@@ -559,10 +559,10 @@ namespace RR
                     continue;
                 }
                 /*
-                 
+
                     if ((token.type == TokenType::Pound) && (token.flags & TokenFlag::AtStartOfLine))
                     {
-                        
+
 
 
 

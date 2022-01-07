@@ -3,6 +3,7 @@
 #include "compiler/Token.hpp"
 
 #include <unordered_set>
+#include <unordered_map>
 
 namespace RR
 {
