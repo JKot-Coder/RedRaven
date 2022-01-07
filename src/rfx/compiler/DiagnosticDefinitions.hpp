@@ -39,7 +39,7 @@ DIAGNOSTIC(-1, Note, seeModuleBeingUsedIn, "see module '$0' being used in '$1'")
 DIAGNOSTIC(-1, Note, seePipelineRequirementDefinition, "see pipeline requirement definition")
 DIAGNOSTIC(-1, Note, seePotentialDefinitionOfComponent, "see potential definition of component '$0'")
 DIAGNOSTIC(-1, Note, seePreviousDefinition, "see previous definition")
-DIAGNOSTIC(-1, Note, seePreviousDefinitionOf, "see previous definition of '$0'")
+DIAGNOSTIC(-1, Note, seePreviousDefinitionOf, "see previous definition of '{0}'")
 DIAGNOSTIC(-1, Note, seeRequirementDeclaration, "see requirement declaration")
 DIAGNOSTIC(-1, Note, doYouForgetToMakeComponentAccessible, "do you forget to make component '$0' acessible from '$1' (missing public qualifier)?")
 
@@ -167,10 +167,10 @@ DIAGNOSTIC(15300, Error, includeFailed, "failed to find include file '{0}'")
 DIAGNOSTIC(15301, Error, noUniqueIdentity, "`#include` handler didn't generate a unique identity for file '{0}'")
 
 // 154xx - macro definition
-DIAGNOSTIC(15400, Warning, macroRedefinition, "redefinition of macro '$0'")
+DIAGNOSTIC(15400, Warning, macroRedefinition, "redefinition of macro '{0}'")
 DIAGNOSTIC(15401, Warning, macroNotDefined, "macro '$0' is not defined")
 DIAGNOSTIC(15403, Error, expectedTokenInMacroParameters, "expected '$0' in macro parameters")
-DIAGNOSTIC(15404, Warning, builtinMacroRedefinition, "Redefinition of builtin macro '$0'")
+DIAGNOSTIC(15404, Warning, builtinMacroRedefinition, "Redefinition of builtin macro '{0}'")
 
 DIAGNOSTIC(15405, Error, tokenPasteAtStart, "'##' is not allowed at the start of a macro body")
 DIAGNOSTIC(15406, Error, tokenPasteAtEnd, "'##' is not allowed at the end of a macro body")

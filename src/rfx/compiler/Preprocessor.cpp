@@ -7,11 +7,14 @@
 
 #include <filesystem>
 #include <sstream>
+#include <unordered_map>
 
 namespace RR
 {
     namespace Rfx
     {
+        Token Preprocessor::dummyToken;
+
         struct Preprocessor::DirectiveContext
         {
             Token token;
@@ -19,8 +22,42 @@ namespace RR
             bool haveDoneEndOfDirectiveChecks = false;
         };
 
+        struct Preprocessor::HandleDirectiveFuncMap
+        {
+            typedef void (Preprocessor::*HandleDirectiveFunc)(DirectiveContext& context);
+            static const std::unordered_map<U8String, HandleDirectiveFunc> map;
+
+            // Look up the directive with the given name.
+            static HandleDirectiveFunc findHandleDirectiveFunc(const U8String& name)
+            {
+                auto search = map.find(name);
+
+                if (search == map.end())
+                    return &Preprocessor::handleInvalidDirective;
+
+                return search->second;
+            }
+        };
+
+        const std::unordered_map<U8String, Preprocessor::HandleDirectiveFuncMap::HandleDirectiveFunc> Preprocessor::HandleDirectiveFuncMap::map = {
+            //  { "if", nullptr },
+            //  { "ifdef", nullptr },
+            //  { "ifndef", nullptr },
+            //   { "else", nullptr },
+            //  { "elif", nullptr },
+            //  { "endif", nullptr },
+            { "include", &Preprocessor::handleIncludeDirective },
+            { "define", &Preprocessor::handleDefineDirective },
+            //  { "undef", nullptr },
+            //  { "warning", nullptr },
+            //  { "error", nullptr },
+            { "line", &Preprocessor::handleLineDirective },
+            //   { "pragma", nullptr }
+        };
+
         namespace
         {
+
             // Get the name of the directive being parsed.
             U8String getDirectiveName(const Preprocessor::DirectiveContext& context)
             {
@@ -248,6 +285,8 @@ namespace RR
 
             // MacroInvocation* getFirstBusyMacroInvocation() { return m_firstBusyMacroInvocation; }
 
+            virtual void ForceClose() = 0;
+
         protected:
             /// The preprocessor that this input stream is being used by
             // Preprocessor* m_preprocessor = nullptr;
@@ -304,10 +343,19 @@ namespace RR
                 return lookaheadToken_;
             }
 
+            void ForceClose() override
+            {
+                lookaheadToken_ = Token(TokenType::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
+                isClosed_ = true;
+            }
+
         private:
             /// Read a token from the lexer, bypassing lookahead
             Token readTokenImpl()
             {
+                if (isClosed_)
+                    return lookaheadToken_;
+
                 for (;;)
                 {
                     Token token = lexer_->GetNextToken();
@@ -330,9 +378,17 @@ namespace RR
 
             /// One token of lookahead
             Token lookaheadToken_;
+
+            bool isClosed_ = false;
         };
 
-        Token Preprocessor::dummyToken;
+        /// An environment used for mapping macro names to their definitions during preprocessing.
+        ///
+        struct Preprocessor::Environment
+        {
+            /// Macros defined in this environment
+            std::unordered_map<U8String, std::shared_ptr<Preprocessor::MacroDefinition>> macros;
+        };
 
         Preprocessor::~Preprocessor()
         {
@@ -355,33 +411,6 @@ namespace RR
 
             currentInputStream_ = std::make_shared<LexerInputStream>(sourceView, diagnosticSink);
             // lexer_ = std::make_unique<Lexer>(sourceView, diagnosticSink);
-        }
-
-        const std::unordered_map<U8String, Preprocessor::HandleDirectiveFunc> Preprocessor::handleDirectiveFuncMap = {
-            //  { "if", nullptr },
-            //  { "ifdef", nullptr },
-            //  { "ifndef", nullptr },
-            //   { "else", nullptr },
-            //  { "elif", nullptr },
-            //  { "endif", nullptr },
-            { "include", &Preprocessor::handleIncludeDirective },
-            { "define", &Preprocessor::handleDefineDirective },
-            //  { "undef", nullptr },
-            //  { "warning", nullptr },
-            //  { "error", nullptr },
-            { "line", &Preprocessor::handleLineDirective },
-            //   { "pragma", nullptr }
-        };
-
-        // Look up the directive with the given name.
-        Preprocessor::HandleDirectiveFunc Preprocessor::findHandleDirectiveFunc(const U8String& name)
-        {
-            auto search = handleDirectiveFuncMap.find(name);
-
-            if (search == handleDirectiveFuncMap.end())
-                return &Preprocessor::handleInvalidDirective;
-
-            return search->second;
         }
 
         int32_t Preprocessor::tokenToInt(const Token& token, int radix)
@@ -468,6 +497,8 @@ namespace RR
             for (;;)
             {
                 const auto& token = ReadToken();
+
+                ASSERT(token.isValid());
 
                 switch (token.type)
                 {
@@ -660,7 +691,7 @@ namespace RR
             advanceRawToken();
 
             // Look up the handler for the directive.
-            const auto directiveHandler = findHandleDirectiveFunc(getDirectiveName(context));
+            const auto directiveHandler = HandleDirectiveFuncMap::findHandleDirectiveFunc(getDirectiveName(context));
 
             // Call the directive-specific handler
             (this->*directiveHandler)(context);
@@ -672,13 +703,29 @@ namespace RR
             skipToEndOfLine();
         }
 
-        void Preprocessor::handleDefineDirective(DirectiveContext&)
+        void Preprocessor::handleDefineDirective(DirectiveContext& directiveContext)
         {
+            Token nameToken;
+            if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
+                return;
 
-            // Token nameToken;
-            // if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective))
-            //    return;
-            // Name* name = nameToken.getName();
+            U8String name = nameToken.GetContentString();
+            /*
+            MacroDefinition* oldMacro = lookupMacro(name);
+            if (oldMacro)
+            {
+                if (oldMacro->isBuiltin())
+                {
+                    sink_->Diagnose(peekRawToken(), Diagnostics::builtinMacroRedefinition, name);
+                }
+                else
+                {
+                    sink_->Diagnose(peekRawToken(), Diagnostics::macroRedefinition, name);
+                    sink_->Diagnose(peekRawToken(), Diagnostics::seePreviousDefinitionOf, name);
+                }
+
+                delete oldMacro;
+            }*/
         }
 
         void Preprocessor::handleIncludeDirective(DirectiveContext& directiveContext)
@@ -787,6 +834,9 @@ namespace RR
             const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
             const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, sink_);
 
+            // Drop current stream
+            currentInputStream_->ForceClose();
+            popInputStream();
             pushInputStream(inputStream);
         }
 
@@ -808,5 +858,13 @@ namespace RR
                 skipToEndOfLine();
             }
         }
+
+        // Find the currently-defined macro of the given name, or return NULL
+        std::shared_ptr<Preprocessor::MacroDefinition> Preprocessor::lookupMacro(const U8String& name)
+        {
+            const auto& search = env_->macros.find(name);
+            return search != env_->macros.end() ? search->second : nullptr;
+        }
+
     }
 }

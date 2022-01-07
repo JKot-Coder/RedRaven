@@ -3,7 +3,6 @@
 #include "compiler/Token.hpp"
 
 #include <unordered_set>
-#include <unordered_map>
 
 namespace RR
 {
@@ -36,14 +35,13 @@ namespace RR
             Token ReadToken();
 
         private:
-            typedef void (Preprocessor::*HandleDirectiveFunc)(DirectiveContext& context);
-            static const std::unordered_map<U8String, HandleDirectiveFunc> handleDirectiveFuncMap;
+            struct HandleDirectiveFuncMap;
+            struct Environment;
+            struct MacroDefinition;
 
         private:
             int32_t tokenToInt(const Token& token, int radix);
             uint32_t tokenToUInt(const Token& str, int radix);
-
-            HandleDirectiveFunc findHandleDirectiveFunc(const U8String& name);
 
             // TODO comments
             /// Push a new input source onto the input stack of the preprocessor
@@ -88,6 +86,9 @@ namespace RR
             // when it switches the input stream.
             void expectEndOfDirective(DirectiveContext& context);
 
+            // Find the currently-defined macro of the given name, or return NULL
+            std::shared_ptr<Preprocessor::MacroDefinition> lookupMacro(const U8String& name);
+
         private:
             static Token dummyToken;
 
@@ -96,11 +97,14 @@ namespace RR
             std::shared_ptr<IncludeSystem> includeSystem_;
             std::shared_ptr<InputStream> currentInputStream_;
             std::shared_ptr<SourceFile> sourceFile_;
-            // std::unique_ptr<Lexer> lexer_;
+
+            /// Currently-defined macros
+            std::unique_ptr<Environment> env_;
 
             /// The unique identities of any paths that have issued `#pragma once` directives to
             /// stop them from being included again.
-            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
+            std::unordered_set<U8String>
+                pragmaOnceUniqueIdentities_;
 
             /// A pre-allocated token that can be returned to represent end-of-input situations.
             Token endOfFileToken_;

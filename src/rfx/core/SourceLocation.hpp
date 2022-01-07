@@ -220,8 +220,8 @@ namespace RR
                 ASSERT(parentStack.IsValid())
 
                 IncludeStack includeStack(parentStack);
-                // Update parent include info with human source
-                includeStack.stack_.back().humaneSourceLocation = includeLocationInParent;
+                // Replace parent include
+                includeStack.stack_.pop_back();
                 includeStack.stack_.push_back({ ownPathInfo, HumaneSourceLocation() });
 
                 return includeStack;
@@ -335,7 +335,7 @@ namespace RR
                 ASSERT(sourceFile) //TODO validate file
                 ASSERT(parentView)
 
-                includeStack_ = IncludeStack::CreateAppended(parentView->GetIncludeStack(), sourceFile->GetPathInfo(), parentHumanLocation);
+                includeStack_ = IncludeStack::CreateIncluded(parentView->GetIncludeStack(), sourceFile->GetPathInfo(), parentHumanLocation);
                 content_ = sourceFile_->GetContent();
                 initiatingHumaneLocation_ = HumaneSourceLocation(1, 1);
             }
@@ -347,7 +347,7 @@ namespace RR
                 const auto& sourceView = splitLocation.GetSourceView();
 
                 sourceFile_ = sourceView->GetSourceFile();
-                includeStack_ = IncludeStack::CreateSplit(sourceView->GetIncludeStack(), ownPathInfo);
+                includeStack_ = IncludeStack::CreateSplitted(sourceView->GetIncludeStack(), ownPathInfo);
                 content_ = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceFile_->GetContent().End());
                 initiatingHumaneLocation_ = splitHumanLocation;
             }

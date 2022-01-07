@@ -1,5 +1,6 @@
 фывфыв
 
+#define qwe qwe
 #include "test_A.slang"
 /*
 
