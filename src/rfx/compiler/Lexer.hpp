@@ -38,23 +38,32 @@ namespace RR
         {
             using const_iterator = TokenList::const_iterator;
 
-            TokenReader();
+            TokenReader() = default;
 
             explicit TokenReader(const TokenSpan& tokens)
                 : cursor_(tokens.Begin()), end_(tokens.End())
             {
+                ASSERT(std::distance(cursor_, end_) > 0)
+                ASSERT(end_->type == TokenType::EndOfFile)
+
                 updateLookaheadToken();
             }
 
             explicit TokenReader(const TokenList& tokens)
-                : cursor_(tokens.begin()), end_(tokens.end())
+                : cursor_(tokens.begin()), end_(std::prev(tokens.end()))
             {
+                ASSERT(std::distance(cursor_, end_) > 0)
+                ASSERT(end_->type == TokenType::EndOfFile)
+
                 updateLookaheadToken();
             }
 
             explicit TokenReader(const_iterator begin, const_iterator end)
                 : cursor_(begin), end_(end)
             {
+                ASSERT(std::distance(cursor_, end_) > 0)
+                ASSERT(end_->type == TokenType::EndOfFile)
+
                 updateLookaheadToken();
             }
 

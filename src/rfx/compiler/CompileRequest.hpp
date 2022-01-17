@@ -1,11 +1,5 @@
 #pragma once
 
-namespace slang
-{
-    struct ICompileRequest;
-    struct IGlobalSession;
-}
-
 namespace Rfx
 {
     enum class CompileTarget : uint32_t;
@@ -35,15 +29,8 @@ namespace Rfx
             std::shared_ptr<Program> Compile(std::string& log);
 
         private:
-            CompileRequest(const ::Slang::ComPtr<slang::IGlobalSession>& globalSesion);
-
-        private:
             void clearModules();
 
-        private:
-            ::Slang::ComPtr<slang::ISession> session_;
-            ::Slang::ComPtr<slang::ICompileRequest> request_;
-            std::vector<::Slang::ComPtr<slang::IComponentType>> entryPoints_;
 
             friend class Session;
         };

@@ -2,7 +2,6 @@
 
 #include "compiler/CompileRequest.hpp"
 
-#include <slang.h>
 
 namespace Rfx
 {
@@ -11,12 +10,14 @@ namespace Rfx
         Session::Session()
         {
            // slang::createGlobalSession(session_.writeRef());
-            ASSERT(session_);            
+          //  ASSERT(session_);            
         }
 
         CompileRequest::SharedPtr Session::CreateCompileRequest()
         {
-            return CompileRequest::SharedPtr(new CompileRequest(session_));
+            return nullptr;
+            
+         //   return CompileRequest::SharedPtr(new CompileRequest(session_));
         }
     }
 }

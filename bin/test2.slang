@@ -1,8 +1,8 @@
 #define qwe asd
 qwe
 
-фывфыв
-
+"фывфыв" __FILE__ __LINE__
+"aфывы"
 
 #define qwe asd
 #include "test_A.slang"

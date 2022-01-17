@@ -13,11 +13,8 @@ namespace Rfx
             using SharedConstPtr = std::shared_ptr<const Program>;
 
             bool GetShaderProgram(std::string& log);
-        private:
-            Program(const Slang::ComPtr<slang::IComponentType>& composedProgram);
 
         private:
-            Slang::ComPtr<slang::IComponentType> composedProgram_;
         
             friend class CompileRequest;
         };

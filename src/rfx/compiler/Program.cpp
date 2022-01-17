@@ -4,11 +4,12 @@ namespace Rfx
 {
     namespace Compiler
     {
-        Program::Program(const Slang::ComPtr<slang::IComponentType>& composedProgram)
+        /* Program::Program(const Slang::ComPtr<slang::IComponentType>& composedProgram)
             : composedProgram_(composedProgram)
         {
             ASSERT(composedProgram_);
-        }
+            }
+        */
 
         bool Program::GetShaderProgram(std::string& log)
         {

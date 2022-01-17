@@ -2,7 +2,6 @@
 
 #include "compiler/Program.hpp"
 
-#include <slang.h>
 
 #include "include/rfx.hpp"
 
@@ -11,9 +10,8 @@ namespace
     struct CompileTargetConversion
     {
         RR::Rfx::CompileTarget from;
-        SlangCompileTarget to;
     };
-
+    /*
     // clang-format off
     static CompileTargetConversion compileTargetConversion[] = {
         { RR::Rfx::CompileTarget::Dxil,             SLANG_DXIL },
@@ -22,7 +20,7 @@ namespace
 
     static_assert(std::is_same<std::underlying_type<RR::Rfx::CompileTarget>::type, uint32_t>::value);
     static_assert(std::size(compileTargetConversion) == static_cast<uint32_t>(RR::Rfx::CompileTarget::Count));
-    /*
+  
     SlangCompileTarget getCompileTargetConversion(Rfx::CompileTarget target)
     {
         ASSERT(compileTargetConversion[static_cast<uint32_t>(target)].from == target);
@@ -35,6 +33,7 @@ namespace Rfx
 {
     namespace Compiler
     {
+        /*
         CompileRequest::CompileRequest(const ::Slang::ComPtr<slang::IGlobalSession>& globalSesion)
         {
             ASSERT(globalSesion);
@@ -133,7 +132,7 @@ namespace Rfx
                 return nullptr;
             }
          */
-            if (SLANG_FAILED(session_->createCompositeComponentType(
+        /*  if (SLANG_FAILED(session_->createCompositeComponentType(
                     components.data(),
                     components.size(),
                     composedProgram.writeRef(),
@@ -146,6 +145,6 @@ namespace Rfx
             //   entryPoint->link(linkedProgram.writeRef());
 
             return Program::SharedPtr(new Program(composedProgram));
-        }
+        }*/
     }
 }

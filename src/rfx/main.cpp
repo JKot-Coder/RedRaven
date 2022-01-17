@@ -3,6 +3,7 @@
 #include "compiler/Session.hpp"
 #include "experement.hpp"
 
+/*
 #ifdef OS_WINDOWS
 #include <Windows.h>
 INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
@@ -81,6 +82,7 @@ int main(int argc, char** argv)
 
     spDestroyCompileRequest(request);
     spDestroySession(session);*/
-
+/*
     return 0;
 }
+*/

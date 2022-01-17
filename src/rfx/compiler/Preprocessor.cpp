@@ -499,7 +499,7 @@ namespace RR
             }
 
         protected:
-            PretokenizedInputStream() = default;
+            PretokenizedInputStream() {};
 
             /// Reader for pre-tokenized input
             TokenReader tokenReader_;
@@ -514,8 +514,10 @@ namespace RR
         /// A pre-tokenized input stream that will only be used once, and which therefore owns the memory for its tokens.
         struct SingleUseInputStream : PretokenizedInputStream
         {
-            SingleUseInputStream(TokenList const& lexedTokens)
-                : lexedTokens_(lexedTokens)
+            typedef PretokenizedInputStream Super;
+
+            SingleUseInputStream(const TokenList& lexedTokens)
+                : lexedTokens_(lexedTokens), PretokenizedInputStream()
             {
                 tokenReader_ = TokenReader(lexedTokens_);
             }
@@ -1106,6 +1108,27 @@ namespace RR
         {
             ASSERT(diagnosticSink)
             ASSERT(includeSystem)
+
+            // Add builtin macros
+            {
+                const char* const builtinNames[] = { "__FILE__", "__LINE__" };
+                const MacroDefinition::Opcode builtinOpcodes[] = { MacroDefinition::Opcode::BuiltinFile, MacroDefinition::Opcode::BuiltinLine };
+
+                for (int i = 0; i < std::size(builtinNames); i++)
+                {
+                    const auto& name = builtinNames[i];
+
+                    MacroDefinition::Op op;
+                    op.opcode = builtinOpcodes[i];
+
+                    auto macro = std::make_shared<MacroDefinition>();
+                    macro->flavor = MacroDefinition::Flavor::BuiltinObjectLike;
+                    macro->name = name;
+                    macro->ops.push_back(op);
+
+                    macrosDefinitions_[name] = macro;
+                }
+            }
 
             endOfFileToken_.type = TokenType::EndOfFile;
         }

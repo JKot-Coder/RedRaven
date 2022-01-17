@@ -55,7 +55,7 @@ set( COMMON_SRC
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
-target_include_directories(${PROJECT_NAME} PRIVATE "..")
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)
 
@@ -64,5 +64,3 @@ if(MSVC)
 else(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
 endif(MSVC)
-
-add_backward(${PROJECT_NAME})

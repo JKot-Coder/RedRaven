@@ -87,11 +87,6 @@ namespace RR
             }
         }
 
-        TokenReader::TokenReader()
-        {
-            updateLookaheadToken();
-        }
-
         Token TokenReader::AdvanceToken()
         {
             Token result = nextToken_;
@@ -269,7 +264,7 @@ namespace RR
 
                     switch (peek())
                     {
-                        // clang-format off
+                            // clang-format off
                             case '0': case '1': case '2': case '3': case '4':
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
                             lexNumberAfterDecimalPoint(10);
@@ -298,7 +293,7 @@ namespace RR
                     }
                 }
 
-                // clang-format off
+                    // clang-format off
                     case '1': case '2': case '3': case '4': case '5':
                     case '6': case '7': case '8': case '9': // clang-format on
                     return lexNumber(10);
@@ -331,7 +326,7 @@ namespace RR
                             advance();
                             return lexNumber(2);
 
-                        // clang-format off
+                            // clang-format off
                             case '0': case '1': case '2': case '3': case '4': 
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
                             sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::octalLiteral);
@@ -339,7 +334,7 @@ namespace RR
                     }
                 }
 
-                // clang-format off
+                    // clang-format off
                     case 'a': case 'b': case 'c': case 'd': case 'e':
                     case 'f': case 'g': case 'h': case 'i': case 'j':
                     case 'k': case 'l': case 'm': case 'n': case 'o':
@@ -839,7 +834,7 @@ namespace RR
                                 advance();
                                 break;
 
-                            // clang-format off
+                                // clang-format off
                                 case '0': case '1': case '2': case '3':
                                 case '4': case '5': case '6': case '7': // clang-format on
                                 // octal escape: up to 3 characters

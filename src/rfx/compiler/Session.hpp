@@ -1,10 +1,5 @@
 #pragma once
 
-namespace slang
-{
-    struct IGlobalSession;
-}
-
 namespace Rfx
 {
     namespace Compiler
@@ -20,9 +15,6 @@ namespace Rfx
             Session();
 
             std::shared_ptr<CompileRequest> CreateCompileRequest();
-
-        private:
-            ::Slang::ComPtr<slang::IGlobalSession> session_;
         };
     }
 }

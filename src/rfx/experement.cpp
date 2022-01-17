@@ -1,7 +1,5 @@
 #include "experement.hpp"
 
-#include <slang.h>
-
 #include "core/FileSystem.hpp"
 #include "core/IncludeSystem.hpp"
 #include "core/SourceLocation.hpp"
