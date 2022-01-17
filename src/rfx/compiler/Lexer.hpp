@@ -5,8 +5,6 @@
 #include "compiler/InputString.hpp"
 #include "compiler/Token.hpp"
 
-#include "common/EnumClassOperators.hpp"
-
 namespace RR
 {
     namespace Common
@@ -18,6 +16,102 @@ namespace RR
     {
         class DiagnosticSink;
 
+        using TokenList = std::vector<Token>;
+
+        struct TokenSpan
+        {
+        public:
+            TokenSpan() = default;
+            TokenSpan(const TokenList& tokenList)
+                : begin_(tokenList.begin()), end_(tokenList.end()) { }
+
+            TokenList::const_iterator Begin() const { return begin_; }
+            TokenList::const_iterator End() const { return end_; }
+            size_t GetSize() { return std::distance(end_, begin_); }
+
+        private:
+            TokenList::const_iterator begin_;
+            TokenList::const_iterator end_;
+        };
+
+        struct TokenReader
+        {
+            using const_iterator = TokenList::const_iterator;
+
+            TokenReader();
+
+            explicit TokenReader(const TokenSpan& tokens)
+                : cursor_(tokens.Begin()), end_(tokens.End())
+            {
+                updateLookaheadToken();
+            }
+
+            explicit TokenReader(const TokenList& tokens)
+                : cursor_(tokens.begin()), end_(tokens.end())
+            {
+                updateLookaheadToken();
+            }
+
+            explicit TokenReader(const_iterator begin, const_iterator end)
+                : cursor_(begin), end_(end)
+            {
+                updateLookaheadToken();
+            }
+
+            struct ParsingCursor
+            {
+                Token nextToken;
+                const_iterator tokenReaderCursor;
+            };
+
+            ParsingCursor getCursor()
+            {
+                ParsingCursor rs;
+                rs.nextToken = nextToken_;
+                rs.tokenReaderCursor = cursor_;
+                return rs;
+            }
+
+            void SetCursor(ParsingCursor cursor)
+            {
+                cursor_ = cursor.tokenReaderCursor;
+                nextToken_ = cursor.nextToken;
+            }
+
+            bool IsAtCursor(const ParsingCursor& cursor) const
+            {
+                return cursor.tokenReaderCursor == cursor_;
+            }
+
+            bool IsAtEnd() const { return cursor_ == end_; }
+
+            const Token& PeekToken() const
+            {
+                return nextToken_;
+            }
+
+            TokenType TokenReader::PeekTokenType() const
+            {
+                return nextToken_.type;
+            }
+
+            //SourceLoc PeekLoc() const;
+
+            Token AdvanceToken();
+
+            size_t GetCount() { return std::distance(cursor_, end_); }
+
+        private:
+            /// Update the lookahead token in `m_nextToken` to reflect the cursor state
+            void updateLookaheadToken();
+
+        private:
+            Token nextToken_;
+            TokenList::const_iterator cursor_;
+            TokenList::const_iterator end_;
+            //static Token getEndOfFileToken();
+        };
+
         class Lexer final
         {
         public:
@@ -28,18 +122,9 @@ namespace RR
             ~Lexer();
 
             Token GetNextToken();
-            std::shared_ptr<std::vector<Token>> LexAllSemanticTokens();
+            TokenList LexAllSemanticTokens();
 
         private:
-            enum class Flags : uint32_t
-            {
-                None = 0 << 0,
-                AtStartOfLine = 1 << 0,
-                AfterWhitespace = 1 << 1,
-                EscapedNewLines = 1 << 2
-            };
-            ENUM_CLASS_FRIEND_OPERATORS(Flags)
-
             class Counter final
             {
             public:
@@ -80,7 +165,6 @@ namespace RR
             TokenType lexNumber(uint32_t base);
             bool maybeLexNumberExponent(uint32_t base);
             void lexDigits(uint32_t base);
-            TokenType lexDirective();
             void lexIdentifier();
             void lexNumberAfterDecimalPoint(uint32_t base);
             void lexNumberSuffix();
@@ -92,7 +176,7 @@ namespace RR
             const char* end_;
             Counter linesCounter_ = 1;
             Counter columnCounter_ = 1;
-            Flags flags_ = Flags::AtStartOfLine;
+            Token::Flags tokenflags_ = Token::Flags::AtStartOfLine;
 
             std::unique_ptr<LinearAllocator> allocator_;
             std::shared_ptr<SourceView> sourceView_;

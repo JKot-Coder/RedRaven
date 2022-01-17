@@ -183,7 +183,7 @@ DIAGNOSTIC(15500, Warning, expectedTokenInMacroArguments, "expected '$0' in macr
 DIAGNOSTIC(15501, Error, wrongNumberOfArgumentsToMacro, "wrong number of arguments to macro (expected $0, got $1)")
 DIAGNOSTIC(15502, Error, errorParsingToMacroInvocationArgument, "error parsing macro '$0' invocation argument to '$1'")
 
-DIAGNOSTIC(15503, Warning, invalidTokenPasteResult, "toking pasting with '##' resulted in the invalid token '$0'")
+DIAGNOSTIC(15503, Warning, invalidTokenPasteResult, "toking pasting with '##' resulted in the invalid token '{0}'")
 
 // 156xx - pragmas
 DIAGNOSTIC(15600, Error, expectedPragmaDirectiveName, "expected a name after '#pragma'")

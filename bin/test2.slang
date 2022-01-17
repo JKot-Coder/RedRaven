@@ -1,7 +1,18 @@
+#define qwe asd
+qwe
+
 фывфыв
 
-#define qwe qwe
+
+#define qwe asd
 #include "test_A.slang"
+
+
+qwe
+qwe
+
+
+
 /*
 
 /\

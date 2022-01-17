@@ -53,7 +53,6 @@ namespace RR
                 diagnostic.message = fmt::format(info.messageFormat, args...);
                 diagnostic.location = location;
                 diagnostic.humaneSourceLocation = humaneSourceLocation;
-
                 diagnostic.severity = info.severity;
 
                 diagnoseImpl(info, formatDiagnostic(diagnostic));

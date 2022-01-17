@@ -87,6 +87,42 @@ namespace RR
             }
         }
 
+        TokenReader::TokenReader()
+        {
+            updateLookaheadToken();
+        }
+
+        Token TokenReader::AdvanceToken()
+        {
+            Token result = nextToken_;
+
+            if (cursor_ != end_)
+                cursor_++;
+
+            updateLookaheadToken();
+            return result;
+        }
+
+        void TokenReader::updateLookaheadToken()
+        {
+            // We assume here that we can read a token from a non-null `cursor_`
+            // *even* in the case where `m_cursor == m_end`, because the invariant
+            // for lists of tokens is that they should be terminated with and
+            // end-of-file token, so that there is always a token "one past the end."
+            nextToken_ = *cursor_;
+
+            // If the token we read came from the end of the sub-sequence we are
+            // reading, then we will change the token type to an end-of-file token
+            // so that code that reads from the sequence and expects a terminating
+            // EOF will find it.
+            //
+            // TODO: We might eventually want a way to look at the actual token type
+            // and not just use EOF in all cases: e.g., when emitting diagnostic
+            // messages that include the token that is seen.
+            if (cursor_ == end_)
+                nextToken_.type = TokenType::EndOfFile;
+        }
+
         Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
             : allocator_(new LinearAllocator(1024)),
               sourceView_(sourceView),
@@ -123,10 +159,15 @@ namespace RR
             const auto tokenType = scanToken();
             const auto tokenEnd = cursor_;
 
-            if ((flags_ & Flags::EscapedNewLines) == Flags::EscapedNewLines)
+            // The flags on the token we just lexed will be based
+            // on the current state of the lexer.
+            auto tokenFlags = tokenflags_;
+            auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
+
+            if (IsSet(tokenflags_, Token::Flags::EscapedNewLines))
             {
                 // Reset flag
-                flags_ &= ~Flags::EscapedNewLines;
+                tokenflags_ &= ~Token::Flags::EscapedNewLines;
 
                 // "scrubbing" token value here to remove escaped newlines...
                 // Only perform this work if we encountered an escaped newline while lexing this token
@@ -136,9 +177,7 @@ namespace RR
                 const auto dstBegin = (char*)allocator_->Allocate(allocationSize);
                 const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin);
 
-                const auto tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
-
-                return Token(tokenType, tokenSlice, SourceLocation, getHumaneSourceLocation());
+                tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
             }
 
             switch (tokenType)
@@ -148,7 +187,7 @@ namespace RR
                     // If we just reached the end of a line, then the next token
                     // should count as being at the start of a line, and also after
                     // whitespace.
-                    flags_ = Flags::AtStartOfLine | Flags::AfterWhitespace;
+                    tokenflags_ = Token::Flags::AtStartOfLine | Token::Flags::AfterWhitespace;
                     break;
                 }
                 case TokenType::WhiteSpace:
@@ -159,25 +198,24 @@ namespace RR
                     //
                     // Note that a line comment does not include the terminating newline,
                     // we do not need to set `AtStartOfLine` here.
-                    flags_ |= Flags::AfterWhitespace;
+                    tokenflags_ |= Token::Flags::AfterWhitespace;
                     break;
                 }
                 default:
                 {
                     // If we read some token other then the above cases, then we are
                     // neither after whitespace nor at the start of a line.
-                    flags_ = Flags::None;
+                    tokenflags_ = Token::Flags::None;
                     break;
                 }
             }
 
-            const auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
-            return Token(tokenType, tokenSlice, SourceLocation, getHumaneSourceLocation());
+            return Token(tokenType, tokenSlice, SourceLocation, getHumaneSourceLocation(), tokenFlags);
         }
 
-        std::shared_ptr<std::vector<Token>> Lexer::LexAllSemanticTokens()
+        TokenList Lexer::LexAllSemanticTokens()
         {
-            auto tokenList = std::make_shared<std::vector<Token>>();
+            TokenList tokenList;
 
             for (;;)
             {
@@ -195,7 +233,7 @@ namespace RR
                         continue;
                 }
 
-                tokenList->push_back(token);
+                tokenList.push_back(token);
 
                 if (token.type == TokenType::EndOfFile)
                     return tokenList;
@@ -447,14 +485,6 @@ namespace RR
                         } // clang-format on 
 
                     case '#':
-                        // Preprocessor directives always on start the line or after whitspace
-                        if ((flags_ & Flags::AtStartOfLine) != Flags::None ||
-                            (flags_ & Flags::AfterWhitespace) != Flags::None)
-                        {
-                            advance();
-                            return TokenType::Directive;
-                        }
-
                         advance();
 
                         switch (peek())
@@ -627,7 +657,7 @@ namespace RR
         {
             ASSERT(checkForEscapedNewline(cursor_, end_));
 
-            flags_ |= Flags::EscapedNewLines;
+            tokenflags_ |= Token::Flags::EscapedNewLines;
 
             advance();
             handleNewlineSequence();
@@ -695,31 +725,6 @@ namespace RR
                 }
 
                 advance();
-            }
-        }
-
-        TokenType Lexer::lexDirective()
-        {
-            ASSERT(peek() == '#')
-
-            advance();
-
-            for (;;)
-            {
-                const auto ch = peek();
-                switch (ch)
-                {
-                    case ' ':
-                    case '\t':
-                        handleWhiteSpace();
-                        continue;
-                    case '\r':
-                    case '\n':
-                        handleNewlineSequence();
-                        return TokenType::Directive;
-                    default:
-                        break;
-                }
             }
         }
 

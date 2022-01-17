@@ -104,7 +104,7 @@ namespace RR
             content.resize(sizeInBytes);
 
             stream.read(&content[0], content.size());
-            stream.close();   
+            stream.close();
 
             if (!stream) // If not all read just return an error
                 return RfxResult::Fail;
@@ -113,6 +113,17 @@ namespace RR
             outSourceFile->SetContent(std::move(content));
 
             return RfxResult::Ok;
+        }
+
+        std::shared_ptr<SourceFile> IncludeSystem::CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const
+        {
+            ASSERT(pathInfo.type == PathInfo::Type::FromString ||
+                   pathInfo.type == PathInfo::Type::TokenPaste);
+
+            const auto& outSourceFile = std::make_shared<SourceFile>(pathInfo);
+            outSourceFile->SetContent(std::move(content));
+
+            return outSourceFile;
         }
     }
 }

@@ -2,6 +2,8 @@
 
 #include "core/SourceLocation.hpp"
 
+#include "common/EnumClassOperators.hpp"
+
 namespace RR
 {
     namespace Rfx
@@ -16,9 +18,20 @@ namespace RR
 
         struct Token
         {
+        public:
+            enum class Flags : uint32_t
+            {
+                None = 0 << 0,
+                AtStartOfLine = 1 << 0,
+                AfterWhitespace = 1 << 1,
+                EscapedNewLines = 1 << 2
+            };
+            ENUM_CLASS_FRIEND_OPERATORS(Flags)
+
+        public:
             Token() = default;
-            Token(TokenType inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation, const HumaneSourceLocation& humaneSourceLocation)
-                : type(inType), stringSlice(stringSlice), sourceLocation(SourceLocation), humaneSourceLocation(humaneSourceLocation)
+            Token(TokenType inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation, const HumaneSourceLocation& humaneSourceLocation, Flags flags = Flags::None)
+                : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(SourceLocation), humaneSourceLocation(humaneSourceLocation)
             {
             }
 
@@ -32,7 +45,9 @@ namespace RR
 
             inline bool isValid() const { return type != TokenType::Unknown; }
 
+        public:
             TokenType type = TokenType::Unknown;
+            Flags flags = Flags::None;
             UnownedStringSlice stringSlice;
             SourceLocation sourceLocation;
             HumaneSourceLocation humaneSourceLocation;

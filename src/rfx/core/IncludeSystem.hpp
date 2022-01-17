@@ -34,6 +34,8 @@ namespace RR
 
             RfxResult FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const;
             RfxResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile);
+
+            std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const;
             /*
             SlangResult findAndLoadFile(const String& pathToInclude, const String& pathIncludedFrom, PathInfo& outPathInfo, ComPtr<ISlangBlob>& outBlob);
 

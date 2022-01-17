@@ -16,6 +16,8 @@ set(RFX_CORE_SRC
     "core/IncludeSystem.hpp"
     "core/SourceLocation.cpp"
     "core/SourceLocation.hpp"
+    "core/StringEscapeUtil.cpp"
+    "core/StringEscapeUtil.hpp"
     "core/UnownedStringSlice.cpp"
     "core/UnownedStringSlice.hpp"
     )

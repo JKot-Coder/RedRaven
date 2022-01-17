@@ -57,7 +57,7 @@ namespace RR
         template <typename EnumT>
         bool IsSet(EnumT value, EnumT flag)
         {
-            using UnderlyingType = std::underlying_type<EnumT>;
+            using UnderlyingType = typename std::underlying_type<EnumT>::type;
             static_assert(std::is_enum<EnumT>::value, "EnumType shoud be be an enum.");
             static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected.");
             return ((static_cast<UnderlyingType>(value) & static_cast<UnderlyingType>(flag)) == static_cast<UnderlyingType>(flag));
@@ -66,7 +66,7 @@ namespace RR
         template <typename EnumT>
         bool IsAny(EnumT value, EnumT flag)
         {
-            using UnderlyingType = std::underlying_type<EnumT>;
+            using UnderlyingType = typename std::underlying_type<EnumT>::type;
             static_assert(std::is_enum<EnumT>::value, "EnumType shoud be be an enum.");
             static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected.");
             return ((static_cast<UnderlyingType>(value) & static_cast<UnderlyingType>(flag)) != static_cast<UnderlyingType>(0));

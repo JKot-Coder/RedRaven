@@ -25,7 +25,6 @@ TOKEN(WhiteSpace, "whitespace")
 TOKEN(NewLine, "end of line")
 TOKEN(LineComment, "line comment")
 TOKEN(BlockComment, "block comment")
-TOKEN(Directive, "preprocessor directive")
 
 #define PUNCTUATION(id, text) \
     TOKEN(id, "'" text "'")
