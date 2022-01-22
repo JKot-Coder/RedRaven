@@ -53,7 +53,6 @@ set(RFX_COMPILER_SRC
     )
 source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
 
-
 set(RFX_SRC
     ${RFX_SRC}
     ${RFX_CORE_SRC}
@@ -62,15 +61,11 @@ set(RFX_SRC
 set(RFX_LINK_LIBRARIES
     common)
 
-set(RFX_INCLUDE_DIRS
-    ${CMAKE_SOURCE_DIR}/src/libs
-    ${PROJECT_SOURCE_DIR})
-
 #=============================== Target ===============================#
 
 add_library(${PROJECT_NAME} ${RFX_SRC})
 target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${RFX_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")

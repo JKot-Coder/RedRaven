@@ -1,16 +1,38 @@
 #include "rfx/include/rfx.hpp"
 
+#include "common/debug/LeakDetector.hpp"
+
+#define CATCH_CONFIG_RUNNER
+#include <catch2/catch.hpp>
+
+#define APPROVALS_CATCH
+#include "ApprovalTests/ApprovalTests.hpp"
+
 namespace
 {
     int runApp(int argc, char** argv)
     {
         std::ignore = argc;
         std::ignore = argv;
-        // const auto& leakDetector = RR::Common::Debug::LeakDetector::Instance();
-        // auto& application = RR::Tests::Application::Instance();
 
-        // return application.Run(argc, argv);
-        return 0;
+        // We want to force the linker not to discard the global variable
+        // and its constructor, as it (optionally) registers leak detector
+        (void)&Catch::leakDetector;
+
+        auto session = Catch::Session();
+
+        if (Catch::isDebuggerActive())
+        {
+            Catch::ConfigData config;
+            config.showDurations = Catch::ShowDurations::Always;
+            config.useColour = Catch::UseColour::No;
+            config.outputFilename = "%debug";
+            //    config.testsOrTags.push_back("[CopyCommandList]");
+            // config.testsOrTags.push_back("[ComputeCommandList]");
+            session.useConfigData(config);
+        }
+
+        return session.run(argc, argv);
     }
 }
 
@@ -23,6 +45,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCm
     std::ignore = hPreInst;
     std::ignore = lpCmdLine;
     std::ignore = nCmdShow;
+
+    const auto& leakDetector = RR::Common::Debug::LeakDetector::Instance();
+    std::ignore = leakDetector;
 
     int argc;
     wchar_t** lpArgv = CommandLineToArgvW(GetCommandLineW(), &argc);

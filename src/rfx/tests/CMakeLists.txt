@@ -4,6 +4,18 @@ set(RFX_TESTS_SRC
     "main.cpp")
 source_group( "" FILES ${RFX_TESTS_SRC} )
 
+set(RFX_TESTS_TESTS_SRC
+    "tests/lexer/Lexer.cpp"
+    "tests/lexer/LexerApprover.hpp"
+    "tests/lexer/LexerWriter.cpp"
+    "tests/lexer/LexerWriter.hpp"
+    "tests/lexer/Multiline.rfx")
+source_group( "tests" FILES ${RFX_TESTS_TESTS_SRC} )
+
+set(SRC
+    ${RFX_TESTS_SRC}
+    ${RFX_TESTS_TESTS_SRC})
+
 set(RFX_TESTS_LINK_LIBRARIES
     common
     rfx
@@ -12,7 +24,7 @@ set(RFX_TESTS_LINK_LIBRARIES
 
 #=============================== Target ===============================#
 
-add_executable(${PROJECT_NAME} WIN32 ${RFX_TESTS_SRC})
+add_executable(${PROJECT_NAME} WIN32 ${SRC})
 target_link_libraries(${PROJECT_NAME} ${RFX_TESTS_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${TESTS_INCLUDE_DIRS})
 

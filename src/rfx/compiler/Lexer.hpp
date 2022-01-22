@@ -130,6 +130,8 @@ namespace RR
             Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
 
+            std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
+
             Token GetNextToken();
             TokenList LexAllSemanticTokens();
 
@@ -180,16 +182,16 @@ namespace RR
             void lexStringLiteralBody(U8Glyph quote);
 
         private:
+            std::unique_ptr<LinearAllocator> allocator_;
+            std::shared_ptr<SourceView> sourceView_;
+            std::shared_ptr<DiagnosticSink> sink_;
+
             const char* cursor_;
             const char* begin_;
             const char* end_;
             Counter linesCounter_ = 1;
             Counter columnCounter_ = 1;
             Token::Flags tokenflags_ = Token::Flags::AtStartOfLine;
-
-            std::unique_ptr<LinearAllocator> allocator_;
-            std::shared_ptr<SourceView> sourceView_;
-            std::shared_ptr<DiagnosticSink> sink_;
         };
     }
 }
