@@ -17,7 +17,7 @@ namespace RR::Rfx
 
                 auto sink = lexer->GetDiagnosticSink();
 
-                sink->GetSourceLineMaxLength() l;
+                sink->GetSourceLineMaxLength();
 
                 /* while (true)
                 {
@@ -82,7 +82,7 @@ namespace RR::Rfx
 
             ofs << "{\n";
 
-            //      writeTokens(ofs, tokenList_);
+            writeDiagnosticSink(ofs, tokenList_);
             writeTokens(ofs, lexer_);
 
             ofs << "}\n";

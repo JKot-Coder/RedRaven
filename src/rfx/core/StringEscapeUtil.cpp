@@ -70,7 +70,7 @@ namespace RR
                     mask >>= 1;
                 }
 
-                if (count > length)
+                if (size_t(count) > length)
                 {
                     ASSERT(!"Can't decode");
                     ioSlice = UnownedStringSlice(ioSlice.End(), ioSlice.End());

@@ -99,7 +99,7 @@ namespace RR
                 return nextToken_;
             }
 
-            TokenType TokenReader::PeekTokenType() const
+            TokenType PeekTokenType() const
             {
                 return nextToken_.type;
             }

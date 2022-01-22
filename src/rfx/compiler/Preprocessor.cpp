@@ -517,7 +517,7 @@ namespace RR
             typedef PretokenizedInputStream Super;
 
             SingleUseInputStream(const TokenList& lexedTokens)
-                : lexedTokens_(lexedTokens), PretokenizedInputStream()
+                :  PretokenizedInputStream(), lexedTokens_(lexedTokens)
             {
                 tokenReader_ = TokenReader(lexedTokens_);
             }
@@ -1114,7 +1114,7 @@ namespace RR
                 const char* const builtinNames[] = { "__FILE__", "__LINE__" };
                 const MacroDefinition::Opcode builtinOpcodes[] = { MacroDefinition::Opcode::BuiltinFile, MacroDefinition::Opcode::BuiltinLine };
 
-                for (int i = 0; i < std::size(builtinNames); i++)
+                for (int i = 0; size_t(i) < std::size(builtinNames); i++)
                 {
                     const auto& name = builtinNames[i];
 

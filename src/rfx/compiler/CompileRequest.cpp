@@ -125,7 +125,7 @@ namespace Rfx
             std::vector<slang::IComponentType*> components;
             components.push_back(composedProgram);
             components.push_back(entryPoint);
-            /*
+            
             if (SLANG_FAILED(entryPoint->link(composedProgram.writeRef(), diagnosticsBlob.writeRef())))
             {
                 log = "";
