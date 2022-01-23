@@ -160,14 +160,11 @@ namespace RR
             if (info.severity >= Severity::Error)
                 errorCount_++;
 
-            (void)formattedMessage;
-
+            for (const auto& writer : writerList_)
+                writer->Write(formattedMessage);
+                
             Log::Print::Error(formattedMessage);
             /*
-            if (writer)
-            {
-                writer->write(formattedMessage.begin(), formattedMessage.getLength());
-            }
             else
             {
                 outputBuffer.append(formattedMessage);

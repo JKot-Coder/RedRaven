@@ -41,10 +41,14 @@ namespace RR
 
                         const auto& sourceView = SourceView::Create(sourceFile);
 
-                        const auto& diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
+                        auto diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
+
+                        auto bufferWriter = std::make_shared<RR::Rfx::BufferWriter>();
+                        diagnosticSink->AddWriter(bufferWriter);
+
                         const auto& lexer = std::make_shared<RR::Rfx::Lexer>(sourceView, diagnosticSink);
 
-                        LexerApprover::verify(lexer);
+                        LexerApprover::verify(lexer, bufferWriter);
                     }
                 }
             }

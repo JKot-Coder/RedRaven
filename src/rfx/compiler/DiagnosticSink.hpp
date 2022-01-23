@@ -43,6 +43,12 @@ namespace RR
         class DiagnosticSink final
         {
         public:
+            class IWriter
+            {
+            public:
+                virtual void Write(const U8String& message) = 0;
+            };
+
             DiagnosticSink() = default;
 
             template <typename... Args>
@@ -72,6 +78,12 @@ namespace RR
                 diagnoseImpl(info, formatDiagnostic(diagnostic));
             }
 
+            void AddWriter(const std::shared_ptr<IWriter>& writer)
+            {
+                ASSERT(writer);
+                writerList_.push_back(writer);
+            }
+
             /// Set the maximum length (in chars) of a source line displayed. Set to 0 for no limit
             void SetSourceLineMaxLength(size_t length) { sourceLineMaxLength_ = length; }
             size_t GetSourceLineMaxLength() const { return sourceLineMaxLength_; }
@@ -87,6 +99,17 @@ namespace RR
         private:
             uint32_t errorCount_ = 0;
             size_t sourceLineMaxLength_ = 120;
+            std::list<std::shared_ptr<IWriter>> writerList_;
+        };
+
+        class BufferWriter final : public DiagnosticSink::IWriter
+        {
+        public:
+            void Write(const U8String& message) override { buffer_ += message; }
+            U8String GetBuffer() const { return buffer_; }
+
+        private:
+            U8String buffer_;
         };
     }
 }

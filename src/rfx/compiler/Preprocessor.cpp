@@ -586,7 +586,7 @@ namespace RR
 
                 for (;;)
                 {
-                    Token token = lexer_->GetNextToken();
+                    Token token = lexer_->ReadToken();
                     switch (token.type)
                     {
                         default:

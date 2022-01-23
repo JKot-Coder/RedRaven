@@ -1,7 +1,5 @@
 #include "LexerWriter.hpp"
 
-#include "compiler/DiagnosticSink.hpp"
-
 #include "core/StringEscapeUtil.hpp"
 
 namespace RR::Rfx
@@ -11,37 +9,22 @@ namespace RR::Rfx
         namespace
         {
 
-            void writeDiagnosticSink(std::ofstream& ofs, const std::shared_ptr<Lexer>& lexer)
+            void writeDiagnosticLog(std::ofstream& ofs, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
             {
                 ofs << "\tDiagnostic:[\n";
 
-                auto sink = lexer->GetDiagnosticSink();
+                U8String line;
+                std::istringstream logStream(disagnosticBuffer->GetBuffer());
 
-                sink->GetSourceLineMaxLength();
-
-                /* while (true)
+                while (std::getline(logStream, line, '\n'))
                 {
-                    const auto& token = lexer->GetNextToken();
+                    U8String escapedLine;
+                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, line, escapedLine);
 
-                    U8String escapedToken;
-                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+                    ofs << fmt::format("\t\t\"{}\",\n", escapedLine);
+                }
 
-                    ofs << fmt::format("\t\t{{Type:\"{0}\", Content:\"{1}\", Line:{2}, Column:{3}}}",
-                                       RR::Rfx::TokenTypeToString(token.type),
-                                       escapedToken,
-                                       token.humaneSourceLocation.line,
-                                       token.humaneSourceLocation.column);
-
-                    if (token.type == TokenType::EndOfFile)
-                    {
-                        ofs << "\n";
-                        break;
-                    }
-
-                    ofs << ",\n";
-                }*/
-
-                ofs << "\t]\n";
+                ofs << "\t],";
             }
 
             void writeTokens(std::ofstream& ofs, const std::shared_ptr<Lexer>& lexer)
@@ -50,7 +33,7 @@ namespace RR::Rfx
 
                 while (true)
                 {
-                    const auto& token = lexer->GetNextToken();
+                    const auto& token = lexer->ReadToken();
 
                     U8String escapedToken;
                     StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
@@ -62,15 +45,12 @@ namespace RR::Rfx
                                        token.humaneSourceLocation.column);
 
                     if (token.type == TokenType::EndOfFile)
-                    {
-                        ofs << "\n";
                         break;
-                    }
 
                     ofs << ",\n";
                 }
 
-                ofs << "\t]\n";
+                ofs << "\t],";
             }
 
         }
@@ -82,10 +62,13 @@ namespace RR::Rfx
 
             ofs << "{\n";
 
-            writeDiagnosticSink(ofs, tokenList_);
             writeTokens(ofs, lexer_);
 
-            ofs << "}\n";
+            ofs << "\n";
+
+            writeDiagnosticLog(ofs, disagnosticBuffer_);
+
+            ofs << "\n}";
 
             ofs.close();
         }

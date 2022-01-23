@@ -62,6 +62,7 @@ namespace RR
                     {
                         if (checkForEscapedNewline(cursor, srcEnd))
                         {
+                            cursor++;
                             const auto first = *cursor;
 
                             if (++cursor == srcEnd)
@@ -140,14 +141,15 @@ namespace RR
         {
         }
 
-        Token Lexer::GetNextToken()
+        Token Lexer::ReadToken()
         {
-            const auto& SourceLocation = getSourceLocation();
+            const auto& sourceLocation = getSourceLocation();
+            const auto& humaneLocation = getHumaneSourceLocation();
 
             if (isReachEOF())
             {
                 const auto tokenSlice = UnownedStringSlice(nullptr, nullptr);
-                return Token(TokenType::EndOfFile, tokenSlice, SourceLocation, getHumaneSourceLocation());
+                return Token(TokenType::EndOfFile, tokenSlice, sourceLocation, humaneLocation);
             }
 
             const auto tokenBegin = cursor_;
@@ -205,7 +207,7 @@ namespace RR
                 }
             }
 
-            return Token(tokenType, tokenSlice, SourceLocation, getHumaneSourceLocation(), tokenFlags);
+            return Token(tokenType, tokenSlice, sourceLocation, humaneLocation, tokenFlags);
         }
 
         TokenList Lexer::LexAllSemanticTokens()
@@ -214,7 +216,7 @@ namespace RR
 
             for (;;)
             {
-                const auto& token = GetNextToken();
+                const auto& token = ReadToken();
 
                 switch (token.type)
                 {
@@ -834,9 +836,9 @@ namespace RR
                                 advance();
                                 break;
 
-                                // clang-format off
-                                case '0': case '1': case '2': case '3':
-                                case '4': case '5': case '6': case '7': // clang-format on
+                            // clang-format off
+                            case '0': case '1': case '2': case '3':
+                            case '4': case '5': case '6': case '7': // clang-format on
                                 // octal escape: up to 3 characters
                                 advance();
 
@@ -890,7 +892,10 @@ namespace RR
 
             utf8::next(cursor_, end_);
 
-            columnCounter_.Increment();
+            // TODO: Configure tab intent
+            const uint32_t intent = peek() == '\t' ? 4 : 1;
+
+            columnCounter_.Increment(intent);
 
             if (!isReachEOF() && peek() == '\\')
             {

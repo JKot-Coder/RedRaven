@@ -34,7 +34,7 @@ namespace RR
                 }
             }
 
-            char getJSONEscapedChar(char c)
+            char getJSONEscapedChar(U8Glyph c)
             {
                 switch (c)
                 {
@@ -225,64 +225,30 @@ namespace RR
 
             void JSONStringEscapeHandler::AppendEscaped(const UnownedStringSlice& slice, U8String& out) const
             {
-                auto start = slice.Begin();
+                const auto start = slice.Begin();
                 auto cur = start;
                 const auto end = slice.End();
 
-                for (; cur < end; ++cur)
+                for (; cur < end;)
                 {
-                    const auto c = *cur;
-                    const auto escapedChar = getJSONEscapedChar(c);
+                    const auto ch = utf8::next(cur, end);
+                    const auto escapedChar = getJSONEscapedChar(ch);
 
                     if (escapedChar)
                     {
-                        // Flush
-                        if (start < cur)
-                            out.append(start, cur);
-
                         out.push_back('\\');
                         out.push_back(escapedChar);
-
-                        start = cur + 1;
                     }
-                    else if (uint8_t(c) & 0x80)
+                    else if (ch < ' ')
                     {
-                        // Flush
                         if (start < cur)
                             out.append(start, cur);
 
-                        // UTF8
-                        UnownedStringSlice remainingSlice(cur, end);
-                        uint32_t codePoint = getUnicodePointFromUTF8(remainingSlice);
-
-                        // We only support up to 16 bit unicode values for now...
-                        ASSERT(codePoint < 0x10000);
-
-                        appendHex16(codePoint, out);
-
-                        cur = remainingSlice.Begin() - 1;
-                        start = cur + 1;
-                    }
-                    else if (uint8_t(c) < ' ' || (c >= 0x7e))
-                    {
-                        if (start < cur)
-                        {
-                            out.append(start, cur);
-                        }
-
-                        appendHex16(uint32_t(c), out);
-
-                        start = cur + 1;
+                        appendHex16(uint32_t(ch), out);
                     }
                     else
-                    {
-                        // Can go out as it is
-                    }
+                        utf8::append(static_cast<U8Glyph>(ch), out);
                 }
-
-                // Flush at the end
-                if (start < end)
-                    out.append(start, end);
             }
 
             StringEscapeHandler* getHandler(StringEscapeUtil::Style style)

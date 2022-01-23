@@ -132,7 +132,7 @@ namespace RR
 
             std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
 
-            Token GetNextToken();
+            Token ReadToken();
             TokenList LexAllSemanticTokens();
 
         private:
@@ -142,6 +142,7 @@ namespace RR
                 Counter(uint32_t initialValue) : counter_(initialValue) {};
                 inline void Reset(uint32_t initialValue = 0) { counter_ = initialValue; }
                 inline void Increment() { counter_++; }
+                inline void Increment(uint32_t value) { counter_ += value; }
                 inline uint32_t Value() const { return counter_; }
 
             private:
