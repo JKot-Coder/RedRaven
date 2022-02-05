@@ -19,7 +19,7 @@ namespace RR
     {
         namespace Tests
         {
-            TEST_CASE("Lexer", "[Lexer]")
+            TEST_CASE("LexerTests", "[Lexer]")
             {
                 std::string path = "../src/rfx/tests/tests/lexer";
                 for (const auto& entry : fs::directory_iterator(path))
@@ -27,7 +27,7 @@ namespace RR
                     if (entry.path().extension() != ".rfx")
                         continue;
 
-                    DYNAMIC_SECTION(fmt::format("[Lexer::{}]", entry.path().u8string()))
+                    DYNAMIC_SECTION(entry.path().stem().u8string())
                     {
                         RR::Rfx::PathInfo pathInfo;
 

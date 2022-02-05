@@ -1,0 +1,9 @@
+"Basic"
+"Escaped symbols \a\b\f\n\r\t\v\'\"\\"
+"HEX \xFF"
+"Invalid escaped sequences \089 \89 \xQWERTY"
+"Multi\
+Line"
+
+"New line in string literal
+"End of file in string literal

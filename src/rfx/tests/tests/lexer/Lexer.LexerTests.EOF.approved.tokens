@@ -1,0 +1,11 @@
+{
+	Tokens:[
+		{Type:"block comment", Content:"\/* EOF in block line", Line:1, Column:1},
+		{Type:"end of file", Content:"", Line:1, Column:21},
+	],
+	Diagnostic:[
+		"D:\/Work\/my\/OpenDemo\/src\/rfx\/tests\/tests\/lexer\/EOF.rfx(1): error 10006: end of file in block comment",
+		"\/* EOF in block line",
+		"                    ^",
+	],
+}

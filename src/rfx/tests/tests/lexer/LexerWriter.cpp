@@ -38,7 +38,7 @@ namespace RR::Rfx
                     U8String escapedToken;
                     StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
 
-                    ofs << fmt::format("\t\t{{Type:\"{0}\", Content:\"{1}\", Line:{2}, Column:{3}}}",
+                    ofs << fmt::format("\t\t{{Type:\"{0}\", Content:\"{1}\", Line:{2}, Column:{3}}},\n",
                                        RR::Rfx::TokenTypeToString(token.type),
                                        escapedToken,
                                        token.humaneSourceLocation.line,
@@ -46,8 +46,6 @@ namespace RR::Rfx
 
                     if (token.type == TokenType::EndOfFile)
                         break;
-
-                    ofs << ",\n";
                 }
 
                 ofs << "\t],";

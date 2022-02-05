@@ -239,7 +239,19 @@ namespace RR
 
             const U8Char* const contentStart = GetContent().Begin();
             const U8Char* const contentEnd = GetContent().End();
-            const U8Char* const pos = GetContentFrom(loc);
+            const U8Char* pos = GetContentFrom(loc);
+
+            // If we start with a newline character, we assume that we need a line before.
+            for (; pos > contentStart; --pos)
+            {
+                // Work with UTF8 as ANSI text. This shouldn't be a problem...
+                const auto ch = *pos;
+
+                if (ch == '\n' || ch == '\r')
+                    continue;
+
+                break;
+            }
 
             // We want to determine the start of the line, and the end of the line
             const U8Char* start = pos;

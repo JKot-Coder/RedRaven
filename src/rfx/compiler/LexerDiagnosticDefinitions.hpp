@@ -22,7 +22,6 @@
 
 DIAGNOSTIC(10000, Error, illegalCharacterPrint, "illegal character '{}'")
 DIAGNOSTIC(10000, Error, illegalCharacterHex, "illegal character ({:#x})")
-DIAGNOSTIC(10001, Error, illegalCharacterLiteral, "illegal character literal")
 
 DIAGNOSTIC(10002, Warning, octalLiteral, "'0' prefix indicates octal literal")
 DIAGNOSTIC(10003, Error, invalidDigitForBase, "invalid digit for base-{1} literal: '{0}'")
