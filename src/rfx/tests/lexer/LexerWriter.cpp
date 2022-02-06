@@ -11,7 +11,7 @@ namespace RR::Rfx
 
             void writeDiagnosticLog(std::ofstream& ofs, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
             {
-                ofs << "\tDiagnostic:[\n";
+                ofs << "\t\"Diagnostic\":[\n";
 
                 U8String line;
                 std::istringstream logStream(disagnosticBuffer->GetBuffer());
@@ -38,7 +38,7 @@ namespace RR::Rfx
                     U8String escapedToken;
                     StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
 
-                    ofs << fmt::format("\t\t{{Type:\"{0}\", Content:\"{1}\", Line:{2}, Column:{3}}},\n",
+                    ofs << fmt::format("\t\t{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
                                        RR::Rfx::TokenTypeToString(token.type),
                                        escapedToken,
                                        token.humaneSourceLocation.line,
@@ -50,7 +50,6 @@ namespace RR::Rfx
 
                 ofs << "\t],";
             }
-
         }
 
         void LexerWriter::write(std::string path) const

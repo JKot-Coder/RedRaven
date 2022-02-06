@@ -2,7 +2,7 @@
 
 #include "compiler/DiagnosticSink.hpp"
 #include "compiler/Lexer.hpp"
-#include "tests/tests/lexer/LexerWriter.hpp"
+#include "tests/lexer/LexerWriter.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 

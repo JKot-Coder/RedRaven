@@ -8,7 +8,6 @@ namespace RR::Rfx
     {
         namespace
         {
-
             void writeDiagnosticLog(std::ofstream& ofs, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
             {
                 ofs << "\tDiagnostic:[\n";
@@ -27,10 +26,12 @@ namespace RR::Rfx
                 ofs << "\t],";
             }
 
-            void writeTokens(std::ofstream& ofs, const std::shared_ptr<Lexer>& lexer)
+            void writeTokens(std::ofstream& ofs, const std::shared_ptr<Preprocessor>& preprocessor)
             {
-                ofs << "\tTokens:[\n";
+                std::ignore = preprocessor;
 
+                ofs << "\tTokens:[\n";
+                /*
                 while (true)
                 {
                     const auto& token = lexer->ReadToken();
@@ -46,21 +47,21 @@ namespace RR::Rfx
 
                     if (token.type == TokenType::EndOfFile)
                         break;
-                }
+                }*/
 
                 ofs << "\t],";
             }
 
         }
 
-        void LexerWriter::write(std::string path) const
+        void PreprocessorWriter::write(std::string path) const
         {
             std::ofstream ofs(path);
             ASSERT(ofs.is_open())
 
             ofs << "{\n";
 
-            writeTokens(ofs, lexer_);
+            writeTokens(ofs, preprocessor_);
 
             ofs << "\n";
 

@@ -1,25 +1,26 @@
 #pragma once
 
 #include "compiler/DiagnosticSink.hpp"
-#include "compiler/Lexer.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 
 namespace RR::Rfx
 {
+    class Preprocessor;
+
     namespace Tests
     {
-        class LexerWriter : public ApprovalTests::ApprovalWriter
+        class PreprocessorWriter : public ApprovalTests::ApprovalWriter
         {
         public:
-            explicit LexerWriter(const std::shared_ptr<Lexer>& lexer, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
-                : lexer_(lexer), disagnosticBuffer_(disagnosticBuffer)
+            explicit PreprocessorWriter(const std::shared_ptr<Preprocessor>& preprocessor, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
+                : preprocessor_(preprocessor), disagnosticBuffer_(disagnosticBuffer)
             {
             }
 
             std::string getFileExtensionWithDot() const override
             {
-                return ".tokens";
+                return ".json";
             }
 
             void write(std::string path) const override;
@@ -30,7 +31,7 @@ namespace RR::Rfx
             }
 
         private:
-            std::shared_ptr<Lexer> lexer_;
+            std::shared_ptr<Preprocessor> preprocessor_;
             std::shared_ptr<BufferWriter> disagnosticBuffer_;
         };
     }

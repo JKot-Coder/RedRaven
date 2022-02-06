@@ -1,12 +1,12 @@
-#include "rfx/include/rfx.hpp"
-#include "rfx/core/IncludeSystem.hpp"
 #include "rfx/core/FileSystem.hpp"
+#include "rfx/core/IncludeSystem.hpp"
 #include "rfx/core/SourceLocation.hpp"
+#include "rfx/include/rfx.hpp"
 
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/Lexer.hpp"
 
-#include "tests/tests/lexer/LexerApprover.hpp"
+#include "tests/lexer/LexerApprover.hpp"
 
 #include <catch2/catch.hpp>
 
@@ -19,21 +19,31 @@ namespace RR
     {
         namespace Tests
         {
-            TEST_CASE("PreprocessorTests", "[Preprocessor]")
+            TEST_CASE("LexerTests", "[Lexer]")
             {
-                std::string path = "../src/rfx/tests/tests/preprocessor";
-                for (const auto& entry : fs::directory_iterator(path))
+                std::string testsPath = "../src/rfx/tests";
+                std::string lexerTestsPath = "../src/rfx/tests/Lexer";
+
+                for (const auto& entry : fs::directory_iterator(lexerTestsPath))
                 {
                     if (entry.path().extension() != ".rfx")
                         continue;
 
-                    DYNAMIC_SECTION(entry.path().stem().u8string())
+                    const auto& testFilename = entry.path().stem().u8string();
+                    DYNAMIC_SECTION(testFilename)
                     {
+                        std::error_code ec;
+                        const auto& testPath = fs::relative(entry.path().u8string(),
+                                                            testsPath,
+                                                            ec).u8string();
+                        if (ec)
+                            return;
+
                         RR::Rfx::PathInfo pathInfo;
 
                         const auto& fileSystem = std::make_shared<RR::Rfx::OSFileSystem>();
                         const auto& includeSystem = std::make_shared<RR::Rfx::IncludeSystem>(fileSystem);
-                        includeSystem->FindFile(entry.path().u8string(), "", pathInfo);
+                        includeSystem->FindFile(testPath, testsPath, pathInfo);
                         std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
 
                         if (RFX_FAILED(includeSystem->LoadFile(pathInfo, sourceFile)))

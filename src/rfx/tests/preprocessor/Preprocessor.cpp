@@ -4,9 +4,9 @@
 #include "rfx/core/SourceLocation.hpp"
 
 #include "rfx/compiler/DiagnosticSink.hpp"
-#include "rfx/compiler/Lexer.hpp"
+#include "rfx/compiler/Preprocessor.hpp"
 
-#include "tests/tests/lexer/LexerApprover.hpp"
+#include "tests/preprocessor/PreprocessorApprover.hpp"
 
 #include <catch2/catch.hpp>
 
@@ -19,9 +19,9 @@ namespace RR
     {
         namespace Tests
         {
-            TEST_CASE("LexerTests", "[Lexer]")
+            TEST_CASE("PreprocessorTests", "[Preprocessor]")
             {
-                std::string path = "../src/rfx/tests/tests/lexer";
+                std::string path = "../src/rfx/tests/preprocessor";
                 for (const auto& entry : fs::directory_iterator(path))
                 {
                     if (entry.path().extension() != ".rfx")
@@ -39,16 +39,15 @@ namespace RR
                         if (RFX_FAILED(includeSystem->LoadFile(pathInfo, sourceFile)))
                             return;
 
-                        const auto& sourceView = SourceView::Create(sourceFile);
-
                         auto diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
 
                         auto bufferWriter = std::make_shared<RR::Rfx::BufferWriter>();
                         diagnosticSink->AddWriter(bufferWriter);
 
-                        const auto& lexer = std::make_shared<RR::Rfx::Lexer>(sourceView, diagnosticSink);
+                        const auto& preprocessor = std::make_shared<RR::Rfx::Preprocessor>(includeSystem, diagnosticSink);
+                        preprocessor->PushInputFile(sourceFile);
 
-                        LexerApprover::verify(lexer, bufferWriter);
+                        PreprocessorApprover::verify(preprocessor, bufferWriter);
                     }
                 }
             }

@@ -517,7 +517,7 @@ namespace RR
             typedef PretokenizedInputStream Super;
 
             SingleUseInputStream(const TokenList& lexedTokens)
-                :  PretokenizedInputStream(), lexedTokens_(lexedTokens)
+                : PretokenizedInputStream(), lexedTokens_(lexedTokens)
             {
                 tokenReader_ = TokenReader(lexedTokens_);
             }
@@ -982,8 +982,8 @@ namespace RR
         class PreprocessorImpl final
         {
         public:
-            PreprocessorImpl(const std::shared_ptr<DiagnosticSink>& diagnosticSink,
-                             const std::shared_ptr<IncludeSystem>& includeSystem);
+            PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
 
             std::vector<Token> ReadAllTokens();
 
@@ -1100,8 +1100,8 @@ namespace RR
             //   { "pragma", nullptr }
         };
 
-        PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<DiagnosticSink>& diagnosticSink,
-                                           const std::shared_ptr<IncludeSystem>& includeSystem)
+        PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                                           const std::shared_ptr<DiagnosticSink>& diagnosticSink)
             : sink_(diagnosticSink),
               includeSystem_(includeSystem),
               allocator_(std::make_shared<LinearAllocator>(1024))
@@ -1858,9 +1858,9 @@ namespace RR
 
         Preprocessor::~Preprocessor() { }
 
-        Preprocessor::Preprocessor(const std::shared_ptr<DiagnosticSink>& diagnosticSink,
-                                   const std::shared_ptr<IncludeSystem>& includeSystem)
-            : impl_(std::make_unique<PreprocessorImpl>(diagnosticSink, includeSystem))
+        Preprocessor::Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+            : impl_(std::make_unique<PreprocessorImpl>(includeSystem, diagnosticSink))
         {
         }
 

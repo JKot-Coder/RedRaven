@@ -19,7 +19,7 @@ namespace RR::Rfx
 
             std::string getFileExtensionWithDot() const override
             {
-                return ".tokens";
+                return ".json";
             }
 
             void write(std::string path) const override;

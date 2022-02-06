@@ -14,8 +14,8 @@ namespace RR
         {
         public:
             Preprocessor() = delete;
-            Preprocessor(const std::shared_ptr<DiagnosticSink>& diagnosticSink,
-                         const std::shared_ptr<IncludeSystem>& includeSystem);
+            Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                         const std::shared_ptr<DiagnosticSink>& diagnosticSink);
 
             ~Preprocessor();
 
@@ -25,7 +25,6 @@ namespace RR
             std::vector<Token> ReadAllTokens();
 
         private:
-
             // TODO tempoprary shared. Is it possible not to use it?
             std::shared_ptr<PreprocessorImpl> impl_;
         };

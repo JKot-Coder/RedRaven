@@ -217,13 +217,13 @@ namespace RR
                 {
                     const auto& includeInfo = *it;
                     humaneLocString += fmt::format("In file included from {0}({1}):\n",
-                                                   includeInfo.pathInfo.getMostUniqueIdentity(),
+                                                   includeInfo.pathInfo.foundPath,
                                                    includeInfo.humaneSourceLocation.line,
                                                    includeInfo.humaneSourceLocation.column);
                 }
 
                 humaneLocString += fmt::format("{0}({1}): ",
-                                               sourceView->GetPathInfo().getMostUniqueIdentity(),
+                                               sourceView->GetPathInfo().foundPath,
                                                humaneLocation.line,
                                                humaneLocation.column);
             }

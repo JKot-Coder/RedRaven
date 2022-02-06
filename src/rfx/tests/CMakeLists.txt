@@ -5,23 +5,23 @@ set(RFX_TESTS_SRC
 source_group( "" FILES ${RFX_TESTS_SRC} )
 
 set(RFX_TESTS_LEXER_SRC
-    "tests/lexer/Lexer.cpp"
-    "tests/lexer/LexerApprover.hpp"
-    "tests/lexer/LexerWriter.cpp"
-    "tests/lexer/LexerWriter.hpp"
-    "tests/lexer/BasicTokens.rfx"
-    "tests/lexer/EofInBlockLine.rfx"
-    "tests/lexer/Multiline.rfx"
-    "tests/lexer/Numbers.rfx"
-    "tests/lexer/StringLiteras.rfx")
-source_group( "tests/lexer" FILES ${RFX_TESTS_LEXER_SRC} )
+    "lexer/Lexer.cpp"
+    "lexer/LexerApprover.hpp"
+    "lexer/LexerWriter.cpp"
+    "lexer/LexerWriter.hpp"
+    "lexer/BasicTokens.rfx"
+    "lexer/EofInBlockLine.rfx"
+    "lexer/Multiline.rfx"
+    "lexer/Numbers.rfx"
+    "lexer/StringLiteras.rfx")
+source_group( "lexer" FILES ${RFX_TESTS_LEXER_SRC} )
 
 set(RFX_TESTS_PREPROCESSOR_SRC
-    "tests/preprocessor/Preprocessor.cpp"
-    "tests/preprocessor/PreprocessorApprover.hpp"
-    "tests/preprocessor/PreprocessorWriter.cpp"
-    "tests/preprocessor/PreprocessorWriter.hpp")
-source_group( "tests/preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
+    "preprocessor/Preprocessor.cpp"
+    "preprocessor/PreprocessorApprover.hpp"
+    "preprocessor/PreprocessorWriter.cpp"
+    "preprocessor/PreprocessorWriter.hpp")
+source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
 set(SRC
     ${RFX_TESTS_SRC}

@@ -21,7 +21,7 @@ void test2()
         return;
 
     const auto& diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
-    const auto& preprocessor = std::make_shared<RR::Rfx::Preprocessor>(diagnosticSink, includeSystem);
+    const auto& preprocessor = std::make_shared<RR::Rfx::Preprocessor>(includeSystem, diagnosticSink);
     preprocessor->PushInputFile(sourceFile);
 
     const auto& tokens = preprocessor->ReadAllTokens();
