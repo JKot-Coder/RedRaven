@@ -890,10 +890,12 @@ namespace RR
         {
             /// Construct an input stream that applies macro expansion to `base`
             ExpansionInputStream(
-                const std::shared_ptr<PreprocessorImpl>& preprocessor,
+                const std::weak_ptr<PreprocessorImpl>& preprocessor,
                 const std::shared_ptr<InputStream>& base)
                 : preprocessor_(preprocessor), base_(base)
             {
+                ASSERT(preprocessor.lock())
+
                 inputStreams_.Push(base);
                 lookaheadToken_ = readTokenImpl();
             }
@@ -968,7 +970,7 @@ namespace RR
 
         private:
             ///  TODO comment
-            std::shared_ptr<PreprocessorImpl> preprocessor_;
+            std::weak_ptr<PreprocessorImpl> preprocessor_;
 
             /// The base stream that macro expansion is being applied to
             std::shared_ptr<InputStream> base_ = nullptr;
@@ -987,6 +989,61 @@ namespace RR
         class PreprocessorImpl final
         {
         public:
+            // The top-level flow of the preprocessor is that it processed *input files*
+            // An input file manages both the expansion of lexed tokens
+            // from the source file, and also state related to preprocessor
+            // directives, including skipping of code due to `#if`, etc.
+            //
+            // Input files are a bit like token streams, but they don't fit neatly into
+            // the same abstraction due to all the special-case handling that directives
+            // and conditionals require.
+
+            struct InputFile
+            {
+                InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+                {
+                    ASSERT(sourceView)
+                    ASSERT(preprocessorImpl.lock())
+
+                    lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetSink());
+                    expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
+                }
+
+                /// Read one token using all the expansion and directive-handling logic
+                Token ReadToken()
+                {
+                    return expansionInputStream_->ReadToken();
+                }
+
+                inline Lexer& GetLexer()
+                {
+                    return lexerStream_->GetLexer();
+                }
+
+                inline std::shared_ptr<ExpansionInputStream> GetExpansionStream()
+                {
+                    return expansionInputStream_;
+                }
+
+            private:
+                friend class PreprocessorImpl;
+
+                /// The next outer input file
+                ///
+                /// E.g., if this file was `#include`d from another file, then `m_parent` would be
+                /// the file with the `#include` directive.
+                std::shared_ptr<InputFile> parent_;
+
+                /// The lexer input stream that unexpanded tokens will be read from
+                std::shared_ptr<LexerInputStream> lexerStream_;
+
+                /// An input stream that applies macro expansion to `lexerStream_`
+                std::shared_ptr<ExpansionInputStream> expansionInputStream_;
+            };
+
+            typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
+
+        public:
             PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
                              const std::shared_ptr<DiagnosticSink>& diagnosticSink);
 
@@ -999,12 +1056,8 @@ namespace RR
             std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
             std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; }
 
-            // TODO comments
-            /// Push a new input source onto the input stack of the preprocessor
-            void PushInputStream(const std::shared_ptr<ExpansionInputStream>& inputStream);
-
-        public:
-            typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
+            // Push a new input file onto the input stack of the preprocessor
+            void PushInputFile(const std::shared_ptr<InputFile>& inputFile);
 
         private:
             int32_t tokenToInt(const Token& token, int radix);
@@ -1012,8 +1065,8 @@ namespace RR
 
             Token readToken();
 
-            /// Pop the inner-most input source from the stack of input source
-            void popInputStream();
+            // Pop the inner-most input file from the stack of input files
+            void popInputFile();
 
             inline Token peekRawToken();
             inline Token::Type peekRawTokenType() { return peekRawToken().type; }
@@ -1030,15 +1083,20 @@ namespace RR
             // Skip to the end of the line (useful for recovering from errors in a directive)
             void skipToEndOfLine();
 
+            // Determine if we have read everything on the directive's line.
+            bool isEndOfLine();
+
+            void setLexerDiagnosticSuppression(bool shouldSuppressDiagnostics);
+
             bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
             bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
 
-            // Determine if we have read everything on the directive's line.
-            bool isEndOfLine();
+            U8String readDirectiveMessage();
 
             void handleDirective();
             void handleInvalidDirective(DirectiveContext& directiveContext);
             void handleDefineDirective(DirectiveContext& directiveContext);
+            void handleWarningDirective(DirectiveContext& directiveContext);
             void handleIncludeDirective(DirectiveContext& directiveContext);
             void handleLineDirective(DirectiveContext& directiveContext);
 
@@ -1057,8 +1115,10 @@ namespace RR
         private:
             std::shared_ptr<DiagnosticSink> sink_;
             std::shared_ptr<IncludeSystem> includeSystem_;
-            std::shared_ptr<ExpansionInputStream> expansionInputStream_;
             std::shared_ptr<LinearAllocator> allocator_;
+
+            /// A stack of "active" input files
+            std::shared_ptr<InputFile> currentInputFile_;
 
             /// The unique identities of any paths that have issued `#pragma once` directives to
             /// stop them from being included again.
@@ -1099,7 +1159,7 @@ namespace RR
             // { "include", &PreprocessorImpl::handleIncludeDirective },
             { "define", &PreprocessorImpl::handleDefineDirective },
             //  { "undef", nullptr },
-            //  { "warning", nullptr },
+            { "warning", &PreprocessorImpl::handleWarningDirective },
             //  { "error", nullptr },
             // { "line", &PreprocessorImpl::handleLineDirective },
             //   { "pragma", nullptr }
@@ -1221,15 +1281,17 @@ namespace RR
         {
             for (;;)
             {
-                auto expansionStream = expansionInputStream_;
+                auto inputFile = currentInputFile_;
 
-                if (!expansionStream)
+                if (!inputFile)
                     return endOfFileToken_;
+
+                auto expansionStream = currentInputFile_->GetExpansionStream();
 
                 Token token = peekRawToken();
                 if (token.type == Token::Type::EndOfFile)
                 {
-                    popInputStream();
+                    popInputFile();
                     continue;
                 }
 
@@ -1253,7 +1315,7 @@ namespace RR
                 token = expansionStream->PeekToken();
                 if (token.type == Token::Type::EndOfFile)
                 {
-                    popInputStream();
+                    popInputFile();
                     continue;
                 }
 
@@ -1262,36 +1324,39 @@ namespace RR
             }
         }
 
-        void PreprocessorImpl::PushInputStream(const std::shared_ptr<ExpansionInputStream>& inputStream)
+        void PreprocessorImpl::PushInputFile(const std::shared_ptr<InputFile>& inputFile)
         {
-            inputStream->SetParent(expansionInputStream_);
-            expansionInputStream_ = inputStream;
+            ASSERT(inputFile);
+
+            inputFile->parent_ = currentInputFile_;
+            currentInputFile_ = inputFile;
         }
 
-        void PreprocessorImpl::popInputStream()
+        void PreprocessorImpl::popInputFile()
         {
-            const auto& inputStream = expansionInputStream_;
-            ASSERT(inputStream)
+            const auto& inputFile = currentInputFile_;
+            ASSERT(inputFile)
 
             // We expect the file to be at its end, so that the
             // next token read would be an end-of-file token.
-            Token eofToken = inputStream->PeekToken(); //TODO PeekRaw
-            ASSERT(eofToken.type == Token::Type::EndOfFile);
+            const auto& expansionStream = inputFile->GetExpansionStream();
+            Token eofToken = expansionStream->PeekRawToken();
+            ASSERT(eofToken.type == Token::Type::EndOfFile)
 
             // If there are any open preprocessor conditionals in the file, then
             // we need to diagnose them as an error, because they were not closed
             // at the end of the file. TODO
-            /* for (auto conditional = inputFile->getInnerMostConditional(); conditional; conditional = conditional->parent)
-                {
-                    GetSink(this)->diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
-                    GetSink(this)->diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.getContent());
-                */
-
+            /*
+            for (auto conditional = inputFile->getInnerMostConditional(); conditional; conditional = conditional->parent)
+            {
+                GetSink(this)->diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
+                GetSink(this)->diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.getContent());
+            }
+            */
             // We will update the current file to the parent of whatever
             // the `inputFile` was (usually the file that `#include`d it).
-            //
-            auto parentFile = inputStream->GetParent();
-            expansionInputStream_ = std::dynamic_pointer_cast<ExpansionInputStream>(parentFile);
+            auto parentFile = inputFile->parent_;
+            currentInputFile_ = parentFile;
 
             // As a subtle special case, if this is the *last* file to be popped,
             // then we will update the canonical EOF token used by the preprocessor
@@ -1303,24 +1368,33 @@ namespace RR
 
         Token PreprocessorImpl::peekToken()
         {
-            return expansionInputStream_->PeekToken();
+            ASSERT(currentInputFile_);
+
+            return currentInputFile_->expansionInputStream_->PeekToken();
         }
 
         Token PreprocessorImpl::peekRawToken()
         {
-            return expansionInputStream_->PeekRawToken();
+            ASSERT(currentInputFile_);
+
+            return currentInputFile_->expansionInputStream_->PeekRawToken();
         }
 
         Token PreprocessorImpl::advanceToken()
         {
+            ASSERT(currentInputFile_);
+
             if (isEndOfLine())
                 return peekRawToken();
-            return expansionInputStream_->ReadToken();
+
+            return currentInputFile_->expansionInputStream_->ReadToken();
         }
 
         Token PreprocessorImpl::advanceRawToken()
         {
-            return expansionInputStream_->ReadRawToken();
+            ASSERT(currentInputFile_);
+
+            return currentInputFile_->expansionInputStream_->ReadRawToken();
         }
 
         void PreprocessorImpl::skipToEndOfLine()
@@ -1331,7 +1405,9 @@ namespace RR
 
         bool PreprocessorImpl::isEndOfLine()
         {
-            switch (expansionInputStream_->PeekRawTokenType())
+            ASSERT(currentInputFile_);
+
+            switch (currentInputFile_->expansionInputStream_->PeekRawTokenType())
             {
                 case Token::Type::EndOfFile:
                 case Token::Type::NewLine:
@@ -1340,6 +1416,11 @@ namespace RR
                 default:
                     return false;
             }
+        }
+
+        void PreprocessorImpl::setLexerDiagnosticSuppression(bool shouldSuppressDiagnostics)
+        {
+            std::ignore = shouldSuppressDiagnostics;
         }
 
         bool PreprocessorImpl::expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
@@ -1398,7 +1479,7 @@ namespace RR
             ASSERT(peekRawTokenType() == Token::Type::Pound)
 
             // Skip the `#`
-            expansionInputStream_->ReadRawToken();
+            advanceRawToken();
 
             // Create a context for parsing the directive
             DirectiveContext context;
@@ -1443,6 +1524,7 @@ namespace RR
             skipToEndOfLine();
         }
 
+        // Handle a `#define` directive
         void PreprocessorImpl::handleDefineDirective(DirectiveContext& directiveContext)
         {
             Token nameToken;
@@ -1634,6 +1716,47 @@ namespace RR
             parseMacroOps(macro, mapParamNameToIndex);
         }
 
+        U8String PreprocessorImpl::readDirectiveMessage()
+        {
+            U8String result;
+
+            while (!isEndOfLine())
+            {
+                Token token = advanceRawToken();
+
+                if (IsSet(token.flags, Token::Flags::AfterWhitespace))
+                {
+                    if (!result.empty())
+                        result.append(" ");
+                }
+
+                result.append(token.stringSlice.Begin(), token.stringSlice.End());
+            }
+
+            return result;
+        }
+
+        // Handle a `#warning` directive
+        void PreprocessorImpl::handleWarningDirective(DirectiveContext& directiveContext)
+        {
+            std::ignore = directiveContext;
+
+            ASSERT(false);
+            // setLexerDiagnosticSuppression(getInputFile(context), true);
+
+            // Consume the directive
+            advanceRawToken();
+
+            // Read the message.
+            // U8String message = readDirectiveMessage(context);
+
+            //  setLexerDiagnosticSuppression(getInputFile(context), false);
+
+            // Report the custom error.
+            // sink_->Diagnose(context.token, Diagnostics::userDefinedWarning, message);
+        }
+
+        // Handle a `#include` directive
         void PreprocessorImpl::handleIncludeDirective(DirectiveContext& directiveContext)
         {
             Token pathToken;
@@ -1745,7 +1868,7 @@ namespace RR
             // Drop current stream
             ASSERT_MSG(false, "NOT IMPLEMENTD")
             //    currentInputStream_->ForceClose();
-            popInputStream();
+           // popInputStream();
             //  PushInputStream(inputStream);
         }
 
@@ -1875,9 +1998,7 @@ namespace RR
         void Preprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
         {
             const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
-
-            const auto lexerInputStream = std::make_shared<RR::Rfx::LexerInputStream>(sourceView, impl_->GetSink());
-            impl_->PushInputStream(std::make_shared<ExpansionInputStream>(impl_, lexerInputStream));
+            impl_->PushInputFile(std::make_shared<PreprocessorImpl::InputFile>(impl_, sourceView));
         }
 
         std::vector<Token> Preprocessor::ReadAllTokens()
@@ -2443,7 +2564,8 @@ namespace RR
         // that macro.
         void ExpansionInputStream::maybeBeginMacroInvocation()
         {
-            auto preprocessor = preprocessor_;
+            auto preprocessor = preprocessor_.lock();
+            ASSERT(preprocessor)
 
             // We iterate because the first token in the expansion of one
             // macro may be another macro invocation.
