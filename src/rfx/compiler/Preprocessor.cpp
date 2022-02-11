@@ -118,9 +118,9 @@ namespace RR
                             continue;
 
                         // clang-format off
-                        // Octal escape: up to 3 characterws 
-                        case '0': case '1': case '2': case '3': case '4': 
-                        case '5': case '6': case '7': 
+                        // Octal escape: up to 3 characterws
+                        case '0': case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7':
                         { // clang-format on
                             cursor--;
                             int value = 0;
@@ -982,7 +982,7 @@ namespace RR
             // The top-level flow of the preprocessor is that it processed *input files*
             // An input file manages both the expansion of lexed tokens
             // from the source file, and also state related to preprocessor
-            // directives, including skipping of code due to `#if`, etc.
+            // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
             //
             // Input files are a bit like token streams, but they don't fit neatly into
             // the same abstraction due to all the special-case handling that directives
@@ -1097,6 +1097,7 @@ namespace RR
             void handleDirective();
             void handleInvalidDirective(DirectiveContext& directiveContext);
             void handleDefineDirective(DirectiveContext& directiveContext);
+            void handleUndefDirective(DirectiveContext& directiveContext);
             void handleWarningDirective(DirectiveContext& directiveContext);
             void handleIncludeDirective(DirectiveContext& directiveContext);
             void handleLineDirective(DirectiveContext& directiveContext);
@@ -1151,7 +1152,7 @@ namespace RR
         Token PreprocessorImpl::dummyToken;
 
         const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
-            //  { "if", nullptr },
+            //   { "if", { Directive::Flags::None, handleIfDirective } },
             //  { "ifdef", nullptr },
             //  { "ifndef", nullptr },
             //   { "else", nullptr },
@@ -1159,8 +1160,8 @@ namespace RR
             //  { "endif", nullptr },
             // { "include", &PreprocessorImpl::handleIncludeDirective },
             { "define", { Directive::Flags::None, &handleDefineDirective } },
-            //  { "undef", nullptr },
-            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
+            { "undef", { Directive::Flags::None, &handleUndefDirective } },
+            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &handleWarningDirective } },
             //  { "error", nullptr },
             // { "line", &PreprocessorImpl::handleLineDirective },
             //   { "pragma", nullptr }
@@ -1304,7 +1305,7 @@ namespace RR
                     continue;
                 }
                 /*
-                
+
                 // otherwise, if we are currently in a skipping mode, then skip tokens
                 if (InputSource->isSkipping())
                 {
@@ -1727,6 +1728,27 @@ namespace RR
             }
 
             parseMacroOps(macro, mapParamNameToIndex);
+        }
+
+        void PreprocessorImpl::handleUndefDirective(DirectiveContext& directiveContext)
+        {
+            Token nameToken;
+
+            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
+                return;
+
+            const auto& name = nameToken.GetContentString();
+            const auto& macro = LookupMacro(name);
+
+            if (!macro)
+            {
+                // name wasn't defined
+                sink_->Diagnose(nameToken, Diagnostics::macroNotDefined, name);
+                return;
+            }
+
+            // name was defined, so remove it
+            macrosDefinitions_.erase(name);
         }
 
         U8String PreprocessorImpl::readDirectiveMessage()
@@ -2804,7 +2826,7 @@ namespace RR
                         auto nextStream = m_inputStreams.getNextStream();
                         auto busyMacrosForFunctionLikeInvocation = nextStream->getFirstBusyMacroInvocation();
 
-                        // Consume initializatin macro 
+                        // Consume initializatin macro
                         readTokenImpl();
 
                         invocation->Prime(busyMacrosForFunctionLikeInvocation);

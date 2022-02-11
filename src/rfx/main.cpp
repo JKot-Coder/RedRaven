@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 #endif
 
     test2();
-    
+
     auto session = new Rfx::Compiler::Session();
 
     auto request = session->CreateCompileRequest();
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
         return -1;
     }*/
 
-    /*
+/*
     SlangSession* session = spCreateSession(NULL);
 
     SlangCompileRequest* request = spCreateCompileRequest(session);

@@ -31,7 +31,6 @@ namespace Rfx
         private:
             void clearModules();
 
-
             friend class Session;
         };
     }

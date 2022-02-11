@@ -13,7 +13,7 @@ namespace Rfx
 
         bool Program::GetShaderProgram(std::string& log)
         {
-            (void) log;
+            (void)log;
             return false;
             /*
             Slang::ComPtr<ISlangBlob> diagnostics;
@@ -41,7 +41,7 @@ namespace Rfx
                 std::ignore = size;
 
                 if (diagnostics)
-                    log += (char*)diagnostics->getBufferPointer(); 
+                    log += (char*)diagnostics->getBufferPointer();
 
                 if (!compileResult)
                     return false;

@@ -1,0 +1,34 @@
+Output:[
+	float foo() { return 1.0f + 2.0; }
+	typedef float BAR;
+	BAR bar() { return 2.0; }
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\Undef.rfx(4): warning 15401: macro 'FOO' is not defined
+	#undef FOO
+	       ^~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(10): error 15101: unknown preprocessor directive 'ifdef'
+	#ifdef BAR
+	 ^~~~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(12): error 15101: unknown preprocessor directive 'else'
+	#else
+	 ^~~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(13): error 15101: unknown preprocessor directive 'error'
+	#error not okay
+	 ^~~~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(14): error 15101: unknown preprocessor directive 'endif'
+	#endif
+	 ^~~~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(22): error 15101: unknown preprocessor directive 'if'
+	#if !defined(BAR)
+	 ^~
+	..\src\rfx\tests\preprocessor\Undef.rfx(24): error 15101: unknown preprocessor directive 'else'
+	#else
+	 ^~~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(25): error 15101: unknown preprocessor directive 'error'
+	#error not okay
+	 ^~~~~
+	..\src\rfx\tests\preprocessor\Undef.rfx(26): error 15101: unknown preprocessor directive 'endif'
+	#endif
+	 ^~~~~
+]

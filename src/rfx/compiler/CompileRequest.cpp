@@ -2,7 +2,6 @@
 
 #include "compiler/Program.hpp"
 
-
 #include "include/rfx.hpp"
 
 namespace
@@ -20,7 +19,7 @@ namespace
 
     static_assert(std::is_same<std::underlying_type<RR::Rfx::CompileTarget>::type, uint32_t>::value);
     static_assert(std::size(compileTargetConversion) == static_cast<uint32_t>(RR::Rfx::CompileTarget::Count));
-  
+
     SlangCompileTarget getCompileTargetConversion(Rfx::CompileTarget target)
     {
         ASSERT(compileTargetConversion[static_cast<uint32_t>(target)].from == target);
@@ -125,7 +124,7 @@ namespace Rfx
             std::vector<slang::IComponentType*> components;
             components.push_back(composedProgram);
             components.push_back(entryPoint);
-            
+
             if (SLANG_FAILED(entryPoint->link(composedProgram.writeRef(), diagnosticsBlob.writeRef())))
             {
                 log = "";

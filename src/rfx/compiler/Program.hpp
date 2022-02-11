@@ -15,7 +15,6 @@ namespace Rfx
             bool GetShaderProgram(std::string& log);
 
         private:
-        
             friend class CompileRequest;
         };
     }

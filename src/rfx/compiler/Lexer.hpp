@@ -62,7 +62,6 @@ namespace RR
                 : cursor_(begin), end_(end)
             {
                 ASSERT(std::distance(cursor_, end_) > 0)
-                ASSERT(end_->type == Token::Type::EndOfFile)
 
                 updateLookaheadToken();
             }

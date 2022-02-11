@@ -277,7 +277,7 @@ namespace RR
 
                     switch (peek())
                     {
-                            // clang-format off
+                        // clang-format off
                             case '0': case '1': case '2': case '3': case '4':
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
                             lexNumberAfterDecimalPoint(10);
@@ -306,7 +306,7 @@ namespace RR
                     }
                 }
 
-                    // clang-format off
+                // clang-format off
                     case '1': case '2': case '3': case '4': case '5':
                     case '6': case '7': case '8': case '9': // clang-format on
                     return lexNumber(10);
@@ -339,15 +339,15 @@ namespace RR
                             advance();
                             return lexNumber(2);
 
-                            // clang-format off
-                            case '0': case '1': case '2': case '3': case '4': 
+                        // clang-format off
+                            case '0': case '1': case '2': case '3': case '4':
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
                             diagnose(this, loc, humaneLoc, LexerDiagnostics::octalLiteral);
                             return lexNumber(8);
                     }
                 }
 
-                    // clang-format off
+                // clang-format off
                     case 'a': case 'b': case 'c': case 'd': case 'e':
                     case 'f': case 'g': case 'h': case 'i': case 'j':
                     case 'k': case 'l': case 'm': case 'n': case 'o':
@@ -359,7 +359,7 @@ namespace RR
                     case 'K': case 'L': case 'M': case 'N': case 'O':
                     case 'P': case 'Q': case 'R': case 'S': case 'T':
                     case 'U': case 'V': case 'W': case 'X': case 'Y':
-                    case 'Z': 
+                    case 'Z':
                     case '_': // clang-format on
                     lexIdentifier();
                     return Token::Type::Identifier;
@@ -380,7 +380,7 @@ namespace RR
                     { // clang-format off
                             case '+': advance(); return Token::Type::OpInc;
                             case '=': advance(); return Token::Type::OpAddAssign;
-                            default: return Token::Type::OpAdd; 
+                            default: return Token::Type::OpAdd;
                         } // clang-format on
 
                 case '-':
@@ -407,9 +407,9 @@ namespace RR
                     { // clang-format off
                             case '=': advance(); return Token::Type::OpDivAssign;
                             case '/': handleLineComment(); return Token::Type::LineComment;
-                            case '*': handleBlockComment(); return Token::Type::BlockComment;     
+                            case '*': handleBlockComment(); return Token::Type::BlockComment;
                             default: return Token::Type::OpDiv;
-                        } // clang-format on  
+                        } // clang-format on
 
                     case '%':
                         advance();
@@ -417,7 +417,7 @@ namespace RR
                         { // clang-format off
                             case '=': advance(); return Token::Type::OpModAssign;
                             default: return Token::Type::OpMod;
-                        } // clang-format on  
+                        } // clang-format on
 
                     case '|':
                         advance();
@@ -426,7 +426,7 @@ namespace RR
                             case '|': advance(); return Token::Type::OpOr;
                             case '=': advance(); return Token::Type::OpOrAssign;
                             default: return Token::Type::OpBitOr;
-                        } // clang-format on  
+                        } // clang-format on
 
                     case '&':
                         advance();
@@ -435,7 +435,7 @@ namespace RR
                             case '&': advance(); return Token::Type::OpAnd;
                             case '=': advance(); return Token::Type::OpAndAssign;
                             default: return Token::Type::OpBitAnd;
-                        } // clang-format on  
+                        } // clang-format on
 
                     case '^':
                         advance();
@@ -443,7 +443,7 @@ namespace RR
                         { // clang-format off
                             case '=': advance(); return Token::Type::OpXorAssign;
                             default: return Token::Type::OpBitXor;
-                        } // clang-format on  
+                        } // clang-format on
 
                     case '>':
                         advance();
@@ -459,13 +459,13 @@ namespace RR
 
                             case '=': advance(); return Token::Type::OpGeq;
                             default: return Token::Type::OpGreater;
-                        } // clang-format on 
+                        } // clang-format on
 
                     case '<':
                        advance();
                         switch (peek())
                         { // clang-format off
-                            case '<': 
+                            case '<':
                                 advance();
                                 switch (peek())
                                 {
@@ -474,7 +474,7 @@ namespace RR
                                 }
                             case '=': advance(); return Token::Type::OpLeq;
                             default: return Token::Type::OpLess;
-                        } // clang-format on 
+                        } // clang-format on
 
                     case '=':
                         advance();
@@ -482,7 +482,7 @@ namespace RR
                         { // clang-format off
                             case '=': advance(); return Token::Type::OpEql;
                             default: return Token::Type::OpAssign;
-                        } // clang-format on 
+                        } // clang-format on
 
                     case '!':
                         advance();
@@ -490,7 +490,7 @@ namespace RR
                         { // clang-format off
                             case '=': advance(); return Token::Type::OpNeq;
                             default: return Token::Type::OpNot;
-                        } // clang-format on 
+                        } // clang-format on
 
                     case '#':
                         advance();
@@ -499,7 +499,7 @@ namespace RR
                         { // clang-format off
                             case '#': advance(); return Token::Type::PoundPound;
                             default: return Token::Type::Pound;
-                        } // clang-format on 
+                        } // clang-format on
 
                     case '~':
                         advance();

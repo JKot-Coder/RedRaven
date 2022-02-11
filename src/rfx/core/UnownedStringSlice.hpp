@@ -26,7 +26,6 @@ namespace RR
                 /// True if slice is strictly contained in memory.
                 bool IsMemoryContained(const UnownedStringSlice& slice) const
                 {
-
                     return slice.begin_ >= begin_ && slice.end_ <= end_;
                 }
 
@@ -132,7 +131,7 @@ namespace RR
                 SLANG_FORCE_INLINE static UnownedStringSlice fromLiteral(const char (&in)[SIZE])
                 {
                     return UnownedStringSlice(in, SIZE - 1);
-                } 
+                }
                 */
 
         private:

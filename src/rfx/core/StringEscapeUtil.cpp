@@ -279,7 +279,7 @@ namespace RR
             handler->AppendEscaped(slice, out);
         }
 
-        /* 
+        /*
         /// Given a slice append it unescaped
         /// Does not consume surrounding quotes
         RfxResult StringEscapeUtil::AppendUnescaped(Style style, const UnownedStringSlice& slice, std::stringstream& out);
@@ -312,6 +312,5 @@ namespace RR
 
         /// Shells can have multiple quoted sections. This function makes a string with out quoting
         RfxResult StringEscapeUtil::UnescapeShellLike(Style style, const UnownedStringSlice& slice, std::stringstream& out);*/
-
     }
 }

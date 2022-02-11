@@ -162,7 +162,7 @@ namespace RR
 
             for (const auto& writer : writerList_)
                 writer->Write(formattedMessage);
-                
+
             Log::Print::Error(formattedMessage);
             /*
             else
@@ -203,7 +203,7 @@ namespace RR
 
                 humaneLocation = diagnostic.humaneSourceLocation;
 
-                /* 
+                /*
                     CLion fomat
                     humaneLocString = fmt::format("{0}:{1}:{2}: ",
                                                   sourceView->GetSourceFile()->GetFileName(),

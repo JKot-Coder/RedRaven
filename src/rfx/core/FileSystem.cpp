@@ -35,7 +35,7 @@ namespace RR
                 }
                 case SLANG_PATH_TYPE_DIRECTORY:
                 {
-                    pathOut = fs::path(fromPath).concat(path); 
+                    pathOut = fs::path(fromPath).concat(path);
                     break;
                 }
             }
