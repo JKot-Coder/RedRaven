@@ -19,9 +19,6 @@ Diagnostic:[
 	..\src\rfx\tests\preprocessor\Undef.rfx(14): error 15101: unknown preprocessor directive 'endif'
 	#endif
 	 ^~~~~
-	..\src\rfx\tests\preprocessor\Undef.rfx(22): error 15101: unknown preprocessor directive 'if'
-	#if !defined(BAR)
-	 ^~
 	..\src\rfx\tests\preprocessor\Undef.rfx(24): error 15101: unknown preprocessor directive 'else'
 	#else
 	 ^~~~

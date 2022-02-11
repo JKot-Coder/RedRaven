@@ -153,15 +153,14 @@ DIAGNOSTIC(15102, Error, expectedTokenInPreprocessorDirective, "expected '{0}' i
 DIAGNOSTIC(15103, Error, unexpectedTokensAfterDirective, "unexpected tokens following '{0}' directive")
 
 // 152xx - preprocessor expressions
-DIAGNOSTIC(15200, Error, expectedTokenInPreprocessorExpression, "expected '$0' in preprocessor expression")
+DIAGNOSTIC(15200, Error, expectedTokenInPreprocessorExpression, "expected '{0}' in preprocessor expression")
 DIAGNOSTIC(15201, Error, syntaxErrorInPreprocessorExpression, "syntax error in preprocessor expression")
 DIAGNOSTIC(15202, Error, divideByZeroInPreprocessorExpression, "division by zero in preprocessor expression")
-DIAGNOSTIC(15203, Error, expectedTokenInDefinedExpression, "expected '$0' in 'defined' expression")
+DIAGNOSTIC(15203, Error, expectedTokenInDefinedExpression, "expected '{0}' in 'defined' expression")
 DIAGNOSTIC(15204, Warning, directiveExpectsExpression, "'$0' directive requires an expression")
-DIAGNOSTIC(15205, Warning, undefinedIdentifierInPreprocessorExpression, "undefined identifier '$0' in preprocessor expression will evaluate to zero")
+DIAGNOSTIC(15205, Warning, undefinedIdentifierInPreprocessorExpression, "undefined identifier '{0}' in preprocessor expression will evaluate to zero")
 
-DIAGNOSTIC(-1, Note, seeOpeningToken, "see opening '$0'")
-
+DIAGNOSTIC(-1, Note, seeOpeningToken, "see opening '{0}'")
 // 153xx - #include
 DIAGNOSTIC(15300, Error, includeFailed, "failed to find include file '{0}'")
 DIAGNOSTIC(15301, Error, noUniqueIdentity, "`#include` handler didn't generate a unique identity for file '{0}'")

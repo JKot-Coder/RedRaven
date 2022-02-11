@@ -181,6 +181,54 @@ namespace RR
                     }
                 }
             }
+
+            // Determine the precedence level of an infix operator
+            // for use in parsing preprocessor conditionals.
+            int32_t GetInfixOpPrecedence(Token const& opToken)
+            {
+                // If token is on another line, it is not part of the
+                // expression
+                if (IsSet(opToken.flags, Token::Flags::AtStartOfLine))
+                    return -1;
+
+                // otherwise we look at the token type to figure
+                // out what precedence it should be parse with
+                switch (opToken.type)
+                {
+                    default:
+                        // tokens that aren't infix operators should
+                        // cause us to stop parsing an expression
+                        return -1;
+
+                        // clang-format off
+                  
+                        case Token::Type::OpMul:     return 10;  
+                        case Token::Type::OpDiv:     return 10;
+                        case Token::Type::OpMod:     return 10;
+
+                        case Token::Type::OpAdd:     return 9;
+                        case Token::Type::OpSub:     return 9;
+
+                        case Token::Type::OpLsh:     return 8;
+                        case Token::Type::OpRsh:     return 8;
+
+                        case Token::Type::OpLess:    return 7;
+                        case Token::Type::OpGreater: return 7;
+                        case Token::Type::OpLeq:     return 7;
+                        case Token::Type::OpGeq:     return 7;
+
+                        case Token::Type::OpEql:     return 6;
+                        case Token::Type::OpNeq:     return 6;
+
+                        case Token::Type::OpBitAnd:  return 5;
+                        case Token::Type::OpBitOr:   return 4;
+                        case Token::Type::OpBitXor:  return 3;
+                        case Token::Type::OpAnd:     return 2;
+                        case Token::Type::OpOr:      return 1;
+
+                        // clang-format on
+                }
+            };
         }
 
         struct MacroInvocation;
@@ -976,6 +1024,8 @@ namespace RR
             Token initiatingMacroToken_;
         };
 
+        using PreprocessorExpressionValue = int32_t;
+
         class PreprocessorImpl final
         {
         public:
@@ -1096,11 +1146,26 @@ namespace RR
 
             void handleDirective();
             void handleInvalidDirective(DirectiveContext& directiveContext);
+            void handleIfDirective(DirectiveContext& directiveContext);
             void handleDefineDirective(DirectiveContext& directiveContext);
             void handleUndefDirective(DirectiveContext& directiveContext);
             void handleWarningDirective(DirectiveContext& directiveContext);
             void handleIncludeDirective(DirectiveContext& directiveContext);
             void handleLineDirective(DirectiveContext& directiveContext);
+
+            PreprocessorExpressionValue evaluateInfixOp(
+                const DirectiveContext& context,
+                const Token& opToken,
+                PreprocessorExpressionValue left,
+                PreprocessorExpressionValue right);
+
+            PreprocessorExpressionValue skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext);
+            PreprocessorExpressionValue parseAndEvaluateExpression(DirectiveContext& directiveContext);
+            PreprocessorExpressionValue parseAndEvaluateUnaryExpression(DirectiveContext& directiveContext);
+            PreprocessorExpressionValue parseAndEvaluateInfixExpressionWithPrecedence(
+                DirectiveContext& context,
+                PreprocessorExpressionValue left,
+                int32_t precedence);
 
             // Helper routine to check that we find the end of a directive where
             // we expect it.
@@ -1152,7 +1217,7 @@ namespace RR
         Token PreprocessorImpl::dummyToken;
 
         const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
-            //   { "if", { Directive::Flags::None, handleIfDirective } },
+            { "if", { Directive::Flags::None, &handleIfDirective } },
             //  { "ifdef", nullptr },
             //  { "ifndef", nullptr },
             //   { "else", nullptr },
@@ -1532,10 +1597,246 @@ namespace RR
             (this->*directive.function)(context);
         }
 
+        // Handle an invalid directive
         void PreprocessorImpl::handleInvalidDirective(DirectiveContext& directiveContext)
         {
             sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, getDirectiveName(directiveContext));
             skipToEndOfLine();
+        }
+
+        // Evaluate one infix operation in a preprocessor
+        // conditional expression
+        PreprocessorExpressionValue PreprocessorImpl::evaluateInfixOp(
+            const DirectiveContext& context,
+            const Token& opToken,
+            PreprocessorExpressionValue left,
+            PreprocessorExpressionValue right)
+        {
+            switch (opToken.type)
+            {
+                default:
+                    sink_->Diagnose(opToken, Diagnostics::internalCompilerError);
+                    return 0;
+                    break;
+
+                case Token::Type::OpMul:
+                    return left * right;
+                case Token::Type::OpDiv:
+                {
+                    if (right == 0)
+                    {
+                        if (!context.parseError)
+                            sink_->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+
+                        return 0;
+                    }
+                    return left / right;
+                }
+                case Token::Type::OpMod:
+                {
+                    if (right == 0)
+                    {
+                        if (!context.parseError)
+                            sink_->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+
+                        return 0;
+                    }
+                    return left % right;
+                }
+                // clang-format off
+                case Token::Type::OpAdd:      return left +  right;
+                case Token::Type::OpSub:      return left -  right;
+                case Token::Type::OpLsh:      return left << right;
+                case Token::Type::OpRsh:      return left >> right;
+                case Token::Type::OpLess:     return left <  right ? 1 : 0;
+                case Token::Type::OpGreater:  return left >  right ? 1 : 0;
+                case Token::Type::OpLeq:      return left <= right ? 1 : 0;
+                case Token::Type::OpGeq:      return left >= right ? 1 : 0;
+                case Token::Type::OpEql:      return left == right ? 1 : 0;
+                case Token::Type::OpNeq:      return left != right ? 1 : 0;
+                case Token::Type::OpBitAnd:   return left & right;
+                case Token::Type::OpBitOr:    return left | right;
+                case Token::Type::OpBitXor:   return left ^ right;
+                case Token::Type::OpAnd:      return left && right;
+                case Token::Type::OpOr:       return left || right; // clang-format on
+            }
+        }
+
+        /// Parse a preprocessor expression, or skip it if we are in a disabled conditional
+        PreprocessorExpressionValue PreprocessorImpl::skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext)
+        {
+            // TODO IMPLEMENT
+
+            /* auto inputStream = getInputFile(context);
+
+            // If we are skipping, we want to ignore the expression (including
+            // anything in it that would lead to a failure in parsing).
+            //
+            // We can simply treat the expression as `0` in this case, since its
+            // value won't actually matter.
+            if (inputStream->isSkipping())
+            {
+                // Consume everything until the end of the line
+                skipToEndOfLine();
+                return 0;
+            }*/
+
+            // Otherwise, we will need to parse an expression and return
+            // its evaluated value.
+            return parseAndEvaluateExpression(directiveContext);
+        }
+
+        /// Parse a complete (infix) preprocessor expression, and return its value
+        PreprocessorExpressionValue PreprocessorImpl::parseAndEvaluateExpression(DirectiveContext& context)
+        {
+            // First read in the left-hand side (or the whole expression in the unary case)
+            const auto value = parseAndEvaluateUnaryExpression(context);
+
+            // Try to read in trailing infix operators with correct precedence
+            return parseAndEvaluateInfixExpressionWithPrecedence(context, value, 0);
+        }
+
+        // Parse a unary (prefix) expression inside of a preprocessor directive.
+        PreprocessorExpressionValue PreprocessorImpl::parseAndEvaluateUnaryExpression(DirectiveContext& context)
+        {
+            switch (peekTokenType())
+            {
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
+                    sink_->Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
+                    return 0;
+            }
+
+            auto token = advanceToken();
+            switch (token.type)
+            {
+                // handle prefix unary ops
+                case Token::Type::OpSub:
+                    return -parseAndEvaluateUnaryExpression(context);
+                case Token::Type::OpNot:
+                    return !parseAndEvaluateUnaryExpression(context);
+                case Token::Type::OpBitNot:
+                    return ~parseAndEvaluateUnaryExpression(context);
+
+                // handle parenthized sub-expression
+                case Token::Type::LParent:
+                {
+                    Token leftParen = token;
+                    PreprocessorExpressionValue value = parseAndEvaluateExpression(context);
+                    if (!expect(context, Token::Type::RParent, Diagnostics::expectedTokenInPreprocessorExpression))
+                        sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+
+                    return value;
+                }
+
+                case Token::Type::IntegerLiteral:
+                    return tokenToInt(token, 10);
+
+                case Token::Type::Identifier:
+                {
+                    if (token.GetContentString() == "defined")
+                    {
+                        // handle `defined(someName)`
+
+                        // Possibly parse a `(`
+                        Token leftParen;
+                        if (peekRawTokenType() == Token::Type::LParent)
+                            leftParen = advanceRawToken();
+
+                        // Expect an identifier
+                        Token nameToken;
+                        if (!expectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInDefinedExpression, nameToken))
+                            return 0;
+
+                        U8String name = nameToken.GetContentString();
+                        // If we saw an opening `(`, then expect one to close
+                        if (leftParen.type != Token::Type::Unknown)
+                        {
+                            if (!expectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInDefinedExpression))
+                            {
+                                sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                                return 0;
+                            }
+                        }
+
+                        return LookupMacro(name) != nullptr;
+                    }
+
+                    // An identifier here means it was not defined as a macro (or
+                    // it is defined, but as a function-like macro. These should
+                    // just evaluate to zero (possibly with a warning)
+                    sink_->Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
+                    return 0;
+                }
+
+                default:
+                    sink_->Diagnose(token, Diagnostics::syntaxErrorInPreprocessorExpression);
+                    return 0;
+            }
+        }
+
+        // Parse the rest of an infix preprocessor expression with
+        // precedence greater than or equal to the given `precedence` argument.
+        // The value of the left-hand-side expression is provided as
+        // an argument.
+        // This is used to form a simple recursive-descent expression parser.
+        PreprocessorExpressionValue PreprocessorImpl::parseAndEvaluateInfixExpressionWithPrecedence(
+            DirectiveContext& context,
+            PreprocessorExpressionValue left,
+            int32_t precedence)
+        {
+            for (;;)
+            {
+                // Look at the next token, and see if it is an operator of
+                // high enough precedence to be included in our expression
+                const auto& opToken = peekToken();
+                const auto opPrecedence = GetInfixOpPrecedence(opToken);
+
+                // If it isn't an operator of high enough precedence, we are done.
+                if (opPrecedence < precedence)
+                    break;
+
+                // Otherwise we need to consume the operator token.
+                advanceToken();
+
+                // Next we parse a right-hand-side expression by starting with
+                // a unary expression and absorbing and many infix operators
+                // as possible with strictly higher precedence than the operator
+                // we found above.
+                PreprocessorExpressionValue right = parseAndEvaluateUnaryExpression(context);
+                for (;;)
+                {
+                    // Look for an operator token
+                    Token rightOpToken = peekToken();
+                    int rightOpPrecedence = GetInfixOpPrecedence(rightOpToken);
+
+                    // If no operator was found, or the operator wasn't high
+                    // enough precedence to fold into the right-hand-side,
+                    // exit this loop.
+                    if (rightOpPrecedence <= opPrecedence)
+                        break;
+
+                    // Now invoke the parser recursively, passing in our
+                    // existing right-hand side to form an even larger one.
+                    right = parseAndEvaluateInfixExpressionWithPrecedence(context, right, rightOpPrecedence);
+                }
+
+                // Now combine the left- and right-hand sides using
+                // the operator we found above.
+                left = evaluateInfixOp(context, opToken, left, right);
+            }
+            return left;
+        }
+
+        // Handle a `#if` directive
+        void PreprocessorImpl::handleIfDirective(DirectiveContext& directiveContext)
+        {
+            // Read a preprocessor expression (if not skipping), and begin a conditional
+            // based on the value of that expression.
+            const auto value = skipOrParseAndEvaluateExpression(directiveContext);
+            std::ignore = value;
+
+            //   beginConditional(context, value != 0);
         }
 
         // Handle a `#define` directive
