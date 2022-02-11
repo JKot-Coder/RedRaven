@@ -86,6 +86,17 @@ namespace RR
 
                 return dst;
             }
+
+            template <typename... Args>
+            inline void diagnose(Lexer* lexer, const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
+            {
+                ASSERT(lexer);
+
+                if (IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
+                    return;
+
+                lexer->GetDiagnosticSink()->Diagnose(location, humaneSourceLocation, info, args...);
+            }
         }
 
         Token TokenReader::AdvanceToken()
@@ -331,7 +342,7 @@ namespace RR
                             // clang-format off
                             case '0': case '1': case '2': case '3': case '4': 
                             case '5': case '6': case '7': case '8': case '9': // clang-format on
-                            sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::octalLiteral);
+                            diagnose(this, loc, humaneLoc, LexerDiagnostics::octalLiteral);
                             return lexNumber(8);
                     }
                 }
@@ -539,12 +550,12 @@ namespace RR
                         U8String charString;
                         utf8::append(ch, charString);
 
-                        sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::illegalCharacterPrint, charString);
+                        diagnose(this, loc, humaneLoc, LexerDiagnostics::illegalCharacterPrint, charString);
                     }
                     else
                     {
                         // Fallback: print as hexadecimal
-                        sink_->Diagnose(loc, humaneLoc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
+                        diagnose(this, loc, humaneLoc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
                     }
                 }
 
@@ -596,7 +607,7 @@ namespace RR
                 switch (peek())
                 {
                     case kEOF:
-                        sink_->Diagnose(getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
+                        diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
                         return;
 
                     case '\r':
@@ -718,7 +729,7 @@ namespace RR
                 {
                     U8String charString;
                     utf8::append(ch, charString);
-                    sink_->Diagnose(getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
+                    diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
                 }
 
                 advance();
@@ -809,12 +820,12 @@ namespace RR
                 switch (ch)
                 {
                     case kEOF:
-                        sink_->Diagnose(getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
+                        diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
                         return;
 
                     case '\n':
                     case '\r':
-                        sink_->Diagnose(getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::newlineInLiteral);
+                        diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::newlineInLiteral);
                         return;
 
                     case '\\': // Need to handle various escape sequence cases

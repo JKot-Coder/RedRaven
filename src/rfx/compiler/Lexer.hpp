@@ -126,11 +126,23 @@ namespace RR
         public:
             static constexpr U8Glyph kEOF = 0xFFFFFF;
 
-            Lexer() = delete;
+            enum class Flags : uint32_t
+            {
+                None = 0 << 0,
+                SuppressDiagnostics = 1 << 0,
+            };
+            ENUM_CLASS_FRIEND_OPERATORS(Flags)
+
+        public:
             Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
 
             std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
+
+            void EnableFlags(Flags flags) { lexerFlags_ |= flags; }
+            void DisableFlags(Flags flags) { lexerFlags_ &= ~flags; }
+
+            Flags GetLexerFlags() const { return lexerFlags_; }
 
             Token ReadToken();
             TokenList LexAllSemanticTokens();
@@ -193,6 +205,7 @@ namespace RR
             Counter linesCounter_ = 1;
             Counter columnCounter_ = 1;
             Token::Flags tokenflags_ = Token::Flags::AtStartOfLine;
+            Flags lexerFlags_ = Flags::None;
         };
     }
 }

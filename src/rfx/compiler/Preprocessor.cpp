@@ -447,8 +447,8 @@ namespace RR
                 auto top = m_top;
                 for (;;)
                 {
-                    auto token = top->PeekToken();
-                    if (token.type != Token::Type::EndOfFile)
+                    auto tokenType = top->PeekTokenType();
+                    if (tokenType != Token::Type::EndOfFile)
                         return top;
 
                     auto parent = top->GetParent();
@@ -558,7 +558,6 @@ namespace RR
             // A common thread to many of the input stream implementations is to
             // use a single token of lookahead in order to suppor the `peekToken()`
             // operation with both simplicity and efficiency.
-
             Token ReadToken() override
             {
                 auto result = lookaheadToken_;
@@ -897,7 +896,6 @@ namespace RR
                 ASSERT(preprocessor.lock())
 
                 inputStreams_.Push(base);
-                lookaheadToken_ = readTokenImpl();
             }
 
             Token ReadToken() override
@@ -908,16 +906,13 @@ namespace RR
                 // invocation onto the input stack), and then reading a token
                 // from whatever stream is on top of the stack.
                 maybeBeginMacroInvocation();
-
-                Token result = lookaheadToken_;
-                lookaheadToken_ = readTokenImpl();
-                return result;
+                return readTokenImpl();
             }
 
             Token PeekToken() override
             {
                 maybeBeginMacroInvocation();
-                return lookaheadToken_;
+                return inputStreams_.PeekToken();
             }
 
             // The "raw" read operations on an expansion input strema bypass
@@ -927,14 +922,12 @@ namespace RR
             // preprocessor directives.
             Token ReadRawToken()
             {
-                Token result = lookaheadToken_;
-                lookaheadToken_ = readTokenImpl();
-                return result;
+                return readTokenImpl();
             }
 
             Token PeekRawToken()
             {
-                return lookaheadToken_;
+                return inputStreams_.PeekToken();
             }
 
             Token::Type PeekRawTokenType() { return PeekRawToken().type; }
@@ -981,9 +974,6 @@ namespace RR
             /// Token that "iniating" macro invocation in cases where multiple
             /// nested macro invocations might be in flight.
             Token initiatingMacroToken_;
-
-            /// One token of lookahead
-            Token lookaheadToken_;
         };
 
         class PreprocessorImpl final
@@ -997,7 +987,6 @@ namespace RR
             // Input files are a bit like token streams, but they don't fit neatly into
             // the same abstraction due to all the special-case handling that directives
             // and conditionals require.
-
             struct InputFile
             {
                 InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
@@ -1043,6 +1032,18 @@ namespace RR
 
             typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
 
+            struct Directive
+            {
+                enum class Flags : uint32_t
+                {
+                    None = 0,
+                    DontConsumeDirectiveAutomatically = 1 << 0,
+                };
+
+                Flags flags;
+                HandleDirectiveFunc function;
+            };
+
         public:
             PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
                              const std::shared_ptr<DiagnosticSink>& diagnosticSink);
@@ -1086,7 +1087,7 @@ namespace RR
             // Determine if we have read everything on the directive's line.
             bool isEndOfLine();
 
-            void setLexerDiagnosticSuppression(bool shouldSuppressDiagnostics);
+            void setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics);
 
             bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
             bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
@@ -1132,16 +1133,16 @@ namespace RR
 
         private:
             static Token dummyToken;
-            static const std::unordered_map<U8String, HandleDirectiveFunc> handleDirectiveFuncMap;
+            static const std::unordered_map<U8String, Directive> directiveMap;
 
         private:
             // Look up the directive with the given name.
-            static HandleDirectiveFunc findHandleDirectiveFunc(const U8String& name)
+            static Directive findDirective(const U8String& name)
             {
-                auto search = handleDirectiveFuncMap.find(name);
+                auto search = directiveMap.find(name);
 
-                if (search == handleDirectiveFuncMap.end())
-                    return &PreprocessorImpl::handleInvalidDirective;
+                if (search == directiveMap.end())
+                    return { Directive::Flags::None, &handleInvalidDirective };
 
                 return search->second;
             }
@@ -1149,7 +1150,7 @@ namespace RR
 
         Token PreprocessorImpl::dummyToken;
 
-        const std::unordered_map<U8String, PreprocessorImpl::HandleDirectiveFunc> PreprocessorImpl::handleDirectiveFuncMap = {
+        const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
             //  { "if", nullptr },
             //  { "ifdef", nullptr },
             //  { "ifndef", nullptr },
@@ -1157,9 +1158,9 @@ namespace RR
             //  { "elif", nullptr },
             //  { "endif", nullptr },
             // { "include", &PreprocessorImpl::handleIncludeDirective },
-            { "define", &PreprocessorImpl::handleDefineDirective },
+            { "define", { Directive::Flags::None, &handleDefineDirective } },
             //  { "undef", nullptr },
-            { "warning", &PreprocessorImpl::handleWarningDirective },
+            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
             //  { "error", nullptr },
             // { "line", &PreprocessorImpl::handleLineDirective },
             //   { "pragma", nullptr }
@@ -1418,9 +1419,18 @@ namespace RR
             }
         }
 
-        void PreprocessorImpl::setLexerDiagnosticSuppression(bool shouldSuppressDiagnostics)
+        void PreprocessorImpl::setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics)
         {
-            std::ignore = shouldSuppressDiagnostics;
+            ASSERT(inputFile)
+
+            if (shouldSuppressDiagnostics)
+            {
+                inputFile->GetLexer().EnableFlags(Lexer::Flags::SuppressDiagnostics);
+            }
+            else
+            {
+                inputFile->GetLexer().DisableFlags(Lexer::Flags::SuppressDiagnostics);
+            }
         }
 
         bool PreprocessorImpl::expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
@@ -1508,14 +1518,17 @@ namespace RR
                 return;
             }
 
-            // Consume the directive
-            advanceRawToken();
-
             // Look up the handler for the directive.
-            const auto directiveHandler = findHandleDirectiveFunc(getDirectiveName(context));
+            const auto directive = findDirective(getDirectiveName(context));
+
+            if (!IsSet(directive.flags, Directive::Flags::DontConsumeDirectiveAutomatically))
+            {
+                // Consume the directive name token.
+                advanceRawToken();
+            }
 
             // Call the directive-specific handler
-            (this->*directiveHandler)(context);
+            (this->*directive.function)(context);
         }
 
         void PreprocessorImpl::handleInvalidDirective(DirectiveContext& directiveContext)
@@ -1739,21 +1752,18 @@ namespace RR
         // Handle a `#warning` directive
         void PreprocessorImpl::handleWarningDirective(DirectiveContext& directiveContext)
         {
-            std::ignore = directiveContext;
-
-            ASSERT(false);
-            // setLexerDiagnosticSuppression(getInputFile(context), true);
+            setLexerDiagnosticSuppression(currentInputFile_, true);
 
             // Consume the directive
             advanceRawToken();
 
             // Read the message.
-            // U8String message = readDirectiveMessage(context);
+            U8String message = readDirectiveMessage();
 
-            //  setLexerDiagnosticSuppression(getInputFile(context), false);
+            setLexerDiagnosticSuppression(currentInputFile_, false);
 
             // Report the custom error.
-            // sink_->Diagnose(context.token, Diagnostics::userDefinedWarning, message);
+            sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedWarning, message);
         }
 
         // Handle a `#include` directive
@@ -1868,7 +1878,7 @@ namespace RR
             // Drop current stream
             ASSERT_MSG(false, "NOT IMPLEMENTD")
             //    currentInputStream_->ForceClose();
-           // popInputStream();
+            // popInputStream();
             //  PushInputStream(inputStream);
         }
 
@@ -2077,7 +2087,6 @@ namespace RR
                 //
                 // If the current stream is *not* at its end, then we seem to
                 // have the stronger invariant as well, and we can return.
-                //
                 if (m_currentOpStreams.PeekTokenType() != Token::Type::EndOfFile)
                 {
                     // We know that we have tokens remaining to read from
@@ -2091,12 +2100,10 @@ namespace RR
                     //
                     // That detail is handled below in the logic for switching to a new
                     // macro op.
-                    //
                     ASSERT(token.type != Token::Type::EndOfFile);
 
                     // We can safely return with our invaraints intact, because
                     // the next attempt to read a token will read a non-EOF.
-                    //
                     return token;
                 }
 
@@ -2247,7 +2254,6 @@ namespace RR
 
                         // If the right operand yields at least one non-EOF token, then we need
                         // to append that content to our paste result.
-                        //
                         Token rightToken = m_currentOpStreams.ReadToken();
                         if (rightToken.type != Token::Type::EndOfFile)
                             pastedContent << rightToken.GetContentString();
@@ -2571,14 +2577,14 @@ namespace RR
             // macro may be another macro invocation.
             for (;;)
             {
+                // TODO comment
                 // The "next" token to be read is already in our `m_lookeadToken`
                 // member, so we can simply inspect it.
                 //
                 // We also care about where that token came from (which input stream).
-                Token token = lookaheadToken_;
+                Token token = PeekRawToken();
 
                 // If the token is not an identifier, then it can't possibly name a macro.
-
                 if (token.type != Token::Type::Identifier)
                     return;
 
@@ -2633,7 +2639,6 @@ namespace RR
 
                 // The next steps depend on whether or not we are dealing
                 // with a funciton-like macro.
-                //
                 switch (macro->flavor)
                 {
                     default:
@@ -2654,6 +2659,10 @@ namespace RR
                                                                                    macro,
                                                                                    token.sourceLocation,
                                                                                    initiatingMacroToken_);
+
+                        // Consume initializatin macro
+                        readTokenImpl();
+
                         invocation->Prime(busyMacros);
                         pushMacroInvocation(invocation);
                     }
@@ -2735,7 +2744,6 @@ namespace RR
                         // match the number of arguments declared for the macro. In this
                         // case we diagnose an issue *and* skip expansion of this invocation
                         // (it effectively expands to zero new tokens).
-                        //
                         const Index paramCount = Index(macro->params.getCount());
                         if (!macro->isVariadic())
                         {
@@ -2795,6 +2803,9 @@ namespace RR
                         //
                         auto nextStream = m_inputStreams.getNextStream();
                         auto busyMacrosForFunctionLikeInvocation = nextStream->getFirstBusyMacroInvocation();
+
+                        // Consume initializatin macro 
+                        readTokenImpl();
 
                         invocation->Prime(busyMacrosForFunctionLikeInvocation);
                         pushMacroInvocation(invocation);*/
@@ -2863,7 +2874,6 @@ namespace RR
         void ExpansionInputStream::pushMacroInvocation(const std::shared_ptr<MacroInvocation>& expansion)
         {
             inputStreams_.Push(expansion);
-            lookaheadToken_ = inputStreams_.ReadToken();
         }
     }
 }

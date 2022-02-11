@@ -192,7 +192,7 @@ DIAGNOSTIC(15602, Warning, pragmaOnceIgnored, "pragma once was ignored - this is
 
 // 159xx - user-defined error/warning
 DIAGNOSTIC(15900, Error, userDefinedError, "#error: $0")
-DIAGNOSTIC(15901, Warning, userDefinedWarning, "#warning: $0")
+DIAGNOSTIC(15901, Warning, userDefinedWarning, "#warning: {0}")
 
 // 15999 waiting to be placed in the right range
 DIAGNOSTIC(15999, Error, integerLiteralInvalidBase, "integer literal '{0}' has an invalid base, expected base '{1}'")
