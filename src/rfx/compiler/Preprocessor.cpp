@@ -19,19 +19,6 @@ namespace RR
     {
         namespace
         {
-            struct DirectiveContext
-            {
-                Token token;
-                bool parseError = false;
-                bool haveDoneEndOfDirectiveChecks = false;
-            };
-
-            // Get the name of the directive being parsed.
-            U8String getDirectiveName(const DirectiveContext& context)
-            {
-                return context.token.GetContentString();
-            }
-
             U8String getFileNameTokenValue(const Token& token)
             {
                 const UnownedStringSlice& content = token.stringSlice;
@@ -81,7 +68,6 @@ namespace RR
 
                     // Now we look at another character to figure out the kind of
                     // escape sequence we are dealing with:
-
                     char32_t d = *cursor++;
 
                     switch (d)
@@ -95,27 +81,15 @@ namespace RR
                             continue;
 
                         // Traditional escape sequences for special characters
-                        case 'a':
-                            utf8::append('\a', result);
-                            continue;
-                        case 'b':
-                            utf8::append('\b', result);
-                            continue;
-                        case 'f':
-                            utf8::append('\f', result);
-                            continue;
-                        case 'n':
-                            utf8::append('\n', result);
-                            continue;
-                        case 'r':
-                            utf8::append('\r', result);
-                            continue;
-                        case 't':
-                            utf8::append('\t', result);
-                            continue;
-                        case 'v':
-                            utf8::append('\v', result);
-                            continue;
+                        // clang-format off
+                        case 'a': utf8::append('\a', result); continue;
+                        case 'b': utf8::append('\b', result); continue;
+                        case 'f': utf8::append('\f', result); continue;
+                        case 'n': utf8::append('\n', result); continue;
+                        case 'r': utf8::append('\r', result); continue;
+                        case 't': utf8::append('\t', result); continue;
+                        case 'v': utf8::append('\v', result); continue;
+                        // clang-format on
 
                         // clang-format off
                         // Octal escape: up to 3 characterws
@@ -140,8 +114,8 @@ namespace RR
 
                             // TODO: add support for appending an arbitrary code point?
                             utf8::append(value, result);
-                        }
                             continue;
+                        }
 
                         // Hexadecimal escape: any number of characters
                         case 'x':
@@ -174,8 +148,8 @@ namespace RR
 
                             // TODO: add support for appending an arbitrary code point?
                             utf8::append(value, result);
-                        }
                             continue;
+                        }
 
                             // TODO: Unicode escape sequences
                     }
@@ -200,38 +174,99 @@ namespace RR
                         // cause us to stop parsing an expression
                         return -1;
 
-                        // clang-format off
-                  
-                        case Token::Type::OpMul:     return 10;  
-                        case Token::Type::OpDiv:     return 10;
-                        case Token::Type::OpMod:     return 10;
+                    // clang-format off
+                    case Token::Type::OpMul:     return 10;  
+                    case Token::Type::OpDiv:     return 10;
+                    case Token::Type::OpMod:     return 10;
 
-                        case Token::Type::OpAdd:     return 9;
-                        case Token::Type::OpSub:     return 9;
+                    case Token::Type::OpAdd:     return 9;
+                    case Token::Type::OpSub:     return 9;
 
-                        case Token::Type::OpLsh:     return 8;
-                        case Token::Type::OpRsh:     return 8;
+                    case Token::Type::OpLsh:     return 8;
+                    case Token::Type::OpRsh:     return 8;
 
-                        case Token::Type::OpLess:    return 7;
-                        case Token::Type::OpGreater: return 7;
-                        case Token::Type::OpLeq:     return 7;
-                        case Token::Type::OpGeq:     return 7;
+                    case Token::Type::OpLess:    return 7;
+                    case Token::Type::OpGreater: return 7;
+                    case Token::Type::OpLeq:     return 7;
+                    case Token::Type::OpGeq:     return 7;
 
-                        case Token::Type::OpEql:     return 6;
-                        case Token::Type::OpNeq:     return 6;
+                    case Token::Type::OpEql:     return 6;
+                    case Token::Type::OpNeq:     return 6;
 
-                        case Token::Type::OpBitAnd:  return 5;
-                        case Token::Type::OpBitOr:   return 4;
-                        case Token::Type::OpBitXor:  return 3;
-                        case Token::Type::OpAnd:     return 2;
-                        case Token::Type::OpOr:      return 1;
-
-                        // clang-format on
+                    case Token::Type::OpBitAnd:  return 5;
+                    case Token::Type::OpBitOr:   return 4;
+                    case Token::Type::OpBitXor:  return 3;
+                    case Token::Type::OpAnd:     return 2;
+                    case Token::Type::OpOr:      return 1; // clang-format on
                 }
             };
         }
 
         struct MacroInvocation;
+        struct InputFile;
+
+        //
+        // Utility Types
+        //
+
+        /// A preprocessor conditional construct that is currently active.
+        ///
+        /// This type handles preprocessor conditional structures like
+        /// `#if` / `#elif` / `#endif`. A single top-level input file
+        /// will have some number of "active" conditionals at one time,
+        /// based on the nesting depth of those conditional structures.
+        ///
+        /// Each conditional may be in a distinct state, which decides
+        /// whether tokens should be skipped or not.
+        struct Conditional
+        {
+            /// A state that a preprocessor conditional can be in.
+            ///
+            /// The state of a conditional depends both on what directives
+            /// have been encountered so far (e.g., just an `#if`, or an
+            /// `#if` and then an `#else`), as well as what the value
+            /// of any conditions related to those directives have been.
+            enum class State
+            {
+                /// Indicates that this conditional construct has not yet encountered a branch with a `true` condition.
+                /// The preprocessor should skip tokens, but should keep scanning and evaluating branch conditions.
+                Before,
+
+                /// Indicates that this conditional construct is nested inside the branch with a `true` condition
+                /// The preprocessor should not skip tokens, and should not bother evaluating subsequent branch conditions.
+                During,
+
+                /// Indicates that this conditional has laready seen the branch with a `true` condition
+                /// The preprocessor should skip tokens, and should not bother evaluating subsequent branch conditions.
+                After,
+            };
+
+            /// The next outer conditional in the current input file, or nullptr if this is the outer-most conditional.
+            std::shared_ptr<Conditional> parent;
+
+            /// The token that started the conditional (e.g., an `#if` or `#ifdef`)
+            Token ifToken;
+
+            /// The `#else` directive token, if one has been seen (otherwise has `TokenType::Unknown`)
+            Token elseToken;
+
+            /// The state of the conditional
+            State state;
+        };
+
+        struct DirectiveContext
+        {
+            Token token;
+            std::shared_ptr<InputFile> inputFile;
+            bool parseError = false;
+            bool haveDoneEndOfDirectiveChecks = false;
+        };
+
+        // Get the name of the directive being parsed.
+        U8String getDirectiveName(const DirectiveContext& context)
+        {
+            return context.token.GetContentString();
+        }
 
         //
         // Input Streams
@@ -1029,57 +1064,6 @@ namespace RR
         class PreprocessorImpl final
         {
         public:
-            // The top-level flow of the preprocessor is that it processed *input files*
-            // An input file manages both the expansion of lexed tokens
-            // from the source file, and also state related to preprocessor
-            // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
-            //
-            // Input files are a bit like token streams, but they don't fit neatly into
-            // the same abstraction due to all the special-case handling that directives
-            // and conditionals require.
-            struct InputFile
-            {
-                InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
-                {
-                    ASSERT(sourceView)
-                    ASSERT(preprocessorImpl.lock())
-
-                    lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetSink());
-                    expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
-                }
-
-                /// Read one token using all the expansion and directive-handling logic
-                Token ReadToken()
-                {
-                    return expansionInputStream_->ReadToken();
-                }
-
-                inline Lexer& GetLexer()
-                {
-                    return lexerStream_->GetLexer();
-                }
-
-                inline std::shared_ptr<ExpansionInputStream> GetExpansionStream()
-                {
-                    return expansionInputStream_;
-                }
-
-            private:
-                friend class PreprocessorImpl;
-
-                /// The next outer input file
-                ///
-                /// E.g., if this file was `#include`d from another file, then `m_parent` would be
-                /// the file with the `#include` directive.
-                std::shared_ptr<InputFile> parent_;
-
-                /// The lexer input stream that unexpanded tokens will be read from
-                std::shared_ptr<LexerInputStream> lexerStream_;
-
-                /// An input stream that applies macro expansion to `lexerStream_`
-                std::shared_ptr<ExpansionInputStream> expansionInputStream_;
-            };
-
             typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
 
             struct Directive
@@ -1087,7 +1071,14 @@ namespace RR
                 enum class Flags : uint32_t
                 {
                     None = 0,
-                    DontConsumeDirectiveAutomatically = 1 << 0,
+
+                    // Should this directive be handled even when skipping disbaled code?
+                    ProcessWhenSkipping = 1 << 0,
+
+                    /// Allow the handler for this directive to advance past the
+                    /// directive token itself, so that it can control lexer behavior
+                    /// more closely.
+                    DontConsumeDirectiveAutomatically = 1 << 1,
                 };
 
                 Flags flags;
@@ -1100,7 +1091,7 @@ namespace RR
 
             std::vector<Token> ReadAllTokens();
 
-            // Find the currently-defined macro of the given name, or return NULL
+            // Find the currently-defined macro of the given name, or return nullptr
             std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
 
             std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
@@ -1137,16 +1128,23 @@ namespace RR
             // Determine if we have read everything on the directive's line.
             bool isEndOfLine();
 
-            void setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics);
-
             bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
             bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
 
             U8String readDirectiveMessage();
 
+            void beginConditional(const DirectiveContext& context, bool enable);
+
             void handleDirective();
             void handleInvalidDirective(DirectiveContext& directiveContext);
+
             void handleIfDirective(DirectiveContext& directiveContext);
+            void handleIfdefDirective(DirectiveContext& directiveContext);
+            void handleIfndefDirective(DirectiveContext& directiveContext);
+            void handleElseDirective(DirectiveContext& directiveContext);
+            void handleElifDirective(DirectiveContext& directiveContext);
+            void handleEndIfDirective(DirectiveContext& directiveContext);
+
             void handleDefineDirective(DirectiveContext& directiveContext);
             void handleUndefDirective(DirectiveContext& directiveContext);
             void handleWarningDirective(DirectiveContext& directiveContext);
@@ -1217,12 +1215,12 @@ namespace RR
         Token PreprocessorImpl::dummyToken;
 
         const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
-            { "if", { Directive::Flags::None, &handleIfDirective } },
-            //  { "ifdef", nullptr },
-            //  { "ifndef", nullptr },
-            //   { "else", nullptr },
-            //  { "elif", nullptr },
-            //  { "endif", nullptr },
+            { "if", { Directive::Flags::ProcessWhenSkipping, &handleIfDirective } },
+            { "ifdef", { Directive::Flags::ProcessWhenSkipping, &handleIfdefDirective } },
+            { "ifndef", { Directive::Flags::ProcessWhenSkipping, &handleIfndefDirective } },
+            { "else", { Directive::Flags::ProcessWhenSkipping, &handleElseDirective } },
+            { "elif", { Directive::Flags::ProcessWhenSkipping, &handleElifDirective } },
+            { "endif", { Directive::Flags::ProcessWhenSkipping, &handleEndIfDirective } },
             // { "include", &PreprocessorImpl::handleIncludeDirective },
             { "define", { Directive::Flags::None, &handleDefineDirective } },
             { "undef", { Directive::Flags::None, &handleUndefDirective } },
@@ -1297,14 +1295,110 @@ namespace RR
             }
         }
 
-        // Find the currently-defined macro of the given name, or return NULL
+        // The top-level flow of the preprocessor is that it processed *input files*
+        // An input file manages both the expansion of lexed tokens
+        // from the source file, and also state related to preprocessor
+        // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
+        //
+        // Input files are a bit like token streams, but they don't fit neatly into
+        // the same abstraction due to all the special-case handling that directives
+        // and conditionals require.
+        struct InputFile
+        {
+            InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+            {
+                ASSERT(sourceView)
+                ASSERT(preprocessorImpl.lock())
+
+                lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetSink());
+                expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
+            }
+
+            /// Is this input file skipping tokens (because the current location is inside a disabled condition)?
+            bool IsSkipping() const
+            {
+                // If we are not inside a preprocessor conditional, then don't skip
+                const auto conditional = conditional_;
+                if (!conditional)
+                    return false;
+
+                // skip tokens unless the conditional is inside its `true` case
+                return conditional->state != Conditional::State::During;
+            }
+
+            /// Get the inner-most conditional that is in efffect at the current location
+            std::shared_ptr<Conditional> GetInnerMostConditional() { return conditional_; }
+
+            /// Push a new conditional onto the stack of conditionals in effect
+            void PushConditional(const std::shared_ptr<Conditional>& conditional)
+            {
+                conditional->parent = conditional_;
+                conditional_ = conditional;
+            }
+
+            /// Pop the inner-most conditional
+            void PopConditional()
+            {
+                const auto conditional = conditional_;
+                ASSERT(conditional)
+                conditional_ = conditional->parent;
+            }
+
+            /// Read one token using all the expansion and directive-handling logic
+            Token ReadToken()
+            {
+                return expansionInputStream_->ReadToken();
+            }
+
+            inline Lexer& GetLexer()
+            {
+                return lexerStream_->GetLexer();
+            }
+
+            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream()
+            {
+                return expansionInputStream_;
+            }
+
+        private:
+            friend class PreprocessorImpl;
+
+            /// The next outer input file
+            ///
+            /// E.g., if this file was `#include`d from another file, then `m_parent` would be
+            /// the file with the `#include` directive.
+            std::shared_ptr<InputFile> parent_;
+
+            /// The inner-most preprocessor conditional active for this file.
+            std::shared_ptr<Conditional> conditional_;
+
+            /// The lexer input stream that unexpanded tokens will be read from
+            std::shared_ptr<LexerInputStream> lexerStream_;
+
+            /// An input stream that applies macro expansion to `lexerStream_`
+            std::shared_ptr<ExpansionInputStream> expansionInputStream_;
+        };
+
+        namespace
+        {
+            std::shared_ptr<InputFile> getInputFile(const DirectiveContext& context)
+            {
+                return context.inputFile;
+            }
+
+            // Wrapper for use inside directives
+            inline bool isSkipping(const DirectiveContext& context)
+            {
+                return getInputFile(context)->IsSkipping();
+            }
+        }
+
+        // Find the currently-defined macro of the given name, or return nullptr
         std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const U8String& name) const
         {
             const auto& search = macrosDefinitions_.find(name);
             return search != macrosDefinitions_.end() ? search->second : nullptr;
         }
-
-        Token readToken();
 
         int32_t PreprocessorImpl::tokenToInt(const Token& token, int radix)
         {
@@ -1353,7 +1447,7 @@ namespace RR
                 if (!inputFile)
                     return endOfFileToken_;
 
-                auto expansionStream = currentInputFile_->GetExpansionStream();
+                auto expansionStream = inputFile->GetExpansionStream();
 
                 Token token = peekRawToken();
                 if (token.type == Token::Type::EndOfFile)
@@ -1369,15 +1463,13 @@ namespace RR
                     handleDirective();
                     continue;
                 }
-                /*
 
                 // otherwise, if we are currently in a skipping mode, then skip tokens
-                if (InputSource->isSkipping())
+                if (inputFile->IsSkipping())
                 {
-                    expansionStream->readRawToken();
+                    expansionStream->ReadRawToken();
                     continue;
                 }
-                */
 
                 token = expansionStream->PeekToken();
                 if (token.type == Token::Type::EndOfFile)
@@ -1485,7 +1577,7 @@ namespace RR
             }
         }
 
-        void PreprocessorImpl::setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics)
+        void setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics)
         {
             ASSERT(inputFile)
 
@@ -1559,6 +1651,7 @@ namespace RR
 
             // Create a context for parsing the directive
             DirectiveContext context;
+            context.inputFile = currentInputFile_;
 
             // Try to read the directive name.
             context.token = peekRawToken();
@@ -1587,6 +1680,14 @@ namespace RR
             // Look up the handler for the directive.
             const auto directive = findDirective(getDirectiveName(context));
 
+            // If we are skipping disabled code, and the directive is not one
+            // of the small number that need to run even in that case, skip it.
+            if (isSkipping(context) && !IsSet(directive.flags, PreprocessorImpl::Directive::Flags::ProcessWhenSkipping))
+            {
+                skipToEndOfLine();
+                return;
+            }
+
             if (!IsSet(directive.flags, Directive::Flags::DontConsumeDirectiveAutomatically))
             {
                 // Consume the directive name token.
@@ -1595,6 +1696,10 @@ namespace RR
 
             // Call the directive-specific handler
             (this->*directive.function)(context);
+
+            // We expect the directive callback to consume the entire line, so if
+            // it hasn't that is a parse error.
+            expectEndOfDirective(context);
         }
 
         // Handle an invalid directive
@@ -1665,21 +1770,19 @@ namespace RR
         /// Parse a preprocessor expression, or skip it if we are in a disabled conditional
         PreprocessorExpressionValue PreprocessorImpl::skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext)
         {
-            // TODO IMPLEMENT
-
-            /* auto inputStream = getInputFile(context);
+            const auto& inputStream = getInputFile(directiveContext);
 
             // If we are skipping, we want to ignore the expression (including
             // anything in it that would lead to a failure in parsing).
             //
             // We can simply treat the expression as `0` in this case, since its
             // value won't actually matter.
-            if (inputStream->isSkipping())
+            if (inputStream->IsSkipping())
             {
                 // Consume everything until the end of the line
                 skipToEndOfLine();
                 return 0;
-            }*/
+            }
 
             // Otherwise, we will need to parse an expression and return
             // its evaluated value.
@@ -1828,15 +1931,186 @@ namespace RR
             return left;
         }
 
+        void updateLexerFlagsForConditionals(const std::shared_ptr<InputFile>& inputFile)
+        {
+            setLexerDiagnosticSuppression(inputFile, inputFile->IsSkipping());
+        }
+
+        /// Start a preprocessor conditional, with an initial enable/disable state.
+        void PreprocessorImpl::beginConditional(
+            const DirectiveContext& context,
+            bool enable)
+        {
+            const auto& inputFile = getInputFile(context);
+
+            auto conditional = std::make_shared<Conditional>();
+            conditional->ifToken = context.token;
+
+            // Set state of this condition appropriately.
+            // Default to the "haven't yet seen a `true` branch" state.
+            Conditional::State state = Conditional::State::Before;
+
+            // If we are nested inside a `false` branch of another condition, then
+            // we never want to enable, so we act as if we already *saw* the `true` branch.
+            if (inputFile->IsSkipping())
+                state = Conditional::State::After;
+
+            // Otherwise, if our condition was true, then set us to be inside the `true` branch
+            else if (enable)
+                state = Conditional::State::During;
+
+            conditional->state = state;
+
+            // Push conditional onto the stack
+            inputFile->PushConditional(conditional);
+
+            updateLexerFlagsForConditionals(inputFile);
+        }
+
         // Handle a `#if` directive
         void PreprocessorImpl::handleIfDirective(DirectiveContext& directiveContext)
         {
             // Read a preprocessor expression (if not skipping), and begin a conditional
             // based on the value of that expression.
             const auto value = skipOrParseAndEvaluateExpression(directiveContext);
-            std::ignore = value;
 
-            //   beginConditional(context, value != 0);
+            beginConditional(directiveContext, value != 0);
+        }
+
+        void PreprocessorImpl::handleIfdefDirective(DirectiveContext& directiveContext)
+        {
+            // Expect a raw identifier, so we can check if it is defined
+            Token nameToken;
+            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
+                return;
+
+            // Check if the name is defined.
+            beginConditional(directiveContext, LookupMacro(nameToken.GetContentString()) != nullptr);
+        }
+
+        void PreprocessorImpl::handleIfndefDirective(DirectiveContext& directiveContext)
+        {
+            // Expect a raw identifier, so we can check if it is defined
+            Token nameToken;
+            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
+                return;
+
+            // Check if the name is not defined.
+            beginConditional(directiveContext, LookupMacro(nameToken.GetContentString()) == nullptr);
+        }
+
+        void PreprocessorImpl::handleElseDirective(DirectiveContext& directiveContext)
+        {
+            const auto& inputFile = getInputFile(directiveContext);
+            ASSERT(inputFile);
+
+            // if we aren't inside a conditional, then error
+            const auto& conditional = inputFile->GetInnerMostConditional();
+            if (!conditional)
+            {
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
+                return;
+            }
+
+            // if we've already seen a `#else`, then it is an error
+            if (conditional->elseToken.type != Token::Type::Unknown)
+            {
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, getDirectiveName(directiveContext));
+                sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
+                return;
+            }
+            conditional->elseToken = directiveContext.token;
+
+            switch (conditional->state)
+            {
+                case Conditional::State::Before:
+                    conditional->state = Conditional::State::During;
+                    break;
+
+                case Conditional::State::During:
+                    conditional->state = Conditional::State::After;
+                    break;
+
+                default:
+                    break;
+            }
+
+            updateLexerFlagsForConditionals(inputFile);
+        }
+
+        void PreprocessorImpl::handleElifDirective(DirectiveContext& directiveContext)
+        {
+            // Need to grab current input stream *before* we try to parse
+            // the conditional expression.
+            const auto& inputFile = getInputFile(directiveContext);
+            ASSERT(inputFile);
+
+            // HACK(tfoley): handle an empty `elif` like an `else` directive
+            //
+            // This is the behavior expected by at least one input program.
+            // We will eventually want to be pedantic about this.
+            // even if t
+            switch (peekRawTokenType())
+            {
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
+                    sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, getDirectiveName(directiveContext));
+                    handleElseDirective(directiveContext);
+                    return;
+            }
+
+            PreprocessorExpressionValue value = parseAndEvaluateExpression(directiveContext);
+
+            // if we aren't inside a conditional, then error
+            const auto& conditional = inputFile->GetInnerMostConditional();
+            if (!conditional)
+            {
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
+                return;
+            }
+
+            // if we've already seen a `#else`, then it is an error
+            if (conditional->elseToken.type != Token::Type::Unknown)
+            {
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, getDirectiveName(directiveContext));
+                sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
+                return;
+            }
+
+            switch (conditional->state)
+            {
+                case Conditional::State::Before:
+                    if (value)
+                        conditional->state = Conditional::State::During;
+                    break;
+
+                case Conditional::State::During:
+                    conditional->state = Conditional::State::After;
+                    break;
+
+                default:
+                    break;
+            }
+
+            updateLexerFlagsForConditionals(inputFile);
+        }
+
+        // Handle a `#endif` directive
+        void PreprocessorImpl::handleEndIfDirective(DirectiveContext& directiveContext)
+        {
+            const auto& inputFile = getInputFile(directiveContext);
+            ASSERT(inputFile);
+
+            // if we aren't inside a conditional, then error
+            const auto& conditional = inputFile->GetInnerMostConditional();
+            if (!conditional)
+            {
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
+                return;
+            }
+
+            inputFile->PopConditional();
+            updateLexerFlagsForConditionals(inputFile);
         }
 
         // Handle a `#define` directive
@@ -2075,7 +2349,7 @@ namespace RR
         // Handle a `#warning` directive
         void PreprocessorImpl::handleWarningDirective(DirectiveContext& directiveContext)
         {
-            setLexerDiagnosticSuppression(currentInputFile_, true);
+            setLexerDiagnosticSuppression(getInputFile(directiveContext), true);
 
             // Consume the directive
             advanceRawToken();
@@ -2083,7 +2357,7 @@ namespace RR
             // Read the message.
             U8String message = readDirectiveMessage();
 
-            setLexerDiagnosticSuppression(currentInputFile_, false);
+            setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
 
             // Report the custom error.
             sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedWarning, message);
@@ -2331,7 +2605,7 @@ namespace RR
         void Preprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
         {
             const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
-            impl_->PushInputFile(std::make_shared<PreprocessorImpl::InputFile>(impl_, sourceView));
+            impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
         }
 
         std::vector<Token> Preprocessor::ReadAllTokens()

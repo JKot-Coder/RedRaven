@@ -141,10 +141,10 @@ DIAGNOSTIC(99999, Note, noteFailedToLoadDynamicLibrary, "failed to load dynamic 
 
 // 150xx - conditionals
 DIAGNOSTIC(15000, Error, endOfFileInPreprocessorConditional, "end of file encountered during preprocessor conditional")
-DIAGNOSTIC(15001, Error, directiveWithoutIf, "'$0' directive without '#if'")
-DIAGNOSTIC(15002, Error, directiveAfterElse, "'$0' directive without '#if'")
+DIAGNOSTIC(15001, Error, directiveWithoutIf, "'{0}' directive without '#if'")
+DIAGNOSTIC(15002, Error, directiveAfterElse, "'{0}' directive without '#if'")
 
-DIAGNOSTIC(-1, Note, seeDirective, "see '$0' directive")
+DIAGNOSTIC(-1, Note, seeDirective, "see '{0}' directive")
 
 // 151xx - directive parsing
 DIAGNOSTIC(15100, Error, expectedPreprocessorDirectiveName, "expected preprocessor directive name")
@@ -157,7 +157,7 @@ DIAGNOSTIC(15200, Error, expectedTokenInPreprocessorExpression, "expected '{0}' 
 DIAGNOSTIC(15201, Error, syntaxErrorInPreprocessorExpression, "syntax error in preprocessor expression")
 DIAGNOSTIC(15202, Error, divideByZeroInPreprocessorExpression, "division by zero in preprocessor expression")
 DIAGNOSTIC(15203, Error, expectedTokenInDefinedExpression, "expected '{0}' in 'defined' expression")
-DIAGNOSTIC(15204, Warning, directiveExpectsExpression, "'$0' directive requires an expression")
+DIAGNOSTIC(15204, Warning, directiveExpectsExpression, "'{0}' directive requires an expression")
 DIAGNOSTIC(15205, Warning, undefinedIdentifierInPreprocessorExpression, "undefined identifier '{0}' in preprocessor expression will evaluate to zero")
 
 DIAGNOSTIC(-1, Note, seeOpeningToken, "see opening '{0}'")
