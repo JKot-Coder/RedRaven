@@ -44,7 +44,7 @@ namespace RR::Rfx
                                        token.humaneSourceLocation.line,
                                        token.humaneSourceLocation.column);
 
-                    if (token.type == TokenType::EndOfFile)
+                    if (token.type == Token::Type::EndOfFile)
                         break;
                 }
 

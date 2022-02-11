@@ -8,17 +8,14 @@ namespace RR
 {
     namespace Rfx
     {
-        enum class TokenType : uint32_t
-        {
-#define TOKEN(NAME, DESC) NAME,
-#include "TokenDefinitions.hpp"
-        };
-
-        U8String TokenTypeToString(TokenType type);
-
         struct Token
         {
         public:
+            enum class Type : uint32_t
+            {
+#define TOKEN(NAME, DESC) NAME,
+#include "TokenDefinitions.hpp"
+            };
             enum class Flags : uint32_t
             {
                 None = 0 << 0,
@@ -30,7 +27,7 @@ namespace RR
 
         public:
             Token() = default;
-            Token(TokenType inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation, const HumaneSourceLocation& humaneSourceLocation, Flags flags = Flags::None)
+            Token(Token::Type inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation, const HumaneSourceLocation& humaneSourceLocation, Flags flags = Flags::None)
                 : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(SourceLocation), humaneSourceLocation(humaneSourceLocation)
             {
             }
@@ -43,24 +40,26 @@ namespace RR
                 return U8String(stringSlice.Begin(), stringSlice.End());
             }
 
-            inline bool isValid() const { return type != TokenType::Unknown; }
+            inline bool isValid() const { return type != Token::Type::Unknown; }
 
         public:
-            TokenType type = TokenType::Unknown;
+            Token::Type type = Token::Type::Unknown;
             Flags flags = Flags::None;
             UnownedStringSlice stringSlice;
             SourceLocation sourceLocation;
             HumaneSourceLocation humaneSourceLocation;
         };
+
+        U8String TokenTypeToString(Token::Type type);
     }
 }
 
 template <>
-struct fmt::formatter<RR::Rfx::TokenType> : formatter<string_view>
+struct fmt::formatter<RR::Rfx::Token::Type> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::Rfx::TokenType tokenType, FormatContext& ctx)
+    auto format(RR::Rfx::Token::Type tokenType, FormatContext& ctx)
     {
         return formatter<string_view>::format(RR::Rfx::TokenTypeToString(tokenType), ctx);
     }

@@ -4,7 +4,7 @@ namespace RR
 {
     namespace Rfx
     {
-        U8String TokenTypeToString(TokenType type)
+        U8String TokenTypeToString(Token::Type type)
         {
             switch (type)
             {
@@ -14,7 +14,7 @@ namespace RR
 
                     // clang-format off
                     #define TOKEN(NAME, DESC) \
-                        case TokenType::NAME: \
+                        case Token::Type::NAME: \
                             return DESC;
                     #include "TokenDefinitions.hpp"
                     // clang-format on

@@ -1,0 +1,5 @@
+//__LINE__ and __FILE__ support
+
+__LINE__
+
+__FILE__

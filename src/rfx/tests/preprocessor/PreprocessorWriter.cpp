@@ -1,5 +1,7 @@
 #include "PreprocessorWriter.hpp"
 
+#include "compiler/Preprocessor.hpp"
+
 #include "core/StringEscapeUtil.hpp"
 
 namespace RR::Rfx
@@ -8,50 +10,103 @@ namespace RR::Rfx
     {
         namespace
         {
+            class SourceWriter
+            {
+            public:
+                void Emit(const Token& token)
+                {
+                    U8String escapedToken;
+                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+
+                    if (token.type == Token::Type::RBrace)
+                        dedent();
+
+                    if (IsSet(token.flags, Token::Flags::AtStartOfLine))
+                    {
+                        if (!output_.empty()) // Skip new line at the wery begining
+                            output_ += "\n" + indentString_;
+                    }
+                    else if (IsSet(token.flags, Token::Flags::AfterWhitespace))
+                    {
+                        output_ += " ";
+                    }
+
+                    output_.append(token.stringSlice.Begin(), token.stringSlice.End());
+
+                    if (token.type == Token::Type::LBrace)
+                        intend();
+                }
+
+                U8String GetOutput()
+                {
+                    return output_;
+                }
+
+            private:
+                inline void intend()
+                {
+                    indentLevel_++;
+                    updateIndentStiring();
+                }
+
+                inline void dedent()
+                {
+                    ASSERT(indentLevel_ > 0);
+
+                    if (indentLevel_ == 0)
+                        return;
+
+                    indentLevel_--;
+                    updateIndentStiring();
+                }
+
+                void updateIndentStiring()
+                {
+                    indentString_ = "";
+
+                    for (uint32_t i = 0; i < indentLevel_; i++)
+                        indentString_ += "    ";
+                }
+
+            private:
+                uint32_t indentLevel_ = 0;
+                U8String indentString_ = "";
+                U8String output_;
+            };
+
             void writeDiagnosticLog(std::ofstream& ofs, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
             {
-                ofs << "\tDiagnostic:[\n";
+                ofs << "Diagnostic:[\n";
 
                 U8String line;
                 std::istringstream logStream(disagnosticBuffer->GetBuffer());
 
                 while (std::getline(logStream, line, '\n'))
-                {
-                    U8String escapedLine;
-                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, line, escapedLine);
+                    ofs << fmt::format("\t{}\n", line);
 
-                    ofs << fmt::format("\t\t\"{}\",\n", escapedLine);
-                }
-
-                ofs << "\t],";
+                ofs << "]";
             }
 
             void writeTokens(std::ofstream& ofs, const std::shared_ptr<Preprocessor>& preprocessor)
             {
                 std::ignore = preprocessor;
 
-                ofs << "\tTokens:[\n";
-                /*
-                while (true)
-                {
-                    const auto& token = lexer->ReadToken();
+                ofs << "Output:[\n";
 
-                    U8String escapedToken;
-                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+                const auto& tokens = preprocessor->ReadAllTokens();
+                SourceWriter writer;
 
-                    ofs << fmt::format("\t\t{{Type:\"{0}\", Content:\"{1}\", Line:{2}, Column:{3}}},\n",
-                                       RR::Rfx::TokenTypeToString(token.type),
-                                       escapedToken,
-                                       token.humaneSourceLocation.line,
-                                       token.humaneSourceLocation.column);
+                for (const auto& token : tokens)
+                    writer.Emit(token);
 
-                    if (token.type == TokenType::EndOfFile)
-                        break;
-                }*/
+                U8String line;
+                std::istringstream logStream(writer.GetOutput());
 
-                ofs << "\t],";
+                while (std::getline(logStream, line, '\n'))
+                    ofs << fmt::format("\t{}\n", line);
+
+                ofs << "]";
             }
-
         }
 
         void PreprocessorWriter::write(std::string path) const
@@ -59,15 +114,11 @@ namespace RR::Rfx
             std::ofstream ofs(path);
             ASSERT(ofs.is_open())
 
-            ofs << "{\n";
-
             writeTokens(ofs, preprocessor_);
 
             ofs << "\n";
 
             writeDiagnosticLog(ofs, disagnosticBuffer_);
-
-            ofs << "\n}";
 
             ofs.close();
         }

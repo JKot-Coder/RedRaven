@@ -20,7 +20,9 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/Preprocessor.cpp"
     "preprocessor/PreprocessorApprover.hpp"
     "preprocessor/PreprocessorWriter.cpp"
-    "preprocessor/PreprocessorWriter.hpp")
+    "preprocessor/PreprocessorWriter.hpp"
+    "preprocessor/DefineRedefine.rfx"
+    "preprocessor/SpecialMacroSimple.rfx")
 source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
 set(SRC

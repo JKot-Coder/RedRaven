@@ -18,7 +18,7 @@ namespace RR::Rfx
                                const ApprovalTests::Options& options = ApprovalTests::Options())
             {
                 PreprocessorWriter writer(preprocessor, disagnosticLogBuffer);
-                ApprovalTests::Approvals::verify(preprocessor, options);
+                ApprovalTests::Approvals::verify(writer, options);
             }
         };
     }

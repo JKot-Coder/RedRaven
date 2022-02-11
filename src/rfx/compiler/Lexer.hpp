@@ -44,7 +44,7 @@ namespace RR
                 : cursor_(tokens.Begin()), end_(tokens.End())
             {
                 ASSERT(std::distance(cursor_, end_) > 0)
-                ASSERT(end_->type == TokenType::EndOfFile)
+                ASSERT(end_->type == Token::Type::EndOfFile)
 
                 updateLookaheadToken();
             }
@@ -53,7 +53,7 @@ namespace RR
                 : cursor_(tokens.begin()), end_(std::prev(tokens.end()))
             {
                 ASSERT(std::distance(cursor_, end_) > 0)
-                ASSERT(end_->type == TokenType::EndOfFile)
+                ASSERT(end_->type == Token::Type::EndOfFile)
 
                 updateLookaheadToken();
             }
@@ -62,7 +62,7 @@ namespace RR
                 : cursor_(begin), end_(end)
             {
                 ASSERT(std::distance(cursor_, end_) > 0)
-                ASSERT(end_->type == TokenType::EndOfFile)
+                ASSERT(end_->type == Token::Type::EndOfFile)
 
                 updateLookaheadToken();
             }
@@ -99,7 +99,7 @@ namespace RR
                 return nextToken_;
             }
 
-            TokenType PeekTokenType() const
+            Token::Type PeekTokenType() const
             {
                 return nextToken_.type;
             }
@@ -163,7 +163,7 @@ namespace RR
                 return utf8::peek_next(cursor_, end_);
             }
 
-            TokenType scanToken();
+            Token::Type scanToken();
             void advance();
             SourceLocation getSourceLocation();
             HumaneSourceLocation getHumaneSourceLocation();
@@ -174,7 +174,7 @@ namespace RR
             void handleNewlineSequence();
             void handleWhiteSpace();
 
-            TokenType lexNumber(uint32_t base);
+            Token::Type lexNumber(uint32_t base);
             bool maybeLexNumberExponent(uint32_t base);
             void lexDigits(uint32_t base);
             void lexIdentifier();

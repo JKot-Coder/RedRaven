@@ -30,7 +30,7 @@ void test2()
     {
         Log::Format::Info("Token:{{Type:\"{0}\", Content:\"{1}\", Line:{2} Column:{3}}}\n", RR::Rfx::TokenTypeToString(token.type), token.GetContentString(), token.humaneSourceLocation.line, token.humaneSourceLocation.column);
 
-        if (token.type == RR::Rfx::TokenType::EndOfFile)
+        if (token.type == RR::Rfx::Token::Type::EndOfFile)
             break;
     }
 }

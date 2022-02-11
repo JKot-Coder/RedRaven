@@ -47,7 +47,7 @@ namespace RR
 
             U8String getStringLiteralTokenValue(const Token& token)
             {
-                ASSERT(token.type == TokenType::StringLiteral || token.type == TokenType::CharLiteral);
+                ASSERT(token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral);
 
                 const UnownedStringSlice content = token.stringSlice;
 
@@ -225,7 +225,7 @@ namespace RR
 
             /// Read one token from the input stream
             ///
-            /// At the end of the stream should return a token with `TokenType::EndOfFile`.
+            /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
             ///
             virtual Token ReadToken() = 0;
 
@@ -233,7 +233,7 @@ namespace RR
             ///
             /// This function should return whatever `readToken()` will return next.
             ///
-            /// At the end of the stream should return a token with `TokenType::EndOfFile`.
+            /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
             ///
             virtual Token PeekToken() = 0;
 
@@ -241,7 +241,7 @@ namespace RR
             // for cases where we only care about certain details of the input.
 
             /// Peek the type of the next token in the input stream.
-            TokenType PeekTokenType() { return PeekToken().type; }
+            Token::Type PeekTokenType() { return PeekToken().type; }
 
             /// Peek the location of the next token in the input stream.
             SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
@@ -316,7 +316,7 @@ namespace RR
                     // We always try to read from the top-most stream, and if
                     // it is not at its end, then we return its next token.
                     auto token = m_top->ReadToken();
-                    if (token.type != TokenType::EndOfFile)
+                    if (token.type != Token::Type::EndOfFile)
                         return token;
 
                     // If the top stream has run out of input we try to
@@ -383,7 +383,7 @@ namespace RR
                 {
                     ASSERT(top);
                     auto token = top->PeekToken();
-                    if (token.type != TokenType::EndOfFile)
+                    if (token.type != Token::Type::EndOfFile)
                         return token;
 
                     auto parent = top->GetParent();
@@ -398,7 +398,7 @@ namespace RR
             }
 
             /// Return type of the token that `peekToken()` will return
-            TokenType PeekTokenType()
+            Token::Type PeekTokenType()
             {
                 return PeekToken().type;
             }
@@ -422,10 +422,10 @@ namespace RR
                         // Note: We expect `NewLine` to be the only case of whitespace we
                         // encounter right now, because all the other cases will have been
                         // filtered out by the `LexerInputStream`.
-                        case TokenType::NewLine:
-                        case TokenType::WhiteSpace:
-                        case TokenType::BlockComment:
-                        case TokenType::LineComment:
+                        case Token::Type::NewLine:
+                        case Token::Type::WhiteSpace:
+                        case Token::Type::BlockComment:
+                        case Token::Type::LineComment:
                             ReadToken();
                             break;
                     }
@@ -448,7 +448,7 @@ namespace RR
                 for (;;)
                 {
                     auto token = top->PeekToken();
-                    if (token.type != TokenType::EndOfFile)
+                    if (token.type != Token::Type::EndOfFile)
                         return top;
 
                     auto parent = top->GetParent();
@@ -573,7 +573,7 @@ namespace RR
 
             void ForceClose() override
             {
-                lookaheadToken_ = Token(TokenType::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
+                lookaheadToken_ = Token(Token::Type::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
                 isClosed_ = true;
             }
 
@@ -592,9 +592,9 @@ namespace RR
                         default:
                             return token;
 
-                        case TokenType::WhiteSpace:
-                        case TokenType::BlockComment:
-                        case TokenType::LineComment:
+                        case Token::Type::WhiteSpace:
+                        case Token::Type::BlockComment:
+                        case Token::Type::LineComment:
                             break;
                     }
                 }
@@ -704,6 +704,11 @@ namespace RR
             {
                 return name;
             }
+
+            Token GetNameToken()
+            {
+                return nameToken;
+            }
             /*
             SourceLoc GetLoc()
             {
@@ -736,6 +741,9 @@ namespace RR
             /// TODO: replace name with uniqueidentifier for better performance
             U8String name;
 
+            /// The name token of macro
+            Token nameToken;
+
             /// The tokens that make up the macro body
             std::vector<Token> tokens;
 
@@ -761,8 +769,7 @@ namespace RR
                 const std::shared_ptr<DiagnosticSink>& sink,
                 const std::shared_ptr<MacroDefinition>& macro, // Todo shared_ptr?
                 const SourceLocation& macroInvocationLoc,
-                const SourceLocation& initiatingMacroInvocationLoc, // TODO  This can be replaced just with token
-                const HumaneSourceLocation& humaneinitiatingMacroInvocationLoc);
+                const Token& initiatingMacroToken);
 
             /// Prime the input stream
             ///
@@ -787,7 +794,7 @@ namespace RR
 
             void ForceClose() override
             {
-                lookaheadToken_ = Token(TokenType::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
+                lookaheadToken_ = Token(Token::Type::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
                 isClosed_ = true;
             }
 
@@ -833,10 +840,9 @@ namespace RR
             /// Locatin of the macro invocation that led to this expansion
             SourceLocation m_macroInvocationLoc;
 
-            /// Location of the "iniating" macro invocation in cases where multiple
+            /// "iniating" macro token invocation in cases where multiple
             /// nested macro invocations might be in flight.
-            SourceLocation m_initiatingMacroInvocationLoc;
-            HumaneSourceLocation m_humaneinitiatingMacroInvocationLoc;
+            Token initiatingMacroToken_;
 
             /// One token of lookahead
             Token lookaheadToken_;
@@ -861,11 +867,11 @@ namespace RR
             TokenReader getArgTokens(uint32_t paramIndex);
 
             /// Push a stream onto `m_currentOpStreams` that consists of a single token
-            void pushSingleTokenStream(TokenType tokenType, const SourceLocation& sourceLocation, U8String const& content);
+            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, U8String const& content);
 
             /// Push a stream for a source-location builtin (`__FILE__` or `__LINE__`), with content set up by `valueBuilder`
             template <typename F>
-            void pushStreamForSourceLocBuiltin(TokenType tokenType, F const& valueBuilder);
+            void pushStreamForSourceLocBuiltin(Token::Type tokenType, F const& valueBuilder);
 
             bool isClosed_ = false;
         };
@@ -929,7 +935,7 @@ namespace RR
                 return lookaheadToken_;
             }
 
-            TokenType PeekRawTokenType() { return PeekRawToken().type; }
+            Token::Type PeekRawTokenType() { return PeekRawToken().type; }
 
             void ForceClose() override
             {
@@ -970,10 +976,9 @@ namespace RR
             /// A stack of the base stream and active macro invocation in flight
             InputStreamStack inputStreams_;
 
-            /// Location of the "iniating" macro invocation in cases where multiple
+            /// Token that "iniating" macro invocation in cases where multiple
             /// nested macro invocations might be in flight.
-            SourceLocation m_initiatingMacroInvocationLoc;
-            HumaneSourceLocation m_humaneinitiatingMacroInvocationLoc;
+            Token initiatingMacroToken_;
 
             /// One token of lookahead
             Token lookaheadToken_;
@@ -1011,10 +1016,10 @@ namespace RR
             void popInputStream();
 
             inline Token peekRawToken();
-            inline TokenType peekRawTokenType() { return peekRawToken().type; }
+            inline Token::Type peekRawTokenType() { return peekRawToken().type; }
 
             inline Token peekToken();
-            inline TokenType peekTokenType() { return peekToken().type; }
+            inline Token::Type peekTokenType() { return peekToken().type; }
 
             // Read one token, with macro-expansion, without going past the end of the line.
             Token advanceToken();
@@ -1025,8 +1030,8 @@ namespace RR
             // Skip to the end of the line (useful for recovering from errors in a directive)
             void skipToEndOfLine();
 
-            bool expect(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
-            bool expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
 
             // Determine if we have read everything on the directive's line.
             bool isEndOfLine();
@@ -1130,7 +1135,7 @@ namespace RR
                 }
             }
 
-            endOfFileToken_.type = TokenType::EndOfFile;
+            endOfFileToken_.type = Token::Type::EndOfFile;
         }
 
         std::vector<Token> PreprocessorImpl::ReadAllTokens()
@@ -1149,17 +1154,17 @@ namespace RR
                         tokens.push_back(token);
                         break;
 
-                    case TokenType::EndOfFile:
+                    case Token::Type::EndOfFile:
                         // Note: we include the EOF token in the list,
                         // since that is expected by the `TokenList` type.
                         tokens.push_back(token);
                         return tokens;
 
-                    case TokenType::WhiteSpace:
-                    case TokenType::NewLine:
-                    case TokenType::LineComment:
-                    case TokenType::BlockComment:
-                    case TokenType::Invalid:
+                    case Token::Type::WhiteSpace:
+                    case Token::Type::NewLine:
+                    case Token::Type::LineComment:
+                    case Token::Type::BlockComment:
+                    case Token::Type::Invalid:
                         break;
                 }
             }
@@ -1176,7 +1181,7 @@ namespace RR
 
         int32_t PreprocessorImpl::tokenToInt(const Token& token, int radix)
         {
-            ASSERT(token.type == TokenType::IntegerLiteral)
+            ASSERT(token.type == Token::Type::IntegerLiteral)
 
             errno = 0;
 
@@ -1195,7 +1200,7 @@ namespace RR
 
         uint32_t PreprocessorImpl::tokenToUInt(const Token& token, int radix)
         {
-            ASSERT(token.type == TokenType::IntegerLiteral)
+            ASSERT(token.type == Token::Type::IntegerLiteral)
 
             errno = 0;
 
@@ -1222,14 +1227,14 @@ namespace RR
                     return endOfFileToken_;
 
                 Token token = peekRawToken();
-                if (token.type == TokenType::EndOfFile)
+                if (token.type == Token::Type::EndOfFile)
                 {
                     popInputStream();
                     continue;
                 }
 
                 // If we have a directive (`#` at start of line) then handle it
-                if ((token.type == TokenType::Pound) && IsSet(token.flags, Token::Flags::AtStartOfLine))
+                if ((token.type == Token::Type::Pound) && IsSet(token.flags, Token::Flags::AtStartOfLine))
                 {
                     // Parse and handle the directive
                     handleDirective();
@@ -1246,7 +1251,7 @@ namespace RR
                 */
 
                 token = expansionStream->PeekToken();
-                if (token.type == TokenType::EndOfFile)
+                if (token.type == Token::Type::EndOfFile)
                 {
                     popInputStream();
                     continue;
@@ -1271,7 +1276,7 @@ namespace RR
             // We expect the file to be at its end, so that the
             // next token read would be an end-of-file token.
             Token eofToken = inputStream->PeekToken(); //TODO PeekRaw
-            ASSERT(eofToken.type == TokenType::EndOfFile);
+            ASSERT(eofToken.type == Token::Type::EndOfFile);
 
             // If there are any open preprocessor conditionals in the file, then
             // we need to diagnose them as an error, because they were not closed
@@ -1328,8 +1333,8 @@ namespace RR
         {
             switch (expansionInputStream_->PeekRawTokenType())
             {
-                case TokenType::EndOfFile:
-                case TokenType::NewLine:
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
                     return true;
 
                 default:
@@ -1337,7 +1342,7 @@ namespace RR
             }
         }
 
-        bool PreprocessorImpl::expect(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken)
+        bool PreprocessorImpl::expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
         {
             if (peekTokenType() != expected)
             {
@@ -1353,7 +1358,7 @@ namespace RR
             return true;
         }
 
-        bool PreprocessorImpl::expectRaw(DirectiveContext& context, TokenType expected, DiagnosticInfo const& diagnostic, Token& outToken)
+        bool PreprocessorImpl::expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
         {
             if (peekRawTokenType() != expected)
             {
@@ -1390,7 +1395,7 @@ namespace RR
 
         void PreprocessorImpl::handleDirective()
         {
-            ASSERT(peekRawTokenType() == TokenType::Pound)
+            ASSERT(peekRawTokenType() == Token::Type::Pound)
 
             // Skip the `#`
             expansionInputStream_->ReadRawToken();
@@ -1401,13 +1406,13 @@ namespace RR
             // Try to read the directive name.
             context.token = peekRawToken();
 
-            TokenType directiveTokenType = context.token.type;
+            Token::Type directiveTokenType = context.token.type;
 
             // An empty directive is allowed, and ignored.
             switch (directiveTokenType)
             {
-                case TokenType::EndOfFile:
-                case TokenType::NewLine:
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
                     return;
 
                 default:
@@ -1415,7 +1420,7 @@ namespace RR
             }
 
             // Otherwise the directive name had better be an identifier
-            if (directiveTokenType != TokenType::Identifier)
+            if (directiveTokenType != Token::Type::Identifier)
             {
                 sink_->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
                 skipToEndOfLine();
@@ -1441,7 +1446,7 @@ namespace RR
         void PreprocessorImpl::handleDefineDirective(DirectiveContext& directiveContext)
         {
             Token nameToken;
-            if (!expectRaw(directiveContext, TokenType::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
+            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
                 return;
 
             U8String name = nameToken.GetContentString();
@@ -1456,7 +1461,9 @@ namespace RR
                 else
                 {
                     sink_->Diagnose(nameToken, Diagnostics::macroRedefinition, name);
-                    sink_->Diagnose(nameToken, Diagnostics::seePreviousDefinitionOf, name);
+
+                    if (oldMacro->GetNameToken().isValid())
+                        sink_->Diagnose(oldMacro->GetNameToken(), Diagnostics::seePreviousDefinitionOf, name);
                 }
             }
             auto macro = std::make_shared<MacroDefinition>();
@@ -1465,7 +1472,7 @@ namespace RR
             // If macro name is immediately followed (with no space) by `(`,
             // then we have a function-like macro
             auto maybeOpenParen = peekRawToken();
-            if (maybeOpenParen.type == TokenType::LParent && !IsSet(maybeOpenParen.flags, Token::Flags::AfterWhitespace))
+            if (maybeOpenParen.type == Token::Type::LParent && !IsSet(maybeOpenParen.flags, Token::Flags::AfterWhitespace))
             {
                 ASSERT_MSG(false, "NOT IMPLEMENTED");
                 /* )
@@ -1477,7 +1484,7 @@ namespace RR
                 AdvanceRawToken(context);
 
                 // If there are any parameters, parse them
-                if (PeekRawTokenType(context) != TokenType::RParent)
+                if (PeekRawTokenType(context) != Token::Type::RParent)
                 {
                     for (;;)
                     {
@@ -1492,9 +1499,9 @@ namespace RR
                         // identifier.
                         //
                         Token paramNameToken;
-                        if (PeekRawTokenType(context) != TokenType::Ellipsis)
+                        if (PeekRawTokenType(context) != Token::Type::Ellipsis)
                         {
-                            if (!ExpectRaw(context, TokenType::Identifier, Diagnostics::expectedTokenInMacroParameters, &paramNameToken))
+                            if (!ExpectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInMacroParameters, &paramNameToken))
                                 break;
                         }
 
@@ -1507,13 +1514,13 @@ namespace RR
                         //
                         Token ellipsisToken;
                         MacroDefinition::Param param;
-                        if (PeekRawTokenType(context) == TokenType::Ellipsis)
+                        if (PeekRawTokenType(context) == Token::Type::Ellipsis)
                         {
                             ellipsisToken = AdvanceRawToken(context);
                             param.isVariadic = true;
                         }
 
-                        if (paramNameToken.type != TokenType::Unknown)
+                        if (paramNameToken.type != Token::Type::Unknown)
                         {
                             // If we read an explicit name for the parameter, then we can use
                             // that name directly.
@@ -1528,7 +1535,7 @@ namespace RR
                             // only case where the logic above doesn't require a name to
                             // be read is when it already sees an ellipsis ahead.
                             //
-                            SLANG_ASSERT(ellipsisToken.type != TokenType::Unknown);
+                            SLANG_ASSERT(ellipsisToken.type != Token::Type::Unknown);
 
                             // Any unnamed variadic parameter is treated as one named `__VA_ARGS__`
                             //
@@ -1561,14 +1568,14 @@ namespace RR
                         }
 
                         // If we see `)` then we are done with arguments
-                        if (PeekRawTokenType(context) == TokenType::RParent)
+                        if (PeekRawTokenType(context) == Token::Type::RParent)
                             break;
 
-                        ExpectRaw(context, TokenType::Comma, Diagnostics::expectedTokenInMacroParameters);
+                        ExpectRaw(context, Token::Type::Comma, Diagnostics::expectedTokenInMacroParameters);
                     }
                 }
 
-                ExpectRaw(context, TokenType::RParent, Diagnostics::expectedTokenInMacroParameters);
+                ExpectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInMacroParameters);
 
                 // Once we have parsed the macro parameters, we can perform the additional validation
                 // step of checking that any parameters before the last parameter are not variadic.
@@ -1594,6 +1601,7 @@ namespace RR
                 macro->flavor = MacroDefinition::Flavor::ObjectLike;
             }
 
+            macro->nameToken = nameToken;
             macro->name = nameToken.GetContentString();
 
             macrosDefinitions_[name] = macro;
@@ -1611,12 +1619,12 @@ namespace RR
                         macro->tokens.push_back(token);
                         continue;
 
-                    case TokenType::EndOfFile:
-                    case TokenType::NewLine:
+                    case Token::Type::EndOfFile:
+                    case Token::Type::NewLine:
                         // The end of the current line/file ends the directive, and serves
                         // as the end-of-file marker for the macro's definition as well.
                         //
-                        token.type = TokenType::EndOfFile;
+                        token.type = Token::Type::EndOfFile;
                         macro->tokens.push_back(token);
                         break;
                 }
@@ -1629,7 +1637,7 @@ namespace RR
         void PreprocessorImpl::handleIncludeDirective(DirectiveContext& directiveContext)
         {
             Token pathToken;
-            if (!expect(directiveContext, TokenType::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
+            if (!expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
                 return;
 
             U8String path = getFileNameTokenValue(pathToken);
@@ -1687,36 +1695,36 @@ namespace RR
 
             switch (peekTokenType())
             {
-                case TokenType::IntegerLiteral:
+                case Token::Type::IntegerLiteral:
                     line = tokenToUInt(advanceToken(), 10);
                     break;
 
                 // `#line` and `#line default` directives are not supported
-                case TokenType::EndOfFile:
-                case TokenType::NewLine:
-                    expect(directiveContext, TokenType::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
+                    expect(directiveContext, Token::Type::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
                     return;
 
                 // else, fall through to:
                 default:
-                    expect(directiveContext, TokenType::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
+                    expect(directiveContext, Token::Type::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
                     return;
             }
 
             PathInfo pathInfo;
             switch (peekTokenType())
             {
-                case TokenType::EndOfFile:
-                case TokenType::NewLine:
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
                     pathInfo = directiveContext.token.sourceLocation.GetSourceView()->GetPathInfo();
                     break;
 
-                case TokenType::StringLiteral:
+                case Token::Type::StringLiteral:
                     pathInfo = PathInfo::makePath(getStringLiteralTokenValue(advanceToken()));
                     break;
 
                 default:
-                    expect(directiveContext, TokenType::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
+                    expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
                     return;
             }
 
@@ -1761,7 +1769,7 @@ namespace RR
                         // Most tokens just continue our current span.
                         continue;
 
-                    case TokenType::Identifier:
+                    case Token::Type::Identifier:
                     {
                         auto paramName = token.GetContentString();
 
@@ -1775,11 +1783,11 @@ namespace RR
                     }
                     break;
 
-                    case TokenType::Pound:
+                    case Token::Type::Pound:
                     {
                         auto paramNameTokenIndex = cursor;
                         auto paramNameToken = macro->tokens[paramNameTokenIndex];
-                        if (paramNameToken.type != TokenType::Identifier)
+                        if (paramNameToken.type != Token::Type::Identifier)
                         {
                             sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
                             continue;
@@ -1802,14 +1810,14 @@ namespace RR
                     }
                     break;
 
-                    case TokenType::PoundPound:
+                    case Token::Type::PoundPound:
                         if (macro->ops.size() == 0 && (spanBeginIndex == spanEndIndex))
                         {
                             sink_->Diagnose(token, Diagnostics::tokenPasteAtStart);
                             continue;
                         }
 
-                        if (macro->tokens[cursor].type == TokenType::EndOfFile)
+                        if (macro->tokens[cursor].type == Token::Type::EndOfFile)
                         {
                             sink_->Diagnose(token, Diagnostics::tokenPasteAtEnd);
                             continue;
@@ -1823,11 +1831,11 @@ namespace RR
 
                         break;
 
-                    case TokenType::EndOfFile:
+                    case Token::Type::EndOfFile:
                         break;
                 }
 
-                if (spanBeginIndex != spanEndIndex || ((token.type == TokenType::EndOfFile) && (macro->ops.size() == 0)))
+                if (spanBeginIndex != spanEndIndex || ((token.type == Token::Type::EndOfFile) && (macro->ops.size() == 0)))
                 {
                     MacroDefinition::Op spanOp;
                     spanOp.opcode = MacroDefinition::Opcode::RawSpan;
@@ -1835,7 +1843,7 @@ namespace RR
                     spanOp.index1 = spanEndIndex;
                     macro->ops.push_back(spanOp);
                 }
-                if (token.type == TokenType::EndOfFile)
+                if (token.type == Token::Type::EndOfFile)
                     break;
 
                 macro->ops.push_back(newOp);
@@ -1883,14 +1891,12 @@ namespace RR
             const std::shared_ptr<DiagnosticSink>& sink,
             const std::shared_ptr<MacroDefinition>& macro,
             const SourceLocation& macroInvocationLoc,
-            const SourceLocation& initiatingMacroInvocationLoc,
-            const HumaneSourceLocation& humaneinitiatingMacroInvocationLoc)
+            const Token& initiatingMacroToken)
             : preprocessor_(preprocessor),
               sink_(sink),
               m_macro(macro),
               m_macroInvocationLoc(macroInvocationLoc),
-              m_initiatingMacroInvocationLoc(initiatingMacroInvocationLoc),
-              m_humaneinitiatingMacroInvocationLoc(humaneinitiatingMacroInvocationLoc)
+              initiatingMacroToken_(initiatingMacroToken)
         {
             m_firstBusyMacroInvocation = this;
         }
@@ -1935,6 +1941,10 @@ namespace RR
             Token token = m_currentOpStreams.ReadToken();
             auto tokenOpIndex = m_macroOpIndex;
 
+            // Clone flags of token that "initiated" macro if we are at the beginning
+            if (tokenOpIndex == 0)
+                token.flags = initiatingMacroToken_.flags;
+
             // Once we've read that `token`, we need to work to establish or
             // re-establish our invariant, which we do by looping until we are
             // in a valid state.
@@ -1947,7 +1957,7 @@ namespace RR
                 // If the current stream is *not* at its end, then we seem to
                 // have the stronger invariant as well, and we can return.
                 //
-                if (m_currentOpStreams.PeekTokenType() != TokenType::EndOfFile)
+                if (m_currentOpStreams.PeekTokenType() != Token::Type::EndOfFile)
                 {
                     // We know that we have tokens remaining to read from
                     // `m_currentOpStreams`, and we thus expect that the
@@ -1961,7 +1971,7 @@ namespace RR
                     // That detail is handled below in the logic for switching to a new
                     // macro op.
                     //
-                    ASSERT(token.type != TokenType::EndOfFile);
+                    ASSERT(token.type != Token::Type::EndOfFile);
 
                     // We can safely return with our invaraints intact, because
                     // the next attempt to read a token will read a non-EOF.
@@ -2030,7 +2040,7 @@ namespace RR
                         // The solution is to detect when all preceding ops considered by
                         // this loop have been EOFs, and setting the value to the first
                         // non-EOF token read.
-                        if (token.type == TokenType::EndOfFile)
+                        if (token.type == Token::Type::EndOfFile)
                         {
                             token = m_currentOpStreams.ReadToken();
                             tokenOpIndex = m_macroOpIndex;
@@ -2093,7 +2103,7 @@ namespace RR
                         // the preceding op (or possibly an EOF if that op's expansion was empty).
                         if (tokenOpIndex == nextOpIndex - 1)
                         {
-                            if (token.type != TokenType::EndOfFile)
+                            if (token.type != Token::Type::EndOfFile)
                                 pastedContent << token.GetContentString();
                         }
                         else
@@ -2118,7 +2128,7 @@ namespace RR
                         // to append that content to our paste result.
                         //
                         Token rightToken = m_currentOpStreams.ReadToken();
-                        if (rightToken.type != TokenType::EndOfFile)
+                        if (rightToken.type != Token::Type::EndOfFile)
                             pastedContent << rightToken.GetContentString();
 
                         // Now we need to re-lex the token(s) that resulted from pasting, which requires
@@ -2168,7 +2178,7 @@ namespace RR
                         //
                         // (Otherwise, the `##` is being initialized as part of advancing through ops with
                         // empty expansion to the right of the op for a non-EOF `token`)
-                        if ((tokenOpIndex == nextOpIndex - 1) || token.type == TokenType::EndOfFile)
+                        if ((tokenOpIndex == nextOpIndex - 1) || token.type == Token::Type::EndOfFile)
                         {
                             // Note that `tokenOpIndex` is being set here to the op index for the
                             // right-hand operand to the `##`. This is appropriate for cases where
@@ -2300,7 +2310,7 @@ namespace RR
 
                     // Once we've constructed the content of the stringized result, we need to push
                     // a new single-token stream that represents that content.
-                    pushSingleTokenStream(TokenType::StringLiteral, loc, string);
+                    pushSingleTokenStream(Token::Type::StringLiteral, loc, string);
                 }
                 break;
 
@@ -2316,7 +2326,7 @@ namespace RR
                     //
                     // The only key details here are that we specify the type of the token (`IntegerLiteral`)
                     // and its content (the value of `loc.line`).
-                    pushStreamForSourceLocBuiltin(TokenType::IntegerLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
+                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
                                                   {
                                                       std::ignore = loc;
                                                       string += std::to_string(humaneLoc.line);
@@ -2328,7 +2338,7 @@ namespace RR
                 {
                     // The `__FILE__` case is quite similar to `__LINE__`, except for the type of token it yields,
                     // and the way it computes the desired token content.
-                    pushStreamForSourceLocBuiltin(TokenType::StringLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
+                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
                                                   {
                                                       std::ignore = humaneLoc;
                                                       StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::Cpp, loc.GetSourceView()->GetPathInfo().foundPath, string);
@@ -2368,7 +2378,7 @@ namespace RR
             return false;
         }
 
-        void MacroInvocation::pushSingleTokenStream(TokenType tokenType, const SourceLocation& tokenLoc, U8String const& content)
+        void MacroInvocation::pushSingleTokenStream(Token::Type tokenType, const SourceLocation& tokenLoc, U8String const& content)
         {
             // The goal here is to push a token stream that represents a single token
             // with exactly the given `content`, etc.
@@ -2391,7 +2401,7 @@ namespace RR
             // so we will construct one that matches the location
             // for the `token`.
             Token eofToken;
-            eofToken.type = TokenType::EndOfFile;
+            eofToken.type = Token::Type::EndOfFile;
             eofToken.sourceLocation = token.sourceLocation;
             eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
             lexedTokens.push_back(eofToken);
@@ -2401,13 +2411,13 @@ namespace RR
         }
 
         template <typename F>
-        void MacroInvocation::pushStreamForSourceLocBuiltin(TokenType tokenType, F const& valueBuilder)
+        void MacroInvocation::pushStreamForSourceLocBuiltin(Token::Type tokenType, F const& valueBuilder)
         {
             // The `__LINE__` and `__FILE__` macros will always expand based on
             // the "initiating" source location, which should come from the
             // top-level file instead of any nested macros being expanded.
-            const auto initiatingLoc = m_initiatingMacroInvocationLoc;
-            const auto humaneInitiatingLoc = m_humaneinitiatingMacroInvocationLoc;
+            const auto initiatingLoc = initiatingMacroToken_.sourceLocation;
+            const auto humaneInitiatingLoc = initiatingMacroToken_.humaneSourceLocation;
             if (!initiatingLoc.IsValid())
             {
                 // If we cannot find a valid source location for the initiating
@@ -2447,7 +2457,7 @@ namespace RR
 
                 // If the token is not an identifier, then it can't possibly name a macro.
 
-                if (token.type != TokenType::Identifier)
+                if (token.type != Token::Type::Identifier)
                     return;
 
                 // We will look for a defined macro matching the name.
@@ -2456,6 +2466,7 @@ namespace RR
                 // invocation.
                 const auto& name = token.GetContentString();
                 const auto& macro = preprocessor->LookupMacro(name);
+
                 if (!macro)
                     return;
 
@@ -2496,10 +2507,7 @@ namespace RR
                 // invocation location for things like `__LINE__` uses inside
                 // of macro bodies.
                 if (activeStream == base_)
-                {
-                    m_initiatingMacroInvocationLoc = token.sourceLocation;
-                    m_humaneinitiatingMacroInvocationLoc = token.humaneSourceLocation;
-                }
+                    initiatingMacroToken_ = token;
 
                 // The next steps depend on whether or not we are dealing
                 // with a funciton-like macro.
@@ -2523,8 +2531,7 @@ namespace RR
                                                                                    preprocessor->GetSink(),
                                                                                    macro,
                                                                                    token.sourceLocation,
-                                                                                   m_initiatingMacroInvocationLoc,
-                                                                                   m_humaneinitiatingMacroInvocationLoc);
+                                                                                   initiatingMacroToken_);
                         invocation->Prime(busyMacros);
                         pushMacroInvocation(invocation);
                     }
@@ -2559,7 +2566,7 @@ namespace RR
                         // token after the lookahead is a `(`.
                         /*m_inputStreams.skipAllWhitespace();
                         Token maybeLeftParen = m_inputStreams.peekToken();
-                        if (maybeLeftParen.type != TokenType::LParent)
+                        if (maybeLeftParen.type != Token::Type::LParent)
                         {
                             // If we see a token other then `(` then we aren't suppsoed to be
                             // expanding the macro after all. Luckily, there is no state
@@ -2577,12 +2584,12 @@ namespace RR
                         // If we saw an opening `(`, then we know we are starting some kind of
                         // macro invocation, although we don't yet know if it is well-formed.
                         //
-                        MacroInvocation* invocation = new MacroInvocation(preprocessor, macro, token.loc, m_initiatingMacroInvocationLoc);
+                        MacroInvocation* invocation = new MacroInvocation(preprocessor, macro, token.loc, initiatingMacroInvocationLoc_);
 
                         // We start by consuming the opening `(` that we checked for above.
                         //
                         Token leftParen = m_inputStreams.readToken();
-                        SLANG_ASSERT(leftParen.type == TokenType::LParent);
+                        SLANG_ASSERT(leftParen.type == Token::Type::LParent);
 
                         // Next we parse any arguments to the macro invocation, which will
                         // consist of `()`-balanced sequences of tokens separated by `,`s.
@@ -2593,13 +2600,13 @@ namespace RR
                         // We expect th arguments to be followed by a `)` to match the opening
                         // `(`, and if we don't find one we need to diagnose the issue.
                         //
-                        if (m_inputStreams.peekTokenType() == TokenType::RParent)
+                        if (m_inputStreams.peekTokenType() == Token::Type::RParent)
                         {
                             m_inputStreams.readToken();
                         }
                         else
                         {
-                            GetSink(preprocessor)->diagnose(m_inputStreams.peekLoc(), Diagnostics::expectedTokenInMacroArguments, TokenType::RParent, m_inputStreams.peekTokenType());
+                            GetSink(preprocessor)->diagnose(m_inputStreams.peekLoc(), Diagnostics::expectedTokenInMacroArguments, Token::Type::RParent, m_inputStreams.peekTokenType());
                         }
 
                         // The number of arguments at the macro invocation site might not
