@@ -186,11 +186,11 @@ DIAGNOSTIC(15503, Warning, invalidTokenPasteResult, "toking pasting with '##' re
 
 // 156xx - pragmas
 DIAGNOSTIC(15600, Error, expectedPragmaDirectiveName, "expected a name after '#pragma'")
-DIAGNOSTIC(15601, Warning, unknownPragmaDirectiveIgnored, "ignoring unknown directive '#pragma $0'")
+DIAGNOSTIC(15601, Warning, unknownPragmaDirectiveIgnored, "ignoring unknown directive '#pragma {0}'")
 DIAGNOSTIC(15602, Warning, pragmaOnceIgnored, "pragma once was ignored - this is typically because is not placed in an include")
 
 // 159xx - user-defined error/warning
-DIAGNOSTIC(15900, Error, userDefinedError, "#error: $0")
+DIAGNOSTIC(15900, Error, userDefinedError, "#error: {0}")
 DIAGNOSTIC(15901, Warning, userDefinedWarning, "#warning: {0}")
 
 // 15999 waiting to be placed in the right range

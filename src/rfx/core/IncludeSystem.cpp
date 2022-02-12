@@ -23,6 +23,12 @@ namespace RR
                 return findFileImpl("", pathToInclude, outPathInfo);
             }
 
+            const auto includedFromStatus = fs::status(pathIncludedFrom);
+            if (fs::is_regular_file(includedFromStatus) || fs::is_other(includedFromStatus))
+            {
+                return findFileImpl(pathToInclude, fs::path(pathIncludedFrom).parent_path(), outPathInfo);
+            }
+
             // Try just relative to current path
             {
                 RfxResult result = findFileImpl(pathToInclude, pathIncludedFrom, outPathInfo);

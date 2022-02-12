@@ -1061,10 +1061,11 @@ namespace RR
 
         using PreprocessorExpressionValue = int32_t;
 
-        class PreprocessorImpl final
+        class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
         {
         public:
             typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
+            typedef void (PreprocessorImpl::*HandlePragmaDirectiveFunc)(DirectiveContext& context, const Token& subDirectiveToken);
 
             struct Directive
             {
@@ -1083,6 +1084,11 @@ namespace RR
 
                 Flags flags;
                 HandleDirectiveFunc function;
+            };
+
+            struct PragmaDirective
+            {
+                HandlePragmaDirectiveFunc function;
             };
 
         public:
@@ -1148,8 +1154,13 @@ namespace RR
             void handleDefineDirective(DirectiveContext& directiveContext);
             void handleUndefDirective(DirectiveContext& directiveContext);
             void handleWarningDirective(DirectiveContext& directiveContext);
+            void handleErrorDirective(DirectiveContext& directiveContext);
             void handleIncludeDirective(DirectiveContext& directiveContext);
             void handleLineDirective(DirectiveContext& directiveContext);
+            void handlePragmaDirective(DirectiveContext& directiveContext);
+
+            void handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
+            void handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
 
             PreprocessorExpressionValue evaluateInfixOp(
                 const DirectiveContext& context,
@@ -1198,6 +1209,7 @@ namespace RR
         private:
             static Token dummyToken;
             static const std::unordered_map<U8String, Directive> directiveMap;
+            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
 
         private:
             // Look up the directive with the given name.
@@ -1207,6 +1219,17 @@ namespace RR
 
                 if (search == directiveMap.end())
                     return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
+
+                return search->second;
+            }
+
+            // Look up the `#pragma` directive with the given name.
+            static PragmaDirective findPragmaDirective(const U8String& name)
+            {
+                auto search = paragmaDirectiveMap.find(name);
+
+                if (search == paragmaDirectiveMap.end())
+                    return { &PreprocessorImpl::handleUnknownPragmaDirective };
 
                 return search->second;
             }
@@ -1221,13 +1244,17 @@ namespace RR
             { "else", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElseDirective } },
             { "elif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElifDirective } },
             { "endif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleEndIfDirective } },
-            // { "include", &PreprocessorImpl::handleIncludeDirective },
+            { "include", { Directive::Flags::None, &PreprocessorImpl::handleIncludeDirective } },
             { "define", { Directive::Flags::None, &PreprocessorImpl::handleDefineDirective } },
             { "undef", { Directive::Flags::None, &PreprocessorImpl::handleUndefDirective } },
             { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
-            //  { "error", nullptr },
+            { "error", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleErrorDirective } },
             // { "line", &PreprocessorImpl::handleLineDirective },
-            //   { "pragma", nullptr }
+            { "pragma", { Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective } },
+        };
+
+        const std::unordered_map<U8String, PreprocessorImpl::PragmaDirective> PreprocessorImpl::paragmaDirectiveMap = {
+            { "once", { &PreprocessorImpl::handlePragmaOnceDirective } },
         };
 
         PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
@@ -1306,6 +1333,7 @@ namespace RR
         struct InputFile
         {
             InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+                : sourceView_(sourceView)
             {
                 ASSERT(sourceView)
                 ASSERT(preprocessorImpl.lock())
@@ -1345,20 +1373,11 @@ namespace RR
             }
 
             /// Read one token using all the expansion and directive-handling logic
-            Token ReadToken()
-            {
-                return expansionInputStream_->ReadToken();
-            }
+            inline Token ReadToken() { return expansionInputStream_->ReadToken(); }
 
-            inline Lexer& GetLexer()
-            {
-                return lexerStream_->GetLexer();
-            }
-
-            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream()
-            {
-                return expansionInputStream_;
-            }
+            inline Lexer& GetLexer() { return lexerStream_->GetLexer(); }
+            inline std::shared_ptr<SourceView> GetSourceView() { return sourceView_; }
+            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() { return expansionInputStream_; }
 
         private:
             friend class PreprocessorImpl;
@@ -1368,6 +1387,9 @@ namespace RR
             /// E.g., if this file was `#include`d from another file, then `m_parent` would be
             /// the file with the `#include` directive.
             std::shared_ptr<InputFile> parent_;
+
+            /// TODO comment
+            std::shared_ptr<SourceView> sourceView_;
 
             /// The inner-most preprocessor conditional active for this file.
             std::shared_ptr<Conditional> conditional_;
@@ -1808,7 +1830,8 @@ namespace RR
                 case Token::Type::NewLine:
                     sink_->Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
                     return 0;
-                default: break;
+                default:
+                    break;
             }
 
             auto token = advanceToken();
@@ -2058,7 +2081,8 @@ namespace RR
                     sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, getDirectiveName(directiveContext));
                     handleElseDirective(directiveContext);
                     return;
-                default: break;
+                default:
+                    break;
             }
 
             PreprocessorExpressionValue value = parseAndEvaluateExpression(directiveContext);
@@ -2365,6 +2389,22 @@ namespace RR
             sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedWarning, message);
         }
 
+        void PreprocessorImpl::handleErrorDirective(DirectiveContext& directiveContext)
+        {
+            setLexerDiagnosticSuppression(getInputFile(directiveContext), true);
+
+            // Consume the directive
+            advanceRawToken();
+
+            // Read the message.
+            U8String message = readDirectiveMessage();
+
+            setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
+
+            // Report the custom error.
+            sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedError, message);
+        }
+
         // Handle a `#include` directive
         void PreprocessorImpl::handleIncludeDirective(DirectiveContext& directiveContext)
         {
@@ -2377,20 +2417,18 @@ namespace RR
             const auto& sourceView = directiveContext.token.sourceLocation.GetSourceView();
             const auto& includedFromPathInfo = sourceView->GetSourceFile();
 
-            (void)includedFromPathInfo;
-
             // Find the path relative to the foundPath
             PathInfo filePathInfo;
             if (RFX_FAILED(includeSystem_->FindFile(path, includedFromPathInfo->GetPathInfo().foundPath, filePathInfo)))
             {
-                sink_->Diagnose(peekRawToken(), Diagnostics::includeFailed, path);
+                sink_->Diagnose(pathToken, Diagnostics::includeFailed, path);
                 return;
             }
 
             // We must have a uniqueIdentity to be compare
             if (!filePathInfo.hasUniqueIdentity())
             {
-                sink_->Diagnose(peekRawToken(), Diagnostics::noUniqueIdentity, path);
+                sink_->Diagnose(pathToken, Diagnostics::noUniqueIdentity, path);
                 return;
             }
 
@@ -2410,15 +2448,14 @@ namespace RR
 
             if (RFX_FAILED(includeSystem_->LoadFile(filePathInfo, includedFile)))
             {
-                sink_->Diagnose(peekRawToken(), Diagnostics::includeFailed, path);
+                sink_->Diagnose(pathToken, Diagnostics::includeFailed, path);
                 return;
             }
 
+            // This is a new parse (even if it's a pre-existing source file), so create a new
             const auto& includedView = SourceView::CreateIncluded(includedFile, sourceView, directiveContext.token.humaneSourceLocation);
-            const auto& inputStream = std::make_shared<LexerInputStream>(includedView, sink_);
-            std::ignore = inputStream;
-            ASSERT_MSG(false, "NOT IMPLEMENTED")
-            //PushInputStream(inputStream);
+
+            PushInputFile(std::make_shared<InputFile>(shared_from_this(), includedView));
         }
 
         void PreprocessorImpl::handleLineDirective(DirectiveContext& directiveContext)
@@ -2479,6 +2516,56 @@ namespace RR
             //    currentInputStream_->ForceClose();
             // popInputStream();
             //  PushInputStream(inputStream);
+        }
+
+        // Handle a `#pragma` directive
+        void PreprocessorImpl::handlePragmaDirective(DirectiveContext& directiveContext)
+        {
+            // Try to read the sub-directive name.
+            const auto& subDirectiveToken = peekRawToken();
+
+            // The sub-directive had better be an identifier
+            if (subDirectiveToken.type != Token::Type::Identifier)
+            {
+                sink_->Diagnose(directiveContext.token, Diagnostics::expectedPragmaDirectiveName);
+                skipToEndOfLine();
+                return;
+            }
+            advanceRawToken();
+
+            // Look up the handler for the sub-directive.
+            const auto& subDirective = findPragmaDirective(subDirectiveToken.GetContentString());
+
+            // Apply the sub-directive-specific callback
+            (this->*subDirective.function)(directiveContext, subDirectiveToken);
+        }
+
+        void PreprocessorImpl::handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken)
+        {
+            std::ignore = directiveContext;
+
+            sink_->Diagnose(subDirectiveToken, Diagnostics::unknownPragmaDirectiveIgnored, subDirectiveToken.GetContentString());
+            skipToEndOfLine();
+
+            return;
+        }
+
+        void PreprocessorImpl::handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken)
+        {
+            // We need to identify the path of the file we are preprocessing,
+            // so that we can avoid including it again.
+            //
+            // We are using the 'uniqueIdentity' as determined by the ISlangFileSystemEx interface to determine file identities.
+            auto issuedFromPathInfo = directiveContext.inputFile->GetSourceView()->GetPathInfo();
+
+            // Must have uniqueIdentity for a #pragma once to work
+            if (!issuedFromPathInfo.hasUniqueIdentity())
+            {
+                sink_->Diagnose(subDirectiveToken, Diagnostics::pragmaOnceIgnored);
+                return;
+            }
+
+            pragmaOnceUniqueIdentities_.emplace(issuedFromPathInfo.uniqueIdentity);
         }
 
         void PreprocessorImpl::parseMacroOps(std::shared_ptr<MacroDefinition>& macro,
@@ -3197,6 +3284,10 @@ namespace RR
                 if (!macro)
                     return;
 
+                // Consume initializatin macro
+                // Reading token also updates top stream in stack
+                readTokenImpl();
+
                 // Now we get to the slightly trickier cases.
                 //
                 // *If* the identifier names a macro, but we are currently in the
@@ -3258,9 +3349,6 @@ namespace RR
                                                                                    macro,
                                                                                    token.sourceLocation,
                                                                                    initiatingMacroToken_);
-
-                        // Consume initializatin macro
-                        readTokenImpl();
 
                         invocation->Prime(busyMacros);
                         pushMacroInvocation(invocation);
@@ -3402,9 +3490,6 @@ namespace RR
                         //
                         auto nextStream = m_inputStreams.getNextStream();
                         auto busyMacrosForFunctionLikeInvocation = nextStream->getFirstBusyMacroInvocation();
-
-                        // Consume initializatin macro
-                        readTokenImpl();
 
                         invocation->Prime(busyMacrosForFunctionLikeInvocation);
                         pushMacroInvocation(invocation);*/
