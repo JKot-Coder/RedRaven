@@ -99,7 +99,7 @@ namespace RR
         private:
             uint32_t errorCount_ = 0;
             size_t sourceLineMaxLength_ = 120;
-            std::list<std::shared_ptr<IWriter>> writerList_;
+            std::vector<std::shared_ptr<IWriter>> writerList_;
         };
 
         class BufferWriter final : public DiagnosticSink::IWriter

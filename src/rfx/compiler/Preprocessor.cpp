@@ -1206,7 +1206,7 @@ namespace RR
                 auto search = directiveMap.find(name);
 
                 if (search == directiveMap.end())
-                    return { Directive::Flags::None, &handleInvalidDirective };
+                    return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
 
                 return search->second;
             }
@@ -1215,16 +1215,16 @@ namespace RR
         Token PreprocessorImpl::dummyToken;
 
         const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
-            { "if", { Directive::Flags::ProcessWhenSkipping, &handleIfDirective } },
-            { "ifdef", { Directive::Flags::ProcessWhenSkipping, &handleIfdefDirective } },
-            { "ifndef", { Directive::Flags::ProcessWhenSkipping, &handleIfndefDirective } },
-            { "else", { Directive::Flags::ProcessWhenSkipping, &handleElseDirective } },
-            { "elif", { Directive::Flags::ProcessWhenSkipping, &handleElifDirective } },
-            { "endif", { Directive::Flags::ProcessWhenSkipping, &handleEndIfDirective } },
+            { "if", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective } },
+            { "ifdef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective } },
+            { "ifndef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfndefDirective } },
+            { "else", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElseDirective } },
+            { "elif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElifDirective } },
+            { "endif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleEndIfDirective } },
             // { "include", &PreprocessorImpl::handleIncludeDirective },
-            { "define", { Directive::Flags::None, &handleDefineDirective } },
-            { "undef", { Directive::Flags::None, &handleUndefDirective } },
-            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &handleWarningDirective } },
+            { "define", { Directive::Flags::None, &PreprocessorImpl::handleDefineDirective } },
+            { "undef", { Directive::Flags::None, &PreprocessorImpl::handleUndefDirective } },
+            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
             //  { "error", nullptr },
             // { "line", &PreprocessorImpl::handleLineDirective },
             //   { "pragma", nullptr }
@@ -1808,6 +1808,7 @@ namespace RR
                 case Token::Type::NewLine:
                     sink_->Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
                     return 0;
+                default: break;
             }
 
             auto token = advanceToken();
@@ -2057,6 +2058,7 @@ namespace RR
                     sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, getDirectiveName(directiveContext));
                     handleElseDirective(directiveContext);
                     return;
+                default: break;
             }
 
             PreprocessorExpressionValue value = parseAndEvaluateExpression(directiveContext);

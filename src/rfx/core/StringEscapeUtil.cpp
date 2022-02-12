@@ -53,7 +53,7 @@ namespace RR
 
             // Outputs ioSlice with the chars remaining after utf8 encoded value
             // Returns ~uint32_t(0) if can't decode
-            uint32_t getUnicodePointFromUTF8(UnownedStringSlice& ioSlice)
+         /*   uint32_t getUnicodePointFromUTF8(UnownedStringSlice& ioSlice)
             {
                 const auto length = ioSlice.GetLength();
                 ASSERT(length > 0);
@@ -86,8 +86,7 @@ namespace RR
 
                 ioSlice = UnownedStringSlice(cur + count, ioSlice.End());
                 return codePoint;
-            }
-
+            }*/
             void appendHex16(uint32_t value, U8String& out)
             {
                 static const char s_hex[] = "0123456789abcdef";
