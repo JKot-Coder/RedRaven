@@ -9,6 +9,11 @@
 
 namespace RR
 {
+    namespace Common
+    {
+        class LinearAllocator;
+    }
+
     namespace Rfx
     {
         namespace
@@ -130,8 +135,8 @@ namespace RR
                 nextToken_.type = Token::Type::EndOfFile;
         }
 
-        Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : allocator_(new LinearAllocator(1024)),
+        Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+            : allocator_(linearAllocator),
               sourceView_(sourceView),
               sink_(diagnosticSink)
         {

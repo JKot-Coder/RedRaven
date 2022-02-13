@@ -1,0 +1,7 @@
+Output:[
+	int test() {
+	    return 1;
+	}
+]
+Diagnostic:[
+]

@@ -61,8 +61,6 @@ namespace RR
             explicit TokenReader(const_iterator begin, const_iterator end)
                 : cursor_(begin), end_(end)
             {
-                ASSERT(std::distance(cursor_, end_) > 0)
-
                 updateLookaheadToken();
             }
 
@@ -133,7 +131,7 @@ namespace RR
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
         public:
-            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
 
             std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
@@ -194,7 +192,7 @@ namespace RR
             void lexStringLiteralBody(U8Glyph quote);
 
         private:
-            std::unique_ptr<LinearAllocator> allocator_;
+            std::shared_ptr<LinearAllocator> allocator_;
             std::shared_ptr<SourceView> sourceView_;
             std::shared_ptr<DiagnosticSink> sink_;
 

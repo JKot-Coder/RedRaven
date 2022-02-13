@@ -1,0 +1,9 @@
+Output:[
+	"Hello"
+	__LINE__
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\SpecialMacroRedefineObject.rfx(5): warning 15404: Redefinition of builtin macro '__LINE__'
+	#define __LINE__ "Hello"
+	        ^~~~~~~~
+]

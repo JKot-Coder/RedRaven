@@ -630,8 +630,8 @@ namespace RR
             LexerInputStream() = delete;
 
             LexerInputStream(
-                const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-                : lexer_(new Lexer(sourceView, diagnosticSink))
+                const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+                : lexer_(new Lexer(sourceView, linearAllocator, diagnosticSink))
             {
                 lookaheadToken_ = readTokenImpl();
             }
@@ -777,7 +777,9 @@ namespace RR
 
             struct Param
             {
-                //   NameLoc nameLoc;
+                U8String name;
+                SourceLocation sourceLocation;
+                HumaneSourceLocation humaneSourceLocation;
                 bool isVariadic = false;
             };
 
@@ -803,16 +805,17 @@ namespace RR
             }
 
             /// Is this a variadic macro?
-            /* bool IsVariadic()
+            bool IsVariadic() const
             {
                 // A macro is variadic if it has a last parameter and
                 // that last parameter is a variadic parameter.
-                //
-                auto paramCount = params.getCount();
+                auto paramCount = params.size();
                 if (paramCount == 0)
                     return false;
+
                 return params[paramCount - 1].isVariadic;
-            }*/
+            }
+
         public:
             //TODO RENAME?
 
@@ -883,14 +886,13 @@ namespace RR
             /// Is the given `macro` considered "busy" during the given macroinvocation?
             static bool IsBusy(const std::shared_ptr<MacroDefinition>& macro, MacroInvocation* duringMacroInvocation);
 
-            //   uint32_t getArgCount() { return m_args.getCount(); }
+            size_t GetArgCount() { return m_args.size(); }
 
         private:
             // Macro invocations are created as part of applying macro expansion
             // to a stream, so the `ExpansionInputStream` type takes responsibility
             // for setting up much of the state of a `MacroInvocation`.
-            // TODO
-            // friend struct ExpansionInputStream;
+            friend struct ExpansionInputStream;
 
             //TOOD COMMNETS
             std::shared_ptr<PreprocessorImpl> preprocessor_ = nullptr;
@@ -903,7 +905,6 @@ namespace RR
             ///
             /// Each argument is represented as a begin/end pair of indices
             /// into the sequence of tokens that make up the macro arguments.
-            ///
             struct Arg
             {
                 uint32_t beginTokenIndex = 0;
@@ -1033,13 +1034,12 @@ namespace RR
             void maybeBeginMacroInvocation();
 
             /// Parse one argument to a macro invocation
-            //            MacroInvocation::Arg parseMacroArg(MacroInvocation* macroInvocation);
+            MacroInvocation::Arg parseMacroArg(const std::shared_ptr<MacroInvocation>& macroInvocation);
 
             /// Parse all arguments to a macro invocation
-            /* void parseMacroArgs(
-                MacroDefinition* macro,
-                MacroInvocation* macroInvocation);
-                */
+            void parseMacroArgs(
+                const std::shared_ptr<MacroDefinition>& macro,
+                const std::shared_ptr<MacroInvocation>& macroInvocation);
 
             /// Push the given macro invocation into the stack of input streams
             void pushMacroInvocation(const std::shared_ptr<MacroInvocation>& macroInvocation);
@@ -1185,7 +1185,7 @@ namespace RR
             // when it switches the input stream.
             void expectEndOfDirective(DirectiveContext& context);
 
-            void parseMacroOps(std::shared_ptr<MacroDefinition>& macro,
+            void parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
                                const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
 
         private:
@@ -1338,7 +1338,7 @@ namespace RR
                 ASSERT(sourceView)
                 ASSERT(preprocessorImpl.lock())
 
-                lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetSink());
+                lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetAllocator(), preprocessorImpl.lock()->GetSink());
                 expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
             }
 
@@ -2171,17 +2171,14 @@ namespace RR
             auto maybeOpenParen = peekRawToken();
             if (maybeOpenParen.type == Token::Type::LParent && !IsSet(maybeOpenParen.flags, Token::Flags::AfterWhitespace))
             {
-                ASSERT_MSG(false, "NOT IMPLEMENTED");
-                /* )
-            {
                 // This is a function-like macro, so we need to remember that
                 // and start capturing parameters
                 macro->flavor = MacroDefinition::Flavor::FunctionLike;
 
-                AdvanceRawToken(context);
+                advanceRawToken();
 
                 // If there are any parameters, parse them
-                if (PeekRawTokenType(context) != Token::Type::RParent)
+                if (peekRawTokenType() != Token::Type::RParent)
                 {
                     for (;;)
                     {
@@ -2194,11 +2191,10 @@ namespace RR
                         // If we don't see an ellipsis ahead, we know we ought
                         // to find one of the two cases that starts with an
                         // identifier.
-                        //
                         Token paramNameToken;
-                        if (PeekRawTokenType(context) != Token::Type::Ellipsis)
+                        if (peekRawTokenType() != Token::Type::Ellipsis)
                         {
-                            if (!ExpectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInMacroParameters, &paramNameToken))
+                            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInMacroParameters, paramNameToken))
                                 break;
                         }
 
@@ -2207,23 +2203,22 @@ namespace RR
                         //
                         // Note: a variadic parameter, if any, should always be
                         // the last parameter of a macro, but we do not enforce
-                        // that requirement here.
-                        //
                         Token ellipsisToken;
                         MacroDefinition::Param param;
-                        if (PeekRawTokenType(context) == Token::Type::Ellipsis)
+                        param.sourceLocation = paramNameToken.sourceLocation;
+                        param.humaneSourceLocation = paramNameToken.humaneSourceLocation;
+
+                        if (peekRawTokenType() == Token::Type::Ellipsis)
                         {
-                            ellipsisToken = AdvanceRawToken(context);
+                            ellipsisToken = advanceRawToken();
                             param.isVariadic = true;
                         }
 
                         if (paramNameToken.type != Token::Type::Unknown)
                         {
                             // If we read an explicit name for the parameter, then we can use
-                            // that name directly.
-                            //
-                            param.nameLoc.name = paramNameToken.getName();
-                            param.nameLoc.loc = paramNameToken.loc;
+                            // that name directly. TODO COMMENT
+                            param.name = paramNameToken.GetContentString();
                         }
                         else
                         {
@@ -2231,13 +2226,10 @@ namespace RR
                             // have an unnamed variadic parameter. We know this because the
                             // only case where the logic above doesn't require a name to
                             // be read is when it already sees an ellipsis ahead.
-                            //
-                            SLANG_ASSERT(ellipsisToken.type != Token::Type::Unknown);
+                            ASSERT(ellipsisToken.type != Token::Type::Unknown);
 
                             // Any unnamed variadic parameter is treated as one named `__VA_ARGS__`
-                            //
-                            param.nameLoc.name = context->m_preprocessor->getNamePool()->getName("__VA_ARGS__");
-                            param.nameLoc.loc = ellipsisToken.loc;
+                            param.name = "__VA_ARGS__";
                         }
 
                         // TODO(tfoley): The C standard seems to disallow certain identifiers
@@ -2251,47 +2243,45 @@ namespace RR
                         // names *do* in the context of the Slang preprocessor.
 
                         // Add the parameter to the macro being deifned
-                        auto paramIndex = macro->params.getCount();
-                        macro->params.add(param);
+                        auto paramIndex = macro->params.size();
+                        macro->params.push_back(param);
 
-                        auto paramName = param.nameLoc.name;
-                        if (mapParamNameToIndex.ContainsKey(paramName))
+                        const auto paramName = param.name;
+                        if (mapParamNameToIndex.find(paramName) != mapParamNameToIndex.end())
                         {
-                            GetSink(context)->diagnose(param.nameLoc.loc, Diagnostics::duplicateMacroParameterName, name);
+                            sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
                         }
                         else
                         {
-                            mapParamNameToIndex[paramName] = paramIndex;
+                            mapParamNameToIndex[paramName] = uint32_t(paramIndex);
                         }
 
                         // If we see `)` then we are done with arguments
-                        if (PeekRawTokenType(context) == Token::Type::RParent)
+                        if (peekRawTokenType() == Token::Type::RParent)
                             break;
 
-                        ExpectRaw(context, Token::Type::Comma, Diagnostics::expectedTokenInMacroParameters);
+                        expectRaw(directiveContext, Token::Type::Comma, Diagnostics::expectedTokenInMacroParameters);
                     }
                 }
 
-                ExpectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInMacroParameters);
+                expectRaw(directiveContext, Token::Type::RParent, Diagnostics::expectedTokenInMacroParameters);
 
                 // Once we have parsed the macro parameters, we can perform the additional validation
                 // step of checking that any parameters before the last parameter are not variadic.
-                //
-                Index lastParamIndex = macro->params.getCount() - 1;
-                for (Index i = 0; i < lastParamIndex; ++i)
+                size_t lastParamIndex = macro->params.size() - 1;
+                for (size_t i = 0; i < lastParamIndex; ++i)
                 {
                     auto& param = macro->params[i];
                     if (!param.isVariadic)
                         continue;
 
-                    GetSink(context)->diagnose(param.nameLoc.loc, Diagnostics::variadicMacroParameterMustBeLast, param.nameLoc.name);
+                    sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
 
                     // As a precaution, we will unmark the variadic-ness of the parameter, so that
                     // logic downstream from this step doesn't have to deal with the possibility
                     // of a variadic parameter in the middle of the parameter list.
-                    //
                     param.isVariadic = false;
-                }*/
+                }
             }
             else
             {
@@ -2320,7 +2310,6 @@ namespace RR
                     case Token::Type::NewLine:
                         // The end of the current line/file ends the directive, and serves
                         // as the end-of-file marker for the macro's definition as well.
-                        //
                         token.type = Token::Type::EndOfFile;
                         macro->tokens.push_back(token);
                         break;
@@ -2508,7 +2497,7 @@ namespace RR
 
             HumaneSourceLocation humaneLocation(line, 1);
             const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
-            const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, sink_);
+            const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, allocator_, sink_);
 
             std::ignore = inputStream;
             // Drop current stream
@@ -2568,7 +2557,7 @@ namespace RR
             pragmaOnceUniqueIdentities_.emplace(issuedFromPathInfo.uniqueIdentity);
         }
 
-        void PreprocessorImpl::parseMacroOps(std::shared_ptr<MacroDefinition>& macro,
+        void PreprocessorImpl::parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
                                              const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex)
         {
             // Scan through the tokens to recognize the "ops" that make up
@@ -2951,7 +2940,7 @@ namespace RR
                         const auto& sourceFile = preprocessor_->GetIncludeSystem()->CreateFileFromString(pathInfo, pastedContent.str());
                         auto sourceView = SourceView::Create(sourceFile);
 
-                        Lexer lexer(sourceView, preprocessor_->GetSink());
+                        Lexer lexer(sourceView, preprocessor_->GetAllocator(), preprocessor_->GetSink());
                         const auto& lexedTokens = lexer.LexAllSemanticTokens();
 
                         // The `lexedTokens` will always contain at least one token, representing an EOF for
@@ -3357,7 +3346,6 @@ namespace RR
 
                     case MacroDefinition::Flavor::FunctionLike:
                     {
-                        ASSERT_MSG(false, "NOT IMPLEMENTED");
                         // The function-like macro case is more complicated, primarily because
                         // of the need to handle arguments. The arguments of a function-like
                         // macro are expected to be tokens inside of balanced `()` parentheses.
@@ -3382,8 +3370,8 @@ namespace RR
                         // Because the macro name is already in `m_lookaheadToken`, we can peak
                         // at the underlying input stream to see if the next non-whitespace
                         // token after the lookahead is a `(`.
-                        /*m_inputStreams.skipAllWhitespace();
-                        Token maybeLeftParen = m_inputStreams.peekToken();
+                        inputStreams_.SkipAllWhitespace();
+                        Token maybeLeftParen = inputStreams_.PeekToken();
                         if (maybeLeftParen.type != Token::Type::LParent)
                         {
                             // If we see a token other then `(` then we aren't suppsoed to be
@@ -3395,52 +3383,52 @@ namespace RR
                             // We can simply bail out of looking for macro invocations, and the
                             // next read of a token will consume the lookahead token (the macro
                             // name) directly.
-                            //
                             return;
                         }
 
+                        auto sink = preprocessor->GetSink();
+
                         // If we saw an opening `(`, then we know we are starting some kind of
                         // macro invocation, although we don't yet know if it is well-formed.
-                        //
-                        MacroInvocation* invocation = new MacroInvocation(preprocessor, macro, token.loc, initiatingMacroInvocationLoc_);
+                        const auto& invocation = std::make_shared<MacroInvocation>(preprocessor,
+                                                                                   preprocessor->GetSink(),
+                                                                                   macro,
+                                                                                   token.sourceLocation,
+                                                                                   initiatingMacroToken_);
 
                         // We start by consuming the opening `(` that we checked for above.
-                        //
-                        Token leftParen = m_inputStreams.readToken();
-                        SLANG_ASSERT(leftParen.type == Token::Type::LParent);
+                        const auto& leftParen = inputStreams_.ReadToken();
+                        ASSERT(leftParen.type == Token::Type::LParent)
 
                         // Next we parse any arguments to the macro invocation, which will
                         // consist of `()`-balanced sequences of tokens separated by `,`s.
-                        //
-                        _parseMacroArgs(macro, invocation);
-                        Index argCount = invocation->getArgCount();
+                        parseMacroArgs(macro, invocation);
+                        const uint32_t argCount = uint32_t(invocation->GetArgCount());
 
                         // We expect th arguments to be followed by a `)` to match the opening
                         // `(`, and if we don't find one we need to diagnose the issue.
-                        //
-                        if (m_inputStreams.peekTokenType() == Token::Type::RParent)
+                        if (inputStreams_.PeekTokenType() == Token::Type::RParent)
                         {
-                            m_inputStreams.readToken();
+                            inputStreams_.ReadToken();
                         }
                         else
                         {
-                            GetSink(preprocessor)->diagnose(m_inputStreams.peekLoc(), Diagnostics::expectedTokenInMacroArguments, Token::Type::RParent, m_inputStreams.peekTokenType());
+                            sink->Diagnose(inputStreams_.PeekToken(), Diagnostics::expectedTokenInMacroArguments, Token::Type::RParent, inputStreams_.PeekTokenType());
                         }
 
                         // The number of arguments at the macro invocation site might not
                         // match the number of arguments declared for the macro. In this
                         // case we diagnose an issue *and* skip expansion of this invocation
                         // (it effectively expands to zero new tokens).
-                        const Index paramCount = Index(macro->params.getCount());
-                        if (!macro->isVariadic())
+                        const uint32_t paramCount = uint32_t(macro->params.size());
+                        if (!macro->IsVariadic())
                         {
                             // The non-variadic case is simple enough: either the argument
                             // count exactly matches the required parameter count, or we
                             // diagnose an error.
-                            //
                             if (argCount != paramCount)
                             {
-                                GetSink(preprocessor)->diagnose(leftParen.loc, Diagnostics::wrongNumberOfArgumentsToMacro, paramCount, argCount);
+                                sink->Diagnose(leftParen, Diagnostics::wrongNumberOfArgumentsToMacro, paramCount, argCount);
                                 return;
                             }
                         }
@@ -3450,11 +3438,10 @@ namespace RR
                             // non-variadic parameters (all but the last one). In addition,
                             // we do not consider it an error to have more than the required
                             // number of arguments.
-                            //
-                            Index requiredArgCount = paramCount - 1;
-                            if (argCount < requiredArgCount)
+                            const int32_t requiredArgCount = paramCount - 1;
+                            if (int32_t(argCount) < requiredArgCount)
                             {
-                                GetSink(preprocessor)->diagnose(leftParen.loc, Diagnostics::wrongNumberOfArgumentsToMacro, requiredArgCount, argCount);
+                                sink->Diagnose(leftParen, Diagnostics::wrongNumberOfArgumentsToMacro, requiredArgCount, argCount);
                                 return;
                             }
                         }
@@ -3487,12 +3474,11 @@ namespace RR
                         //
                         // Instead, we really only care about the active stream that the
                         // next token would be read from.
-                        //
-                        auto nextStream = m_inputStreams.getNextStream();
-                        auto busyMacrosForFunctionLikeInvocation = nextStream->getFirstBusyMacroInvocation();
+                        auto nextStream = inputStreams_.GetNextStream();
+                        auto busyMacrosForFunctionLikeInvocation = nextStream->GetFirstBusyMacroInvocation();
 
                         invocation->Prime(busyMacrosForFunctionLikeInvocation);
-                        pushMacroInvocation(invocation);*/
+                        pushMacroInvocation(invocation);
                     }
                     break;
                 }
@@ -3552,6 +3538,158 @@ namespace RR
                 auto firstArg = m_args[firstArgIndex];
                 auto lastArg = m_args[lastArgIndex];
                 return TokenReader(argTokens + firstArg.beginTokenIndex, argTokens + lastArg.endTokenIndex);
+            }
+        }
+
+        /// Parse one macro argument and return it in the form of a macro
+        ///
+        /// Assumes as a precondition that the caller has already checked
+        /// for a closing `)` or end-of-input token.
+        ///
+        /// Does not consume any closing `)` or `,` for the argument.
+        MacroInvocation::Arg ExpansionInputStream::parseMacroArg(const std::shared_ptr<MacroInvocation>& macroInvocation)
+        {
+            // Create the argument, represented as a special flavor of macro
+            //
+            MacroInvocation::Arg arg;
+            arg.beginTokenIndex = uint32_t(macroInvocation->m_argTokens.size());
+
+            // We will now read the tokens that make up the argument.
+            //
+            // We need to keep track of the nesting depth of parentheses,
+            // because arguments should only break on a `,` that is
+            // not properly nested in balanced parentheses.
+            int32_t nestingDepth = 0;
+            for (;;)
+            {
+                arg.endTokenIndex = uint32_t(macroInvocation->m_argTokens.size());
+
+                inputStreams_.SkipAllWhitespace();
+                Token token = inputStreams_.PeekToken();
+                macroInvocation->m_argTokens.push_back(token);
+
+                switch (token.type)
+                {
+                    case Token::Type::EndOfFile:
+                        // End of input means end of the argument.
+                        // It is up to the caller to diagnose the
+                        // lack of a closing `)`.
+                        return arg;
+
+                    case Token::Type::RParent:
+                        // If we see a right paren when we aren't nested
+                        // then we are at the end of an argument.
+                        if (nestingDepth == 0)
+                            return arg;
+
+                        // Otherwise we decrease our nesting depth, add
+                        // the token, and keep going
+                        nestingDepth--;
+                        break;
+
+                    case Token::Type::Comma:
+                        // If we see a comma when we aren't nested
+                        // then we are at the end of an argument
+                        if (nestingDepth == 0)
+                            return arg;
+
+                        // Otherwise we add it as a normal token
+                        break;
+
+                    case Token::Type::LParent:
+                        // If we see a left paren then we need to
+                        // increase our tracking of nesting
+                        nestingDepth++;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                // Add the token and continue parsing.
+                inputStreams_.ReadToken();
+            }
+        }
+
+        /// Parse the arguments to a function-like macro invocation.
+        ///
+        /// This function assumes the opening `(` has already been parsed,
+        /// and it leaves the closing `)`, if any, for the caller to consume.
+        void ExpansionInputStream::parseMacroArgs(
+            const std::shared_ptr<MacroDefinition>& macro,
+            const std::shared_ptr<MacroInvocation>& macroInvocation)
+        {
+            // There is a subtle case here, which is when a macro expects
+            // exactly one non-variadic parameter, but the argument list is
+            // empty. E.g.:
+            //
+            //      #define M(x) /* whatever */
+            //
+            //      M()
+            //
+            // In this case we should parse a single (empty) argument, rather
+            // than issue an error because of there apparently being zero
+            // arguments.
+            //
+            // In all other cases (macros that do not have exactly one
+            // parameter, plus macros with a single variadic parameter) we
+            // should treat an empty argument list as zero
+            // arguments for the purposes of error messages (since that is
+            // how a programmer is likely to view/understand it).
+            const auto paramCount = macro->params.size();
+            if (paramCount != 1 || macro->IsVariadic())
+            {
+                // If there appear to be no arguments because the next
+                // token would close the argument list, then we bail
+                // out immediately.
+                switch (inputStreams_.PeekTokenType())
+                {
+                    case Token::Type::RParent:
+                    case Token::Type::EndOfFile:
+                        return;
+                }
+            }
+
+            // Otherwise, we have one or more arguments.
+            for (;;)
+            {
+                // Parse an argument.
+                MacroInvocation::Arg arg = parseMacroArg(macroInvocation);
+                macroInvocation->m_args.push_back(arg);
+
+                // After consuming one macro argument, we look at
+                // the next token to decide what to do.
+                switch (inputStreams_.PeekTokenType())
+                {
+                    case Token::Type::RParent:
+                    case Token::Type::EndOfFile:
+                        // if we see a closing `)` or the end of
+                        // input, we know we are done with arguments.
+                        return;
+
+                    case Token::Type::Comma:
+                        // If we see a comma, then we will
+                        // continue scanning for more macro
+                        // arguments.
+                        ReadRawToken();
+                        break;
+
+                    default:
+                        // Any other token represents a syntax error.
+                        //
+                        // TODO: We could try to be clever here in deciding
+                        // whether to break out of parsing macro arguments,
+                        // or whether to "recover" and continue to scan
+                        // ahead for a closing `)`. For now it is simplest
+                        // to just bail.
+
+                        //TODO
+                        const auto preprocessor = preprocessor_.lock();
+                        ASSERT(preprocessor)
+
+                        preprocessor->GetSink()->Diagnose(inputStreams_.PeekToken(), Diagnostics::errorParsingToMacroInvocationArgument, paramCount, macro->GetName());
+                        return;
+                }
             }
         }
 

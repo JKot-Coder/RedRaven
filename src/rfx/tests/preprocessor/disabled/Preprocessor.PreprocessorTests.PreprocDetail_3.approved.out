@@ -1,0 +1,7 @@
+Output:[
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\PreprocDetail_3.rfx(5): warning 15401: macro 'C' is not defined
+	#undef C
+	       ^
+]

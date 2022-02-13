@@ -1,0 +1,15 @@
+Output:[
+	Thing11
+	Yeppers
+	PasteConditional
+	28
+	37
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\_SpecialMacroComplex.rfx(27): error 15101: unknown preprocessor directive 'line'
+	#line 10
+	 ^~~~
+	..\src\rfx\tests\preprocessor\_SpecialMacroComplex.rfx(31): error 15101: unknown preprocessor directive 'line'
+	#line default
+	 ^~~~
+]

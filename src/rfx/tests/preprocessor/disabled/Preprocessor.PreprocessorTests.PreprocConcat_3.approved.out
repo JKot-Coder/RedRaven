@@ -1,0 +1,14 @@
+Output:[
+	(
+	a
+	,
+	a
+	)(
+	b,
+	b);
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\PreprocConcat_3.rfx(1): warning 15503: toking pasting with '##' resulted in the invalid token ')CONCAT'
+	#define CONCAT(a, b) a ## b
+	                       ^
+]

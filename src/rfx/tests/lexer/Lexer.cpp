@@ -1,6 +1,3 @@
-#include "rfx/core/FileSystem.hpp"
-#include "rfx/core/IncludeSystem.hpp"
-#include "rfx/core/SourceLocation.hpp"
 #include "rfx/include/rfx.hpp"
 
 #include "rfx/compiler/DiagnosticSink.hpp"
@@ -8,9 +5,15 @@
 
 #include "tests/lexer/LexerApprover.hpp"
 
-#include <catch2/catch.hpp>
+#include "rfx/core/FileSystem.hpp"
+#include "rfx/core/IncludeSystem.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
+#include "common/LinearAllocator.hpp"
+
+#include <catch2/catch.hpp>
 #include <filesystem>
+
 namespace fs = std::filesystem;
 
 namespace RR
@@ -39,24 +42,25 @@ namespace RR
                         if (ec)
                             return;
 
-                        RR::Rfx::PathInfo pathInfo;
+                        PathInfo pathInfo;
 
-                        const auto& fileSystem = std::make_shared<RR::Rfx::OSFileSystem>();
-                        const auto& includeSystem = std::make_shared<RR::Rfx::IncludeSystem>(fileSystem);
+                        const auto& fileSystem = std::make_shared<OSFileSystem>();
+                        const auto& includeSystem = std::make_shared<IncludeSystem>(fileSystem);
                         includeSystem->FindFile(testPath, testsPath, pathInfo);
-                        std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
+                        std::shared_ptr<SourceFile> sourceFile;
 
                         if (RFX_FAILED(includeSystem->LoadFile(pathInfo, sourceFile)))
                             return;
 
                         const auto& sourceView = SourceView::Create(sourceFile);
 
-                        auto diagnosticSink = std::make_shared<RR::Rfx::DiagnosticSink>();
+                        auto diagnosticSink = std::make_shared<DiagnosticSink>();
 
-                        auto bufferWriter = std::make_shared<RR::Rfx::BufferWriter>();
+                        auto bufferWriter = std::make_shared<BufferWriter>();
                         diagnosticSink->AddWriter(bufferWriter);
 
-                        const auto& lexer = std::make_shared<RR::Rfx::Lexer>(sourceView, diagnosticSink);
+                        const auto allocator = std::make_shared<LinearAllocator>(1024);
+                        const auto& lexer = std::make_shared<Lexer>(sourceView, allocator, diagnosticSink);
 
                         LexerApprover::verify(lexer, bufferWriter);
                     }

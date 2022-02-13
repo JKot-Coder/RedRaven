@@ -1,0 +1,16 @@
+Output:[
+	int ( intb)
+	{
+	    return b + ((1 ) );
+	}
+	int objectLikeMacroTest( int REC )
+	{
+	    return;
+	}
+	int mutuallyRecursiveMacroTest( int XYZ )
+	{
+	    return;
+	}
+]
+Diagnostic:[
+]

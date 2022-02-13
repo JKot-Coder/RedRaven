@@ -1,0 +1,7 @@
+Output:[
+	float foo(float y) { return 1.0 +y * 2.0; }
+	float bar() { return 0.0; }
+	float bar(float a) { return ( x ) - ( x )(a); }
+]
+Diagnostic:[
+]
