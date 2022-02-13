@@ -992,7 +992,7 @@ namespace RR
                 // from whatever stream is on top of the stack.
                 maybeBeginMacroInvocation();
 
-                const auto& result = lookaheadToken_;
+                const auto result = lookaheadToken_;
                 lookaheadToken_ = readTokenImpl();
                 return result;
             }
@@ -2757,8 +2757,8 @@ namespace RR
             auto tokenOpIndex = m_macroOpIndex;
 
             // Clone flags of token that "initiated" macro if we are at the beginning
-            if (tokenOpIndex == 0)
-                token.flags = initiatingMacroToken_.flags;
+            //if (tokenOpIndex == 0)
+           //     token.flags = initiatingMacroToken_.flags;
 
             // Once we've read that `token`, we need to work to establish or
             // re-establish our invariant, which we do by looping until we are

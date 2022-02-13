@@ -1,15 +1,15 @@
 Output:[
-	int ( intb)
+	int NO_EXPAND(intb)
 	{
-	    return b + ((1 ) );
+	    return b + ( (1 ) );
 	}
 	int objectLikeMacroTest( int REC )
 	{
-	    return;
+	    return REC;
 	}
 	int mutuallyRecursiveMacroTest( int XYZ )
 	{
-	    return;
+	    return XYZ;
 	}
 ]
 Diagnostic:[

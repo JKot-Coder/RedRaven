@@ -1,9 +1,10 @@
 Output:[
+	CONCAT
 	(
 	a
 	,
 	a
-	)(
+	)CONCAT(
 	b,
 	b);
 ]
