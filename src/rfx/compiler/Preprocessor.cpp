@@ -980,6 +980,7 @@ namespace RR
                 ASSERT(preprocessor.lock())
 
                 inputStreams_.Push(base);
+                lookaheadToken_ = readTokenImpl();
             }
 
             Token ReadToken() override
@@ -990,13 +991,16 @@ namespace RR
                 // invocation onto the input stack), and then reading a token
                 // from whatever stream is on top of the stack.
                 maybeBeginMacroInvocation();
-                return readTokenImpl();
+
+                const auto& result = lookaheadToken_;
+                lookaheadToken_ = readTokenImpl();
+                return result;
             }
 
             Token PeekToken() override
             {
                 maybeBeginMacroInvocation();
-                return inputStreams_.PeekToken();
+                return lookaheadToken_;
             }
 
             // The "raw" read operations on an expansion input strema bypass
@@ -1006,12 +1010,14 @@ namespace RR
             // preprocessor directives.
             Token ReadRawToken()
             {
-                return readTokenImpl();
+                const auto result = lookaheadToken_;
+                lookaheadToken_ = readTokenImpl();
+                return result;
             }
 
             Token PeekRawToken()
             {
-                return inputStreams_.PeekToken();
+                return lookaheadToken_;
             }
 
             Token::Type PeekRawTokenType() { return PeekRawToken().type; }
@@ -1049,10 +1055,13 @@ namespace RR
             std::weak_ptr<PreprocessorImpl> preprocessor_;
 
             /// The base stream that macro expansion is being applied to
-            std::shared_ptr<InputStream> base_ = nullptr;
+            std::shared_ptr<InputStream> base_;
 
             /// A stack of the base stream and active macro invocation in flight
             InputStreamStack inputStreams_;
+
+            /// One token of lookahead
+            Token lookaheadToken_;
 
             /// Token that "iniating" macro invocation in cases where multiple
             /// nested macro invocations might be in flight.
@@ -3257,7 +3266,7 @@ namespace RR
                 // member, so we can simply inspect it.
                 //
                 // We also care about where that token came from (which input stream).
-                Token token = PeekRawToken();
+                const auto& token = PeekRawToken();
 
                 // If the token is not an identifier, then it can't possibly name a macro.
                 if (token.type != Token::Type::Identifier)
@@ -3272,10 +3281,6 @@ namespace RR
 
                 if (!macro)
                     return;
-
-                // Consume initializatin macro
-                // Reading token also updates top stream in stack
-                readTokenImpl();
 
                 // Now we get to the slightly trickier cases.
                 //
@@ -3696,6 +3701,7 @@ namespace RR
         void ExpansionInputStream::pushMacroInvocation(const std::shared_ptr<MacroInvocation>& expansion)
         {
             inputStreams_.Push(expansion);
+            lookaheadToken_ = inputStreams_.ReadToken();
         }
     }
 }
