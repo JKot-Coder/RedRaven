@@ -37,10 +37,10 @@ namespace RR
             {
                 switch (ch)
                 { // clang-format off
-                        case 'e': case 'E': return (base == 10);
-                        case 'p': case 'P': return (base == 16);
-                        default: return false;
-                    } // clang-format on
+                    case 'e': case 'E': return (base == 10);
+                    case 'p': case 'P': return (base == 16);
+                    default: return false;
+                } // clang-format on
             }
 
             bool checkForEscapedNewline(const U8Char* cursor, const U8Char* end)
@@ -283,8 +283,8 @@ namespace RR
                     switch (peek())
                     {
                         // clang-format off
-                            case '0': case '1': case '2': case '3': case '4':
-                            case '5': case '6': case '7': case '8': case '9': // clang-format on
+                        case '0': case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7': case '8': case '9': // clang-format on
                             lexNumberAfterDecimalPoint(10);
                             return Token::Type::FloatingPointLiteral;
 
@@ -312,8 +312,8 @@ namespace RR
                 }
 
                 // clang-format off
-                    case '1': case '2': case '3': case '4': case '5':
-                    case '6': case '7': case '8': case '9': // clang-format on
+                case '1': case '2': case '3': case '4': case '5':
+                case '6': case '7': case '8': case '9': // clang-format on
                     return lexNumber(10);
 
                 case '0':
@@ -345,27 +345,27 @@ namespace RR
                             return lexNumber(2);
 
                         // clang-format off
-                            case '0': case '1': case '2': case '3': case '4':
-                            case '5': case '6': case '7': case '8': case '9': // clang-format on
+                        case '0': case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7': case '8': case '9': // clang-format on
                             diagnose(this, loc, humaneLoc, LexerDiagnostics::octalLiteral);
                             return lexNumber(8);
                     }
                 }
 
                 // clang-format off
-                    case 'a': case 'b': case 'c': case 'd': case 'e':
-                    case 'f': case 'g': case 'h': case 'i': case 'j':
-                    case 'k': case 'l': case 'm': case 'n': case 'o':
-                    case 'p': case 'q': case 'r': case 's': case 't':
-                    case 'u': case 'v': case 'w': case 'x': case 'y':
-                    case 'z':
-                    case 'A': case 'B': case 'C': case 'D': case 'E':
-                    case 'F': case 'G': case 'H': case 'I': case 'J':
-                    case 'K': case 'L': case 'M': case 'N': case 'O':
-                    case 'P': case 'Q': case 'R': case 'S': case 'T':
-                    case 'U': case 'V': case 'W': case 'X': case 'Y':
-                    case 'Z':
-                    case '_': // clang-format on
+                case 'a': case 'b': case 'c': case 'd': case 'e':
+                case 'f': case 'g': case 'h': case 'i': case 'j':
+                case 'k': case 'l': case 'm': case 'n': case 'o':
+                case 'p': case 'q': case 'r': case 's': case 't':
+                case 'u': case 'v': case 'w': case 'x': case 'y':
+                case 'z':
+                case 'A': case 'B': case 'C': case 'D': case 'E':
+                case 'F': case 'G': case 'H': case 'I': case 'J':
+                case 'K': case 'L': case 'M': case 'N': case 'O':
+                case 'P': case 'Q': case 'R': case 'S': case 'T':
+                case 'U': case 'V': case 'W': case 'X': case 'Y':
+                case 'Z':
+                case '_': // clang-format on
                     lexIdentifier();
                     return Token::Type::Identifier;
 
@@ -383,164 +383,163 @@ namespace RR
                     advance();
                     switch (peek())
                     { // clang-format off
-                            case '+': advance(); return Token::Type::OpInc;
-                            case '=': advance(); return Token::Type::OpAddAssign;
-                            default: return Token::Type::OpAdd;
-                        } // clang-format on
+                        case '+': advance(); return Token::Type::OpInc;
+                        case '=': advance(); return Token::Type::OpAddAssign;
+                        default: return Token::Type::OpAdd;
+                    } // clang-format on
 
                 case '-':
                     advance();
                     switch (peek())
                     { // clang-format off
-                            case '-': advance(); return Token::Type::OpDec;
-                            case '=': advance(); return Token::Type::OpSubAssign;
-                            case '>': advance(); return Token::Type::RightArrow;
-                            default: return Token::Type::OpSub;
-                        } // clang-format on
+                        case '-': advance(); return Token::Type::OpDec;
+                        case '=': advance(); return Token::Type::OpSubAssign;
+                        case '>': advance(); return Token::Type::RightArrow;
+                        default: return Token::Type::OpSub;
+                    } // clang-format on
 
                 case '*':
                     advance();
                     switch (peek())
                     { // clang-format off
-                            case '=': advance(); return Token::Type::OpMulAssign;
-                            default: return Token::Type::OpMul;
-                        } // clang-format on
+                        case '=': advance(); return Token::Type::OpMulAssign;
+                        default: return Token::Type::OpMul;
+                    } // clang-format on
 
                 case '/':
                     advance();
                     switch (peek())
                     { // clang-format off
-                            case '=': advance(); return Token::Type::OpDivAssign;
-                            case '/': handleLineComment(); return Token::Type::LineComment;
-                            case '*': handleBlockComment(); return Token::Type::BlockComment;
-                            default: return Token::Type::OpDiv;
-                        } // clang-format on
+                        case '=': advance(); return Token::Type::OpDivAssign;
+                        case '/': handleLineComment(); return Token::Type::LineComment;
+                        case '*': handleBlockComment(); return Token::Type::BlockComment;
+                        default: return Token::Type::OpDiv;
+                    } // clang-format on
 
-                    case '%':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '=': advance(); return Token::Type::OpModAssign;
-                            default: return Token::Type::OpMod;
-                        } // clang-format on
+                case '%':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '=': advance(); return Token::Type::OpModAssign;
+                        default: return Token::Type::OpMod;
+                    } // clang-format on
 
-                    case '|':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '|': advance(); return Token::Type::OpOr;
-                            case '=': advance(); return Token::Type::OpOrAssign;
-                            default: return Token::Type::OpBitOr;
-                        } // clang-format on
+                case '|':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '|': advance(); return Token::Type::OpOr;
+                        case '=': advance(); return Token::Type::OpOrAssign;
+                        default: return Token::Type::OpBitOr;
+                    } // clang-format on
 
-                    case '&':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '&': advance(); return Token::Type::OpAnd;
-                            case '=': advance(); return Token::Type::OpAndAssign;
-                            default: return Token::Type::OpBitAnd;
-                        } // clang-format on
+                case '&':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '&': advance(); return Token::Type::OpAnd;
+                        case '=': advance(); return Token::Type::OpAndAssign;
+                        default: return Token::Type::OpBitAnd;
+                    } // clang-format on
 
-                    case '^':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '=': advance(); return Token::Type::OpXorAssign;
-                            default: return Token::Type::OpBitXor;
-                        } // clang-format on
+                case '^':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '=': advance(); return Token::Type::OpXorAssign;
+                        default: return Token::Type::OpBitXor;
+                    } // clang-format on
 
-                    case '>':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '>':
-                                advance();
-                                switch (peek())
-                                {
-                                    case '=': advance(); return Token::Type::OpShrAssign;
-                                    default: return Token::Type::OpRsh;
-                                }
+                case '>':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '>':
+                            advance();
+                            switch (peek())
+                            {
+                                case '=': advance(); return Token::Type::OpShrAssign;
+                                default: return Token::Type::OpRsh;
+                            }
 
-                            case '=': advance(); return Token::Type::OpGeq;
-                            default: return Token::Type::OpGreater;
-                        } // clang-format on
+                        case '=': advance(); return Token::Type::OpGeq;
+                        default: return Token::Type::OpGreater;
+                    } // clang-format on
 
-                    case '<':
-                       advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '<':
-                                advance();
-                                switch (peek())
-                                {
-                                    case '=': advance(); return Token::Type::OpShlAssign;
-                                    default: return Token::Type::OpLsh;
-                                }
-                            case '=': advance(); return Token::Type::OpLeq;
-                            default: return Token::Type::OpLess;
-                        } // clang-format on
+                case '<':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '<':
+                            advance();
+                            switch (peek())
+                            {
+                                case '=': advance(); return Token::Type::OpShlAssign;
+                                default: return Token::Type::OpLsh;
+                            }
+                        case '=': advance(); return Token::Type::OpLeq;
+                        default: return Token::Type::OpLess;
+                    } // clang-format on
 
-                    case '=':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '=': advance(); return Token::Type::OpEql;
-                            default: return Token::Type::OpAssign;
-                        } // clang-format on
+                case '=':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '=': advance(); return Token::Type::OpEql;
+                        default: return Token::Type::OpAssign;
+                    } // clang-format on
 
-                    case '!':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '=': advance(); return Token::Type::OpNeq;
-                            default: return Token::Type::OpNot;
-                        } // clang-format on
+                case '!':
+                    advance();
+                    switch (peek())
+                    { // clang-format off
+                        case '=': advance(); return Token::Type::OpNeq;
+                        default: return Token::Type::OpNot;
+                    } // clang-format on
 
-                    case '#':
-                        advance();
+                case '#':
+                    advance();
 
-                        switch (peek())
-                        { // clang-format off
-                            case '#': advance(); return Token::Type::PoundPound;
-                            default: return Token::Type::Pound;
-                        } // clang-format on
+                    switch (peek())
+                    { // clang-format off
+                        case '#': advance(); return Token::Type::PoundPound;
+                        default: return Token::Type::Pound;
+                    } // clang-format on
 
-                    case '~':
-                        advance();
-                        return Token::Type::OpBitNot;
+                case '~':
+                    advance();
+                    return Token::Type::OpBitNot;
 
-                    case ':':
+                case ':':
+                {
+                    advance();
+                    if (peek() == ':')
                     {
                         advance();
-                        if (peek() == ':')
-                        {
-                            advance();
-                            return Token::Type::Scope;
-                        }
-                        return Token::Type::Colon;
+                        return Token::Type::Scope;
                     }
-                    // clang-format off
-                    case ';': advance(); return Token::Type::Semicolon;
-                    case ',': advance(); return Token::Type::Comma;
+                    return Token::Type::Colon;
+                }
+                // clang-format off
+                case ';': advance(); return Token::Type::Semicolon;
+                case ',': advance(); return Token::Type::Comma;
 
-                    case '{': advance(); return Token::Type::LBrace;
-                    case '}': advance(); return Token::Type::RBrace;
-                    case '[': advance(); return Token::Type::LBracket;
-                    case ']': advance(); return Token::Type::RBracket;
-                    case '(': advance(); return Token::Type::LParent;
-                    case ')': advance(); return Token::Type::RParent;
+                case '{': advance(); return Token::Type::LBrace;
+                case '}': advance(); return Token::Type::RBrace;
+                case '[': advance(); return Token::Type::LBracket;
+                case ']': advance(); return Token::Type::RBracket;
+                case '(': advance(); return Token::Type::LParent;
+                case ')': advance(); return Token::Type::RParent;
 
-                    case '?': advance(); return Token::Type::QuestionMark;
-                    case '@': advance(); return Token::Type::At;
-                    case '$': advance(); return Token::Type::Dollar; // clang-format on
+                case '?': advance(); return Token::Type::QuestionMark;
+                case '@': advance(); return Token::Type::At;
+                case '$': advance(); return Token::Type::Dollar; // clang-format on
             }
 
             // TODO(tfoley): If we ever wanted to support proper Unicode
             // in identifiers, etc., then this would be the right place
             // to perform a more expensive dispatch based on the actual
             // code point (and not just the first byte).
-
             {
                 // If none of the above cases matched, then we have an
                 // unexpected/invalid character.
@@ -710,25 +709,25 @@ namespace RR
                 int32_t digitVal = 0;
                 switch (ch)
                 { // clang-format off
-                        case '0': case '1': case '2': case '3': case '4':
-                        case '5': case '6': case '7': case '8': case '9':
-                            digitVal = ch - '0';
-                            break;
+                    case '0': case '1': case '2': case '3': case '4':
+                    case '5': case '6': case '7': case '8': case '9':
+                        digitVal = ch - '0';
+                        break;
 
-                        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
-                            if (base <= 10) return;
-                            digitVal = 10 + ch - 'a';
-                            break;
+                    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+                        if (base <= 10) return;
+                        digitVal = 10 + ch - 'a';
+                        break;
 
-                        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-                            if (base <= 10) return;
-                            digitVal = 10 + ch - 'A';
-                            break;
+                    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+                        if (base <= 10) return;
+                        digitVal = 10 + ch - 'A';
+                        break;
 
-                        default:
-                            // Not more digits!
-                            return;
-                    } // clang-format on
+                    default:
+                        // Not more digits!
+                        return;
+                } // clang-format on
 
                 if (digitVal >= int32_t(base))
                 {
@@ -838,17 +837,10 @@ namespace RR
 
                         switch (peek())
                         {
-                            case '\'':
-                            case '\"':
-                            case '\\':
-                            case '?':
-                            case 'a':
-                            case 'b':
-                            case 'f':
-                            case 'n':
-                            case 'r':
-                            case 't':
-                            case 'v':
+                            // clang-format off
+                            case '\'': case '\"': case '\\': case '?':
+                            case 'a':  case 'b':  case 'f':  case 'n':
+                            case 'r':  case 't':  case 'v': // clang-format on
                                 advance();
                                 break;
 
