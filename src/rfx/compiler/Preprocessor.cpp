@@ -17,256 +17,20 @@ namespace RR
 {
     namespace Rfx
     {
-        namespace
-        {
-            U8String getFileNameTokenValue(const Token& token)
-            {
-                const UnownedStringSlice& content = token.stringSlice;
-
-                // A file name usually doesn't process escape sequences
-                // (this is import on Windows, where `\\` is a valid
-                // path separator character).
-
-                // Just trim off the first and last characters to remove the quotes
-                // (whether they were `""` or `<>`.
-                return U8String(content.Begin() + 1, content.End() - 1);
-            }
-
-            U8String getStringLiteralTokenValue(const Token& token)
-            {
-                ASSERT(token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral);
-
-                const UnownedStringSlice content = token.stringSlice;
-
-                auto cursor = utf8::iterator<const char*>(content.Begin(), content.Begin(), content.End());
-                auto end = utf8::iterator<const char*>(content.End(), content.Begin(), content.End());
-
-                auto quote = *cursor++;
-                ASSERT(quote == '\'' || quote == '"');
-
-                U8String result;
-                for (;;)
-                {
-                    ASSERT(cursor != end);
-
-                    char32_t ch = *cursor++;
-
-                    // If we see a closing quote, then we are at the end of the string literal
-                    if (ch == quote)
-                    {
-                        ASSERT(cursor == end);
-                        return result;
-                    }
-
-                    // Characters that don't being escape sequences are easy;
-                    // just append them to the buffer and move on.
-                    if (ch != '\\')
-                    {
-                        utf8::append(ch, result);
-                        continue;
-                    }
-
-                    // Now we look at another character to figure out the kind of
-                    // escape sequence we are dealing with:
-                    char32_t d = *cursor++;
-
-                    switch (d)
-                    {
-                        // Simple characters that just needed to be escaped
-                        case '\'':
-                        case '\"':
-                        case '\\':
-                        case '?':
-                            utf8::append(d, result);
-                            continue;
-
-                        // Traditional escape sequences for special characters
-                        // clang-format off
-                        case 'a': utf8::append('\a', result); continue;
-                        case 'b': utf8::append('\b', result); continue;
-                        case 'f': utf8::append('\f', result); continue;
-                        case 'n': utf8::append('\n', result); continue;
-                        case 'r': utf8::append('\r', result); continue;
-                        case 't': utf8::append('\t', result); continue;
-                        case 'v': utf8::append('\v', result); continue;
-                        // clang-format on
-
-                        // clang-format off
-                        // Octal escape: up to 3 characterws
-                        case '0': case '1': case '2': case '3': case '4':
-                        case '5': case '6': case '7':
-                        { // clang-format on
-                            cursor--;
-                            int value = 0;
-                            for (int ii = 0; ii < 3; ++ii)
-                            {
-                                d = *cursor;
-                                if (('0' <= d) && (d <= '7'))
-                                {
-                                    value = value * 8 + (d - '0');
-
-                                    cursor++;
-                                    continue;
-                                }
-                                else
-                                    break;
-                            }
-
-                            // TODO: add support for appending an arbitrary code point?
-                            utf8::append(value, result);
-                            continue;
-                        }
-
-                        // Hexadecimal escape: any number of characters
-                        case 'x':
-                        {
-                            char32_t value = 0;
-                            for (;;)
-                            {
-                                d = *cursor++;
-                                int digitValue = 0;
-                                if (('0' <= d) && (d <= '9'))
-                                {
-                                    digitValue = d - '0';
-                                }
-                                else if (('a' <= d) && (d <= 'f'))
-                                {
-                                    digitValue = d - 'a';
-                                }
-                                else if (('A' <= d) && (d <= 'F'))
-                                {
-                                    digitValue = d - 'A';
-                                }
-                                else
-                                {
-                                    cursor--;
-                                    break;
-                                }
-
-                                value = value * 16 + digitValue;
-                            }
-
-                            // TODO: add support for appending an arbitrary code point?
-                            utf8::append(value, result);
-                            continue;
-                        }
-
-                            // TODO: Unicode escape sequences
-                    }
-                }
-            }
-
-            // Determine the precedence level of an infix operator
-            // for use in parsing preprocessor conditionals.
-            int32_t GetInfixOpPrecedence(Token const& opToken)
-            {
-                // If token is on another line, it is not part of the
-                // expression
-                if (IsSet(opToken.flags, Token::Flags::AtStartOfLine))
-                    return -1;
-
-                // otherwise we look at the token type to figure
-                // out what precedence it should be parse with
-                switch (opToken.type)
-                {
-                    default:
-                        // tokens that aren't infix operators should
-                        // cause us to stop parsing an expression
-                        return -1;
-
-                    // clang-format off
-                    case Token::Type::OpMul:     return 10;  
-                    case Token::Type::OpDiv:     return 10;
-                    case Token::Type::OpMod:     return 10;
-
-                    case Token::Type::OpAdd:     return 9;
-                    case Token::Type::OpSub:     return 9;
-
-                    case Token::Type::OpLsh:     return 8;
-                    case Token::Type::OpRsh:     return 8;
-
-                    case Token::Type::OpLess:    return 7;
-                    case Token::Type::OpGreater: return 7;
-                    case Token::Type::OpLeq:     return 7;
-                    case Token::Type::OpGeq:     return 7;
-
-                    case Token::Type::OpEql:     return 6;
-                    case Token::Type::OpNeq:     return 6;
-
-                    case Token::Type::OpBitAnd:  return 5;
-                    case Token::Type::OpBitOr:   return 4;
-                    case Token::Type::OpBitXor:  return 3;
-                    case Token::Type::OpAnd:     return 2;
-                    case Token::Type::OpOr:      return 1; // clang-format on
-                }
-            };
-        }
-
-        struct MacroInvocation;
         struct InputFile;
-
-        //
-        // Utility Types
-        //
-
-        /// A preprocessor conditional construct that is currently active.
-        ///
-        /// This type handles preprocessor conditional structures like
-        /// `#if` / `#elif` / `#endif`. A single top-level input file
-        /// will have some number of "active" conditionals at one time,
-        /// based on the nesting depth of those conditional structures.
-        ///
-        /// Each conditional may be in a distinct state, which decides
-        /// whether tokens should be skipped or not.
-        struct Conditional
-        {
-            /// A state that a preprocessor conditional can be in.
-            ///
-            /// The state of a conditional depends both on what directives
-            /// have been encountered so far (e.g., just an `#if`, or an
-            /// `#if` and then an `#else`), as well as what the value
-            /// of any conditions related to those directives have been.
-            enum class State
-            {
-                /// Indicates that this conditional construct has not yet encountered a branch with a `true` condition.
-                /// The preprocessor should skip tokens, but should keep scanning and evaluating branch conditions.
-                Before,
-
-                /// Indicates that this conditional construct is nested inside the branch with a `true` condition
-                /// The preprocessor should not skip tokens, and should not bother evaluating subsequent branch conditions.
-                During,
-
-                /// Indicates that this conditional has laready seen the branch with a `true` condition
-                /// The preprocessor should skip tokens, and should not bother evaluating subsequent branch conditions.
-                After,
-            };
-
-            /// The next outer conditional in the current input file, or nullptr if this is the outer-most conditional.
-            std::shared_ptr<Conditional> parent;
-
-            /// The token that started the conditional (e.g., an `#if` or `#ifdef`)
-            Token ifToken;
-
-            /// The `#else` directive token, if one has been seen (otherwise has `TokenType::Unknown`)
-            Token elseToken;
-
-            /// The state of the conditional
-            State state;
-        };
+        struct MacroInvocation;
 
         struct DirectiveContext
         {
+            // Get the name of the directive
+            U8String GetDirectiveName() { return token.GetContentString(); }
+
+        public:
             Token token;
             std::shared_ptr<InputFile> inputFile;
             bool parseError = false;
             bool haveDoneEndOfDirectiveChecks = false;
         };
-
-        // Get the name of the directive being parsed.
-        U8String getDirectiveName(const DirectiveContext& context)
-        {
-            return context.token.GetContentString();
-        }
 
         //
         // Input Streams
@@ -428,7 +192,6 @@ namespace RR
             ///
             /// At least one input stream must have been `push()`ed before
             /// it is valid to call this operation.
-            ///
             Token PeekToken()
             {
                 // The logic here mirrors `readToken()`, but we do not
@@ -547,7 +310,7 @@ namespace RR
 
         private:
             /// The top of the stack of input streams
-            std::shared_ptr<InputStream> m_top = nullptr;
+            std::shared_ptr<InputStream> m_top;
         };
 
         // The simplest types of input streams are those that simply "play back"
@@ -666,20 +429,7 @@ namespace RR
                 if (isClosed_)
                     return lookaheadToken_;
 
-                for (;;)
-                {
-                    Token token = lexer_->ReadToken();
-                    switch (token.type)
-                    {
-                        default:
-                            return token;
-
-                        case Token::Type::WhiteSpace:
-                        case Token::Type::BlockComment:
-                        case Token::Type::LineComment:
-                            break;
-                    }
-                }
+                return lexer_->ReadToken();
             }
 
         private:
@@ -690,6 +440,115 @@ namespace RR
             Token lookaheadToken_;
 
             bool isClosed_ = false;
+        };
+
+        // Playing back macro bodies for macro invocations is one part of the expansion process, and the other
+        // is scanning through a token stream and identifying macro invocations that need to be expanded.
+        // Rather than have one stream type try to handle both parts of the process, we use a distinct type
+        // to handle scanning for macro invocations.
+        //
+        // By using two distinct stream types we are able to handle intriciate details of the C/C++ preprocessor
+        // like how the argument tokens to a macro are expanded before they are subsituted into the body, and then
+        // are subject to another round of macro expansion *after* substitution.
+
+        /// An input stream that applies macro expansion to another stream
+        struct ExpansionInputStream : InputStream
+        {
+            /// Construct an input stream that applies macro expansion to `base`
+            ExpansionInputStream(
+                const std::weak_ptr<PreprocessorImpl>& preprocessor,
+                const std::shared_ptr<InputStream>& base)
+                : preprocessor_(preprocessor), base_(base)
+            {
+                ASSERT(preprocessor.lock())
+
+                inputStreams_.Push(base);
+                lookaheadToken_ = readTokenImpl();
+            }
+
+            Token ReadToken() override
+            {
+                // Reading a token from an expansion strema amounts to checking
+                // whether the current state of the input stream marks the start
+                // of a macro invocation (in which case we push the resulting
+                // invocation onto the input stack), and then reading a token
+                // from whatever stream is on top of the stack.
+                maybeBeginMacroInvocation();
+
+                const auto result = lookaheadToken_;
+                lookaheadToken_ = readTokenImpl();
+                return result;
+            }
+
+            Token PeekToken() override
+            {
+                maybeBeginMacroInvocation();
+                return lookaheadToken_;
+            }
+
+            // The "raw" read operations on an expansion input strema bypass
+            // macro expansion and just read whatever token is next in the
+            // input. These are useful for the top-level input stream of
+            // a file, since we often want to read unexpanded tokens for
+            // preprocessor directives.
+            Token ReadRawToken()
+            {
+                const auto result = lookaheadToken_;
+                lookaheadToken_ = readTokenImpl();
+                return result;
+            }
+
+            Token PeekRawToken()
+            {
+                return lookaheadToken_;
+            }
+
+            Token::Type PeekRawTokenType() { return PeekRawToken().type; }
+
+            void ForceClose() override
+            {
+                //TOOTODO
+                // TODO
+                return;
+            }
+
+        private:
+            /// Read a token, bypassing lookahead
+            Token readTokenImpl()
+            {
+                return inputStreams_.ReadToken();
+            }
+
+            /// Look at current input state and decide whether it represents a macro invocation
+            void maybeBeginMacroInvocation();
+
+            /// Parse one argument to a macro invocation
+            // MacroInvocation::Arg parseMacroArg(const std::shared_ptr<MacroInvocation>& macroInvocation);
+
+            /// Parse all arguments to a macro invocation
+            /// void parseMacroArgs(
+            //    const std::shared_ptr<MacroDefinition>& macro,
+            //    const std::shared_ptr<MacroInvocation>& macroInvocation);
+
+            /// Push the given macro invocation into the stack of input streams
+            void pushMacroInvocation(const std::shared_ptr<MacroInvocation>& macroInvocation);
+
+        private:
+            ///  TODO comment
+            std::weak_ptr<PreprocessorImpl> preprocessor_;
+
+            /// The base stream that macro expansion is being applied to
+            std::shared_ptr<InputStream> base_;
+
+            /// A stack of the base stream and active macro invocation in flight
+            InputStreamStack inputStreams_;
+
+            /// One token of lookahead
+            Token lookaheadToken_;
+
+            /// Token that "iniating" macro invocation in cases where multiple
+            /// nested macro invocations might be in flight.
+            Token initiatingMacroToken_;
         };
 
         // TODO comment
@@ -784,25 +643,16 @@ namespace RR
             };
 
         public:
-            U8String GetName()
-            {
-                return name;
-            }
+            U8String GetName() { return name; }
 
-            Token GetNameToken()
-            {
-                return nameToken;
-            }
+            Token GetNameToken() { return nameToken; }
             /*
             SourceLoc GetLoc()
             {
                 return nameAndLoc.loc;
             }*/
 
-            bool IsBuiltin()
-            {
-                return flavor == MacroDefinition::Flavor::BuiltinObjectLike;
-            }
+            bool IsBuiltin() { return flavor == MacroDefinition::Flavor::BuiltinObjectLike; }
 
             /// Is this a variadic macro?
             bool IsVariadic() const
@@ -837,6 +687,268 @@ namespace RR
 
             /// Parameters of the macro, in case of a function-like macro
             std::vector<Param> params;
+        };
+
+        class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
+        {
+        public:
+            typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
+            typedef void (PreprocessorImpl::*HandlePragmaDirectiveFunc)(DirectiveContext& context, const Token& subDirectiveToken);
+
+            struct Directive
+            {
+                enum class Flags : uint32_t
+                {
+                    None = 0,
+
+                    // Should this directive be handled even when skipping disbaled code?
+                    ProcessWhenSkipping = 1 << 0,
+
+                    /// Allow the handler for this directive to advance past the
+                    /// directive token itself, so that it can control lexer behavior
+                    /// more closely.
+                    DontConsumeDirectiveAutomatically = 1 << 1,
+                };
+
+                Flags flags;
+                HandleDirectiveFunc function;
+            };
+
+            struct PragmaDirective
+            {
+                HandlePragmaDirectiveFunc function;
+            };
+
+        public:
+            PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+
+            std::vector<Token> ReadAllTokens();
+
+            // Find the currently-defined macro of the given name, or return nullptr
+            std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
+
+            std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
+            std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
+            std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; }
+
+            // Push a new input file onto the input stack of the preprocessor
+            void PushInputFile(const std::shared_ptr<InputFile>& inputFile);
+
+        private:
+            int32_t tokenToInt(const Token& token, int radix);
+            uint32_t tokenToUInt(const Token& str, int radix);
+
+            Token readToken();
+
+            // Read one token, with macro-expansion, without going past the end of the line.
+            inline Token advanceToken();
+
+            // Read one raw token, without going past the end of the line.
+            inline Token advanceRawToken();
+
+            // Peek one raw token in a directive, without going past the end of the line.
+            inline Token peekRawToken();
+
+            // Peek next raw token type, without going past the end of the line.
+            inline Token::Type peekRawTokenType() { return peekRawToken().type; }
+
+            // Skip to the end of the line (useful for recovering from errors in a directive)
+            void skipToEndOfLine();
+
+            // Determine if we have read everything on the directive's line.
+            inline bool isEndOfLine();
+
+            // Pop the inner-most input file from the stack of input files
+            void popInputFile();
+
+            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+
+            U8String readDirectiveMessage();
+
+            void beginConditional(const DirectiveContext& context, bool enable);
+
+            void handleDirective();
+            void handleInvalidDirective(DirectiveContext& directiveContext);
+
+            void handleIfDirective(DirectiveContext& directiveContext);
+            void handleIfdefDirective(DirectiveContext& directiveContext);
+            void handleIfndefDirective(DirectiveContext& directiveContext);
+            void handleElseDirective(DirectiveContext& directiveContext);
+            void handleElifDirective(DirectiveContext& directiveContext);
+            void handleEndIfDirective(DirectiveContext& directiveContext);
+
+            void handleDefineDirective(DirectiveContext& directiveContext);
+            void handleUndefDirective(DirectiveContext& directiveContext);
+            void handleWarningDirective(DirectiveContext& directiveContext);
+            void handleErrorDirective(DirectiveContext& directiveContext);
+            void handleIncludeDirective(DirectiveContext& directiveContext);
+            void handleLineDirective(DirectiveContext& directiveContext);
+            void handlePragmaDirective(DirectiveContext& directiveContext);
+
+            void handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
+            void handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
+
+            // Helper routine to check that we find the end of a directive where
+            // we expect it.
+            //
+            // Most directives do not need to call this directly, since we have
+            // a catch-all case in the main `handleDirective()` function.
+            // `#include` and `#line` case will call it directly to avoid complications
+            // when it switches the input stream.
+            void expectEndOfDirective(DirectiveContext& context);
+
+            void parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
+                               const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
+
+        private:
+            // Look up the directive with the given name.
+            static Directive findDirective(const U8String& name)
+            {
+                auto search = directiveMap.find(name);
+
+                if (search == directiveMap.end())
+                    return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
+
+                return search->second;
+            }
+
+            // Look up the `#pragma` directive with the given name.
+            static PragmaDirective findPragmaDirective(const U8String& name)
+            {
+                auto search = paragmaDirectiveMap.find(name);
+
+                if (search == paragmaDirectiveMap.end())
+                    return { &PreprocessorImpl::handleUnknownPragmaDirective };
+
+                return search->second;
+            }
+
+        private:
+            std::shared_ptr<DiagnosticSink> sink_;
+            std::shared_ptr<IncludeSystem> includeSystem_;
+            std::shared_ptr<LinearAllocator> allocator_;
+
+            /// A stack of "active" input files
+            std::shared_ptr<InputFile> currentInputFile_;
+
+            /// The unique identities of any paths that have issued `#pragma once` directives to
+            /// stop them from being included again.
+            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
+
+            /// A pre-allocated token that can be returned to represent end-of-input situations.
+            Token endOfFileToken_;
+
+            /// Macros defined in this environment
+            std::unordered_map<U8String, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
+
+        private:
+            static Token dummyToken;
+            static const std::unordered_map<U8String, Directive> directiveMap;
+            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
+        };
+
+        Token PreprocessorImpl::dummyToken;
+
+        const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
+            // { "if", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective } },
+            // { "ifdef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective } },
+            // { "ifndef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfndefDirective } },
+            // { "else", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElseDirective } },
+            // { "elif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElifDirective } },
+            // { "endif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleEndIfDirective } },
+            // { "include", { Directive::Flags::None, &PreprocessorImpl::handleIncludeDirective } },
+            { "define", { Directive::Flags::None, &PreprocessorImpl::handleDefineDirective } },
+            // { "undef", { Directive::Flags::None, &PreprocessorImpl::handleUndefDirective } },
+            //{ "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
+            //{ "error", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleErrorDirective } },
+            // { "line", &PreprocessorImpl::handleLineDirective },
+            // { "pragma", { Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective } },
+        };
+
+        const std::unordered_map<U8String, PreprocessorImpl::PragmaDirective> PreprocessorImpl::paragmaDirectiveMap = {
+            // { "once", { &PreprocessorImpl::handlePragmaOnceDirective } },
+        };
+
+        // The top-level flow of the preprocessor is that it processed *input files*
+        // An input file manages both the expansion of lexed tokens
+        // from the source file, and also state related to preprocessor
+        // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
+        //
+        // Input files are a bit like token streams, but they don't fit neatly into
+        // the same abstraction due to all the special-case handling that directives
+        // and conditionals require.
+        struct InputFile
+        {
+            InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+                : sourceView_(sourceView)
+            {
+                ASSERT(sourceView)
+                ASSERT(preprocessorImpl.lock())
+
+                lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetAllocator(), preprocessorImpl.lock()->GetSink());
+                expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
+            }
+
+            /// Is this input file skipping tokens (because the current location is inside a disabled condition)?
+            /* bool IsSkipping() const
+            {
+                // If we are not inside a preprocessor conditional, then don't skip
+                const auto conditional = conditional_;
+                if (!conditional)
+                    return false;
+
+                // skip tokens unless the conditional is inside its `true` case
+                return conditional->state != Conditional::State::During;
+            }*/
+
+            /// Get the inner-most conditional that is in efffect at the current location
+            //  std::shared_ptr<Conditional> GetInnerMostConditional() { return conditional_; }
+
+            /// Push a new conditional onto the stack of conditionals in effect
+            /* void PushConditional(const std::shared_ptr<Conditional>& conditional)
+            {
+                conditional->parent = conditional_;
+                conditional_ = conditional;
+            }
+            */
+
+            /// Pop the inner-most conditional
+            /* void PopConditional()
+            {
+                const auto conditional = conditional_;
+                ASSERT(conditional)
+                conditional_ = conditional->parent;
+            }*/
+
+            /// Read one token using all the expansion and directive-handling logic
+            //inline Token ReadToken() { return expansionInputStream_->ReadToken(); }
+
+            //inline Lexer& GetLexer() { return lexerStream_->GetLexer(); }
+            inline std::shared_ptr<SourceView> GetSourceView() { return sourceView_; }
+            // inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() { return expansionInputStream_; }
+
+        private:
+            friend class PreprocessorImpl;
+
+            /// The next outer input file
+            ///
+            /// E.g., if this file was `#include`d from another file, then `m_parent` would be
+            /// the file with the `#include` directive.
+            std::shared_ptr<InputFile> parent_;
+
+            /// TODO comment
+            std::shared_ptr<SourceView> sourceView_;
+
+            /// The inner-most preprocessor conditional active for this file.
+            //std::shared_ptr<Conditional> conditional_;
+
+            /// The lexer input stream that unexpanded tokens will be read from
+            std::shared_ptr<LexerInputStream> lexerStream_;
+
+            /// An input stream that applies macro expansion to `lexerStream_`
+            std::shared_ptr<ExpansionInputStream> expansionInputStream_;
         };
 
         // When a macro is invoked, we conceptually want to "play back" the ops
@@ -959,1748 +1071,6 @@ namespace RR
             bool isClosed_ = false;
         };
 
-        // Playing back macro bodies for macro invocations is one part of the expansion process, and the other
-        // is scanning through a token stream and identifying macro invocations that need to be expanded.
-        // Rather than have one stream type try to handle both parts of the process, we use a distinct type
-        // to handle scanning for macro invocations.
-        //
-        // By using two distinct stream types we are able to handle intriciate details of the C/C++ preprocessor
-        // like how the argument tokens to a macro are expanded before they are subsituted into the body, and then
-        // are subject to another round of macro expansion *after* substitution.
-
-        /// An input stream that applies macro expansion to another stream
-        struct ExpansionInputStream : InputStream
-        {
-            /// Construct an input stream that applies macro expansion to `base`
-            ExpansionInputStream(
-                const std::weak_ptr<PreprocessorImpl>& preprocessor,
-                const std::shared_ptr<InputStream>& base)
-                : preprocessor_(preprocessor), base_(base)
-            {
-                ASSERT(preprocessor.lock())
-
-                inputStreams_.Push(base);
-                lookaheadToken_ = readTokenImpl();
-            }
-
-            Token ReadToken() override
-            {
-                // Reading a token from an expansion strema amounts to checking
-                // whether the current state of the input stream marks the start
-                // of a macro invocation (in which case we push the resulting
-                // invocation onto the input stack), and then reading a token
-                // from whatever stream is on top of the stack.
-                maybeBeginMacroInvocation();
-
-                const auto result = lookaheadToken_;
-                lookaheadToken_ = readTokenImpl();
-                return result;
-            }
-
-            Token PeekToken() override
-            {
-                maybeBeginMacroInvocation();
-                return lookaheadToken_;
-            }
-
-            // The "raw" read operations on an expansion input strema bypass
-            // macro expansion and just read whatever token is next in the
-            // input. These are useful for the top-level input stream of
-            // a file, since we often want to read unexpanded tokens for
-            // preprocessor directives.
-            Token ReadRawToken()
-            {
-                const auto result = lookaheadToken_;
-                lookaheadToken_ = readTokenImpl();
-                return result;
-            }
-
-            Token PeekRawToken()
-            {
-                return lookaheadToken_;
-            }
-
-            Token::Type PeekRawTokenType() { return PeekRawToken().type; }
-
-            void ForceClose() override
-            {
-                //TOOTODO
-                // TODO
-                return;
-            }
-
-        private:
-            /// Read a token, bypassing lookahead
-            Token readTokenImpl()
-            {
-                return inputStreams_.ReadToken();
-            }
-
-            /// Look at current input state and decide whether it represents a macro invocation
-            void maybeBeginMacroInvocation();
-
-            /// Parse one argument to a macro invocation
-            MacroInvocation::Arg parseMacroArg(const std::shared_ptr<MacroInvocation>& macroInvocation);
-
-            /// Parse all arguments to a macro invocation
-            void parseMacroArgs(
-                const std::shared_ptr<MacroDefinition>& macro,
-                const std::shared_ptr<MacroInvocation>& macroInvocation);
-
-            /// Push the given macro invocation into the stack of input streams
-            void pushMacroInvocation(const std::shared_ptr<MacroInvocation>& macroInvocation);
-
-        private:
-            ///  TODO comment
-            std::weak_ptr<PreprocessorImpl> preprocessor_;
-
-            /// The base stream that macro expansion is being applied to
-            std::shared_ptr<InputStream> base_;
-
-            /// A stack of the base stream and active macro invocation in flight
-            InputStreamStack inputStreams_;
-
-            /// One token of lookahead
-            Token lookaheadToken_;
-
-            /// Token that "iniating" macro invocation in cases where multiple
-            /// nested macro invocations might be in flight.
-            Token initiatingMacroToken_;
-        };
-
-        using PreprocessorExpressionValue = int32_t;
-
-        class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
-        {
-        public:
-            typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
-            typedef void (PreprocessorImpl::*HandlePragmaDirectiveFunc)(DirectiveContext& context, const Token& subDirectiveToken);
-
-            struct Directive
-            {
-                enum class Flags : uint32_t
-                {
-                    None = 0,
-
-                    // Should this directive be handled even when skipping disbaled code?
-                    ProcessWhenSkipping = 1 << 0,
-
-                    /// Allow the handler for this directive to advance past the
-                    /// directive token itself, so that it can control lexer behavior
-                    /// more closely.
-                    DontConsumeDirectiveAutomatically = 1 << 1,
-                };
-
-                Flags flags;
-                HandleDirectiveFunc function;
-            };
-
-            struct PragmaDirective
-            {
-                HandlePragmaDirectiveFunc function;
-            };
-
-        public:
-            PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
-                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
-
-            std::vector<Token> ReadAllTokens();
-
-            // Find the currently-defined macro of the given name, or return nullptr
-            std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
-
-            std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
-            std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
-            std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; }
-
-            // Push a new input file onto the input stack of the preprocessor
-            void PushInputFile(const std::shared_ptr<InputFile>& inputFile);
-
-        private:
-            int32_t tokenToInt(const Token& token, int radix);
-            uint32_t tokenToUInt(const Token& str, int radix);
-
-            Token readToken();
-
-            // Pop the inner-most input file from the stack of input files
-            void popInputFile();
-
-            inline Token peekRawToken();
-            inline Token::Type peekRawTokenType() { return peekRawToken().type; }
-
-            inline Token peekToken();
-            inline Token::Type peekTokenType() { return peekToken().type; }
-
-            // Read one token, with macro-expansion, without going past the end of the line.
-            Token advanceToken();
-
-            // Read one raw token, without going past the end of the line.
-            Token advanceRawToken();
-
-            // Skip to the end of the line (useful for recovering from errors in a directive)
-            void skipToEndOfLine();
-
-            // Determine if we have read everything on the directive's line.
-            bool isEndOfLine();
-
-            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
-            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
-
-            U8String readDirectiveMessage();
-
-            void beginConditional(const DirectiveContext& context, bool enable);
-
-            void handleDirective();
-            void handleInvalidDirective(DirectiveContext& directiveContext);
-
-            void handleIfDirective(DirectiveContext& directiveContext);
-            void handleIfdefDirective(DirectiveContext& directiveContext);
-            void handleIfndefDirective(DirectiveContext& directiveContext);
-            void handleElseDirective(DirectiveContext& directiveContext);
-            void handleElifDirective(DirectiveContext& directiveContext);
-            void handleEndIfDirective(DirectiveContext& directiveContext);
-
-            void handleDefineDirective(DirectiveContext& directiveContext);
-            void handleUndefDirective(DirectiveContext& directiveContext);
-            void handleWarningDirective(DirectiveContext& directiveContext);
-            void handleErrorDirective(DirectiveContext& directiveContext);
-            void handleIncludeDirective(DirectiveContext& directiveContext);
-            void handleLineDirective(DirectiveContext& directiveContext);
-            void handlePragmaDirective(DirectiveContext& directiveContext);
-
-            void handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
-            void handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
-
-            PreprocessorExpressionValue evaluateInfixOp(
-                const DirectiveContext& context,
-                const Token& opToken,
-                PreprocessorExpressionValue left,
-                PreprocessorExpressionValue right);
-
-            PreprocessorExpressionValue skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext);
-            PreprocessorExpressionValue parseAndEvaluateExpression(DirectiveContext& directiveContext);
-            PreprocessorExpressionValue parseAndEvaluateUnaryExpression(DirectiveContext& directiveContext);
-            PreprocessorExpressionValue parseAndEvaluateInfixExpressionWithPrecedence(
-                DirectiveContext& context,
-                PreprocessorExpressionValue left,
-                int32_t precedence);
-
-            // Helper routine to check that we find the end of a directive where
-            // we expect it.
-            //
-            // Most directives do not need to call this directly, since we have
-            // a catch-all case in the main `handleDirective()` function.
-            // `#include` and `#line` case will call it directly to avoid complications
-            // when it switches the input stream.
-            void expectEndOfDirective(DirectiveContext& context);
-
-            void parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
-                               const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
-
-        private:
-            std::shared_ptr<DiagnosticSink> sink_;
-            std::shared_ptr<IncludeSystem> includeSystem_;
-            std::shared_ptr<LinearAllocator> allocator_;
-
-            /// A stack of "active" input files
-            std::shared_ptr<InputFile> currentInputFile_;
-
-            /// The unique identities of any paths that have issued `#pragma once` directives to
-            /// stop them from being included again.
-            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
-
-            /// A pre-allocated token that can be returned to represent end-of-input situations.
-            Token endOfFileToken_;
-
-            /// Macros defined in this environment
-            std::unordered_map<U8String, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
-
-        private:
-            static Token dummyToken;
-            static const std::unordered_map<U8String, Directive> directiveMap;
-            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
-
-        private:
-            // Look up the directive with the given name.
-            static Directive findDirective(const U8String& name)
-            {
-                auto search = directiveMap.find(name);
-
-                if (search == directiveMap.end())
-                    return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
-
-                return search->second;
-            }
-
-            // Look up the `#pragma` directive with the given name.
-            static PragmaDirective findPragmaDirective(const U8String& name)
-            {
-                auto search = paragmaDirectiveMap.find(name);
-
-                if (search == paragmaDirectiveMap.end())
-                    return { &PreprocessorImpl::handleUnknownPragmaDirective };
-
-                return search->second;
-            }
-        };
-
-        Token PreprocessorImpl::dummyToken;
-
-        const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
-            { "if", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective } },
-            { "ifdef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective } },
-            { "ifndef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfndefDirective } },
-            { "else", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElseDirective } },
-            { "elif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElifDirective } },
-            { "endif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleEndIfDirective } },
-            { "include", { Directive::Flags::None, &PreprocessorImpl::handleIncludeDirective } },
-            { "define", { Directive::Flags::None, &PreprocessorImpl::handleDefineDirective } },
-            { "undef", { Directive::Flags::None, &PreprocessorImpl::handleUndefDirective } },
-            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
-            { "error", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleErrorDirective } },
-            // { "line", &PreprocessorImpl::handleLineDirective },
-            { "pragma", { Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective } },
-        };
-
-        const std::unordered_map<U8String, PreprocessorImpl::PragmaDirective> PreprocessorImpl::paragmaDirectiveMap = {
-            { "once", { &PreprocessorImpl::handlePragmaOnceDirective } },
-        };
-
-        PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
-                                           const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : sink_(diagnosticSink),
-              includeSystem_(includeSystem),
-              allocator_(std::make_shared<LinearAllocator>(1024))
-        {
-            ASSERT(diagnosticSink)
-            ASSERT(includeSystem)
-
-            // Add builtin macros
-            {
-                const char* const builtinNames[] = { "__FILE__", "__LINE__" };
-                const MacroDefinition::Opcode builtinOpcodes[] = { MacroDefinition::Opcode::BuiltinFile, MacroDefinition::Opcode::BuiltinLine };
-
-                for (int i = 0; size_t(i) < std::size(builtinNames); i++)
-                {
-                    const auto& name = builtinNames[i];
-
-                    MacroDefinition::Op op;
-                    op.opcode = builtinOpcodes[i];
-
-                    auto macro = std::make_shared<MacroDefinition>();
-                    macro->flavor = MacroDefinition::Flavor::BuiltinObjectLike;
-                    macro->name = name;
-                    macro->ops.push_back(op);
-
-                    macrosDefinitions_[name] = macro;
-                }
-            }
-
-            endOfFileToken_.type = Token::Type::EndOfFile;
-        }
-
-        std::vector<Token> PreprocessorImpl::ReadAllTokens()
-        {
-            std::vector<Token> tokens;
-
-            for (;;)
-            {
-                const auto& token = readToken();
-
-                ASSERT(token.isValid());
-
-                switch (token.type)
-                {
-                    default:
-                        tokens.push_back(token);
-                        break;
-
-                    case Token::Type::EndOfFile:
-                        // Note: we include the EOF token in the list,
-                        // since that is expected by the `TokenList` type.
-                        tokens.push_back(token);
-                        return tokens;
-
-                    case Token::Type::WhiteSpace:
-                    case Token::Type::NewLine:
-                    case Token::Type::LineComment:
-                    case Token::Type::BlockComment:
-                    case Token::Type::Invalid:
-                        break;
-                }
-            }
-        }
-
-        // The top-level flow of the preprocessor is that it processed *input files*
-        // An input file manages both the expansion of lexed tokens
-        // from the source file, and also state related to preprocessor
-        // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
-        //
-        // Input files are a bit like token streams, but they don't fit neatly into
-        // the same abstraction due to all the special-case handling that directives
-        // and conditionals require.
-        struct InputFile
-        {
-            InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
-                : sourceView_(sourceView)
-            {
-                ASSERT(sourceView)
-                ASSERT(preprocessorImpl.lock())
-
-                lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetAllocator(), preprocessorImpl.lock()->GetSink());
-                expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
-            }
-
-            /// Is this input file skipping tokens (because the current location is inside a disabled condition)?
-            bool IsSkipping() const
-            {
-                // If we are not inside a preprocessor conditional, then don't skip
-                const auto conditional = conditional_;
-                if (!conditional)
-                    return false;
-
-                // skip tokens unless the conditional is inside its `true` case
-                return conditional->state != Conditional::State::During;
-            }
-
-            /// Get the inner-most conditional that is in efffect at the current location
-            std::shared_ptr<Conditional> GetInnerMostConditional() { return conditional_; }
-
-            /// Push a new conditional onto the stack of conditionals in effect
-            void PushConditional(const std::shared_ptr<Conditional>& conditional)
-            {
-                conditional->parent = conditional_;
-                conditional_ = conditional;
-            }
-
-            /// Pop the inner-most conditional
-            void PopConditional()
-            {
-                const auto conditional = conditional_;
-                ASSERT(conditional)
-                conditional_ = conditional->parent;
-            }
-
-            /// Read one token using all the expansion and directive-handling logic
-            inline Token ReadToken() { return expansionInputStream_->ReadToken(); }
-
-            inline Lexer& GetLexer() { return lexerStream_->GetLexer(); }
-            inline std::shared_ptr<SourceView> GetSourceView() { return sourceView_; }
-            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() { return expansionInputStream_; }
-
-        private:
-            friend class PreprocessorImpl;
-
-            /// The next outer input file
-            ///
-            /// E.g., if this file was `#include`d from another file, then `m_parent` would be
-            /// the file with the `#include` directive.
-            std::shared_ptr<InputFile> parent_;
-
-            /// TODO comment
-            std::shared_ptr<SourceView> sourceView_;
-
-            /// The inner-most preprocessor conditional active for this file.
-            std::shared_ptr<Conditional> conditional_;
-
-            /// The lexer input stream that unexpanded tokens will be read from
-            std::shared_ptr<LexerInputStream> lexerStream_;
-
-            /// An input stream that applies macro expansion to `lexerStream_`
-            std::shared_ptr<ExpansionInputStream> expansionInputStream_;
-        };
-
-        namespace
-        {
-            std::shared_ptr<InputFile> getInputFile(const DirectiveContext& context)
-            {
-                return context.inputFile;
-            }
-
-            // Wrapper for use inside directives
-            inline bool isSkipping(const DirectiveContext& context)
-            {
-                return getInputFile(context)->IsSkipping();
-            }
-        }
-
-        // Find the currently-defined macro of the given name, or return nullptr
-        std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const U8String& name) const
-        {
-            const auto& search = macrosDefinitions_.find(name);
-            return search != macrosDefinitions_.end() ? search->second : nullptr;
-        }
-
-        int32_t PreprocessorImpl::tokenToInt(const Token& token, int radix)
-        {
-            ASSERT(token.type == Token::Type::IntegerLiteral)
-
-            errno = 0;
-
-            auto end = const_cast<U8Char*>(token.stringSlice.End());
-            const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
-
-            if (errno == ERANGE)
-                sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int32_t");
-
-            if (end == token.stringSlice.End())
-                return result;
-
-            sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
-            return 0;
-        }
-
-        uint32_t PreprocessorImpl::tokenToUInt(const Token& token, int radix)
-        {
-            ASSERT(token.type == Token::Type::IntegerLiteral)
-
-            errno = 0;
-
-            auto end = const_cast<U8Char*>(token.stringSlice.End());
-            const auto result = std::strtoul(token.stringSlice.Begin(), &end, radix);
-
-            if (errno == ERANGE)
-                sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
-
-            if (end == token.stringSlice.End())
-                return result;
-
-            sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
-            return 0;
-        }
-
-        Token PreprocessorImpl::readToken()
-        {
-            for (;;)
-            {
-                auto inputFile = currentInputFile_;
-
-                if (!inputFile)
-                    return endOfFileToken_;
-
-                auto expansionStream = inputFile->GetExpansionStream();
-
-                Token token = peekRawToken();
-                if (token.type == Token::Type::EndOfFile)
-                {
-                    popInputFile();
-                    continue;
-                }
-
-                // If we have a directive (`#` at start of line) then handle it
-                if ((token.type == Token::Type::Pound) && IsSet(token.flags, Token::Flags::AtStartOfLine))
-                {
-                    // Parse and handle the directive
-                    handleDirective();
-                    continue;
-                }
-
-                // otherwise, if we are currently in a skipping mode, then skip tokens
-                if (inputFile->IsSkipping())
-                {
-                    expansionStream->ReadRawToken();
-                    continue;
-                }
-
-                token = expansionStream->PeekToken();
-                if (token.type == Token::Type::EndOfFile)
-                {
-                    popInputFile();
-                    continue;
-                }
-
-                expansionStream->ReadToken();
-                return token;
-            }
-        }
-
-        void PreprocessorImpl::PushInputFile(const std::shared_ptr<InputFile>& inputFile)
-        {
-            ASSERT(inputFile);
-
-            inputFile->parent_ = currentInputFile_;
-            currentInputFile_ = inputFile;
-        }
-
-        void PreprocessorImpl::popInputFile()
-        {
-            const auto& inputFile = currentInputFile_;
-            ASSERT(inputFile)
-
-            // We expect the file to be at its end, so that the
-            // next token read would be an end-of-file token.
-            const auto& expansionStream = inputFile->GetExpansionStream();
-            Token eofToken = expansionStream->PeekRawToken();
-            ASSERT(eofToken.type == Token::Type::EndOfFile)
-
-            // If there are any open preprocessor conditionals in the file, then
-            // we need to diagnose them as an error, because they were not closed
-            // at the end of the file. TODO
-            /*
-            for (auto conditional = inputFile->getInnerMostConditional(); conditional; conditional = conditional->parent)
-            {
-                GetSink(this)->diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
-                GetSink(this)->diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.getContent());
-            }
-            */
-            // We will update the current file to the parent of whatever
-            // the `inputFile` was (usually the file that `#include`d it).
-            auto parentFile = inputFile->parent_;
-            currentInputFile_ = parentFile;
-
-            // As a subtle special case, if this is the *last* file to be popped,
-            // then we will update the canonical EOF token used by the preprocessor
-            // to be the EOF token for `inputFile`, so that the source location
-            // information returned will be accurate.
-            if (!parentFile)
-                endOfFileToken_ = eofToken;
-        }
-
-        Token PreprocessorImpl::peekToken()
-        {
-            ASSERT(currentInputFile_);
-
-            return currentInputFile_->expansionInputStream_->PeekToken();
-        }
-
-        Token PreprocessorImpl::peekRawToken()
-        {
-            ASSERT(currentInputFile_);
-
-            return currentInputFile_->expansionInputStream_->PeekRawToken();
-        }
-
-        Token PreprocessorImpl::advanceToken()
-        {
-            ASSERT(currentInputFile_);
-
-            if (isEndOfLine())
-                return peekRawToken();
-
-            return currentInputFile_->expansionInputStream_->ReadToken();
-        }
-
-        Token PreprocessorImpl::advanceRawToken()
-        {
-            ASSERT(currentInputFile_);
-
-            return currentInputFile_->expansionInputStream_->ReadRawToken();
-        }
-
-        void PreprocessorImpl::skipToEndOfLine()
-        {
-            while (!isEndOfLine())
-                advanceRawToken();
-        }
-
-        bool PreprocessorImpl::isEndOfLine()
-        {
-            ASSERT(currentInputFile_);
-
-            switch (currentInputFile_->expansionInputStream_->PeekRawTokenType())
-            {
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
-        void setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics)
-        {
-            ASSERT(inputFile)
-
-            if (shouldSuppressDiagnostics)
-            {
-                inputFile->GetLexer().EnableFlags(Lexer::Flags::SuppressDiagnostics);
-            }
-            else
-            {
-                inputFile->GetLexer().DisableFlags(Lexer::Flags::SuppressDiagnostics);
-            }
-        }
-
-        bool PreprocessorImpl::expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
-        {
-            if (peekTokenType() != expected)
-            {
-                // Only report the first parse error within a directive
-                if (!context.parseError)
-                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
-
-                context.parseError = true;
-                return false;
-            }
-
-            outToken = advanceToken();
-            return true;
-        }
-
-        bool PreprocessorImpl::expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
-        {
-            if (peekRawTokenType() != expected)
-            {
-                // Only report the first parse error within a directive
-                if (!context.parseError)
-                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
-
-                context.parseError = true;
-                return false;
-            }
-
-            outToken = advanceRawToken();
-            return true;
-        }
-
-        void PreprocessorImpl::expectEndOfDirective(DirectiveContext& context)
-        {
-            if (context.haveDoneEndOfDirectiveChecks)
-                return;
-
-            context.haveDoneEndOfDirectiveChecks = true;
-
-            if (!isEndOfLine())
-            {
-                // If we already saw a previous parse error, then don't
-                // emit another one for the same directive.
-                if (!context.parseError)
-                {
-                    sink_->Diagnose(context.token, Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
-                }
-                skipToEndOfLine();
-            }
-        }
-
-        void PreprocessorImpl::handleDirective()
-        {
-            ASSERT(peekRawTokenType() == Token::Type::Pound)
-
-            // Skip the `#`
-            advanceRawToken();
-
-            // Create a context for parsing the directive
-            DirectiveContext context;
-            context.inputFile = currentInputFile_;
-
-            // Try to read the directive name.
-            context.token = peekRawToken();
-
-            Token::Type directiveTokenType = context.token.type;
-
-            // An empty directive is allowed, and ignored.
-            switch (directiveTokenType)
-            {
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    return;
-
-                default:
-                    break;
-            }
-
-            // Otherwise the directive name had better be an identifier
-            if (directiveTokenType != Token::Type::Identifier)
-            {
-                sink_->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
-                skipToEndOfLine();
-                return;
-            }
-
-            // Look up the handler for the directive.
-            const auto directive = findDirective(getDirectiveName(context));
-
-            // If we are skipping disabled code, and the directive is not one
-            // of the small number that need to run even in that case, skip it.
-            if (isSkipping(context) && !IsSet(directive.flags, PreprocessorImpl::Directive::Flags::ProcessWhenSkipping))
-            {
-                skipToEndOfLine();
-                return;
-            }
-
-            if (!IsSet(directive.flags, Directive::Flags::DontConsumeDirectiveAutomatically))
-            {
-                // Consume the directive name token.
-                advanceRawToken();
-            }
-
-            // Call the directive-specific handler
-            (this->*directive.function)(context);
-
-            // We expect the directive callback to consume the entire line, so if
-            // it hasn't that is a parse error.
-            expectEndOfDirective(context);
-        }
-
-        // Handle an invalid directive
-        void PreprocessorImpl::handleInvalidDirective(DirectiveContext& directiveContext)
-        {
-            sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, getDirectiveName(directiveContext));
-            skipToEndOfLine();
-        }
-
-        // Evaluate one infix operation in a preprocessor
-        // conditional expression
-        PreprocessorExpressionValue PreprocessorImpl::evaluateInfixOp(
-            const DirectiveContext& context,
-            const Token& opToken,
-            PreprocessorExpressionValue left,
-            PreprocessorExpressionValue right)
-        {
-            switch (opToken.type)
-            {
-                default:
-                    sink_->Diagnose(opToken, Diagnostics::internalCompilerError);
-                    return 0;
-                    break;
-
-                case Token::Type::OpMul:
-                    return left * right;
-                case Token::Type::OpDiv:
-                {
-                    if (right == 0)
-                    {
-                        if (!context.parseError)
-                            sink_->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
-
-                        return 0;
-                    }
-                    return left / right;
-                }
-                case Token::Type::OpMod:
-                {
-                    if (right == 0)
-                    {
-                        if (!context.parseError)
-                            sink_->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
-
-                        return 0;
-                    }
-                    return left % right;
-                }
-                // clang-format off
-                case Token::Type::OpAdd:      return left +  right;
-                case Token::Type::OpSub:      return left -  right;
-                case Token::Type::OpLsh:      return left << right;
-                case Token::Type::OpRsh:      return left >> right;
-                case Token::Type::OpLess:     return left <  right ? 1 : 0;
-                case Token::Type::OpGreater:  return left >  right ? 1 : 0;
-                case Token::Type::OpLeq:      return left <= right ? 1 : 0;
-                case Token::Type::OpGeq:      return left >= right ? 1 : 0;
-                case Token::Type::OpEql:      return left == right ? 1 : 0;
-                case Token::Type::OpNeq:      return left != right ? 1 : 0;
-                case Token::Type::OpBitAnd:   return left & right;
-                case Token::Type::OpBitOr:    return left | right;
-                case Token::Type::OpBitXor:   return left ^ right;
-                case Token::Type::OpAnd:      return left && right;
-                case Token::Type::OpOr:       return left || right; // clang-format on
-            }
-        }
-
-        /// Parse a preprocessor expression, or skip it if we are in a disabled conditional
-        PreprocessorExpressionValue PreprocessorImpl::skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext)
-        {
-            const auto& inputStream = getInputFile(directiveContext);
-
-            // If we are skipping, we want to ignore the expression (including
-            // anything in it that would lead to a failure in parsing).
-            //
-            // We can simply treat the expression as `0` in this case, since its
-            // value won't actually matter.
-            if (inputStream->IsSkipping())
-            {
-                // Consume everything until the end of the line
-                skipToEndOfLine();
-                return 0;
-            }
-
-            // Otherwise, we will need to parse an expression and return
-            // its evaluated value.
-            return parseAndEvaluateExpression(directiveContext);
-        }
-
-        /// Parse a complete (infix) preprocessor expression, and return its value
-        PreprocessorExpressionValue PreprocessorImpl::parseAndEvaluateExpression(DirectiveContext& context)
-        {
-            // First read in the left-hand side (or the whole expression in the unary case)
-            const auto value = parseAndEvaluateUnaryExpression(context);
-
-            // Try to read in trailing infix operators with correct precedence
-            return parseAndEvaluateInfixExpressionWithPrecedence(context, value, 0);
-        }
-
-        // Parse a unary (prefix) expression inside of a preprocessor directive.
-        PreprocessorExpressionValue PreprocessorImpl::parseAndEvaluateUnaryExpression(DirectiveContext& context)
-        {
-            switch (peekTokenType())
-            {
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    sink_->Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
-                    return 0;
-                default:
-                    break;
-            }
-
-            auto token = advanceToken();
-            switch (token.type)
-            {
-                // handle prefix unary ops
-                case Token::Type::OpSub:
-                    return -parseAndEvaluateUnaryExpression(context);
-                case Token::Type::OpNot:
-                    return !parseAndEvaluateUnaryExpression(context);
-                case Token::Type::OpBitNot:
-                    return ~parseAndEvaluateUnaryExpression(context);
-
-                // handle parenthized sub-expression
-                case Token::Type::LParent:
-                {
-                    Token leftParen = token;
-                    PreprocessorExpressionValue value = parseAndEvaluateExpression(context);
-                    if (!expect(context, Token::Type::RParent, Diagnostics::expectedTokenInPreprocessorExpression))
-                        sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
-
-                    return value;
-                }
-
-                case Token::Type::IntegerLiteral:
-                    return tokenToInt(token, 10);
-
-                case Token::Type::Identifier:
-                {
-                    if (token.GetContentString() == "defined")
-                    {
-                        // handle `defined(someName)`
-
-                        // Possibly parse a `(`
-                        Token leftParen;
-                        if (peekRawTokenType() == Token::Type::LParent)
-                            leftParen = advanceRawToken();
-
-                        // Expect an identifier
-                        Token nameToken;
-                        if (!expectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInDefinedExpression, nameToken))
-                            return 0;
-
-                        U8String name = nameToken.GetContentString();
-                        // If we saw an opening `(`, then expect one to close
-                        if (leftParen.type != Token::Type::Unknown)
-                        {
-                            if (!expectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInDefinedExpression))
-                            {
-                                sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
-                                return 0;
-                            }
-                        }
-
-                        return LookupMacro(name) != nullptr;
-                    }
-
-                    // An identifier here means it was not defined as a macro (or
-                    // it is defined, but as a function-like macro. These should
-                    // just evaluate to zero (possibly with a warning)
-                    sink_->Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
-                    return 0;
-                }
-
-                default:
-                    sink_->Diagnose(token, Diagnostics::syntaxErrorInPreprocessorExpression);
-                    return 0;
-            }
-        }
-
-        // Parse the rest of an infix preprocessor expression with
-        // precedence greater than or equal to the given `precedence` argument.
-        // The value of the left-hand-side expression is provided as
-        // an argument.
-        // This is used to form a simple recursive-descent expression parser.
-        PreprocessorExpressionValue PreprocessorImpl::parseAndEvaluateInfixExpressionWithPrecedence(
-            DirectiveContext& context,
-            PreprocessorExpressionValue left,
-            int32_t precedence)
-        {
-            for (;;)
-            {
-                // Look at the next token, and see if it is an operator of
-                // high enough precedence to be included in our expression
-                const auto& opToken = peekToken();
-                const auto opPrecedence = GetInfixOpPrecedence(opToken);
-
-                // If it isn't an operator of high enough precedence, we are done.
-                if (opPrecedence < precedence)
-                    break;
-
-                // Otherwise we need to consume the operator token.
-                advanceToken();
-
-                // Next we parse a right-hand-side expression by starting with
-                // a unary expression and absorbing and many infix operators
-                // as possible with strictly higher precedence than the operator
-                // we found above.
-                PreprocessorExpressionValue right = parseAndEvaluateUnaryExpression(context);
-                for (;;)
-                {
-                    // Look for an operator token
-                    Token rightOpToken = peekToken();
-                    int rightOpPrecedence = GetInfixOpPrecedence(rightOpToken);
-
-                    // If no operator was found, or the operator wasn't high
-                    // enough precedence to fold into the right-hand-side,
-                    // exit this loop.
-                    if (rightOpPrecedence <= opPrecedence)
-                        break;
-
-                    // Now invoke the parser recursively, passing in our
-                    // existing right-hand side to form an even larger one.
-                    right = parseAndEvaluateInfixExpressionWithPrecedence(context, right, rightOpPrecedence);
-                }
-
-                // Now combine the left- and right-hand sides using
-                // the operator we found above.
-                left = evaluateInfixOp(context, opToken, left, right);
-            }
-            return left;
-        }
-
-        void updateLexerFlagsForConditionals(const std::shared_ptr<InputFile>& inputFile)
-        {
-            setLexerDiagnosticSuppression(inputFile, inputFile->IsSkipping());
-        }
-
-        /// Start a preprocessor conditional, with an initial enable/disable state.
-        void PreprocessorImpl::beginConditional(
-            const DirectiveContext& context,
-            bool enable)
-        {
-            const auto& inputFile = getInputFile(context);
-
-            auto conditional = std::make_shared<Conditional>();
-            conditional->ifToken = context.token;
-
-            // Set state of this condition appropriately.
-            // Default to the "haven't yet seen a `true` branch" state.
-            Conditional::State state = Conditional::State::Before;
-
-            // If we are nested inside a `false` branch of another condition, then
-            // we never want to enable, so we act as if we already *saw* the `true` branch.
-            if (inputFile->IsSkipping())
-                state = Conditional::State::After;
-
-            // Otherwise, if our condition was true, then set us to be inside the `true` branch
-            else if (enable)
-                state = Conditional::State::During;
-
-            conditional->state = state;
-
-            // Push conditional onto the stack
-            inputFile->PushConditional(conditional);
-
-            updateLexerFlagsForConditionals(inputFile);
-        }
-
-        // Handle a `#if` directive
-        void PreprocessorImpl::handleIfDirective(DirectiveContext& directiveContext)
-        {
-            // Read a preprocessor expression (if not skipping), and begin a conditional
-            // based on the value of that expression.
-            const auto value = skipOrParseAndEvaluateExpression(directiveContext);
-
-            beginConditional(directiveContext, value != 0);
-        }
-
-        void PreprocessorImpl::handleIfdefDirective(DirectiveContext& directiveContext)
-        {
-            // Expect a raw identifier, so we can check if it is defined
-            Token nameToken;
-            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
-                return;
-
-            // Check if the name is defined.
-            beginConditional(directiveContext, LookupMacro(nameToken.GetContentString()) != nullptr);
-        }
-
-        void PreprocessorImpl::handleIfndefDirective(DirectiveContext& directiveContext)
-        {
-            // Expect a raw identifier, so we can check if it is defined
-            Token nameToken;
-            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
-                return;
-
-            // Check if the name is not defined.
-            beginConditional(directiveContext, LookupMacro(nameToken.GetContentString()) == nullptr);
-        }
-
-        void PreprocessorImpl::handleElseDirective(DirectiveContext& directiveContext)
-        {
-            const auto& inputFile = getInputFile(directiveContext);
-            ASSERT(inputFile);
-
-            // if we aren't inside a conditional, then error
-            const auto& conditional = inputFile->GetInnerMostConditional();
-            if (!conditional)
-            {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
-                return;
-            }
-
-            // if we've already seen a `#else`, then it is an error
-            if (conditional->elseToken.type != Token::Type::Unknown)
-            {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, getDirectiveName(directiveContext));
-                sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
-                return;
-            }
-            conditional->elseToken = directiveContext.token;
-
-            switch (conditional->state)
-            {
-                case Conditional::State::Before:
-                    conditional->state = Conditional::State::During;
-                    break;
-
-                case Conditional::State::During:
-                    conditional->state = Conditional::State::After;
-                    break;
-
-                default:
-                    break;
-            }
-
-            updateLexerFlagsForConditionals(inputFile);
-        }
-
-        void PreprocessorImpl::handleElifDirective(DirectiveContext& directiveContext)
-        {
-            // Need to grab current input stream *before* we try to parse
-            // the conditional expression.
-            const auto& inputFile = getInputFile(directiveContext);
-            ASSERT(inputFile);
-
-            // HACK(tfoley): handle an empty `elif` like an `else` directive
-            //
-            // This is the behavior expected by at least one input program.
-            // We will eventually want to be pedantic about this.
-            // even if t
-            switch (peekRawTokenType())
-            {
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, getDirectiveName(directiveContext));
-                    handleElseDirective(directiveContext);
-                    return;
-                default:
-                    break;
-            }
-
-            PreprocessorExpressionValue value = parseAndEvaluateExpression(directiveContext);
-
-            // if we aren't inside a conditional, then error
-            const auto& conditional = inputFile->GetInnerMostConditional();
-            if (!conditional)
-            {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
-                return;
-            }
-
-            // if we've already seen a `#else`, then it is an error
-            if (conditional->elseToken.type != Token::Type::Unknown)
-            {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, getDirectiveName(directiveContext));
-                sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
-                return;
-            }
-
-            switch (conditional->state)
-            {
-                case Conditional::State::Before:
-                    if (value)
-                        conditional->state = Conditional::State::During;
-                    break;
-
-                case Conditional::State::During:
-                    conditional->state = Conditional::State::After;
-                    break;
-
-                default:
-                    break;
-            }
-
-            updateLexerFlagsForConditionals(inputFile);
-        }
-
-        // Handle a `#endif` directive
-        void PreprocessorImpl::handleEndIfDirective(DirectiveContext& directiveContext)
-        {
-            const auto& inputFile = getInputFile(directiveContext);
-            ASSERT(inputFile);
-
-            // if we aren't inside a conditional, then error
-            const auto& conditional = inputFile->GetInnerMostConditional();
-            if (!conditional)
-            {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
-                return;
-            }
-
-            inputFile->PopConditional();
-            updateLexerFlagsForConditionals(inputFile);
-        }
-
-        // Handle a `#define` directive
-        void PreprocessorImpl::handleDefineDirective(DirectiveContext& directiveContext)
-        {
-            Token nameToken;
-            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
-                return;
-
-            U8String name = nameToken.GetContentString();
-
-            const auto& oldMacro = LookupMacro(name);
-            if (oldMacro)
-            {
-                if (oldMacro->IsBuiltin())
-                {
-                    sink_->Diagnose(nameToken, Diagnostics::builtinMacroRedefinition, name);
-                }
-                else
-                {
-                    sink_->Diagnose(nameToken, Diagnostics::macroRedefinition, name);
-
-                    if (oldMacro->GetNameToken().isValid())
-                        sink_->Diagnose(oldMacro->GetNameToken(), Diagnostics::seePreviousDefinitionOf, name);
-                }
-            }
-            auto macro = std::make_shared<MacroDefinition>();
-            std::unordered_map<U8String, uint32_t> mapParamNameToIndex;
-
-            // If macro name is immediately followed (with no space) by `(`,
-            // then we have a function-like macro
-            auto maybeOpenParen = peekRawToken();
-            if (maybeOpenParen.type == Token::Type::LParent && !IsSet(maybeOpenParen.flags, Token::Flags::AfterWhitespace))
-            {
-                // This is a function-like macro, so we need to remember that
-                // and start capturing parameters
-                macro->flavor = MacroDefinition::Flavor::FunctionLike;
-
-                advanceRawToken();
-
-                // If there are any parameters, parse them
-                if (peekRawTokenType() != Token::Type::RParent)
-                {
-                    for (;;)
-                    {
-                        // A macro parameter should follow one of three shapes:
-                        //
-                        //      NAME
-                        //      NAME...
-                        //      ...
-                        //
-                        // If we don't see an ellipsis ahead, we know we ought
-                        // to find one of the two cases that starts with an
-                        // identifier.
-                        Token paramNameToken;
-                        if (peekRawTokenType() != Token::Type::Ellipsis)
-                        {
-                            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInMacroParameters, paramNameToken))
-                                break;
-                        }
-
-                        // Whether or not a name was seen, we allow an ellipsis
-                        // to indicate a variadic macro parameter.
-                        //
-                        // Note: a variadic parameter, if any, should always be
-                        // the last parameter of a macro, but we do not enforce
-                        Token ellipsisToken;
-                        MacroDefinition::Param param;
-                        param.sourceLocation = paramNameToken.sourceLocation;
-                        param.humaneSourceLocation = paramNameToken.humaneSourceLocation;
-
-                        if (peekRawTokenType() == Token::Type::Ellipsis)
-                        {
-                            ellipsisToken = advanceRawToken();
-                            param.isVariadic = true;
-                        }
-
-                        if (paramNameToken.type != Token::Type::Unknown)
-                        {
-                            // If we read an explicit name for the parameter, then we can use
-                            // that name directly. TODO COMMENT
-                            param.name = paramNameToken.GetContentString();
-                        }
-                        else
-                        {
-                            // If an explicit name was not read for the parameter, we *must*
-                            // have an unnamed variadic parameter. We know this because the
-                            // only case where the logic above doesn't require a name to
-                            // be read is when it already sees an ellipsis ahead.
-                            ASSERT(ellipsisToken.type != Token::Type::Unknown);
-
-                            // Any unnamed variadic parameter is treated as one named `__VA_ARGS__`
-                            param.name = "__VA_ARGS__";
-                        }
-
-                        // TODO(tfoley): The C standard seems to disallow certain identifiers
-                        // (e.g., `defined` and `__VA_ARGS__`) from being used as the names
-                        // of user-defined macros or macro parameters. This choice seemingly
-                        // supports implementation flexibility in how the special meanings of
-                        // those identifiers are handled.
-                        //
-                        // We could consider issuing diagnostics for cases where a macro or parameter
-                        // uses such names, or we could simply provide guarantees about what those
-                        // names *do* in the context of the Slang preprocessor.
-
-                        // Add the parameter to the macro being deifned
-                        auto paramIndex = macro->params.size();
-                        macro->params.push_back(param);
-
-                        const auto paramName = param.name;
-                        if (mapParamNameToIndex.find(paramName) != mapParamNameToIndex.end())
-                        {
-                            sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
-                        }
-                        else
-                        {
-                            mapParamNameToIndex[paramName] = uint32_t(paramIndex);
-                        }
-
-                        // If we see `)` then we are done with arguments
-                        if (peekRawTokenType() == Token::Type::RParent)
-                            break;
-
-                        expectRaw(directiveContext, Token::Type::Comma, Diagnostics::expectedTokenInMacroParameters);
-                    }
-                }
-
-                expectRaw(directiveContext, Token::Type::RParent, Diagnostics::expectedTokenInMacroParameters);
-
-                // Once we have parsed the macro parameters, we can perform the additional validation
-                // step of checking that any parameters before the last parameter are not variadic.
-                size_t lastParamIndex = macro->params.size() - 1;
-                for (size_t i = 0; i < lastParamIndex; ++i)
-                {
-                    auto& param = macro->params[i];
-                    if (!param.isVariadic)
-                        continue;
-
-                    sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
-
-                    // As a precaution, we will unmark the variadic-ness of the parameter, so that
-                    // logic downstream from this step doesn't have to deal with the possibility
-                    // of a variadic parameter in the middle of the parameter list.
-                    param.isVariadic = false;
-                }
-            }
-            else
-            {
-                macro->flavor = MacroDefinition::Flavor::ObjectLike;
-            }
-
-            macro->nameToken = nameToken;
-            macro->name = nameToken.GetContentString();
-
-            macrosDefinitions_[name] = macro;
-
-            // consume tokens until end-of-line
-            for (;;)
-            {
-                Token token = peekRawToken();
-                switch (token.type)
-                {
-                    default:
-                        // In the ordinary case, we just add the token to the definition,
-                        // and keep consuming more tokens.
-                        advanceRawToken();
-                        macro->tokens.push_back(token);
-                        continue;
-
-                    case Token::Type::EndOfFile:
-                    case Token::Type::NewLine:
-                        // The end of the current line/file ends the directive, and serves
-                        // as the end-of-file marker for the macro's definition as well.
-                        token.type = Token::Type::EndOfFile;
-                        macro->tokens.push_back(token);
-                        break;
-                }
-                break;
-            }
-
-            parseMacroOps(macro, mapParamNameToIndex);
-        }
-
-        void PreprocessorImpl::handleUndefDirective(DirectiveContext& directiveContext)
-        {
-            Token nameToken;
-
-            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
-                return;
-
-            const auto& name = nameToken.GetContentString();
-            const auto& macro = LookupMacro(name);
-
-            if (!macro)
-            {
-                // name wasn't defined
-                sink_->Diagnose(nameToken, Diagnostics::macroNotDefined, name);
-                return;
-            }
-
-            // name was defined, so remove it
-            macrosDefinitions_.erase(name);
-        }
-
-        U8String PreprocessorImpl::readDirectiveMessage()
-        {
-            U8String result;
-
-            while (!isEndOfLine())
-            {
-                Token token = advanceRawToken();
-
-                if (IsSet(token.flags, Token::Flags::AfterWhitespace))
-                {
-                    if (!result.empty())
-                        result.append(" ");
-                }
-
-                result.append(token.stringSlice.Begin(), token.stringSlice.End());
-            }
-
-            return result;
-        }
-
-        // Handle a `#warning` directive
-        void PreprocessorImpl::handleWarningDirective(DirectiveContext& directiveContext)
-        {
-            setLexerDiagnosticSuppression(getInputFile(directiveContext), true);
-
-            // Consume the directive
-            advanceRawToken();
-
-            // Read the message.
-            U8String message = readDirectiveMessage();
-
-            setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
-
-            // Report the custom error.
-            sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedWarning, message);
-        }
-
-        void PreprocessorImpl::handleErrorDirective(DirectiveContext& directiveContext)
-        {
-            setLexerDiagnosticSuppression(getInputFile(directiveContext), true);
-
-            // Consume the directive
-            advanceRawToken();
-
-            // Read the message.
-            U8String message = readDirectiveMessage();
-
-            setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
-
-            // Report the custom error.
-            sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedError, message);
-        }
-
-        // Handle a `#include` directive
-        void PreprocessorImpl::handleIncludeDirective(DirectiveContext& directiveContext)
-        {
-            Token pathToken;
-            if (!expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
-                return;
-
-            U8String path = getFileNameTokenValue(pathToken);
-
-            const auto& sourceView = directiveContext.token.sourceLocation.GetSourceView();
-            const auto& includedFromPathInfo = sourceView->GetSourceFile();
-
-            // Find the path relative to the foundPath
-            PathInfo filePathInfo;
-            if (RFX_FAILED(includeSystem_->FindFile(path, includedFromPathInfo->GetPathInfo().foundPath, filePathInfo)))
-            {
-                sink_->Diagnose(pathToken, Diagnostics::includeFailed, path);
-                return;
-            }
-
-            // We must have a uniqueIdentity to be compare
-            if (!filePathInfo.hasUniqueIdentity())
-            {
-                sink_->Diagnose(pathToken, Diagnostics::noUniqueIdentity, path);
-                return;
-            }
-
-            // Do all checking related to the end of this directive before we push a new stream,
-            // just to avoid complications where that check would need to deal with
-            // a switch of input stream
-            expectEndOfDirective(directiveContext);
-
-            // Check whether we've previously included this file and seen a `#pragma once` directive
-            if (pragmaOnceUniqueIdentities_.find(filePathInfo.uniqueIdentity) != pragmaOnceUniqueIdentities_.end())
-                return;
-
-            // Simplify the path
-            filePathInfo.foundPath = std::filesystem::path(filePathInfo.foundPath).lexically_normal().u8string();
-
-            std::shared_ptr<SourceFile> includedFile;
-
-            if (RFX_FAILED(includeSystem_->LoadFile(filePathInfo, includedFile)))
-            {
-                sink_->Diagnose(pathToken, Diagnostics::includeFailed, path);
-                return;
-            }
-
-            // This is a new parse (even if it's a pre-existing source file), so create a new
-            const auto& includedView = SourceView::CreateIncluded(includedFile, sourceView, directiveContext.token.humaneSourceLocation);
-
-            PushInputFile(std::make_shared<InputFile>(shared_from_this(), includedView));
-        }
-
-        void PreprocessorImpl::handleLineDirective(DirectiveContext& directiveContext)
-        {
-            uint32_t line = 0;
-
-            switch (peekTokenType())
-            {
-                case Token::Type::IntegerLiteral:
-                    line = tokenToUInt(advanceToken(), 10);
-                    break;
-
-                // `#line` and `#line default` directives are not supported
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    expect(directiveContext, Token::Type::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
-                    return;
-
-                // else, fall through to:
-                default:
-                    expect(directiveContext, Token::Type::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
-                    return;
-            }
-
-            PathInfo pathInfo;
-            switch (peekTokenType())
-            {
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    pathInfo = directiveContext.token.sourceLocation.GetSourceView()->GetPathInfo();
-                    break;
-
-                case Token::Type::StringLiteral:
-                    pathInfo = PathInfo::makePath(getStringLiteralTokenValue(advanceToken()));
-                    break;
-
-                default:
-                    expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
-                    return;
-            }
-
-            // Do all checking related to the end of this directive before we push a new stream,
-            // just to avoid complications where that check would need to deal with
-            // a switch of input stream
-            expectEndOfDirective(directiveContext);
-
-            const auto& nextToken = peekRawToken();
-            // Start new source view from end of new line sequence.
-            const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
-
-            HumaneSourceLocation humaneLocation(line, 1);
-            const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
-            const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, allocator_, sink_);
-
-            std::ignore = inputStream;
-            // Drop current stream
-            ASSERT_MSG(false, "NOT IMPLEMENTD")
-            //    currentInputStream_->ForceClose();
-            // popInputStream();
-            //  PushInputStream(inputStream);
-        }
-
-        // Handle a `#pragma` directive
-        void PreprocessorImpl::handlePragmaDirective(DirectiveContext& directiveContext)
-        {
-            // Try to read the sub-directive name.
-            const auto& subDirectiveToken = peekRawToken();
-
-            // The sub-directive had better be an identifier
-            if (subDirectiveToken.type != Token::Type::Identifier)
-            {
-                sink_->Diagnose(directiveContext.token, Diagnostics::expectedPragmaDirectiveName);
-                skipToEndOfLine();
-                return;
-            }
-            advanceRawToken();
-
-            // Look up the handler for the sub-directive.
-            const auto& subDirective = findPragmaDirective(subDirectiveToken.GetContentString());
-
-            // Apply the sub-directive-specific callback
-            (this->*subDirective.function)(directiveContext, subDirectiveToken);
-        }
-
-        void PreprocessorImpl::handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken)
-        {
-            std::ignore = directiveContext;
-
-            sink_->Diagnose(subDirectiveToken, Diagnostics::unknownPragmaDirectiveIgnored, subDirectiveToken.GetContentString());
-            skipToEndOfLine();
-
-            return;
-        }
-
-        void PreprocessorImpl::handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken)
-        {
-            // We need to identify the path of the file we are preprocessing,
-            // so that we can avoid including it again.
-            //
-            // We are using the 'uniqueIdentity' as determined by the ISlangFileSystemEx interface to determine file identities.
-            auto issuedFromPathInfo = directiveContext.inputFile->GetSourceView()->GetPathInfo();
-
-            // Must have uniqueIdentity for a #pragma once to work
-            if (!issuedFromPathInfo.hasUniqueIdentity())
-            {
-                sink_->Diagnose(subDirectiveToken, Diagnostics::pragmaOnceIgnored);
-                return;
-            }
-
-            pragmaOnceUniqueIdentities_.emplace(issuedFromPathInfo.uniqueIdentity);
-        }
-
-        void PreprocessorImpl::parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
-                                             const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex)
-        {
-            // Scan through the tokens to recognize the "ops" that make up
-            // the macro body.
-            uint32_t spanBeginIndex = 0;
-            uint32_t cursor = 0;
-            for (;;)
-            {
-                auto spanEndIndex = cursor;
-                auto tokenIndex = cursor++;
-                const Token& token = macro->tokens[tokenIndex];
-                MacroDefinition::Op newOp;
-
-                switch (token.type)
-                {
-                    default:
-                        // Most tokens just continue our current span.
-                        continue;
-
-                    case Token::Type::Identifier:
-                    {
-                        auto paramName = token.GetContentString();
-
-                        const auto search = mapParamNameToIndex.find(paramName);
-                        if (search == mapParamNameToIndex.end())
-                            continue;
-
-                        newOp.opcode = MacroDefinition::Opcode::ExpandedParam;
-                        newOp.index0 = tokenIndex;
-                        newOp.index1 = search->second;
-                    }
-                    break;
-
-                    case Token::Type::Pound:
-                    {
-                        auto paramNameTokenIndex = cursor;
-                        auto paramNameToken = macro->tokens[paramNameTokenIndex];
-                        if (paramNameToken.type != Token::Type::Identifier)
-                        {
-                            sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
-                            continue;
-                        }
-
-                        auto paramName = paramNameToken.GetContentString();
-
-                        const auto search = mapParamNameToIndex.find(paramName);
-                        if (search == mapParamNameToIndex.end())
-                        {
-                            sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
-                            continue;
-                        }
-
-                        cursor++;
-
-                        newOp.opcode = MacroDefinition::Opcode::StringizedParam;
-                        newOp.index0 = tokenIndex;
-                        newOp.index1 = search->second;
-                    }
-                    break;
-
-                    case Token::Type::PoundPound:
-                        if (macro->ops.size() == 0 && (spanBeginIndex == spanEndIndex))
-                        {
-                            sink_->Diagnose(token, Diagnostics::tokenPasteAtStart);
-                            continue;
-                        }
-
-                        if (macro->tokens[cursor].type == Token::Type::EndOfFile)
-                        {
-                            sink_->Diagnose(token, Diagnostics::tokenPasteAtEnd);
-                            continue;
-                        }
-
-                        newOp.opcode = MacroDefinition::Opcode::TokenPaste;
-                        newOp.index0 = tokenIndex;
-                        newOp.index1 = 0;
-
-                        // Okay, we need to do something here!
-
-                        break;
-
-                    case Token::Type::EndOfFile:
-                        break;
-                }
-
-                if (spanBeginIndex != spanEndIndex || ((token.type == Token::Type::EndOfFile) && (macro->ops.size() == 0)))
-                {
-                    MacroDefinition::Op spanOp;
-                    spanOp.opcode = MacroDefinition::Opcode::RawSpan;
-                    spanOp.index0 = spanBeginIndex;
-                    spanOp.index1 = spanEndIndex;
-                    macro->ops.push_back(spanOp);
-                }
-                if (token.type == Token::Type::EndOfFile)
-                    break;
-
-                macro->ops.push_back(newOp);
-                spanBeginIndex = cursor;
-            }
-
-            size_t opCount = macro->ops.size();
-            ASSERT(opCount != 0);
-            for (size_t i = 1; i < opCount - 1; ++i)
-            {
-                if (macro->ops[i].opcode == MacroDefinition::Opcode::TokenPaste)
-                {
-                    if (macro->ops[i - 1].opcode == MacroDefinition::Opcode::ExpandedParam)
-                        macro->ops[i - 1].opcode = MacroDefinition::Opcode::UnexpandedParam;
-                    if (macro->ops[i + 1].opcode == MacroDefinition::Opcode::ExpandedParam)
-                        macro->ops[i + 1].opcode = MacroDefinition::Opcode::UnexpandedParam;
-                }
-            }
-        }
-
-        Preprocessor::~Preprocessor() { }
-
-        Preprocessor::Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
-                                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : impl_(std::make_unique<PreprocessorImpl>(includeSystem, diagnosticSink))
-        {
-        }
-
-        void Preprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
-        {
-            const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
-            impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
-        }
-
-        std::vector<Token> Preprocessor::ReadAllTokens()
-        {
-            ASSERT(impl_);
-            return impl_->ReadAllTokens();
-        }
-
         MacroInvocation::MacroInvocation(
             const std::shared_ptr<PreprocessorImpl>& preprocessor,
             const std::shared_ptr<DiagnosticSink>& sink,
@@ -2758,7 +1128,7 @@ namespace RR
 
             // Clone flags of token that "initiated" macro if we are at the beginning
             //if (tokenOpIndex == 0)
-           //     token.flags = initiatingMacroToken_.flags;
+            //     token.flags = initiatingMacroToken_.flags;
 
             // Once we've read that `token`, we need to work to establish or
             // re-establish our invariant, which we do by looping until we are
@@ -3107,8 +1477,9 @@ namespace RR
                         // a single space character. Fortunately for us, the lexer has tracked
                         // for each token whether it was immediately preceded by whitespace,
                         // so we can check for whitespace that precedes any token except the first.
-                        if (!first && IsSet(token.flags, Token::Flags::AfterWhitespace))
-                            string.push_back(' ');
+                        // TODO COMMENTS
+                        // if (!first && IsSet(token.flags, Token::Flags::AfterWhitespace))
+                        //    string.push_back(' ');
 
                         // We need to rememember to apply escaping to the content of any tokens
                         // being pulled into the string. E.g., this would come up if we end up
@@ -3189,6 +1560,62 @@ namespace RR
             return false;
         }
 
+        TokenReader MacroInvocation::getArgTokens(uint32_t paramIndex)
+        {
+            ASSERT(paramIndex >= 0);
+            ASSERT(paramIndex < m_macro->params.size());
+
+            // How we determine the range of argument tokens for a parameter
+            // depends on whether or not it is a variadic parameter.
+            auto& param = m_macro->params[paramIndex];
+            const auto argTokens = m_argTokens.begin();
+            if (!param.isVariadic)
+            {
+                // The non-variadic case is, as expected, the simpler one.
+                //
+                // We expect that there must be an argument at the index corresponding
+                // to the parameter, and we construct a `TokenReader` that will play
+                // back the tokens of that argument.
+                ASSERT(paramIndex < m_args.size());
+                auto arg = m_args[paramIndex];
+
+                // TODO outofrange possible
+                return TokenReader(argTokens + arg.beginTokenIndex, argTokens + arg.endTokenIndex);
+            }
+            else
+            {
+                ASSERT(m_args.size() > 0);
+                // In the variadic case, it is possible that we have zero or more
+                // arguments that will all need to be played back in any place where
+                // the variadic parameter is referenced.
+                //
+                // The first relevant argument is the one at the index coresponding
+                // to the variadic parameter, if any. The last relevant argument is
+                // the last argument to the invocation, *if* there was a first
+                // relevant argument.
+                auto firstArgIndex = paramIndex;
+                auto lastArgIndex = m_args.size() - 1;
+
+                // One special case is when there are *no* arguments coresponding
+                // to the variadic parameter.
+                if (firstArgIndex > lastArgIndex)
+                {
+                    // When there are no arguments for the varaidic parameter we will
+                    // construct an empty token range that comes after the other arguments.
+                    auto arg = m_args[lastArgIndex];
+                    return TokenReader(argTokens + arg.endTokenIndex, argTokens + arg.endTokenIndex);
+                }
+
+                // Because the `m_argTokens` array includes the commas between arguments,
+                // we can get the token sequence we want simply by making a reader that spans
+                // all the tokens between the first and last argument (inclusive) that correspond
+                // to the variadic parameter.
+                auto firstArg = m_args[firstArgIndex];
+                auto lastArg = m_args[lastArgIndex];
+                return TokenReader(argTokens + firstArg.beginTokenIndex, argTokens + lastArg.endTokenIndex);
+            }
+        }
+
         void MacroInvocation::pushSingleTokenStream(Token::Type tokenType, const SourceLocation& tokenLoc, U8String const& content)
         {
             // The goal here is to push a token stream that represents a single token
@@ -3214,7 +1641,6 @@ namespace RR
             Token eofToken;
             eofToken.type = Token::Type::EndOfFile;
             eofToken.sourceLocation = token.sourceLocation;
-            eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
             lexedTokens.push_back(eofToken);
 
             const auto& inputStream = std::make_shared<SingleUseInputStream>(/* m_preprocessor,*/ lexedTokens);
@@ -3351,6 +1777,7 @@ namespace RR
 
                     case MacroDefinition::Flavor::FunctionLike:
                     {
+                        ASSERT_MSG(false, "NOT IMPLEMENTED");
                         // The function-like macro case is more complicated, primarily because
                         // of the need to handle arguments. The arguments of a function-like
                         // macro are expected to be tokens inside of balanced `()` parentheses.
@@ -3375,7 +1802,7 @@ namespace RR
                         // Because the macro name is already in `m_lookaheadToken`, we can peak
                         // at the underlying input stream to see if the next non-whitespace
                         // token after the lookahead is a `(`.
-                        inputStreams_.SkipAllWhitespace();
+                        /* inputStreams_.SkipAllWhitespace();
                         Token maybeLeftParen = inputStreams_.PeekToken();
                         if (maybeLeftParen.type != Token::Type::LParent)
                         {
@@ -3483,217 +1910,9 @@ namespace RR
                         auto busyMacrosForFunctionLikeInvocation = nextStream->GetFirstBusyMacroInvocation();
 
                         invocation->Prime(busyMacrosForFunctionLikeInvocation);
-                        pushMacroInvocation(invocation);
+                        pushMacroInvocation(invocation);*/
                     }
                     break;
-                }
-            }
-        }
-
-        TokenReader MacroInvocation::getArgTokens(uint32_t paramIndex)
-        {
-            ASSERT(paramIndex >= 0);
-            ASSERT(paramIndex < m_macro->params.size());
-
-            // How we determine the range of argument tokens for a parameter
-            // depends on whether or not it is a variadic parameter.
-            auto& param = m_macro->params[paramIndex];
-            const auto argTokens = m_argTokens.begin();
-            if (!param.isVariadic)
-            {
-                // The non-variadic case is, as expected, the simpler one.
-                //
-                // We expect that there must be an argument at the index corresponding
-                // to the parameter, and we construct a `TokenReader` that will play
-                // back the tokens of that argument.
-                ASSERT(paramIndex < m_args.size());
-                auto arg = m_args[paramIndex];
-
-                // TODO outofrange possible
-                return TokenReader(argTokens + arg.beginTokenIndex, argTokens + arg.endTokenIndex);
-            }
-            else
-            {
-                ASSERT(m_args.size() > 0);
-                // In the variadic case, it is possible that we have zero or more
-                // arguments that will all need to be played back in any place where
-                // the variadic parameter is referenced.
-                //
-                // The first relevant argument is the one at the index coresponding
-                // to the variadic parameter, if any. The last relevant argument is
-                // the last argument to the invocation, *if* there was a first
-                // relevant argument.
-                auto firstArgIndex = paramIndex;
-                auto lastArgIndex = m_args.size() - 1;
-
-                // One special case is when there are *no* arguments coresponding
-                // to the variadic parameter.
-                if (firstArgIndex > lastArgIndex)
-                {
-                    // When there are no arguments for the varaidic parameter we will
-                    // construct an empty token range that comes after the other arguments.
-                    auto arg = m_args[lastArgIndex];
-                    return TokenReader(argTokens + arg.endTokenIndex, argTokens + arg.endTokenIndex);
-                }
-
-                // Because the `m_argTokens` array includes the commas between arguments,
-                // we can get the token sequence we want simply by making a reader that spans
-                // all the tokens between the first and last argument (inclusive) that correspond
-                // to the variadic parameter.
-                auto firstArg = m_args[firstArgIndex];
-                auto lastArg = m_args[lastArgIndex];
-                return TokenReader(argTokens + firstArg.beginTokenIndex, argTokens + lastArg.endTokenIndex);
-            }
-        }
-
-        /// Parse one macro argument and return it in the form of a macro
-        ///
-        /// Assumes as a precondition that the caller has already checked
-        /// for a closing `)` or end-of-input token.
-        ///
-        /// Does not consume any closing `)` or `,` for the argument.
-        MacroInvocation::Arg ExpansionInputStream::parseMacroArg(const std::shared_ptr<MacroInvocation>& macroInvocation)
-        {
-            // Create the argument, represented as a special flavor of macro
-            //
-            MacroInvocation::Arg arg;
-            arg.beginTokenIndex = uint32_t(macroInvocation->m_argTokens.size());
-
-            // We will now read the tokens that make up the argument.
-            //
-            // We need to keep track of the nesting depth of parentheses,
-            // because arguments should only break on a `,` that is
-            // not properly nested in balanced parentheses.
-            int32_t nestingDepth = 0;
-            for (;;)
-            {
-                arg.endTokenIndex = uint32_t(macroInvocation->m_argTokens.size());
-
-                inputStreams_.SkipAllWhitespace();
-                Token token = inputStreams_.PeekToken();
-                macroInvocation->m_argTokens.push_back(token);
-
-                switch (token.type)
-                {
-                    case Token::Type::EndOfFile:
-                        // End of input means end of the argument.
-                        // It is up to the caller to diagnose the
-                        // lack of a closing `)`.
-                        return arg;
-
-                    case Token::Type::RParent:
-                        // If we see a right paren when we aren't nested
-                        // then we are at the end of an argument.
-                        if (nestingDepth == 0)
-                            return arg;
-
-                        // Otherwise we decrease our nesting depth, add
-                        // the token, and keep going
-                        nestingDepth--;
-                        break;
-
-                    case Token::Type::Comma:
-                        // If we see a comma when we aren't nested
-                        // then we are at the end of an argument
-                        if (nestingDepth == 0)
-                            return arg;
-
-                        // Otherwise we add it as a normal token
-                        break;
-
-                    case Token::Type::LParent:
-                        // If we see a left paren then we need to
-                        // increase our tracking of nesting
-                        nestingDepth++;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                // Add the token and continue parsing.
-                inputStreams_.ReadToken();
-            }
-        }
-
-        /// Parse the arguments to a function-like macro invocation.
-        ///
-        /// This function assumes the opening `(` has already been parsed,
-        /// and it leaves the closing `)`, if any, for the caller to consume.
-        void ExpansionInputStream::parseMacroArgs(
-            const std::shared_ptr<MacroDefinition>& macro,
-            const std::shared_ptr<MacroInvocation>& macroInvocation)
-        {
-            // There is a subtle case here, which is when a macro expects
-            // exactly one non-variadic parameter, but the argument list is
-            // empty. E.g.:
-            //
-            //      #define M(x) /* whatever */
-            //
-            //      M()
-            //
-            // In this case we should parse a single (empty) argument, rather
-            // than issue an error because of there apparently being zero
-            // arguments.
-            //
-            // In all other cases (macros that do not have exactly one
-            // parameter, plus macros with a single variadic parameter) we
-            // should treat an empty argument list as zero
-            // arguments for the purposes of error messages (since that is
-            // how a programmer is likely to view/understand it).
-            const auto paramCount = macro->params.size();
-            if (paramCount != 1 || macro->IsVariadic())
-            {
-                // If there appear to be no arguments because the next
-                // token would close the argument list, then we bail
-                // out immediately.
-                switch (inputStreams_.PeekTokenType())
-                {
-                    case Token::Type::RParent:
-                    case Token::Type::EndOfFile:
-                        return;
-                }
-            }
-
-            // Otherwise, we have one or more arguments.
-            for (;;)
-            {
-                // Parse an argument.
-                MacroInvocation::Arg arg = parseMacroArg(macroInvocation);
-                macroInvocation->m_args.push_back(arg);
-
-                // After consuming one macro argument, we look at
-                // the next token to decide what to do.
-                switch (inputStreams_.PeekTokenType())
-                {
-                    case Token::Type::RParent:
-                    case Token::Type::EndOfFile:
-                        // if we see a closing `)` or the end of
-                        // input, we know we are done with arguments.
-                        return;
-
-                    case Token::Type::Comma:
-                        // If we see a comma, then we will
-                        // continue scanning for more macro
-                        // arguments.
-                        ReadRawToken();
-                        break;
-
-                    default:
-                        // Any other token represents a syntax error.
-                        //
-                        // TODO: We could try to be clever here in deciding
-                        // whether to break out of parsing macro arguments,
-                        // or whether to "recover" and continue to scan
-                        // ahead for a closing `)`. For now it is simplest
-                        // to just bail.
-
-                        //TODO
-                        const auto preprocessor = preprocessor_.lock();
-                        ASSERT(preprocessor)
-
-                        preprocessor->GetSink()->Diagnose(inputStreams_.PeekToken(), Diagnostics::errorParsingToMacroInvocationArgument, paramCount, macro->GetName());
-                        return;
                 }
             }
         }
@@ -3702,6 +1921,627 @@ namespace RR
         {
             inputStreams_.Push(expansion);
             lookaheadToken_ = inputStreams_.ReadToken();
+        }
+
+        PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                                           const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+            : sink_(diagnosticSink),
+              includeSystem_(includeSystem),
+              allocator_(std::make_shared<LinearAllocator>(1024))
+        {
+            ASSERT(diagnosticSink)
+            ASSERT(includeSystem)
+
+            // Add builtin macros
+            /* {
+                const char* const builtinNames[] = { "__FILE__", "__LINE__" };
+                const MacroDefinition::Opcode builtinOpcodes[] = { MacroDefinition::Opcode::BuiltinFile, MacroDefinition::Opcode::BuiltinLine };
+
+                for (int i = 0; size_t(i) < std::size(builtinNames); i++)
+                {
+                    const auto& name = builtinNames[i];
+
+                    MacroDefinition::Op op;
+                    op.opcode = builtinOpcodes[i];
+
+                    auto macro = std::make_shared<MacroDefinition>();
+                    macro->flavor = MacroDefinition::Flavor::BuiltinObjectLike;
+                    macro->name = name;
+                    macro->ops.push_back(op);
+
+                    macrosDefinitions_[name] = macro;
+                }
+            }*/
+
+            endOfFileToken_.type = Token::Type::EndOfFile;
+        }
+
+        // Find the currently-defined macro of the given name, or return nullptr
+        std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const U8String& name) const
+        {
+            const auto& search = macrosDefinitions_.find(name);
+            return search != macrosDefinitions_.end() ? search->second : nullptr;
+        }
+
+        std::vector<Token> PreprocessorImpl::ReadAllTokens()
+        {
+            std::vector<Token> tokens;
+
+            for (;;)
+            {
+                const auto& token = readToken();
+
+                ASSERT(token.isValid());
+
+                switch (token.type)
+                {
+                    default:
+                        tokens.push_back(token);
+                        break;
+
+                    case Token::Type::EndOfFile:
+                        // Note: we include the EOF token in the list,
+                        // since that is expected by the `TokenList` type.
+                        tokens.push_back(token);
+                        return tokens;
+                }
+            }
+        }
+
+        Token PreprocessorImpl::readToken()
+        {
+            for (;;)
+            {
+                auto inputFile = currentInputFile_;
+
+                if (!inputFile)
+                    return endOfFileToken_;
+
+                auto expansionStream = inputFile->expansionInputStream_;
+
+                auto token = peekRawToken();
+
+                switch (token.type)
+                {
+                    case Token::Type::EndOfFile:
+                        popInputFile();
+                        continue;
+
+                    case Token::Type::Directive:
+                        // Parse and handle the directive
+                        handleDirective();
+                        continue;
+
+                    default:
+                        break;
+                }
+
+                // otherwise, if we are currently in a skipping mode, then skip tokens
+                /* if (inputFile->IsSkipping())
+                {
+                    expansionStream->ReadRawToken();
+                    continue;
+                }*/
+
+                token = expansionStream->ReadToken();
+                if (token.type == Token::Type::EndOfFile)
+                {
+                    popInputFile();
+                    continue;
+                }
+
+                return token;
+            }
+        }
+
+        Token PreprocessorImpl::advanceToken()
+        {
+            ASSERT(currentInputFile_);
+
+            if (isEndOfLine())
+                return peekRawToken();
+
+            return currentInputFile_->expansionInputStream_->ReadToken();
+        }
+
+        Token PreprocessorImpl::advanceRawToken()
+        {
+            ASSERT(currentInputFile_);
+
+            return currentInputFile_->expansionInputStream_->ReadRawToken();
+        }
+
+        Token PreprocessorImpl::peekRawToken()
+        {
+            ASSERT(currentInputFile_);
+
+            return currentInputFile_->expansionInputStream_->PeekRawToken();
+        }
+
+        void PreprocessorImpl::skipToEndOfLine()
+        {
+            while (!isEndOfLine())
+                advanceRawToken();
+        }
+
+        bool PreprocessorImpl::isEndOfLine()
+        {
+            ASSERT(currentInputFile_);
+
+            switch (currentInputFile_->expansionInputStream_->PeekRawTokenType())
+            {
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        void PreprocessorImpl::PushInputFile(const std::shared_ptr<InputFile>& inputFile)
+        {
+            ASSERT(inputFile);
+
+            inputFile->parent_ = currentInputFile_;
+            currentInputFile_ = inputFile;
+        }
+
+        void PreprocessorImpl::popInputFile()
+        {
+            const auto& inputFile = currentInputFile_;
+            ASSERT(inputFile)
+
+            // We expect the file to be at its end, so that the
+            // next token read would be an end-of-file token.
+            const auto& expansionStream = inputFile->expansionInputStream_;
+            Token eofToken = expansionStream->PeekRawToken();
+            ASSERT(eofToken.type == Token::Type::EndOfFile)
+
+            // If there are any open preprocessor conditionals in the file, then
+            // we need to diagnose them as an error, because they were not closed
+            // at the end of the file. TODO
+            /*
+            for (auto conditional = inputFile->getInnerMostConditional(); conditional; conditional = conditional->parent)
+            {
+                GetSink(this)->diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
+                GetSink(this)->diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.getContent());
+            }
+            */
+            // We will update the current file to the parent of whatever
+            // the `inputFile` was (usually the file that `#include`d it).
+            auto parentFile = inputFile->parent_;
+            currentInputFile_ = parentFile;
+
+            // As a subtle special case, if this is the *last* file to be popped,
+            // then we will update the canonical EOF token used by the preprocessor
+            // to be the EOF token for `inputFile`, so that the source location
+            // information returned will be accurate.
+            if (!parentFile)
+                endOfFileToken_ = eofToken;
+        }
+
+        bool PreprocessorImpl::expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
+        {
+            if (peekRawTokenType() != expected)
+            {
+                // Only report the first parse error within a directive
+                if (!context.parseError)
+                    sink_->Diagnose(peekRawToken(), diagnostic, expected, context.GetDirectiveName());
+
+                context.parseError = true;
+                return false;
+            }
+
+            outToken = advanceRawToken();
+            return true;
+        }
+
+        void PreprocessorImpl::expectEndOfDirective(DirectiveContext& context)
+        {
+            if (context.haveDoneEndOfDirectiveChecks)
+                return;
+
+            context.haveDoneEndOfDirectiveChecks = true;
+
+            if (!isEndOfLine())
+            {
+                // If we already saw a previous parse error, then don't
+                // emit another one for the same directive.
+                if (!context.parseError)
+                    sink_->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, context.GetDirectiveName());
+
+                skipToEndOfLine();
+            }
+
+            // Consume end of line
+            advanceRawToken();
+        }
+
+        void PreprocessorImpl::handleDirective()
+        {
+            ASSERT(peekRawTokenType() == Token::Type::Directive)
+
+            // Skip the `#`
+            advanceRawToken();
+
+            // Create a context for parsing the directive
+            DirectiveContext context;
+            context.inputFile = currentInputFile_;
+
+            // Try to read the directive name.
+            context.token = peekRawToken();
+
+            Token::Type directiveTokenType = context.token.type;
+
+            // An empty directive is allowed, and ignored.
+            switch (directiveTokenType)
+            {
+                case Token::Type::EndOfFile:
+                case Token::Type::NewLine:
+                    return;
+
+                default:
+                    break;
+            }
+
+            // Otherwise the directive name had better be an identifier
+            if (directiveTokenType != Token::Type::Identifier)
+            {
+                sink_->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
+                skipToEndOfLine();
+                return;
+            }
+
+            // Look up the handler for the directive.
+            const auto directive = findDirective(context.GetDirectiveName());
+
+            // If we are skipping disabled code, and the directive is not one
+            // of the small number that need to run even in that case, skip it.
+            /* if (isSkipping(context) && !IsSet(directive.flags, PreprocessorImpl::Directive::Flags::ProcessWhenSkipping))
+            {
+                skipToEndOfLine();
+                return;
+            }*/
+
+            if (!IsSet(directive.flags, Directive::Flags::DontConsumeDirectiveAutomatically))
+            {
+                // Consume the directive name token.
+                advanceRawToken();
+            }
+
+            // Call the directive-specific handler
+            (this->*directive.function)(context);
+
+            // We expect the directive callback to consume the entire line, so if
+            // it hasn't that is a parse error.
+            expectEndOfDirective(context);
+        }
+
+        void PreprocessorImpl::handleInvalidDirective(DirectiveContext& directiveContext)
+        {
+            sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, directiveContext.GetDirectiveName());
+            skipToEndOfLine();
+        }
+
+        void PreprocessorImpl::handleDefineDirective(DirectiveContext& directiveContext)
+        {
+            if (!expectRaw(directiveContext, Token::Type::WhiteSpace, Diagnostics::expectedTokenInPreprocessorDirective))
+                return;
+
+            Token nameToken;
+            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
+                return;
+
+            U8String name = nameToken.GetContentString();
+
+            const auto& oldMacro = LookupMacro(name);
+            if (oldMacro)
+            {
+                if (oldMacro->IsBuiltin())
+                {
+                    sink_->Diagnose(nameToken, Diagnostics::builtinMacroRedefinition, name);
+                }
+                else
+                {
+                    sink_->Diagnose(nameToken, Diagnostics::macroRedefinition, name);
+
+                    if (oldMacro->GetNameToken().isValid())
+                        sink_->Diagnose(oldMacro->GetNameToken(), Diagnostics::seePreviousDefinitionOf, name);
+                }
+            }
+
+            auto macro = std::make_shared<MacroDefinition>();
+            std::unordered_map<U8String, uint32_t> mapParamNameToIndex;
+
+            // If macro name is immediately followed (with no space) by `(`,
+            // then we have a function-like macro
+            auto maybeOpenParen = peekRawToken();
+            if (maybeOpenParen.type == Token::Type::LParent)
+            {
+                ASSERT_MSG(false, "NOT IMPLEMENTED")
+                // This is a function-like macro, so we need to remember that
+                // and start capturing parameters
+                /*   macro->flavor = MacroDefinition::Flavor::FunctionLike;
+
+                advanceRawToken();
+
+                // If there are any parameters, parse them
+                if (peekRawTokenType() != Token::Type::RParent)
+                {
+                    for (;;)
+                    {
+                        // A macro parameter should follow one of three shapes:
+                        //
+                        //      NAME
+                        //      NAME...
+                        //      ...
+                        //
+                        // If we don't see an ellipsis ahead, we know we ought
+                        // to find one of the two cases that starts with an
+                        // identifier.
+                        Token paramNameToken;
+                        if (peekRawTokenType() != Token::Type::Ellipsis)
+                        {
+                            if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInMacroParameters, paramNameToken))
+                                break;
+                        }
+
+                        // Whether or not a name was seen, we allow an ellipsis
+                        // to indicate a variadic macro parameter.
+                        //
+                        // Note: a variadic parameter, if any, should always be
+                        // the last parameter of a macro, but we do not enforce
+                        Token ellipsisToken;
+                        MacroDefinition::Param param;
+                        param.sourceLocation = paramNameToken.sourceLocation;
+                        param.humaneSourceLocation = paramNameToken.humaneSourceLocation;
+
+                        if (peekRawTokenType() == Token::Type::Ellipsis)
+                        {
+                            ellipsisToken = advanceRawToken();
+                            param.isVariadic = true;
+                        }
+
+                        if (paramNameToken.type != Token::Type::Unknown)
+                        {
+                            // If we read an explicit name for the parameter, then we can use
+                            // that name directly. TODO COMMENT
+                            param.name = paramNameToken.GetContentString();
+                        }
+                        else
+                        {
+                            // If an explicit name was not read for the parameter, we *must*
+                            // have an unnamed variadic parameter. We know this because the
+                            // only case where the logic above doesn't require a name to
+                            // be read is when it already sees an ellipsis ahead.
+                            ASSERT(ellipsisToken.type != Token::Type::Unknown);
+
+                            // Any unnamed variadic parameter is treated as one named `__VA_ARGS__`
+                            param.name = "__VA_ARGS__";
+                        }
+
+                        // TODO(tfoley): The C standard seems to disallow certain identifiers
+                        // (e.g., `defined` and `__VA_ARGS__`) from being used as the names
+                        // of user-defined macros or macro parameters. This choice seemingly
+                        // supports implementation flexibility in how the special meanings of
+                        // those identifiers are handled.
+                        //
+                        // We could consider issuing diagnostics for cases where a macro or parameter
+                        // uses such names, or we could simply provide guarantees about what those
+                        // names *do* in the context of the Slang preprocessor.
+
+                        // Add the parameter to the macro being deifned
+                        auto paramIndex = macro->params.size();
+                        macro->params.push_back(param);
+
+                        const auto paramName = param.name;
+                        if (mapParamNameToIndex.find(paramName) != mapParamNameToIndex.end())
+                        {
+                            sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
+                        }
+                        else
+                        {
+                            mapParamNameToIndex[paramName] = uint32_t(paramIndex);
+                        }
+
+                        // If we see `)` then we are done with arguments
+                        if (peekRawTokenType() == Token::Type::RParent)
+                            break;
+
+                        expectRaw(directiveContext, Token::Type::Comma, Diagnostics::expectedTokenInMacroParameters);
+                    }
+                }
+
+                expectRaw(directiveContext, Token::Type::RParent, Diagnostics::expectedTokenInMacroParameters);
+
+                // Once we have parsed the macro parameters, we can perform the additional validation
+                // step of checking that any parameters before the last parameter are not variadic.
+                size_t lastParamIndex = macro->params.size() - 1;
+                for (size_t i = 0; i < lastParamIndex; ++i)
+                {
+                    auto& param = macro->params[i];
+                    if (!param.isVariadic)
+                        continue;
+
+                    sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
+
+                    // As a precaution, we will unmark the variadic-ness of the parameter, so that
+                    // logic downstream from this step doesn't have to deal with the possibility
+                    // of a variadic parameter in the middle of the parameter list.
+                    param.isVariadic = false;
+                }   */
+            }
+            else
+            {
+                macro->flavor = MacroDefinition::Flavor::ObjectLike;
+            }
+
+            macro->nameToken = nameToken;
+            macro->name = nameToken.GetContentString();
+
+            macrosDefinitions_[name] = macro;
+
+            // consume tokens until end-of-line
+            for (;;)
+            {
+                Token token = peekRawToken();
+                switch (token.type)
+                {
+                    default:
+                        // In the ordinary case, we just add the token to the definition,
+                        // and keep consuming more tokens.
+                        advanceRawToken();
+                        macro->tokens.push_back(token);
+                        continue;
+
+                    case Token::Type::EndOfFile:
+                    case Token::Type::NewLine:
+                        // The end of the current line/file ends the directive, and serves
+                        // as the end-of-file marker for the macro's definition as well.
+                        token.type = Token::Type::EndOfFile;
+                        macro->tokens.push_back(token);
+                        break;
+                }
+                break;
+            }
+
+            parseMacroOps(macro, mapParamNameToIndex);
+        }
+
+        void PreprocessorImpl::parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
+                                             const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex)
+        {
+            // Scan through the tokens to recognize the "ops" that make up
+            // the macro body.
+            uint32_t spanBeginIndex = 0;
+            uint32_t cursor = 0;
+            for (;;)
+            {
+                auto spanEndIndex = cursor;
+                auto tokenIndex = cursor++;
+                const Token& token = macro->tokens[tokenIndex];
+                MacroDefinition::Op newOp;
+
+                switch (token.type)
+                {
+                    default:
+                        // Most tokens just continue our current span.
+                        continue;
+
+                    case Token::Type::Identifier:
+                    {
+                        auto paramName = token.GetContentString();
+
+                        const auto search = mapParamNameToIndex.find(paramName);
+                        if (search == mapParamNameToIndex.end())
+                            continue;
+
+                        newOp.opcode = MacroDefinition::Opcode::ExpandedParam;
+                        newOp.index0 = tokenIndex;
+                        newOp.index1 = search->second;
+                    }
+                    break;
+
+                    case Token::Type::Pound:
+                    {
+                        auto paramNameTokenIndex = cursor;
+                        auto paramNameToken = macro->tokens[paramNameTokenIndex];
+                        if (paramNameToken.type != Token::Type::Identifier)
+                        {
+                            sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
+                            continue;
+                        }
+
+                        auto paramName = paramNameToken.GetContentString();
+
+                        const auto search = mapParamNameToIndex.find(paramName);
+                        if (search == mapParamNameToIndex.end())
+                        {
+                            sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
+                            continue;
+                        }
+
+                        cursor++;
+
+                        newOp.opcode = MacroDefinition::Opcode::StringizedParam;
+                        newOp.index0 = tokenIndex;
+                        newOp.index1 = search->second;
+                    }
+                    break;
+
+                    case Token::Type::PoundPound:
+                        if (macro->ops.size() == 0 && (spanBeginIndex == spanEndIndex))
+                        {
+                            sink_->Diagnose(token, Diagnostics::tokenPasteAtStart);
+                            continue;
+                        }
+
+                        if (macro->tokens[cursor].type == Token::Type::EndOfFile)
+                        {
+                            sink_->Diagnose(token, Diagnostics::tokenPasteAtEnd);
+                            continue;
+                        }
+
+                        newOp.opcode = MacroDefinition::Opcode::TokenPaste;
+                        newOp.index0 = tokenIndex;
+                        newOp.index1 = 0;
+
+                        // Okay, we need to do something here!
+
+                        break;
+
+                    case Token::Type::EndOfFile:
+                        break;
+                }
+
+                if (spanBeginIndex != spanEndIndex || ((token.type == Token::Type::EndOfFile) && (macro->ops.size() == 0)))
+                {
+                    MacroDefinition::Op spanOp;
+                    spanOp.opcode = MacroDefinition::Opcode::RawSpan;
+                    spanOp.index0 = spanBeginIndex;
+                    spanOp.index1 = spanEndIndex;
+                    macro->ops.push_back(spanOp);
+                }
+                if (token.type == Token::Type::EndOfFile)
+                    break;
+
+                macro->ops.push_back(newOp);
+                spanBeginIndex = cursor;
+            }
+
+            size_t opCount = macro->ops.size();
+            ASSERT(opCount != 0);
+            for (size_t i = 1; i < opCount - 1; ++i)
+            {
+                if (macro->ops[i].opcode == MacroDefinition::Opcode::TokenPaste)
+                {
+                    if (macro->ops[i - 1].opcode == MacroDefinition::Opcode::ExpandedParam)
+                        macro->ops[i - 1].opcode = MacroDefinition::Opcode::UnexpandedParam;
+                    if (macro->ops[i + 1].opcode == MacroDefinition::Opcode::ExpandedParam)
+                        macro->ops[i + 1].opcode = MacroDefinition::Opcode::UnexpandedParam;
+                }
+            }
+        }
+
+        Preprocessor::~Preprocessor() { }
+
+        Preprocessor::Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+            : impl_(std::make_unique<PreprocessorImpl>(includeSystem, diagnosticSink))
+        {
+        }
+
+        void Preprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
+        {
+            const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
+            impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
+        }
+
+        std::vector<Token> Preprocessor::ReadAllTokens()
+        {
+            ASSERT(impl_);
+            return impl_->ReadAllTokens();
         }
     }
 }

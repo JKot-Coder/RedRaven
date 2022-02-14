@@ -1,0 +1,6 @@
+Output:[
+	float foo() { return 1.0f + 2.0; }
+	int bar() { return 0; }
+]
+Diagnostic:[
+]
