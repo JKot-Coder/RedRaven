@@ -2326,6 +2326,10 @@ namespace RR
                 break;
             }
 
+            // TODO Comment
+            if (!macro->tokens.empty())
+                macro->tokens.front().flags &= ~Token::Flags::AfterWhitespace;
+
             parseMacroOps(macro, mapParamNameToIndex);
         }
 
@@ -2721,7 +2725,10 @@ namespace RR
             m_nextBusyMacroInvocation = nextBusyMacroInvocation;
 
             initCurrentOpStream();
-            lookaheadToken_ = readTokenImpl();
+            lookaheadToken_ = readTokenImpl();   
+
+            // TODO COMMENTS
+            lookaheadToken_.flags |= initiatingMacroToken_.flags;
         }
 
         Token MacroInvocation::readTokenImpl()
@@ -2755,10 +2762,6 @@ namespace RR
             // from the expansion of the current op.
             Token token = m_currentOpStreams.ReadToken();
             auto tokenOpIndex = m_macroOpIndex;
-
-            // Clone flags of token that "initiated" macro if we are at the beginning
-            //if (tokenOpIndex == 0)
-           //     token.flags = initiatingMacroToken_.flags;
 
             // Once we've read that `token`, we need to work to establish or
             // re-establish our invariant, which we do by looping until we are

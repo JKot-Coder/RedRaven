@@ -1,0 +1,7 @@
+#define NO_EXPAND(a) NO_EXPAND(int a)
+
+// Should expand to int NO_EXPAND(int b)
+int NO_EXPAND(b)
+{
+    return b + ARG_EXPAND(ARG_EXPAND(1));
+}
