@@ -174,13 +174,12 @@ namespace RR
 
             // The flags on the token we just lexed will be based
             // on the current state of the lexer.
-            auto tokenFlags = tokenflags_;
             auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
 
-            if (IsSet(tokenflags_, Token::Flags::EscapedNewLines))
+            if (IsSet(tokenflags_, TokenFlags::EscapedNewLines))
             {
                 // Reset flag
-                tokenflags_ &= ~Token::Flags::EscapedNewLines;
+                tokenflags_ &= ~TokenFlags::EscapedNewLines;
 
                 // "scrubbing" token value here to remove escaped newlines...
                 // Only perform this work if we encountered an escaped newline while lexing this token
@@ -200,7 +199,7 @@ namespace RR
                     // If we just reached the end of a line, then the next token
                     // should count as being at the start of a line, and also after
                     // whitespace.
-                    tokenflags_ = Token::Flags::AtStartOfLine | Token::Flags::AfterWhitespace;
+                    tokenflags_ = TokenFlags::AtStartOfLine | TokenFlags::AfterWhitespace;
                     break;
                 }
                 case Token::Type::WhiteSpace:
@@ -211,19 +210,19 @@ namespace RR
                     //
                     // Note that a line comment does not include the terminating newline,
                     // we do not need to set `AtStartOfLine` here.
-                    tokenflags_ |= Token::Flags::AfterWhitespace;
+                    tokenflags_ |= TokenFlags::AfterWhitespace;
                     break;
                 }
                 default:
                 {
                     // If we read some token other then the above cases, then we are
                     // neither after whitespace nor at the start of a line.
-                    tokenflags_ = Token::Flags::None;
+                    tokenflags_ = TokenFlags::None;
                     break;
                 }
             }
 
-            return Token(tokenType, tokenSlice, sourceLocation, humaneLocation, tokenFlags);
+            return Token(tokenType, tokenSlice, sourceLocation, humaneLocation);
         }
 
         TokenList Lexer::LexAllSemanticTokens()
@@ -294,7 +293,6 @@ namespace RR
                             // any more. We thus end up having distinct tokens for
                             // `.`, `..`, and `...` even though the `..` case is
                             // not part of HLSL.
-                            //
                             advance();
                             switch (peek())
                             {
@@ -486,7 +484,7 @@ namespace RR
                     switch (peek())
                     { // clang-format off
                         case '=': advance(); return Token::Type::OpEql;
-                        default: return Token::Type::OpAssign;
+                        default: return Token::Type::OpAssign; 
                     } // clang-format on
 
                 case '!':
@@ -498,12 +496,19 @@ namespace RR
                     } // clang-format on
 
                 case '#':
+                    // Preprocessor directives always on start the line or after whitspace
+                    if (IsSet(tokenflags_, TokenFlags::AtStartOfLine | TokenFlags::AfterWhitespace))
+                    {
+                        advance();
+                        return Token::Type::Directive;
+                    }
+
                     advance();
 
                     switch (peek())
                     { // clang-format off
                         case '#': advance(); return Token::Type::PoundPound;
-                        default: return Token::Type::Pound;
+                        default: return Token::Type::Pound; 
                     } // clang-format on
 
                 case '~':
@@ -540,6 +545,7 @@ namespace RR
             // in identifiers, etc., then this would be the right place
             // to perform a more expensive dispatch based on the actual
             // code point (and not just the first byte).
+
             {
                 // If none of the above cases matched, then we have an
                 // unexpected/invalid character.
@@ -669,7 +675,7 @@ namespace RR
         {
             ASSERT(checkForEscapedNewline(cursor_, end_));
 
-            tokenflags_ |= Token::Flags::EscapedNewLines;
+            tokenflags_ |= TokenFlags::EscapedNewLines;
 
             advance();
             handleNewlineSequence();

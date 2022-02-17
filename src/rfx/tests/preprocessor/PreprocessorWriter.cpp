@@ -15,26 +15,7 @@ namespace RR::Rfx
             public:
                 void Emit(const Token& token)
                 {
-                    U8String escapedToken;
-                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
-
-                    if (token.type == Token::Type::RBrace)
-                        dedent();
-
-                    if (IsSet(token.flags, Token::Flags::AtStartOfLine))
-                    {
-                        if (!output_.empty()) // Skip new line at the wery begining
-                            output_ += "\n" + indentString_;
-                    }
-                    else if (IsSet(token.flags, Token::Flags::AfterWhitespace))
-                    {
-                        output_ += " ";
-                    }
-
                     output_.append(token.stringSlice.Begin(), token.stringSlice.End());
-
-                    if (token.type == Token::Type::LBrace)
-                        intend();
                 }
 
                 U8String GetOutput()
@@ -43,34 +24,6 @@ namespace RR::Rfx
                 }
 
             private:
-                inline void intend()
-                {
-                    indentLevel_++;
-                    updateIndentStiring();
-                }
-
-                inline void dedent()
-                {
-                    ASSERT(indentLevel_ > 0);
-
-                    if (indentLevel_ == 0)
-                        return;
-
-                    indentLevel_--;
-                    updateIndentStiring();
-                }
-
-                void updateIndentStiring()
-                {
-                    indentString_ = "";
-
-                    for (uint32_t i = 0; i < indentLevel_; i++)
-                        indentString_ += "    ";
-                }
-
-            private:
-                uint32_t indentLevel_ = 0;
-                U8String indentString_ = "";
                 U8String output_;
             };
 
@@ -94,16 +47,18 @@ namespace RR::Rfx
                 ofs << "Output:[\n";
 
                 const auto& tokens = preprocessor->ReadAllTokens();
-                SourceWriter writer;
 
                 for (const auto& token : tokens)
-                    writer.Emit(token);
+                {
+                    if (token.type == Token::Type::NewLine)
+                    {
+                        ofs << '\n';
+                        continue;
+                    }
 
-                U8String line;
-                std::istringstream logStream(writer.GetOutput());
-
-                while (std::getline(logStream, line, '\n'))
-                    ofs << fmt::format("\t{}\n", line);
+                    // TODO copying strings...
+                    ofs << token.GetContentString();
+                }
 
                 ofs << "]";
             }
@@ -111,7 +66,7 @@ namespace RR::Rfx
 
         void PreprocessorWriter::write(std::string path) const
         {
-            std::ofstream ofs(path);
+            std::ofstream ofs(path, std::ofstream::binary);
             ASSERT(ofs.is_open())
 
             writeTokens(ofs, preprocessor_);

@@ -5,6 +5,8 @@
 #include "compiler/InputString.hpp"
 #include "compiler/Token.hpp"
 
+#include "common/EnumClassOperators.hpp"
+
 namespace RR
 {
     namespace Common
@@ -130,6 +132,15 @@ namespace RR
             };
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
+            enum class TokenFlags : uint32_t
+            {
+                None = 0 << 0,
+                AtStartOfLine = 1 << 0,
+                AfterWhitespace = 1 << 1,
+                EscapedNewLines = 1 << 2
+            };
+            ENUM_CLASS_FRIEND_OPERATORS(TokenFlags)
+
         public:
             Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
@@ -201,7 +212,7 @@ namespace RR
             const char* end_;
             Counter linesCounter_ = 1;
             Counter columnCounter_ = 1;
-            Token::Flags tokenflags_ = Token::Flags::AtStartOfLine;
+            TokenFlags tokenflags_ = TokenFlags::AtStartOfLine;
             Flags lexerFlags_ = Flags::None;
         };
     }
