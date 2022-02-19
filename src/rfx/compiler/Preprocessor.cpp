@@ -263,6 +263,7 @@ namespace RR
         };
 
         // Get the name of the directive being parsed.
+        // TODO MOVE TO  DirectiveContext
         U8String getDirectiveName(const DirectiveContext& context)
         {
             return context.token.GetContentString();
@@ -1628,7 +1629,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
+                    sink_->Diagnose(peekRawToken(), diagnostic, expected, getDirectiveName(context));
 
                 context.parseError = true;
                 return false;
@@ -1644,7 +1645,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
+                    sink_->Diagnose(peekRawToken(), diagnostic, expected, getDirectiveName(context));
 
                 context.parseError = true;
                 return false;
@@ -1666,9 +1667,8 @@ namespace RR
                 // If we already saw a previous parse error, then don't
                 // emit another one for the same directive.
                 if (!context.parseError)
-                {
-                    sink_->Diagnose(context.token, Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
-                }
+                    sink_->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
+
                 skipToEndOfLine();
             }
         }
@@ -2725,7 +2725,7 @@ namespace RR
             m_nextBusyMacroInvocation = nextBusyMacroInvocation;
 
             initCurrentOpStream();
-            lookaheadToken_ = readTokenImpl();   
+            lookaheadToken_ = readTokenImpl();
 
             // TODO COMMENTS
             lookaheadToken_.flags |= initiatingMacroToken_.flags;
