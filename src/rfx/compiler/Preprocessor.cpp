@@ -3321,6 +3321,7 @@ namespace RR
                 // the location of this invocation as the "initiating" macro
                 // invocation location for things like `__LINE__` uses inside
                 // of macro bodies.
+                // TODO COMMENT
                 if (activeStream == base_)
                     initiatingMacroToken_ = token;
 
@@ -3574,6 +3575,10 @@ namespace RR
 
                 inputStreams_.SkipAllWhitespace();
                 Token token = inputStreams_.PeekToken();
+
+                // TODO Comment
+                token.flags |= Token::Flags::AfterWhitespace;
+
                 macroInvocation->m_argTokens.push_back(token);
 
                 switch (token.type)
