@@ -1,0 +1,6 @@
+// GCC: <source>:4:9: error: '##' cannot appear at either end of a macro expansion. 
+// Clang: <source>:4:21: error: '##' cannot appear at start of macro expansion
+// Rfx:  <source>:4:21 error 15405: '##' is not allowed at the start of a macro body
+#define POUND_POUND ##
+
+Hello POUND_POUND There;

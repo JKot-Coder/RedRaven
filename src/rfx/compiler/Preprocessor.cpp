@@ -162,8 +162,9 @@ namespace RR
             {
                 // If token is on another line, it is not part of the
                 // expression
-                if (IsSet(opToken.flags, Token::Flags::AtStartOfLine))
-                    return -1;
+                // // TODO
+                // if (IsSet(opToken.flags, Token::Flags::AtStartOfLine))
+                //     return -1;
 
                 // otherwise we look at the token type to figure
                 // out what precedence it should be parse with
@@ -674,7 +675,6 @@ namespace RR
                         default:
                             return token;
 
-                        case Token::Type::WhiteSpace:
                         case Token::Type::BlockComment:
                         case Token::Type::LineComment:
                             break;
@@ -1137,6 +1137,9 @@ namespace RR
             // Read one raw token, without going past the end of the line.
             Token advanceRawToken();
 
+            // TODO comment
+            void skipUntilSemanticTokens();
+
             // Skip to the end of the line (useful for recovering from errors in a directive)
             void skipToEndOfLine();
 
@@ -1321,8 +1324,6 @@ namespace RR
                         tokens.push_back(token);
                         return tokens;
 
-                    case Token::Type::WhiteSpace:
-                    case Token::Type::NewLine:
                     case Token::Type::LineComment:
                     case Token::Type::BlockComment:
                     case Token::Type::Invalid:
@@ -1487,8 +1488,7 @@ namespace RR
                     continue;
                 }
 
-                // If we have a directive (`#` at start of line) then handle it
-                if ((token.type == Token::Type::Pound) && IsSet(token.flags, Token::Flags::AtStartOfLine))
+                if (token.type == Token::Type::Directive)
                 {
                     // Parse and handle the directive
                     handleDirective();
@@ -1587,6 +1587,22 @@ namespace RR
             return currentInputFile_->expansionInputStream_->ReadRawToken();
         }
 
+        void PreprocessorImpl::skipUntilSemanticTokens()
+        {
+            while (true)
+            {
+                switch (peekRawToken().type)
+                {
+                    default:
+                        return;
+
+                    case Token::Type::WhiteSpace:
+                        advanceRawToken();
+                        continue;
+                }
+            }
+        }
+
         void PreprocessorImpl::skipToEndOfLine()
         {
             while (!isEndOfLine())
@@ -1628,7 +1644,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
+                    sink_->Diagnose(peekToken(), diagnostic, expected, getDirectiveName(context));
 
                 context.parseError = true;
                 return false;
@@ -1644,7 +1660,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(context.token, diagnostic, expected, getDirectiveName(context));
+                    sink_->Diagnose(peekToken(), diagnostic, expected, getDirectiveName(context));
 
                 context.parseError = true;
                 return false;
@@ -1666,19 +1682,21 @@ namespace RR
                 // If we already saw a previous parse error, then don't
                 // emit another one for the same directive.
                 if (!context.parseError)
-                {
-                    sink_->Diagnose(context.token, Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
-                }
+                    sink_->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
+
                 skipToEndOfLine();
             }
         }
 
         void PreprocessorImpl::handleDirective()
         {
-            ASSERT(peekRawTokenType() == Token::Type::Pound)
+            ASSERT(peekRawTokenType() == Token::Type::Directive)
 
             // Skip the `#`
             advanceRawToken();
+
+            // Whitespaces is allowed between # and directive name
+            skipUntilSemanticTokens();
 
             // Create a context for parsing the directive
             DirectiveContext context;
@@ -1708,6 +1726,7 @@ namespace RR
                 return;
             }
 
+            // TODO context.getDirectiveName
             // Look up the handler for the directive.
             const auto directive = findDirective(getDirectiveName(context));
 
@@ -1723,6 +1742,9 @@ namespace RR
             {
                 // Consume the directive name token.
                 advanceRawToken();
+
+                // Skip whitespaces after directive name.
+                skipUntilSemanticTokens();
             }
 
             // Call the directive-specific handler
@@ -1843,71 +1865,79 @@ namespace RR
                     break;
             }
 
-            auto token = advanceToken();
-            switch (token.type)
+            for (;;)
             {
-                // handle prefix unary ops
-                case Token::Type::OpSub:
-                    return -parseAndEvaluateUnaryExpression(context);
-                case Token::Type::OpNot:
-                    return !parseAndEvaluateUnaryExpression(context);
-                case Token::Type::OpBitNot:
-                    return ~parseAndEvaluateUnaryExpression(context);
+                const auto token = advanceToken();
 
-                // handle parenthized sub-expression
-                case Token::Type::LParent:
+                switch (token.type)
                 {
-                    Token leftParen = token;
-                    PreprocessorExpressionValue value = parseAndEvaluateExpression(context);
-                    if (!expect(context, Token::Type::RParent, Diagnostics::expectedTokenInPreprocessorExpression))
-                        sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                    // Skip all non semantic tokens
+                    case Token::Type::WhiteSpace:
+                        continue;
 
-                    return value;
-                }
+                    // handle prefix unary ops
+                    case Token::Type::OpSub:
+                        return -parseAndEvaluateUnaryExpression(context);
+                    case Token::Type::OpNot:
+                        return !parseAndEvaluateUnaryExpression(context);
+                    case Token::Type::OpBitNot:
+                        return ~parseAndEvaluateUnaryExpression(context);
 
-                case Token::Type::IntegerLiteral:
-                    return tokenToInt(token, 10);
-
-                case Token::Type::Identifier:
-                {
-                    if (token.GetContentString() == "defined")
+                    // handle parenthized sub-expression
+                    case Token::Type::LParent:
                     {
-                        // handle `defined(someName)`
+                        Token leftParen = token;
+                        PreprocessorExpressionValue value = parseAndEvaluateExpression(context);
+                        if (!expect(context, Token::Type::RParent, Diagnostics::expectedTokenInPreprocessorExpression))
+                            sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
 
-                        // Possibly parse a `(`
-                        Token leftParen;
-                        if (peekRawTokenType() == Token::Type::LParent)
-                            leftParen = advanceRawToken();
-
-                        // Expect an identifier
-                        Token nameToken;
-                        if (!expectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInDefinedExpression, nameToken))
-                            return 0;
-
-                        U8String name = nameToken.GetContentString();
-                        // If we saw an opening `(`, then expect one to close
-                        if (leftParen.type != Token::Type::Unknown)
-                        {
-                            if (!expectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInDefinedExpression))
-                            {
-                                sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
-                                return 0;
-                            }
-                        }
-
-                        return LookupMacro(name) != nullptr;
+                        return value;
                     }
 
-                    // An identifier here means it was not defined as a macro (or
-                    // it is defined, but as a function-like macro. These should
-                    // just evaluate to zero (possibly with a warning)
-                    sink_->Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
-                    return 0;
-                }
+                    case Token::Type::IntegerLiteral:
+                        return tokenToInt(token, 10);
 
-                default:
-                    sink_->Diagnose(token, Diagnostics::syntaxErrorInPreprocessorExpression);
-                    return 0;
+                    case Token::Type::Identifier:
+                    {
+                        if (token.GetContentString() == "defined")
+                        {
+                            // handle `defined(someName)`
+
+                            // Possibly parse a `(`
+                            Token leftParen;
+                            if (peekRawTokenType() == Token::Type::LParent)
+                                leftParen = advanceRawToken();
+
+                            // Expect an identifier
+                            Token nameToken;
+                            if (!expectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInDefinedExpression, nameToken))
+                                return 0;
+
+                            U8String name = nameToken.GetContentString();
+                            // If we saw an opening `(`, then expect one to close
+                            if (leftParen.type != Token::Type::Unknown)
+                            {
+                                if (!expectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInDefinedExpression))
+                                {
+                                    sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                                    return 0;
+                                }
+                            }
+
+                            return LookupMacro(name) != nullptr;
+                        }
+
+                        // An identifier here means it was not defined as a macro (or
+                        // it is defined, but as a function-like macro. These should
+                        // just evaluate to zero (possibly with a warning)
+                        sink_->Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
+                        return 0;
+                    }
+
+                    default:
+                        sink_->Diagnose(token, Diagnostics::syntaxErrorInPreprocessorExpression);
+                        return 0;
+                }
             }
         }
 
@@ -1923,6 +1953,8 @@ namespace RR
         {
             for (;;)
             {
+                skipUntilSemanticTokens();
+
                 // Look at the next token, and see if it is an operator of
                 // high enough precedence to be included in our expression
                 const auto& opToken = peekToken();
@@ -1934,6 +1966,7 @@ namespace RR
 
                 // Otherwise we need to consume the operator token.
                 advanceToken();
+                skipUntilSemanticTokens();
 
                 // Next we parse a right-hand-side expression by starting with
                 // a unary expression and absorbing and many infix operators
@@ -2152,6 +2185,10 @@ namespace RR
         void PreprocessorImpl::handleDefineDirective(DirectiveContext& directiveContext)
         {
             Token nameToken;
+
+            // Skip whitespace betwen `#define` and name
+            skipUntilSemanticTokens();
+
             if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
                 return;
 
@@ -2178,7 +2215,7 @@ namespace RR
             // If macro name is immediately followed (with no space) by `(`,
             // then we have a function-like macro
             auto maybeOpenParen = peekRawToken();
-            if (maybeOpenParen.type == Token::Type::LParent && !IsSet(maybeOpenParen.flags, Token::Flags::AfterWhitespace))
+            if (maybeOpenParen.type == Token::Type::LParent)
             {
                 // This is a function-like macro, so we need to remember that
                 // and start capturing parameters
@@ -2203,6 +2240,8 @@ namespace RR
                         Token paramNameToken;
                         if (peekRawTokenType() != Token::Type::Ellipsis)
                         {
+                            skipUntilSemanticTokens();
+
                             if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInMacroParameters, paramNameToken))
                                 break;
                         }
@@ -2265,6 +2304,8 @@ namespace RR
                             mapParamNameToIndex[paramName] = uint32_t(paramIndex);
                         }
 
+                        skipUntilSemanticTokens();
+
                         // If we see `)` then we are done with arguments
                         if (peekRawTokenType() == Token::Type::RParent)
                             break;
@@ -2302,6 +2343,9 @@ namespace RR
 
             macrosDefinitions_[name] = macro;
 
+            // Skip whitespace after name
+            skipUntilSemanticTokens();
+
             // consume tokens until end-of-line
             for (;;)
             {
@@ -2325,10 +2369,6 @@ namespace RR
                 }
                 break;
             }
-
-            // TODO Comment
-            if (!macro->tokens.empty())
-                macro->tokens.front().flags &= ~Token::Flags::AfterWhitespace;
 
             parseMacroOps(macro, mapParamNameToIndex);
         }
@@ -2361,13 +2401,6 @@ namespace RR
             while (!isEndOfLine())
             {
                 Token token = advanceRawToken();
-
-                if (IsSet(token.flags, Token::Flags::AfterWhitespace))
-                {
-                    if (!result.empty())
-                        result.append(" ");
-                }
-
                 result.append(token.stringSlice.Begin(), token.stringSlice.End());
             }
 
@@ -2381,6 +2414,9 @@ namespace RR
 
             // Consume the directive
             advanceRawToken();
+
+            // Skip whitespaces after `#warning` this is not a part of message
+            skipUntilSemanticTokens();
 
             // Read the message.
             U8String message = readDirectiveMessage();
@@ -2397,6 +2433,9 @@ namespace RR
 
             // Consume the directive
             advanceRawToken();
+
+            // Skip whitespaces after `#warning` this is not a part of message
+            skipUntilSemanticTokens();
 
             // Read the message.
             U8String message = readDirectiveMessage();
@@ -2725,10 +2764,7 @@ namespace RR
             m_nextBusyMacroInvocation = nextBusyMacroInvocation;
 
             initCurrentOpStream();
-            lookaheadToken_ = readTokenImpl();   
-
-            // TODO COMMENTS
-            lookaheadToken_.flags |= initiatingMacroToken_.flags;
+            lookaheadToken_ = readTokenImpl();
         }
 
         Token MacroInvocation::readTokenImpl()
@@ -3110,8 +3146,9 @@ namespace RR
                         // a single space character. Fortunately for us, the lexer has tracked
                         // for each token whether it was immediately preceded by whitespace,
                         // so we can check for whitespace that precedes any token except the first.
-                        if (!first && IsSet(token.flags, Token::Flags::AfterWhitespace))
-                            string.push_back(' ');
+                        // TODO
+                        //if (!first && IsSet(token.flags, Token::Flags::AfterWhitespace))
+                        //    string.push_back(' ');
 
                         // We need to rememember to apply escaping to the content of any tokens
                         // being pulled into the string. E.g., this would come up if we end up
@@ -3217,7 +3254,8 @@ namespace RR
             Token eofToken;
             eofToken.type = Token::Type::EndOfFile;
             eofToken.sourceLocation = token.sourceLocation;
-            eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
+            // TODO
+            // eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
             lexedTokens.push_back(eofToken);
 
             const auto& inputStream = std::make_shared<SingleUseInputStream>(/* m_preprocessor,*/ lexedTokens);

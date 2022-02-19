@@ -1,9 +1,0 @@
-Output:[
-	float foo(float x) { return x; }
-	float test(float x)
-	{
-	    return foo(x) + foo(x);
-	}
-]
-Diagnostic:[
-]

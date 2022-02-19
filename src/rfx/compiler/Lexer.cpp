@@ -496,8 +496,8 @@ namespace RR
                     } // clang-format on
 
                 case '#':
-                    // Preprocessor directives always on start the line or after whitspace
-                    if (IsSet(tokenflags_, TokenFlags::AtStartOfLine | TokenFlags::AfterWhitespace))
+                    // Preprocessor directives always on start the line
+                    if (IsSet(tokenflags_, TokenFlags::AtStartOfLine))
                     {
                         advance();
                         return Token::Type::Directive;

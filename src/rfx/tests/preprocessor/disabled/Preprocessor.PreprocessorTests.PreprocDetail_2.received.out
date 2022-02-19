@@ -1,0 +1,14 @@
+Output:[
+
+
+
+
+,]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\PreprocDetail_2.rfx(3): error 15403: expected 'identifier' in macro parameters
+	#define A(x, x) a x b x c
+	 ^~~~~~
+	..\src\rfx\tests\preprocessor\PreprocDetail_2.rfx(5): error 15501: wrong number of arguments to macro (expected 1, got 2)
+	A(,)
+	 ^
+]

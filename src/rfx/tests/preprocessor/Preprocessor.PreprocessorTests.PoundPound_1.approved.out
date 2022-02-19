@@ -1,6 +1,10 @@
 Output:[
-	Hello ## There;
-]
+
+
+
+
+
+Hello ## There;]
 Diagnostic:[
 	..\src\rfx\tests\preprocessor\PoundPound_1.rfx(4): error 15405: '##' is not allowed at the start of a macro body
 	#define POUND_POUND ##

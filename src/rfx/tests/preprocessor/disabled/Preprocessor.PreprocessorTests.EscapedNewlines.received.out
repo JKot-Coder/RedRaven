@@ -1,0 +1,21 @@
+Output:[
+
+
+
+
+
+
+
+
+
+float					bar					(float a)
+{
+	return					a					;
+}
+
+float foo(float x)
+{
+	return bar(x);
+}]
+Diagnostic:[
+]

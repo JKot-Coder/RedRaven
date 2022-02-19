@@ -54,7 +54,6 @@ namespace RR
             explicit TokenReader(const TokenList& tokens)
                 : cursor_(tokens.begin()), end_(std::prev(tokens.end()))
             {
-                ASSERT(std::distance(cursor_, end_) > 0)
                 ASSERT(end_->type == Token::Type::EndOfFile)
 
                 updateLookaheadToken();

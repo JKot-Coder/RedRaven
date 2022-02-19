@@ -1,0 +1,22 @@
+Output:[
+
+
+
+
+
+
+
+
+
+
+
+
+,;]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\PreprocConcat_2.rfx(1): error 15403: expected 'identifier' in macro parameters
+	#define CONCAT(a, b) a ## b
+	 ^~~~~~
+	..\src\rfx\tests\preprocessor\PreprocConcat_2.rfx(13): error 15501: wrong number of arguments to macro (expected 1, got 2)
+	CONCAT(A2 A2, B2 B2);
+	      ^
+]

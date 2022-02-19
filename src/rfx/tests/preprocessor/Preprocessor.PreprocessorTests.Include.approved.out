@@ -1,8 +1,15 @@
 Output:[
-	int foo() { return 0; }
-	int bar() { return foo(); }
-	int baz() { return bar(); }
-]
+
+
+int foo() { return 0; }
+
+
+
+int bar() { return foo(); }
+
+
+
+int baz() { return bar(); }]
 Diagnostic:[
 	In file included from ..\src\rfx\tests\preprocessor\Include.rfx(5):
 	..\src\rfx\tests\preprocessor\Include-a.hrfx(5): warning 15901: #warning: Include-a.hrfx included

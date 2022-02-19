@@ -78,4 +78,4 @@ namespace RR::Rfx
             ofs.close();
         }
     }
-}
+    }

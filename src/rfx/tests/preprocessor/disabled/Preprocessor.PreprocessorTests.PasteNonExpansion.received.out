@@ -1,0 +1,26 @@
+Output:[
+
+
+
+
+
+
+
+
+,
+
+,]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\PasteNonExpansion.rfx(3): error 15403: expected 'identifier' in macro parameters
+	#define CONCAT2(x, y) x ## y
+	 ^~~~~~
+	..\src\rfx\tests\preprocessor\PasteNonExpansion.rfx(4): error 15403: expected 'identifier' in macro parameters
+	#define CONCAT(x, y) CONCAT2(x, y)
+	 ^~~~~~
+	..\src\rfx\tests\preprocessor\PasteNonExpansion.rfx(9): error 15501: wrong number of arguments to macro (expected 1, got 2)
+	CONCAT(SOMETHING, Else)
+	      ^
+	..\src\rfx\tests\preprocessor\PasteNonExpansion.rfx(11): error 15501: wrong number of arguments to macro (expected 1, got 2)
+	CONCAT2(SOMETHING, Another)
+	       ^
+]
