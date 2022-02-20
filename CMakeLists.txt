@@ -75,7 +75,7 @@ FetchContent_MakeAvailable(Catch2)
 FetchContent_Declare(
   ApprovalTests
   GIT_REPOSITORY https://github.com/approvals/ApprovalTests.cpp.git
-  GIT_TAG        v.10.6.0
+  GIT_TAG        v.10.12.1
 )
 # Tell the ApprovalTests CMake files that we want to use its copy of Catch2:
 set(APPROVAL_TESTS_BUILD_THIRD_PARTY_CATCH2 ON CACHE BOOL "")

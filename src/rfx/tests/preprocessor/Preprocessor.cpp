@@ -1,7 +1,7 @@
-#include "rfx/include/rfx.hpp"
-#include "rfx/core/IncludeSystem.hpp"
 #include "rfx/core/FileSystem.hpp"
+#include "rfx/core/IncludeSystem.hpp"
 #include "rfx/core/SourceLocation.hpp"
+#include "rfx/include/rfx.hpp"
 
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/Preprocessor.hpp"
@@ -47,7 +47,9 @@ namespace RR
                         const auto& preprocessor = std::make_shared<RR::Rfx::Preprocessor>(includeSystem, diagnosticSink);
                         preprocessor->PushInputFile(sourceFile);
 
-                        PreprocessorApprover::verify(preprocessor, bufferWriter);
+                        auto namer = ApprovalTests::TemplatedCustomNamer::create(
+                            "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
+                        PreprocessorApprover::verify(preprocessor, bufferWriter, ApprovalTests::Options().withNamer(namer));
                     }
                 }
             }
