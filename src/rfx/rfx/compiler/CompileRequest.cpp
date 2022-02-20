@@ -2,7 +2,7 @@
 
 #include "compiler/Program.hpp"
 
-#include "include/rfx.hpp"
+#include "rfx.hpp"
 
 namespace
 {

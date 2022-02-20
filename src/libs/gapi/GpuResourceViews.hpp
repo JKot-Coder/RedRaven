@@ -36,11 +36,11 @@ namespace RR
                 std::size_t operator()(const GpuResourceViewDescription& desc) const
                 {
                     static_assert(sizeof(GpuResourceViewDescription) == 20);
-                    return (std::hash<uint32_t>()(static_cast<uint32_t>(desc.format))) ^
+                    return (std::hash<uint32_t>()(static_cast<uint32_t>(desc.format))) ^ // TODO StdHash?
                            (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1) ^
                            (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3) ^
                            (std::hash<uint32_t>()(desc.texture.mipCount) << 5) ^
-                           (std::hash<uint32_t>()(desc.texture.mipLevel) << 7);
+                           (std::hash<uint32_t>()(desc.texture.mipLevel) << 7); // TODO This is ok?
                 }
             };
 
@@ -49,7 +49,7 @@ namespace RR
             {
                 struct
                 {
-                    uint32_t mipLevel;
+                    uint32_t mipLevel; // TODO uint8_t ?? 
                     uint32_t mipCount;
                     uint32_t firstArraySlice = 0;
                     uint32_t arraySliceCount = 0;
