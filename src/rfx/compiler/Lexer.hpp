@@ -43,18 +43,12 @@ namespace RR
             explicit TokenReader(const TokenSpan& tokens)
                 : cursor_(tokens.Begin()), end_(tokens.End())
             {
-                ASSERT(std::distance(cursor_, end_) > 0)
-                ASSERT(end_->type == Token::Type::EndOfFile)
-
                 updateLookaheadToken();
             }
 
             explicit TokenReader(const TokenList& tokens)
                 : cursor_(tokens.begin()), end_(std::prev(tokens.end()))
             {
-                ASSERT(std::distance(cursor_, end_) > 0)
-                ASSERT(end_->type == Token::Type::EndOfFile)
-
                 updateLookaheadToken();
             }
 

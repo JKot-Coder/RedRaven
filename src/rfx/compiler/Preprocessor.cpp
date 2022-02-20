@@ -774,6 +774,9 @@ namespace RR
                 /// Two operands, with interpretation depending on the `opcode`
                 uint32_t index0 = 0;
                 uint32_t index1 = 0;
+
+                // Comments
+                Token::Flags flags = Token::Flags::None;
             };
 
             struct Param
@@ -2601,6 +2604,7 @@ namespace RR
                         newOp.opcode = MacroDefinition::Opcode::ExpandedParam;
                         newOp.index0 = tokenIndex;
                         newOp.index1 = search->second;
+                        newOp.flags = token.flags;
                     }
                     break;
 
@@ -2728,7 +2732,7 @@ namespace RR
             lookaheadToken_ = readTokenImpl();
 
             // TODO COMMENTS
-            lookaheadToken_.flags |= initiatingMacroToken_.flags;
+            //  lookaheadToken_.flags |= initiatingMacroToken_.flags;
         }
 
         Token MacroInvocation::readTokenImpl()
@@ -2919,7 +2923,13 @@ namespace RR
                         if (tokenOpIndex == nextOpIndex - 1)
                         {
                             if (token.type != Token::Type::EndOfFile)
+                            {
+                                // TODO COMMENT
+                                if (IsSet(token.flags, Token::Flags::AfterWhitespace))
+                                    pastedContent.put(' ');
+
                                 pastedContent << token.GetContentString();
+                            }
                         }
                         else
                         {
@@ -2953,8 +2963,10 @@ namespace RR
                         auto sourceView = SourceView::Create(sourceFile);
 
                         Lexer lexer(sourceView, preprocessor_->GetAllocator(), preprocessor_->GetSink());
-                        const auto& lexedTokens = lexer.LexAllSemanticTokens();
+                        auto lexedTokens = lexer.LexAllSemanticTokens();
 
+                        //TODO Comment this This
+                        lexedTokens.front().flags &= ~Token::Flags::AtStartOfLine;
                         // The `lexedTokens` will always contain at least one token, representing an EOF for
                         // the end of the lexed token squence.
                         //
@@ -3058,7 +3070,6 @@ namespace RR
                     // We can look up the corresponding argument to the macro invocation,
                     // which stores a begin/end pair of indices into the raw token stream
                     // that makes up the macro arguments.
-                    //
                     auto tokenReader = getArgTokens(paramIndex);
 
                     // Because expansion doesn't apply to this parameter reference, we can simply
@@ -3075,7 +3086,36 @@ namespace RR
                     // The initial logic here is similar to the unexpanded case above.
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
-                    const auto& stream = std::make_shared<PretokenizedInputStream>(tokenReader);
+
+                    // TODO COMMENT THIS
+                    std::shared_ptr<InputStream> stream;
+                    if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
+                    {
+                        TokenList tokenList;
+
+                        for (bool first = true; !tokenReader.IsAtEnd(); first = false)
+                        {
+                            auto token = tokenReader.AdvanceToken();
+
+                            if (first)
+                                token.flags = op.flags;
+
+                            tokenList.push_back(token);
+                        }
+
+                        // Every token list needs to be terminated with an EOF,
+                        // so we will construct one that matches the location
+                        // for the `token`.
+                        Token eofToken;
+                        eofToken.type = Token::Type::EndOfFile;
+                        tokenList.push_back(eofToken);
+
+                        stream = std::make_shared<SingleUseInputStream>(tokenList);
+                    }
+                    else
+                    {
+                        stream = std::make_shared<PretokenizedInputStream>(tokenReader);
+                    }
 
                     // The only interesting addition to the unexpanded case is that we wrap
                     // the stream that "plays back" the argument tokens with a stream that
@@ -3491,6 +3531,10 @@ namespace RR
                     }
                     break;
                 }
+
+                // TODO COMMENT
+                lookaheadToken_ = readTokenImpl();
+                lookaheadToken_.flags = token.flags;
             }
         }
 
@@ -3577,7 +3621,8 @@ namespace RR
                 Token token = inputStreams_.PeekToken();
 
                 // TODO Comment
-                token.flags |= Token::Flags::AfterWhitespace;
+                // if (token.type == Token::Type::Identifier)
+                //    token.flags |= Token::Flags::AfterWhitespace;
 
                 macroInvocation->m_argTokens.push_back(token);
 
@@ -3709,7 +3754,6 @@ namespace RR
         void ExpansionInputStream::pushMacroInvocation(const std::shared_ptr<MacroInvocation>& expansion)
         {
             inputStreams_.Push(expansion);
-            lookaheadToken_ = inputStreams_.ReadToken();
         }
     }
 }
