@@ -1,4 +1,4 @@
-#line 1 "_SpecialMacroRedefineFunction.rfx"
+#line 1 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PreprocConcat_3.rfx"
 
 
 
@@ -7,9 +7,9 @@
 
 
 
-"Is" "Anybody"
-"Is" There
 
 
 
-__FILE_
+
+
+CONCAT(a, a)CONCAT(b, b);

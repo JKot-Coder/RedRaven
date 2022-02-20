@@ -1,0 +1,10 @@
+Output:[
+	"Is" "Anybody"
+	"Is" There
+	__FILE__
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\SpecialMacroRedefineFunction.rfx(7): warning 15404: Redefinition of builtin macro '__FILE__'
+	#define __FILE__(x) "Is" x
+	        ^~~~~~~~
+]

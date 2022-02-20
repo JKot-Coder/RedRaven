@@ -1,7 +1,7 @@
 Output:[
-	int NO_EXPAND(intb)
+	int NO_EXPAND(int b)
 	{
-	    return b + ( (1 ) );
+	    return b + ( ( 1 ) );
 	}
 	int objectLikeMacroTest( int REC )
 	{
