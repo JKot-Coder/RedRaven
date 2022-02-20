@@ -1,6 +1,6 @@
 #pragma once
 
-#include "compiler/DiagnosticSink.hpp"
+#include "rfx/compiler/DiagnosticSink.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 

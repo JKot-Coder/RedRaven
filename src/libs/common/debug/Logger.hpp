@@ -26,7 +26,7 @@ namespace RR
         Log::Format::Fatal("ASSERT:  {3}\n  {0}({1}):\n  {2}\n  {4}\n", __FILE__, __LINE__, __FUNCTION__, #exp, fmt::sprintf(__VA_ARGS__));
 #else
 #define ASSERT(ignore) ((void)0);
-#define ASSERT_MSG(ignore) ((void)0);
+#define ASSERT_MSG(ignore, ...) ((void)0);
 #endif
 
 #define LOG_INFO(...) \

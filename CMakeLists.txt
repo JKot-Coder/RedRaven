@@ -57,6 +57,8 @@ add_definitions(${PLATFORM_DEFINITIONS})
 
 include_directories(src)
 
+#================================ Dependencies ===============================#
+
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/fmt)

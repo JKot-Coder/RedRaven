@@ -1,7 +1,7 @@
 #pragma once
 
-#include "compiler/DiagnosticSink.hpp"
-#include "compiler/Lexer.hpp"
+#include "rfx/compiler/DiagnosticSink.hpp"
+#include "rfx/compiler/Lexer.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 

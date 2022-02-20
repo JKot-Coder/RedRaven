@@ -1,6 +1,6 @@
 #pragma once
 
-#include "compiler/Token.hpp"
+#include "rfx/compiler/Token.hpp"
 #include "core/SourceLocation.hpp"
 
 namespace RR

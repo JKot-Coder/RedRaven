@@ -1,79 +1,13 @@
-project(rfx)
 
+add_subdirectory(rfx)
 add_subdirectory(tests)
 
-set(RFX_SRC
-    "pch.hpp"
-    "experement.hpp"
-    "experement.cpp"
-    "include/rfx.hpp"
-    "main.cpp")
-source_group( "" FILES ${RFX_SRC} )
-
-set(RFX_CORE_SRC
-    "core/Exception.hpp"
-    "core/FileSystem.cpp"
-    "core/FileSystem.hpp"
-    "core/IncludeSystem.cpp"
-    "core/IncludeSystem.hpp"
-    "core/SourceLocation.cpp"
-    "core/SourceLocation.hpp"
-    "core/StringEscapeUtil.cpp"
-    "core/StringEscapeUtil.hpp"
-    "core/UnownedStringSlice.cpp"
-    "core/UnownedStringSlice.hpp"
-    )
-source_group( "core" FILES ${RFX_CORE_SRC} )
-
-set(RFX_COMPILER_SRC
-    "compiler/CompileRequest.cpp"
-    "compiler/CompileRequest.hpp"
-    "compiler/DiagnosticCore.cpp"
-    "compiler/DiagnosticCore.hpp"
-    "compiler/DiagnosticDefinitions.hpp"
-    "compiler/DiagnosticSink.cpp"
-    "compiler/DiagnosticSink.hpp"
-    "compiler/Effect.cpp"
-    "compiler/Effect.hpp"
-    "compiler/InputString.hpp"
-    "compiler/Lexer.cpp"
-    "compiler/Lexer.hpp"
-    "compiler/LexerDiagnosticDefinitions.hpp"
-    "compiler/Preprocessor.cpp"   
-    "compiler/Preprocessor.hpp"
-    "compiler/Program.cpp"
-    "compiler/Program.hpp"
-    "compiler/Session.cpp"
-    "compiler/Session.hpp"
-    "compiler/Signal.cpp"
-    "compiler/Signal.hpp"
-    "compiler/Token.cpp"
-    "compiler/Token.hpp"
-    "compiler/TokenDefinitions.hpp"
-    )
-source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
-
-set(RFX_SRC
-    ${RFX_SRC}
-    ${RFX_CORE_SRC}
-    ${RFX_COMPILER_SRC})
-
-set(RFX_LINK_LIBRARIES
-    common)
-
-#=============================== Target ===============================#
-
-add_library(${PROJECT_NAME} ${RFX_SRC})
-target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
-target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
-
-if(MSVC)
-	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
-else(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif(MSVC)
+#================================ Dependencies ===============================#
+#================================== cxxopts ==================================#
+FetchContent_Declare(
+  cxxopts
+  GIT_REPOSITORY https://github.com/jarro2783/cxxopts
+  GIT_TAG        v3.0.0
+)
+FetchContent_MakeAvailable(cxxopts)
+set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
