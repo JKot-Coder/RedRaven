@@ -6,14 +6,6 @@ namespace RR
 {
     namespace Rfx
     {
-        enum class CompileTarget : uint32_t
-        {
-            Dxil,
-            Dxil_asm,
-
-            Count
-        };
-
 #define RFX_FAILED(status) (int32_t(status) < 0) // Use to test if a result was failure. Never use result != RFX_OK to test for failure, as there may be successful codes != RFX_OK.
 #define RFX_SUCCEEDED(status) (int32_t(status) >= 0) // Use to test if a result succeeded. Never use result == RFX_OK to test for success, as will detect other successful codes as a failure.
 
@@ -90,53 +82,68 @@ namespace RR
 
         /* !!!!!!!!!!!!!!!!!!!!! Macros to help checking RfxResult !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 //! Helper macro, that makes it easy to add result checking to calls in functions/methods that themselves return Result.
-#define RFX_RETURN_ON_FAIL(x) \
-    {                         \
-        RfxResult _res = (x); \
-        if (RFX_FAILED(_res)) \
-            return _res;      \
-    }
+#define RFX_RETURN_ON_FAIL(x)     \
+        {                         \
+            RfxResult _res = (x); \
+            if (RFX_FAILED(_res)) \
+                return _res;      \
+        }
 //! Helper macro that can be used to test the return value from a call, and will return in a void method/function
 #define RFX_RETURN_VOID_ON_FAIL(x) \
-    {                              \
-        RfxResult _res = (x);      \
-        if (RFX_FAILED(_res))      \
-            return;                \
-    }
+        {                          \
+            RfxResult _res = (x);  \
+            if (RFX_FAILED(_res))  \
+                return;            \
+        }
 //! Helper macro that will return false on failure.
 #define RFX_RETURN_FALSE_ON_FAIL(x) \
-    {                               \
-        RfxResult _res = (x);       \
-        if (RFX_FAILED(_res))       \
-            return false;           \
-    }
+        {                           \
+            RfxResult _res = (x);   \
+            if (RFX_FAILED(_res))   \
+                return false;       \
+        }
 //! Helper macro that will return nullptr on failure.
 #define RFX_RETURN_NULL_ON_FAIL(x) \
-    {                              \
-        RfxResult _res = (x);      \
-        if (RFX_FAILED(_res))      \
-            return nullptr;        \
-    }
+        {                          \
+            RfxResult _res = (x);  \
+            if (RFX_FAILED(_res))  \
+                return nullptr;    \
+        }
 
 //! Helper macro that will assert if the return code from a call is failure, also returns the failure.
-#define RFX_ASSERT_ON_FAIL(x) \
-    {                         \
-        RfxResult _res = (x); \
-        if (RFX_FAILED(_res)) \
-        {                     \
-            ASSERT(false);    \
-            return _res;      \
-        }                     \
-    }
+#define RFX_ASSERT_ON_FAIL(x)     \
+        {                         \
+            RfxResult _res = (x); \
+            if (RFX_FAILED(_res)) \
+            {                     \
+                ASSERT(false);    \
+                return _res;      \
+            }                     \
+        }
 //! Helper macro that will assert if the result from a call is a failure, also returns.
 #define RFX_ASSERT_VOID_ON_FAIL(x) \
-    {                              \
-        RfxResult _res = (x);      \
-        if (RFX_FAILED(_res))      \
         {                          \
-            ASSERT(false);         \
-            return;                \
-        }                          \
-    }
+            RfxResult _res = (x);  \
+            if (RFX_FAILED(_res))  \
+            {                      \
+                ASSERT(false);     \
+                return;            \
+            }                      \
+        }
+
+        enum class CompileTarget : uint32_t
+        {
+            Dxil,
+            Dxil_asm,
+
+            Count
+        };
+
+        struct CompilerRequestDescription 
+        {
+            char* inputFile;
+            char* preprocessorFile;
+        };
+
     }
 }
