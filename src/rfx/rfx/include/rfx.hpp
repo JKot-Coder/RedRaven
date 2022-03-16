@@ -142,8 +142,9 @@ namespace RR
         struct CompilerRequestDescription 
         {
             char* inputFile;
-            char* preprocessorFile;
+            bool outputPreprocessorResult = false;
         };
 
+        RfxResult Compile(CompilerRequestDescription& compilerRequest, out);
     }
 }

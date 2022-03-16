@@ -2,9 +2,9 @@ project(rfx)
 
 set(RFX_SRC
     "pch.hpp"
+    "include/rfx.hpp"
     "experement.hpp"
     "experement.cpp"
-    "rfx.hpp"
     "main.cpp")
 source_group( "" FILES ${RFX_SRC} )
 
@@ -64,7 +64,7 @@ set(RFX_LINK_LIBRARIES
 add_library(${PROJECT_NAME} SHARED ${RFX_SRC})
 target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/..)
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")

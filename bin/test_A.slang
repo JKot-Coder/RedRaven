@@ -2,3 +2,8 @@
 #line 1 "test1.cpp"
 #line 1 "test2.cpp"
 #warning test
+
+int main()
+{
+	
+}

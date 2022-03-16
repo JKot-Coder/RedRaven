@@ -1,3 +1,5 @@
+#include "rfx.hpp"
+
 #include "cxxopts.hpp"
 #include <tuple>
 
@@ -21,7 +23,7 @@ namespace
 
         options.add_options("Common")
             ("h,help", "Display available options")
-            ("version", "Display compiler version information")            
+            ("version", "Display compiler version information")          
             ("inputs", "Inputs ", cxxopts::value<std::vector<std::string>>(inputFiles));
       /*      ("d,debug", "Enable debugging") // a bool parameter
             ("i,integer", "Int param", cxxopts::value<int>())
@@ -29,7 +31,8 @@ namespace
             ("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))*/
         // clang-format on
 
-        options.add_options("Compilation")("Fp", "Output preprocessed input to the given file", cxxopts::value<std::string>(), "file");
+        options.add_options("Compilation")
+            ("Fp", "Output preprocessed input to the given file", cxxopts::value<std::string>(), "file");
 
         options.positional_help("<inputs>");
 
@@ -62,10 +65,14 @@ namespace
                 printMessageAndExit(1, "rfxc failed: Required input file argument is missing. use --help to get more information.");
 
             if (!outputRequired)
-                return;
+                return 0;
 
+            RR::Rfx::CompilerRequestDescription compilerRequest;
+
+            compilerRequest.outputPreprocessorResult = result.count("Fp");
             
-            
+
+
         }
         catch (const cxxopts::OptionException& e)
         {
