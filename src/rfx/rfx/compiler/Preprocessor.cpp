@@ -3705,6 +3705,8 @@ namespace RR
                     case Token::Type::RParent:
                     case Token::Type::EndOfFile:
                         return;
+                    default:
+                        break;
                 }
             }
 
