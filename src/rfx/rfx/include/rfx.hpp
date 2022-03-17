@@ -145,6 +145,6 @@ namespace RR
             bool outputPreprocessorResult = false;
         };
 
-        RfxResult Compile(CompilerRequestDescription& compilerRequest, out);
+      //  RfxResult Compile(CompilerRequestDescription& compilerRequest, out);
     }
 }

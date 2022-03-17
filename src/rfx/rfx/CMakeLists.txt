@@ -2,11 +2,17 @@ project(rfx)
 
 set(RFX_SRC
     "pch.hpp"
-    "include/rfx.hpp"
     "experement.hpp"
     "experement.cpp"
-    "main.cpp")
+    "main.cpp"
+    )
 source_group( "" FILES ${RFX_SRC} )
+
+set(RFX_INCLUDE
+    "include/rfx.hpp"
+    "include/comadapter.h"
+    )
+source_group( "include" FILES ${RFX_INCLUDE} )
 
 set(RFX_CORE_SRC
     "core/Exception.hpp"
@@ -53,6 +59,7 @@ source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
 
 set(RFX_SRC
     ${RFX_SRC}
+    ${RFX_INCLUDE}
     ${RFX_CORE_SRC}
     ${RFX_COMPILER_SRC})
 
