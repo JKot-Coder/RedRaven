@@ -2,6 +2,16 @@
 
 #include <stdint.h>
 
+#ifdef _WIN32
+// Emulation of com fon non windows platfroms
+#include "comadapter.h"
+#endif // _WIN32
+
+#ifndef COM_NO_WINDOWS_H
+#include "ole2.h"
+#include "windows.h"
+#endif // COM_NO_WINDOWS_H
+
 namespace RR
 {
     namespace Rfx
@@ -82,54 +92,54 @@ namespace RR
 
         /* !!!!!!!!!!!!!!!!!!!!! Macros to help checking RfxResult !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 //! Helper macro, that makes it easy to add result checking to calls in functions/methods that themselves return Result.
-#define RFX_RETURN_ON_FAIL(x)     \
-        {                         \
-            RfxResult _res = (x); \
-            if (RFX_FAILED(_res)) \
-                return _res;      \
-        }
+#define RFX_RETURN_ON_FAIL(x) \
+    {                         \
+        RfxResult _res = (x); \
+        if (RFX_FAILED(_res)) \
+            return _res;      \
+    }
 //! Helper macro that can be used to test the return value from a call, and will return in a void method/function
 #define RFX_RETURN_VOID_ON_FAIL(x) \
-        {                          \
-            RfxResult _res = (x);  \
-            if (RFX_FAILED(_res))  \
-                return;            \
-        }
+    {                              \
+        RfxResult _res = (x);      \
+        if (RFX_FAILED(_res))      \
+            return;                \
+    }
 //! Helper macro that will return false on failure.
 #define RFX_RETURN_FALSE_ON_FAIL(x) \
-        {                           \
-            RfxResult _res = (x);   \
-            if (RFX_FAILED(_res))   \
-                return false;       \
-        }
+    {                               \
+        RfxResult _res = (x);       \
+        if (RFX_FAILED(_res))       \
+            return false;           \
+    }
 //! Helper macro that will return nullptr on failure.
 #define RFX_RETURN_NULL_ON_FAIL(x) \
-        {                          \
-            RfxResult _res = (x);  \
-            if (RFX_FAILED(_res))  \
-                return nullptr;    \
-        }
+    {                              \
+        RfxResult _res = (x);      \
+        if (RFX_FAILED(_res))      \
+            return nullptr;        \
+    }
 
 //! Helper macro that will assert if the return code from a call is failure, also returns the failure.
-#define RFX_ASSERT_ON_FAIL(x)     \
-        {                         \
-            RfxResult _res = (x); \
-            if (RFX_FAILED(_res)) \
-            {                     \
-                ASSERT(false);    \
-                return _res;      \
-            }                     \
-        }
+#define RFX_ASSERT_ON_FAIL(x) \
+    {                         \
+        RfxResult _res = (x); \
+        if (RFX_FAILED(_res)) \
+        {                     \
+            ASSERT(false);    \
+            return _res;      \
+        }                     \
+    }
 //! Helper macro that will assert if the result from a call is a failure, also returns.
 #define RFX_ASSERT_VOID_ON_FAIL(x) \
+    {                              \
+        RfxResult _res = (x);      \
+        if (RFX_FAILED(_res))      \
         {                          \
-            RfxResult _res = (x);  \
-            if (RFX_FAILED(_res))  \
-            {                      \
-                ASSERT(false);     \
-                return;            \
-            }                      \
-        }
+            ASSERT(false);         \
+            return;                \
+        }                          \
+    }
 
         enum class CompileTarget : uint32_t
         {
@@ -139,12 +149,26 @@ namespace RR
             Count
         };
 
-        struct CompilerRequestDescription 
+        struct CompilerRequestDescription
         {
             char* inputFile;
             bool outputPreprocessorResult = false;
         };
 
-      //  RfxResult Compile(CompilerRequestDescription& compilerRequest, out);
+        MIDL_INTERFACE("c38ba6a4-331a-435f-8347-7b11413feaeb")
+        IBlob : public IUnknown
+        {
+            virtual void const* STDMETHODCALLTYPE getBufferPointer() = 0;
+            virtual size_t STDMETHODCALLTYPE getBufferSize() = 0;
+        };
+
+        MIDL_INTERFACE("c38ba6a4-331a-435f-8347-7b11413feaeb") // replace
+        ICompileResult : public IUnknown
+        {
+            virtual void const* STDMETHODCALLTYPE getBufferPointer() = 0;
+            virtual size_t STDMETHODCALLTYPE getBufferSize() = 0;
+        };
+
+        RfxResult Compile(_In_ const CompilerRequestDescription& compilerRequest, _COM_Outptr_opt_ void** compilerResult);
     }
 }
