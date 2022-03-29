@@ -55,7 +55,15 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/SpecialMacroSimple.rfx"
     "preprocessor/Undef.rfx"
     "preprocessor/Warning.rfx"
-    "preprocessor/X-macro.rfx")
+    "preprocessor/X-macro.rfx"
+    "preprocessor/bugs/Bug.rfx"
+    "preprocessor/file-indentity/b.hrfx"
+    "preprocessor/file-indentity/c.hrfx"
+    "preprocessor/include/PragmaOnce-c.hrfx"
+    "preprocessor/include/SpecialMacroInclude.hrfx"
+    "preprocessor/macros/MacroParensFromExpansion.rfx"
+    "preprocessor/macros/VariadicMacro.rfx"
+    )
 source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
 set(SRC

@@ -11,11 +11,11 @@ namespace fs = std::filesystem;
 
 namespace RR::Rfx
 {
-
     namespace Tests
     {
         TEST_CASE("LexerTests", "[Lexer]")
         {
+            // todo replace with universal
             std::string path = "../src/rfx/tests/lexer";
             for (const auto& entry : fs::recursive_directory_iterator(path))
             {
@@ -64,6 +64,7 @@ namespace RR::Rfx
                     REQUIRE(lexerOutput);
                     REQUIRE(diagnosticOutput);
 
+                    // Todo support relative
                     auto namer = ApprovalTests::TemplatedCustomNamer::create(
                         "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
                     RfxApprover::verify(lexerOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
