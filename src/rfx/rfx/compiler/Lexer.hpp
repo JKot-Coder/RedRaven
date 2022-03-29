@@ -83,7 +83,10 @@ namespace RR
                 return cursor.tokenReaderCursor == cursor_;
             }
 
-            bool IsAtEnd() const { return cursor_ == end_; }
+            bool IsAtEnd() const
+            {
+                return cursor_ == end_;
+            }
 
             const Token& PeekToken() const
             {
@@ -130,10 +133,9 @@ namespace RR
 
             std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
 
+            Flags GetLexerFlags() const { return lexerFlags_; }
             void EnableFlags(Flags flags) { lexerFlags_ |= flags; }
             void DisableFlags(Flags flags) { lexerFlags_ &= ~flags; }
-
-            Flags GetLexerFlags() const { return lexerFlags_; }
 
             Token ReadToken();
             TokenList LexAllSemanticTokens();

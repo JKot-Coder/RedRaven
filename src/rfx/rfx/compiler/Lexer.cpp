@@ -153,9 +153,7 @@ namespace RR
             end_ = content.End();
         }
 
-        Lexer::~Lexer()
-        {
-        }
+        Lexer::~Lexer() { }
 
         Token Lexer::ReadToken()
         {
@@ -902,7 +900,7 @@ namespace RR
             const uint32_t intent = (*cursor_ == '\t') ? 4 : 1;
             columnCounter_.Increment(intent);
 
-            utf8::next(cursor_, end_);       
+            utf8::next(cursor_, end_);
 
             if (!isReachEOF() && peek() == '\\')
             {

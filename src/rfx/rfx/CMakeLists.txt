@@ -2,14 +2,11 @@ project(rfx)
 
 set(RFX_SRC
     "pch.hpp"
-    "rfxApi.cpp"
-    )
+    "rfxApi.cpp")
 source_group( "" FILES ${RFX_SRC} )
 
 set(RFX_INCLUDE
-    "include/rfx.hpp"
-    "include/comadapter.h"
-    )
+    "include/rfx.hpp")
 source_group( "include" FILES ${RFX_INCLUDE} )
 
 set(RFX_CORE_SRC
@@ -26,8 +23,7 @@ set(RFX_CORE_SRC
     "core/StringEscapeUtil.cpp"
     "core/StringEscapeUtil.hpp"
     "core/UnownedStringSlice.cpp"
-    "core/UnownedStringSlice.hpp"
-    )
+    "core/UnownedStringSlice.hpp")
 source_group( "core" FILES ${RFX_CORE_SRC} )
 
 set(RFX_COMPILER_SRC
@@ -54,8 +50,7 @@ set(RFX_COMPILER_SRC
     "compiler/Signal.hpp"
     "compiler/Token.cpp"
     "compiler/Token.hpp"
-    "compiler/TokenDefinitions.hpp"
-    )
+    "compiler/TokenDefinitions.hpp")
 source_group( "compiler" FILES ${RFX_COMPILER_SRC} )
 
 set(RFX_SRC

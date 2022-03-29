@@ -256,18 +256,16 @@ namespace RR
 
         struct DirectiveContext
         {
+        public:
+            // Get the name of the directive being parsed.
+            inline U8String GetName() const { return token.GetContentString(); }
+
+        public:
             Token token;
             std::shared_ptr<InputFile> inputFile;
             bool parseError = false;
             bool haveDoneEndOfDirectiveChecks = false;
         };
-
-        // Get the name of the directive being parsed.
-        // TODO MOVE TO  DirectiveContext
-        U8String getDirectiveName(const DirectiveContext& context)
-        {
-            return context.token.GetContentString();
-        }
 
         //
         // Input Streams
@@ -310,7 +308,6 @@ namespace RR
             /// Read one token from the input stream
             ///
             /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
-            ///
             virtual Token ReadToken() = 0;
 
             /// Peek at the next token in the input stream
@@ -318,7 +315,6 @@ namespace RR
             /// This function should return whatever `readToken()` will return next.
             ///
             /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
-            ///
             virtual Token PeekToken() = 0;
 
             // Based on `peekToken()` we can define a few more utility functions
@@ -333,13 +329,11 @@ namespace RR
             /// Get the diagnostic sink to use for messages related to this stream
             // DiagnosticSink* getSink();
 
-            std::shared_ptr<InputStream> GetParent() { return parent_; }
+            std::shared_ptr<InputStream> GetParent() const { return parent_; }
 
             void SetParent(const std::shared_ptr<InputStream>& parent) { parent_ = parent; }
 
-            MacroInvocation* GetFirstBusyMacroInvocation() { return m_firstBusyMacroInvocation; }
-
-            virtual void ForceClose() = 0;
+            MacroInvocation* GetFirstBusyMacroInvocation() const { return firstBusyMacroInvocation_; }
 
         protected:
             /// The preprocessor that this input stream is being used by
@@ -349,7 +343,7 @@ namespace RR
             std::shared_ptr<InputStream> parent_;
 
             /// Macro expansions that should be considered "busy" during expansion of this stream
-            MacroInvocation* m_firstBusyMacroInvocation = nullptr; // TODO shoud it be shared_ptr ?
+            MacroInvocation* firstBusyMacroInvocation_ = nullptr; // TODO shoud it be shared_ptr ?
         };
 
         // During macro expansion, or the substitution of parameters into a macro body
@@ -362,28 +356,20 @@ namespace RR
         /// up when they are no longer active or when the stack gets destructed.
         struct InputStreamStack
         {
-            InputStreamStack()
-            {
-            }
+            InputStreamStack() { }
 
             /// Clean up after an input stream stack
-            ~InputStreamStack()
-            {
-                PopAll();
-            }
+            ~InputStreamStack() { PopAll(); }
 
             /// Push an input stream onto the stack
             void Push(const std::shared_ptr<InputStream>& stream)
             {
-                stream->SetParent(m_top);
-                m_top = stream;
+                stream->SetParent(top_);
+                top_ = stream;
             }
 
             /// Pop all input streams on the stack
-            void PopAll()
-            {
-                m_top = nullptr;
-            }
+            void PopAll() { top_ = nullptr; }
 
             /// Read a token from the top-most input stream with input
             ///
@@ -394,24 +380,24 @@ namespace RR
             /// it is valid to call this operation.
             Token ReadToken()
             {
-                ASSERT(m_top)
+                ASSERT(top_)
                 for (;;)
                 {
                     // We always try to read from the top-most stream, and if
                     // it is not at its end, then we return its next token.
-                    auto token = m_top->ReadToken();
+                    auto token = top_->ReadToken();
                     if (token.type != Token::Type::EndOfFile)
                         return token;
 
                     // If the top stream has run out of input we try to
                     // switch to its parent, if any.
-                    auto parent = m_top->GetParent();
+                    auto parent = top_->GetParent();
                     if (parent)
                     {
                         // This stack has taken ownership of the streams,
                         // and must therefore delete the top stream before
                         // popping it.
-                        m_top = parent;
+                        top_ = parent;
                         continue;
                     }
 
@@ -429,7 +415,6 @@ namespace RR
             ///
             /// At least one input stream must have been `push()`ed before
             /// it is valid to call this operation.
-            ///
             Token PeekToken()
             {
                 // The logic here mirrors `readToken()`, but we do not
@@ -462,7 +447,7 @@ namespace RR
                 //
                 // TODO: Consider whether we can streamline the implementaiton
                 // an remove this wrinkle.
-                auto top = m_top;
+                auto top = top_;
                 for (;;)
                 {
                     ASSERT(top);
@@ -482,10 +467,7 @@ namespace RR
             }
 
             /// Return type of the token that `peekToken()` will return
-            Token::Type PeekTokenType()
-            {
-                return PeekToken().type;
-            }
+            Token::Type PeekTokenType() { return PeekToken().type; }
 
             /// Return location of the token that `peekToken()` will return
             /* SourceLoc PeekLoc()
@@ -517,18 +499,14 @@ namespace RR
             }
 
             /// Get the top stream of the input stack
-            std::shared_ptr<InputStream> GetTopStream()
-            {
-                return m_top;
-            }
+            std::shared_ptr<InputStream> GetTopStream() { return top_; }
 
             /// Get the input stream that the next token would come from
-            ///
             /// If the input stack is at its end, this will just be the top-most stream.
             std::shared_ptr<InputStream> GetNextStream()
             {
-                ASSERT(m_top);
-                auto top = m_top;
+                ASSERT(top_);
+                auto top = top_;
                 for (;;)
                 {
                     auto tokenType = top->PeekTokenType();
@@ -548,7 +526,7 @@ namespace RR
 
         private:
             /// The top of the stack of input streams
-            std::shared_ptr<InputStream> m_top = nullptr;
+            std::shared_ptr<InputStream> top_ = nullptr;
         };
 
         // The simplest types of input streams are those that simply "play back"
@@ -560,27 +538,12 @@ namespace RR
         {
         public:
             /// Initialize an input stream with list of `tokens`
-            PretokenizedInputStream(TokenReader const& tokens)
-                : tokenReader_(tokens)
-            {
-            }
+            PretokenizedInputStream(TokenReader const& tokens) : tokenReader_(tokens) { }
 
             // A pretokenized stream implements the key read/peek operations
             // by delegating to the underlying token reader.
-            virtual Token ReadToken() override
-            {
-                return tokenReader_.AdvanceToken();
-            }
-
-            virtual Token PeekToken() override
-            {
-                return tokenReader_.PeekToken();
-            }
-
-            virtual void ForceClose() override
-            {
-                return; // Do nothing. TODO This is begin looking wierd
-            }
+            virtual Token ReadToken() override { return tokenReader_.AdvanceToken(); }
+            virtual Token PeekToken() override { return tokenReader_.PeekToken(); }
 
         protected:
             PretokenizedInputStream() {};
@@ -649,24 +612,12 @@ namespace RR
                 return result;
             }
 
-            Token PeekToken() override
-            {
-                return lookaheadToken_;
-            }
-
-            void ForceClose() override
-            {
-                lookaheadToken_ = Token(Token::Type::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
-                isClosed_ = true;
-            }
+            Token PeekToken() override { return lookaheadToken_; }
 
         private:
             /// Read a token from the lexer, bypassing lookahead
             Token readTokenImpl()
             {
-                if (isClosed_)
-                    return lookaheadToken_;
-
                 for (;;)
                 {
                     Token token = lexer_->ReadToken();
@@ -689,8 +640,6 @@ namespace RR
 
             /// One token of lookahead
             Token lookaheadToken_;
-
-            bool isClosed_ = false;
         };
 
         // TODO comment
@@ -821,8 +770,6 @@ namespace RR
             }
 
         public:
-            //TODO RENAME?
-
             /// The flavor of macro
             MacroDefinition::Flavor flavor;
 
@@ -879,12 +826,6 @@ namespace RR
             virtual Token PeekToken() override
             {
                 return lookaheadToken_;
-            }
-
-            void ForceClose() override
-            {
-                lookaheadToken_ = Token(Token::Type::EndOfFile, UnownedStringSlice(nullptr, nullptr), lookaheadToken_.sourceLocation, lookaheadToken_.humaneSourceLocation);
-                isClosed_ = true;
             }
 
             /// Is the given `macro` considered "busy" during the given macroinvocation?
@@ -959,8 +900,6 @@ namespace RR
             /// Push a stream for a source-location builtin (`__FILE__` or `__LINE__`), with content set up by `valueBuilder`
             template <typename F>
             void pushStreamForSourceLocBuiltin(Token::Type tokenType, F const& valueBuilder);
-
-            bool isClosed_ = false;
         };
 
         // Playing back macro bodies for macro invocations is one part of the expansion process, and the other
@@ -1019,26 +958,12 @@ namespace RR
                 return result;
             }
 
-            Token PeekRawToken()
-            {
-                return lookaheadToken_;
-            }
-
-            Token::Type PeekRawTokenType() { return PeekRawToken().type; }
-
-            void ForceClose() override
-            {
-                //TOOTODO
-                // TODO
-                return;
-            }
+            Token PeekRawToken() const { return lookaheadToken_; }
+            Token::Type PeekRawTokenType() const { return PeekRawToken().type; }
 
         private:
             /// Read a token, bypassing lookahead
-            Token readTokenImpl()
-            {
-                return inputStreams_.ReadToken();
-            }
+            Token readTokenImpl() { return inputStreams_.ReadToken(); }
 
             /// Look at current input state and decide whether it represents a macro invocation
             void maybeBeginMacroInvocation();
@@ -1127,7 +1052,7 @@ namespace RR
             Token readToken();
 
             // Pop the inner-most input file from the stack of input files
-            void popInputFile();
+            void popInputFile(bool forceClose = false);
 
             inline Token peekRawToken();
             inline Token::Type peekRawTokenType() { return peekRawToken().type; }
@@ -1262,7 +1187,7 @@ namespace RR
             { "undef", { Directive::Flags::None, &PreprocessorImpl::handleUndefDirective } },
             { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
             { "error", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleErrorDirective } },
-            // { "line", &PreprocessorImpl::handleLineDirective },
+            { "line", { Directive::Flags::None, &PreprocessorImpl::handleLineDirective } },
             { "pragma", { Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective } },
         };
 
@@ -1526,7 +1451,7 @@ namespace RR
             currentInputFile_ = inputFile;
         }
 
-        void PreprocessorImpl::popInputFile()
+        void PreprocessorImpl::popInputFile(bool forceClose)
         {
             const auto& inputFile = currentInputFile_;
             ASSERT(inputFile)
@@ -1535,6 +1460,11 @@ namespace RR
             // next token read would be an end-of-file token.
             const auto& expansionStream = inputFile->GetExpansionStream();
             Token eofToken = expansionStream->PeekRawToken();
+
+            // TODO comment
+            if (forceClose)
+                eofToken.type = Token::Type::EndOfFile;
+
             ASSERT(eofToken.type == Token::Type::EndOfFile)
 
             // If there are any open preprocessor conditionals in the file, then
@@ -1632,7 +1562,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(peekRawToken(), diagnostic, expected, getDirectiveName(context));
+                    sink_->Diagnose(peekRawToken(), diagnostic, expected, context.GetName());
 
                 context.parseError = true;
                 return false;
@@ -1648,7 +1578,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(peekRawToken(), diagnostic, expected, getDirectiveName(context));
+                    sink_->Diagnose(peekRawToken(), diagnostic, expected, context.GetName());
 
                 context.parseError = true;
                 return false;
@@ -1670,7 +1600,7 @@ namespace RR
                 // If we already saw a previous parse error, then don't
                 // emit another one for the same directive.
                 if (!context.parseError)
-                    sink_->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, getDirectiveName(context));
+                    sink_->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, context.GetName());
 
                 skipToEndOfLine();
             }
@@ -1712,7 +1642,7 @@ namespace RR
             }
 
             // Look up the handler for the directive.
-            const auto directive = findDirective(getDirectiveName(context));
+            const auto directive = findDirective(context.GetName());
 
             // If we are skipping disabled code, and the directive is not one
             // of the small number that need to run even in that case, skip it.
@@ -1739,7 +1669,7 @@ namespace RR
         // Handle an invalid directive
         void PreprocessorImpl::handleInvalidDirective(DirectiveContext& directiveContext)
         {
-            sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, getDirectiveName(directiveContext));
+            sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, directiveContext.GetName());
             skipToEndOfLine();
         }
 
@@ -2044,14 +1974,14 @@ namespace RR
             const auto& conditional = inputFile->GetInnerMostConditional();
             if (!conditional)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
                 return;
             }
 
             // if we've already seen a `#else`, then it is an error
             if (conditional->elseToken.type != Token::Type::Unknown)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, getDirectiveName(directiveContext));
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, directiveContext.GetName());
                 sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
                 return;
             }
@@ -2090,7 +2020,7 @@ namespace RR
             {
                 case Token::Type::EndOfFile:
                 case Token::Type::NewLine:
-                    sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, getDirectiveName(directiveContext));
+                    sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, directiveContext.GetName());
                     handleElseDirective(directiveContext);
                     return;
                 default:
@@ -2103,14 +2033,14 @@ namespace RR
             const auto& conditional = inputFile->GetInnerMostConditional();
             if (!conditional)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
                 return;
             }
 
             // if we've already seen a `#else`, then it is an error
             if (conditional->elseToken.type != Token::Type::Unknown)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, getDirectiveName(directiveContext));
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, directiveContext.GetName());
                 sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
                 return;
             }
@@ -2143,7 +2073,7 @@ namespace RR
             const auto& conditional = inputFile->GetInnerMostConditional();
             if (!conditional)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, getDirectiveName(directiveContext));
+                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
                 return;
             }
 
@@ -2508,19 +2438,14 @@ namespace RR
             expectEndOfDirective(directiveContext);
 
             const auto& nextToken = peekRawToken();
-            // Start new source view from end of new line sequence.
+            // Start new source view from end of new line sequence. TODO
             const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
 
             HumaneSourceLocation humaneLocation(line, 1);
             const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
-            const auto& inputStream = std::make_shared<LexerInputStream>(sourceView, allocator_, sink_);
 
-            std::ignore = inputStream;
-            // Drop current stream
-            ASSERT_MSG(false, "NOT IMPLEMENTD")
-            //    currentInputStream_->ForceClose();
-            // popInputStream();
-            //  PushInputStream(inputStream);
+            popInputFile(true);
+            PushInputFile(std::make_shared<InputFile>(shared_from_this(), sourceView));
         }
 
         // Handle a `#pragma` directive
@@ -2721,7 +2646,7 @@ namespace RR
               m_macroInvocationLoc(macroInvocationLoc),
               initiatingMacroToken_(initiatingMacroToken)
         {
-            m_firstBusyMacroInvocation = this;
+            firstBusyMacroInvocation_ = this;
         }
 
         void MacroInvocation::Prime(MacroInvocation* nextBusyMacroInvocation)
@@ -2737,9 +2662,6 @@ namespace RR
 
         Token MacroInvocation::readTokenImpl()
         {
-            if (isClosed_)
-                return lookaheadToken_;
-
             // The `MacroInvocation` type maintains an invariant that after each
             // call to `readTokenImpl`:
             //
