@@ -1,7 +1,8 @@
 #pragma once
 
-#include "compiler/DiagnosticSink.hpp"
-#include "tests/preprocessor/PreprocessorWriter.hpp"
+#include "preprocessor/PreprocessorWriter.hpp"
+
+#include "rfx.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 
@@ -14,10 +15,9 @@ namespace RR::Rfx
         class PreprocessorApprover
         {
         public:
-            static void verify(const std::shared_ptr<Preprocessor>& preprocessor, const std::shared_ptr<BufferWriter>& disagnosticLogBuffer,
-                               const ApprovalTests::Options& options = ApprovalTests::Options())
+            static void verify(const ComPtr<IBlob>& preprocessorOutput, const ComPtr<IBlob>& diagnosticOutput, const ApprovalTests::Options& options = ApprovalTests::Options())
             {
-                PreprocessorWriter writer(preprocessor, disagnosticLogBuffer);
+                PreprocessorWriter writer(preprocessorOutput, diagnosticOutput);
                 ApprovalTests::Approvals::verify(writer, options);
             }
         };

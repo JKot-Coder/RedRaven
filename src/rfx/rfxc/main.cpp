@@ -11,7 +11,7 @@ namespace RR
         template <typename S, typename... Args>
         inline void printMessageAndExit(int exitCode, const S& format, Args&&... args)
         {
-            std::cout << fmt::format(format, args...) << std::endl;
+            std::cerr << fmt::format(format, args...) << std::endl;
             exit(exitCode);
         }
 
@@ -46,7 +46,6 @@ namespace RR
 
         // options.show_positional_help();
         // clang-format off
-
         options.add_options("Common")
             ("h,help", "Display available options")
             ("version", "Display compiler version information")          
@@ -117,24 +116,25 @@ namespace RR
                 }
             }
 
-            Rfx::CompileOutputType outputType;
-            Rfx::ComPtr<Rfx::IBlob> output;
-
-            if (RFX_FAILED(result = compileResult->GetOutput(0, outputType, output.put())))
-                printMessageAndExit(1, result);
-
-            switch (outputType)
+            const auto outputsCount = compileResult->GetOutputsCount();
+            for (size_t i = 0; i < outputsCount; i++)
             {
-                case RR::Rfx::CompileOutputType::Preprocesed:
-                    writeOutput(parseResult["Fp"].as<std::string>(), output);
-                    break;
-                default:
-                    break;
-            }
+                Rfx::CompileOutputType outputType;
+                Rfx::ComPtr<Rfx::IBlob> output;
 
-       
-            compileResult = nullptr;
-            output = nullptr;
+                if (RFX_FAILED(result = compileResult->GetOutput(i, outputType, output.put())))
+                    printMessageAndExit(1, result);
+
+                switch (outputType)
+                {
+                    case RR::Rfx::CompileOutputType::Preprocesed:
+                        writeOutput(parseResult["Fp"].as<std::string>(), output);
+                        break;
+                    default:
+                        ASSERT_MSG(false, "Unknown output");
+                        break;
+                }
+            }
         }
         catch (const cxxopts::OptionException& e)
         {

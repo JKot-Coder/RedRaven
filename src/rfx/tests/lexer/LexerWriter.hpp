@@ -1,15 +1,12 @@
 #pragma once
 
-#include "rfx/compiler/DiagnosticSink.hpp"
-#include "rfx/compiler/Lexer.hpp"
-
 #include "ApprovalTests/ApprovalTests.hpp"
 
 namespace RR::Rfx
 {
     namespace Tests
     {
-        class LexerWriter : public ApprovalTests::ApprovalWriter
+        /* class LexerWriter : public ApprovalTests::ApprovalWriter
         {
         public:
             explicit LexerWriter(const std::shared_ptr<Lexer>& lexer, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
@@ -32,6 +29,6 @@ namespace RR::Rfx
         private:
             std::shared_ptr<Lexer> lexer_;
             std::shared_ptr<BufferWriter> disagnosticBuffer_;
-        };
+        };*/
     }
 }

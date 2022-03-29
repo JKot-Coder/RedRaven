@@ -1,20 +1,17 @@
 #pragma once
 
-#include "rfx/compiler/DiagnosticSink.hpp"
-
 #include "ApprovalTests/ApprovalTests.hpp"
+#include "rfx.hpp"
 
 namespace RR::Rfx
 {
-    class Preprocessor;
-
-    namespace Tests
+        namespace Tests
     {
         class PreprocessorWriter : public ApprovalTests::ApprovalWriter
         {
         public:
-            explicit PreprocessorWriter(const std::shared_ptr<Preprocessor>& preprocessor, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
-                : preprocessor_(preprocessor), disagnosticBuffer_(disagnosticBuffer)
+            PreprocessorWriter::PreprocessorWriter(const ComPtr<IBlob>& preprocesorOutput, const ComPtr<IBlob>& diagnosticOutput)
+                : preprocesorOutput_(preprocesorOutput), diagnosticOutput_(diagnosticOutput)
             {
             }
 
@@ -31,8 +28,8 @@ namespace RR::Rfx
             }
 
         private:
-            std::shared_ptr<Preprocessor> preprocessor_;
-            std::shared_ptr<BufferWriter> disagnosticBuffer_;
+            ComPtr<IBlob> preprocesorOutput_;
+            ComPtr<IBlob> diagnosticOutput_;
         };
     }
 }

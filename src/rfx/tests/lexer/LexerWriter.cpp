@@ -1,6 +1,6 @@
 #include "LexerWriter.hpp"
 
-#include "core/StringEscapeUtil.hpp"
+//#include "core/StringEscapeUtil.hpp"
 
 namespace RR::Rfx
 {
@@ -8,7 +8,7 @@ namespace RR::Rfx
     {
         namespace
         {
-
+            /*
             void writeDiagnosticLog(std::ofstream& ofs, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
             {
                 ofs << "\t\"Diagnostic\":[\n";
@@ -68,6 +68,9 @@ namespace RR::Rfx
             ofs << "\n}";
 
             ofs.close();
+        }*/
+
         }
+
     }
 }

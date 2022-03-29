@@ -1,4 +1,4 @@
-#include "rfx/include/rfx.hpp"
+#include "rfx.hpp"
 
 #include "common/debug/LeakDetector.hpp"
 

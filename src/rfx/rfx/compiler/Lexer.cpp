@@ -898,12 +898,11 @@ namespace RR
         {
             ASSERT(!isReachEOF());
 
-            utf8::next(cursor_, end_);
-
             // TODO: Configure tab intent
-            const uint32_t intent = peek() == '\t' ? 4 : 1;
-
+            const uint32_t intent = (*cursor_ == '\t') ? 4 : 1;
             columnCounter_.Increment(intent);
+
+            utf8::next(cursor_, end_);       
 
             if (!isReachEOF() && peek() == '\\')
             {

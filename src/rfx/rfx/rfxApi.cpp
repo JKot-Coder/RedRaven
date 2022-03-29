@@ -94,24 +94,44 @@ namespace RR::Rfx
         uint32_t addRef() override { return addReference(); }
         uint32_t release() override { return releaseReference(); }
 
+        void SetDiagnosticOutput(const ComPtr<IBlob>& diagnosticBlob)
+        {
+            diagnosticBlob_ = diagnosticBlob;
+        }
+
         void PushOutput(CompileOutputType type, const ComPtr<IBlob>& blob)
         {
-            outputs.push_back({ type, blob });
+            outputs_.push_back({ type, blob });
+        }
+
+        RfxResult GetDiagnosticOutput(IBlob** output) override
+        {
+            if (!output)
+                return RfxResult::InvalidArgument;
+
+            if (!diagnosticBlob_)
+                return RfxResult::Fail;
+
+            diagnosticBlob_.copyTo(output);
+            return RfxResult::Ok;
         }
 
         RfxResult GetOutput(size_t index, CompileOutputType& outputType, IBlob** output) override
         {
             assert(index < GetOutputsCount());
 
+            if (!output)
+                return RfxResult::InvalidArgument;
+
             if (index >= GetOutputsCount())
                 return RfxResult::InvalidArgument;
 
-            outputs[index].blob.copyTo(output);
-            outputType = outputs[index].type;
+            outputs_[index].blob.copyTo(output);
+            outputType = outputs_[index].type;
             return RfxResult::Ok;
         }
 
-        size_t GetOutputsCount() override { return outputs.size(); }
+        size_t GetOutputsCount() override { return outputs_.size(); }
 
     private:
         struct Output
@@ -121,7 +141,8 @@ namespace RR::Rfx
         };
 
     private:
-        std::vector<Output> outputs;
+        std::vector<Output> outputs_;
+        ComPtr<IBlob> diagnosticBlob_;
     };
 
     RFX_API RfxResult Compile(const CompilerRequestDescription& compilerRequest, ICompileResult** outCompilerResult)
@@ -134,33 +155,52 @@ namespace RR::Rfx
         if (!compilerRequest.inputFile)
             return RfxResult::InvalidArgument;
 
-        ComPtr<ComplileResult> compilerResult(new ComplileResult());
-        PathInfo pathInfo;
-
-        const auto& fileSystem = std::make_shared<OSFileSystem>();
-        const auto& includeSystem = std::make_shared<IncludeSystem>(fileSystem);
-        if (RFX_FAILED(result = includeSystem->FindFile(compilerRequest.inputFile, "", pathInfo)))
-            return result;
-
-        std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-        if (RFX_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
-            return result;
-
-        auto diagnosticSink = std::make_shared<DiagnosticSink>();
-
-        auto bufferWriter = std::make_shared<BufferWriter>();
-        diagnosticSink->AddWriter(bufferWriter);
-
-        const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, diagnosticSink);
-        preprocessor->PushInputFile(sourceFile);
-
-        if (compilerRequest.outputPreprocessorResult)
+        try
         {
-            const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
-            compilerResult->PushOutput(CompileOutputType::Preprocesed, blob);
+            ComPtr<ComplileResult> compilerResult(new ComplileResult());
+            PathInfo pathInfo;
+
+            const auto& fileSystem = std::make_shared<OSFileSystem>();
+            const auto& includeSystem = std::make_shared<IncludeSystem>(fileSystem);
+            if (RFX_FAILED(result = includeSystem->FindFile(compilerRequest.inputFile, "", pathInfo)))
+                return result;
+
+            std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
+            if (RFX_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
+                return result;
+
+            auto diagnosticSink = std::make_shared<DiagnosticSink>();
+
+            auto bufferWriter = std::make_shared<BufferWriter>();
+            diagnosticSink->AddWriter(bufferWriter);
+
+            const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, diagnosticSink);
+            preprocessor->PushInputFile(sourceFile);
+
+            if (compilerRequest.lexerOutput)
+            {
+                const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
+                compilerResult->PushOutput(CompileOutputType::Lexer, blob);
+            }
+
+            if (compilerRequest.preprocessorOutput)
+            {
+                const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
+                compilerResult->PushOutput(CompileOutputType::Preprocessor, blob);
+            }
+
+            // Todo optimize reduce copy;
+            const auto& diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+            compilerResult->SetDiagnosticOutput(diagnosticBlob);
+
+            *outCompilerResult = compilerResult.detach();
+        }
+        catch (const utf8::exception& e)
+        {
+            Log::Format::Error("UTF8 exception: {}\n", e.what());
+            return RfxResult::CannotOpen;
         }
 
-        *outCompilerResult = compilerResult.detach();
         return result;
     }
 

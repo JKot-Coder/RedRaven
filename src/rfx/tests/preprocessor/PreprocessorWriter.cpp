@@ -1,85 +1,19 @@
 #include "PreprocessorWriter.hpp"
 
-#include "compiler/Preprocessor.hpp"
-
-#include "core/StringEscapeUtil.hpp"
-
 namespace RR::Rfx
 {
     namespace Tests
     {
         namespace
         {
-            class SourceWriter
+            void writeDiagnosticLog(std::ofstream& ofs, const ComPtr<IBlob>& diagnosticOutput)
             {
-            public:
-                void Emit(const Token& token)
-                {
-                    U8String escapedToken;
-                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+                ASSERT(diagnosticOutput);
 
-                    if (token.type == Token::Type::RBrace)
-                        dedent();
-
-                    if (IsSet(token.flags, Token::Flags::AtStartOfLine))
-                    {
-                        if (!output_.empty()) // Skip new line at the wery begining
-                            output_ += "\n" + indentString_;
-                    }
-                    else if (IsSet(token.flags, Token::Flags::AfterWhitespace))
-                    {
-                        output_ += " ";
-                    }
-
-                    output_.append(token.stringSlice.Begin(), token.stringSlice.End());
-
-                    if (token.type == Token::Type::LBrace)
-                        intend();
-                }
-
-                U8String GetOutput()
-                {
-                    return output_;
-                }
-
-            private:
-                inline void intend()
-                {
-                    indentLevel_++;
-                    updateIndentStiring();
-                }
-
-                inline void dedent()
-                {
-                    ASSERT(indentLevel_ > 0);
-
-                    if (indentLevel_ == 0)
-                        return;
-
-                    indentLevel_--;
-                    updateIndentStiring();
-                }
-
-                void updateIndentStiring()
-                {
-                    indentString_ = "";
-
-                    for (uint32_t i = 0; i < indentLevel_; i++)
-                        indentString_ += "    ";
-                }
-
-            private:
-                uint32_t indentLevel_ = 0;
-                U8String indentString_ = "";
-                U8String output_;
-            };
-
-            void writeDiagnosticLog(std::ofstream& ofs, const std::shared_ptr<BufferWriter>& disagnosticBuffer)
-            {
                 ofs << "Diagnostic:[\n";
 
                 U8String line;
-                std::istringstream logStream(disagnosticBuffer->GetBuffer());
+                std::istringstream logStream((char*)diagnosticOutput->GetBufferPointer());
 
                 while (std::getline(logStream, line, '\n'))
                     ofs << fmt::format("\t{}\n", line);
@@ -87,18 +21,14 @@ namespace RR::Rfx
                 ofs << "]";
             }
 
-            void writeTokens(std::ofstream& ofs, const std::shared_ptr<Preprocessor>& preprocessor)
+            void writeTokens(std::ofstream& ofs, const ComPtr<IBlob>& preprocesorOutput)
             {
+                ASSERT(preprocesorOutput);
+
                 ofs << "Output:[\n";
 
-                const auto& tokens = preprocessor->ReadAllTokens();
-                SourceWriter writer;
-
-                for (const auto& token : tokens)
-                    writer.Emit(token);
-
                 U8String line;
-                std::istringstream logStream(writer.GetOutput());
+                std::istringstream logStream((char*)preprocesorOutput->GetBufferPointer());
 
                 while (std::getline(logStream, line, '\n'))
                     ofs << fmt::format("\t{}\n", line);
@@ -112,11 +42,11 @@ namespace RR::Rfx
             std::ofstream ofs(path);
             ASSERT(ofs.is_open())
 
-            writeTokens(ofs, preprocessor_);
+            writeTokens(ofs, preprocesorOutput_);
 
             ofs << "\n";
 
-            writeDiagnosticLog(ofs, disagnosticBuffer_);
+            writeDiagnosticLog(ofs, diagnosticOutput_);
 
             ofs.close();
         }

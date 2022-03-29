@@ -349,7 +349,8 @@ namespace RR
         struct CompilerRequestDescription
         {
             const char* inputFile = nullptr;
-            bool outputPreprocessorResult = false;
+            bool lexerOutput = false;
+            bool preprocessorOutput = false;
         };
 
         class IRfxUnknown
@@ -368,12 +369,15 @@ namespace RR
 
         enum class CompileOutputType
         {
-            Preprocesed // The code after preprossing stage
+            Lexer, // The code after lexer stage
+            Preprocessor // The code after preprossing stage
         };
 
         class ICompileResult : public IRfxUnknown
         {
         public:
+            virtual RfxResult GetDiagnosticOutput(IBlob** output) = 0;
+
             virtual RfxResult GetOutput(size_t index, CompileOutputType& outputType, IBlob** output) = 0;
             virtual size_t GetOutputsCount() = 0;
         };
