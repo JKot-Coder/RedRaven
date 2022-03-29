@@ -5,7 +5,7 @@
 
 namespace RR::Rfx
 {
-        namespace Tests
+    namespace Tests
     {
         class PreprocessorWriter : public ApprovalTests::ApprovalWriter
         {
