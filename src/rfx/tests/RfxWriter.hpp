@@ -7,10 +7,10 @@ namespace RR::Rfx
 {
     namespace Tests
     {
-        class PreprocessorWriter : public ApprovalTests::ApprovalWriter
+        class RfxWriter : public ApprovalTests::ApprovalWriter
         {
         public:
-            PreprocessorWriter::PreprocessorWriter(const ComPtr<IBlob>& preprocesorOutput, const ComPtr<IBlob>& diagnosticOutput)
+            RfxWriter::RfxWriter(const ComPtr<IBlob>& preprocesorOutput, const ComPtr<IBlob>& diagnosticOutput)
                 : preprocesorOutput_(preprocesorOutput), diagnosticOutput_(diagnosticOutput)
             {
             }

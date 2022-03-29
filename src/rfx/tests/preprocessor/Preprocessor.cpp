@@ -1,12 +1,4 @@
-/*#include "rfx/core/FileSystem.hpp"
-#include "rfx/core/IncludeSystem.hpp"
-#include "rfx/core/SourceLocation.hpp"
-#include "rfx/include/rfx.hpp"
-
-#include "rfx/compiler/DiagnosticSink.hpp"
-#include "rfx/compiler/Preprocessor.hpp"*/
-
-#include "preprocessor/PreprocessorApprover.hpp"
+#include "RfxApprover.hpp"
 
 #include "rfx.hpp"
 
@@ -72,7 +64,7 @@ namespace RR::Rfx
 
                     auto namer = ApprovalTests::TemplatedCustomNamer::create(
                         "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
-                    PreprocessorApprover::verify(preprocessorOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
+                    RfxApprover::verify(preprocessorOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
                 }
             }
         }

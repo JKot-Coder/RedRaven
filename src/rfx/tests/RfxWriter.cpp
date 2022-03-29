@@ -1,4 +1,4 @@
-#include "PreprocessorWriter.hpp"
+#include "RfxWriter.hpp"
 
 namespace RR::Rfx
 {
@@ -37,7 +37,7 @@ namespace RR::Rfx
             }
         }
 
-        void PreprocessorWriter::write(std::string path) const
+        void RfxWriter::write(std::string path) const
         {
             std::ofstream ofs(path);
             ASSERT(ofs.is_open())
