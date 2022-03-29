@@ -1,6 +1,6 @@
 #include "rfx.hpp"
 
-#include "preprocessor/PreprocessorApprover.hpp"
+#include "RfxApprover.hpp"
 
 #include "common/LinearAllocator.hpp"
 
@@ -66,7 +66,7 @@ namespace RR::Rfx
 
                     auto namer = ApprovalTests::TemplatedCustomNamer::create(
                         "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
-                    PreprocessorApprover::verify(lexerOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
+                    RfxApprover::verify(lexerOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
                 }
             }
         }
