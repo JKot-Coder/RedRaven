@@ -89,8 +89,6 @@ namespace RR::Rfx
 
             void writeTokens(std::ofstream& ofs, const std::shared_ptr<Preprocessor>& preprocessor)
             {
-                std::ignore = preprocessor;
-
                 ofs << "Output:[\n";
 
                 const auto& tokens = preprocessor->ReadAllTokens();

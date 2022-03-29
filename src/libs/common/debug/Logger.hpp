@@ -11,7 +11,7 @@ namespace RR
         namespace Debug
         {
 #ifdef ENABLE_ASSERTS
-#ifdef MSVVVvVV
+#ifdef MSVVVvVV // TODO 
 #define ASSERT(exp, ...)                                                                                                                        \
     static_assert(std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value == 0, "ASSERT takes only one argument use ASSET_MSG instead"); \
     if (!(exp))                                                                                                                                 \

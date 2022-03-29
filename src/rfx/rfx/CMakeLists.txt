@@ -2,9 +2,7 @@ project(rfx)
 
 set(RFX_SRC
     "pch.hpp"
-    "experement.hpp"
-    "experement.cpp"
-    "main.cpp"
+    "rfxApi.cpp"
     )
 source_group( "" FILES ${RFX_SRC} )
 
@@ -15,6 +13,9 @@ set(RFX_INCLUDE
 source_group( "include" FILES ${RFX_INCLUDE} )
 
 set(RFX_CORE_SRC
+    "core/Blob.hpp"
+    "core/Error.hpp"
+    "core/Error.cpp"
     "core/Exception.hpp"
     "core/FileSystem.cpp"
     "core/FileSystem.hpp"
@@ -70,6 +71,7 @@ set(RFX_LINK_LIBRARIES
 
 add_library(${PROJECT_NAME} SHARED ${RFX_SRC})
 target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE RFX_DYNAMIC_EXPORT)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)

@@ -1,16 +1,28 @@
 #pragma once
 
+#include <cassert>
 #include <stdint.h>
+#include <type_traits>
 
-#ifdef _WIN32
-// Emulation of com fon non windows platfroms
-#include "comadapter.h"
-#endif // _WIN32
+#ifdef _MSC_VER
+#define RFX_STDCALL __stdcall
+#ifdef RFX_DYNAMIC_EXPORT
+#define RFX_DLL_EXPORT __declspec(dllexport)
+#else
+#define RFX_DLL_EXPORT __declspec(dllimport)
+#endif
+#else
+#define RFX_STDCALL
+#define RFX_DLL_EXPORT __attribute__((visibility("default")))
+#endif
 
-#ifndef COM_NO_WINDOWS_H
-#include "ole2.h"
-#include "windows.h"
-#endif // COM_NO_WINDOWS_H
+#define RFX_API RFX_DLL_EXPORT
+
+#ifdef __cplusplus
+#define RFX_EXTERN_C extern "C"
+#else
+#define RFX_EXTERN_C
+#endif
 
 namespace RR
 {
@@ -37,7 +49,7 @@ namespace RR
 
         /** A result code for a Rfx API operation.
 
-        This type is generally compatible with the Windows API `HRESULT` type. In particular, negative values indicate
+        This Type is generally compatible with the Windows API `HRESULT` Type. In particular, negative values indicate
         failure results, while zero or positive results indicate success.
 
         In general, Rfx APIs always return a zero result on success, unless documented otherwise. Strictly speaking
@@ -60,8 +72,7 @@ namespace RR
         Facility is where the error originated from. Code is the code specific to the facility.
         */
 
-        enum class RfxResult : int32_t
-        {
+        enum class [[nodiscard]] RfxResult : int32_t {
             Ok = 0, //! RFX_OK indicates success, and is equivalent to RFX_MAKE_SUCCESS(RFX_FACILITY_WIN_GENERAL, 0)
             //    False = 1,
 
@@ -79,15 +90,10 @@ namespace RR
             Unexpected = RFX_MAKE_ERROR(RFX_FACILITY_WIN_GENERAL, 0xFFFF), // Unexpected failure (0x8000FFFF)
 
             /* *************************** other Results **************************************/
-            BufferTooSmall = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 1), // Supplied buffer is too small to be able to complete
-            Uninitialized = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 2), /* Used to identify a Result that has yet to be initialized.
-                                                                        It defaults to failure such that if used incorrectly will fail, as similar in concept to using an uninitialized variable.*/
-            Pending = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 3), // Returned from an async method meaning the output is invalid (thus an error), but a result for the request is pending, and will be returned on a subsequent call with the async handle.
             CannotOpen = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 4), // Indicates a file/resource could not be opened
             NotFound = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 5), //!Indicates a file/resource could not be found
             InternalFail = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 6), //! An unhandled internal failure (typically from unhandled exception)
             NotAvailable = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 7), //! Could not complete because some underlying feature (hardware or software) was not available
-            TimeOut = RFX_MAKE_ERROR(RFX_FACILITY_CORE, 8) //! Could not complete because the operation times out.
         };
 
         /* !!!!!!!!!!!!!!!!!!!!! Macros to help checking RfxResult !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
@@ -141,6 +147,197 @@ namespace RR
         }                          \
     }
 
+        template <typename T, typename Enable = void>
+        struct abi
+        {
+            using type = T;
+        };
+
+        template <typename T>
+        struct abi<T, std::enable_if_t<std::is_enum_v<T>>>
+        {
+            using type = std::underlying_type_t<T>;
+        };
+
+        template <typename T>
+        using abi_t = typename abi<T>::type;
+
+        template <typename T>
+        class ComPtr
+        {
+        public:
+            using Type = abi_t<T>;
+
+            ~ComPtr() noexcept { releaseRef(); }
+
+            ComPtr(std::nullptr_t = nullptr) noexcept { }
+            ComPtr(void* ptr) noexcept : ptr_(static_cast<Type*>(ptr)) { addRef(); }
+            ComPtr(ComPtr const& other) noexcept : ptr_(other.ptr_) { addRef(); }
+
+            template <typename U>
+            ComPtr(ComPtr<U> const& other) noexcept : ptr_(other.ptr_) { addRef(); }
+
+            template <typename U>
+            ComPtr(ComPtr<U>&& other) noexcept : ptr_(std::exchange(other.ptr_, {})) { }
+
+            ComPtr& operator=(ComPtr const& other) noexcept
+            {
+                copyRef(other.ptr_);
+                return *this;
+            }
+
+            ComPtr& operator=(ComPtr&& other) noexcept
+            {
+                if (this != &other)
+                {
+                    releaseRef();
+                    ptr_ = std::exchange(other.ptr_, {});
+                }
+
+                return *this;
+            }
+
+            template <typename U>
+            ComPtr& operator=(ComPtr<U> const& other) noexcept
+            {
+                copyRef(other.ptr_);
+                return *this;
+            }
+
+            template <typename U>
+            ComPtr& operator=(ComPtr<U>&& other) noexcept
+            {
+                releaseRef();
+                ptr_ = std::exchange(other.ptr_, {});
+                return *this;
+            }
+
+            explicit operator bool() const noexcept { return ptr_ != nullptr; }
+            auto operator->() const noexcept { return ptr_; }
+            T& operator*() const noexcept { return *ptr_; }
+
+            Type* get() const noexcept { return ptr_; }
+            Type** put() noexcept
+            {
+                assert(ptr_ == nullptr);
+                return &ptr_;
+            }
+
+            void** put_void() noexcept { return reinterpret_cast<void**>(put()); }
+
+            void attach(Type* value) noexcept
+            {
+                releaseRef();
+                *put() = value;
+            }
+
+            Type* detach() noexcept { return std::exchange(ptr_, {}); }
+
+            friend void swap(ComPtr& left, ComPtr& right) noexcept
+            {
+                std::swap(left.ptr_, right.ptr_);
+            }
+
+            void copyTo(Type** other) const noexcept
+            {
+                addRef();
+                *other = ptr_;
+            }
+
+        private:
+            void copyRef(Type* other) noexcept
+            {
+                if (ptr_ != other)
+                {
+                    releaseRef();
+                    ptr_ = other;
+                    addRef();
+                }
+            }
+
+            void addRef() const noexcept
+            {
+                if (ptr_)
+                    const_cast<std::remove_const_t<Type>*>(ptr_)->addRef();
+            }
+
+            void releaseRef() noexcept
+            {
+                if (ptr_)
+                    unconditional_release_ref();
+            }
+
+            __declspec(noinline) void unconditional_release_ref() noexcept
+            {
+                std::exchange(ptr_, {})->release();
+            }
+
+            template <typename U>
+            friend struct com_ptr;
+
+            Type* ptr_ {};
+        };
+
+        template <typename T>
+        bool operator==(ComPtr<T> const& left, ComPtr<T> const& right) noexcept
+        {
+            return left.get() == right.get();
+        }
+
+        template <typename T>
+        bool operator==(ComPtr<T> const& left, std::nullptr_t) noexcept
+        {
+            return left.get() == nullptr;
+        }
+
+        template <typename T>
+        bool operator==(std::nullptr_t, ComPtr<T> const& right) noexcept
+        {
+            return right.get();
+        }
+
+        template <typename T>
+        bool operator!=(ComPtr<T> const& left, ComPtr<T> const& right) noexcept
+        {
+            return !(left == right);
+        }
+
+        template <typename T>
+        bool operator!=(ComPtr<T> const& left, std::nullptr_t) noexcept
+        {
+            return !(left == nullptr);
+        }
+
+        template <typename T>
+        bool operator!=(std::nullptr_t, ComPtr<T> const& right) noexcept
+        {
+            return !(nullptr == right);
+        }
+
+        template <typename T>
+        bool operator<(ComPtr<T> const& left, ComPtr<T> const& right) noexcept
+        {
+            return left.get() < right.get();
+        }
+
+        template <typename T>
+        bool operator>(ComPtr<T> const& left, ComPtr<T> const& right) noexcept
+        {
+            return right < left;
+        }
+
+        template <typename T>
+        bool operator<=(ComPtr<T> const& left, ComPtr<T> const& right) noexcept
+        {
+            return !(right < left);
+        }
+
+        template <typename T>
+        bool operator>=(ComPtr<T> const& left, ComPtr<T> const& right) noexcept
+        {
+            return !(left < right);
+        }
+
         enum class CompileTarget : uint32_t
         {
             Dxil,
@@ -151,24 +348,37 @@ namespace RR
 
         struct CompilerRequestDescription
         {
-            char* inputFile;
+            const char* inputFile = nullptr;
             bool outputPreprocessorResult = false;
         };
 
-        MIDL_INTERFACE("c38ba6a4-331a-435f-8347-7b11413feaeb")
-        IBlob : public IUnknown
+        class IRfxUnknown
         {
-            virtual void const* STDMETHODCALLTYPE getBufferPointer() = 0;
-            virtual size_t STDMETHODCALLTYPE getBufferSize() = 0;
+        public:
+            virtual uint32_t addRef() = 0;
+            virtual uint32_t release() = 0;
         };
 
-        MIDL_INTERFACE("c38ba6a4-331a-435f-8347-7b11413feaeb") // replace
-        ICompileResult : public IUnknown
+        class IBlob : public IRfxUnknown
         {
-            virtual void const* STDMETHODCALLTYPE getBufferPointer() = 0;
-            virtual size_t STDMETHODCALLTYPE getBufferSize() = 0;
+        public:
+            virtual void const* GetBufferPointer() const = 0;
+            virtual size_t GetBufferSize() const = 0;
         };
 
-        RfxResult Compile(_In_ const CompilerRequestDescription& compilerRequest, _COM_Outptr_opt_ void** compilerResult);
+        enum class CompileOutputType
+        {
+            Preprocesed // The code after preprossing stage
+        };
+
+        class ICompileResult : public IRfxUnknown
+        {
+        public:
+            virtual RfxResult GetOutput(size_t index, CompileOutputType& outputType, IBlob** output) = 0;
+            virtual size_t GetOutputsCount() = 0;
+        };
+
+        RFX_EXTERN_C RFX_API RfxResult RFX_STDCALL Compile(const CompilerRequestDescription& compilerRequest, ICompileResult** result);
+        RFX_EXTERN_C RFX_API RfxResult RFX_STDCALL GetErrorMessage(RfxResult result, IBlob** message);
     }
 }
