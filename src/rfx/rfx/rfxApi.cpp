@@ -1,6 +1,7 @@
 #include "include/rfx.hpp"
 
 #include "compiler/DiagnosticSink.hpp"
+#include "compiler/Lexer.hpp"
 #include "compiler/Preprocessor.hpp"
 
 #include "core/Blob.hpp"
@@ -10,9 +11,10 @@
 #include "core/SourceLocation.hpp"
 #include "core/StringEscapeUtil.hpp"
 
+#include "common/LinearAllocator.hpp"
+
 namespace RR::Rfx
 {
-
     class SourceWriter
     {
     public:
@@ -77,7 +79,7 @@ namespace RR::Rfx
         U8String output_;
     };
 
-    std::string writeTokens(const std::shared_ptr<Preprocessor>& preprocessor)
+    U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor)
     {
         const auto& tokens = preprocessor->ReadAllTokens();
         SourceWriter writer;
@@ -86,6 +88,30 @@ namespace RR::Rfx
             writer.Emit(token);
 
         return writer.GetOutput();
+    }
+
+    U8String writeTokens(const std::shared_ptr<Lexer>& lexer)
+    {
+        U8String result;
+
+        while (true)
+        {
+            const auto& token = lexer->ReadToken();
+
+            U8String escapedToken;
+            StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+
+            result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
+                                  RR::Rfx::TokenTypeToString(token.type),
+                                  escapedToken,
+                                  token.humaneSourceLocation.line,
+                                  token.humaneSourceLocation.column);
+
+            if (token.type == Token::Type::EndOfFile)
+                break;
+        }
+
+        return result;
     }
 
     class ComplileResult : public ICompileResult, RefObject
@@ -174,17 +200,26 @@ namespace RR::Rfx
             auto bufferWriter = std::make_shared<BufferWriter>();
             diagnosticSink->AddWriter(bufferWriter);
 
-            const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, diagnosticSink);
-            preprocessor->PushInputFile(sourceFile);
-
             if (compilerRequest.lexerOutput)
             {
-                const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
+                // Re-running lexing here leads to duplicate diagnostic messages in the sink
+                // when lexerOutput is requested along with other compilation steps.
+                // Fortunately, lexerOutput is needed only for testing purposes
+                // and this problem is not critical.
+
+                const auto linearAllocator = std::make_shared<LinearAllocator>(1024);
+                const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
+                const auto& lexer = std::make_shared<Lexer>(sourceView, linearAllocator, diagnosticSink);
+
+                const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(lexer)));
                 compilerResult->PushOutput(CompileOutputType::Lexer, blob);
             }
 
             if (compilerRequest.preprocessorOutput)
             {
+                const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, diagnosticSink);
+                preprocessor->PushInputFile(sourceFile);
+
                 const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
                 compilerResult->PushOutput(CompileOutputType::Preprocessor, blob);
             }
