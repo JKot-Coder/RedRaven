@@ -1,0 +1,9 @@
+#include "../b.hrfx"
+#include "../c.hrfx"
+
+#include "./../b.hrfx"
+
+float test(float x)
+{
+	return foo(x) + bar(x);
+}

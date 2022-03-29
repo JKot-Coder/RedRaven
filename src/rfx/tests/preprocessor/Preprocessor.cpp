@@ -11,10 +11,9 @@ namespace RR::Rfx
 {
     namespace Tests
     {
-
         TEST_CASE("PreprocessorTests", "[Preprocessor]")
         {
-            std::string path = "../src/rfx/tests/preprocessor";
+            fs::path path = "../src/rfx/tests/preprocessor";
             for (const auto& entry : fs::recursive_directory_iterator(path))
             {
                 if (entry.path().extension() != ".rfx")
@@ -62,8 +61,15 @@ namespace RR::Rfx
                     REQUIRE(preprocessorOutput.operator bool());
                     REQUIRE(diagnosticOutput.operator bool());
 
+                    std::error_code ec;
+                    auto relativePath = fs::relative(entry, path, ec);
+                    REQUIRE(!(bool)ec);
+
+                    // Remove extension from path 
+                    relativePath = relativePath.parent_path() / relativePath.stem();
+
                     auto namer = ApprovalTests::TemplatedCustomNamer::create(
-                        "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
+                        "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
                     RfxApprover::verify(preprocessorOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
                 }
             }
