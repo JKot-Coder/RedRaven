@@ -337,7 +337,7 @@ namespace RR
 
         protected:
             /// The preprocessor that this input stream is being used by
-            // Preprocessor* m_preprocessor = nullptr;
+            // Preprocessor* preprocessor_ = nullptr;
 
             /// Parent stream in the stack of secondary input streams
             std::shared_ptr<InputStream> parent_;
@@ -418,7 +418,7 @@ namespace RR
             Token PeekToken()
             {
                 // The logic here mirrors `readToken()`, but we do not
-                // modify the `m_top` value or delete streams when they
+                // modify the `top_` value or delete streams when they
                 // are at their end, so that we don't disrupt any state
                 // that might depend on which streams are present on
                 // the stack.
@@ -790,6 +790,180 @@ namespace RR
             std::vector<Param> params;
         };
 
+        using PreprocessorExpressionValue = int32_t;
+
+        class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
+        {
+        public:
+            typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
+            typedef void (PreprocessorImpl::*HandlePragmaDirectiveFunc)(DirectiveContext& context, const Token& subDirectiveToken);
+
+            struct Directive
+            {
+                enum class Flags : uint32_t
+                {
+                    None = 0,
+
+                    // Should this directive be handled even when skipping disbaled code?
+                    ProcessWhenSkipping = 1 << 0,
+
+                    /// Allow the handler for this directive to advance past the
+                    /// directive token itself, so that it can control lexer behavior
+                    /// more closely.
+                    DontConsumeDirectiveAutomatically = 1 << 1,
+                };
+
+                Flags flags;
+                HandleDirectiveFunc function;
+            };
+
+            struct PragmaDirective
+            {
+                HandlePragmaDirectiveFunc function;
+            };
+
+        public:
+            PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+
+            std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
+            std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
+            std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; }
+
+            std::vector<Token> ReadAllTokens();
+
+            // Find the currently-defined macro of the given name, or return nullptr
+            std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
+
+            // Push a new input file onto the input stack of the preprocessor
+            void PushInputFile(const std::shared_ptr<InputFile>& inputFile);
+
+        private:
+            int32_t tokenToInt(const Token& token, int radix);
+            uint32_t tokenToUInt(const Token& str, int radix);
+
+            Token readToken();
+
+            // Pop the inner-most input file from the stack of input files
+            void popInputFile(bool forceClose = false);
+
+            inline Token peekRawToken();
+            inline Token::Type peekRawTokenType() { return peekRawToken().type; }
+
+            inline Token peekToken();
+            inline Token::Type peekTokenType() { return peekToken().type; }
+
+            // Read one token, with macro-expansion, without going past the end of the line.
+            Token advanceToken();
+
+            // Read one raw token, without going past the end of the line.
+            Token advanceRawToken();
+
+            // Skip to the end of the line (useful for recovering from errors in a directive)
+            void skipToEndOfLine();
+
+            // Determine if we have read everything on the directive's line.
+            bool isEndOfLine();
+
+            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+
+            U8String readDirectiveMessage();
+
+            void beginConditional(const DirectiveContext& context, bool enable);
+
+            void handleDirective();
+            void handleInvalidDirective(DirectiveContext& directiveContext);
+
+            void handleIfDirective(DirectiveContext& directiveContext);
+            void handleIfdefDirective(DirectiveContext& directiveContext);
+            void handleIfndefDirective(DirectiveContext& directiveContext);
+            void handleElseDirective(DirectiveContext& directiveContext);
+            void handleElifDirective(DirectiveContext& directiveContext);
+            void handleEndIfDirective(DirectiveContext& directiveContext);
+
+            void handleDefineDirective(DirectiveContext& directiveContext);
+            void handleUndefDirective(DirectiveContext& directiveContext);
+            void handleWarningDirective(DirectiveContext& directiveContext);
+            void handleErrorDirective(DirectiveContext& directiveContext);
+            void handleIncludeDirective(DirectiveContext& directiveContext);
+            void handleLineDirective(DirectiveContext& directiveContext);
+            void handlePragmaDirective(DirectiveContext& directiveContext);
+
+            void handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
+            void handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
+
+            PreprocessorExpressionValue evaluateInfixOp(
+                const DirectiveContext& context,
+                const Token& opToken,
+                PreprocessorExpressionValue left,
+                PreprocessorExpressionValue right);
+
+            PreprocessorExpressionValue skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext);
+            PreprocessorExpressionValue parseAndEvaluateExpression(DirectiveContext& directiveContext);
+            PreprocessorExpressionValue parseAndEvaluateUnaryExpression(DirectiveContext& directiveContext);
+            PreprocessorExpressionValue parseAndEvaluateInfixExpressionWithPrecedence(
+                DirectiveContext& context,
+                PreprocessorExpressionValue left,
+                int32_t precedence);
+
+            // Helper routine to check that we find the end of a directive where we expect it.
+            // Most directives do not need to call this directly, since we have
+            // a catch-all case in the main `handleDirective()` function.
+            // `#include` and `#line` case will call it directly to avoid complications
+            // when it switches the input stream.
+            void expectEndOfDirective(DirectiveContext& context);
+
+            void parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
+                               const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
+
+        private:
+            std::shared_ptr<DiagnosticSink> sink_;
+            std::shared_ptr<IncludeSystem> includeSystem_;
+            std::shared_ptr<LinearAllocator> allocator_;
+
+            /// A stack of "active" input files
+            std::shared_ptr<InputFile> currentInputFile_;
+
+            /// The unique identities of any paths that have issued `#pragma once` directives to
+            /// stop them from being included again.
+            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
+
+            /// A pre-allocated token that can be returned to represent end-of-input situations.
+            Token endOfFileToken_;
+
+            /// Macros defined in this environment
+            std::unordered_map<U8String, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
+
+        private:
+            static Token dummyToken;
+            static const std::unordered_map<U8String, Directive> directiveMap;
+            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
+
+        private:
+            // Look up the directive with the given name.
+            static Directive findDirective(const U8String& name)
+            {
+                auto search = directiveMap.find(name);
+
+                if (search == directiveMap.end())
+                    return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
+
+                return search->second;
+            }
+
+            // Look up the `#pragma` directive with the given name.
+            static PragmaDirective findPragmaDirective(const U8String& name)
+            {
+                auto search = paragmaDirectiveMap.find(name);
+
+                if (search == paragmaDirectiveMap.end())
+                    return { &PreprocessorImpl::handleUnknownPragmaDirective };
+
+                return search->second;
+            }
+        };
+
         // When a macro is invoked, we conceptually want to "play back" the ops
         // that make up the macro's definition. The `MacroInvocation` type logically
         // represents an invocation of a macro and handles the complexities of
@@ -802,7 +976,6 @@ namespace RR
             /// Create a new expansion of `macro`
             MacroInvocation(
                 const std::shared_ptr<PreprocessorImpl>& preprocessor,
-                const std::shared_ptr<DiagnosticSink>& sink,
                 const std::shared_ptr<MacroDefinition>& macro, // Todo shared_ptr?
                 const SourceLocation& macroInvocationLoc,
                 const Token& initiatingMacroToken);
@@ -831,7 +1004,7 @@ namespace RR
             /// Is the given `macro` considered "busy" during the given macroinvocation?
             static bool IsBusy(const std::shared_ptr<MacroDefinition>& macro, MacroInvocation* duringMacroInvocation);
 
-            size_t GetArgCount() { return m_args.size(); }
+            size_t GetArgCount() { return args_.size(); }
 
         private:
             // Macro invocations are created as part of applying macro expansion
@@ -839,12 +1012,30 @@ namespace RR
             // for setting up much of the state of a `MacroInvocation`.
             friend struct ExpansionInputStream;
 
+            std::shared_ptr<DiagnosticSink> getSink() const { return preprocessor_->GetSink(); }
+
+            /// Actually read a new token (not just using the lookahead)
+            Token readTokenImpl();
+
+            /// Initialize the input stream for the current macro op
+            void initCurrentOpStream();
+
+            /// Get a reader for the tokens that make up the macro argument at the given `paramIndex`
+            TokenReader getArgTokens(uint32_t paramIndex);
+
+            /// Push a stream onto `currentOpStreams_` that consists of a single token
+            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, U8String const& content);
+
+            /// Push a stream for a source-location builtin (`__FILE__` or `__LINE__`), with content set up by `valueBuilder`
+            template <typename F>
+            void pushStreamForSourceLocBuiltin(Token::Type tokenType, F const& valueBuilder);
+
+        private:
             //TOOD COMMNETS
             std::shared_ptr<PreprocessorImpl> preprocessor_ = nullptr;
-            std::shared_ptr<DiagnosticSink> sink_ = nullptr;
 
             /// The macro being expanded
-            std::shared_ptr<MacroDefinition> m_macro = nullptr;
+            std::shared_ptr<MacroDefinition> macro_ = nullptr;
 
             /// A single argument to the macro invocation
             ///
@@ -857,16 +1048,16 @@ namespace RR
             };
 
             /// Tokens that make up the macro arguments, in case of function-like macro expansion
-            std::vector<Token> m_argTokens;
+            std::vector<Token> argTokens_;
 
             /// Arguments to the macro, in the case of a function-like macro expansion
-            std::vector<Arg> m_args;
+            std::vector<Arg> args_;
 
             /// Additional macros that should be considered "busy" during this expansion
-            MacroInvocation* m_nextBusyMacroInvocation = nullptr;
+            MacroInvocation* nextBusyMacroInvocation_ = nullptr;
 
             /// Locatin of the macro invocation that led to this expansion
-            SourceLocation m_macroInvocationLoc;
+            SourceLocation macroInvocationLoc_;
 
             /// "iniating" macro token invocation in cases where multiple
             /// nested macro invocations might be in flight.
@@ -875,31 +1066,15 @@ namespace RR
             /// One token of lookahead
             Token lookaheadToken_;
 
-            /// Actually read a new token (not just using the lookahead)
-            Token readTokenImpl();
-
             // In order to play back a macro definition, we will play back the ops
             // in its body one at a time. Each op may expand to a stream of zero or
             // more tokens, so we need some state to track all of that.
 
             /// One or more input streams representing the current "op" being expanded
-            InputStreamStack m_currentOpStreams;
+            InputStreamStack currentOpStreams_;
 
             /// The index into the macro's list of the current operation being played back
-            uint32_t m_macroOpIndex = 0;
-
-            /// Initialize the input stream for the current macro op
-            void initCurrentOpStream();
-
-            /// Get a reader for the tokens that make up the macro argument at the given `paramIndex`
-            TokenReader getArgTokens(uint32_t paramIndex);
-
-            /// Push a stream onto `m_currentOpStreams` that consists of a single token
-            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, U8String const& content);
-
-            /// Push a stream for a source-location builtin (`__FILE__` or `__LINE__`), with content set up by `valueBuilder`
-            template <typename F>
-            void pushStreamForSourceLocBuiltin(Token::Type tokenType, F const& valueBuilder);
+            uint32_t macroOpIndex_ = 0;
         };
 
         // Playing back macro bodies for macro invocations is one part of the expansion process, and the other
@@ -980,7 +1155,7 @@ namespace RR
             void pushMacroInvocation(const std::shared_ptr<MacroInvocation>& macroInvocation);
 
         private:
-            ///  TODO comment
+            /// Parent preprocessor
             std::weak_ptr<PreprocessorImpl> preprocessor_;
 
             /// The base stream that macro expansion is being applied to
@@ -995,182 +1170,6 @@ namespace RR
             /// Token that "iniating" macro invocation in cases where multiple
             /// nested macro invocations might be in flight.
             Token initiatingMacroToken_;
-        };
-
-        using PreprocessorExpressionValue = int32_t;
-
-        class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
-        {
-        public:
-            typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
-            typedef void (PreprocessorImpl::*HandlePragmaDirectiveFunc)(DirectiveContext& context, const Token& subDirectiveToken);
-
-            struct Directive
-            {
-                enum class Flags : uint32_t
-                {
-                    None = 0,
-
-                    // Should this directive be handled even when skipping disbaled code?
-                    ProcessWhenSkipping = 1 << 0,
-
-                    /// Allow the handler for this directive to advance past the
-                    /// directive token itself, so that it can control lexer behavior
-                    /// more closely.
-                    DontConsumeDirectiveAutomatically = 1 << 1,
-                };
-
-                Flags flags;
-                HandleDirectiveFunc function;
-            };
-
-            struct PragmaDirective
-            {
-                HandlePragmaDirectiveFunc function;
-            };
-
-        public:
-            PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
-                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
-
-            std::vector<Token> ReadAllTokens();
-
-            // Find the currently-defined macro of the given name, or return nullptr
-            std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
-
-            std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
-            std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
-            std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; }
-
-            // Push a new input file onto the input stack of the preprocessor
-            void PushInputFile(const std::shared_ptr<InputFile>& inputFile);
-
-        private:
-            int32_t tokenToInt(const Token& token, int radix);
-            uint32_t tokenToUInt(const Token& str, int radix);
-
-            Token readToken();
-
-            // Pop the inner-most input file from the stack of input files
-            void popInputFile(bool forceClose = false);
-
-            inline Token peekRawToken();
-            inline Token::Type peekRawTokenType() { return peekRawToken().type; }
-
-            inline Token peekToken();
-            inline Token::Type peekTokenType() { return peekToken().type; }
-
-            // Read one token, with macro-expansion, without going past the end of the line.
-            Token advanceToken();
-
-            // Read one raw token, without going past the end of the line.
-            Token advanceRawToken();
-
-            // Skip to the end of the line (useful for recovering from errors in a directive)
-            void skipToEndOfLine();
-
-            // Determine if we have read everything on the directive's line.
-            bool isEndOfLine();
-
-            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
-            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
-
-            U8String readDirectiveMessage();
-
-            void beginConditional(const DirectiveContext& context, bool enable);
-
-            void handleDirective();
-            void handleInvalidDirective(DirectiveContext& directiveContext);
-
-            void handleIfDirective(DirectiveContext& directiveContext);
-            void handleIfdefDirective(DirectiveContext& directiveContext);
-            void handleIfndefDirective(DirectiveContext& directiveContext);
-            void handleElseDirective(DirectiveContext& directiveContext);
-            void handleElifDirective(DirectiveContext& directiveContext);
-            void handleEndIfDirective(DirectiveContext& directiveContext);
-
-            void handleDefineDirective(DirectiveContext& directiveContext);
-            void handleUndefDirective(DirectiveContext& directiveContext);
-            void handleWarningDirective(DirectiveContext& directiveContext);
-            void handleErrorDirective(DirectiveContext& directiveContext);
-            void handleIncludeDirective(DirectiveContext& directiveContext);
-            void handleLineDirective(DirectiveContext& directiveContext);
-            void handlePragmaDirective(DirectiveContext& directiveContext);
-
-            void handleUnknownPragmaDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
-            void handlePragmaOnceDirective(DirectiveContext& directiveContext, const Token& subDirectiveToken);
-
-            PreprocessorExpressionValue evaluateInfixOp(
-                const DirectiveContext& context,
-                const Token& opToken,
-                PreprocessorExpressionValue left,
-                PreprocessorExpressionValue right);
-
-            PreprocessorExpressionValue skipOrParseAndEvaluateExpression(DirectiveContext& directiveContext);
-            PreprocessorExpressionValue parseAndEvaluateExpression(DirectiveContext& directiveContext);
-            PreprocessorExpressionValue parseAndEvaluateUnaryExpression(DirectiveContext& directiveContext);
-            PreprocessorExpressionValue parseAndEvaluateInfixExpressionWithPrecedence(
-                DirectiveContext& context,
-                PreprocessorExpressionValue left,
-                int32_t precedence);
-
-            // Helper routine to check that we find the end of a directive where
-            // we expect it.
-            //
-            // Most directives do not need to call this directly, since we have
-            // a catch-all case in the main `handleDirective()` function.
-            // `#include` and `#line` case will call it directly to avoid complications
-            // when it switches the input stream.
-            void expectEndOfDirective(DirectiveContext& context);
-
-            void parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
-                               const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
-
-        private:
-            std::shared_ptr<DiagnosticSink> sink_;
-            std::shared_ptr<IncludeSystem> includeSystem_;
-            std::shared_ptr<LinearAllocator> allocator_;
-
-            /// A stack of "active" input files
-            std::shared_ptr<InputFile> currentInputFile_;
-
-            /// The unique identities of any paths that have issued `#pragma once` directives to
-            /// stop them from being included again.
-            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
-
-            /// A pre-allocated token that can be returned to represent end-of-input situations.
-            Token endOfFileToken_;
-
-            /// Macros defined in this environment
-            std::unordered_map<U8String, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
-
-        private:
-            static Token dummyToken;
-            static const std::unordered_map<U8String, Directive> directiveMap;
-            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
-
-        private:
-            // Look up the directive with the given name.
-            static Directive findDirective(const U8String& name)
-            {
-                auto search = directiveMap.find(name);
-
-                if (search == directiveMap.end())
-                    return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
-
-                return search->second;
-            }
-
-            // Look up the `#pragma` directive with the given name.
-            static PragmaDirective findPragmaDirective(const U8String& name)
-            {
-                auto search = paragmaDirectiveMap.find(name);
-
-                if (search == paragmaDirectiveMap.end())
-                    return { &PreprocessorImpl::handleUnknownPragmaDirective };
-
-                return search->second;
-            }
         };
 
         Token PreprocessorImpl::dummyToken;
@@ -1322,7 +1321,7 @@ namespace RR
 
             /// The next outer input file
             ///
-            /// E.g., if this file was `#include`d from another file, then `m_parent` would be
+            /// E.g., if this file was `#include`d from another file, then `parent_` would be
             /// the file with the `#include` directive.
             std::shared_ptr<InputFile> parent_;
 
@@ -1738,7 +1737,6 @@ namespace RR
 
             // If we are skipping, we want to ignore the expression (including
             // anything in it that would lead to a failure in parsing).
-            //
             // We can simply treat the expression as `0` in this case, since its
             // value won't actually matter.
             if (inputStream->IsSkipping())
@@ -2012,7 +2010,6 @@ namespace RR
             ASSERT(inputFile);
 
             // HACK(tfoley): handle an empty `elif` like an `else` directive
-            //
             // This is the behavior expected by at least one input program.
             // We will eventually want to be pedantic about this.
             // even if t
@@ -2438,12 +2435,13 @@ namespace RR
             expectEndOfDirective(directiveContext);
 
             const auto& nextToken = peekRawToken();
-            // Start new source view from end of new line sequence. TODO
+            // Start new source view from end of new line sequence.
             const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
 
             HumaneSourceLocation humaneLocation(line, 1);
             const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
 
+            // Forced closing of the current current stream and start a new one
             popInputFile(true);
             PushInputFile(std::make_shared<InputFile>(shared_from_this(), sourceView));
         }
@@ -2636,22 +2634,22 @@ namespace RR
 
         MacroInvocation::MacroInvocation(
             const std::shared_ptr<PreprocessorImpl>& preprocessor,
-            const std::shared_ptr<DiagnosticSink>& sink,
             const std::shared_ptr<MacroDefinition>& macro,
             const SourceLocation& macroInvocationLoc,
             const Token& initiatingMacroToken)
             : preprocessor_(preprocessor),
-              sink_(sink),
-              m_macro(macro),
-              m_macroInvocationLoc(macroInvocationLoc),
+              macro_(macro),
+              macroInvocationLoc_(macroInvocationLoc),
               initiatingMacroToken_(initiatingMacroToken)
         {
+            ASSERT(preprocessor);
+            ASSERT(macro);
             firstBusyMacroInvocation_ = this;
         }
 
         void MacroInvocation::Prime(MacroInvocation* nextBusyMacroInvocation)
         {
-            m_nextBusyMacroInvocation = nextBusyMacroInvocation;
+            nextBusyMacroInvocation_ = nextBusyMacroInvocation;
 
             initCurrentOpStream();
             lookaheadToken_ = readTokenImpl();
@@ -2665,29 +2663,29 @@ namespace RR
             // The `MacroInvocation` type maintains an invariant that after each
             // call to `readTokenImpl`:
             //
-            // * The `m_currentOpStreams` stack will be non-empty
+            // * The `currentOpStreams_` stack will be non-empty
             //
-            // * The input state in `m_currentOpStreams` will correspond to the
-            //   macro definition op at index `m_macroOpIndex`
+            // * The input state in `currentOpStreams_` will correspond to the
+            //   macro definition op at index `macroOpIndex_`
             //
-            // * The next token read from `m_currentOpStreams` will not be an EOF
+            // * The next token read from `currentOpStreams_` will not be an EOF
             //   *unless* the expansion has reached the end of the macro invocaiton
             //
             // The first time `readTokenImpl()` is called, it will only be able
             // to rely on the weaker invariant guaranteed by `initCurrentOpStream()`:
             //
-            // * The `m_currentOpStreams` stack will be non-empty
+            // * The `currentOpStreams_` stack will be non-empty
             //
-            // * The input state in `m_currentOpStreams` will correspond to the
-            //   macro definition op at index `m_macroOpIndex`
+            // * The input state in `currentOpStreams_` will correspond to the
+            //   macro definition op at index `macroOpIndex_`
             //
-            // * The next token read from `m_currentOpStreams` may be an EOF if
+            // * The next token read from `currentOpStream_` may be an EOF if
             //   the current op has an empty expansion.
             //
             // In either of those cases, we can start by reading the next token
             // from the expansion of the current op.
-            Token token = m_currentOpStreams.ReadToken();
-            auto tokenOpIndex = m_macroOpIndex;
+            Token token = currentOpStreams_.ReadToken();
+            auto tokenOpIndex = macroOpIndex_;
 
             // Once we've read that `token`, we need to work to establish or
             // re-establish our invariant, which we do by looping until we are
@@ -2700,10 +2698,10 @@ namespace RR
                 //
                 // If the current stream is *not* at its end, then we seem to
                 // have the stronger invariant as well, and we can return.
-                if (m_currentOpStreams.PeekTokenType() != Token::Type::EndOfFile)
+                if (currentOpStreams_.PeekTokenType() != Token::Type::EndOfFile)
                 {
                     // We know that we have tokens remaining to read from
-                    // `m_currentOpStreams`, and we thus expect that the
+                    // `currentOpStreams_`, and we thus expect that the
                     // `token` we just read must also be a non-EOF token.
                     //
                     // Note: This case is subtle, because this might be the first invocation
@@ -2723,7 +2721,7 @@ namespace RR
                 // Otherwise, we have reached the end of the tokens coresponding
                 // to the current op, and we want to try to advance to the next op
                 // in the macro definition.
-                auto currentOpIndex = m_macroOpIndex;
+                auto currentOpIndex = macroOpIndex_;
                 auto nextOpIndex = currentOpIndex + 1;
 
                 // However, if we are already working on the last op in the macro
@@ -2735,19 +2733,19 @@ namespace RR
                 // Note that in this case we do not care whether `token` is an EOF
                 // or not, because we expect the last op to yield an EOF at the
                 // end of the macro expansion.
-                if (nextOpIndex == m_macro->ops.size())
+                if (nextOpIndex == macro_->ops.size())
                     return token;
 
-                // Because `m_currentOpStreams` is at its end, we can pop all of
+                // Because `currentOpStreams_` is at its end, we can pop all of
                 // those streams to reclaim their memory before we push any new
                 // ones.
-                m_currentOpStreams.PopAll();
+                currentOpStreams_.PopAll();
 
                 // Now we've commited to moving to the next op in the macro
                 // definition, and we want to push appropriate streams onto
                 // the stack of input streams to represent that op.
-                m_macroOpIndex = nextOpIndex;
-                auto const& nextOp = m_macro->ops[nextOpIndex];
+                macroOpIndex_ = nextOpIndex;
+                auto const& nextOp = macro_->ops[nextOpIndex];
 
                 // What we do depends on what the next op's opcode is.
                 switch (nextOp.opcode)
@@ -2758,8 +2756,8 @@ namespace RR
                         // which also gets invoked in the logic of `MacroInvocation::Prime()`
                         // to handle the first op in the definition.
                         //
-                        // This operation will set up `m_currentOpStreams` so that it
-                        // accurately reflects the expansion of the op at index `m_macroOpIndex`.
+                        // This operation will set up `currentOpStreams_` so that it
+                        // accurately reflects the expansion of the op at index `macroOpIndex_`.
                         //
                         // What it will *not* do is guarantee that the expansion for that
                         // op is non-empty. We will thus continue the outer `for` loop which
@@ -2783,8 +2781,8 @@ namespace RR
                         // non-EOF token read.
                         if (token.type == Token::Type::EndOfFile)
                         {
-                            token = m_currentOpStreams.ReadToken();
-                            tokenOpIndex = m_macroOpIndex;
+                            token = currentOpStreams_.ReadToken();
+                            tokenOpIndex = macroOpIndex_;
                         }
                     }
                     break;
@@ -2793,8 +2791,8 @@ namespace RR
                     {
                         // The more complicated case is a token paste (`##`).
                         auto tokenPasteTokenIndex = nextOp.index0;
-                        const auto& tokenPasteLoc = m_macro->tokens[tokenPasteTokenIndex].sourceLocation;
-                        const auto& tokenPasteHumaneLoc = m_macro->tokens[tokenPasteTokenIndex].humaneSourceLocation;
+                        const auto& tokenPasteLoc = macro_->tokens[tokenPasteTokenIndex].sourceLocation;
+                        const auto& tokenPasteHumaneLoc = macro_->tokens[tokenPasteTokenIndex].humaneSourceLocation;
 
                         // A `##` must always appear between two macro ops (whether literal tokens
                         // or macro parameters) and it is supposed to paste together the last
@@ -2846,7 +2844,6 @@ namespace RR
                         {
                             if (token.type != Token::Type::EndOfFile)
                             {
-                                // TODO COMMENT
                                 if (IsSet(token.flags, Token::Flags::AfterWhitespace))
                                     pastedContent.put(' ');
 
@@ -2866,14 +2863,14 @@ namespace RR
                         // we can turn our attention to the token to the right.
                         //
                         // This token will be the first token (if any) to be produced by whatever
-                        // op follows the `##`. We will thus start by initialiing the `m_currentOpStrems`
+                        // op follows the `##`. We will thus start by initialiing the `currentOpStrems_`
                         // for reading from that op.
-                        m_macroOpIndex++;
+                        macroOpIndex_++;
                         initCurrentOpStream();
 
                         // If the right operand yields at least one non-EOF token, then we need
                         // to append that content to our paste result.
-                        Token rightToken = m_currentOpStreams.ReadToken();
+                        Token rightToken = currentOpStreams_.ReadToken();
                         if (rightToken.type != Token::Type::EndOfFile)
                             pastedContent << rightToken.GetContentString();
 
@@ -2908,7 +2905,7 @@ namespace RR
                         // The first two cases are both considered valid token pastes, while the latter should
                         // be diagnosed as a warning, even if it is clear how we can handle it.
                         if (lexedTokens.size() > 2)
-                            sink_->Diagnose(tokenPasteLoc, tokenPasteHumaneLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
+                            getSink()->Diagnose(tokenPasteLoc, tokenPasteHumaneLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
 
                         // No matter what sequence of tokens we got, we can create an input stream to represent
                         // them and push it as the representation of the `##` macro definition op.
@@ -2916,9 +2913,9 @@ namespace RR
                         // Note: the stream(s) created for the right operand will be on the stack under the new
                         // one we push for the pasted tokens, and as such the input state is capable of reading
                         // from both the input stream for the `##` through to the input for the right-hand-side
-                        // op, which is consistent with `m_macroOpIndex`.
+                        // op, which is consistent with `macroOpIndex_`.
                         const auto& inputStream = std::make_shared<SingleUseInputStream>(lexedTokens);
-                        m_currentOpStreams.Push(inputStream);
+                        currentOpStreams_.Push(inputStream);
 
                         // There's one final detail to cover before we move on. *If* we used `token` as part
                         // of the content of the token paste, *or* if `token` is an EOF, then we need to
@@ -2936,8 +2933,8 @@ namespace RR
                             //
                             // If `Y` expands to a single token, then `X ## Y` should be treated
                             // as the left operand to the `Y ## Z` paste.
-                            token = m_currentOpStreams.ReadToken();
-                            tokenOpIndex = m_macroOpIndex;
+                            token = currentOpStreams_.ReadToken();
+                            tokenOpIndex = macroOpIndex_;
                         }
 
                         // At this point we are ready to head back to the top of the loop and see
@@ -2950,10 +2947,10 @@ namespace RR
 
         void MacroInvocation::initCurrentOpStream()
         {
-            // The job of this function is to make sure that `m_currentOpStreams` is set up
-            // to refelct the state of the op at `m_macroOpIndex`.
-            auto opIndex = m_macroOpIndex;
-            auto& op = m_macro->ops[opIndex];
+            // The job of this function is to make sure that `currentOpStreams_` is set up
+            // to refelct the state of the op at `macroOpIndex_`.
+            auto opIndex = macroOpIndex_;
+            auto& op = macro_->ops[opIndex];
 
             // As one might expect, the setup logic to apply depends on the opcode for the op.
             switch (op.opcode)
@@ -2973,10 +2970,10 @@ namespace RR
                     // Because the macro definition stores its definition tokens directly, we
                     // can simply construct a token reader for reading from the tokens in
                     // the chosen range, and push a matching input stream.
-                    auto tokenBuffer = m_macro->tokens.begin();
+                    auto tokenBuffer = macro_->tokens.begin();
                     auto tokenReader = TokenReader(tokenBuffer + beginTokenIndex, tokenBuffer + endTokenIndex);
                     const auto& stream = std::make_shared<PretokenizedInputStream>(tokenReader);
-                    m_currentOpStreams.Push(stream);
+                    currentOpStreams_.Push(stream);
                 }
                 break;
 
@@ -2997,28 +2994,31 @@ namespace RR
                     // Because expansion doesn't apply to this parameter reference, we can simply
                     // play back those tokens exactly as they appeared in the argument list.
                     const auto& stream = std::make_shared<PretokenizedInputStream>(tokenReader);
-                    m_currentOpStreams.Push(stream);
+                    currentOpStreams_.Push(stream);
                 }
                 break;
 
                 case MacroDefinition::Opcode::ExpandedParam:
                 {
                     // Most uses of a macro parameter will be subject to macro expansion.
-                    //
                     // The initial logic here is similar to the unexpanded case above.
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
 
-                    // TODO COMMENT THIS
                     std::shared_ptr<InputStream> stream;
+
+                    // When the macro is expanded, we must make sure that the flags of the first
+                    // token from the expansion are equal to the flags of the token that initiates the macro.
                     if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
                     {
                         TokenList tokenList;
 
+                        // Copy all tokens and modify flags of first token
                         for (bool first = true; !tokenReader.IsAtEnd(); first = false)
                         {
                             auto token = tokenReader.AdvanceToken();
 
+                            // Reset flags for first token in macro expansion
                             if (first)
                                 token.flags = op.flags;
 
@@ -3043,7 +3043,7 @@ namespace RR
                     // the stream that "plays back" the argument tokens with a stream that
                     // applies macro expansion to them.
                     const auto& expansion = std::make_shared<ExpansionInputStream>(preprocessor_, stream);
-                    m_currentOpStreams.Push(expansion);
+                    currentOpStreams_.Push(expansion);
                 }
                 break;
 
@@ -3055,7 +3055,7 @@ namespace RR
                     //
                     // Much of the initial logic is shared with the other parameter cases above.
                     auto tokenIndex = op.index0;
-                    const auto& loc = m_macro->tokens[tokenIndex].sourceLocation;
+                    const auto& loc = macro_->tokens[tokenIndex].sourceLocation;
 
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
@@ -3146,9 +3146,9 @@ namespace RR
 
         bool MacroInvocation::IsBusy(const std::shared_ptr<MacroDefinition>& macro, MacroInvocation* duringMacroInvocation)
         {
-            for (auto busyMacroInvocation = duringMacroInvocation; busyMacroInvocation; busyMacroInvocation = busyMacroInvocation->m_nextBusyMacroInvocation)
+            for (auto busyMacroInvocation = duringMacroInvocation; busyMacroInvocation; busyMacroInvocation = busyMacroInvocation->nextBusyMacroInvocation_)
             {
-                if (busyMacroInvocation->m_macro == macro)
+                if (busyMacroInvocation->macro_ == macro)
                     return true;
             }
             return false;
@@ -3158,9 +3158,7 @@ namespace RR
         {
             // The goal here is to push a token stream that represents a single token
             // with exactly the given `content`, etc.
-            // TODO COMMNET
-            // We are going to keep the content alive using the slice pool for the source
-            // manager, which will also lead to it being shared if used multiple times.
+            // We are going to keep the content alive using the allocator to store token content.
             const auto& allocator = preprocessor_->GetAllocator();
             const auto allocated = (char*)allocator->Allocate(content.length());
             std::copy(content.begin(), content.end(), allocated);
@@ -3182,8 +3180,8 @@ namespace RR
             eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
             lexedTokens.push_back(eofToken);
 
-            const auto& inputStream = std::make_shared<SingleUseInputStream>(/* m_preprocessor,*/ lexedTokens);
-            m_currentOpStreams.Push(inputStream);
+            const auto& inputStream = std::make_shared<SingleUseInputStream>(lexedTokens);
+            currentOpStreams_.Push(inputStream);
         }
 
         template <typename F>
@@ -3211,7 +3209,7 @@ namespace RR
             valueBuilder(content, initiatingLoc, humaneInitiatingLoc);
 
             // Next we constuct and push an input stream with exactly the token type and content we want.
-            pushSingleTokenStream(tokenType, m_macroInvocationLoc, content);
+            pushSingleTokenStream(tokenType, macroInvocationLoc_, content);
         }
 
         // Check whether the current token on the given input stream should be
@@ -3227,7 +3225,7 @@ namespace RR
             for (;;)
             {
                 // TODO comment
-                // The "next" token to be read is already in our `m_lookeadToken`
+                // The "next" token to be read is already in our `lookeadToken_`
                 // member, so we can simply inspect it.
                 //
                 // We also care about where that token came from (which input stream).
@@ -3257,8 +3255,8 @@ namespace RR
                 // by looking at the input stream assocaited with that one
                 // token of lookahead.
                 //
-                // Note: it is critical here that `m_inputStreams.getTopStream()`
-                // returns the top-most stream that was active when `m_lookaheadToken`
+                // Note: it is critical here that `inputStreams_.getTopStream()`
+                // returns the top-most stream that was active when `lookaheadToken_`
                 // was consumed. This means that an `InputStreamStack` cannot
                 // "pop" an input stream that it at its end until after something
                 // tries to read an additional token.
@@ -3305,7 +3303,6 @@ namespace RR
 
                         /// Create a new expansion of `macro`
                         const auto& invocation = std::make_shared<MacroInvocation>(preprocessor,
-                                                                                   preprocessor->GetSink(),
                                                                                    macro,
                                                                                    token.sourceLocation,
                                                                                    initiatingMacroToken_);
@@ -3338,7 +3335,7 @@ namespace RR
                         // While we don't expect users to make heavy use of this feature in Slang,
                         // it is worthwhile to try to stay compatible.
                         //
-                        // Because the macro name is already in `m_lookaheadToken`, we can peak
+                        // Because the macro name is already in `lookaheadToken_`, we can peak
                         // at the underlying input stream to see if the next non-whitespace
                         // token after the lookahead is a `(`.
                         inputStreams_.SkipAllWhitespace();
@@ -3362,7 +3359,6 @@ namespace RR
                         // If we saw an opening `(`, then we know we are starting some kind of
                         // macro invocation, although we don't yet know if it is well-formed.
                         const auto& invocation = std::make_shared<MacroInvocation>(preprocessor,
-                                                                                   preprocessor->GetSink(),
                                                                                    macro,
                                                                                    token.sourceLocation,
                                                                                    initiatingMacroToken_);
@@ -3463,12 +3459,12 @@ namespace RR
         TokenReader MacroInvocation::getArgTokens(uint32_t paramIndex)
         {
             ASSERT(paramIndex >= 0);
-            ASSERT(paramIndex < m_macro->params.size());
+            ASSERT(paramIndex < macro_->params.size());
 
             // How we determine the range of argument tokens for a parameter
             // depends on whether or not it is a variadic parameter.
-            auto& param = m_macro->params[paramIndex];
-            const auto argTokens = m_argTokens.begin();
+            auto& param = macro_->params[paramIndex];
+            const auto argTokens = argTokens_.begin();
             if (!param.isVariadic)
             {
                 // The non-variadic case is, as expected, the simpler one.
@@ -3476,15 +3472,15 @@ namespace RR
                 // We expect that there must be an argument at the index corresponding
                 // to the parameter, and we construct a `TokenReader` that will play
                 // back the tokens of that argument.
-                ASSERT(paramIndex < m_args.size());
-                auto arg = m_args[paramIndex];
+                ASSERT(paramIndex < args_.size());
+                auto arg = args_[paramIndex];
 
                 // TODO outofrange possible
                 return TokenReader(argTokens + arg.beginTokenIndex, argTokens + arg.endTokenIndex);
             }
             else
             {
-                ASSERT(m_args.size() > 0);
+                ASSERT(args_.size() > 0);
                 // In the variadic case, it is possible that we have zero or more
                 // arguments that will all need to be played back in any place where
                 // the variadic parameter is referenced.
@@ -3494,7 +3490,7 @@ namespace RR
                 // the last argument to the invocation, *if* there was a first
                 // relevant argument.
                 auto firstArgIndex = paramIndex;
-                auto lastArgIndex = m_args.size() - 1;
+                auto lastArgIndex = args_.size() - 1;
 
                 // One special case is when there are *no* arguments coresponding
                 // to the variadic parameter.
@@ -3502,16 +3498,16 @@ namespace RR
                 {
                     // When there are no arguments for the varaidic parameter we will
                     // construct an empty token range that comes after the other arguments.
-                    auto arg = m_args[lastArgIndex];
+                    auto arg = args_[lastArgIndex];
                     return TokenReader(argTokens + arg.endTokenIndex, argTokens + arg.endTokenIndex);
                 }
 
-                // Because the `m_argTokens` array includes the commas between arguments,
+                // Because the `argTokens_` array includes the commas between arguments,
                 // we can get the token sequence we want simply by making a reader that spans
                 // all the tokens between the first and last argument (inclusive) that correspond
                 // to the variadic parameter.
-                auto firstArg = m_args[firstArgIndex];
-                auto lastArg = m_args[lastArgIndex];
+                auto firstArg = args_[firstArgIndex];
+                auto lastArg = args_[lastArgIndex];
                 return TokenReader(argTokens + firstArg.beginTokenIndex, argTokens + lastArg.endTokenIndex);
             }
         }
@@ -3525,9 +3521,8 @@ namespace RR
         MacroInvocation::Arg ExpansionInputStream::parseMacroArg(const std::shared_ptr<MacroInvocation>& macroInvocation)
         {
             // Create the argument, represented as a special flavor of macro
-            //
             MacroInvocation::Arg arg;
-            arg.beginTokenIndex = uint32_t(macroInvocation->m_argTokens.size());
+            arg.beginTokenIndex = uint32_t(macroInvocation->argTokens_.size());
 
             // We will now read the tokens that make up the argument.
             //
@@ -3537,7 +3532,7 @@ namespace RR
             int32_t nestingDepth = 0;
             for (;;)
             {
-                arg.endTokenIndex = uint32_t(macroInvocation->m_argTokens.size());
+                arg.endTokenIndex = uint32_t(macroInvocation->argTokens_.size());
 
                 inputStreams_.SkipAllWhitespace();
                 Token token = inputStreams_.PeekToken();
@@ -3546,7 +3541,7 @@ namespace RR
                 // if (token.type == Token::Type::Identifier)
                 //    token.flags |= Token::Flags::AfterWhitespace;
 
-                macroInvocation->m_argTokens.push_back(token);
+                macroInvocation->argTokens_.push_back(token);
 
                 switch (token.type)
                 {
@@ -3637,7 +3632,7 @@ namespace RR
             {
                 // Parse an argument.
                 MacroInvocation::Arg arg = parseMacroArg(macroInvocation);
-                macroInvocation->m_args.push_back(arg);
+                macroInvocation->args_.push_back(arg);
 
                 // After consuming one macro argument, we look at
                 // the next token to decide what to do.
