@@ -1,6 +1,6 @@
 #include "rfx.hpp"
 
-#include "lexer/LexerApprover.hpp"
+#include "preprocessor/PreprocessorApprover.hpp"
 
 #include "common/LinearAllocator.hpp"
 
@@ -9,56 +9,66 @@
 
 namespace fs = std::filesystem;
 
-namespace RR
+namespace RR::Rfx
 {
-    namespace Rfx
+
+    namespace Tests
     {
-        namespace Tests
+        TEST_CASE("LexerTests", "[Lexer]")
         {
-            /*    TEST_CASE("LexerTests", "[Lexer]")
+            std::string path = "../src/rfx/tests/lexer";
+            for (const auto& entry : fs::recursive_directory_iterator(path))
             {
-                std::string testsPath = "../src/rfx/tests";
-                std::string lexerTestsPath = "../src/rfx/tests/Lexer";
+                if (entry.path().extension() != ".rfx")
+                    continue;
 
-                for (const auto& entry : fs::directory_iterator(lexerTestsPath))
+                DYNAMIC_SECTION(entry.path().stem().u8string())
                 {
-                    if (entry.path().extension() != ".rfx")
-                        continue;
+                    ComPtr<ICompileResult> compileResult;
 
-                    const auto& testFilename = entry.path().stem().u8string();
-                    DYNAMIC_SECTION(testFilename)
+                    const auto fileName = entry.path().u8string();
+
+                    CompilerRequestDescription compileRequest;
+                    compileRequest.inputFile = fileName.c_str();
+                    compileRequest.lexerOutput = true;
+
+                    auto result = RR::Rfx::Compile(compileRequest, compileResult.put());
+                    REQUIRE(RFX_SUCCEEDED(result));
+
+                    Rfx::ComPtr<Rfx::IBlob> lexerOutput;
+
+                    const auto outputsCount = compileResult->GetOutputsCount();
+                    for (size_t i = 0; i < outputsCount; i++)
                     {
-                        std::error_code ec;
-                        const auto& testPath = fs::relative(entry.path().u8string(),
-                                                            testsPath,
-                                                            ec).u8string();
-                        if (ec)
-                            return;
+                        Rfx::CompileOutputType outputType;
+                        Rfx::ComPtr<Rfx::IBlob> output;
 
-                        PathInfo pathInfo;
+                        result = compileResult->GetOutput(i, outputType, output.put());
+                        REQUIRE(RFX_SUCCEEDED(result));
 
-                        const auto& fileSystem = std::make_shared<OSFileSystem>();
-                        const auto& includeSystem = std::make_shared<IncludeSystem>(fileSystem);
-                        includeSystem->FindFile(testPath, testsPath, pathInfo);
-                        std::shared_ptr<SourceFile> sourceFile;
-
-                        if (RFX_FAILED(includeSystem->LoadFile(pathInfo, sourceFile)))
-                            return;
-
-                        const auto& sourceView = SourceView::Create(sourceFile);
-
-                        auto diagnosticSink = std::make_shared<DiagnosticSink>();
-
-                        auto bufferWriter = std::make_shared<BufferWriter>();
-                        diagnosticSink->AddWriter(bufferWriter);
-
-                        const auto allocator = std::make_shared<LinearAllocator>(1024);
-                        const auto& lexer = std::make_shared<Lexer>(sourceView, allocator, diagnosticSink);
-
-                        LexerApprover::verify(lexer, bufferWriter);
+                        switch (outputType)
+                        {
+                            case RR::Rfx::CompileOutputType::Lexer:
+                                lexerOutput = output;
+                                break;
+                            default:
+                                ASSERT_MSG(false, "Unknown output");
+                                break;
+                        }
                     }
+
+                    Rfx::ComPtr<Rfx::IBlob> diagnosticOutput;
+                    result = compileResult->GetDiagnosticOutput(diagnosticOutput.put());
+                    REQUIRE(RFX_SUCCEEDED(result));
+
+                    REQUIRE(lexerOutput);
+                    REQUIRE(diagnosticOutput);
+
+                    auto namer = ApprovalTests::TemplatedCustomNamer::create(
+                        "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
+                    PreprocessorApprover::verify(lexerOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
                 }
-            }*/
+            }
         }
     }
 }
