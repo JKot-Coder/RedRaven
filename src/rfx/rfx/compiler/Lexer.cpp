@@ -118,7 +118,7 @@ namespace RR
         void TokenReader::updateLookaheadToken()
         {
             // We assume here that we can read a token from a non-null `cursor_`
-            // *even* in the case where `m_cursor == m_end`, because the invariant
+            // *even* in the case where `cursor_ == end_`, because the invariant
             // for lists of tokens is that they should be terminated with and
             // end-of-file token, so that there is always a token "one past the end."
             nextToken_ = *cursor_;

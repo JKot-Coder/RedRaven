@@ -105,14 +105,13 @@ namespace RR
             size_t GetCount() { return std::distance(cursor_, end_); }
 
         private:
-            /// Update the lookahead token in `m_nextToken` to reflect the cursor state
+            /// Update the lookahead token in `nextToken_` to reflect the cursor state
             void updateLookaheadToken();
 
         private:
             Token nextToken_;
             TokenList::const_iterator cursor_;
             TokenList::const_iterator end_;
-            //static Token getEndOfFileToken();
         };
 
         class Lexer final
@@ -131,6 +130,7 @@ namespace RR
             Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
 
+            std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
             std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
 
             Flags GetLexerFlags() const { return lexerFlags_; }
@@ -155,12 +155,9 @@ namespace RR
             };
 
         private:
-            inline bool isReachEOF()
-            {
-                return cursor_ == end_;
-            }
+            inline bool isReachEOF() const { return cursor_ == end_; }
 
-            inline U8Glyph peek()
+            inline U8Glyph peek() const
             {
                 if (isReachEOF())
                     return kEOF;

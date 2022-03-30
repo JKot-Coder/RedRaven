@@ -1,0 +1,19 @@
+Output:[
+]
+Diagnostic:[
+	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(3): error 15001: 'else' directive without '#if'
+	#else // directive without '#if'
+	 ^~~~
+	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(5): warning 15204: 'elif' directive requires an expression
+	#elif // directive after else 
+	 ^~~~
+	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(5): error 15001: 'elif' directive without '#if'
+	#elif // directive after else 
+	 ^~~~
+	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(10): error 15000: end of file encountered during preprocessor conditional
+	
+	^
+	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(8): note: see 'ifdef' directive
+	#ifdef UNDEFINED
+	 ^~~~~
+]

@@ -202,9 +202,10 @@ namespace RR
             };
         }
 
+        struct InputFile;
         struct MacroInvocation;
         struct MacroDefinition;
-        struct InputFile;
+        using PreprocessorExpressionValue = int32_t;
 
         //
         // Utility Types
@@ -268,8 +269,6 @@ namespace RR
             bool haveDoneEndOfDirectiveChecks = false;
         };
 
-        using PreprocessorExpressionValue = int32_t;
-
         class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
         {
         public:
@@ -323,7 +322,8 @@ namespace RR
             Token readToken();
 
             // Pop the inner-most input file from the stack of input files
-            void popInputFile(bool forceClose = false);
+            // Force - skips the eof check
+            void popInputFile(bool force = false);
 
             inline Token peekRawToken();
             inline Token::Type peekRawTokenType() { return peekRawToken().type; }
@@ -467,6 +467,7 @@ namespace RR
         /// A logical stream of tokens.
         struct InputStream
         {
+        public:
             InputStream(const std::weak_ptr<PreprocessorImpl> preprocessor)
                 : preprocessor_(preprocessor)
             {
@@ -525,7 +526,7 @@ namespace RR
             std::shared_ptr<InputStream> parent_;
 
             /// Macro expansions that should be considered "busy" during expansion of this stream
-            MacroInvocation* firstBusyMacroInvocation_ = nullptr; // TODO shoud it be shared_ptr ?
+            MacroInvocation* firstBusyMacroInvocation_ = nullptr;
         };
 
         // During macro expansion, or the substitution of parameters into a macro body
@@ -766,6 +767,7 @@ namespace RR
         /// An input stream that reads tokens directly using the `Lexer`
         struct LexerInputStream : InputStream
         {
+        public:
             LexerInputStream() = delete;
 
             LexerInputStream(
@@ -779,7 +781,7 @@ namespace RR
                 lookaheadToken_ = readTokenImpl();
             }
 
-            Lexer& GetLexer() { return *lexer_; }
+            Lexer& GetLexer() const { return *lexer_; }
 
             // A common thread to many of the input stream implementations is to
             // use a single token of lookahead in order to suppor the `peekToken()`
@@ -964,7 +966,7 @@ namespace RR
             /// Create a new expansion of `macro`
             MacroInvocation(
                 const std::shared_ptr<PreprocessorImpl>& preprocessor,
-                const std::shared_ptr<MacroDefinition>& macro, // Todo shared_ptr?
+                const std::shared_ptr<MacroDefinition>& macro,
                 const SourceLocation& macroInvocationLoc,
                 const Token& initiatingMacroToken);
 
@@ -1069,6 +1071,7 @@ namespace RR
         /// An input stream that applies macro expansion to another stream
         struct ExpansionInputStream : InputStream
         {
+        public:
             /// Construct an input stream that applies macro expansion to `base`
             ExpansionInputStream(
                 const std::weak_ptr<PreprocessorImpl>& preprocessor,
@@ -1150,15 +1153,15 @@ namespace RR
         // The top-level flow of the preprocessor is that it processed *input files*
         // An input file manages both the expansion of lexed tokens
         // from the source file, and also state related to preprocessor
-        // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
+        // directives, including skipping of code due to `#if`, etc.
         //
         // Input files are a bit like token streams, but they don't fit neatly into
         // the same abstraction due to all the special-case handling that directives
         // and conditionals require.
         struct InputFile
         {
+        public:
             InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
-                : sourceView_(sourceView)
             {
                 ASSERT(sourceView);
                 ASSERT(preprocessorImpl.lock());
@@ -1201,9 +1204,9 @@ namespace RR
             /// Read one token using all the expansion and directive-handling logic
             inline Token ReadToken() { return expansionInputStream_->ReadToken(); }
 
-            inline Lexer& GetLexer() { return lexerStream_->GetLexer(); }
-            inline std::shared_ptr<SourceView> GetSourceView() { return sourceView_; }
-            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() { return expansionInputStream_; }
+            inline Lexer& GetLexer() const { return lexerStream_->GetLexer(); }
+            inline std::shared_ptr<SourceView> GetSourceView() const { return GetLexer().GetSourceView(); }
+            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() const { return expansionInputStream_; }
 
         private:
             friend class PreprocessorImpl;
@@ -1213,9 +1216,6 @@ namespace RR
             /// E.g., if this file was `#include`d from another file, then `parent_` would be
             /// the file with the `#include` directive.
             std::shared_ptr<InputFile> parent_;
-
-            /// TODO comment
-            std::shared_ptr<SourceView> sourceView_;
 
             /// The inner-most preprocessor conditional active for this file.
             std::shared_ptr<Conditional> conditional_;
@@ -1345,12 +1345,12 @@ namespace RR
             const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
 
             if (errno == ERANGE)
-                sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int32_t");
+                GetSink()->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int32_t");
 
             if (end == token.stringSlice.End())
                 return result;
 
-            sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+            GetSink()->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
             return 0;
         }
 
@@ -1364,12 +1364,12 @@ namespace RR
             const auto result = std::strtoul(token.stringSlice.Begin(), &end, radix);
 
             if (errno == ERANGE)
-                sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
+                GetSink()->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
 
             if (end == token.stringSlice.End())
                 return result;
 
-            sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+            GetSink()->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
             return 0;
         }
 
@@ -1426,7 +1426,7 @@ namespace RR
             currentInputFile_ = inputFile;
         }
 
-        void PreprocessorImpl::popInputFile(bool forceClose)
+        void PreprocessorImpl::popInputFile(bool force)
         {
             const auto& inputFile = currentInputFile_;
             ASSERT(inputFile);
@@ -1436,22 +1436,22 @@ namespace RR
             const auto& expansionStream = inputFile->GetExpansionStream();
             Token eofToken = expansionStream->PeekRawToken();
 
-            // TODO comment
-            if (forceClose)
+            // The #line directive forces the current input to be closed.
+            // Updating the token type to close the current input correctly.
+            if (force)
                 eofToken.type = Token::Type::EndOfFile;
 
             ASSERT(eofToken.type == Token::Type::EndOfFile);
 
             // If there are any open preprocessor conditionals in the file, then
             // we need to diagnose them as an error, because they were not closed
-            // at the end of the file. TODO
-            /*
-            for (auto conditional = inputFile->getInnerMostConditional(); conditional; conditional = conditional->parent)
+            // at the end of the file.
+            for (auto conditional = inputFile->GetInnerMostConditional(); conditional; conditional = conditional->parent)
             {
-                GetSink(this)->diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
-                GetSink(this)->diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.getContent());
+                GetSink()->Diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
+                GetSink()->Diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.GetContentString());
             }
-            */
+
             // We will update the current file to the parent of whatever
             // the `inputFile` was (usually the file that `#include`d it).
             auto parentFile = inputFile->parent_;
@@ -1537,7 +1537,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(peekRawToken(), diagnostic, expected, context.GetName());
+                    GetSink()->Diagnose(peekRawToken(), diagnostic, expected, context.GetName());
 
                 context.parseError = true;
                 return false;
@@ -1553,7 +1553,7 @@ namespace RR
             {
                 // Only report the first parse error within a directive
                 if (!context.parseError)
-                    sink_->Diagnose(peekRawToken(), diagnostic, expected, context.GetName());
+                    GetSink()->Diagnose(peekRawToken(), diagnostic, expected, context.GetName());
 
                 context.parseError = true;
                 return false;
@@ -1575,7 +1575,7 @@ namespace RR
                 // If we already saw a previous parse error, then don't
                 // emit another one for the same directive.
                 if (!context.parseError)
-                    sink_->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, context.GetName());
+                    GetSink()->Diagnose(peekRawToken(), Diagnostics::unexpectedTokensAfterDirective, context.GetName());
 
                 skipToEndOfLine();
             }
@@ -1611,7 +1611,7 @@ namespace RR
             // Otherwise the directive name had better be an identifier
             if (directiveTokenType != Token::Type::Identifier)
             {
-                sink_->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
+                GetSink()->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
                 skipToEndOfLine();
                 return;
             }
@@ -1644,7 +1644,7 @@ namespace RR
         // Handle an invalid directive
         void PreprocessorImpl::handleInvalidDirective(DirectiveContext& directiveContext)
         {
-            sink_->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, directiveContext.GetName());
+            GetSink()->Diagnose(directiveContext.token, Diagnostics::unknownPreprocessorDirective, directiveContext.GetName());
             skipToEndOfLine();
         }
 
@@ -1659,7 +1659,7 @@ namespace RR
             switch (opToken.type)
             {
                 default:
-                    sink_->Diagnose(opToken, Diagnostics::internalCompilerError);
+                    GetSink()->Diagnose(opToken, Diagnostics::internalCompilerError);
                     return 0;
                     break;
 
@@ -1670,7 +1670,7 @@ namespace RR
                     if (right == 0)
                     {
                         if (!context.parseError)
-                            sink_->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+                            GetSink()->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
 
                         return 0;
                     }
@@ -1681,7 +1681,7 @@ namespace RR
                     if (right == 0)
                     {
                         if (!context.parseError)
-                            sink_->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+                            GetSink()->Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
 
                         return 0;
                     }
@@ -1744,7 +1744,7 @@ namespace RR
             {
                 case Token::Type::EndOfFile:
                 case Token::Type::NewLine:
-                    sink_->Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
+                    GetSink()->Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
                     return 0;
                 default:
                     break;
@@ -1767,7 +1767,7 @@ namespace RR
                     Token leftParen = token;
                     PreprocessorExpressionValue value = parseAndEvaluateExpression(context);
                     if (!expect(context, Token::Type::RParent, Diagnostics::expectedTokenInPreprocessorExpression))
-                        sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                        GetSink()->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
 
                     return value;
                 }
@@ -1797,7 +1797,7 @@ namespace RR
                         {
                             if (!expectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInDefinedExpression))
                             {
-                                sink_->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                                GetSink()->Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
                                 return 0;
                             }
                         }
@@ -1808,12 +1808,12 @@ namespace RR
                     // An identifier here means it was not defined as a macro (or
                     // it is defined, but as a function-like macro. These should
                     // just evaluate to zero (possibly with a warning)
-                    sink_->Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
+                    GetSink()->Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
                     return 0;
                 }
 
                 default:
-                    sink_->Diagnose(token, Diagnostics::syntaxErrorInPreprocessorExpression);
+                    GetSink()->Diagnose(token, Diagnostics::syntaxErrorInPreprocessorExpression);
                     return 0;
             }
         }
@@ -1948,15 +1948,15 @@ namespace RR
             const auto& conditional = inputFile->GetInnerMostConditional();
             if (!conditional)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
+                GetSink()->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
                 return;
             }
 
             // if we've already seen a `#else`, then it is an error
             if (conditional->elseToken.type != Token::Type::Unknown)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, directiveContext.GetName());
-                sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
+                GetSink()->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, directiveContext.GetName());
+                GetSink()->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
                 return;
             }
             conditional->elseToken = directiveContext.token;
@@ -1993,7 +1993,7 @@ namespace RR
             {
                 case Token::Type::EndOfFile:
                 case Token::Type::NewLine:
-                    sink_->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, directiveContext.GetName());
+                    GetSink()->Diagnose(directiveContext.token, Diagnostics::directiveExpectsExpression, directiveContext.GetName());
                     handleElseDirective(directiveContext);
                     return;
                 default:
@@ -2006,15 +2006,15 @@ namespace RR
             const auto& conditional = inputFile->GetInnerMostConditional();
             if (!conditional)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
+                GetSink()->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
                 return;
             }
 
             // if we've already seen a `#else`, then it is an error
             if (conditional->elseToken.type != Token::Type::Unknown)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, directiveContext.GetName());
-                sink_->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
+                GetSink()->Diagnose(directiveContext.token, Diagnostics::directiveAfterElse, directiveContext.GetName());
+                GetSink()->Diagnose(conditional->elseToken, Diagnostics::seeDirective);
                 return;
             }
 
@@ -2046,7 +2046,7 @@ namespace RR
             const auto& conditional = inputFile->GetInnerMostConditional();
             if (!conditional)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
+                GetSink()->Diagnose(directiveContext.token, Diagnostics::directiveWithoutIf, directiveContext.GetName());
                 return;
             }
 
@@ -2068,14 +2068,14 @@ namespace RR
             {
                 if (oldMacro->IsBuiltin())
                 {
-                    sink_->Diagnose(nameToken, Diagnostics::builtinMacroRedefinition, name);
+                    GetSink()->Diagnose(nameToken, Diagnostics::builtinMacroRedefinition, name);
                 }
                 else
                 {
-                    sink_->Diagnose(nameToken, Diagnostics::macroRedefinition, name);
+                    GetSink()->Diagnose(nameToken, Diagnostics::macroRedefinition, name);
 
                     if (oldMacro->GetNameToken().isValid())
-                        sink_->Diagnose(oldMacro->GetNameToken(), Diagnostics::seePreviousDefinitionOf, name);
+                        GetSink()->Diagnose(oldMacro->GetNameToken(), Diagnostics::seePreviousDefinitionOf, name);
                 }
             }
             auto macro = std::make_shared<MacroDefinition>();
@@ -2132,7 +2132,7 @@ namespace RR
                         if (paramNameToken.type != Token::Type::Unknown)
                         {
                             // If we read an explicit name for the parameter, then we can use
-                            // that name directly. TODO COMMENT
+                            // that name directly.
                             param.name = paramNameToken.GetContentString();
                         }
                         else
@@ -2164,7 +2164,7 @@ namespace RR
                         const auto paramName = param.name;
                         if (mapParamNameToIndex.find(paramName) != mapParamNameToIndex.end())
                         {
-                            sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
+                            GetSink()->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
                         }
                         else
                         {
@@ -2190,7 +2190,7 @@ namespace RR
                     if (!param.isVariadic)
                         continue;
 
-                    sink_->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
+                    GetSink()->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
 
                     // As a precaution, we will unmark the variadic-ness of the parameter, so that
                     // logic downstream from this step doesn't have to deal with the possibility
@@ -2232,7 +2232,8 @@ namespace RR
                 break;
             }
 
-            // TODO Comment
+            // Resetting the AfterWhitespace flag for the first token because the whitespace delimiter
+            // after the #define directive is not part of the macro.
             if (!macro->tokens.empty())
                 macro->tokens.front().flags &= ~Token::Flags::AfterWhitespace;
 
@@ -2252,7 +2253,7 @@ namespace RR
             if (!macro)
             {
                 // name wasn't defined
-                sink_->Diagnose(nameToken, Diagnostics::macroNotDefined, name);
+                GetSink()->Diagnose(nameToken, Diagnostics::macroNotDefined, name);
                 return;
             }
 
@@ -2294,7 +2295,7 @@ namespace RR
             setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
 
             // Report the custom error.
-            sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedWarning, message);
+            GetSink()->Diagnose(directiveContext.token, Diagnostics::userDefinedWarning, message);
         }
 
         void PreprocessorImpl::handleErrorDirective(DirectiveContext& directiveContext)
@@ -2310,7 +2311,7 @@ namespace RR
             setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
 
             // Report the custom error.
-            sink_->Diagnose(directiveContext.token, Diagnostics::userDefinedError, message);
+            GetSink()->Diagnose(directiveContext.token, Diagnostics::userDefinedError, message);
         }
 
         // Handle a `#include` directive
@@ -2329,14 +2330,14 @@ namespace RR
             PathInfo filePathInfo;
             if (RFX_FAILED(includeSystem_->FindFile(path, includedFromPathInfo->GetPathInfo().foundPath, filePathInfo)))
             {
-                sink_->Diagnose(pathToken, Diagnostics::includeFailed, path);
+                GetSink()->Diagnose(pathToken, Diagnostics::includeFailed, path);
                 return;
             }
 
             // We must have a uniqueIdentity to be compare
             if (!filePathInfo.hasUniqueIdentity())
             {
-                sink_->Diagnose(pathToken, Diagnostics::noUniqueIdentity, path);
+                GetSink()->Diagnose(pathToken, Diagnostics::noUniqueIdentity, path);
                 return;
             }
 
@@ -2356,7 +2357,7 @@ namespace RR
 
             if (RFX_FAILED(includeSystem_->LoadFile(filePathInfo, includedFile)))
             {
-                sink_->Diagnose(pathToken, Diagnostics::includeFailed, path);
+                GetSink()->Diagnose(pathToken, Diagnostics::includeFailed, path);
                 return;
             }
 
@@ -2431,7 +2432,7 @@ namespace RR
             // The sub-directive had better be an identifier
             if (subDirectiveToken.type != Token::Type::Identifier)
             {
-                sink_->Diagnose(directiveContext.token, Diagnostics::expectedPragmaDirectiveName);
+                GetSink()->Diagnose(directiveContext.token, Diagnostics::expectedPragmaDirectiveName);
                 skipToEndOfLine();
                 return;
             }
@@ -2448,7 +2449,7 @@ namespace RR
         {
             std::ignore = directiveContext;
 
-            sink_->Diagnose(subDirectiveToken, Diagnostics::unknownPragmaDirectiveIgnored, subDirectiveToken.GetContentString());
+            GetSink()->Diagnose(subDirectiveToken, Diagnostics::unknownPragmaDirectiveIgnored, subDirectiveToken.GetContentString());
             skipToEndOfLine();
 
             return;
@@ -2458,14 +2459,13 @@ namespace RR
         {
             // We need to identify the path of the file we are preprocessing,
             // so that we can avoid including it again.
-            // TODO
-            // We are using the 'uniqueIdentity' as determined by the ISlangFileSystemEx interface to determine file identities.
+            // We are using the 'uniqueIdentity' to determine file identities.
             auto issuedFromPathInfo = directiveContext.inputFile->GetSourceView()->GetPathInfo();
 
             // Must have uniqueIdentity for a #pragma once to work
             if (!issuedFromPathInfo.hasUniqueIdentity())
             {
-                sink_->Diagnose(subDirectiveToken, Diagnostics::pragmaOnceIgnored);
+                GetSink()->Diagnose(subDirectiveToken, Diagnostics::pragmaOnceIgnored);
                 return;
             }
 
@@ -2513,7 +2513,7 @@ namespace RR
                         auto paramNameToken = macro->tokens[paramNameTokenIndex];
                         if (paramNameToken.type != Token::Type::Identifier)
                         {
-                            sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
+                            GetSink()->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
                             continue;
                         }
 
@@ -2522,7 +2522,7 @@ namespace RR
                         const auto search = mapParamNameToIndex.find(paramName);
                         if (search == mapParamNameToIndex.end())
                         {
-                            sink_->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
+                            GetSink()->Diagnose(token, Diagnostics::expectedMacroParameterAfterStringize);
                             continue;
                         }
 
@@ -2537,13 +2537,13 @@ namespace RR
                     case Token::Type::PoundPound:
                         if (macro->ops.size() == 0 && (spanBeginIndex == spanEndIndex))
                         {
-                            sink_->Diagnose(token, Diagnostics::tokenPasteAtStart);
+                            GetSink()->Diagnose(token, Diagnostics::tokenPasteAtStart);
                             continue;
                         }
 
                         if (macro->tokens[cursor].type == Token::Type::EndOfFile)
                         {
-                            sink_->Diagnose(token, Diagnostics::tokenPasteAtEnd);
+                            GetSink()->Diagnose(token, Diagnostics::tokenPasteAtEnd);
                             continue;
                         }
 
@@ -2859,7 +2859,8 @@ namespace RR
                         Lexer lexer(sourceView, preprocessor->GetAllocator(), preprocessor->GetSink());
                         auto lexedTokens = lexer.LexAllSemanticTokens();
 
-                        //TODO Comment this This
+                        // Resetting the AtStartOfLine flag for the first token,
+                        // because it is not part of TokenPaste, this is a side effect of relexing.
                         lexedTokens.front().flags &= ~Token::Flags::AtStartOfLine;
 
                         // The `lexedTokens` will always contain at least one token, representing an EOF for
@@ -3427,7 +3428,7 @@ namespace RR
                     break;
                 }
 
-                // TODO COMMENT
+                // Update the lookahead token and set flags corresponding to the macro invocation token flags.
                 lookaheadToken_ = readTokenImpl();
                 lookaheadToken_.flags = token.flags;
             }
@@ -3511,12 +3512,7 @@ namespace RR
                 arg.endTokenIndex = uint32_t(macroInvocation->argTokens_.size());
 
                 inputStreams_.SkipAllWhitespace();
-                Token token = inputStreams_.PeekToken();
-
-                // TODO Comment
-                // if (token.type == Token::Type::Identifier)
-                //    token.flags |= Token::Flags::AfterWhitespace;
-
+                const Token token = inputStreams_.PeekToken();
                 macroInvocation->argTokens_.push_back(token);
 
                 switch (token.type)
