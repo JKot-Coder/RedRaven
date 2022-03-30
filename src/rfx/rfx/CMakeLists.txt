@@ -36,7 +36,6 @@ set(RFX_COMPILER_SRC
     "compiler/DiagnosticSink.hpp"
     "compiler/Effect.cpp"
     "compiler/Effect.hpp"
-    "compiler/InputString.hpp"
     "compiler/Lexer.cpp"
     "compiler/Lexer.hpp"
     "compiler/LexerDiagnosticDefinitions.hpp"
