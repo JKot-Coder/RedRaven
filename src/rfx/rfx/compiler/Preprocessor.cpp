@@ -203,6 +203,7 @@ namespace RR
         }
 
         struct MacroInvocation;
+        struct MacroDefinition;
         struct InputFile;
 
         //
@@ -265,529 +266,6 @@ namespace RR
             std::shared_ptr<InputFile> inputFile;
             bool parseError = false;
             bool haveDoneEndOfDirectiveChecks = false;
-        };
-
-        //
-        // Input Streams
-        //
-
-        // A fundamental action in the preprocessor is to transform a stream of
-        // input tokens to produce a stream of output tokens. The term "macro expansion"
-        // is used to describe two inter-related transformations of this kind:
-        //
-        // * Given an invocation of a macro `M`, we can "play back" the tokens in the
-        //   definition of `M` to produce a stream of tokens, potentially substituting
-        //   in argument values for parameters, pasting tokens, etc.
-        //
-        // * Given an input stream, we can scan its tokens looking for macro invocations,
-        //   and upon finding them expand those invocations using the first approach
-        //   outlined here.
-        //
-        // In practice, the second kind of expansion needs to abstract over where it
-        // is reading tokens from: an input file, an existing macro invocation, etc.
-        // In order to support reading from streams of tokens without knowing their
-        // exact implementation, we will define an abstract base class for input
-        // streams.
-
-        /// A logical stream of tokens.
-        struct InputStream
-        {
-            InputStream() = default;
-
-            // Because different implementations of this abstract base class will
-            // store differnet amounts of data, we need a virtual descritor to
-            // ensure that we can clean up after them.
-
-            /// Clean up an input stream
-            virtual ~InputStream() = default;
-
-            // The two fundamental operations that every input stream must support
-            // are reading one token from the stream, and "peeking" one token into
-            // the stream to see what will be read next.
-
-            /// Read one token from the input stream
-            ///
-            /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
-            virtual Token ReadToken() = 0;
-
-            /// Peek at the next token in the input stream
-            ///
-            /// This function should return whatever `readToken()` will return next.
-            ///
-            /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
-            virtual Token PeekToken() = 0;
-
-            // Based on `peekToken()` we can define a few more utility functions
-            // for cases where we only care about certain details of the input.
-
-            /// Peek the type of the next token in the input stream.
-            Token::Type PeekTokenType() { return PeekToken().type; }
-
-            /// Peek the location of the next token in the input stream.
-            SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
-
-            /// Get the diagnostic sink to use for messages related to this stream
-            // DiagnosticSink* getSink();
-
-            std::shared_ptr<InputStream> GetParent() const { return parent_; }
-
-            void SetParent(const std::shared_ptr<InputStream>& parent) { parent_ = parent; }
-
-            MacroInvocation* GetFirstBusyMacroInvocation() const { return firstBusyMacroInvocation_; }
-
-        protected:
-            /// The preprocessor that this input stream is being used by
-            // Preprocessor* preprocessor_ = nullptr;
-
-            /// Parent stream in the stack of secondary input streams
-            std::shared_ptr<InputStream> parent_;
-
-            /// Macro expansions that should be considered "busy" during expansion of this stream
-            MacroInvocation* firstBusyMacroInvocation_ = nullptr; // TODO shoud it be shared_ptr ?
-        };
-
-        // During macro expansion, or the substitution of parameters into a macro body
-        // we end up needing to track multiple active input streams, and this is most
-        // easily done by having a distinct type to represent a stack of input streams.
-
-        /// A stack of input streams, that will always read the next available token from the top-most stream
-        ///
-        /// An input stream stack assumes ownership of all streams pushed onto it, and will clean them
-        /// up when they are no longer active or when the stack gets destructed.
-        struct InputStreamStack
-        {
-            InputStreamStack() { }
-
-            /// Clean up after an input stream stack
-            ~InputStreamStack() { PopAll(); }
-
-            /// Push an input stream onto the stack
-            void Push(const std::shared_ptr<InputStream>& stream)
-            {
-                stream->SetParent(top_);
-                top_ = stream;
-            }
-
-            /// Pop all input streams on the stack
-            void PopAll() { top_ = nullptr; }
-
-            /// Read a token from the top-most input stream with input
-            ///
-            /// If there is no input remaining, will return the EOF token
-            /// of the bottom-most stream.
-            ///
-            /// At least one input stream must have been `push()`ed before
-            /// it is valid to call this operation.
-            Token ReadToken()
-            {
-                ASSERT(top_)
-                for (;;)
-                {
-                    // We always try to read from the top-most stream, and if
-                    // it is not at its end, then we return its next token.
-                    auto token = top_->ReadToken();
-                    if (token.type != Token::Type::EndOfFile)
-                        return token;
-
-                    // If the top stream has run out of input we try to
-                    // switch to its parent, if any.
-                    auto parent = top_->GetParent();
-                    if (parent)
-                    {
-                        // This stack has taken ownership of the streams,
-                        // and must therefore delete the top stream before
-                        // popping it.
-                        top_ = parent;
-                        continue;
-                    }
-
-                    // If the top stream did *not* have a parent (meaning
-                    // it was also the bottom stream), then we don't try
-                    // to pop it and instead return its EOF token as-is.
-                    return token;
-                }
-            }
-
-            /// Peek a token from the top-most input stream with input
-            ///
-            /// If there is no input remaining, will return the EOF token
-            /// of the bottom-most stream.
-            ///
-            /// At least one input stream must have been `push()`ed before
-            /// it is valid to call this operation.
-            Token PeekToken()
-            {
-                // The logic here mirrors `readToken()`, but we do not
-                // modify the `top_` value or delete streams when they
-                // are at their end, so that we don't disrupt any state
-                // that might depend on which streams are present on
-                // the stack.
-                //
-                // Note: One might ask why we cannot just pop input
-                // streams that are at their end immediately. The basic
-                // reason has to do with determining what macros were
-                // "busy" when considering expanding a new one.
-                // Consider:
-                //
-                //      #define BAD A B C BAD
-                //
-                //      BAD X Y Z
-                //
-                // When expanding the invocation of `BAD`, we will eventually
-                // reach a point where the `BAD` in the expansion has been read
-                // and we are considering whether to consider it as a macro
-                // invocation.
-                //
-                // In this case it is clear that the Right Answer is that the
-                // original invocation of `BAD` is still active, and thus
-                // the macro is busy. To ensure that behavior, we want to
-                // be able to detect that the stream representing the
-                // expansion of `BAD` is still active even after we read
-                // the `BAD` token.
-                //
-                // TODO: Consider whether we can streamline the implementaiton
-                // an remove this wrinkle.
-                auto top = top_;
-                for (;;)
-                {
-                    ASSERT(top);
-                    auto token = top->PeekToken();
-                    if (token.type != Token::Type::EndOfFile)
-                        return token;
-
-                    auto parent = top->GetParent();
-                    if (parent)
-                    {
-                        top = parent;
-                        continue;
-                    }
-
-                    return token;
-                }
-            }
-
-            /// Return type of the token that `peekToken()` will return
-            Token::Type PeekTokenType() { return PeekToken().type; }
-
-            /// Return location of the token that `peekToken()` will return
-            /* SourceLoc PeekLoc()
-            {
-                return PeekToken().loc;
-            }*/
-
-            /// Skip over all whitespace tokens in the input stream(s) to arrive at the next non-whitespace token
-            void SkipAllWhitespace()
-            {
-                for (;;)
-                {
-                    switch (PeekTokenType())
-                    {
-                        default:
-                            return;
-
-                        // Note: We expect `NewLine` to be the only case of whitespace we
-                        // encounter right now, because all the other cases will have been
-                        // filtered out by the `LexerInputStream`.
-                        case Token::Type::NewLine:
-                        case Token::Type::WhiteSpace:
-                        case Token::Type::BlockComment:
-                        case Token::Type::LineComment:
-                            ReadToken();
-                            break;
-                    }
-                }
-            }
-
-            /// Get the top stream of the input stack
-            std::shared_ptr<InputStream> GetTopStream() { return top_; }
-
-            /// Get the input stream that the next token would come from
-            /// If the input stack is at its end, this will just be the top-most stream.
-            std::shared_ptr<InputStream> GetNextStream()
-            {
-                ASSERT(top_);
-                auto top = top_;
-                for (;;)
-                {
-                    auto tokenType = top->PeekTokenType();
-                    if (tokenType != Token::Type::EndOfFile)
-                        return top;
-
-                    auto parent = top->GetParent();
-                    if (parent)
-                    {
-                        top = parent;
-                        continue;
-                    }
-
-                    return top;
-                }
-            }
-
-        private:
-            /// The top of the stack of input streams
-            std::shared_ptr<InputStream> top_ = nullptr;
-        };
-
-        // The simplest types of input streams are those that simply "play back"
-        // a list of tokens that was already captures. These types of streams
-        // are primarily used for playing back the tokens inside of a macro body.
-
-        /// An input stream that reads from a list of tokens that had already been tokenized before.
-        struct PretokenizedInputStream : InputStream
-        {
-        public:
-            /// Initialize an input stream with list of `tokens`
-            PretokenizedInputStream(TokenReader const& tokens) : tokenReader_(tokens) { }
-
-            // A pretokenized stream implements the key read/peek operations
-            // by delegating to the underlying token reader.
-            virtual Token ReadToken() override { return tokenReader_.AdvanceToken(); }
-            virtual Token PeekToken() override { return tokenReader_.PeekToken(); }
-
-        protected:
-            PretokenizedInputStream() {};
-
-            /// Reader for pre-tokenized input
-            TokenReader tokenReader_;
-        };
-
-        // While macro bodies are the main use case for pre-tokenized input strams,
-        // we also use them for a few one-off cases where the preprocessor needs to
-        // construct one or more tokens on the fly (e.g., when stringizing or pasting
-        // tokens). These streams differ in that they own the storage for the tokens
-        // they will play back, because they are effectively "one-shot."
-
-        /// A pre-tokenized input stream that will only be used once, and which therefore owns the memory for its tokens.
-        struct SingleUseInputStream : PretokenizedInputStream
-        {
-            typedef PretokenizedInputStream Super;
-
-            SingleUseInputStream(const TokenList& lexedTokens)
-                : PretokenizedInputStream(), lexedTokens_(lexedTokens)
-            {
-                tokenReader_ = TokenReader(lexedTokens_);
-            }
-
-            /// A list of raw tokens that will provide input
-            TokenList lexedTokens_;
-        };
-
-        // Another (relatively) simple case of an input stream is one that reads
-        // tokens directly from the lexer.
-        //
-        // It might seem like we could simplify things even further by always lexing
-        // a file into tokens first, and then using the earlier input-stream cases
-        // for pre-tokenized input. The main reason we don't use that strategy is
-        // that when dealing with preprocessor conditionals we will often want to
-        // suppress diagnostic messages coming from the lexer when inside of disabled
-        // conditional branches.
-        //
-        // TODO: We might be able to simplify the logic here by having the lexer buffer
-        // up the issues it diagnoses along with a list of tokens, rather than diagnose
-        // them directly, and then have the preprocessor or later compilation stages
-        // take responsibility for actually emitting those diagnostics.
-
-        /// An input stream that reads tokens directly using the Slang `Lexer`
-        struct LexerInputStream : InputStream
-        {
-            LexerInputStream() = delete;
-
-            LexerInputStream(
-                const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-                : lexer_(new Lexer(sourceView, linearAllocator, diagnosticSink))
-            {
-                lookaheadToken_ = readTokenImpl();
-            }
-
-            Lexer& GetLexer() { return *lexer_; }
-
-            // A common thread to many of the input stream implementations is to
-            // use a single token of lookahead in order to suppor the `peekToken()`
-            // operation with both simplicity and efficiency.
-            Token ReadToken() override
-            {
-                auto result = lookaheadToken_;
-                lookaheadToken_ = readTokenImpl();
-                return result;
-            }
-
-            Token PeekToken() override { return lookaheadToken_; }
-
-        private:
-            /// Read a token from the lexer, bypassing lookahead
-            Token readTokenImpl()
-            {
-                for (;;)
-                {
-                    Token token = lexer_->ReadToken();
-                    switch (token.type)
-                    {
-                        default:
-                            return token;
-
-                        case Token::Type::WhiteSpace:
-                        case Token::Type::BlockComment:
-                        case Token::Type::LineComment:
-                            break;
-                    }
-                }
-            }
-
-        private:
-            /// The lexer state that will provide input
-            std::unique_ptr<Lexer> lexer_;
-
-            /// One token of lookahead
-            Token lookaheadToken_;
-        };
-
-        // TODO comment
-        // The remaining input stream cases deal with macro expansion, so it is
-        // probalby a good idea to discuss how macros are represented by the
-        // preprocessor as a first step.
-        //
-        // Note that there is an important distinction between a macro *definition*
-        // and a macro *invocation*, similar to how we distinguish a function definition
-        // from a call to that function.
-
-        /// A definition of a macro
-        struct MacroDefinition
-        {
-        public:
-            /// The "flavor" / type / kind of a macro definition
-            enum class Flavor
-            {
-                /// A function-like macro (e.g., `#define INC(x) (x)++`)
-                FunctionLike,
-
-                /// An user-defiend object-like macro (e.g., `#define N 100`)
-                ObjectLike,
-
-                /// An object-like macro that is built in to the copmiler (e.g., `__LINE__`)
-                BuiltinObjectLike,
-            };
-
-            // The body of a macro definition is input as a stream of tokens, but
-            // when "playing back" a macro it is helpful to process those tokens
-            // into a form where a lot of the semantic questions have been answered.
-            //
-            // We will chop up the tokens that macro up a macro definition/body into
-            // distinct *ops* where each op has an *opcode* that defines how that
-            // token or range of tokens behaves.
-
-            /// Opcode for an `Op` in a macro definition
-            enum class Opcode
-            {
-                /// A raw span of tokens from the macro body (no subsitution needed)
-                ///
-                /// The `index0` and `index1` fields form a begin/end pair of tokens
-                RawSpan,
-
-                /// A parameter of the macro, which should have expansion applied to it
-                ///
-                /// The `index0` opcode is the index of the token that named the parameter
-                /// The `index1` field is the zero-based index of the chosen parameter
-                ExpandedParam,
-
-                /// A parameter of the macro, which should *not* have expansion applied to it
-                ///
-                /// The `index0` opcode is the index of the token that named the parameter
-                /// The `index1` field is the zero-based index of the chosen parameter
-                UnexpandedParam,
-
-                /// A parameter of the macro, stringized (and not expanded)
-                ///
-                /// The `index0` opcode is the index of the token that named the parameter
-                /// The `index1` field is the zero-based index of the chosen parameter
-                StringizedParam,
-
-                /// A paste of the last token of the preceding op and the first token of the next
-                ///
-                /// The `index0` opcode is the index of the `##` token
-                TokenPaste,
-
-                /// builtin expansion behavior for `__LINE__`
-                BuiltinLine,
-
-                /// builtin expansion behavior for `__FILE__`
-                BuiltinFile,
-            };
-
-            /// A single op in the definition of the macro
-            struct Op
-            {
-                /// The opcode that defines how to interpret this op
-                Opcode opcode = Opcode::RawSpan;
-
-                /// Two operands, with interpretation depending on the `opcode`
-                uint32_t index0 = 0;
-                uint32_t index1 = 0;
-
-                // Comments
-                Token::Flags flags = Token::Flags::None;
-            };
-
-            struct Param
-            {
-                U8String name;
-                SourceLocation sourceLocation;
-                HumaneSourceLocation humaneSourceLocation;
-                bool isVariadic = false;
-            };
-
-        public:
-            U8String GetName()
-            {
-                return name;
-            }
-
-            Token GetNameToken()
-            {
-                return nameToken;
-            }
-            /*
-            SourceLoc GetLoc()
-            {
-                return nameAndLoc.loc;
-            }*/
-
-            bool IsBuiltin()
-            {
-                return flavor == MacroDefinition::Flavor::BuiltinObjectLike;
-            }
-
-            /// Is this a variadic macro?
-            bool IsVariadic() const
-            {
-                // A macro is variadic if it has a last parameter and
-                // that last parameter is a variadic parameter.
-                auto paramCount = params.size();
-                if (paramCount == 0)
-                    return false;
-
-                return params[paramCount - 1].isVariadic;
-            }
-
-        public:
-            /// The flavor of macro
-            MacroDefinition::Flavor flavor;
-
-            /// The name under which the macro was `#define`d
-            /// TODO: replace name with uniqueidentifier for better performance
-            U8String name;
-
-            /// The name token of macro
-            Token nameToken;
-
-            /// The tokens that make up the macro body
-            std::vector<Token> tokens;
-
-            /// List ops that describe how this macro expands
-            std::vector<Op> ops;
-
-            /// Parameters of the macro, in case of a function-like macro
-            std::vector<Param> params;
         };
 
         using PreprocessorExpressionValue = int32_t;
@@ -936,11 +414,6 @@ namespace RR
             std::unordered_map<U8String, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
 
         private:
-            static Token dummyToken;
-            static const std::unordered_map<U8String, Directive> directiveMap;
-            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
-
-        private:
             // Look up the directive with the given name.
             static Directive findDirective(const U8String& name)
             {
@@ -962,6 +435,521 @@ namespace RR
 
                 return search->second;
             }
+
+        private:
+            static Token dummyToken;
+            static const std::unordered_map<U8String, Directive> directiveMap;
+            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
+        };
+
+        //
+        // Input Streams
+        //
+
+        // A fundamental action in the preprocessor is to transform a stream of
+        // input tokens to produce a stream of output tokens. The term "macro expansion"
+        // is used to describe two inter-related transformations of this kind:
+        //
+        // * Given an invocation of a macro `M`, we can "play back" the tokens in the
+        //   definition of `M` to produce a stream of tokens, potentially substituting
+        //   in argument values for parameters, pasting tokens, etc.
+        //
+        // * Given an input stream, we can scan its tokens looking for macro invocations,
+        //   and upon finding them expand those invocations using the first approach
+        //   outlined here.
+        //
+        // In practice, the second kind of expansion needs to abstract over where it
+        // is reading tokens from: an input file, an existing macro invocation, etc.
+        // In order to support reading from streams of tokens without knowing their
+        // exact implementation, we will define an abstract base class for input
+        // streams.
+
+        /// A logical stream of tokens.
+        struct InputStream
+        {
+            InputStream(const std::weak_ptr<PreprocessorImpl> preprocessor)
+                : preprocessor_(preprocessor)
+            {
+                ASSERT(preprocessor.lock());
+            }
+
+            // Because different implementations of this abstract base class will
+            // store differnet amounts of data, we need a virtual descritor to
+            // ensure that we can clean up after them.
+
+            /// Clean up an input stream
+            virtual ~InputStream() = default;
+
+            // The two fundamental operations that every input stream must support
+            // are reading one token from the stream, and "peeking" one token into
+            // the stream to see what will be read next.
+
+            /// Read one token from the input stream
+            /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
+            virtual Token ReadToken() = 0;
+
+            /// Peek at the next token in the input stream
+            /// This function should return whatever `readToken()` will return next.
+            /// At the end of the stream should return a token with `Token::Type::EndOfFile`.
+            virtual Token PeekToken() = 0;
+
+            // Based on `peekToken()` we can define a few more utility functions
+            // for cases where we only care about certain details of the input.
+
+            /// Peek the type of the next token in the input stream.
+            Token::Type PeekTokenType() { return PeekToken().type; }
+
+            /// Peek the location of the next token in the input stream.
+            SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
+
+            /// Get the diagnostic sink to use for messages related to this stream
+            std::shared_ptr<DiagnosticSink> GetSink() const
+            {
+                const auto preprocessor = preprocessor_.lock();
+                ASSERT(preprocessor);
+
+                return preprocessor->GetSink();
+            }
+
+            std::shared_ptr<InputStream> GetParent() const { return parent_; }
+
+            void SetParent(const std::shared_ptr<InputStream>& parent) { parent_ = parent; }
+
+            MacroInvocation* GetFirstBusyMacroInvocation() const { return firstBusyMacroInvocation_; }
+
+        protected:
+            /// The preprocessor that this input stream is being used by
+            std::weak_ptr<PreprocessorImpl> preprocessor_;
+
+            /// Parent stream in the stack of secondary input streams
+            std::shared_ptr<InputStream> parent_;
+
+            /// Macro expansions that should be considered "busy" during expansion of this stream
+            MacroInvocation* firstBusyMacroInvocation_ = nullptr; // TODO shoud it be shared_ptr ?
+        };
+
+        // During macro expansion, or the substitution of parameters into a macro body
+        // we end up needing to track multiple active input streams, and this is most
+        // easily done by having a distinct type to represent a stack of input streams.
+
+        /// A stack of input streams, that will always read the next available token from the top-most stream
+        /// An input stream stack assumes ownership of all streams pushed onto it, and will clean them
+        /// up when they are no longer active or when the stack gets destructed.
+        struct InputStreamStack
+        {
+            InputStreamStack() { }
+
+            /// Clean up after an input stream stack
+            ~InputStreamStack() { PopAll(); }
+
+            /// Push an input stream onto the stack
+            void Push(const std::shared_ptr<InputStream>& stream)
+            {
+                stream->SetParent(top_);
+                top_ = stream;
+            }
+
+            /// Pop all input streams on the stack
+            void PopAll() { top_ = nullptr; }
+
+            /// Read a token from the top-most input stream with input
+            ///
+            /// If there is no input remaining, will return the EOF token
+            /// of the bottom-most stream.
+            ///
+            /// At least one input stream must have been `push()`ed before
+            /// it is valid to call this operation.
+            Token ReadToken()
+            {
+                ASSERT(top_);
+                for (;;)
+                {
+                    // We always try to read from the top-most stream, and if
+                    // it is not at its end, then we return its next token.
+                    auto token = top_->ReadToken();
+                    if (token.type != Token::Type::EndOfFile)
+                        return token;
+
+                    // If the top stream has run out of input we try to
+                    // switch to its parent, if any.
+                    auto parent = top_->GetParent();
+                    if (parent)
+                    {
+                        // This stack has taken ownership of the streams,
+                        // and must therefore delete the top stream before
+                        // popping it.
+                        top_ = parent;
+                        continue;
+                    }
+
+                    // If the top stream did *not* have a parent (meaning
+                    // it was also the bottom stream), then we don't try
+                    // to pop it and instead return its EOF token as-is.
+                    return token;
+                }
+            }
+
+            /// Peek a token from the top-most input stream with input
+            ///
+            /// If there is no input remaining, will return the EOF token
+            /// of the bottom-most stream.
+            ///
+            /// At least one input stream must have been `push()`ed before
+            /// it is valid to call this operation.
+            Token PeekToken()
+            {
+                // The logic here mirrors `readToken()`, but we do not
+                // modify the `top_` value or delete streams when they
+                // are at their end, so that we don't disrupt any state
+                // that might depend on which streams are present on
+                // the stack.
+                //
+                // Note: One might ask why we cannot just pop input
+                // streams that are at their end immediately. The basic
+                // reason has to do with determining what macros were
+                // "busy" when considering expanding a new one.
+                // Consider:
+                //
+                //      #define BAD A B C BAD
+                //
+                //      BAD X Y Z
+                //
+                // When expanding the invocation of `BAD`, we will eventually
+                // reach a point where the `BAD` in the expansion has been read
+                // and we are considering whether to consider it as a macro
+                // invocation.
+                //
+                // In this case it is clear that the Right Answer is that the
+                // original invocation of `BAD` is still active, and thus
+                // the macro is busy. To ensure that behavior, we want to
+                // be able to detect that the stream representing the
+                // expansion of `BAD` is still active even after we read
+                // the `BAD` token.
+                //
+                // TODO: Consider whether we can streamline the implementaiton
+                // an remove this wrinkle.
+                auto top = top_;
+                for (;;)
+                {
+                    ASSERT(top);
+                    auto token = top->PeekToken();
+                    if (token.type != Token::Type::EndOfFile)
+                        return token;
+
+                    auto parent = top->GetParent();
+                    if (parent)
+                    {
+                        top = parent;
+                        continue;
+                    }
+
+                    return token;
+                }
+            }
+
+            /// Return type of the token that `peekToken()` will return
+            Token::Type PeekTokenType() { return PeekToken().type; }
+
+            /// Skip over all whitespace tokens in the input stream(s) to arrive at the next non-whitespace token
+            void SkipAllWhitespace()
+            {
+                for (;;)
+                {
+                    switch (PeekTokenType())
+                    {
+                        default:
+                            return;
+
+                        // Note: We expect `NewLine` to be the only case of whitespace we
+                        // encounter right now, because all the other cases will have been
+                        // filtered out by the `LexerInputStream`.
+                        case Token::Type::NewLine:
+                        case Token::Type::WhiteSpace:
+                        case Token::Type::BlockComment:
+                        case Token::Type::LineComment:
+                            ReadToken();
+                            break;
+                    }
+                }
+            }
+
+            /// Get the top stream of the input stack
+            std::shared_ptr<InputStream> GetTopStream() { return top_; }
+
+            /// Get the input stream that the next token would come from
+            /// If the input stack is at its end, this will just be the top-most stream.
+            std::shared_ptr<InputStream> GetNextStream()
+            {
+                ASSERT(top_);
+                auto top = top_;
+                for (;;)
+                {
+                    auto tokenType = top->PeekTokenType();
+                    if (tokenType != Token::Type::EndOfFile)
+                        return top;
+
+                    auto parent = top->GetParent();
+                    if (parent)
+                    {
+                        top = parent;
+                        continue;
+                    }
+
+                    return top;
+                }
+            }
+
+        private:
+            /// The top of the stack of input streams
+            std::shared_ptr<InputStream> top_ = nullptr;
+        };
+
+        // The simplest types of input streams are those that simply "play back"
+        // a list of tokens that was already captures. These types of streams
+        // are primarily used for playing back the tokens inside of a macro body.
+
+        /// An input stream that reads from a list of tokens that had already been tokenized before.
+        struct PretokenizedInputStream : InputStream
+        {
+        public:
+            /// Initialize an input stream with list of `tokens`
+            PretokenizedInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor, TokenReader const& tokens)
+                : tokenReader_(tokens), InputStream(preprocessor) { }
+
+            // A pretokenized stream implements the key read/peek operations
+            // by delegating to the underlying token reader.
+            virtual Token ReadToken() override { return tokenReader_.AdvanceToken(); }
+            virtual Token PeekToken() override { return tokenReader_.PeekToken(); }
+
+        protected:
+            PretokenizedInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor)
+                : InputStream(preprocessor) {};
+
+            /// Reader for pre-tokenized input
+            TokenReader tokenReader_;
+        };
+
+        // While macro bodies are the main use case for pre-tokenized input strams,
+        // we also use them for a few one-off cases where the preprocessor needs to
+        // construct one or more tokens on the fly (e.g., when stringizing or pasting
+        // tokens). These streams differ in that they own the storage for the tokens
+        // they will play back, because they are effectively "one-shot."
+
+        /// A pre-tokenized input stream that will only be used once, and which therefore owns the memory for its tokens.
+        struct SingleUseInputStream : PretokenizedInputStream
+        {
+            SingleUseInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor, const TokenList& lexedTokens)
+                : PretokenizedInputStream(preprocessor), lexedTokens_(lexedTokens)
+            {
+                tokenReader_ = TokenReader(lexedTokens_);
+            }
+
+            /// A list of raw tokens that will provide input
+            TokenList lexedTokens_;
+        };
+
+        // Another (relatively) simple case of an input stream is one that reads
+        // tokens directly from the lexer.
+        //
+        // It might seem like we could simplify things even further by always lexing
+        // a file into tokens first, and then using the earlier input-stream cases
+        // for pre-tokenized input. The main reason we don't use that strategy is
+        // that when dealing with preprocessor conditionals we will often want to
+        // suppress diagnostic messages coming from the lexer when inside of disabled
+        // conditional branches.
+        //
+        // TODO: We might be able to simplify the logic here by having the lexer buffer
+        // up the issues it diagnoses along with a list of tokens, rather than diagnose
+        // them directly, and then have the preprocessor or later compilation stages
+        // take responsibility for actually emitting those diagnostics.
+
+        /// An input stream that reads tokens directly using the `Lexer`
+        struct LexerInputStream : InputStream
+        {
+            LexerInputStream() = delete;
+
+            LexerInputStream(
+                const std::weak_ptr<PreprocessorImpl> preprocessor, const std::shared_ptr<SourceView>& sourceView)
+                : InputStream(preprocessor)
+            {
+                const auto sharedPreprocessor = preprocessor.lock();
+                ASSERT(sharedPreprocessor);
+
+                lexer_ = std::make_unique<Lexer>(sourceView, sharedPreprocessor->GetAllocator(), GetSink());
+                lookaheadToken_ = readTokenImpl();
+            }
+
+            Lexer& GetLexer() { return *lexer_; }
+
+            // A common thread to many of the input stream implementations is to
+            // use a single token of lookahead in order to suppor the `peekToken()`
+            // operation with both simplicity and efficiency.
+            Token ReadToken() override
+            {
+                auto result = lookaheadToken_;
+                lookaheadToken_ = readTokenImpl();
+                return result;
+            }
+
+            Token PeekToken() override { return lookaheadToken_; }
+
+        private:
+            /// Read a token from the lexer, bypassing lookahead
+            Token readTokenImpl()
+            {
+                for (;;)
+                {
+                    Token token = lexer_->ReadToken();
+                    switch (token.type)
+                    {
+                        default:
+                            return token;
+
+                        case Token::Type::WhiteSpace:
+                        case Token::Type::BlockComment:
+                        case Token::Type::LineComment:
+                            break;
+                    }
+                }
+            }
+
+        private:
+            /// The lexer state that will provide input
+            std::unique_ptr<Lexer> lexer_;
+
+            /// One token of lookahead
+            Token lookaheadToken_;
+        };
+
+        // The remaining input stream cases deal with macro expansion, so it is
+        // probalby a good idea to discuss how macros are represented by the
+        // preprocessor as a first step.
+        //
+        // Note that there is an important distinction between a macro *definition*
+        // and a macro *invocation*, similar to how we distinguish a function definition
+        // from a call to that function.
+
+        /// A definition of a macro
+        struct MacroDefinition
+        {
+        public:
+            /// The "flavor" / type / kind of a macro definition
+            enum class Flavor
+            {
+                /// A function-like macro (e.g., `#define INC(x) (x)++`)
+                FunctionLike,
+
+                /// An user-defiend object-like macro (e.g., `#define N 100`)
+                ObjectLike,
+
+                /// An object-like macro that is built in to the copmiler (e.g., `__LINE__`)
+                BuiltinObjectLike,
+            };
+
+            // The body of a macro definition is input as a stream of tokens, but
+            // when "playing back" a macro it is helpful to process those tokens
+            // into a form where a lot of the semantic questions have been answered.
+            //
+            // We will chop up the tokens that macro up a macro definition/body into
+            // distinct *ops* where each op has an *opcode* that defines how that
+            // token or range of tokens behaves.
+
+            /// Opcode for an `Op` in a macro definition
+            enum class Opcode
+            {
+                /// A raw span of tokens from the macro body (no subsitution needed)
+                ///
+                /// The `index0` and `index1` fields form a begin/end pair of tokens
+                RawSpan,
+
+                /// A parameter of the macro, which should have expansion applied to it
+                ///
+                /// The `index0` opcode is the index of the token that named the parameter
+                /// The `index1` field is the zero-based index of the chosen parameter
+                ExpandedParam,
+
+                /// A parameter of the macro, which should *not* have expansion applied to it
+                ///
+                /// The `index0` opcode is the index of the token that named the parameter
+                /// The `index1` field is the zero-based index of the chosen parameter
+                UnexpandedParam,
+
+                /// A parameter of the macro, stringized (and not expanded)
+                ///
+                /// The `index0` opcode is the index of the token that named the parameter
+                /// The `index1` field is the zero-based index of the chosen parameter
+                StringizedParam,
+
+                /// A paste of the last token of the preceding op and the first token of the next
+                ///
+                /// The `index0` opcode is the index of the `##` token
+                TokenPaste,
+
+                /// builtin expansion behavior for `__LINE__`
+                BuiltinLine,
+
+                /// builtin expansion behavior for `__FILE__`
+                BuiltinFile,
+            };
+
+            /// A single op in the definition of the macro
+            struct Op
+            {
+                /// The opcode that defines how to interpret this op
+                Opcode opcode = Opcode::RawSpan;
+
+                /// Two operands, with interpretation depending on the `opcode`
+                uint32_t index0 = 0;
+                uint32_t index1 = 0;
+
+                // Comments
+                Token::Flags flags = Token::Flags::None;
+            };
+
+            struct Param
+            {
+                U8String name;
+                SourceLocation sourceLocation;
+                HumaneSourceLocation humaneSourceLocation;
+                bool isVariadic = false;
+            };
+
+        public:
+            U8String GetName() const { return name; }
+            Token GetNameToken() const { return nameToken; }
+            bool IsBuiltin() const { return flavor == MacroDefinition::Flavor::BuiltinObjectLike; }
+
+            /// Is this a variadic macro?
+            bool IsVariadic() const
+            {
+                // A macro is variadic if it has a last parameter and
+                // that last parameter is a variadic parameter.
+                auto paramCount = params.size();
+                if (paramCount == 0)
+                    return false;
+
+                return params[paramCount - 1].isVariadic;
+            }
+
+        public:
+            /// The flavor of macro
+            MacroDefinition::Flavor flavor;
+
+            /// The name under which the macro was `#define`d
+            /// TODO: replace name with uniqueidentifier for better performance
+            U8String name;
+
+            /// The name token of macro
+            Token nameToken;
+
+            /// The tokens that make up the macro body
+            std::vector<Token> tokens;
+
+            /// List ops that describe how this macro expands
+            std::vector<Op> ops;
+
+            /// Parameters of the macro, in case of a function-like macro
+            std::vector<Param> params;
         };
 
         // When a macro is invoked, we conceptually want to "play back" the ops
@@ -996,10 +984,7 @@ namespace RR
                 return result;
             }
 
-            virtual Token PeekToken() override
-            {
-                return lookaheadToken_;
-            }
+            virtual Token PeekToken() override { return lookaheadToken_; }
 
             /// Is the given `macro` considered "busy" during the given macroinvocation?
             static bool IsBusy(const std::shared_ptr<MacroDefinition>& macro, MacroInvocation* duringMacroInvocation);
@@ -1011,8 +996,6 @@ namespace RR
             // to a stream, so the `ExpansionInputStream` type takes responsibility
             // for setting up much of the state of a `MacroInvocation`.
             friend struct ExpansionInputStream;
-
-            std::shared_ptr<DiagnosticSink> getSink() const { return preprocessor_->GetSink(); }
 
             /// Actually read a new token (not just using the lookahead)
             Token readTokenImpl();
@@ -1031,9 +1014,6 @@ namespace RR
             void pushStreamForSourceLocBuiltin(Token::Type tokenType, F const& valueBuilder);
 
         private:
-            //TOOD COMMNETS
-            std::shared_ptr<PreprocessorImpl> preprocessor_ = nullptr;
-
             /// The macro being expanded
             std::shared_ptr<MacroDefinition> macro_ = nullptr;
 
@@ -1093,10 +1073,8 @@ namespace RR
             ExpansionInputStream(
                 const std::weak_ptr<PreprocessorImpl>& preprocessor,
                 const std::shared_ptr<InputStream>& base)
-                : preprocessor_(preprocessor), base_(base)
+                : base_(base), InputStream(preprocessor)
             {
-                ASSERT(preprocessor.lock())
-
                 inputStreams_.Push(base);
                 lookaheadToken_ = readTokenImpl();
             }
@@ -1155,9 +1133,6 @@ namespace RR
             void pushMacroInvocation(const std::shared_ptr<MacroInvocation>& macroInvocation);
 
         private:
-            /// Parent preprocessor
-            std::weak_ptr<PreprocessorImpl> preprocessor_;
-
             /// The base stream that macro expansion is being applied to
             std::shared_ptr<InputStream> base_;
 
@@ -1171,6 +1146,100 @@ namespace RR
             /// nested macro invocations might be in flight.
             Token initiatingMacroToken_;
         };
+
+        // The top-level flow of the preprocessor is that it processed *input files*
+        // An input file manages both the expansion of lexed tokens
+        // from the source file, and also state related to preprocessor
+        // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
+        //
+        // Input files are a bit like token streams, but they don't fit neatly into
+        // the same abstraction due to all the special-case handling that directives
+        // and conditionals require.
+        struct InputFile
+        {
+            InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+                : sourceView_(sourceView)
+            {
+                ASSERT(sourceView);
+                ASSERT(preprocessorImpl.lock());
+
+                lexerStream_ = std::make_shared<LexerInputStream>(preprocessorImpl, sourceView);
+                expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
+            }
+
+            /// Is this input file skipping tokens (because the current location is inside a disabled condition)?
+            bool IsSkipping() const
+            {
+                // If we are not inside a preprocessor conditional, then don't skip
+                const auto conditional = conditional_;
+                if (!conditional)
+                    return false;
+
+                // skip tokens unless the conditional is inside its `true` case
+                return conditional->state != Conditional::State::During;
+            }
+
+            /// Get the inner-most conditional that is in efffect at the current location
+            std::shared_ptr<Conditional> GetInnerMostConditional() { return conditional_; }
+
+            /// Push a new conditional onto the stack of conditionals in effect
+            void PushConditional(const std::shared_ptr<Conditional>& conditional)
+            {
+                conditional->parent = conditional_;
+                conditional_ = conditional;
+            }
+
+            /// Pop the inner-most conditional
+            void PopConditional()
+            {
+                const auto conditional = conditional_;
+                ASSERT(conditional);
+
+                conditional_ = conditional->parent;
+            }
+
+            /// Read one token using all the expansion and directive-handling logic
+            inline Token ReadToken() { return expansionInputStream_->ReadToken(); }
+
+            inline Lexer& GetLexer() { return lexerStream_->GetLexer(); }
+            inline std::shared_ptr<SourceView> GetSourceView() { return sourceView_; }
+            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() { return expansionInputStream_; }
+
+        private:
+            friend class PreprocessorImpl;
+
+            /// The next outer input file
+            ///
+            /// E.g., if this file was `#include`d from another file, then `parent_` would be
+            /// the file with the `#include` directive.
+            std::shared_ptr<InputFile> parent_;
+
+            /// TODO comment
+            std::shared_ptr<SourceView> sourceView_;
+
+            /// The inner-most preprocessor conditional active for this file.
+            std::shared_ptr<Conditional> conditional_;
+
+            /// The lexer input stream that unexpanded tokens will be read from
+            std::shared_ptr<LexerInputStream> lexerStream_;
+
+            /// An input stream that applies macro expansion to `lexerStream_`
+            std::shared_ptr<ExpansionInputStream> expansionInputStream_;
+        };
+
+        namespace
+        {
+            std::shared_ptr<InputFile> getInputFile(const DirectiveContext& context)
+            {
+                return context.inputFile;
+            }
+
+            // Wrapper for use inside directives
+            inline bool isSkipping(const DirectiveContext& context)
+            {
+                return getInputFile(context)->IsSkipping();
+            }
+        }
 
         Token PreprocessorImpl::dummyToken;
 
@@ -1200,8 +1269,8 @@ namespace RR
               includeSystem_(includeSystem),
               allocator_(std::make_shared<LinearAllocator>(1024))
         {
-            ASSERT(diagnosticSink)
-            ASSERT(includeSystem)
+            ASSERT(diagnosticSink);
+            ASSERT(includeSystem);
 
             // Add builtin macros
             {
@@ -1259,99 +1328,6 @@ namespace RR
             }
         }
 
-        // The top-level flow of the preprocessor is that it processed *input files*
-        // An input file manages both the expansion of lexed tokens
-        // from the source file, and also state related to preprocessor
-        // directives, including skipping of code due to `#if`, etc. TODO COMMENT(if)
-        //
-        // Input files are a bit like token streams, but they don't fit neatly into
-        // the same abstraction due to all the special-case handling that directives
-        // and conditionals require.
-        struct InputFile
-        {
-            InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
-                : sourceView_(sourceView)
-            {
-                ASSERT(sourceView)
-                ASSERT(preprocessorImpl.lock())
-
-                lexerStream_ = std::make_shared<LexerInputStream>(sourceView, preprocessorImpl.lock()->GetAllocator(), preprocessorImpl.lock()->GetSink());
-                expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
-            }
-
-            /// Is this input file skipping tokens (because the current location is inside a disabled condition)?
-            bool IsSkipping() const
-            {
-                // If we are not inside a preprocessor conditional, then don't skip
-                const auto conditional = conditional_;
-                if (!conditional)
-                    return false;
-
-                // skip tokens unless the conditional is inside its `true` case
-                return conditional->state != Conditional::State::During;
-            }
-
-            /// Get the inner-most conditional that is in efffect at the current location
-            std::shared_ptr<Conditional> GetInnerMostConditional() { return conditional_; }
-
-            /// Push a new conditional onto the stack of conditionals in effect
-            void PushConditional(const std::shared_ptr<Conditional>& conditional)
-            {
-                conditional->parent = conditional_;
-                conditional_ = conditional;
-            }
-
-            /// Pop the inner-most conditional
-            void PopConditional()
-            {
-                const auto conditional = conditional_;
-                ASSERT(conditional)
-                conditional_ = conditional->parent;
-            }
-
-            /// Read one token using all the expansion and directive-handling logic
-            inline Token ReadToken() { return expansionInputStream_->ReadToken(); }
-
-            inline Lexer& GetLexer() { return lexerStream_->GetLexer(); }
-            inline std::shared_ptr<SourceView> GetSourceView() { return sourceView_; }
-            inline std::shared_ptr<ExpansionInputStream> GetExpansionStream() { return expansionInputStream_; }
-
-        private:
-            friend class PreprocessorImpl;
-
-            /// The next outer input file
-            ///
-            /// E.g., if this file was `#include`d from another file, then `parent_` would be
-            /// the file with the `#include` directive.
-            std::shared_ptr<InputFile> parent_;
-
-            /// TODO comment
-            std::shared_ptr<SourceView> sourceView_;
-
-            /// The inner-most preprocessor conditional active for this file.
-            std::shared_ptr<Conditional> conditional_;
-
-            /// The lexer input stream that unexpanded tokens will be read from
-            std::shared_ptr<LexerInputStream> lexerStream_;
-
-            /// An input stream that applies macro expansion to `lexerStream_`
-            std::shared_ptr<ExpansionInputStream> expansionInputStream_;
-        };
-
-        namespace
-        {
-            std::shared_ptr<InputFile> getInputFile(const DirectiveContext& context)
-            {
-                return context.inputFile;
-            }
-
-            // Wrapper for use inside directives
-            inline bool isSkipping(const DirectiveContext& context)
-            {
-                return getInputFile(context)->IsSkipping();
-            }
-        }
-
         // Find the currently-defined macro of the given name, or return nullptr
         std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const U8String& name) const
         {
@@ -1361,7 +1337,7 @@ namespace RR
 
         int32_t PreprocessorImpl::tokenToInt(const Token& token, int radix)
         {
-            ASSERT(token.type == Token::Type::IntegerLiteral)
+            ASSERT(token.type == Token::Type::IntegerLiteral);
 
             errno = 0;
 
@@ -1380,7 +1356,7 @@ namespace RR
 
         uint32_t PreprocessorImpl::tokenToUInt(const Token& token, int radix)
         {
-            ASSERT(token.type == Token::Type::IntegerLiteral)
+            ASSERT(token.type == Token::Type::IntegerLiteral);
 
             errno = 0;
 
@@ -1453,7 +1429,7 @@ namespace RR
         void PreprocessorImpl::popInputFile(bool forceClose)
         {
             const auto& inputFile = currentInputFile_;
-            ASSERT(inputFile)
+            ASSERT(inputFile);
 
             // We expect the file to be at its end, so that the
             // next token read would be an end-of-file token.
@@ -1464,7 +1440,7 @@ namespace RR
             if (forceClose)
                 eofToken.type = Token::Type::EndOfFile;
 
-            ASSERT(eofToken.type == Token::Type::EndOfFile)
+            ASSERT(eofToken.type == Token::Type::EndOfFile);
 
             // If there are any open preprocessor conditionals in the file, then
             // we need to diagnose them as an error, because they were not closed
@@ -1543,7 +1519,7 @@ namespace RR
 
         void setLexerDiagnosticSuppression(const std::shared_ptr<InputFile>& inputFile, bool shouldSuppressDiagnostics)
         {
-            ASSERT(inputFile)
+            ASSERT(inputFile);
 
             if (shouldSuppressDiagnostics)
             {
@@ -1607,7 +1583,7 @@ namespace RR
 
         void PreprocessorImpl::handleDirective()
         {
-            ASSERT(peekRawTokenType() == Token::Type::Pound)
+            ASSERT(peekRawTokenType() == Token::Type::Pound);
 
             // Skip the `#`
             advanceRawToken();
@@ -2179,7 +2155,7 @@ namespace RR
                         //
                         // We could consider issuing diagnostics for cases where a macro or parameter
                         // uses such names, or we could simply provide guarantees about what those
-                        // names *do* in the context of the Slang preprocessor.
+                        // names *do* in the context of the preprocessor.
 
                         // Add the parameter to the macro being deifned
                         auto paramIndex = macro->params.size();
@@ -2482,7 +2458,7 @@ namespace RR
         {
             // We need to identify the path of the file we are preprocessing,
             // so that we can avoid including it again.
-            //
+            // TODO
             // We are using the 'uniqueIdentity' as determined by the ISlangFileSystemEx interface to determine file identities.
             auto issuedFromPathInfo = directiveContext.inputFile->GetSourceView()->GetPathInfo();
 
@@ -2576,7 +2552,6 @@ namespace RR
                         newOp.index1 = 0;
 
                         // Okay, we need to do something here!
-
                         break;
 
                     case Token::Type::EndOfFile:
@@ -2637,10 +2612,10 @@ namespace RR
             const std::shared_ptr<MacroDefinition>& macro,
             const SourceLocation& macroInvocationLoc,
             const Token& initiatingMacroToken)
-            : preprocessor_(preprocessor),
-              macro_(macro),
+            : macro_(macro),
               macroInvocationLoc_(macroInvocationLoc),
-              initiatingMacroToken_(initiatingMacroToken)
+              initiatingMacroToken_(initiatingMacroToken),
+              InputStream(preprocessor)
         {
             ASSERT(preprocessor);
             ASSERT(macro);
@@ -2653,9 +2628,6 @@ namespace RR
 
             initCurrentOpStream();
             lookaheadToken_ = readTokenImpl();
-
-            // TODO COMMENTS
-            //  lookaheadToken_.flags |= initiatingMacroToken_.flags;
         }
 
         Token MacroInvocation::readTokenImpl()
@@ -2820,7 +2792,7 @@ namespace RR
                         // parameter had no arguments (which is *not* the same as having a single empty
                         // argument).
                         //
-                        // We could implement matching behavior in Slang with special-case logic here, but
+                        // We could implement matching behavior in Rfx with special-case logic here, but
                         // doing so adds extra complexity so we may be better off avoiding it.
                         //
                         // The Microsoft C++ compiler automatically discards commas in a case like this
@@ -2832,7 +2804,7 @@ namespace RR
                         // were provided for a variadic parameter. This is a relatively complicated feature
                         // to try and replicate
                         //
-                        // For Slang it may be simplest to solve this problem at the parser level, by allowing
+                        // For Rfx it may be simplest to solve this problem at the parser level, by allowing
                         // trailing commas in argument lists without error/warning. However, if we *do* decide
                         // to implement the gcc extension for `##` it would be logical to try to detect and
                         // intercept that special case here.
@@ -2878,14 +2850,18 @@ namespace RR
                         // us to create a fresh source file to represent the paste result.
                         PathInfo pathInfo = PathInfo::makeTokenPaste();
 
-                        const auto& sourceFile = preprocessor_->GetIncludeSystem()->CreateFileFromString(pathInfo, pastedContent.str());
+                        const auto preprocessor = preprocessor_.lock();
+                        ASSERT(preprocessor);
+
+                        const auto& sourceFile = preprocessor->GetIncludeSystem()->CreateFileFromString(pathInfo, pastedContent.str());
                         auto sourceView = SourceView::Create(sourceFile);
 
-                        Lexer lexer(sourceView, preprocessor_->GetAllocator(), preprocessor_->GetSink());
+                        Lexer lexer(sourceView, preprocessor->GetAllocator(), preprocessor->GetSink());
                         auto lexedTokens = lexer.LexAllSemanticTokens();
 
                         //TODO Comment this This
                         lexedTokens.front().flags &= ~Token::Flags::AtStartOfLine;
+
                         // The `lexedTokens` will always contain at least one token, representing an EOF for
                         // the end of the lexed token squence.
                         //
@@ -2905,7 +2881,7 @@ namespace RR
                         // The first two cases are both considered valid token pastes, while the latter should
                         // be diagnosed as a warning, even if it is clear how we can handle it.
                         if (lexedTokens.size() > 2)
-                            getSink()->Diagnose(tokenPasteLoc, tokenPasteHumaneLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
+                            GetSink()->Diagnose(tokenPasteLoc, tokenPasteHumaneLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
 
                         // No matter what sequence of tokens we got, we can create an input stream to represent
                         // them and push it as the representation of the `##` macro definition op.
@@ -2914,7 +2890,7 @@ namespace RR
                         // one we push for the pasted tokens, and as such the input state is capable of reading
                         // from both the input stream for the `##` through to the input for the right-hand-side
                         // op, which is consistent with `macroOpIndex_`.
-                        const auto& inputStream = std::make_shared<SingleUseInputStream>(lexedTokens);
+                        const auto& inputStream = std::make_shared<SingleUseInputStream>(preprocessor_, lexedTokens);
                         currentOpStreams_.Push(inputStream);
 
                         // There's one final detail to cover before we move on. *If* we used `token` as part
@@ -2972,7 +2948,7 @@ namespace RR
                     // the chosen range, and push a matching input stream.
                     auto tokenBuffer = macro_->tokens.begin();
                     auto tokenReader = TokenReader(tokenBuffer + beginTokenIndex, tokenBuffer + endTokenIndex);
-                    const auto& stream = std::make_shared<PretokenizedInputStream>(tokenReader);
+                    const auto& stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
                     currentOpStreams_.Push(stream);
                 }
                 break;
@@ -2993,7 +2969,7 @@ namespace RR
 
                     // Because expansion doesn't apply to this parameter reference, we can simply
                     // play back those tokens exactly as they appeared in the argument list.
-                    const auto& stream = std::make_shared<PretokenizedInputStream>(tokenReader);
+                    const auto& stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
                     currentOpStreams_.Push(stream);
                 }
                 break;
@@ -3032,11 +3008,11 @@ namespace RR
                         eofToken.type = Token::Type::EndOfFile;
                         tokenList.push_back(eofToken);
 
-                        stream = std::make_shared<SingleUseInputStream>(tokenList);
+                        stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
                     }
                     else
                     {
-                        stream = std::make_shared<PretokenizedInputStream>(tokenReader);
+                        stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
                     }
 
                     // The only interesting addition to the unexpanded case is that we wrap
@@ -3159,7 +3135,10 @@ namespace RR
             // The goal here is to push a token stream that represents a single token
             // with exactly the given `content`, etc.
             // We are going to keep the content alive using the allocator to store token content.
-            const auto& allocator = preprocessor_->GetAllocator();
+            const auto preprocessor = preprocessor_.lock();
+            ASSERT(preprocessor);
+
+            const auto& allocator = preprocessor->GetAllocator();
             const auto allocated = (char*)allocator->Allocate(content.length());
             std::copy(content.begin(), content.end(), allocated);
 
@@ -3180,7 +3159,7 @@ namespace RR
             eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
             lexedTokens.push_back(eofToken);
 
-            const auto& inputStream = std::make_shared<SingleUseInputStream>(lexedTokens);
+            const auto& inputStream = std::make_shared<SingleUseInputStream>(preprocessor_, lexedTokens);
             currentOpStreams_.Push(inputStream);
         }
 
@@ -3218,14 +3197,13 @@ namespace RR
         void ExpansionInputStream::maybeBeginMacroInvocation()
         {
             auto preprocessor = preprocessor_.lock();
-            ASSERT(preprocessor)
+            ASSERT(preprocessor);
 
             // We iterate because the first token in the expansion of one
             // macro may be another macro invocation.
             for (;;)
             {
-                // TODO comment
-                // The "next" token to be read is already in our `lookeadToken_`
+                // The "next" token to be read is already in our `lookaheadToken_`
                 // member, so we can simply inspect it.
                 //
                 // We also care about where that token came from (which input stream).
@@ -3281,7 +3259,6 @@ namespace RR
                 // the location of this invocation as the "initiating" macro
                 // invocation location for things like `__LINE__` uses inside
                 // of macro bodies.
-                // TODO COMMENT
                 if (activeStream == base_)
                     initiatingMacroToken_ = token;
 
@@ -3332,7 +3309,7 @@ namespace RR
                         //      int x = coolFunction(3); // uses the macro
                         //      int (*functionPtr)(int) f = coolFunction; // uses the function
                         //
-                        // While we don't expect users to make heavy use of this feature in Slang,
+                        // While we don't expect users to make heavy use of this feature in Rfx,
                         // it is worthwhile to try to stay compatible.
                         //
                         // Because the macro name is already in `lookaheadToken_`, we can peak
@@ -3365,7 +3342,7 @@ namespace RR
 
                         // We start by consuming the opening `(` that we checked for above.
                         const auto& leftParen = inputStreams_.ReadToken();
-                        ASSERT(leftParen.type == Token::Type::LParent)
+                        ASSERT(leftParen.type == Token::Type::LParent);
 
                         // Next we parse any arguments to the macro invocation, which will
                         // consist of `()`-balanced sequences of tokens separated by `,`s.
@@ -3475,7 +3452,6 @@ namespace RR
                 ASSERT(paramIndex < args_.size());
                 auto arg = args_[paramIndex];
 
-                // TODO outofrange possible
                 return TokenReader(argTokens + arg.beginTokenIndex, argTokens + arg.endTokenIndex);
             }
             else
@@ -3659,12 +3635,7 @@ namespace RR
                         // or whether to "recover" and continue to scan
                         // ahead for a closing `)`. For now it is simplest
                         // to just bail.
-
-                        //TODO
-                        const auto preprocessor = preprocessor_.lock();
-                        ASSERT(preprocessor)
-
-                        preprocessor->GetSink()->Diagnose(inputStreams_.PeekToken(), Diagnostics::errorParsingToMacroInvocationArgument, paramCount, macro->GetName());
+                        GetSink()->Diagnose(inputStreams_.PeekToken(), Diagnostics::errorParsingToMacroInvocationArgument, paramCount, macro->GetName());
                         return;
                 }
             }
