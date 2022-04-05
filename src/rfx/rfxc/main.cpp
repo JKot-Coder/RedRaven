@@ -9,21 +9,69 @@ namespace RR
     namespace
     {
         template <typename S, typename... Args>
-        inline void printMessageAndExit(int exitCode, const S& format, Args&&... args)
+        void printErrorMessage(const S& format, Args&&... args)
         {
             std::cerr << fmt::format(format, args...) << std::endl;
-            exit(exitCode);
         }
 
-        inline void printMessageAndExit(int exitCode, Rfx::RfxResult result)
+        inline void printErrorMessage(Rfx::RfxResult result)
         {
             Rfx::ComPtr<Rfx::IBlob> message;
 
             if (RFX_SUCCEEDED(Rfx::GetErrorMessage(result, message.put())))
-                printMessageAndExit(1, "Unexpected error: {}", message->GetBufferPointer());
-
-            exit(exitCode);
+                printErrorMessage("Unexpected error: {}", message->GetBufferPointer());
         }
+
+        class DefinitionsParser final
+        {
+        public:
+            ~DefinitionsParser()
+            {
+                for (const auto cString : cStrings_)
+                    delete[] cString;
+            }
+
+            const std::vector<Rfx::CompilerRequestDescription::PreprocessorDefinition>& Parse(const std::vector<std::string>& definitions)
+            {
+                for (const auto& define : definitions)
+                {
+                    Rfx::CompilerRequestDescription::PreprocessorDefinition preprocDefine;
+                    const auto delimiterPos = define.find('=');
+
+                    if (delimiterPos == std::string::npos)
+                    {
+                        preprocDefine.key = allocateCString(define);
+                        preprocDefine.value = nullptr;
+                    }
+                    else
+                    {
+                        preprocDefine.key = allocateCString(define.substr(0, delimiterPos));
+                        preprocDefine.value = allocateCString(define.substr(delimiterPos + 1, define.length()));
+                    }
+
+                    definitions_.push_back(preprocDefine);
+                }
+
+                return definitions_;
+            }
+
+        private:
+            char* allocateCString(const std::string& string)
+            {
+                const auto stringLength = string.length();
+
+                auto cString = new char[stringLength + 1];
+                string.copy(cString, stringLength);
+                cString[stringLength] = '\0';
+
+                cStrings_.push_back(cString);
+                return cString;
+            }
+
+        private:
+            std::vector<Rfx::CompilerRequestDescription::PreprocessorDefinition> definitions_;
+            std::vector<char*> cStrings_;
+        };
     }
 
     void writeOutput(const std::string& filename, const Rfx::ComPtr<Rfx::IBlob>& output)
@@ -43,20 +91,25 @@ namespace RR
         cxxopts::Options options("rfxc", "Shader compiler");
 
         std::vector<std::string> inputFiles;
+        std::vector<std::string> definitions;
 
         // options.show_positional_help();
-        // clang-format off
-        options.add_options("Common")
+
+        options.add_options("Common") // clang-format off
             ("h,help", "Display available options")
             ("version", "Display compiler version information")          
-            ("inputs", "Inputs ", cxxopts::value<std::vector<std::string>>(inputFiles));
+            ("inputs", "Inputs", cxxopts::value<std::vector<std::string>>(inputFiles));
+
       /*      ("d,debug", "Enable debugging") // a bool parameter
             ("i,integer", "Int param", cxxopts::value<int>())
             ("f,file", "File name", cxxopts::value<std::string>())
             ("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))*/
         // clang-format on
 
-        options.add_options("Compilation")("Fp", "Output preprocessed input to the given file", cxxopts::value<std::string>(), "file");
+        options.add_options("Compilation") // clang-format off
+            ("Fp", "Output preprocessed input to the given file", cxxopts::value<std::string>(), "file")
+            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions));
+        // clang-format on
 
         options.positional_help("<inputs>");
 
@@ -71,22 +124,32 @@ namespace RR
         }
         catch (const cxxopts::OptionException& e)
         {
-            printMessageAndExit(1, "unknown options: {}", e.what());
+            printErrorMessage("unknown options: {}", e.what());
+            return 1;
         }
 
         try
         {
             if (parseResult.count("help"))
-                printMessageAndExit(0, options.help({ "", "Common", "Compilation" }));
+            {
+                std::cout << options.help({ "", "Common", "Compilation" }) << std::endl;
+                return 0;
+            }
 
             if (parseResult.count("version"))
-                printMessageAndExit(0, "version: 1.0.0");
+            {
+                std::cout << "version: 1.0.0" << std::endl;
+                return 0;
+            }
 
             const bool outputRequired = parseResult.count("Fp");
             const bool inputPresent = !inputFiles.empty();
 
             if (!inputPresent)
-                printMessageAndExit(1, "rfxc failed: Required input file argument is missing. use --help to get more information.");
+            {
+                printErrorMessage("rfxc failed: Required input file argument is missing. use --help to get more information.");
+                return 1;
+            }
 
             if (!outputRequired)
                 return 0;
@@ -94,10 +157,15 @@ namespace RR
             Rfx::CompilerRequestDescription compilerRequest;
 
             compilerRequest.inputFile = inputFiles.front().c_str();
-            compilerRequest.outputPreprocessorResult = parseResult.count("Fp");
+            compilerRequest.preprocessorOutput = parseResult.count("Fp");
+
+            DefinitionsParser definitionsParser;
+            const auto preprocessorDefinitions = definitionsParser.Parse(definitions);
+
+            compilerRequest.defines = preprocessorDefinitions.data();
+            compilerRequest.defineCount = preprocessorDefinitions.size();
 
             Rfx::ComPtr<Rfx::ICompileResult> compileResult;
-
             Rfx::RfxResult result = Rfx::RfxResult::Ok;
 
             if (RFX_FAILED(result = Rfx::Compile(compilerRequest, compileResult.put())))
@@ -108,11 +176,11 @@ namespace RR
                         break;
                     case Rfx::RfxResult::NotFound:
                     case Rfx::RfxResult::CannotOpen:
-                        printMessageAndExit(1, "Cannot open file: {}", compilerRequest.inputFile);
-                        break;
+                        printErrorMessage("Cannot open file: {}", compilerRequest.inputFile);
+                        return 1;
                     default:
-                        printMessageAndExit(1, result);
-                        break;
+                        printErrorMessage(result);
+                        return 1;
                 }
             }
 
@@ -123,11 +191,14 @@ namespace RR
                 Rfx::ComPtr<Rfx::IBlob> output;
 
                 if (RFX_FAILED(result = compileResult->GetOutput(i, outputType, output.put())))
-                    printMessageAndExit(1, result);
+                {
+                    printErrorMessage(result);
+                    return 1;
+                }
 
                 switch (outputType)
                 {
-                    case RR::Rfx::CompileOutputType::Preprocesed:
+                    case RR::Rfx::CompileOutputType::Preprocessor:
                         writeOutput(parseResult["Fp"].as<std::string>(), output);
                         break;
                     default:
@@ -138,7 +209,8 @@ namespace RR
         }
         catch (const cxxopts::OptionException& e)
         {
-            printMessageAndExit(1, "error parsing options: {}", e.what());
+            printErrorMessage("error parsing options: {}", e.what());
+            return 1;
         }
 
         return 0;

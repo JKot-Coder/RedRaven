@@ -1,7 +1,5 @@
 #include "rfx.hpp"
 
-#include "common/debug/LeakDetector.hpp"
-
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
@@ -46,9 +44,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCm
     std::ignore = hPreInst;
     std::ignore = lpCmdLine;
     std::ignore = nCmdShow;
-
-    const auto& leakDetector = RR::Common::Debug::LeakDetector::Instance();
-    std::ignore = leakDetector;
 
     int argc;
     wchar_t** lpArgv = CommandLineToArgvW(GetCommandLineW(), &argc);

@@ -305,9 +305,11 @@ namespace RR
 
             std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
             std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
-            std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; }
+            std::shared_ptr<LinearAllocator> GetAllocator() const { return allocator_; } // Todo review using it
 
             std::vector<Token> ReadAllTokens();
+
+            void DefineMacro(const U8String& key, const U8String& value);
 
             // Find the currently-defined macro of the given name, or return nullptr
             std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
@@ -343,8 +345,11 @@ namespace RR
             // Determine if we have read everything on the directive's line.
             bool isEndOfLine();
 
-            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
-            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken = dummyToken);
+            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic);
+            bool expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken);
+
+            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic);
+            bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken);
 
             U8String readDirectiveMessage();
 
@@ -437,7 +442,6 @@ namespace RR
             }
 
         private:
-            static Token dummyToken;
             static const std::unordered_map<U8String, Directive> directiveMap;
             static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
         };
@@ -1241,8 +1245,6 @@ namespace RR
             }
         }
 
-        Token PreprocessorImpl::dummyToken;
-
         const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
             { "if", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective } },
             { "ifdef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective } },
@@ -1326,6 +1328,45 @@ namespace RR
                         break;
                 }
             }
+        }
+
+        void PreprocessorImpl::DefineMacro(const U8String& key, const U8String& value)
+        {
+            PathInfo pathInfo = PathInfo::makeCommandLine();
+
+            //No funtion like macro is allowed here.
+            ASSERT(key.find('(') == std::string::npos);
+
+            auto macro = std::make_shared<MacroDefinition>();
+            macro->flavor = MacroDefinition::Flavor::ObjectLike;
+
+            auto keyFile = GetIncludeSystem()->CreateFileFromString(pathInfo, key);
+            auto valueFile = GetIncludeSystem()->CreateFileFromString(pathInfo, value);
+
+            // Note that we don't need to pass a special source loc to identify that these are defined on the command line
+            // because the PathInfo on the SourceFile, is marked 'command line'.
+            auto keyView = SourceView::Create(keyFile);
+            auto valueView = SourceView::Create(valueFile);
+
+            // Use existing `Lexer` to generate a token stream.
+            Lexer keyLexer(keyView, GetAllocator(), GetSink());
+            const auto keyTokens = keyLexer.LexAllSemanticTokens();
+
+            // Key must contain only one token and EOF
+            ASSERT(keyTokens.size() == 2);
+
+            const auto keyName = keyTokens[0].GetContentString();
+            macro->nameToken = keyTokens[0];
+            macro->name = keyName;
+
+            // Use existing `Lexer` to generate a token stream.
+            Lexer valueLexer(valueView, GetAllocator(), GetSink());
+            macro->tokens = valueLexer.LexAllSemanticTokens();
+
+            std::unordered_map<U8String, uint32_t> mapParamNameToIndex;
+            parseMacroOps(macro, mapParamNameToIndex);
+
+            macrosDefinitions_[keyName] = macro;
         }
 
         // Find the currently-defined macro of the given name, or return nullptr
@@ -1531,6 +1572,12 @@ namespace RR
             }
         }
 
+        bool PreprocessorImpl::expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic)
+        {
+            Token dummyToken;
+            return expect(context, expected, diagnostic, dummyToken);
+        }
+
         bool PreprocessorImpl::expect(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
         {
             if (peekTokenType() != expected)
@@ -1545,6 +1592,12 @@ namespace RR
 
             outToken = advanceToken();
             return true;
+        }
+
+        bool PreprocessorImpl::expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic)
+        {
+            Token dummyToken;
+            return expectRaw(context, expected, diagnostic, dummyToken);
         }
 
         bool PreprocessorImpl::expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken)
@@ -2599,6 +2652,12 @@ namespace RR
         {
             const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
             impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
+        }
+
+        void Preprocessor::DefineMacro(const U8String& key, const U8String& value)
+        {
+            ASSERT(impl_);
+            impl_->DefineMacro(key, value);
         }
 
         std::vector<Token> Preprocessor::ReadAllTokens()

@@ -2,7 +2,6 @@
 
 #include "core/SourceLocation.hpp"
 
-#include "compiler/InputString.hpp"
 #include "compiler/Token.hpp"
 
 namespace RR
@@ -36,6 +35,7 @@ namespace RR
 
         struct TokenReader
         {
+        public:
             using const_iterator = TokenList::const_iterator;
 
             TokenReader() = default;
@@ -83,26 +83,11 @@ namespace RR
                 return cursor.tokenReaderCursor == cursor_;
             }
 
-            bool IsAtEnd() const
-            {
-                return cursor_ == end_;
-            }
-
-            const Token& PeekToken() const
-            {
-                return nextToken_;
-            }
-
-            Token::Type PeekTokenType() const
-            {
-                return nextToken_.type;
-            }
-
-            //SourceLoc PeekLoc() const;
-
             Token AdvanceToken();
 
-            size_t GetCount() { return std::distance(cursor_, end_); }
+            bool IsAtEnd() const { return cursor_ == end_; }
+            const Token& PeekToken() const { return nextToken_; }
+            Token::Type PeekTokenType() const { return nextToken_.type; }
 
         private:
             /// Update the lookahead token in `nextToken_` to reflect the cursor state

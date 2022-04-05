@@ -1,5 +1,4 @@
-// pp-bug-1.slang
-//DIAGNOSTIC_TEST:SIMPLE:-E
+﻿//PREPROCESSOR_TEST:
 
 // The bug in this case was related to a use-after-free
 // where the list of "busy" macros for a function-like

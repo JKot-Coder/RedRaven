@@ -16,7 +16,7 @@ namespace RR::Rfx
         TEST_CASE("LexerTests", "[Lexer]")
         {
             // todo replace with universal
-            std::string path = "../src/rfx/tests/lexer";
+            /* std::string path = "../src/rfx/tests/lexer";
             for (const auto& entry : fs::recursive_directory_iterator(path))
             {
                 if (entry.path().extension() != ".rfx")
@@ -69,7 +69,7 @@ namespace RR::Rfx
                         "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + entry.path().stem().u8string() + ".{ApprovedOrReceived}.{FileExtension}");
                     RfxApprover::verify(lexerOutput, diagnosticOutput, ApprovalTests::Options().withNamer(namer));
                 }
-            }
+            }*/
         }
     }
 }

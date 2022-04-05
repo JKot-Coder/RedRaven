@@ -607,32 +607,25 @@ namespace RR
             for (;;)
             {
                 switch (peek())
-                {
+                { // clang-format off
                     case kEOF:
                         diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
                         return;
 
-                    case '\r':
-                    case '\n':
-                        handleNewlineSequence();
+                    case '\r': case '\n':
+                        handleNewlineSequence(); 
                         continue;
 
                     case '*':
                         advance();
                         switch (peek())
                         {
-                            case '/':
-                                advance();
-                                return;
-
-                            default:
-                                continue;
+                            case '/': advance(); return;
+                            default: continue;
                         }
 
-                    default:
-                        advance();
-                        continue;
-                }
+                    default: advance(); continue;
+                } // clang-format on
             }
         }
 

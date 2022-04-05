@@ -6,34 +6,19 @@ namespace RR::Rfx
     {
         namespace
         {
-            void writeDiagnosticLog(std::ofstream& ofs, const ComPtr<IBlob>& diagnosticOutput)
+            void writeOutput(std::ofstream& ofs, const std::string& outputName, const ComPtr<IBlob>& output)
             {
-                ASSERT(diagnosticOutput);
+                ASSERT(output);
 
-                ofs << "Diagnostic:[\n";
+                ofs << outputName << ":[\n";
 
                 U8String line;
-                std::istringstream logStream((char*)diagnosticOutput->GetBufferPointer());
+                std::istringstream logStream((char*)output->GetBufferPointer());
 
                 while (std::getline(logStream, line, '\n'))
                     ofs << fmt::format("\t{}\n", line);
 
-                ofs << "]";
-            }
-
-            void writeTokens(std::ofstream& ofs, const ComPtr<IBlob>& preprocesorOutput)
-            {
-                ASSERT(preprocesorOutput);
-
-                ofs << "Output:[\n";
-
-                U8String line;
-                std::istringstream logStream((char*)preprocesorOutput->GetBufferPointer());
-
-                while (std::getline(logStream, line, '\n'))
-                    ofs << fmt::format("\t{}\n", line);
-
-                ofs << "]";
+                ofs << "]\n";
             }
         }
 
@@ -42,11 +27,20 @@ namespace RR::Rfx
             std::ofstream ofs(path);
             ASSERT(ofs.is_open())
 
-            writeTokens(ofs, preprocesorOutput_);
+            for (const auto& compilerResult : compileResults_)
+            {
+                ComPtr<IBlob> output;
+                Rfx::CompileOutputType outputType;
 
-            ofs << "\n";
+                auto result = compilerResult->GetOutput(0, outputType, output.put());
+                if (RFX_SUCCEEDED(result))
+                    writeOutput(ofs, "Output", output);
 
-            writeDiagnosticLog(ofs, diagnosticOutput_);
+                output = nullptr;
+                result = compilerResult->GetDiagnosticOutput(output.put());
+                if (RFX_SUCCEEDED(result))
+                    writeOutput(ofs, "Diagnostic", output);
+            }
 
             ofs.close();
         }

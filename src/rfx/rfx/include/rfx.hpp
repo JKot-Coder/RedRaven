@@ -348,7 +348,17 @@ namespace RR
 
         struct CompilerRequestDescription
         {
+        public:
+            struct PreprocessorDefinition
+            {
+                const char* key = nullptr;
+                const char* value = nullptr;
+            };
+
+        public:
             const char* inputFile = nullptr;
+            const PreprocessorDefinition* defines = nullptr;
+            size_t defineCount = 0;
             bool lexerOutput = false;
             bool preprocessorOutput = false;
         };

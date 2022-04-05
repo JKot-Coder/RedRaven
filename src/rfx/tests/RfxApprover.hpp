@@ -13,9 +13,9 @@ namespace RR::Rfx
         class RfxApprover
         {
         public:
-            static void verify(const ComPtr<IBlob>& preprocessorOutput, const ComPtr<IBlob>& diagnosticOutput, const ApprovalTests::Options& options = ApprovalTests::Options())
+            static void verify(const std::vector<ComPtr<Rfx::ICompileResult>>& compileResults, const ApprovalTests::Options& options = ApprovalTests::Options())
             {
-                RfxWriter writer(preprocessorOutput, diagnosticOutput);
+                RfxWriter writer(compileResults);
                 ApprovalTests::Approvals::verify(writer, options);
             }
         };

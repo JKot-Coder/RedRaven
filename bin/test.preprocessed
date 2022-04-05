@@ -1,11 +1,6 @@
-//#include "CAS_Shader.hlsl"
-
 StructuredBuffer<float> buffer0;
 StructuredBuffer<float> buffer1;
 RWStructuredBuffer<float> result;
-#ifdef QEE
-[shader("compute")]
-#endif
 [numthreads(1,1,1)]
 void computeMain(uint3 threadId : SV_DispatchThreadID)
 {

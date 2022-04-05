@@ -3,6 +3,7 @@
 #include "core/FileSystem.hpp"
 #include "core/SourceLocation.hpp"
 
+#include "common/OnScopeExit.hpp"
 #include "common/LinearAllocator.hpp"
 
 #include <fstream>
@@ -97,6 +98,8 @@ namespace RR
 
             if (!stream)
                 return RfxResult::Fail;
+            
+            ON_SCOPE_EXIT({ stream.close(); });
 
             stream.seekg(0, stream.end);
             uint64_t sizeInBytes = stream.tellg();
@@ -108,9 +111,7 @@ namespace RR
 
             U8String content;
             content.resize(sizeInBytes);
-
-            stream.read(&content[0], content.size());
-            stream.close();
+            stream.read(&content[0], content.size());            
 
             if (!stream) // If not all read just return an error
                 return RfxResult::Fail;
@@ -123,7 +124,8 @@ namespace RR
 
         std::shared_ptr<SourceFile> IncludeSystem::CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const
         {
-            ASSERT(pathInfo.type == PathInfo::Type::FromString ||
+            ASSERT(pathInfo.type == PathInfo::Type::CommandLine ||
+                   pathInfo.type == PathInfo::Type::FromString ||
                    pathInfo.type == PathInfo::Type::TokenPaste);
 
             const auto& outSourceFile = std::make_shared<SourceFile>(pathInfo);

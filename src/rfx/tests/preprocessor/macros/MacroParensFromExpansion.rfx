@@ -7,6 +7,8 @@
 // the invocation of `INNER`, despite the fact that
 // both of those macros were expanded as part of
 // producing the arguments to the `INNER` invocation.
+//
+//PREPROCESSOR_TEST:
 
 #define LPAREN (
 #define RPAREN )

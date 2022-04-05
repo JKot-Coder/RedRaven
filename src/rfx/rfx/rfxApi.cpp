@@ -13,6 +13,17 @@
 
 #include "common/LinearAllocator.hpp"
 
+#if !defined(NDEBUG) && OS_WINDOWS
+#define ENABLE_LEAK_DETECTION true
+#else
+#define ENABLE_LEAK_DETECTION false
+#endif
+
+#if ENABLE_LEAK_DETECTION
+#include "common/debug/LeakDetector.hpp"
+#include <Windows.h>
+#endif
+
 namespace RR::Rfx
 {
     class SourceWriter
@@ -181,6 +192,9 @@ namespace RR::Rfx
         if (!compilerRequest.inputFile)
             return RfxResult::InvalidArgument;
 
+        if (compilerRequest.defineCount > 0 && !compilerRequest.defines)
+            return RfxResult::InvalidArgument;
+
         try
         {
             ComPtr<ComplileResult> compilerResult(new ComplileResult());
@@ -218,6 +232,17 @@ namespace RR::Rfx
             if (compilerRequest.preprocessorOutput)
             {
                 const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, diagnosticSink);
+
+                for (size_t i = 0; i < compilerRequest.defineCount; i++)
+                {
+                    const auto define = compilerRequest.defines[0];
+
+                    if (!define.key)
+                        return RfxResult::InvalidArgument;
+
+                    preprocessor->DefineMacro(define.key, define.value ? define.value : "");
+                }
+
                 preprocessor->PushInputFile(sourceFile);
 
                 const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
@@ -232,7 +257,7 @@ namespace RR::Rfx
         }
         catch (const utf8::exception& e)
         {
-            Log::Format::Error("UTF8 exception: {}\n", e.what());
+            LOG_ERROR("UTF8 exception: {}", e.what());
             return RfxResult::CannotOpen;
         }
 
@@ -249,3 +274,14 @@ namespace RR::Rfx
         return RfxResult::Ok;
     }
 }
+
+#if ENABLE_LEAK_DETECTION
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
+{
+    std::ignore = lpReserved;
+    std::ignore = hinstDLL;
+    std::ignore = fdwReason;
+    std::ignore = RR::Common::Debug::LeakDetector::Instance();
+    return TRUE;
+}
+#endif // OS_WINDOWS

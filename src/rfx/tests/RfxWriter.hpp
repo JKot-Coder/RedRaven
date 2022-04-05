@@ -10,8 +10,9 @@ namespace RR::Rfx
         class RfxWriter : public ApprovalTests::ApprovalWriter
         {
         public:
-            RfxWriter::RfxWriter(const ComPtr<IBlob>& preprocesorOutput, const ComPtr<IBlob>& diagnosticOutput)
-                : preprocesorOutput_(preprocesorOutput), diagnosticOutput_(diagnosticOutput)
+            ~RfxWriter() { }
+            RfxWriter::RfxWriter(const std::vector<ComPtr<Rfx::ICompileResult>>& compileResults)
+                : compileResults_(compileResults)
             {
             }
 
@@ -28,8 +29,7 @@ namespace RR::Rfx
             }
 
         private:
-            ComPtr<IBlob> preprocesorOutput_;
-            ComPtr<IBlob> diagnosticOutput_;
+            std::vector<ComPtr<Rfx::ICompileResult>> compileResults_;
         };
     }
 }
