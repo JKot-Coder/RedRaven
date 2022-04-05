@@ -23,7 +23,7 @@ namespace RR
         const HRESULT result = exp;                                                                               \
         if (FAILED(result))                                                                                       \
         {                                                                                                         \
-            LOG_FATAL(#exp " Error: %s", D3DUtils::HResultToString(result))                                       \
+            LOG_FATAL(#exp " Error: {}", D3DUtils::HResultToString(result))                                       \
         }                                                                                                         \
     }
 

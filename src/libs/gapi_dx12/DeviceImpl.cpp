@@ -255,7 +255,7 @@ namespace RR
                 {
                     result = (result == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : result;
 
-                    LOG_FATAL("Device Lost on Present. Error: %s", D3DUtils::HResultToString(result));
+                    LOG_FATAL("Device Lost on Present. Error: {}", D3DUtils::HResultToString(result));
                     // Todo error check
                     //handleDeviceLost();
                     ASSERT(false);
@@ -295,7 +295,7 @@ namespace RR
                     }
                     else
                     {
-                        LOG_WARNING("WARNING: Direct3D Debug Device is not available\n");
+                        LOG_WARNING("Direct3D Debug Device is not available");
                     }
 
                     ComSharedPtr<IDXGIInfoQueue> dxgiInfoQueue;
@@ -311,21 +311,21 @@ namespace RR
                 HRESULT result;
                 if (FAILED(result = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(dxgiFactory_.put()))))
                 {
-                    LOG_WARNING("Failed to create DXGIFactory. Error: %s", D3DUtils::HResultToString(result));
+                    LOG_WARNING("Failed to create DXGIFactory. Error: {}", D3DUtils::HResultToString(result));
                     return false;
                 }
 
                 D3D_FEATURE_LEVEL minimumFeatureLevel = D3D_FEATURE_LEVEL_11_0;
                 if (FAILED(result = D3DUtils::GetAdapter(dxgiFactory_, minimumFeatureLevel, dxgiAdapter_)))
                 {
-                    LOG_WARNING("Failed to get adapter. Error: %s", D3DUtils::HResultToString(result));
+                    LOG_WARNING("Failed to get adapter. Error: {}", D3DUtils::HResultToString(result));
                     return false;
                 }
 
                 // Create the DX12 API device object.
                 if (FAILED(result = D3D12CreateDevice(dxgiAdapter_.get(), minimumFeatureLevel, IID_PPV_ARGS(d3dDevice_.put()))))
                 {
-                    LOG_WARNING("Failed to CreateDevice. Error: %s", D3DUtils::HResultToString(result));
+                    LOG_WARNING("Failed to CreateDevice. Error: {}", D3DUtils::HResultToString(result));
                     return false;
                 }
 
@@ -350,7 +350,7 @@ namespace RR
                     }
                     else
                     {
-                        LOG_WARNING("Unable to get ID3D12InfoQueue. Error: %s", D3DUtils::HResultToString(result));
+                        LOG_WARNING("Unable to get ID3D12InfoQueue. Error: {}", D3DUtils::HResultToString(result));
                     }
                 }
 

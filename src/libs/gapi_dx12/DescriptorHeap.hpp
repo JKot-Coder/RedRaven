@@ -30,7 +30,7 @@ namespace RR
                     ASSERT(d3d12Heap_);
 
                     if (allocated_ >= numDescriptors_)
-                        LOG_FATAL("Not enough memory in descriptorHeap: %s", name_);
+                        LOG_FATAL("Not enough memory in descriptorHeap: {}", name_);
 
                     ASSERT(!freeChunks_.empty())
 

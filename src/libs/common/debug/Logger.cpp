@@ -29,6 +29,8 @@ namespace RR
 
             void Logger::Log(Level level, const U8String& msg)
             {
+                std::ignore = level; // TODO
+
 #if defined(OS_WINDOWS)
                 // No utf-8 support;
                 Debug::WStream << StringConversions::UTF8ToWString(msg).c_str();
@@ -36,13 +38,6 @@ namespace RR
 #else
                 Debug::Stream << msg.c_str();
 #endif
-
-                if (level == Level::Fatal)
-                {
-                    //_CrtDbgReportW;
-                    debugBreak();
-                    exit(1);
-                }
             }
         }
     }
