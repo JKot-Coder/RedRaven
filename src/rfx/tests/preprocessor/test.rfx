@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 #define FOO BAR /* */ qwe      		LINE
 
 FOO

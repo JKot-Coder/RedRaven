@@ -4,7 +4,7 @@ Output:[
 	BAR bar() { return 2.0; }
 ]
 Diagnostic:[
-	..\src\rfx\tests\preprocessor\Undef.rfx(4): warning 15401: macro 'FOO' is not defined
+	..\src\rfx\tests\preprocessor\Undef.rfx(6): warning 15401: macro 'FOO' is not defined
 	#undef FOO
 	       ^~~
 ]

@@ -1,5 +1,6 @@
-#define M(ARG) __LINE__
+//PREPROCESSOR_TEST:
 
+#define M(ARG) __LINE__
 
 int x = M
 (

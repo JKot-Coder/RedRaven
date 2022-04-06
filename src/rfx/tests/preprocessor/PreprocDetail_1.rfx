@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 // If a macro can take a single parameter, it is valid to pass in 'nothing'.
 // Correct output: a b
 

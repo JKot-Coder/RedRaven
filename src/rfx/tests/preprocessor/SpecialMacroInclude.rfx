@@ -1,2 +1,4 @@
+//PREPROCESSOR_TEST:
+
 #include "./include/SpecialMacroInclude.hrfx"
 #include "include/SpecialMacroInclude.hrfx"

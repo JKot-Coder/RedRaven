@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 // Test for correct recursive macro behavior. In particular: 
 
 // The letter of the spec is that we should macro expand

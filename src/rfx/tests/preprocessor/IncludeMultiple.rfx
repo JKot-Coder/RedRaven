@@ -1,3 +1,4 @@
+//PREPROCESSOR_TEST:
 // #include support
 
 int foo() { return 0; }

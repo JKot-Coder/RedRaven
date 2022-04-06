@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 // #warning support
 
 #define FIRST 1

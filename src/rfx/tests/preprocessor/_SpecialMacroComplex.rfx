@@ -1,10 +1,10 @@
+//PREPROCESSOR_TEST:
+
 // Testing of handling of __LINE__ in macros
 // Pasting, and some other aspects.
 
-
-
-
 // Lets try some macro pasting. NOTE strictly speaking we need CONCAT2 (as tested on other compilers, but Slang does not indicating a preprocessor bug!)
+
 #define CONCAT2(x, y) x ## y
 #define CONCAT(x, y) CONCAT2(x, y)
 

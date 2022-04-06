@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 // Test support for `#pragma once`
 
 // We will include two header files:

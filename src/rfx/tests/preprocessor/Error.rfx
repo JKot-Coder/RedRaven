@@ -1,3 +1,4 @@
+//PREPROCESSOR_TEST:
 // #error support
 
 #define FIRST 0

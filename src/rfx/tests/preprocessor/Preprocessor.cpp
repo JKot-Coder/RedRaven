@@ -296,7 +296,6 @@ namespace RR::Rfx
                     auto namer = ApprovalTests::TemplatedCustomNamer::create(
                         "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
                     RfxApprover::verify(compileResults, ApprovalTests::Options().withNamer(namer));
-                    return;
                 }
             }
         }

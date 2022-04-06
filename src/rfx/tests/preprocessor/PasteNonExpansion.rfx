@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+//
 // This os a regression test for a bug in Slang preprocessor macro expansion.
 
 #define CONCAT2(x, y) x ## y

@@ -1,3 +1,4 @@
+//PREPROCESSOR_TEST:
 // Check #if expression is ignored if outer #if/#ifndef means it is skipped
 
 #if 0

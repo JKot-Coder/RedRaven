@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 #define A a
 #define B b
 

@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+//
 // Test support for escaped newlines in macro definitions.
 //
 // A complete lexer would handle backslash-escaped newlines

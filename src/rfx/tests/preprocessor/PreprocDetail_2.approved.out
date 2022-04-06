@@ -2,7 +2,7 @@ Output:[
 	a b c
 ]
 Diagnostic:[
-	..\src\rfx\tests\preprocessor\PreprocDetail_2.rfx(3): error 15408: redefinition of macro parameter 'x'
+	..\src\rfx\tests\preprocessor\PreprocDetail_2.rfx(5): error 15408: redefinition of macro parameter 'x'
 	#define A(x, x) a x b x c
 	             ^
 ]

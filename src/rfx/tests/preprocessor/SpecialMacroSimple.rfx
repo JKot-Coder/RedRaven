@@ -1,3 +1,5 @@
+//PREPROCESSOR_TEST:
+
 //__LINE__ and __FILE__ support
 
 __LINE__

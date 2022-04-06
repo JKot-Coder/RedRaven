@@ -1,3 +1,4 @@
+//PREPROCESSOR_TEST:
 // Test that a `#if` test can invoke a function-like macro.
 // Note: this test is a reproducer for a bug reported by a user.
 
