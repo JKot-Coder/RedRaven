@@ -1,4 +1,4 @@
-Output:[
+PreprocessorOutput:[
 	int NO_EXPAND(int b)
 	{
 	    return b + ( ( 1 ) );

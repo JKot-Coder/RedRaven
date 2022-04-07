@@ -1,4 +1,4 @@
-Output:[
+PreprocessorOutput:[
 	CONCAT(a, b) A2B2 CONCAT(a, b)
 ]
 Diagnostic:[

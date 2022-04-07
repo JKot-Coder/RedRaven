@@ -1,4 +1,4 @@
-Output:[
+PreprocessorOutput:[
 	float bar(float x) { return x; }
 	float foo(float x) { return x; }
 	float test(float x)

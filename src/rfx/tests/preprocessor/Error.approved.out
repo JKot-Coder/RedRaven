@@ -1,4 +1,4 @@
-Output:[
+PreprocessorOutput:[
 ]
 Diagnostic:[
 	..\src\rfx\tests\preprocessor\Error.rfx(10): error 15900: #error: This isn't valid!

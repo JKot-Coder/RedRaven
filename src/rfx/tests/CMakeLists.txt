@@ -4,7 +4,9 @@ set(RFX_TESTS_SRC
     "main.cpp"
     "RfxApprover.hpp"
     "RfxWriter.cpp"
-    "RfxWriter.hpp")
+    "RfxWriter.hpp"
+    "TestUtils.hpp"
+    "TestUtils.cpp")
 source_group( "" FILES ${RFX_TESTS_SRC} )
 
 set(RFX_TESTS_LEXER_SRC

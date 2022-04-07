@@ -351,16 +351,16 @@ namespace RR
         public:
             struct PreprocessorDefinition
             {
-                const char* key = nullptr;
-                const char* value = nullptr;
+                const char* key;
+                const char* value;
             };
 
         public:
-            const char* inputFile = nullptr;
-            const PreprocessorDefinition* defines = nullptr;
-            size_t defineCount = 0;
-            bool lexerOutput = false;
-            bool preprocessorOutput = false;
+            const char* inputFile;
+            const PreprocessorDefinition* defines;
+            size_t defineCount;
+            bool lexerOutput;
+            bool preprocessorOutput;
         };
 
         class IRfxUnknown

@@ -1,3 +1,5 @@
+//LEXER_TEST:
+
 1234567890   // Basic integer
 0123456789	 // Octal with invalid digits
 0B0101010101 // Basic binary

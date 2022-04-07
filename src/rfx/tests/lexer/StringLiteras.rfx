@@ -1,3 +1,5 @@
+//LEXER_TEST:
+
 "Basic"
 "Escaped symbols \a\b\f\n\r\t\v\'\"\\"
 "HEX \xFF"

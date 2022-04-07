@@ -154,7 +154,7 @@ namespace RR
             if (!outputRequired)
                 return 0;
 
-            Rfx::CompilerRequestDescription compilerRequest;
+            Rfx::CompilerRequestDescription compilerRequest {};
 
             compilerRequest.inputFile = inputFiles.front().c_str();
             compilerRequest.preprocessorOutput = parseResult.count("Fp");

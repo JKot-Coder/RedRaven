@@ -1,4 +1,4 @@
-Output:[
+PreprocessorOutput:[
 	float foo() { return 1.0f + 2.0; }
 	typedef float BAR;
 	BAR bar() { return 2.0; }

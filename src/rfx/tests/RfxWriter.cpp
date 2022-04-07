@@ -6,19 +6,31 @@ namespace RR::Rfx
     {
         namespace
         {
-            void writeOutput(std::ofstream& ofs, const std::string& outputName, const ComPtr<IBlob>& output)
+            std::string getOutputName(Rfx::CompileOutputType outputType)
+            {
+                switch (outputType)
+                { // clang-format off
+                    case Rfx::CompileOutputType::Lexer: return "LexerOutput";
+                    case Rfx::CompileOutputType::Preprocessor: return "PreprocessorOutput";
+                    default: ASSERT_MSG(false, "Unsupported CompileOutputType"); 
+                } // clang-format on
+
+                return "";
+            }
+
+            void writeOutput(std::ofstream& ofs, const std::string& outputName, const std::string& indent, const ComPtr<IBlob>& output)
             {
                 ASSERT(output);
 
-                ofs << outputName << ":[\n";
+                ofs << indent << outputName << ":[\n";
 
                 U8String line;
                 std::istringstream logStream((char*)output->GetBufferPointer());
 
                 while (std::getline(logStream, line, '\n'))
-                    ofs << fmt::format("\t{}\n", line);
+                    ofs << indent << fmt::format("\t{}\n", line);
 
-                ofs << "]\n";
+                ofs << indent << "]\n";
             }
         }
 
@@ -27,19 +39,33 @@ namespace RR::Rfx
             std::ofstream ofs(path);
             ASSERT(ofs.is_open())
 
-            for (const auto& compilerResult : compileResults_)
+            const size_t resultsCount = compileResults_.size();
+            const std::string intent = (resultsCount > 1) ? "\t" : "";
+
+            for (size_t i = 0; i < resultsCount; i++)
             {
-                ComPtr<IBlob> output;
-                Rfx::CompileOutputType outputType;
+                const auto& compileResult = compileResults_[i];
 
-                auto result = compilerResult->GetOutput(0, outputType, output.put());
-                if (RFX_SUCCEEDED(result))
-                    writeOutput(ofs, "Output", output);
+                if (resultsCount > 1)
+                    ofs << "Test_" << (i + 1) << ":[\n";
 
-                output = nullptr;
-                result = compilerResult->GetDiagnosticOutput(output.put());
+                for (size_t j = 0; j < compileResult->GetOutputsCount(); j++)
+                {
+                    ComPtr<IBlob> output;
+                    Rfx::CompileOutputType outputType;
+
+                    auto result = compileResult->GetOutput(j, outputType, output.put());
+                    if (RFX_SUCCEEDED(result))
+                        writeOutput(ofs, getOutputName(outputType), intent, output);
+                }
+
+                ComPtr<IBlob> output = nullptr;
+                auto result = compileResult->GetDiagnosticOutput(output.put());
                 if (RFX_SUCCEEDED(result))
-                    writeOutput(ofs, "Diagnostic", output);
+                    writeOutput(ofs, "Diagnostic", intent, output);
+
+                if (resultsCount > 1)
+                    ofs << "]" << ((i != resultsCount - 1) ? "," : "") << "\n";
             }
 
             ofs.close();

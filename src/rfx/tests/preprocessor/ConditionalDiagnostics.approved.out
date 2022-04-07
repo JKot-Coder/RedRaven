@@ -1,4 +1,4 @@
-Output:[
+PreprocessorOutput:[
 ]
 Diagnostic:[
 	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(4): error 15001: 'else' directive without '#if'
