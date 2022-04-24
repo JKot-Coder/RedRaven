@@ -1,4 +1,5 @@
 PreprocessorOutput:[
+	#line 9 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PoundPound_1.rfx"
 	Hello ## There;
 ]
 Diagnostic:[

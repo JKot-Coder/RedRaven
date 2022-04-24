@@ -1,4 +1,5 @@
 PreprocessorOutput:[
+	#line 7
 	float foo() { return 1.0f + 2.0; }
 ]
 Diagnostic:[
