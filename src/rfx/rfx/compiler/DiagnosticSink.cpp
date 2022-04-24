@@ -212,6 +212,7 @@ namespace RR
                                     */
 
                 const auto includeStack = sourceView->GetIncludeStack().GetStack();
+                ASSERT(!includeStack.empty())
 
                 for (auto it = includeStack.begin(); it != std::prev(includeStack.end()); ++it)
                 {

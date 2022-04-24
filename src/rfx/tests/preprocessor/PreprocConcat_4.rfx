@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 
 #define CONCAT(a, b) a ## b
 

@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 // #error support
 
 #define FIRST 0

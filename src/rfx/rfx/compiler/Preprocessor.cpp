@@ -2910,10 +2910,10 @@ namespace RR
                         PathInfo pathInfo = PathInfo::makeTokenPaste();
 
                         const auto preprocessor = preprocessor_.lock();
-                        ASSERT(preprocessor);
+                        ASSERT(preprocessor);                 
 
                         const auto& sourceFile = preprocessor->GetIncludeSystem()->CreateFileFromString(pathInfo, pastedContent.str());
-                        auto sourceView = SourceView::Create(sourceFile);
+                        auto sourceView = SourceView::CreatePasted(sourceFile, initiatingMacroToken_.sourceLocation.GetSourceView(), initiatingMacroToken_.humaneSourceLocation);
 
                         Lexer lexer(sourceView, preprocessor->GetAllocator(), preprocessor->GetSink());
                         auto lexedTokens = lexer.LexAllSemanticTokens();

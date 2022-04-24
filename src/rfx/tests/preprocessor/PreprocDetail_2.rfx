@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 
 // Macro parameters must have unique names
 

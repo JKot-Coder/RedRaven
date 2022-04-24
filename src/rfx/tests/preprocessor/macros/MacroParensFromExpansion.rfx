@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 //
 // This test covers a case where the parentheses for
 // a function-like macro invocation argument list are

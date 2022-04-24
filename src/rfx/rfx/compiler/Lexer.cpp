@@ -135,7 +135,9 @@ namespace RR
                 nextToken_.type = Token::Type::EndOfFile;
         }
 
-        Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+        Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView,
+                     const std::shared_ptr<LinearAllocator>& linearAllocator,
+                     const std::shared_ptr<DiagnosticSink>& diagnosticSink)
             : allocator_(linearAllocator),
               sourceView_(sourceView),
               sink_(diagnosticSink)

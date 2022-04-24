@@ -305,6 +305,18 @@ namespace RR
                 return sourceView;
             }
 
+            [[nodiscard]] static std::shared_ptr<SourceView> CreatePasted(const std::shared_ptr<SourceFile>& sourceFile,
+                                                                          const std::shared_ptr<SourceView>& parentView,
+                                                                          const HumaneSourceLocation& parentHumanLocation)
+            {
+                const auto includeStack = IncludeStack::CreateIncluded(parentView->GetIncludeStack(), sourceFile->GetPathInfo(), parentHumanLocation);
+
+                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, includeStack, parentHumanLocation));
+                sourceView->advanceBom();
+
+                return sourceView;
+            }
+
             [[nodiscard]] static std::shared_ptr<SourceView> CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<SourceView>& parentView, const HumaneSourceLocation& parentHumanLocation)
             {
                 auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, parentView, parentHumanLocation));
@@ -319,6 +331,18 @@ namespace RR
             }
 
         private:
+            SourceView(const std::shared_ptr<SourceFile>& sourceFile,
+                       const IncludeStack& includeStack,
+                       const HumaneSourceLocation& initiatingHumaneLocation)
+                : sourceFile_(sourceFile)
+            {
+                ASSERT(sourceFile) //TODO validate file
+
+                content_ = sourceFile_->GetContent();
+                includeStack_ = includeStack;
+                initiatingHumaneLocation_ = initiatingHumaneLocation;
+            }
+
             SourceView(const std::shared_ptr<SourceFile>& sourceFile)
                 : sourceFile_(sourceFile)
             {
@@ -338,6 +362,7 @@ namespace RR
                 includeStack_ = IncludeStack::CreateIncluded(parentView->GetIncludeStack(), sourceFile->GetPathInfo(), parentHumanLocation);
                 content_ = sourceFile_->GetContent();
                 initiatingHumaneLocation_ = HumaneSourceLocation(1, 1);
+                includeStack_ = IncludeStack(sourceFile->GetPathInfo());
             }
 
             SourceView(const SourceLocation& splitLocation, const HumaneSourceLocation& splitHumanLocation, const PathInfo& ownPathInfo)

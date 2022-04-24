@@ -1,4 +1,4 @@
-//LEXER_TEST:
+// -O LEXER
 
 Инвалид
 identifier

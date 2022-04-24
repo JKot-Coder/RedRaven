@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 
 // Test for correct recursive macro behavior. In particular: 
 

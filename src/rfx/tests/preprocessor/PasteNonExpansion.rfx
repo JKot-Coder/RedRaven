@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 //
 // This os a regression test for a bug in Slang preprocessor macro expansion.
 

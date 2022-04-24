@@ -24,6 +24,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/PragmaOnce-a.hrfx"
     "preprocessor/PragmaOnce-b.hrfx"
     "preprocessor/_SpecialMacroComplex.rfx"
+    "preprocessor/CommandLineDefines.rfx"
     "preprocessor/ConditionalDiagnostics.rfx"
     "preprocessor/DefineFunctionLike.rfx"
     "preprocessor/DefineRedefine.rfx"

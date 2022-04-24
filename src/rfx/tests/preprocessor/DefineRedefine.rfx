@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR
 // Confirm that we handle redefinition
 // of an existing define (with a diagnostic)
 

@@ -1,4 +1,4 @@
-//LEXER_TEST:
+// -O LEXER
 
 1234567890   // Basic integer
 0123456789	 // Octal with invalid digits
