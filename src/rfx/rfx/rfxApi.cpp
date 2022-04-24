@@ -26,6 +26,28 @@
 
 namespace RR::Rfx
 {
+    namespace
+    {
+        PathInfo GetIncludePQPEP(const std::shared_ptr<SourceView>& sourceView)
+        {
+            const auto includeStack = sourceView->GetIncludeStack().GetStack();
+            ASSERT(!includeStack.empty())
+
+            for (auto it = includeStack.rbegin(); it != includeStack.rend(); ++it)
+            {
+                const auto& includeInfo = *it;
+                const auto pathInfoType = includeInfo.pathInfo.type;
+
+                if (pathInfoType == PathInfo::Type::Normal ||
+                    pathInfoType == PathInfo::Type::FoundPath)
+                    return includeInfo.pathInfo;
+            }
+
+            return (*std::prev(includeStack.end())).pathInfo;
+        }
+
+    }
+
     class SourceWriter
     {
     public:
@@ -40,7 +62,33 @@ namespace RR::Rfx
             if (IsSet(token.flags, Token::Flags::AtStartOfLine))
             {
                 if (!output_.empty()) // Skip new line at the wery begining
-                    output_ += "\n" + indentString_;
+                    output_.push_back('\n');
+
+                if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
+                {
+                    line_ = token.humaneSourceLocation.line;
+
+                    if (!currentSourceFile_ || uniqueP != GetIncludePQPEP(token.sourceLocation.GetSourceView()).getMostUniqueIdentity())
+                    {
+                        uniqueP = GetIncludePQPEP(token.sourceLocation.GetSourceView()).getMostUniqueIdentity();
+                        currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
+                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, uniqueP);
+                    }
+                    else
+                    {
+                        output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                    }
+
+                }
+                else if (token.humaneSourceLocation.line != line_)
+                {
+                    line_ = token.humaneSourceLocation.line;
+
+                    output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                }                
+
+                line_++;
+                output_ += indentString_;
             }
             else if (IsSet(token.flags, Token::Flags::AfterWhitespace))
             {
@@ -85,9 +133,13 @@ namespace RR::Rfx
         }
 
     private:
+        uint32_t line_ = 1;
         uint32_t indentLevel_ = 0;
         U8String indentString_ = "";
         U8String output_;
+        U8String uniqueP;
+        std::shared_ptr<SourceView> currentSourceView_;
+        std::shared_ptr<SourceFile> currentSourceFile_;
     };
 
     U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor)
@@ -235,7 +287,7 @@ namespace RR::Rfx
 
                 for (size_t i = 0; i < compilerRequest.defineCount; i++)
                 {
-                    const auto define = compilerRequest.defines[0];
+                    const auto define = compilerRequest.defines[i];
 
                     if (!define.key)
                         return RfxResult::InvalidArgument;
