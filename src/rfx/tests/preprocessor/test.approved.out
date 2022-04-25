@@ -1,5 +1,58 @@
-Output:[
-	BAR qwe LINE
-]
-Diagnostic:[
+Test_1:[
+	LexerOutput:[
+		{"Type":"line comment", "Content":"\/\/ -O PREPROCESSOR -O LEXER", "Line":1, "Column":1},
+		{"Type":"end of line", "Content":"\r\n", "Line":1, "Column":28},
+		{"Type":"line comment", "Content":"\/\/ -O LEXER", "Line":2, "Column":1},
+		{"Type":"end of line", "Content":"\r\n", "Line":2, "Column":12},
+		{"Type":"end of line", "Content":"\r\n", "Line":3, "Column":1},
+		{"Type":"'#'", "Content":"#", "Line":4, "Column":1},
+		{"Type":"identifier", "Content":"define", "Line":4, "Column":2},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":8},
+		{"Type":"identifier", "Content":"FOO", "Line":4, "Column":9},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":12},
+		{"Type":"identifier", "Content":"BAR", "Line":4, "Column":13},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":16},
+		{"Type":"block comment", "Content":"\/* *\/", "Line":4, "Column":17},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":22},
+		{"Type":"identifier", "Content":"qwe", "Line":4, "Column":23},
+		{"Type":"whitespace", "Content":"      \t\t", "Line":4, "Column":26},
+		{"Type":"identifier", "Content":"LINE", "Line":4, "Column":40},
+		{"Type":"end of line", "Content":"\r\n", "Line":4, "Column":44},
+		{"Type":"end of line", "Content":"\r\n", "Line":5, "Column":1},
+		{"Type":"identifier", "Content":"FOO", "Line":6, "Column":1},
+		{"Type":"end of file", "Content":"", "Line":6, "Column":4},
+	]
+	PreprocessorOutput:[
+		#line 6 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/test.rfx"
+		BAR qwe LINE
+	]
+	Diagnostic:[
+	]
+],
+Test_2:[
+	LexerOutput:[
+		{"Type":"line comment", "Content":"\/\/ -O PREPROCESSOR -O LEXER", "Line":1, "Column":1},
+		{"Type":"end of line", "Content":"\r\n", "Line":1, "Column":28},
+		{"Type":"line comment", "Content":"\/\/ -O LEXER", "Line":2, "Column":1},
+		{"Type":"end of line", "Content":"\r\n", "Line":2, "Column":12},
+		{"Type":"end of line", "Content":"\r\n", "Line":3, "Column":1},
+		{"Type":"'#'", "Content":"#", "Line":4, "Column":1},
+		{"Type":"identifier", "Content":"define", "Line":4, "Column":2},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":8},
+		{"Type":"identifier", "Content":"FOO", "Line":4, "Column":9},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":12},
+		{"Type":"identifier", "Content":"BAR", "Line":4, "Column":13},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":16},
+		{"Type":"block comment", "Content":"\/* *\/", "Line":4, "Column":17},
+		{"Type":"whitespace", "Content":" ", "Line":4, "Column":22},
+		{"Type":"identifier", "Content":"qwe", "Line":4, "Column":23},
+		{"Type":"whitespace", "Content":"      \t\t", "Line":4, "Column":26},
+		{"Type":"identifier", "Content":"LINE", "Line":4, "Column":40},
+		{"Type":"end of line", "Content":"\r\n", "Line":4, "Column":44},
+		{"Type":"end of line", "Content":"\r\n", "Line":5, "Column":1},
+		{"Type":"identifier", "Content":"FOO", "Line":6, "Column":1},
+		{"Type":"end of file", "Content":"", "Line":6, "Column":4},
+	]
+	Diagnostic:[
+	]
 ]

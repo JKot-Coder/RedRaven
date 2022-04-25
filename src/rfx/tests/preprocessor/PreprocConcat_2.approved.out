@@ -1,4 +1,5 @@
 PreprocessorOutput:[
+	#line 15 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_2.rfx"
 	a A2B2 b;
 ]
 Diagnostic:[

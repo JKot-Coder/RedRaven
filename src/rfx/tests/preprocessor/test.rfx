@@ -1,4 +1,5 @@
-//PREPROCESSOR_TEST:
+// -O PREPROCESSOR -O LEXER
+// -O LEXER
 
 #define FOO BAR /* */ qwe      		LINE
 
