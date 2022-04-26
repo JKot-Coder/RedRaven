@@ -1,8 +1,13 @@
 PreprocessorOutput:[
+	#line 11 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\_SpecialMacroComplex.rfx"
 	Thing11
+	#line 16
 	Yeppers
+	#line 23
 	PasteConditional
+	#line 10
 	10
+	#line 19
 	19
 ]
 Diagnostic:[
