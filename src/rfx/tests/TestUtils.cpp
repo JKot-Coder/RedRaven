@@ -375,31 +375,34 @@ namespace RR::Rfx::Tests
 
     void runTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
     {
-        std::error_code ec;
-        auto relativePath = fs::relative(testFile, testDirectory, ec);
-        REQUIRE(!(bool)ec);
-
-        std::vector<CompilerRequestDescription> compileRequests;
-
-        CompilerRequestParser configurationParser;
-        REQUIRE(RFX_SUCCEEDED(configurationParser.Parse(testFile, compileRequests)));
-        REQUIRE(!compileRequests.empty());
-
-        std::vector<ComPtr<ICompileResult>> compileResults;
-        for (const auto& compileRequest : compileRequests)
+        DYNAMIC_SECTION(testFile.filename().u8string())
         {
-            ComPtr<ICompileResult> compileResult;
-            REQUIRE(RFX_SUCCEEDED(RR::Rfx::Compile(compileRequest, compileResult.put())));
+            std::error_code ec;
+            auto relativePath = fs::relative(testFile, testDirectory, ec);
+            REQUIRE(!(bool)ec);
 
-            compileResults.push_back(compileResult);
+            std::vector<CompilerRequestDescription> compileRequests;
+
+            CompilerRequestParser configurationParser;
+            REQUIRE(RFX_SUCCEEDED(configurationParser.Parse(testFile, compileRequests)));
+            REQUIRE(!compileRequests.empty());
+
+            std::vector<ComPtr<ICompileResult>> compileResults;
+            for (const auto& compileRequest : compileRequests)
+            {
+                ComPtr<ICompileResult> compileResult;
+                REQUIRE(RFX_SUCCEEDED(RR::Rfx::Compile(compileRequest, compileResult.put())));
+
+                compileResults.push_back(compileResult);
+            }
+
+            // Remove extension from relativePath
+            relativePath = relativePath.parent_path() / relativePath.stem();
+
+            auto namer = ApprovalTests::TemplatedCustomNamer::create(
+                "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
+            RfxApprover::verify(compileResults, ApprovalTests::Options().withNamer(namer));
         }
-
-        // Remove extension from relativePath
-        relativePath = relativePath.parent_path() / relativePath.stem();
-
-        auto namer = ApprovalTests::TemplatedCustomNamer::create(
-            "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
-        RfxApprover::verify(compileResults, ApprovalTests::Options().withNamer(namer));
     }
 
     void runTestsInDirectory(const fs::path& directory)
@@ -409,10 +412,7 @@ namespace RR::Rfx::Tests
             if (entry.path().extension() != ".rfx")
                 continue;
 
-            DYNAMIC_SECTION(entry.path().stem().u8string())
-            {
-                runTestOnFile(entry, directory);
-            }
+            runTestOnFile(entry, directory);
         }
     }
 

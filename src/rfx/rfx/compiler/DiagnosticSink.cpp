@@ -210,7 +210,7 @@ namespace RR
                                                   humaneLocation.line,
                                                   humaneLocation.column);
                                     */
-
+                /*
                 const auto includeStack = sourceView->GetIncludeStack().GetStack();
                 ASSERT(!includeStack.empty())
 
@@ -221,7 +221,7 @@ namespace RR
                                                    includeInfo.pathInfo.foundPath,
                                                    includeInfo.humaneSourceLocation.line,
                                                    includeInfo.humaneSourceLocation.column);
-                }
+                }*/
 
                 humaneLocString += fmt::format("{0}({1}): ",
                                                sourceView->GetPathInfo().foundPath,

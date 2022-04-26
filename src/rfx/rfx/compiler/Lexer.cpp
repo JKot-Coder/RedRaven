@@ -147,8 +147,11 @@ namespace RR
 
             auto content = sourceView->GetContent();
 
-            linesCounter_ = sourceView_->GetInitiatingHumaneLocation().line;
-            columnCounter_ = sourceView_->GetInitiatingHumaneLocation().column;
+            if (sourceView_->GetPathInfo().type == PathInfo::Type::Split)
+            {
+                linesCounter_ = sourceView_->GetInitiatingHumaneLocation().line;
+                columnCounter_ = sourceView_->GetInitiatingHumaneLocation().column;
+            }
 
             begin_ = content.Begin();
             cursor_ = begin_;

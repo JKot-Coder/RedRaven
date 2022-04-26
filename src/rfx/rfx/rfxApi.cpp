@@ -28,6 +28,7 @@ namespace RR::Rfx
 {
     namespace
     {
+        /*
         PathInfo GetIncludePQPEP(const std::shared_ptr<SourceView>& sourceView)
         {
             const auto includeStack = sourceView->GetIncludeStack().GetStack();
@@ -44,8 +45,18 @@ namespace RR::Rfx
             }
 
             return (*std::prev(includeStack.end())).pathInfo;
-        }
+        }*/
 
+        void qweqwe(const std::shared_ptr<SourceView>& sourceView, std::shared_ptr<SourceView>& outSourceView, HumaneSourceLocation& outHumaneSourceLoc)
+        {
+            outSourceView = sourceView;
+
+            while (outSourceView->GetInitiatingSourceLocation().GetSourceView() && outSourceView->GetPathInfo().type != PathInfo::Type::Normal)
+            {
+                outHumaneSourceLoc = outSourceView->GetInitiatingHumaneLocation();
+                outSourceView = outSourceView->GetInitiatingSourceLocation().GetSourceView();
+            }
+        }
     }
 
     class SourceWriter
@@ -54,7 +65,7 @@ namespace RR::Rfx
         void Emit(const Token& token)
         {
             U8String escapedToken;
-            StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+            StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken); //???
 
             if (token.type == Token::Type::RBrace)
                 dedent();
@@ -66,26 +77,42 @@ namespace RR::Rfx
 
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
-                    line_ = token.humaneSourceLocation.line;
+                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
+                    std::shared_ptr<SourceView> sourceView;
 
-                    if (!currentSourceFile_ || uniqueP != GetIncludePQPEP(token.sourceLocation.GetSourceView()).getMostUniqueIdentity())
+                    qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                    line_ = humaleLoc.line;
+
+                    if (!currentSourceFile_ || uniqueP != sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity())
                     {
-                        uniqueP = GetIncludePQPEP(token.sourceLocation.GetSourceView()).getMostUniqueIdentity();
+                        uniqueP = sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity();
+                        auto uniquePaa = fs::path(uniqueP);
+
+                        U8String escapedToken2; // TODO  Fix this
+                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, uniquePaa.make_preferred().u8string(), escapedToken2); //??
+
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
-                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, uniqueP);
+                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedToken2);
                     }
                     else
                     {
                         output_ += fmt::format("{}#line {}\n", indentString_, line_);
                     }
-
                 }
-                else if (token.humaneSourceLocation.line != line_)
+                else
                 {
-                    line_ = token.humaneSourceLocation.line;
+                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
+                    std::shared_ptr<SourceView> sourceView;
 
-                    output_ += fmt::format("{}#line {}\n", indentString_, line_);
-                }                
+                    qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+
+                    //  line_ = token.humaneSourceLocation.line;
+                    if (humaleLoc.line != line_)
+                    {
+                        line_ = humaleLoc.line;
+                        output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                    }
+                }
 
                 line_++;
                 output_ += indentString_;
