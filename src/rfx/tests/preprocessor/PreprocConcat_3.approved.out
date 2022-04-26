@@ -1,5 +1,5 @@
 PreprocessorOutput:[
-	#line 16 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_3.rfx"
+	#line 16 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PreprocConcat_3.rfx"
 	CONCAT(a, a)CONCAT(b, b);
 ]
 Diagnostic:[

@@ -1,6 +1,8 @@
 PreprocessorOutput:[
+	#line 9 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\SpecialMacroRedefineFunction.rfx"
 	"Is" "Anybody"
 	"Is" There
+	#line 14
 	__FILE__
 ]
 Diagnostic:[

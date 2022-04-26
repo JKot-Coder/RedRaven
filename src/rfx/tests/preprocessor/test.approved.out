@@ -23,7 +23,7 @@ Test_1:[
 		{"Type":"end of file", "Content":"", "Line":6, "Column":4},
 	]
 	PreprocessorOutput:[
-		#line 6 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/test.rfx"
+		#line 6 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\test.rfx"
 		BAR qwe LINE
 	]
 	Diagnostic:[

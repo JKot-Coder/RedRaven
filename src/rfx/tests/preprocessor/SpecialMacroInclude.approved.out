@@ -1,5 +1,7 @@
 PreprocessorOutput:[
+	#line 3 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\include\\SpecialMacroInclude.hrfx"
 	"..\\src\\rfx\\tests\\preprocessor\\include\\SpecialMacroInclude.hrfx" 3
+	#line 3
 	"..\\src\\rfx\\tests\\preprocessor\\include\\SpecialMacroInclude.hrfx" 3
 ]
 Diagnostic:[

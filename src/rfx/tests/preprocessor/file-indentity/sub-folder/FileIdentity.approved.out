@@ -1,6 +1,9 @@
 PreprocessorOutput:[
+	#line 11 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/file-indentity/c.hrfx"
 	float bar(float x) { return x; }
+	#line 11 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/file-indentity/b.hrfx"
 	float foo(float x) { return x; }
+	#line 8 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/file-indentity/sub-folder/FileIdentity.rfx"
 	float test(float x)
 	{
 	    return foo(x) + bar(x);

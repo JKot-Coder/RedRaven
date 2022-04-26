@@ -1,6 +1,6 @@
 LexerOutput:[
-	{"Type":"line comment", "Content":"\/\/LEXER_TEST:", "Line":1, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":1, "Column":14},
+	{"Type":"line comment", "Content":"\/\/ -O LEXER", "Line":1, "Column":1},
+	{"Type":"end of line", "Content":"\r\n", "Line":1, "Column":12},
 	{"Type":"end of line", "Content":"\r\n", "Line":2, "Column":1},
 	{"Type":"string literal", "Content":"\"Basic\"", "Line":3, "Column":1},
 	{"Type":"end of line", "Content":"\r\n", "Line":3, "Column":8},

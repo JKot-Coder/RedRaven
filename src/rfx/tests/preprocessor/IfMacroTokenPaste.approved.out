@@ -1,5 +1,5 @@
 PreprocessorOutput:[
-	#line 7 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/IfMacroTokenPaste.rfx"
+	#line 7 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\IfMacroTokenPaste.rfx"
 	int test() {
 	    #line 9
 	    return 1;

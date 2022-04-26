@@ -1,20 +1,22 @@
 PreprocessorOutput:[
+	#line 4 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\IncludeMultiple.rfx"
 	int foo() { return 0; }
+	#line 3 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\Include-a.hrfx"
 	int bar() { return foo(); }
+	#line 3
 	int bar() { return foo(); }
+	#line 3
 	int bar() { return foo(); }
+	#line 10 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\IncludeMultiple.rfx"
 	int baz() { return bar(); }
 ]
 Diagnostic:[
-	In file included from ..\src\rfx\tests\preprocessor\IncludeMultiple.rfx(6):
 	..\src\rfx\tests\preprocessor\Include-a.hrfx(5): warning 15901: #warning: Include-a.hrfx included
 	#warning Include-a.hrfx included
 	 ^~~~~~~
-	In file included from ..\src\rfx\tests\preprocessor\IncludeMultiple.rfx(7):
 	..\src\rfx\tests\preprocessor\Include-a.hrfx(5): warning 15901: #warning: Include-a.hrfx included
 	#warning Include-a.hrfx included
 	 ^~~~~~~
-	In file included from ..\src\rfx\tests\preprocessor\IncludeMultiple.rfx(8):
 	..\src\rfx\tests\preprocessor\Include-a.hrfx(5): warning 15901: #warning: Include-a.hrfx included
 	#warning Include-a.hrfx included
 	 ^~~~~~~

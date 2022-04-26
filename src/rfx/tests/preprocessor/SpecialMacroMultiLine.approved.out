@@ -1,5 +1,7 @@
 PreprocessorOutput:[
+	#line 5 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\SpecialMacroMultiLine.rfx"
 	int x = 5
+	#line 9
 	;
 ]
 Diagnostic:[
