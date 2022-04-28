@@ -7,5 +7,6 @@ BreakBeforeBraces: Allman
 BreakConstructorInitializers: BeforeColon
 NamespaceIndentation: All
 IndentCaseLabels: true
+AllowShortCaseLabelsOnASingleLine: true
 
 ...
