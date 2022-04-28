@@ -1,6 +1,0 @@
-// PragmaOnce-a.hrfx
-#pragma once
-
-// Used by the `PragmaOnce.rfx` test
-
-float foo(float x) { return x; }

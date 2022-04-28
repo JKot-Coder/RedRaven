@@ -1,4 +1,0 @@
-// -O PREPROCESSOR
-
-#include "./include/SpecialMacroInclude.hrfx"
-#include "include/SpecialMacroInclude.hrfx"

@@ -1,9 +1,0 @@
-PreprocessorOutput:[
-	#line 16 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PreprocConcat_3.rfx"
-	CONCAT(a, a)CONCAT(b, b);
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\PreprocConcat_3.rfx(3): warning 15503: toking pasting with '##' resulted in the invalid token ')CONCAT'
-	#define CONCAT(a, b) a ## b
-	                       ^
-]

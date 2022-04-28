@@ -1,9 +1,0 @@
-// -O PREPROCESSOR
-
-#define M(ARG) __LINE__
-
-int x = M
-(
-ignored
-)
-;

@@ -1,5 +1,0 @@
-// #include support
-
-int bar() { return foo(); }
-
-#warning Include-a.hrfx included

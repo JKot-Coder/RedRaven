@@ -39,8 +39,6 @@ set(RFX_COMPILER_SRC
     "compiler/Lexer.cpp"
     "compiler/Lexer.hpp"
     "compiler/LexerDiagnosticDefinitions.hpp"
-    "compiler/Preprocessor.cpp"   
-    "compiler/Preprocessor.hpp"
     "compiler/Program.cpp"
     "compiler/Program.hpp"
     "compiler/Session.cpp"

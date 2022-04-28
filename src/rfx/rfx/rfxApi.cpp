@@ -2,7 +2,6 @@
 
 #include "compiler/DiagnosticSink.hpp"
 #include "compiler/Lexer.hpp"
-#include "compiler/Preprocessor.hpp"
 
 #include "core/Blob.hpp"
 #include "core/Error.hpp"
@@ -169,17 +168,6 @@ namespace RR::Rfx
         std::shared_ptr<SourceFile> currentSourceFile_;
     };
 
-    U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor)
-    {
-        const auto& tokens = preprocessor->ReadAllTokens();
-        SourceWriter writer;
-
-        for (const auto& token : tokens)
-            writer.Emit(token);
-
-        return writer.GetOutput();
-    }
-
     U8String writeTokens(const std::shared_ptr<Lexer>& lexer)
     {
         U8String result;
@@ -310,21 +298,8 @@ namespace RR::Rfx
 
             if (compilerRequest.preprocessorOutput)
             {
-                const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, diagnosticSink);
 
-                for (size_t i = 0; i < compilerRequest.defineCount; i++)
-                {
-                    const auto define = compilerRequest.defines[i];
-
-                    if (!define.key)
-                        return RfxResult::InvalidArgument;
-
-                    preprocessor->DefineMacro(define.key, define.value ? define.value : "");
-                }
-
-                preprocessor->PushInputFile(sourceFile);
-
-                const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
+                const auto& blob = ComPtr<IBlob>(new Blob(""));
                 compilerResult->PushOutput(CompileOutputType::Preprocessor, blob);
             }
 
