@@ -166,17 +166,42 @@ namespace RR
                 }
             }
 
-            return int(lo);
+            return uint32_t(lo);
         }
 
         /// Calculate the offset for a line
-        uint32_t SourceFile::CalcColumnIndex(uint32_t line, size_t offset)
+        uint32_t SourceFile::CalcColumnIndex(uint32_t lineIndex, size_t offset)
         {
             const auto& lineBreakOffsets = GetLineBreakOffsets();
-            ASSERT(line < lineBreakOffsets.size())
-            const auto lineBegin = content_.data() + lineBreakOffsets[line];
+            ASSERT(lineIndex < lineBreakOffsets.size())
 
-            return uint32_t(utf8::distance(lineBegin, content_.data() + offset));
+            const auto lineBegin = content_.data() + lineBreakOffsets[lineIndex];
+            const auto targetPos = content_.data() + offset;
+
+            uint32_t column = 0;
+            auto cursor = lineBegin;
+
+            while (cursor != targetPos)
+            {
+                switch (*cursor)
+                {
+                    case '\t': column += 4; break;
+                    default: column++; break;
+                }
+
+                if (!utf8::next(cursor, targetPos))
+                    break;
+            }
+
+            return column;
+        }
+
+        HumaneSourceLocation SourceFile::CalcHumaneSourceLocation(size_t offset)
+        {
+            const auto lineIndex = CalcLineIndexFromOffset(offset);
+            const auto columnIndex = CalcColumnIndex(lineIndex, offset);
+
+            return HumaneSourceLocation(lineIndex + 1, columnIndex + 1);
         }
 
         const U8Char* SourceView::GetContentFrom(const SourceLocation& loc) const
@@ -196,23 +221,20 @@ namespace RR
         {
             ASSERT(loc.sourceView_ == shared_from_this());
 
-            (void)type;
+            auto locc = loc;
 
-            const auto offset = loc.raw_;
+            if (type == SourceLocationType::Nominal)
+            {
+                auto sourceView = loc.GetSourceView();                
+   
+                while (locc.GetSourceView()->GetInitiatingSourceLocation().GetSourceView() && locc.GetSourceView()->GetPathInfo().type != PathInfo::Type::Normal)
+                {
+                    locc = sourceView->GetInitiatingSourceLocation();
+                }                
+            }
+            const auto offset = locc.raw_;
+            const auto& humaneLoc = locc.sourceView_->GetSourceFile()->CalcHumaneSourceLocation(offset);
 
-            // We need the line index from the original source file
-            const auto lineIndex = sourceFile_->CalcLineIndexFromOffset(offset);
-
-            // TODO: we should really translate the byte index in the line
-            // to deal with:
-            // - Tab characters, which should really adjust how we report
-            //   columns (although how are we supposed to know the setting
-            //   that an IDE expects us to use when reporting locations?)
-            const auto columnIndex = sourceFile_->CalcColumnIndex(lineIndex, offset);
-
-            HumaneSourceLocation humaneLoc;
-            humaneLoc.column = columnIndex + 1;
-            humaneLoc.line = lineIndex + 1;
 
             /*
                 // Make up a default entry

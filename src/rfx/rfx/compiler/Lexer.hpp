@@ -126,20 +126,6 @@ namespace RR
             TokenList LexAllSemanticTokens();
 
         private:
-            class Counter final
-            {
-            public:
-                Counter(uint32_t initialValue) : counter_(initialValue) {};
-                inline void Reset(uint32_t initialValue = 0) { counter_ = initialValue; }
-                inline void Increment() { counter_++; }
-                inline void Increment(uint32_t value) { counter_ += value; }
-                inline uint32_t Value() const { return counter_; }
-
-            private:
-                uint32_t counter_ = 0;
-            };
-
-        private:
             inline bool isReachEOF() const { return cursor_ == end_; }
 
             inline U8Glyph peek() const
@@ -151,9 +137,9 @@ namespace RR
             }
 
             Token::Type scanToken();
+            void advanceBOM();
             void advance();
             SourceLocation getSourceLocation();
-            HumaneSourceLocation getHumaneSourceLocation();
 
             void handleBlockComment();
             void handleEscapedNewline();
@@ -177,8 +163,6 @@ namespace RR
             const char* cursor_;
             const char* begin_;
             const char* end_;
-            Counter linesCounter_ = 1;
-            Counter columnCounter_ = 1;
             Token::Flags tokenflags_ = Token::Flags::AtStartOfLine;
             Flags lexerFlags_ = Flags::None;
         };

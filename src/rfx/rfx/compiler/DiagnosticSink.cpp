@@ -196,12 +196,14 @@ namespace RR
                 HumaneSourceLocation humaneLocation;
 
                 const auto sourceView = diagnostic.location.GetSourceView();
+                
+                ASSERT(sourceView);
                 if (sourceView)
                 {
-                    //    humaneLocation = sourceView->GetHumaneLocation(diagnostic.location);
-                }
+                    humaneLocation = sourceView->GetHumaneLocation(diagnostic.location);
+                } 
 
-                humaneLocation = diagnostic.humaneSourceLocation;
+               // humaneLocation = diagnostic.humaneSourceLocation;
 
                 /*
                     CLion fomat

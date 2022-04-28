@@ -916,7 +916,6 @@ namespace RR
             {
                 U8String name;
                 SourceLocation sourceLocation;
-                HumaneSourceLocation humaneSourceLocation;
                 bool isVariadic = false;
             };
 
@@ -1015,7 +1014,7 @@ namespace RR
             void updateSourceViewForTokens(TokenReader& tokenReader, const std::shared_ptr<SourceView>& sourceView, TokenList& outTokenList) const;
 
             /// Push a stream onto `currentOpStreams_` that consists of a single token
-            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, const HumaneSourceLocation& humaneSourceLocation, U8String const& content);
+            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, U8String const& content);
 
             /// Push a stream for a source-location builtin (`__FILE__` or `__LINE__`), with content set up by `valueBuilder`
             template <typename F>
@@ -2176,7 +2175,6 @@ namespace RR
                         Token ellipsisToken;
                         MacroDefinition::Param param;
                         param.sourceLocation = paramNameToken.sourceLocation;
-                        param.humaneSourceLocation = paramNameToken.humaneSourceLocation;
 
                         if (peekRawTokenType() == Token::Type::Ellipsis)
                         {
@@ -2219,7 +2217,7 @@ namespace RR
                         const auto paramName = param.name;
                         if (mapParamNameToIndex.find(paramName) != mapParamNameToIndex.end())
                         {
-                            GetSink()->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
+                            GetSink()->Diagnose(param.sourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
                         }
                         else
                         {
@@ -2238,14 +2236,16 @@ namespace RR
 
                 // Once we have parsed the macro parameters, we can perform the additional validation
                 // step of checking that any parameters before the last parameter are not variadic.
-                size_t lastParamIndex = macro->params.size() - 1;
+                size_t lastParamIndex = macro->params.size();
+                lastParamIndex -= lastParamIndex ? 1 : 0;
+
                 for (size_t i = 0; i < lastParamIndex; ++i)
                 {
                     auto& param = macro->params[i];
                     if (!param.isVariadic)
                         continue;
 
-                    GetSink()->Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
+                    GetSink()->Diagnose(param.sourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
 
                     // As a precaution, we will unmark the variadic-ness of the parameter, so that
                     // logic downstream from this step doesn't have to deal with the possibility
@@ -2417,7 +2417,7 @@ namespace RR
             }
 
             // This is a new parse (even if it's a pre-existing source file), so create a new
-            const auto& includedView = SourceView::CreateIncluded(includedFile, sourceLocation, directiveContext.token.humaneSourceLocation);
+            const auto& includedView = SourceView::CreateIncluded(includedFile, sourceLocation);
 
             PushInputFile(std::make_shared<InputFile>(shared_from_this(), includedView));
         }
@@ -2472,9 +2472,9 @@ namespace RR
 
             HumaneSourceLocation humaneLocation(line, 1);
 
-            // Todo trash
+            // Todo trash // TODO !!!!!!!!!!!!!!!!!!!!!
             pathInfo = PathInfo::makeSplit(pathInfo.foundPath, pathInfo.uniqueIdentity);
-            const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
+            const auto& sourceView = SourceView::CreateSplited(sourceLocation, pathInfo);
 
             // Forced closing of the current current stream and start a new one
             popInputFile(true);
@@ -2828,7 +2828,6 @@ namespace RR
                         // The more complicated case is a token paste (`##`).
                         auto tokenPasteTokenIndex = nextOp.index0;
                         const auto& tokenPasteLoc = macro_->tokens[tokenPasteTokenIndex].sourceLocation;
-                        const auto& tokenPasteHumaneLoc = macro_->tokens[tokenPasteTokenIndex].humaneSourceLocation;
 
                         // A `##` must always appear between two macro ops (whether literal tokens
                         // or macro parameters) and it is supposed to paste together the last
@@ -2918,7 +2917,7 @@ namespace RR
                         ASSERT(preprocessor);
 
                         const auto& sourceFile = preprocessor->GetIncludeSystem()->CreateFileFromString(pathInfo, pastedContent.str());
-                        auto sourceView = SourceView::CreatePasted(sourceFile, initiatingMacroToken_.sourceLocation, initiatingMacroToken_.humaneSourceLocation);
+                        auto sourceView = SourceView::CreatePasted(sourceFile, initiatingMacroToken_.sourceLocation);
 
                         Lexer lexer(sourceView, preprocessor->GetAllocator(), preprocessor->GetSink());
                         auto lexedTokens = lexer.LexAllSemanticTokens();
@@ -2946,7 +2945,7 @@ namespace RR
                         // The first two cases are both considered valid token pastes, while the latter should
                         // be diagnosed as a warning, even if it is clear how we can handle it.
                         if (lexedTokens.size() > 2)
-                            GetSink()->Diagnose(tokenPasteLoc, tokenPasteHumaneLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
+                            GetSink()->Diagnose(tokenPasteLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
 
                         // No matter what sequence of tokens we got, we can create an input stream to represent
                         // them and push it as the representation of the `##` macro definition op.
@@ -3015,8 +3014,7 @@ namespace RR
                     auto tokenReader = TokenReader(tokenBuffer + beginTokenIndex, tokenBuffer + endTokenIndex);
 
                     auto sourceView = SourceView::CreatePasted(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                                                               initiatingMacroToken_.sourceLocation,
-                                                               initiatingMacroToken_.humaneSourceLocation);
+                                                               initiatingMacroToken_.sourceLocation);
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
                     const auto& stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
@@ -3055,8 +3053,7 @@ namespace RR
                     auto tokenReader = getArgTokens(paramIndex);
                   
                     auto sourceView = SourceView::CreatePasted(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                                                               initiatingMacroToken_.sourceLocation,
-                                                               initiatingMacroToken_.humaneSourceLocation);
+                                                               initiatingMacroToken_.sourceLocation);
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
 
@@ -3146,7 +3143,7 @@ namespace RR
 
                     // Once we've constructed the content of the stringized result, we need to push
                     // a new single-token stream that represents that content.
-                    pushSingleTokenStream(Token::Type::StringLiteral, loc, initiatingMacroToken_.humaneSourceLocation, string);
+                    pushSingleTokenStream(Token::Type::StringLiteral, loc, string);
                 }
                 break;
 
@@ -3214,7 +3211,7 @@ namespace RR
             return false;
         }
 
-        void MacroInvocation::pushSingleTokenStream(Token::Type tokenType, const SourceLocation& tokenLoc, const HumaneSourceLocation& humaneSourceLocation, U8String const& content)
+        void MacroInvocation::pushSingleTokenStream(Token::Type tokenType, const SourceLocation& tokenLoc, U8String const& content)
         {
             // The goal here is to push a token stream that represents a single token
             // with exactly the given `content`, etc.
@@ -3230,7 +3227,6 @@ namespace RR
             token.type = tokenType;
             token.stringSlice = UnownedStringSlice(allocated, allocated + content.length());
             token.sourceLocation = tokenLoc;
-            token.humaneSourceLocation = humaneSourceLocation;
 
             TokenList lexedTokens;
             lexedTokens.push_back(token);
@@ -3255,7 +3251,10 @@ namespace RR
             // the "initiating" source location, which should come from the
             // top-level file instead of any nested macros being expanded.
             const auto initiatingLoc = initiatingMacroToken_.sourceLocation;
-            const auto humaneInitiatingLoc = initiatingMacroToken_.humaneSourceLocation;
+
+            // TODO
+            const auto humaneInitiatingLoc = HumaneSourceLocation();
+
             if (!initiatingLoc.IsValid())
             {
                 // If we cannot find a valid source location for the initiating
@@ -3273,7 +3272,7 @@ namespace RR
             valueBuilder(content, initiatingLoc, humaneInitiatingLoc);
 
             // Next we constuct and push an input stream with exactly the token type and content we want.
-            pushSingleTokenStream(tokenType, initiatingLoc, humaneInitiatingLoc, content); // Todo Pasted inititing loc initiatingMacroToken_
+            pushSingleTokenStream(tokenType, initiatingLoc, content); // Todo Pasted inititing loc initiatingMacroToken_
         }
 
         // Check whether the current token on the given input stream should be

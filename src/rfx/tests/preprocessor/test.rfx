@@ -1,6 +1,5 @@
 // -O PREPROCESSOR -O LEXER
-// -O LEXER
 
-#define FOO BAR /* */ qwe      		LINE
-
-FOO
+// Lets check that we pick up the nominal line
+#line 10
+__LINE__

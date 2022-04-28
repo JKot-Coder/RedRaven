@@ -53,7 +53,8 @@ namespace RR::Rfx
 
             while (outSourceView->GetInitiatingSourceLocation().GetSourceView() && outSourceView->GetPathInfo().type != PathInfo::Type::Normal)
             {
-                outHumaneSourceLoc = outSourceView->GetInitiatingHumaneLocation();
+                // TODO
+                outHumaneSourceLoc = HumaneSourceLocation();
                 outSourceView = outSourceView->GetInitiatingSourceLocation().GetSourceView();
             }
         }
@@ -75,12 +76,16 @@ namespace RR::Rfx
                 if (!output_.empty()) // Skip new line at the wery begining
                     output_.push_back('\n');
 
+                const auto& sourceView = token.sourceLocation.GetSourceView();
+                const auto& humaleLoc = sourceView->GetHumaneLocation(token.sourceLocation, SourceLocationType::Nominal);
+
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
-                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
-                    std::shared_ptr<SourceView> sourceView;
+                    //TOOD
+                   // HumaneSourceLocation humaleLoc = HumaneSourceLocation();
+                  //  std::shared_ptr<SourceView> sourceView = token.sourceLocation.GetSourceView();
 
-                    qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                    //qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
                     line_ = humaleLoc.line;
 
                     if (!currentSourceFile_ || uniqueP != sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity())
@@ -101,10 +106,12 @@ namespace RR::Rfx
                 }
                 else
                 {
-                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
-                    std::shared_ptr<SourceView> sourceView;
+                    //TOOD
+                    //HumaneSourceLocation humaleLoc = HumaneSourceLocation();
+                    // HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
+                   // std::shared_ptr<SourceView> sourceView;
 
-                    qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                   // qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
 
                     //  line_ = token.humaneSourceLocation.line;
                     if (humaleLoc.line != line_)
@@ -191,11 +198,14 @@ namespace RR::Rfx
             U8String escapedToken;
             StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
 
+            const auto& sourceView = token.sourceLocation.GetSourceView();
+            const auto& humaneSourceLocation = sourceView->GetHumaneLocation(token.sourceLocation, SourceLocationType::Actual);
+
             result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
                                   RR::Rfx::TokenTypeToString(token.type),
                                   escapedToken,
-                                  token.humaneSourceLocation.line,
-                                  token.humaneSourceLocation.column);
+                                  humaneSourceLocation.line,
+                                  humaneSourceLocation.column);
 
             if (token.type == Token::Type::EndOfFile)
                 break;

@@ -34,7 +34,6 @@ namespace RR
 
             U8String message;
             SourceLocation location;
-            HumaneSourceLocation humaneSourceLocation;
             Token token;
             int32_t errorID = -1;
             Severity severity;
@@ -52,13 +51,12 @@ namespace RR
             DiagnosticSink() = default;
 
             template <typename... Args>
-            inline void Diagnose(const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
+            inline void Diagnose(const SourceLocation& location, const DiagnosticInfo& info, Args&&... args)
             {
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;
                 diagnostic.message = fmt::format(info.messageFormat, args...);
                 diagnostic.location = location;
-                diagnostic.humaneSourceLocation = humaneSourceLocation;
                 diagnostic.severity = info.severity;
 
                 diagnoseImpl(info, formatDiagnostic(diagnostic));
@@ -71,7 +69,6 @@ namespace RR
                 diagnostic.errorID = info.id;
                 diagnostic.message = fmt::format(info.messageFormat, args...);
                 diagnostic.location = token.sourceLocation;
-                diagnostic.humaneSourceLocation = token.humaneSourceLocation;
                 diagnostic.token = token;
                 diagnostic.severity = info.severity;
 
