@@ -9,13 +9,13 @@ namespace RR
         namespace Diagnostics
         { // clang-format off
             #define DIAGNOSTIC(id, severity, name, messageFormat) static constexpr DiagnosticInfo name = { id, Severity::severity, #name, messageFormat };
-            #include "compiler/DiagnosticDefinitions.hpp" // clang-format on
-        }
+            #include "compiler/DiagnosticDefinitions.hpp"
+        } // clang-format on
 
         namespace LexerDiagnostics
         { // clang-format off
             #define DIAGNOSTIC(id, severity, name, messageFormat) static constexpr DiagnosticInfo name = { id, Severity::severity, #name, messageFormat };
-            #include "compiler/LexerDiagnosticDefinitions.hpp" // clang-format on
-        }
+            #include "compiler/LexerDiagnosticDefinitions.hpp"
+        } // clang-format on
     }
 }
