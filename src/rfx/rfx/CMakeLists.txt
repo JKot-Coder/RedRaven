@@ -56,9 +56,11 @@ set(RFX_SRC
     ${RFX_CORE_SRC}
     ${RFX_COMPILER_SRC})
 
+add_subdirectory(dxc)
+
 set(RFX_LINK_LIBRARIES
-    common)
-    
+    common dxclib)
+
 #================================== Target ===================================#
 
 add_library(${PROJECT_NAME} SHARED ${RFX_SRC})

@@ -4,6 +4,8 @@ project(RedRaven VERSION 0.0.3 LANGUAGES CXX)
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
+enable_testing()
+
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/MP>")
 
 message(warning ${CMAKE_BINARY_DIR})

@@ -22,67 +22,79 @@ namespace RR
                 printErrorMessage("Unexpected error: {}", message->GetBufferPointer());
         }
 
-        class DefinitionsParser final
+        template <typename T>
+        class CStringAllocator final
         {
         public:
-            ~DefinitionsParser()
+            ~CStringAllocator()
             {
-                for (const auto cString : cStrings_)
-                    delete[] cString;
+                for (const auto cstring : cstring_)
+                    delete[] cstring;
             }
 
-            const std::vector<Rfx::CompilerRequestDescription::PreprocessorDefinition>& Parse(const std::vector<std::string>& definitions)
+            void Allocate(const std::vector<std::basic_string<T>>& strings)
             {
-                for (const auto& define : definitions)
-                {
-                    Rfx::CompilerRequestDescription::PreprocessorDefinition preprocDefine;
-                    const auto delimiterPos = define.find('=');
-
-                    if (delimiterPos == std::string::npos)
-                    {
-                        preprocDefine.key = allocateCString(define);
-                        preprocDefine.value = nullptr;
-                    }
-                    else
-                    {
-                        preprocDefine.key = allocateCString(define.substr(0, delimiterPos));
-                        preprocDefine.value = allocateCString(define.substr(delimiterPos + 1, define.length()));
-                    }
-
-                    definitions_.push_back(preprocDefine);
-                }
-
-                return definitions_;
+                for (const auto& string : strings)
+                    Allocate(string);
             }
 
-        private:
-            char* allocateCString(const std::string& string)
+            T* Allocate(const std::basic_string<T>& string)
             {
                 const auto stringLength = string.length();
 
-                auto cString = new char[stringLength + 1];
+                auto cString = new T[stringLength + 1];
                 string.copy(cString, stringLength);
                 cString[stringLength] = '\0';
 
-                cStrings_.push_back(cString);
+                cstring_.push_back(cString);
                 return cString;
             }
 
+            const std::vector<T*>& GetCStrings() const { return cstring_; }
+
         private:
-            std::vector<Rfx::CompilerRequestDescription::PreprocessorDefinition> definitions_;
-            std::vector<char*> cStrings_;
+            std::vector<T*> cstring_;
         };
     }
 
-    void writeOutput(const std::string& filename, const Rfx::ComPtr<Rfx::IBlob>& output)
+    void writeOutput(const std::string& filename, Rfx::CompileOutputType outputType, const Rfx::ComPtr<Rfx::IBlob>& output)
     {
         assert(output);
+
+        const auto outputString = static_cast<const char*>(output->GetBufferPointer());
+
+        if (filename == "%STD_OUTPUT%")
+        {
+            switch (outputType)
+            {
+                case RR::Rfx::CompileOutputType::Diagnostic:
+                    std::cout << "Diagnostic output:" << std::endl;
+                    break;
+                case RR::Rfx::CompileOutputType::Tokens:
+                    std::cout << "Tokens output:" << std::endl;
+                    break;
+                case RR::Rfx::CompileOutputType::Object:
+                    std::cout.write(static_cast<const char*>(output->GetBufferPointer()), output->GetBufferSize());
+                    return;
+                case RR::Rfx::CompileOutputType::Source:
+                    std::cout << "Preprocessor output:" << std::endl;
+                    break;
+                case RR::Rfx::CompileOutputType::Assembly:
+                    std::cout << "Assembly output:" << std::endl;
+                    break;
+                default:
+                    ASSERT_MSG(false, "Unknown output");
+            }
+
+            std::cout << outputString;
+            return;
+        }
 
         std::ofstream fs(filename, std::ios::out | std::ios::binary | std::ios::trunc);
         if (!fs.is_open())
             return;
 
-        fs.write(static_cast<const char*>(output->GetBufferPointer()), output->GetBufferSize());
+        fs.write(outputString, output->GetBufferSize());
         fs.close();
     }
 
@@ -107,12 +119,14 @@ namespace RR
         // clang-format on
 
         options.add_options("Compilation") // clang-format off
-            ("Fp", "Output preprocessed input to the given file", cxxopts::value<std::string>(), "file")
-            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions));
-        // clang-format on
+            ("Fc", "Output assembly code listing file", cxxopts::value<std::string>(), "file")
+            ("Fo", "Output object file", cxxopts::value<std::string>(), "file")
+            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
+
+        options.add_options("Utility Options") // clang-format off
+            ("P", "Preprocess to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
 
         options.positional_help("<inputs>");
-
         cxxopts::ParseResult parseResult;
 
         try
@@ -132,7 +146,7 @@ namespace RR
         {
             if (parseResult.count("help"))
             {
-                std::cout << options.help({ "", "Common", "Compilation" }) << std::endl;
+                std::cout << options.help({ "", "Common", "Compilation", "Utility Options" }) << std::endl;
                 return 0;
             }
 
@@ -142,33 +156,45 @@ namespace RR
                 return 0;
             }
 
-            const bool outputRequired = parseResult.count("Fp");
-            const bool inputPresent = !inputFiles.empty();
-
-            if (!inputPresent)
+            if (inputFiles.empty())
             {
                 printErrorMessage("rfxc failed: Required input file argument is missing. use --help to get more information.");
                 return 1;
             }
 
-            if (!outputRequired)
-                return 0;
+            Rfx::CompileRequestDescription compileRequestDesc {};
 
-            Rfx::CompilerRequestDescription compilerRequest {};
+            compileRequestDesc.inputFile = inputFiles.front().c_str();
 
-            compilerRequest.inputFile = inputFiles.front().c_str();
-            compilerRequest.preprocessorOutput = parseResult.count("Fp");
+            if (parseResult.count("P"))
+            {
+                compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Preprocessor;
+            }
+            else if (parseResult.count("Fc") || parseResult.count("Fo"))
+            {
+                compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Compiler;
 
-            DefinitionsParser definitionsParser;
-            const auto preprocessorDefinitions = definitionsParser.Parse(definitions);
+                compileRequestDesc.compilerOptions.assemblyOutput = parseResult.count("Fc");
+                compileRequestDesc.compilerOptions.objectOutput = parseResult.count("Fo");
+            }
 
-            compilerRequest.defines = preprocessorDefinitions.data();
-            compilerRequest.defineCount = preprocessorDefinitions.size();
+            CStringAllocator<char> cstingAllocator;
+            cstingAllocator.Allocate(definitions);
+
+            compileRequestDesc.defines = (const char**)cstingAllocator.GetCStrings().data();
+            compileRequestDesc.defineCount = cstingAllocator.GetCStrings().size();
 
             Rfx::ComPtr<Rfx::ICompileResult> compileResult;
             Rfx::RfxResult result = Rfx::RfxResult::Ok;
 
-            if (RFX_FAILED(result = Rfx::Compile(compilerRequest, compileResult.put())))
+            Rfx::ComPtr<Rfx::ICompiler> compiler;
+            if (RFX_FAILED(result = Rfx::GetComplierInstance(compiler.put())))
+            {
+                printErrorMessage("Unexpeted error");
+                return 1;
+            }
+
+            if (RFX_FAILED(result = compiler->Compile(compileRequestDesc, compileResult.put())))
             {
                 switch (result)
                 {
@@ -176,7 +202,7 @@ namespace RR
                         break;
                     case Rfx::RfxResult::NotFound:
                     case Rfx::RfxResult::CannotOpen:
-                        printErrorMessage("Cannot open file: {}", compilerRequest.inputFile);
+                        printErrorMessage("Cannot open file: {}", compileRequestDesc.inputFile);
                         return 1;
                     default:
                         printErrorMessage(result);
@@ -198,8 +224,20 @@ namespace RR
 
                 switch (outputType)
                 {
-                    case RR::Rfx::CompileOutputType::Preprocessor:
-                        writeOutput(parseResult["Fp"].as<std::string>(), output);
+                    case RR::Rfx::CompileOutputType::Diagnostic:
+                        writeOutput("%STD_OUTPUT%", outputType, output);
+                        break;
+                    case RR::Rfx::CompileOutputType::Source:
+                        writeOutput(parseResult["P"].as<std::string>(), outputType, output);
+                        break;
+                    case RR::Rfx::CompileOutputType::Assembly:
+                        writeOutput(parseResult["Fc"].as<std::string>(), outputType, output);
+                        break;
+                    case RR::Rfx::CompileOutputType::Object:
+                        writeOutput(parseResult["Fo"].as<std::string>(), outputType, output);
+                        break;
+                    case RR::Rfx::CompileOutputType::Tokens:
+                        writeOutput("%STD_OUTPUT%", outputType, output);
                         break;
                     default:
                         ASSERT_MSG(false, "Unknown output");

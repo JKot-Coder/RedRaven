@@ -1,16 +1,17 @@
-#ifdef TEST
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+
+#warning Hello world
+
+#define A
+
+#ifdef A
 int foo() { return 0; }
 #else
 BadThing thatWontCompile;
 #endif
 
-#if FOO!=BAR
+#if (1 >> 1) && ~999
 AnotherError onThisLine;
 #else
 int bar() { return foo(); }
 #endif
-
-void main()
-{
-	
-}

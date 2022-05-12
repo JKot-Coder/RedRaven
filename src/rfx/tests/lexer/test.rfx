@@ -1,0 +1,10 @@
+// -O PREPROCESSOR
+
+#ifndef qwewqe
+qweqwe
+#else
+1231233
+#endif
+
+
+

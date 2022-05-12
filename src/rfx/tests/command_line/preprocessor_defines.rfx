@@ -1,3 +1,5 @@
+// :RUN_RFXC -P %STD_OUTPUT% -D TEST -D FOO=BAR %INPUT%
+
 #ifdef TEST
 int foo() { return 0; }
 #else
@@ -9,8 +11,3 @@ AnotherError onThisLine;
 #else
 int bar() { return foo(); }
 #endif
-
-void main()
-{
-	
-}

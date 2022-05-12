@@ -23,10 +23,52 @@
 #include <Windows.h>
 #endif
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
+#include "dxcapi.use.h"
+#include <winrt/base.h>
+
 namespace RR::Rfx
 {
     namespace
     {
+
+        template <typename T>
+        class CStringAllocator final
+        {
+        public:
+            ~CStringAllocator()
+            {
+                for (const auto cstring : cstring_)
+                    delete[] cstring;
+            }
+
+            void Allocate(const std::vector<std::basic_string<T>>& strings)
+            {
+                for (const auto& string : strings)
+                    Allocate(string);
+            }
+
+            T* Allocate(const std::basic_string<T>& string)
+            {
+                const auto stringLength = string.length();
+
+                auto cString = new T[stringLength + 1];
+                string.copy(cString, stringLength);
+                cString[stringLength] = '\0';
+
+                cstring_.push_back(cString);
+                return cString;
+            }
+
+            const std::vector<T*>& GetCStrings() const { return cstring_; }
+
+        private:
+            std::vector<T*> cstring_;
+        };
+
         /*
         PathInfo GetIncludePQPEP(const std::shared_ptr<SourceView>& sourceView)
         {
@@ -198,26 +240,9 @@ namespace RR::Rfx
         uint32_t addRef() override { return addReference(); }
         uint32_t release() override { return releaseReference(); }
 
-        void SetDiagnosticOutput(const ComPtr<IBlob>& diagnosticBlob)
-        {
-            diagnosticBlob_ = diagnosticBlob;
-        }
-
         void PushOutput(CompileOutputType type, const ComPtr<IBlob>& blob)
         {
             outputs_.push_back({ type, blob });
-        }
-
-        RfxResult GetDiagnosticOutput(IBlob** output) override
-        {
-            if (!output)
-                return RfxResult::InvalidArgument;
-
-            if (!diagnosticBlob_)
-                return RfxResult::Fail;
-
-            diagnosticBlob_.copyTo(output);
-            return RfxResult::Ok;
         }
 
         RfxResult GetOutput(size_t index, CompileOutputType& outputType, IBlob** output) override
@@ -249,7 +274,41 @@ namespace RR::Rfx
         ComPtr<IBlob> diagnosticBlob_;
     };
 
-    RFX_API RfxResult Compile(const CompilerRequestDescription& compilerRequest, ICompileResult** outCompilerResult)
+    class Compiler : public ICompiler, RefObject
+    {
+    private:
+        Compiler()
+        {
+            dxcDll.Initialize();
+        }
+
+    public:
+        ~Compiler() { instance_ = nullptr; }
+
+        uint32_t addRef() override { return addReference(); }
+        uint32_t release() override { return releaseReference(); }
+
+        RfxResult Compile(const CompileRequestDescription& compilerRequest, ICompileResult** result) override;
+
+    public:
+        static ICompiler* GetInstance()
+        {
+            if (!instance_)
+                instance_ = new Compiler();
+
+            return instance_;
+        };
+
+    private:
+        static ICompiler* instance_;
+
+    private:
+        dxc::DxcDllSupport dxcDll;
+    };
+
+    ICompiler* Compiler::instance_ = nullptr;
+
+    RfxResult Compiler::Compile(const CompileRequestDescription& compilerRequest, ICompileResult** outCompilerResult)
     {
         RfxResult result = RfxResult::Ok;
 
@@ -261,6 +320,14 @@ namespace RR::Rfx
 
         if (compilerRequest.defineCount > 0 && !compilerRequest.defines)
             return RfxResult::InvalidArgument;
+
+        winrt::com_ptr<IDxcCompiler3> dxcCompiler;
+        if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, dxcCompiler.put())))
+            return RfxResult::InternalFail;
+
+        winrt::com_ptr<IDxcUtils> dxcUtils;
+        if (FAILED(dxcDll.CreateInstance(CLSID_DxcUtils, dxcUtils.put())))
+            return RfxResult::InternalFail;
 
         try
         {
@@ -278,35 +345,168 @@ namespace RR::Rfx
 
             auto diagnosticSink = std::make_shared<DiagnosticSink>();
 
-            auto bufferWriter = std::make_shared<BufferWriter>();
-            diagnosticSink->AddWriter(bufferWriter);
+            // auto bufferWriter = std::make_shared<BufferWriter>();
+            //  diagnosticSink->AddWriter(bufferWriter);
+            winrt::com_ptr<IDxcResult> dxcResult;
 
-            if (compilerRequest.lexerOutput)
+            switch (compilerRequest.outputStage)
             {
-                // Re-running lexing here leads to duplicate diagnostic messages in the sink
-                // when lexerOutput is requested along with other compilation steps.
-                // Fortunately, lexerOutput is needed only for testing purposes
-                // and this problem is not critical.
+                case CompileRequestDescription::OutputStage::Lexer:
 
-                const auto linearAllocator = std::make_shared<LinearAllocator>(1024);
-                const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
-                const auto& lexer = std::make_shared<Lexer>(sourceView, linearAllocator, diagnosticSink);
+                    break;
 
-                const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(lexer)));
-                compilerResult->PushOutput(CompileOutputType::Lexer, blob);
+                case CompileRequestDescription::OutputStage::Compiler:
+                case CompileRequestDescription::OutputStage::Preprocessor:
+                {
+                    DxcBuffer source;
+                    source.Ptr = sourceFile->GetContent().Begin();
+                    source.Size = sourceFile->GetContentSize();
+                    source.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
+
+                    CStringAllocator<wchar_t> cstringAllocator;
+                    std::vector<LPCWSTR> arguments;
+
+                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    {
+                        arguments.push_back(L"-P");
+                        arguments.push_back(L"preprocessed.hlsl");
+                    }
+
+                    bool outputAssembly = false;
+                    bool outputObject = false;
+                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Compiler)
+                    {
+                        outputObject = compilerRequest.compilerOptions.objectOutput;
+                        outputAssembly = compilerRequest.compilerOptions.assemblyOutput;
+
+                        arguments.push_back(L"-T");
+                        arguments.push_back(L"ps_6_0");
+
+                        arguments.push_back(L"-E");
+                        arguments.push_back(L"main");
+                    }
+
+                    wchar_t* cstring = nullptr;
+
+                    for (size_t index = 0; index < compilerRequest.defineCount; index++)
+                    {
+                        const auto& define = *(compilerRequest.defines + index);
+
+                        arguments.push_back(L"-D");
+
+                        cstring = cstringAllocator.Allocate(StringConversions::UTF8ToWString(define));
+                        arguments.push_back(cstring);
+                    }
+
+                    cstring = cstringAllocator.Allocate(StringConversions::UTF8ToWString(pathInfo.uniqueIdentity));
+                    arguments.push_back(cstring);
+
+                    if (FAILED(dxcCompiler->Compile(&source, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(dxcResult.put()))))
+                        return RfxResult::InternalFail;
+
+                    // for (uint32_t i = 0; i < dxcResult->GetNumOutputs(); i++)
+                    for (DXC_OUT_KIND output = DXC_OUT_NONE; output <= DXC_OUT_REMARKS; output = (DXC_OUT_KIND)DWORD(output + 1))
+                    {
+                        //  const auto output = dxcResult->GetOutputByIndex(i);
+
+                        winrt::com_ptr<IDxcBlobUtf8> preprocessedBlob;
+                        HRESULT hresult = dxcResult->GetOutput(output, IID_PPV_ARGS(preprocessedBlob.put()), nullptr);
+
+                        LPCSTR qwe = nullptr;
+
+                        if (preprocessedBlob)
+                            qwe = preprocessedBlob->GetStringPointer();
+
+                        std::ignore = hresult;
+                        std::ignore = qwe;
+                    }
+
+                    auto convertOutput = [compilerResult](const winrt::com_ptr<IDxcResult>& dxcResult, DXC_OUT_KIND from, CompileOutputType to)
+                    {
+                        if (from == DXC_OUT_OBJECT)
+                        {
+                            winrt::com_ptr<IDxcBlob> dxcBlob;
+
+                            if (SUCCEEDED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlob.put()), nullptr)))
+                            {
+                                const auto& blob = ComPtr<IBlob>(new Blob(dxcBlob->GetBufferPointer(), dxcBlob->GetBufferSize()));
+                                compilerResult->PushOutput(to, blob);
+                                return;
+                            }
+                            else
+                                ASSERT_MSG(false, "Empty output");
+                        }
+                        else
+                        {
+                            winrt::com_ptr<IDxcBlobUtf8> dxcBlobUtf8;
+
+                            if (SUCCEEDED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlobUtf8.put()), nullptr)))
+                            {
+                                const auto& blob = ComPtr<IBlob>(new Blob(dxcBlobUtf8->GetStringPointer()));
+                                compilerResult->PushOutput(to, blob);
+                                return;
+                            }
+                            else
+                                ASSERT_MSG(false, "Empty output");
+                        }
+
+                        ASSERT_MSG(false, "Empty output");
+                    };
+
+                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                        convertOutput(dxcResult, DXC_OUT_HLSL, CompileOutputType::Source);
+
+                    if (outputObject)
+                        convertOutput(dxcResult, DXC_OUT_OBJECT, CompileOutputType::Object);
+
+                    convertOutput(dxcResult, DXC_OUT_ERRORS, CompileOutputType::Diagnostic);
+
+                    if (outputAssembly)
+                    {
+
+                        winrt::com_ptr<IDxcBlob> objectBlob;
+                        if (SUCCEEDED(dxcResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(objectBlob.put()), nullptr)))
+                        {
+                            DxcBuffer objectBuffer;
+                            objectBuffer.Ptr = objectBlob->GetBufferPointer();
+                            objectBuffer.Size = objectBlob->GetBufferSize();
+                            objectBuffer.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
+
+                            winrt::com_ptr<IDxcResult> dissasseblyResult;
+                            if (FAILED(dxcCompiler->Disassemble(&objectBuffer, IID_PPV_ARGS(dissasseblyResult.put()))))
+                                return RfxResult::InternalFail;
+
+                            convertOutput(dissasseblyResult, DXC_OUT_DISASSEMBLY, CompileOutputType::Assembly);
+                        }
+                    }
+                }
+                break;
+
+                default:
+                    ASSERT_MSG(false, "Unknown output stage");
+                    return RfxResult::InvalidArgument;
             }
-
+            /*
             if (compilerRequest.preprocessorOutput)
             {
 
-                const auto& blob = ComPtr<IBlob>(new Blob(""));
-                compilerResult->PushOutput(CompileOutputType::Preprocessor, blob);
-            }
+                //-E for the entry point (eg. PSMain)
+                //  arguments.push_back(L"-E");
+                // arguments.push_back(entryPoint);
 
-            // Todo optimize reduce copy;
-            const auto& diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
-            compilerResult->SetDiagnosticOutput(diagnosticBlob);
+                //-T for the target profile (eg. ps_6_2)
+                //arguments.push_back(L"-T");
+                //arguments.push_back(target);
 
+                //Strip reflection data and pdbs (see later)
+                //  arguments.push_back(L"-Qstrip_debug");
+                // arguments.push_back(L"-Qstrip_reflect");
+
+                // arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS); //-WX
+                // arguments.push_back(DXC_ARG_DEBUG); //-Zi
+                // arguments.push_back(DXC_ARG_PACK_MATRIX_ROW_MAJOR); //-Zp
+]
+            }*/
             *outCompilerResult = compilerResult.detach();
         }
         catch (const utf8::exception& e)
@@ -316,6 +516,13 @@ namespace RR::Rfx
         }
 
         return result;
+    }
+
+    RFX_API RfxResult GetComplierInstance(ICompiler** compiler)
+    {
+        *compiler = Compiler::GetInstance();
+        (*compiler)->addRef();
+        return RfxResult::Ok;
     }
 
     RFX_API RfxResult GetErrorMessage(RfxResult result, IBlob** message)

@@ -1,0 +1,19 @@
+exit_status:0
+output: [
+Shader compiler
+Usage:
+  rfxc [OPTION...] <inputs>
+
+ Common options:
+  -h, --help     Display available options
+      --version  Display compiler version information
+
+ Compilation options:
+      --Fc file  Output assembly code listing file
+      --Fo file  Output object file
+  -D arg         Define macro
+
+ Utility Options options:
+  -P file  Preprocess to file (must be used alone)
+
+]

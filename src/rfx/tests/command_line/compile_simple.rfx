@@ -1,0 +1,10 @@
+// :RUN_RFXC --Fc %STD_OUTPUT% %INPUT%
+// :RUN_RFXC --Fo %STD_OUTPUT% %INPUT%
+
+void main()
+{
+}
+
+#if RFX
+	#compile vs_5() main();
+#endif 

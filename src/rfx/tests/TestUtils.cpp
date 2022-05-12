@@ -3,9 +3,14 @@
 #include "RfxApprover.hpp"
 #include "rfx.hpp"
 
+#include "command.h"
+
 #include "ApprovalTests/ApprovalTests.hpp"
 #include <catch2/catch.hpp>
 #include <fstream>
+
+#include <iostream>
+#include <string>
 
 namespace fs = std::filesystem;
 
@@ -33,64 +38,13 @@ namespace RR::Rfx::Tests
             return content;
         }
 
-        class CompilerRequestParser final
+        class CommandLineTestParser final
         {
         public:
-            using PreprocessorDefinition = Rfx::CompilerRequestDescription::PreprocessorDefinition;
-
-            ~CompilerRequestParser()
-            {
-                for (auto cstring : cstrings_)
-                    delete[] cstring;
-
-                for (auto definition : definitionsArrays_)
-                    delete[] definition;
-            }
-
-            RfxResult Parse(const fs::path& path, std::vector<Rfx::CompilerRequestDescription>& outCompilerRequests);
+            RfxResult Parse(const fs::path& path, std::vector<std::string>& outCommandLineArgumets);
 
         private:
             static constexpr char32_t kEOF = 0xFFFFFF;
-
-            struct Argument
-            {
-                enum class Type : uint32_t
-                {
-                    Unknown,
-                    Define,
-                    Output,
-                };
-
-                Type type = Type::Unknown;
-                U8String value;
-            };
-
-        private:
-            char* allocateCString(const std::string& string)
-            {
-                const auto stringLength = string.length();
-
-                auto cString = new char[stringLength + 1];
-                string.copy(cString, stringLength);
-                cString[stringLength] = '\0';
-
-                cstrings_.push_back(cString);
-                return cString;
-            }
-
-            PreprocessorDefinition* allocateDefinitionsArray(const std::vector<PreprocessorDefinition>& definitions)
-            {
-                if (definitions.size() == 0)
-                    return nullptr;
-
-                const auto definitonsArray = new PreprocessorDefinition[definitions.size()];
-
-                for (size_t index = 0; index < definitions.size(); index++)
-                    definitonsArray[index] = definitions[index];
-
-                definitionsArrays_.push_back(definitonsArray);
-                return definitonsArray;
-            }
 
             inline bool isReachEOF() const { return cursor_ == end_; }
 
@@ -127,8 +81,7 @@ namespace RR::Rfx::Tests
             void skipBlockComment();
             void skipWhiteSpaces();
 
-            bool handleArgument(const Argument& argument, std::vector<PreprocessorDefinition>& definitions, Rfx::CompilerRequestDescription& outCompilerRequest);
-            void tryParseCompilerRequest(std::vector<Rfx::CompilerRequestDescription>& outCompilerRequests);
+            void tryCommandLineArgumets(std::vector<std::string>& outCommandLineArgumets);
 
             RfxResult readAllFile(const fs::path& path);
 
@@ -137,147 +90,42 @@ namespace RR::Rfx::Tests
             std::string content_;
             std::string::const_iterator cursor_;
             std::string::const_iterator end_;
-            std::vector<char*> cstrings_;
-            std::vector<PreprocessorDefinition*> definitionsArrays_;
         };
 
-        bool CompilerRequestParser::handleArgument(const Argument& argument, std::vector<PreprocessorDefinition>& definitions, Rfx::CompilerRequestDescription& outCompilerRequest)
+        RfxResult CommandLineTestParser::Parse(const fs::path& path, std::vector<std::string>& outCommandLineArgumets)
         {
-            switch (argument.type)
-            {
-                case Argument::Type::Define:
-                {
-                    const auto delimiter = argument.value.find('=');
+            auto result = RfxResult::Ok;
 
-                    if (delimiter != std::string::npos)
-                    {
-                        definitions.push_back(
-                            { allocateCString(argument.value.substr(0, delimiter)), // key
-                              allocateCString(argument.value.substr(delimiter + 1, argument.value.size() - delimiter)) } // value
-                        );
-                    }
-                    else
-                    {
-                        definitions.push_back({ allocateCString(argument.value), allocateCString("") });
-                    }
+            if (RFX_FAILED(result = readAllFile(path)))
+                return result;
 
-                    return true;
-                }
+            skipBOM();
 
-                case Argument::Type::Output:
-                {
-                    if (argument.value == "PREPROCESSOR")
-                    {
-                        outCompilerRequest.preprocessorOutput = true;
-                    }
-                    else if (argument.value == "LEXER")
-                    {
-                        outCompilerRequest.lexerOutput = true;
-                    }
-                    else
-                    {
-                        ASSERT_MSG(false, "Unknown output");
-                        break;
-                    }
-
-                    return true;
-                }
-
-                default:
-                    ASSERT_MSG(false, "Unknown argument type");
-            }
-
-            return false;
-        }
-
-        void CompilerRequestParser::tryParseCompilerRequest(std::vector<Rfx::CompilerRequestDescription>& outCompilerRequests)
-        {
-            bool validRequest = false;
-
-            Rfx::CompilerRequestDescription compilerRequest {};
-            std::vector<PreprocessorDefinition> definitions {};
-
-            for (;;)
+            while (!isReachEOF())
             {
                 switch (peek())
                 {
-                    case kEOF:
-                    case '\n':
-                    case '\r':
-                        if (!validRequest)
-                            return;
-
-                        compilerRequest.inputFile = allocateCString(path_.u8string());
-                        compilerRequest.defines = allocateDefinitionsArray(definitions);
-                        compilerRequest.defineCount = definitions.size();
-
-                        outCompilerRequests.push_back(compilerRequest);
-                        return;
-
-                    case '-':
-                    {
-                        advance(); // Skip '-'
-
-                        Argument argument = {};
-                        switch (peek())
-                        {
-                            case 'O':
-                                argument.type = Argument::Type::Output;
-                                break;
-                            case 'D':
-                                argument.type = Argument::Type::Define;
-                                break;
-                            default:
-                                return;
-                        }
-
-                        advance(); // skip argument type
-
-                        if (!isWhiteSpace())
-                            return;
-
-                        skipWhiteSpaces();
-
-                        auto argumentBegin = cursor_;
-
-                        for (;;)
-                        {
-                            switch (peek())
-                            { // clang-format off
-                                case '\n': case '\r':
-                                case ' ':  case '\t':
-                                case '-':  case kEOF:
-                                    break;
-                                default:
-                                    advance();
-                                    continue;
-                            } // clang-format on
-
-                            break;
-                        }
-
-                        argument.value = std::string(argumentBegin, cursor_);
-
-                        if (!handleArgument(argument, definitions, compilerRequest))
-                            return;
-
-                        if (argument.type == Argument::Type::Output)
-                            validRequest = true;
-                    }
-                    break;
-
-                    case '\t':
-                    case ' ':
+                    case '/':
                         advance();
-                        break;
+                        switch (peek())
+                        { // clang-format off
+                            case '/': advance(); tryCommandLineArgumets(outCommandLineArgumets); break;
+                            case '*': skipBlockComment(); break;
+                            default: advance(); continue;
+                        } // clang-format on
+                        continue;
 
                     default:
-                        return;
+                        advance();
+                        continue;
                 }
+                break;
             }
+
+            return outCommandLineArgumets.empty() ? RfxResult::NotFound : RfxResult::Ok;
         }
 
-        void CompilerRequestParser::skipBlockComment()
+        void CommandLineTestParser::skipBlockComment()
         {
             ASSERT(peek() == '*')
 
@@ -298,7 +146,7 @@ namespace RR::Rfx::Tests
             }
         }
 
-        void CompilerRequestParser::skipWhiteSpaces()
+        void CommandLineTestParser::skipWhiteSpaces()
         {
             ASSERT(isWhiteSpace());
 
@@ -306,7 +154,52 @@ namespace RR::Rfx::Tests
                 advance();
         }
 
-        RfxResult CompilerRequestParser::readAllFile(const fs::path& path)
+        void CommandLineTestParser::tryCommandLineArgumets(std::vector<std::string>& outCommandLineArgumets)
+        {
+            skipWhiteSpaces();
+
+            if (peek() != ':')
+                return;
+
+            advance(); // Skip ':';
+
+            auto begin = cursor_;
+
+            for (;;)
+            {
+                switch (peek())
+                { // clang-format off
+                    case '\n': case '\r': 
+                    case ' ': case '\t':
+                    case '-': case kEOF:
+                        break; // clang-format on
+                    default: advance(); continue;
+                }
+                break;
+            }
+
+            const auto& command = std::string(begin, cursor_);
+            if (command != "RUN_RFXC")
+                return;
+
+            begin = cursor_;
+            for (;;)
+            {
+                switch (peek())
+                {
+                    case kEOF:
+                    case '\n':
+                    case '\r': break;
+
+                    default: advance(); continue;
+                }
+                break;
+            }
+
+            outCommandLineArgumets.push_back(std::string(begin, cursor_));
+        }
+
+        RfxResult CommandLineTestParser::readAllFile(const fs::path& path)
         {
             if (!fs::exists(path))
                 return RfxResult::NotFound;
@@ -339,44 +232,56 @@ namespace RR::Rfx::Tests
             return RfxResult::Ok;
         }
 
-        RfxResult CompilerRequestParser::Parse(const fs::path& path, std::vector<Rfx::CompilerRequestDescription>& outCompilerRequests)
+        void runLexerTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
         {
-            auto result = RfxResult::Ok;
+            std::ignore = testFile;
+            std::ignore = testDirectory;
+        }
 
-            if (RFX_FAILED(result = readAllFile(path)))
-                return result;
+        void runCommandLineTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
+        {
+            std::vector<std::string> commandLineArguments;
+            CommandLineTestParser commandLineTestParser;
+            REQUIRE(RFX_SUCCEEDED(commandLineTestParser.Parse(testFile, commandLineArguments)));
+            REQUIRE(!commandLineArguments.empty());
 
-            skipBOM();
-
-            while (!isReachEOF())
+            for (size_t index = 0; index < commandLineArguments.size(); index++)
             {
-                switch (peek())
-                {
-                    case '/':
-                        advance();
-                        switch (peek())
-                        { // clang-format off
-                            case '/': advance(); tryParseCompilerRequest(outCompilerRequests); break;
-                            case '*': skipBlockComment(); break;
-                            default: advance(); continue;
-                        } // clang-format on
-                        continue;
+                auto& commandLine = commandLineArguments[index];
+                commandLine = std::regex_replace(commandLine, std::regex("%INPUT%"), testFile.u8string());
 
-                    default:
-                        advance();
-                        continue;
-                }
-                break;
+                const auto& commandResult = raymii::Command::exec(fmt::format("rfxc {} 2>&1", commandLine));
+
+                std::error_code ec;
+                auto relativePath = fs::relative(testFile, testDirectory, ec);
+                REQUIRE(!(bool)ec);
+
+                // Remove extension from relativePath
+                relativePath = relativePath.parent_path() / relativePath.stem();
+
+                auto indexSuffix = fmt::format((commandLineArguments.size() > 1) ? "{}" : "", index);
+                auto namer = ApprovalTests::TemplatedCustomNamer::create(
+                    "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + indexSuffix + ".{ApprovedOrReceived}.{FileExtension}");
+
+                RfxApprover::verify2(commandResult, ApprovalTests::Options().withNamer(namer));
             }
-
-            return outCompilerRequests.empty() ? RfxResult::NotFound : RfxResult::Ok;
         }
     }
 
-    void runTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
+    void runTestOnFile(const fs::path& testFile, const fs::path& testDirectory, TestType type)
     {
         DYNAMIC_SECTION(testFile.filename().u8string())
         {
+            switch (type)
+            {
+                case TestType::CommandLine: runCommandLineTestOnFile(testFile, testDirectory); break;
+                case TestType::LexerTest: runLexerTestOnFile(testFile, testDirectory); break;
+                default: FAIL("Unknown TestType"); break;
+            }
+            /*
+            ComPtr<ICompiler> compiler;
+            REQUIRE(RFX_SUCCEEDED(RR::Rfx::GetComplierInstance(compiler.put())));
+
             std::error_code ec;
             auto relativePath = fs::relative(testFile, testDirectory, ec);
             REQUIRE(!(bool)ec);
@@ -391,7 +296,7 @@ namespace RR::Rfx::Tests
             for (const auto& compileRequest : compileRequests)
             {
                 ComPtr<ICompileResult> compileResult;
-                REQUIRE(RFX_SUCCEEDED(RR::Rfx::Compile(compileRequest, compileResult.put())));
+                REQUIRE(RFX_SUCCEEDED(compiler->Compile(compileRequest, compileResult.put())));
 
                 compileResults.push_back(compileResult);
             }
@@ -402,18 +307,18 @@ namespace RR::Rfx::Tests
             auto namer = ApprovalTests::TemplatedCustomNamer::create(
                 "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
             RfxApprover::verify(compileResults, ApprovalTests::Options().withNamer(namer));
+            */
         }
     }
 
-    void runTestsInDirectory(const fs::path& directory)
+    void runTestsInDirectory(const fs::path& directory, TestType type)
     {
         for (const auto& entry : fs::recursive_directory_iterator(directory))
         {
             if (entry.path().extension() != ".rfx")
                 continue;
 
-            runTestOnFile(entry, directory);
+            runTestOnFile(entry, directory, type);
         }
     }
-
 }

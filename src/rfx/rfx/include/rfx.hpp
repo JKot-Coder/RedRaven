@@ -346,21 +346,26 @@ namespace RR
             Count
         };
 
-        struct CompilerRequestDescription
+        struct CompileRequestDescription
         {
-        public:
-            struct PreprocessorDefinition
+            enum class OutputStage : uint32_t
             {
-                const char* key;
-                const char* value;
+                Lexer,
+                Preprocessor,
+                Compiler,
             };
 
-        public:
+            OutputStage outputStage;
+
             const char* inputFile;
-            const PreprocessorDefinition* defines;
+            const char** defines;
             size_t defineCount;
-            bool lexerOutput;
-            bool preprocessorOutput;
+            
+            struct CompilerOptions
+            {
+                bool assemblyOutput;
+                bool objectOutput;
+            } compilerOptions;          
         };
 
         class IRfxUnknown
@@ -373,26 +378,33 @@ namespace RR
         class IBlob : public IRfxUnknown
         {
         public:
-            virtual void const* GetBufferPointer() const = 0;
+            virtual const void* GetBufferPointer() const = 0;
             virtual size_t GetBufferSize() const = 0;
         };
 
         enum class CompileOutputType
         {
-            Lexer, // The code after lexer stage
-            Preprocessor // The code after preprossing stage
+            Diagnostic,
+            Assembly,
+            Tokens, // The code after lexer stage
+            Source, // The code after preprossing stage
+            Object
         };
 
         class ICompileResult : public IRfxUnknown
         {
         public:
-            virtual RfxResult GetDiagnosticOutput(IBlob** output) = 0;
-
             virtual RfxResult GetOutput(size_t index, CompileOutputType& outputType, IBlob** output) = 0;
             virtual size_t GetOutputsCount() = 0;
         };
 
-        RFX_EXTERN_C RFX_API RfxResult RFX_STDCALL Compile(const CompilerRequestDescription& compilerRequest, ICompileResult** result);
+        class ICompiler : public IRfxUnknown
+        {
+        public:
+            virtual RfxResult Compile(const CompileRequestDescription& compilerRequest, ICompileResult** result) = 0;
+        };
+
+        RFX_EXTERN_C RFX_API RfxResult RFX_STDCALL GetComplierInstance(ICompiler** compiler);
         RFX_EXTERN_C RFX_API RfxResult RFX_STDCALL GetErrorMessage(RfxResult result, IBlob** message);
     }
 }

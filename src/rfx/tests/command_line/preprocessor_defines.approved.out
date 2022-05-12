@@ -1,0 +1,18 @@
+exit_status:0
+output: [
+Preprocessor output:
+#line 1 "D:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_defines.rfx"
+
+
+
+int foo() { return 0; }
+
+
+
+
+
+
+
+int bar() { return foo(); }
+Diagnostic output:
+]

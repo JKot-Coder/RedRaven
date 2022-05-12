@@ -7,7 +7,8 @@ namespace RR::Rfx
     {
         TEST_CASE("LexerTests", "[Lexer]")
         {
-            runTestsInDirectory("../src/rfx/tests/lexer");
+            runTestOnFile("../src/rfx/tests/lexer/test.rfx", "../src/rfx/tests/lexer", TestType::LexerTest);
+            //  runTestsInDirectory("../src/rfx/tests/lexer");
         }
     }
 }
