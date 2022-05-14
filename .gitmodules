@@ -10,3 +10,6 @@
 [submodule "src/dependencies/backward-cpp"]
 	path = src/dependencies/backward-cpp
 	url = https://github.com/bombela/backward-cpp
+[submodule "src/dependencies/imgui"]
+	path = src/dependencies/imgui
+	url = https://github.com/JKot-Coder/imgui
