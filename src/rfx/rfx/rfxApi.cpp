@@ -2,8 +2,10 @@
 
 #include "compiler/DiagnosticSink.hpp"
 #include "compiler/Lexer.hpp"
+#include "compiler/Preprocessor.hpp"
 
 #include "core/Blob.hpp"
+#include "core/CStringAllocator.hpp"
 #include "core/Error.hpp"
 #include "core/FileSystem.hpp"
 #include "core/IncludeSystem.hpp"
@@ -34,40 +36,6 @@ namespace RR::Rfx
 {
     namespace
     {
-
-        template <typename T>
-        class CStringAllocator final
-        {
-        public:
-            ~CStringAllocator()
-            {
-                for (const auto cstring : cstring_)
-                    delete[] cstring;
-            }
-
-            void Allocate(const std::vector<std::basic_string<T>>& strings)
-            {
-                for (const auto& string : strings)
-                    Allocate(string);
-            }
-
-            T* Allocate(const std::basic_string<T>& string)
-            {
-                const auto stringLength = string.length();
-
-                auto cString = new T[stringLength + 1];
-                string.copy(cString, stringLength);
-                cString[stringLength] = '\0';
-
-                cstring_.push_back(cString);
-                return cString;
-            }
-
-            const std::vector<T*>& GetCStrings() const { return cstring_; }
-
-        private:
-            std::vector<T*> cstring_;
-        };
 
         /*
         PathInfo GetIncludePQPEP(const std::shared_ptr<SourceView>& sourceView)
@@ -277,13 +245,14 @@ namespace RR::Rfx
     class Compiler : public ICompiler, RefObject
     {
     private:
-        Compiler()
-        {
-            dxcDll.Initialize();
-        }
+        Compiler() = default;
 
     public:
-        ~Compiler() { instance_ = nullptr; }
+        ~Compiler()
+        {
+            instance_ = nullptr;
+            dxcDll.Cleanup();
+        }
 
         uint32_t addRef() override { return addReference(); }
         uint32_t release() override { return releaseReference(); }
@@ -294,18 +263,22 @@ namespace RR::Rfx
         static ICompiler* GetInstance()
         {
             if (!instance_)
+            {
+                if (FAILED(dxcDll.Initialize()))
+                    return nullptr;
+
                 instance_ = new Compiler();
+            }
 
             return instance_;
         };
 
     private:
         static ICompiler* instance_;
-
-    private:
-        dxc::DxcDllSupport dxcDll;
+        static dxc::DxcDllSupport dxcDll;
     };
 
+    dxc::DxcDllSupport Compiler::dxcDll;
     ICompiler* Compiler::instance_ = nullptr;
 
     RfxResult Compiler::Compile(const CompileRequestDescription& compilerRequest, ICompileResult** outCompilerResult)
@@ -358,7 +331,38 @@ namespace RR::Rfx
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {
-                    DxcBuffer source;
+                    Preprocessor preprocessor;
+
+                    for (size_t index = 0; index < compilerRequest.defineCount; index++)
+                    {
+                        const auto& define = *(compilerRequest.defines + index);
+                        preprocessor.DefineMacro(define);
+                    }
+
+                    ComPtr<IBlob> output;
+                    ComPtr<IBlob> diagnostic;
+
+                    RfxResult rfxResult;
+                    if (RFX_FAILED(rfxResult = preprocessor.Preprocess(sourceFile, output, diagnostic)))
+                        return rfxResult;
+
+                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    {
+                        compilerResult->PushOutput(CompileOutputType::Source, output);
+                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
+                    }
+                    else
+                    {
+                        preprocessor.DefineMacro("RFX");
+
+                        if (RFX_FAILED(rfxResult = preprocessor.Preprocess(sourceFile, output, diagnostic)))
+                            return rfxResult;
+
+                        compilerResult->PushOutput(CompileOutputType::Assembly, output);
+                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
+                    }
+                    /*
+                        DxcBuffer source;
                     source.Ptr = sourceFile->GetContent().Begin();
                     source.Size = sourceFile->GetContentSize();
                     source.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
@@ -478,7 +482,7 @@ namespace RR::Rfx
 
                             convertOutput(dissasseblyResult, DXC_OUT_DISASSEMBLY, CompileOutputType::Assembly);
                         }
-                    }
+                    }*/
                 }
                 break;
 

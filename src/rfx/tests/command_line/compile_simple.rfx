@@ -6,5 +6,5 @@ void main()
 }
 
 #if RFX
-	#compile vs_5() main();
+shader QEEQ_VS : vs_5() main();
 #endif 

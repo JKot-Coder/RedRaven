@@ -259,7 +259,7 @@ namespace RR::Rfx::Tests
                 // Remove extension from relativePath
                 relativePath = relativePath.parent_path() / relativePath.stem();
 
-                auto indexSuffix = fmt::format((commandLineArguments.size() > 1) ? "{}" : "", index);
+                auto indexSuffix = fmt::format((commandLineArguments.size() > 1) ? "_{}" : "", index);
                 auto namer = ApprovalTests::TemplatedCustomNamer::create(
                     "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + indexSuffix + ".{ApprovedOrReceived}.{FileExtension}");
 
