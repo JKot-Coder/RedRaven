@@ -11,7 +11,8 @@ set(SRC ${SRC})
 set(LIBRARIES
     common
     windowing
-    render)
+    render
+    imgui)
 
 if (WIN32)
     set(EDITOR_LINK_LIBRARIES ${EDITOR_LINK_LIBRARIES} gapi_dx12)

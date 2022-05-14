@@ -66,6 +66,7 @@ add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/backward-cpp)
+add_subdirectory(src/dependencies/imgui)
 
 #=================================== Catch2 ==================================#
 FetchContent_Declare(
@@ -117,6 +118,7 @@ set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
 set_property(TARGET Catch2WithMain PROPERTY FOLDER "Dependencies")
 set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
+set_property(TARGET imgui PROPERTY FOLDER "Dependencies")
 #set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
