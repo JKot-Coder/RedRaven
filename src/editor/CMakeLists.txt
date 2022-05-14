@@ -12,7 +12,8 @@ set(LIBRARIES
     common
     windowing
     render
-    imgui)
+    imgui
+    glfw)
 
 if (WIN32)
     set(EDITOR_LINK_LIBRARIES ${EDITOR_LINK_LIBRARIES} gapi_dx12)
