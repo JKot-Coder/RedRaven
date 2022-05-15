@@ -449,7 +449,7 @@ static bool ImGui_ImplRR_Init(const std::shared_ptr<RR::Windowing::Window>& wind
 #endif
 
     bd->Window = window;
-    bd->GlfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle2());
+    bd->GlfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle());
     bd->Time = 0.0;
     bd->WantUpdateMonitors = true;
 
@@ -482,7 +482,7 @@ static bool ImGui_ImplRR_Init(const std::shared_ptr<RR::Windowing::Window>& wind
 
     // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
     if (install_callbacks)
-        ImGui_ImplGlfw_InstallCallbacks(std::any_cast<GLFWwindow*>(window->GetNativeHandle2()));
+        ImGui_ImplGlfw_InstallCallbacks(std::any_cast<GLFWwindow*>(window->GetNativeHandle()));
 
     // Update monitors the first time (note: monitor callback are broken in GLFW 3.2 and earlier, see github.com/glfw/glfw/issues/784)
     ImGui_ImplGlfw_UpdateMonitors();
@@ -492,7 +492,7 @@ static bool ImGui_ImplRR_Init(const std::shared_ptr<RR::Windowing::Window>& wind
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     main_viewport->PlatformHandle = (void*)bd->GlfwWindow;
 #ifdef _WIN32
-    main_viewport->PlatformHandleRaw = std::any_cast<HWND>(bd->Window->GetNativeHandle());
+    main_viewport->PlatformHandleRaw = std::any_cast<HWND>(bd->Window->GetNativeHandleRaw());
 #endif
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         ImGui_ImplGlfw_InitPlatformInterface();
@@ -865,12 +865,12 @@ static void ImGui_ImplGlfw_CreateWindow(ImGuiViewport* viewport)
     // glfwCreateWindow((int)viewport->Size.x, (int)viewport->Size.y, "No Title Yet", nullptr, share_window);
 
     vd->Window = windowSystem.Create(nullptr, windowDesc); // TODO asserts
-    vd->GLFWWindow = std::any_cast<GLFWwindow*>(vd->Window->GetNativeHandle2());
+    vd->GLFWWindow = std::any_cast<GLFWwindow*>(vd->Window->GetNativeHandle());
 
     vd->WindowOwned = true;
     viewport->PlatformHandle = (void*)vd->GLFWWindow;
 #ifdef _WIN32
-    viewport->PlatformHandleRaw = std::any_cast<HWND>(bd->Window->GetNativeHandle());
+    viewport->PlatformHandleRaw = std::any_cast<HWND>(vd->Window->GetNativeHandleRaw());
 #endif
     vd->Window->SetPosition(ImVecToVector2i(viewport->Pos));
 
@@ -910,7 +910,7 @@ static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
                 if (bd->KeyOwnerWindows[i] == vd->GLFWWindow)
                     ImGui_ImplGlfw_KeyCallback(vd->GLFWWindow, i, 0, GLFW_RELEASE, 0); // Later params are only used for main viewport, on which this function is never called.
 
-            glfwDestroyWindow(vd->GLFWWindow);
+        //    glfwDestroyWindow(vd->GLFWWindow);
         }
         vd->GLFWWindow = nullptr;
         vd->Window = nullptr;

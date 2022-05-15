@@ -101,7 +101,7 @@ namespace RR
             inline int32_t GetWindowAttribute(Attribute attribute) const;
 
             inline std::any GetNativeHandle() const;
-            inline std::any GetNativeHandle2() const;
+            inline std::any GetNativeHandleRaw() const;
 
             IWindowImpl& GetPrivateImpl();
 
@@ -118,6 +118,8 @@ namespace RR
         class IWindowImpl
         {
         public:
+            virtual ~IWindowImpl() = default;
+
             virtual bool Init(Window::ICallbacks* callbacks, const Window::Description& description) = 0;
 
             virtual void ShowCursor(bool value) = 0;
@@ -135,7 +137,7 @@ namespace RR
             virtual int32_t GetWindowAttribute(Window::Attribute attribute) const = 0;
 
             virtual std::any GetNativeHandle() const = 0;
-            virtual std::any GetNativeHandle2() const = 0;
+            virtual std::any GetNativeHandleRaw() const = 0;
         };
 
         inline void Window::ShowCursor(bool value)
@@ -198,10 +200,10 @@ namespace RR
             return impl_->GetNativeHandle();
         }
 
-        inline std::any Window::GetNativeHandle2() const
+        inline std::any Window::GetNativeHandleRaw() const
         {
             ASSERT(impl_);
-            return impl_->GetNativeHandle2();
+            return impl_->GetNativeHandleRaw();
         }
 
         inline IWindowImpl& Window::GetPrivateImpl()

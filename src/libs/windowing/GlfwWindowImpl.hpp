@@ -15,7 +15,7 @@ namespace RR
         class GlfwWindowImpl final : public IWindowImpl
         {
         public:
-            ~GlfwWindowImpl();
+            ~GlfwWindowImpl() override;
 
             bool Init(Window::ICallbacks* callbacks, const Window::Description& description) override;
 
@@ -35,7 +35,7 @@ namespace RR
             int32_t GetWindowAttribute(Window::Attribute attribute) const override;
 
             std::any GetNativeHandle() const override;
-            std::any GetNativeHandle2() const override;
+            std::any GetNativeHandleRaw() const override;
 
         private:
             static void windowUpdateCallback(GLFWwindow* glfwWindow);

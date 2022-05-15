@@ -313,7 +313,7 @@ namespace RR
             return 1;
 
         // Initialize Direct3D
-        if (!CreateDeviceD3D(std::any_cast<HWND>(window->GetNativeHandle())))
+        if (!CreateDeviceD3D(std::any_cast<HWND>(window->GetNativeHandleRaw())))
         {
             CleanupDeviceD3D();
             return 1;

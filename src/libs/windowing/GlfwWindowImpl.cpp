@@ -62,6 +62,7 @@ namespace RR
             if (!window_)
                 return;
 
+            glfwDestroyWindow(window_);
 #ifdef OS_WINDOWS
             DeleteObject(bgBrush_);
 #endif
@@ -196,14 +197,15 @@ namespace RR
         {
             ASSERT(window_);
 
-            return glfwGetWin32Window(window_);
+            return window_;
         }
 
-        std::any GlfwWindowImpl::GetNativeHandle2() const
+        std::any GlfwWindowImpl::GetNativeHandleRaw() const
         {
             ASSERT(window_);
 
-            return window_;
+            return glfwGetWin32Window(window_);
         }
+
     }
 }
