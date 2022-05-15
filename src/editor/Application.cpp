@@ -3,16 +3,14 @@
 #include <Windows.h>
 
 #include "backends/imgui_impl_dx12.h"
-#include "backends/imgui_impl_glfw.h"
+#include "imgui_impl_win_rr.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <imgui.h>
 #include <tchar.h>
 
-// GLFW
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>  
+#include "windowing/Window.hpp"
+#include "windowing/WindowSystem.hpp"
 
 namespace RR
 {
@@ -296,32 +294,26 @@ namespace RR
 
             return frameCtx;
         }
-
-        static void glfw_error_callback(int error, const char* description)
-        {
-            fprintf(stderr, "Glfw Error %d: %s\n", error, description);
-        }
-
     }
 
     int Application::Run()
     {
         init();
 
-        // Setup window
-        glfwSetErrorCallback(glfw_error_callback);
-        if (!glfwInit())
-            return 1;
+        auto& windowSystem = Windowing::WindowSystem::Instance();
+        windowSystem.Init();
+
+        Windowing::Window::Description windowDesc;
+        windowDesc.size = { 800, 600 };
+        windowDesc.title = "Demo";
 
         // Create window with graphics context
-        GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
-        if (window == NULL)
+        auto window = windowSystem.Create(this, windowDesc);
+        if (!window)
             return 1;
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(1); // Enable vsync
 
         // Initialize Direct3D
-        if (!CreateDeviceD3D(glfwGetWin32Window(window)))
+        if (!CreateDeviceD3D(std::any_cast<HWND>(window->GetNativeHandle())))
         {
             CleanupDeviceD3D();
             return 1;
@@ -336,6 +328,11 @@ namespace RR
         //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+        io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
+        io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
+
+
+        io.ConfigDockingTransparentPayload = true;
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
@@ -352,7 +349,7 @@ namespace RR
         }
 
         // Setup Platform/Renderer backends
-        ImGui_ImplGlfw_InitForOther(window, true);
+        ImGui_ImplRR_InitForOther(window, true);
         ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
                             DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
                             g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
@@ -491,8 +488,7 @@ namespace RR
         ImGui::DestroyContext();
 
         CleanupDeviceD3D();
-        glfwDestroyWindow(window);
-        glfwTerminate();
+        window = nullptr;
 
         return 0;
     }

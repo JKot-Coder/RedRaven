@@ -17,6 +17,13 @@ namespace RR
             using SharedPtr = std::shared_ptr<Window>;
             using SharedConstPtr = std::shared_ptr<const Window>;
 
+            enum class Attribute : uint32_t
+            {
+                Minimized,
+                Maximized,
+                Focused
+            };
+
             class ICallbacks
             {
             public:
@@ -63,18 +70,39 @@ namespace RR
 
             struct Description
             {
-                U8String Title = "";
-                uint32_t Width = 0;
-                uint32_t Height = 0;
+                U8String title = "";
+                Vector2i size = { 0, 0 };
+
+                bool autoIconify = true;
+                bool centerCursor = true;
+                bool decorated = true;
+                bool floating = false;
+                bool focused = true;
+                bool focusOnShow = true;
+                bool resizable = true;
+                bool visible = true;
             };
 
         public:
             ~Window();
 
             inline void ShowCursor(bool value);
-            inline int GetWidth() const;
-            inline int GetHeight() const;
+
+            inline Vector2i GetSize() const;
+            inline void SetSize(const Vector2i& size) const;
+
+            inline Vector2i GetPosition() const;
+            inline void SetPosition(const Vector2i& position) const;
+
+            inline void SetTitle(const U8String& title) const;
+            inline void SetWindowAlpha(float alpha) const;
+
+            inline void Focus() const;
+            inline int32_t GetWindowAttribute(Attribute attribute) const;
+
             inline std::any GetNativeHandle() const;
+            inline std::any GetNativeHandle2() const;
+
             IWindowImpl& GetPrivateImpl();
 
         private:
@@ -94,9 +122,20 @@ namespace RR
 
             virtual void ShowCursor(bool value) = 0;
 
-            virtual int32_t GetWidth() const = 0;
-            virtual int32_t GetHeight() const = 0;
+            virtual Vector2i GetSize() const = 0;
+            virtual void SetSize(const Vector2i& size) const = 0;
+
+            virtual Vector2i GetPosition() const = 0;
+            virtual void SetPosition(const Vector2i& position) const = 0;
+
+            virtual void SetTitle(const U8String& title) const = 0;
+            virtual void SetWindowAlpha(float alpha) const = 0;
+
+            virtual void Focus() const = 0;
+            virtual int32_t GetWindowAttribute(Window::Attribute attribute) const = 0;
+
             virtual std::any GetNativeHandle() const = 0;
+            virtual std::any GetNativeHandle2() const = 0;
         };
 
         inline void Window::ShowCursor(bool value)
@@ -105,22 +144,64 @@ namespace RR
             impl_->ShowCursor(value);
         }
 
-        inline int Window::GetWidth() const
+        inline Vector2i Window::GetSize() const
         {
             ASSERT(impl_);
-            return impl_->GetWidth();
+            return impl_->GetSize();
         }
 
-        inline int Window::GetHeight() const
+        inline void Window::SetSize(const Vector2i& size) const
         {
             ASSERT(impl_);
-            return impl_->GetWidth();
+            return impl_->SetSize(size);
+        }
+
+        inline Vector2i Window::GetPosition() const
+        {
+            ASSERT(impl_);
+            return impl_->GetPosition();
+        }
+
+        inline void Window::SetPosition(const Vector2i& position) const
+        {
+            ASSERT(impl_);
+            return impl_->SetPosition(position);
+        }
+
+        inline void Window::SetTitle(const U8String& title) const
+        {
+            ASSERT(impl_);
+            return impl_->SetTitle(title);
+        }
+
+        inline void Window::SetWindowAlpha(float alpha) const
+        {
+            ASSERT(impl_);
+            return impl_->SetWindowAlpha(alpha);
+        }
+
+        inline void Window::Focus() const
+        {
+            ASSERT(impl_);
+            impl_->Focus();
+        }
+
+        inline int32_t Window::GetWindowAttribute(Window::Attribute attribute) const
+        {
+            ASSERT(impl_);
+            return impl_->GetWindowAttribute(attribute);
         }
 
         inline std::any Window::GetNativeHandle() const
         {
             ASSERT(impl_);
             return impl_->GetNativeHandle();
+        }
+
+        inline std::any Window::GetNativeHandle2() const
+        {
+            ASSERT(impl_);
+            return impl_->GetNativeHandle2();
         }
 
         inline IWindowImpl& Window::GetPrivateImpl()

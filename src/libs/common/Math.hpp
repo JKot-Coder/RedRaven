@@ -370,7 +370,7 @@ namespace RR
             }
 
             template <typename U>
-            Vector<SIZE, U> Cast()
+            Vector<SIZE, U> Cast() const 
             {
                 return Vector<SIZE, U>(
                     static_cast<U>(x),
@@ -550,7 +550,7 @@ namespace RR
             Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
 
             template <typename U>
-            Vector<SIZE, U> Cast()
+            Vector<SIZE, U> Cast() const 
             {
                 return Vector<SIZE, U>(
                     static_cast<U>(x),
@@ -754,7 +754,7 @@ namespace RR
             Vector<SIZE - 1, T>& xyz() const { return *((Vector<SIZE - 1, T>*)&x); }
 
             template <typename U>
-            Vector<SIZE, U> Cast()
+            Vector<SIZE, U> Cast() const
             {
                 return Vector<SIZE, U>(
                     static_cast<U>(x),
