@@ -10,10 +10,12 @@
     ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, |) \
     ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, ~)
 
-#define ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, Op) ENUM_CLASS_BINARY_OPERATOR(EnumType, Op, friend)
-#define ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR(EnumType, Op, friend)
+#define ENUM_CLASS_BINARY_OPERATOR(EnumType, Op) ENUM_CLASS_BINARY_OPERATOR_IMPL(EnumType, Op,)
+#define ENUM_CLASS_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op,)
+#define ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, Op) ENUM_CLASS_BINARY_OPERATOR_IMPL(EnumType, Op, friend)
+#define ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op, friend)
 
-#define ENUM_CLASS_BINARY_OPERATOR(EnumType, Op, Friend)                                                          \
+#define ENUM_CLASS_BINARY_OPERATOR_IMPL(EnumType, Op, Friend)                                                     \
     constexpr Friend inline EnumType operator Op(EnumType lhs, EnumType rhs)                                      \
     {                                                                                                             \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                              \
@@ -27,7 +29,7 @@
         return lhs = static_cast<EnumType>(static_cast<UnderlyingType>(lhs) Op static_cast<UnderlyingType>(rhs)); \
     }
 
-#define ENUM_CLASS_UNARY_OPERATOR(EnumType, Op, Friend)                                                   \
+#define ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op, Friend)                                              \
     constexpr Friend inline EnumType operator Op(EnumType val)                                            \
     {                                                                                                     \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                      \
