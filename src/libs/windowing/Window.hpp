@@ -101,12 +101,14 @@ namespace RR
             inline void SetTitle(const U8String& title) const;
             inline void SetWindowAlpha(float alpha) const;
 
-            inline void Focus() const;
             inline int32_t GetWindowAttribute(Attribute attribute) const;
             inline void SetWindowAttribute(Attribute attribute, int32_t value);
 
             inline std::any GetNativeHandle() const;
             inline std::any GetNativeHandleRaw() const;
+
+            inline void Focus() const;
+            inline void Show() const;
 
             IWindowImpl& GetPrivateImpl();
 
@@ -138,9 +140,11 @@ namespace RR
             virtual void SetTitle(const U8String& title) const = 0;
             virtual void SetWindowAlpha(float alpha) const = 0;
 
-            virtual void Focus() const = 0;
             virtual int32_t GetWindowAttribute(Window::Attribute attribute) const = 0;
             virtual void SetWindowAttribute(Window::Attribute attribute, int32_t value) = 0;
+
+            virtual void Focus() const = 0;
+            virtual void Show() const = 0;
 
             virtual std::any GetNativeHandle() const = 0;
             virtual std::any GetNativeHandleRaw() const = 0;
@@ -188,12 +192,6 @@ namespace RR
             return impl_->SetWindowAlpha(alpha);
         }
 
-        inline void Window::Focus() const
-        {
-            ASSERT(impl_);
-            impl_->Focus();
-        }
-
         inline int32_t Window::GetWindowAttribute(Window::Attribute attribute) const
         {
             ASSERT(impl_);
@@ -222,6 +220,18 @@ namespace RR
         {
             ASSERT(impl_);
             return *impl_;
+        }
+
+        inline void Window::Focus() const
+        {
+            ASSERT(impl_);
+            impl_->Focus();
+        }
+
+        inline void Window::Show() const
+        {
+            ASSERT(impl_);
+            impl_->Show();
         }
     }
 }

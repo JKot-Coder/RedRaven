@@ -905,14 +905,15 @@ static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
     viewport->PlatformUserData = viewport->PlatformHandle = nullptr;
 }
 
-static void ImGui_ImplGlfw_ShowWindow(ImGuiViewport* viewport)
+static void Platform_ShowWindow(ImGuiViewport* viewport)
 {
+    ASSERT(viewport->PlatformUserData);
+
     ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
 
     vd->Window->SetWindowAttribute(RR::Windowing::Window::Attribute::TaskbarIcon, !(viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon));
     vd->Window->SetWindowAttribute(RR::Windowing::Window::Attribute::MousePassthrough, true);
-
-    glfwShowWindow(vd->GLFWWindow);
+    vd->Window->Show();
 }
 
 static ImVec2 Platform_GetWindowPos(ImGuiViewport* viewport)
@@ -1039,7 +1040,7 @@ static void ImGui_ImplGlfw_InitPlatformInterface()
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     platform_io.Platform_CreateWindow = ImGui_ImplGlfw_CreateWindow;
     platform_io.Platform_DestroyWindow = ImGui_ImplGlfw_DestroyWindow;
-    platform_io.Platform_ShowWindow = ImGui_ImplGlfw_ShowWindow;
+    platform_io.Platform_ShowWindow = Platform_ShowWindow;
     platform_io.Platform_SetWindowPos = Platform_SetWindowPos;
     platform_io.Platform_GetWindowPos = Platform_GetWindowPos;
     platform_io.Platform_SetWindowSize = Platform_SetWindowSize;

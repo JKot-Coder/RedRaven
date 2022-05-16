@@ -30,13 +30,14 @@ namespace RR
             void SetTitle(const U8String& title) const override;
             void SetWindowAlpha(float alpha) const override;
 
-            void Focus() const override;
-
             int32_t GetWindowAttribute(Window::Attribute attribute) const override;
             void SetWindowAttribute(Window::Attribute attribute, int32_t value) override;
 
             std::any GetNativeHandle() const override;
             std::any GetNativeHandleRaw() const override;
+
+            void Focus() const override;
+            void Show() const override;
 
         private:
             static void windowUpdateCallback(GLFWwindow* glfwWindow);

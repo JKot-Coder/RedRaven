@@ -176,13 +176,6 @@ namespace RR
             glfwSetWindowOpacity(window_, alpha);
         }
 
-        void GlfwWindowImpl::Focus() const
-        {
-            ASSERT(window_);
-
-            glfwFocusWindow(window_);
-        }
-
         int32_t GlfwWindowImpl::GetWindowAttribute(Window::Attribute attribute) const
         {
             ASSERT(window_);
@@ -239,6 +232,20 @@ namespace RR
             ASSERT(window_);
 
             return glfwGetWin32Window(window_);
+        }
+
+        void GlfwWindowImpl::Focus() const
+        {
+            ASSERT(window_);
+
+            glfwFocusWindow(window_);
+        }
+
+        void GlfwWindowImpl::Show() const
+        {
+            ASSERT(window_);
+
+            glfwShowWindow(window_);
         }
 
 #ifdef OS_WINDOWS
