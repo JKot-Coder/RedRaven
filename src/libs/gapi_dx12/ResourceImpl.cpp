@@ -1,7 +1,7 @@
 #include "ResourceImpl.hpp"
 
-#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
+#include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
@@ -43,30 +43,34 @@ namespace RR
                 {
                     switch (cpuAccess)
                     {
-                    case GpuResourceCpuAccess::None:
-                        return &DefaultHeapProps;
-                    case GpuResourceCpuAccess::Write:
-                        return &UploadHeapProps;
-                    case GpuResourceCpuAccess::Read:
-                        return &ReadbackHeapProps;
-                    default:
-                        LOG_FATAL("Unsupported cpuAcess");
+                        case GpuResourceCpuAccess::None:
+                            return &DefaultHeapProps;
+                        case GpuResourceCpuAccess::Write:
+                            return &UploadHeapProps;
+                        case GpuResourceCpuAccess::Read:
+                            return &ReadbackHeapProps;
+                        default:
+                            LOG_FATAL("Unsupported cpuAcess");
                     }
+
+                    return nullptr;
                 }
 
                 D3D12_RESOURCE_STATES getDefaultResourceState(GpuResourceCpuAccess cpuAccess)
                 {
                     switch (cpuAccess)
                     {
-                    case GpuResourceCpuAccess::None:
-                        return D3D12_RESOURCE_STATE_COMMON;
-                    case GpuResourceCpuAccess::Write:
-                        return D3D12_RESOURCE_STATE_GENERIC_READ;
-                    case GpuResourceCpuAccess::Read:
-                        return D3D12_RESOURCE_STATE_COPY_DEST;
-                    default:
-                        LOG_FATAL("Unsupported cpuAcess");
+                        case GpuResourceCpuAccess::None:
+                            return D3D12_RESOURCE_STATE_COMMON;
+                        case GpuResourceCpuAccess::Write:
+                            return D3D12_RESOURCE_STATE_GENERIC_READ;
+                        case GpuResourceCpuAccess::Read:
+                            return D3D12_RESOURCE_STATE_COPY_DEST;
+                        default:
+                            LOG_FATAL("Unsupported cpuAcess");
                     }
+
+                    return D3D12_RESOURCE_STATE_COMMON;
                 }
             }
 
@@ -159,7 +163,7 @@ namespace RR
                 ASSERT(D3DResource_);
                 // todo subresource readRange asserts
 
-                D3DResource_->Unmap(subresource, & writtenRange);
+                D3DResource_->Unmap(subresource, &writtenRange);
             }
         }
     }
