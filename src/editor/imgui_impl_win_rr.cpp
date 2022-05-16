@@ -994,45 +994,6 @@ static void Platform_SetWindowAlpha(ImGuiViewport* viewport, float alpha)
     vd->Window->SetWindowAlpha(alpha);
 }
 
-static void ImGui_ImplGlfw_RenderWindow(ImGuiViewport* viewport, void*)
-{
-    ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
-    ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
-    if (bd->ClientApi == GlfwClientApi_OpenGL)
-        glfwMakeContextCurrent(vd->GLFWWindow);
-}
-
-static void ImGui_ImplGlfw_SwapBuffers(ImGuiViewport* viewport, void*)
-{
-    ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
-    ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
-    if (bd->ClientApi == GlfwClientApi_OpenGL)
-    {
-        glfwMakeContextCurrent(vd->GLFWWindow);
-        glfwSwapBuffers(vd->GLFWWindow);
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------
-// Vulkan support (the Vulkan renderer needs to call a platform-side support function to create the surface)
-//--------------------------------------------------------------------------------------------------------
-
-static int Platform_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
-{
-    std::ignore = out_vk_surface;
-    std::ignore = vk_allocator;
-    std::ignore = vk_instance;
-    std::ignore = viewport;
-
-    ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
-    std::ignore = bd;
-
-    ASSERT(bd->ClientApi == GlfwClientApi_Vulkan);
-    ASSERT_MSG(false, "Not implemented");
-
-    return 0;
-}
-
 static void ImGui_ImplGlfw_InitPlatformInterface()
 {
     // Register platform interface (will be coupled with a renderer interface)
@@ -1049,10 +1010,8 @@ static void ImGui_ImplGlfw_InitPlatformInterface()
     platform_io.Platform_GetWindowFocus = Platform_GetWindowFocus;
     platform_io.Platform_GetWindowMinimized = Platform_GetWindowMinimized;
     platform_io.Platform_SetWindowTitle = Platform_SetWindowTitle;
-    platform_io.Platform_RenderWindow = ImGui_ImplGlfw_RenderWindow;
-    platform_io.Platform_SwapBuffers = ImGui_ImplGlfw_SwapBuffers;
     platform_io.Platform_SetWindowAlpha = Platform_SetWindowAlpha;
-    platform_io.Platform_CreateVkSurface = Platform_CreateVkSurface;
+    // platform_io.Platform_CreateVkSurface = Platform_CreateVkSurface; TODO: Vulkan support
 
     // Register main window handle (which is owned by the main application, not by us)
     // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
