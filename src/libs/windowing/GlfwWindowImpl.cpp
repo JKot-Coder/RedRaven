@@ -92,6 +92,9 @@ namespace RR
             if (description.mousePassthrough)
                 setWindowMousePassthrough(true);
 
+            if (!description.taskbarIcon)
+                setTaskbarIcon(false);
+
             glfwDefaultWindowHints();
 
             if (!window_)
@@ -194,6 +197,8 @@ namespace RR
                     return glfwGetWindowAttrib(window_, GLFW_FOCUSED) != 0;
                 case RR::Windowing::Window::Attribute::MousePassthrough:
                     return mousePassthrough_;
+                case RR::Windowing::Window::Attribute::TaskbarIcon:
+                    return taskbarIcon_;
                 default:
                     ASSERT_MSG(false, "Unknown window attribute");
             }
@@ -215,6 +220,8 @@ namespace RR
                     return glfwSetWindowAttrib(window_, GLFW_FOCUSED, value != 0);
                 case RR::Windowing::Window::Attribute::MousePassthrough:
                     return setWindowMousePassthrough(value != 0);
+                case RR::Windowing::Window::Attribute::TaskbarIcon:
+                    return setTaskbarIcon(value != 0);
                 default:
                     ASSERT_MSG(false, "Unknown window attribute");
             }
@@ -272,8 +279,38 @@ namespace RR
 #else
         void GlfwWindowImpl::setWindowMousePassthrough(bool enabled)
         {
-            std::ignore = window;
-            std::ignore = enabled;
+            mousePassthrough_ = enabled;
+
+            ASSERT_MSG(false, "Not implemented");
+        }
+#endif
+
+#ifdef OS_WINDOWS
+        void GlfwWindowImpl::setTaskbarIcon(bool enabled)
+        {
+            // GLFW hack: Hide icon from task bar
+            HWND hwnd = glfwGetWin32Window(window_);
+
+            LONG ex_style = ::GetWindowLong(hwnd, GWL_EXSTYLE);
+
+            if (enabled)
+            {
+                ex_style &= ~WS_EX_TOOLWINDOW;
+                ex_style |= WS_EX_APPWINDOW;
+            }
+            else
+            {
+                ex_style &= ~WS_EX_APPWINDOW;
+                ex_style |= WS_EX_TOOLWINDOW;
+            }
+
+            ::SetWindowLong(hwnd, GWL_EXSTYLE, ex_style);
+            taskbarIcon_ = enabled;
+        }
+#else
+        void GlfwWindowImpl::setTaskbarIcon(bool enabled)
+        {
+            taskbarIcon_ = enabled;
 
             ASSERT_MSG(false, "Not implemented");
         }

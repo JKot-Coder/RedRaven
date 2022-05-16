@@ -22,7 +22,8 @@ namespace RR
                 Minimized,
                 Maximized,
                 Focused,
-                MousePassthrough
+                MousePassthrough,
+                TaskbarIcon
             };
 
             class ICallbacks
@@ -83,6 +84,7 @@ namespace RR
                 bool resizable = true;
                 bool visible = true;
                 bool mousePassthrough = false;
+                bool taskbarIcon = true;
             };
 
         public:

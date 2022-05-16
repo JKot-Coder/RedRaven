@@ -44,6 +44,7 @@ namespace RR
             static void windowCloseCallback(GLFWwindow* glfwWindow);
 
             void setWindowMousePassthrough(bool enabled);
+            void setTaskbarIcon(bool enabled);
 
         private:
             Window::ICallbacks* callbacks_;
@@ -52,6 +53,7 @@ namespace RR
             HBRUSH bgBrush_;
 #endif
             bool mousePassthrough_ = false;
+            bool taskbarIcon_ = false;
         };
     }
 }

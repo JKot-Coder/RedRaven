@@ -909,19 +909,9 @@ static void ImGui_ImplGlfw_ShowWindow(ImGuiViewport* viewport)
 {
     ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
 
-#if defined(_WIN32)
-    // GLFW hack: Hide icon from task bar
-    HWND hwnd = (HWND)viewport->PlatformHandleRaw;
-    if (viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon)
-    {
-        LONG ex_style = ::GetWindowLong(hwnd, GWL_EXSTYLE);
-        ex_style &= ~WS_EX_APPWINDOW;
-        ex_style |= WS_EX_TOOLWINDOW;
-        ::SetWindowLong(hwnd, GWL_EXSTYLE, ex_style);
-    }
-#endif
-
+    vd->Window->SetWindowAttribute(RR::Windowing::Window::Attribute::TaskbarIcon, !(viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon));
     vd->Window->SetWindowAttribute(RR::Windowing::Window::Attribute::MousePassthrough, true);
+
     glfwShowWindow(vd->GLFWWindow);
 }
 
