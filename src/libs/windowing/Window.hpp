@@ -21,7 +21,8 @@ namespace RR
             {
                 Minimized,
                 Maximized,
-                Focused
+                Focused,
+                MousePassthrough
             };
 
             class ICallbacks
@@ -81,6 +82,7 @@ namespace RR
                 bool focusOnShow = true;
                 bool resizable = true;
                 bool visible = true;
+                bool mousePassthrough = false;
             };
 
         public:
@@ -99,6 +101,7 @@ namespace RR
 
             inline void Focus() const;
             inline int32_t GetWindowAttribute(Attribute attribute) const;
+            inline void SetWindowAttribute(Attribute attribute, int32_t value);
 
             inline std::any GetNativeHandle() const;
             inline std::any GetNativeHandleRaw() const;
@@ -135,6 +138,7 @@ namespace RR
 
             virtual void Focus() const = 0;
             virtual int32_t GetWindowAttribute(Window::Attribute attribute) const = 0;
+            virtual void SetWindowAttribute(Window::Attribute attribute, int32_t value) = 0;
 
             virtual std::any GetNativeHandle() const = 0;
             virtual std::any GetNativeHandleRaw() const = 0;
@@ -192,6 +196,12 @@ namespace RR
         {
             ASSERT(impl_);
             return impl_->GetWindowAttribute(attribute);
+        }
+
+        inline void Window::SetWindowAttribute(Attribute attribute, int32_t value)
+        {
+            ASSERT(impl_);
+            return impl_->SetWindowAttribute(attribute, value);
         }
 
         inline std::any Window::GetNativeHandle() const

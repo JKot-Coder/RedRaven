@@ -33,6 +33,7 @@ namespace RR
             void Focus() const override;
 
             int32_t GetWindowAttribute(Window::Attribute attribute) const override;
+            void SetWindowAttribute(Window::Attribute attribute, int32_t value) override;
 
             std::any GetNativeHandle() const override;
             std::any GetNativeHandleRaw() const override;
@@ -42,12 +43,15 @@ namespace RR
             static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
             static void windowCloseCallback(GLFWwindow* glfwWindow);
 
+            void setWindowMousePassthrough(bool enabled);
+
         private:
             Window::ICallbacks* callbacks_;
             GLFWwindow* window_;
 #ifdef OS_WINDOWS
             HBRUSH bgBrush_;
 #endif
+            bool mousePassthrough_ = false;
         };
     }
 }

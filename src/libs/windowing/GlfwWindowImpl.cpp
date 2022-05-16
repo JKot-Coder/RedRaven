@@ -2,6 +2,10 @@
 
 #include "windowing/WindowSystem.hpp"
 
+#ifdef OS_WINDOWS
+#include <windows.h>
+#endif
+
 #ifndef OS_WINDOWS
 static_assert(false, "platform is not supported");
 #endif // !OS_WINDOW
@@ -15,7 +19,6 @@ namespace RR
 {
     namespace Windowing
     {
-
         void GlfwWindowImpl::windowUpdateCallback(GLFWwindow* glfwWindow)
         {
 #ifdef OS_WINDOWS
@@ -85,6 +88,9 @@ namespace RR
             glfwWindowHint(GLFW_VISIBLE, description.visible);
 
             window_ = glfwCreateWindow(description.size.x, description.size.y, description.title.c_str(), nullptr, nullptr);
+
+            if (description.mousePassthrough)
+                setWindowMousePassthrough(true);
 
             glfwDefaultWindowHints();
 
@@ -186,11 +192,32 @@ namespace RR
                     return glfwGetWindowAttrib(window_, GLFW_MAXIMIZED) != 0;
                 case RR::Windowing::Window::Attribute::Focused:
                     return glfwGetWindowAttrib(window_, GLFW_FOCUSED) != 0;
+                case RR::Windowing::Window::Attribute::MousePassthrough:
+                    return mousePassthrough_;
                 default:
                     ASSERT_MSG(false, "Unknown window attribute");
             }
 
-            return glfwGetWindowAttrib(window_, GLFW_FOCUSED) != 0;
+            return 0;
+        }
+
+        void GlfwWindowImpl::SetWindowAttribute(Window::Attribute attribute, int32_t value)
+        {
+            ASSERT(window_);
+
+            switch (attribute)
+            {
+                case RR::Windowing::Window::Attribute::Minimized:
+                    return glfwSetWindowAttrib(window_, GLFW_ICONIFIED, value != 0);
+                case RR::Windowing::Window::Attribute::Maximized:
+                    return glfwSetWindowAttrib(window_, GLFW_MAXIMIZED, value != 0);
+                case RR::Windowing::Window::Attribute::Focused:
+                    return glfwSetWindowAttrib(window_, GLFW_FOCUSED, value != 0);
+                case RR::Windowing::Window::Attribute::MousePassthrough:
+                    return setWindowMousePassthrough(value != 0);
+                default:
+                    ASSERT_MSG(false, "Unknown window attribute");
+            }
         }
 
         std::any GlfwWindowImpl::GetNativeHandle() const
@@ -206,6 +233,51 @@ namespace RR
 
             return glfwGetWin32Window(window_);
         }
+
+#ifdef OS_WINDOWS
+        // We have submitted https://github.com/glfw/glfw/pull/1568 to allow GLFW to support "transparent inputs".
+        // In the meanwhile we implement custom per-platform workarounds here (FIXME-VIEWPORT: Implement same work-around for Linux/OSX!)
+        void GlfwWindowImpl::setWindowMousePassthrough(bool enabled)
+        {
+            COLORREF key = 0;
+            BYTE alpha = 0;
+            DWORD flags = 0;
+            HWND hwnd = glfwGetWin32Window(window_);
+            DWORD exStyle = GetWindowLongW(hwnd, GWL_EXSTYLE);
+
+            if (exStyle & WS_EX_LAYERED)
+                GetLayeredWindowAttributes(hwnd, &key, &alpha, &flags);
+
+            if (enabled)
+                exStyle |= (WS_EX_TRANSPARENT | WS_EX_LAYERED);
+            else
+            {
+                exStyle &= ~WS_EX_TRANSPARENT;
+                // NOTE: Window opacity and framebuffer transparency also need to
+                //       control the layered style so avoid stepping on their feet
+                if (exStyle & WS_EX_LAYERED)
+                {
+                    if (!(flags & (LWA_ALPHA | LWA_COLORKEY)))
+                        exStyle &= ~WS_EX_LAYERED;
+                }
+            }
+
+            SetWindowLongW(hwnd, GWL_EXSTYLE, exStyle);
+
+            if (enabled)
+                SetLayeredWindowAttributes(hwnd, key, alpha, flags);
+
+            mousePassthrough_ = enabled;
+        }
+#else
+        void GlfwWindowImpl::setWindowMousePassthrough(bool enabled)
+        {
+            std::ignore = window;
+            std::ignore = enabled;
+
+            ASSERT_MSG(false, "Not implemented");
+        }
+#endif
 
     }
 }

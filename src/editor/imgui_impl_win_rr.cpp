@@ -9,16 +9,11 @@
 #undef APIENTRY
 #include "windows.h" // for HWND
 #endif
-#define GLFW_HAS_WINDOW_HOVERED (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ GLFW_HOVERED
+
 #ifdef GLFW_RESIZE_NESW_CURSOR // Let's be nice to people who pulled GLFW between 2019-04-16 (3.4 define) and 2019-11-29 (cursors defines) // FIXME: Remove when GLFW 3.4 is released?
 #define GLFW_HAS_NEW_CURSORS (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3400) // 3.4+ GLFW_RESIZE_ALL_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_NWSE_CURSOR, GLFW_NOT_ALLOWED_CURSOR
 #else
 #define GLFW_HAS_NEW_CURSORS (0)
-#endif
-#ifdef GLFW_MOUSE_PASSTHROUGH // Let's be nice to people who pulled GLFW between 2019-04-16 (3.4 define) and 2020-07-17 (passthrough)
-#define GLFW_HAS_MOUSE_PASSTHROUGH (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3400) // 3.4+ GLFW_MOUSE_PASSTHROUGH
-#else
-#define GLFW_HAS_MOUSE_PASSTHROUGH (0)
 #endif
 #define GLFW_HAS_GAMEPAD_API (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ glfwGetGamepadState() new api
 #define GLFW_HAS_GET_KEY_NAME (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3200) // 3.2+ glfwGetKeyName()
@@ -29,6 +24,30 @@ enum GlfwClientApi
     GlfwClientApi_Unknown,
     GlfwClientApi_OpenGL,
     GlfwClientApi_Vulkan
+};
+
+// Helper structure we store in the void* RenderUserData field of each ImGuiViewport to easily retrieve our backend data.
+struct ImGui_ImplGlfw_ViewportData
+{
+    GLFWwindow* GLFWWindow;
+    std::shared_ptr<RR::Windowing::Window> Window;
+    bool WindowOwned;
+    int IgnoreWindowPosEventFrame;
+    int IgnoreWindowSizeEventFrame;
+
+    ImGui_ImplGlfw_ViewportData()
+    {
+        GLFWWindow = nullptr;
+        Window = nullptr;
+        WindowOwned = false;
+        IgnoreWindowSizeEventFrame = IgnoreWindowPosEventFrame = -1;
+    }
+
+    ~ImGui_ImplGlfw_ViewportData()
+    {
+        ASSERT(Window == nullptr);
+        ASSERT(GLFWWindow == nullptr);
+    }
 };
 
 struct ImGui_ImplGlfw_Data
@@ -444,9 +463,7 @@ static bool ImGui_ImplRR_Init(const std::shared_ptr<RR::Windowing::Window>& wind
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values (optional)
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos requests (optional, rarely used)
     io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports; // We can create multi-viewports on the Platform side (optional)
-#if GLFW_HAS_MOUSE_PASSTHROUGH || (GLFW_HAS_WINDOW_HOVERED && defined(_WIN32))
     io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
-#endif
 
     bd->Window = window;
     bd->GlfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle());
@@ -589,16 +606,13 @@ static void ImGui_ImplGlfw_UpdateMouseData()
         // - [X] GLFW backend correctly reports this regardless of another viewport behind focused and dragged from (we need this to find a useful drag and drop target).
         // FIXME: This is currently only correct on Win32. See what we do below with the WM_NCHITTEST, missing an equivalent for other systems.
         // See https://github.com/glfw/glfw/issues/1236 if you want to help in making this a GLFW feature.
-#if GLFW_HAS_MOUSE_PASSTHROUGH || (GLFW_HAS_WINDOW_HOVERED && defined(_WIN32))
-        const bool window_no_input = (viewport->Flags & ImGuiViewportFlags_NoInputs) != 0;
-#if GLFW_HAS_MOUSE_PASSTHROUGH
-        glfwSetWindowAttrib(window, GLFW_MOUSE_PASSTHROUGH, window_no_input);
-#endif
-        if (glfwGetWindowAttrib(window, GLFW_HOVERED) && !window_no_input)
+        const bool windowNoInput = (viewport->Flags & ImGuiViewportFlags_NoInputs) != 0;
+
+        ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
+        vd->Window->SetWindowAttribute(RR::Windowing::Window::Attribute::MousePassthrough, windowNoInput);
+
+        if (glfwGetWindowAttrib(window, GLFW_HOVERED) && !windowNoInput)
             mouse_viewport_id = viewport->ID;
-#else
-        // We cannot use bd->MouseWindow maintained from CursorEnter/Leave callbacks, because it is locked to the window capturing mouse.
-#endif
     }
 
     if (io.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport)
@@ -775,29 +789,6 @@ void ImGui_ImplGlfw_NewFrame()
 // If you are new to dear imgui or creating a new binding for dear imgui, it is recommended that you completely ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 
-// Helper structure we store in the void* RenderUserData field of each ImGuiViewport to easily retrieve our backend data.
-struct ImGui_ImplGlfw_ViewportData
-{
-    GLFWwindow* GLFWWindow;
-    std::shared_ptr<RR::Windowing::Window> Window;
-    bool WindowOwned;
-    int IgnoreWindowPosEventFrame;
-    int IgnoreWindowSizeEventFrame;
-
-    ImGui_ImplGlfw_ViewportData()
-    {
-        GLFWWindow = nullptr;
-        Window = nullptr;
-        WindowOwned = false;
-        IgnoreWindowSizeEventFrame = IgnoreWindowPosEventFrame = -1;
-    }
-    ~ImGui_ImplGlfw_ViewportData()
-    {
-        ASSERT(Window == nullptr);
-        ASSERT(GLFWWindow == nullptr);
-    }
-};
-
 static void ImGui_ImplGlfw_WindowCloseCallback(GLFWwindow* window)
 {
     if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
@@ -899,18 +890,13 @@ static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
     {
         if (vd->WindowOwned)
         {
-#if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED && defined(_WIN32)
-            HWND hwnd = (HWND)viewport->PlatformHandleRaw;
-            ::RemovePropA(hwnd, "IMGUI_VIEWPORT");
-#endif
-
             // Release any keys that were pressed in the window being destroyed and are still held down,
             // because we will not receive any release events after window is destroyed.
             for (int i = 0; i < IM_ARRAYSIZE(bd->KeyOwnerWindows); i++)
                 if (bd->KeyOwnerWindows[i] == vd->GLFWWindow)
                     ImGui_ImplGlfw_KeyCallback(vd->GLFWWindow, i, 0, GLFW_RELEASE, 0); // Later params are only used for main viewport, on which this function is never called.
 
-        //    glfwDestroyWindow(vd->GLFWWindow);
+            //    glfwDestroyWindow(vd->GLFWWindow);
         }
         vd->GLFWWindow = nullptr;
         vd->Window = nullptr;
@@ -918,26 +904,6 @@ static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
     }
     viewport->PlatformUserData = viewport->PlatformHandle = nullptr;
 }
-
-// We have submitted https://github.com/glfw/glfw/pull/1568 to allow GLFW to support "transparent inputs".
-// In the meanwhile we implement custom per-platform workarounds here (FIXME-VIEWPORT: Implement same work-around for Linux/OSX!)
-#if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED && defined(_WIN32)
-static WNDPROC g_GlfwWndProc = nullptr;
-static LRESULT CALLBACK WndProcNoInputs(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    if (msg == WM_NCHITTEST)
-    {
-        // Let mouse pass-through the window. This will allow the backend to call io.AddMouseViewportEvent() properly (which is OPTIONAL).
-        // The ImGuiViewportFlags_NoInputs flag is set while dragging a viewport, as want to detect the window behind the one we are dragging.
-        // If you cannot easily access those viewport flags from your windowing/event code: you may manually synchronize its state e.g. in
-        // your main loop after calling UpdatePlatformWindows(). Iterate all viewports/platform windows and pass the flag to your windowing system.
-        ImGuiViewport* viewport = (ImGuiViewport*)::GetPropA(hWnd, "IMGUI_VIEWPORT");
-        if (viewport->Flags & ImGuiViewportFlags_NoInputs)
-            return HTTRANSPARENT;
-    }
-    return ::CallWindowProc(g_GlfwWndProc, hWnd, msg, wParam, lParam);
-}
-#endif
 
 static void ImGui_ImplGlfw_ShowWindow(ImGuiViewport* viewport)
 {
@@ -953,17 +919,9 @@ static void ImGui_ImplGlfw_ShowWindow(ImGuiViewport* viewport)
         ex_style |= WS_EX_TOOLWINDOW;
         ::SetWindowLong(hwnd, GWL_EXSTYLE, ex_style);
     }
-
-    // GLFW hack: install hook for WM_NCHITTEST message handler
-#if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED && defined(_WIN32)
-    ::SetPropA(hwnd, "IMGUI_VIEWPORT", viewport);
-    if (g_GlfwWndProc == nullptr)
-        g_GlfwWndProc = (WNDPROC)::GetWindowLongPtr(hwnd, GWLP_WNDPROC);
-    ::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)WndProcNoInputs);
 #endif
 
-#endif
-
+    vd->Window->SetWindowAttribute(RR::Windowing::Window::Attribute::MousePassthrough, true);
     glfwShowWindow(vd->GLFWWindow);
 }
 
@@ -1120,7 +1078,3 @@ static void ImGui_ImplGlfw_ShutdownPlatformInterface()
 {
     ImGui::DestroyPlatformWindows();
 }
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
