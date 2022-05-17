@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gapi/Device.hpp"
-#include "windowing/WindowSystem.hpp"
+#include "platform/WindowSystem.hpp"
 
 namespace RR
 {

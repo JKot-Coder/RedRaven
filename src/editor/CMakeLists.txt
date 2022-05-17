@@ -12,7 +12,7 @@ set(SRC ${SRC})
 
 set(LIBRARIES
     common
-    windowing
+    platform
     render
     imgui
     glfw)

@@ -3,7 +3,7 @@
 #include "common/Exception.hpp"
 #include "common/Math.hpp"
 
-#include "Windowing/Window.hpp"
+#include "platform/Window.hpp"
 
 #include <GLFW/glfw3.h>
 

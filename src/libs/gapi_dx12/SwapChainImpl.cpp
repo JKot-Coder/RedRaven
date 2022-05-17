@@ -8,7 +8,7 @@
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
-#include "windowing/Window.hpp"
+#include "platform/Window.hpp"
 #include <Windows.h>
 
 namespace RR

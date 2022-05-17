@@ -5,7 +5,7 @@ static_assert(false, "platform is not supported");
 #endif
 
 #ifdef OS_WINDOWS
-#include "windowing/GlfwWindowImpl.hpp"
+#include "platform/GlfwWindowImpl.hpp"
 #endif
 
 namespace RR

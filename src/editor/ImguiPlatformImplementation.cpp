@@ -1,7 +1,7 @@
 #include "ImguiPlatformImplementation.hpp"
 #include "imgui.h"
 
-#include "windowing/WindowSystem.hpp"
+#include "platform/WindowSystem.hpp"
 
 // GLFW
 #include <GLFW/glfw3.h>

@@ -127,7 +127,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi_dx12)
 endif()
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/render)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/common)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/windowing)
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/platform)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/inputting)
 
 add_subdirectory(src/demo)

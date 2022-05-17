@@ -9,8 +9,8 @@
 #include <imgui.h>
 #include <tchar.h>
 
-#include "windowing/Window.hpp"
-#include "windowing/WindowSystem.hpp"
+#include "platform/Window.hpp"
+#include "platform/WindowSystem.hpp"
 
 namespace RR
 {

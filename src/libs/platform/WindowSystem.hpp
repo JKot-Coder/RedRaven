@@ -1,6 +1,6 @@
 #pragma once
 
-#include "windowing/Window.hpp"
+#include "platform/Window.hpp"
 
 #include "common/Singleton.hpp"
 

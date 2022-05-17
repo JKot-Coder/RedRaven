@@ -1,6 +1,6 @@
 #include "GlfwWindowImpl.hpp"
 
-#include "windowing/WindowSystem.hpp"
+#include "platform/WindowSystem.hpp"
 
 #ifdef OS_WINDOWS
 #include <windows.h>
