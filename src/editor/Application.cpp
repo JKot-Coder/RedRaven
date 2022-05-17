@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #include "backends/imgui_impl_dx12.h"
-#include "imgui_impl_win_rr.h"
+#include "ImguiPlatformImplementation.hpp"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <imgui.h>

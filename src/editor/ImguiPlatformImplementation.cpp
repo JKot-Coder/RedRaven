@@ -1,4 +1,4 @@
-#include "imgui_impl_win_rr.h"
+#include "ImguiPlatformImplementation.hpp"
 #include "imgui.h"
 
 #include "windowing/WindowSystem.hpp"

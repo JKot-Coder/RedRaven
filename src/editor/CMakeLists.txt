@@ -3,8 +3,8 @@ project(editor)
 set(SRC
     "Application.cpp"
     "Application.hpp"
-    "imgui_impl_win_rr.cpp"
-    "imgui_impl_win_rr.h"
+    "ImguiPlatformImplementation.cpp"
+    "ImguiPlatformImplementation.hpp"
     "main.cpp")
 source_group("" FILES ${SRC})
 
