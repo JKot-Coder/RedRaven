@@ -6,7 +6,7 @@
 
 namespace RR
 {
-    namespace Windowing
+    namespace Platform
     {
         class Window;
     }
@@ -15,7 +15,7 @@ namespace RR
     {
         struct SwapChainDescription
         {
-            std::shared_ptr<Windowing::Window> window;
+            std::shared_ptr<Platform::Window> window;
 
             uint32_t width;
             uint32_t height;
@@ -26,7 +26,7 @@ namespace RR
 
         public:
             SwapChainDescription() = default;
-            SwapChainDescription(const std::shared_ptr<Windowing::Window>& window, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
+            SwapChainDescription(const std::shared_ptr<Platform::Window>& window, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
                 : window(window),
                   width(width),
                   height(height),

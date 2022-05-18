@@ -246,12 +246,12 @@ namespace RR
 
         auto fence = renderContext.CreateFence("qwe");
 
-        const auto& windowSystem = Windowing::WindowSystem::Instance();
+        const auto& windowSystem = Platform::WindowSystem::Instance();
 
         while (!_quit)
         {
             windowSystem.PoolEvents();
-            //Windowing::WindowSystem::PoolEvents();
+            //Platform::WindowSystem::PoolEvents();
 
             // renderContext.Submit(commandQueue, commandList);
 
@@ -359,12 +359,12 @@ namespace RR
 
     void Application::init()
     {
-        Windowing::Window::Description windowDesc;
+        Platform::Window::Description windowDesc;
         windowDesc.Width = 800;
         windowDesc.Height = 600;
         windowDesc.Title = "Demo";
 
-        auto& windowSystem = Windowing::WindowSystem::Instance();
+        auto& windowSystem = Platform::WindowSystem::Instance();
         windowSystem.Init();
 
         _window = windowSystem.Create(this, windowDesc);
@@ -394,7 +394,7 @@ namespace RR
         // Inputting::Instance()->Terminate();
 
         // Rendering::Instance()->Terminate();
-        // Windowing::WindowSystem::UnSubscribe(this);
+        // Platform::WindowSystem::UnSubscribe(this);
     }
 
     void Application::loadResouces()

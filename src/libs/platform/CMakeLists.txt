@@ -1,15 +1,16 @@
 project (platform)
 
 set(SRC
-       # InputtingWindow.hpp
-       # InputtingWindow.cpp
-        "Window.hpp"
-        "Window.cpp"
-        "WindowSystem.hpp"
-        "GlfwWindowImpl.hpp"
-        "GlfwWindowImpl.cpp"
-        "GlfwWindowSystem.cpp"
-     )
+    # InputtingWindow.hpp
+    # InputtingWindow.cpp
+    "Window.hpp"
+    "WindowSystem.hpp"
+    "Platform.hpp"
+    "Platform.cpp"
+    "GlfwWindowImpl.hpp"
+    "GlfwWindowImpl.cpp"
+    "GlfwWindowSystem.cpp"
+    )
 
 source_group( "" FILES ${SRC} )
 

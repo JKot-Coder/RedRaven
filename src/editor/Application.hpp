@@ -4,7 +4,7 @@
 
 namespace RR
 {
-    class Application final : public Windowing::Window::ICallbacks
+    class Application final : public Platform::Window::ICallbacks
     {
     public:
         int Run();

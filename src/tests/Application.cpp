@@ -55,12 +55,12 @@ namespace RR
 
         bool Application::init()
         {
-            Windowing::Window::Description description;
+            Platform::Window::Description description;
             description.Height = 480;
             description.Width = 640;
             description.Title = "Tests";
             /*
-            window_ = Windowing std::shared_ptr<Windowing::InputtingWindow>(new Windowing::InputtingWindow());
+            window_ = Windowing std::shared_ptr<Platform::InputtingWindow>(new Platform::InputtingWindow());
             if (!window_->Init(description, true))
             {
                 ASSERT_MSG(false, "Error initing window");

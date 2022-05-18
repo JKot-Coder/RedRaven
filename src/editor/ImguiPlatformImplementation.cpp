@@ -32,7 +32,7 @@ namespace RR
     struct ImGuiViewportData
     {
         GLFWwindow* GLFWWindow;
-        std::shared_ptr<Windowing::Window> Window;
+        std::shared_ptr<Platform::Window> Window;
         bool WindowOwned;
         int IgnoreWindowPosEventFrame;
         int IgnoreWindowSizeEventFrame;
@@ -55,7 +55,7 @@ namespace RR
     struct ImGuiData
     {
         GLFWwindow* GlfwWindow;
-        std::shared_ptr<Windowing::Window> Window;
+        std::shared_ptr<Platform::Window> Window;
         GlfwClientApi ClientApi;
         double Time;
         GLFWwindow* MouseWindow;
@@ -111,14 +111,24 @@ namespace RR
     static void ImGuiShutdownPlatformInterface();
 
     // Functions
-    static const char* ImGui_ImplGlfw_GetClipboardText(void* user_data)
+    static const char* Platform_GetClipboardText(void* user_data)
     {
-        return glfwGetClipboardString((GLFWwindow*)user_data);
+        std::ignore = user_data;
+
+        ImGuiData* bd = ImGuiGetBackendData();
+        ASSERT(bd);
+
+        return bd->Window->GetClipboardText().c_str();
     }
 
-    static void ImGui_ImplGlfw_SetClipboardText(void* user_data, const char* text)
+    static void Platform_SetClipboardText(void* user_data, const char* text)
     {
-        glfwSetClipboardString((GLFWwindow*)user_data, text);
+        std::ignore = user_data;
+
+        ImGuiData* bd = ImGuiGetBackendData();
+        ASSERT(bd);
+
+        return bd->Window->SetClipboardText(text);
     }
 
     static ImGuiKey ImGui_ImplGlfw_KeyToImGuiKey(int key)
@@ -453,7 +463,7 @@ namespace RR
         bd->PrevUserCallbackMonitor = nullptr;
     }
 
-    static bool ImGui_ImplRR_Init(const std::shared_ptr<Windowing::Window>& window, bool install_callbacks, GlfwClientApi client_api)
+    static bool ImGui_ImplRR_Init(const std::shared_ptr<Platform::Window>& window, bool install_callbacks, GlfwClientApi client_api)
     {
         ImGuiIO& io = ImGui::GetIO();
         ASSERT(io.BackendPlatformUserData == nullptr && "Already initialized a platform backend!");
@@ -472,9 +482,9 @@ namespace RR
         bd->Time = 0.0;
         bd->WantUpdateMonitors = true;
 
-        io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
-        io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
-        io.ClipboardUserData = bd->GlfwWindow;
+        io.SetClipboardTextFn = Platform_SetClipboardText;
+        io.GetClipboardTextFn = Platform_GetClipboardText;
+        io.ClipboardUserData = nullptr;
 
         // Create mouse cursors
         // (By design, on X11 cursors are user configurable and some cursors may be missing. When a cursor doesn't exist,
@@ -520,17 +530,17 @@ namespace RR
         return true;
     }
 
-    bool ImGui_ImplRR_InitForOpenGL(const std::shared_ptr<Windowing::Window>& window, bool install_callbacks)
+    bool ImGui_ImplRR_InitForOpenGL(const std::shared_ptr<Platform::Window>& window, bool install_callbacks)
     {
         return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_OpenGL);
     }
 
-    bool ImGui_ImplRR_InitForVulkan(const std::shared_ptr<Windowing::Window>& window, bool install_callbacks)
+    bool ImGui_ImplRR_InitForVulkan(const std::shared_ptr<Platform::Window>& window, bool install_callbacks)
     {
         return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_Vulkan);
     }
 
-    bool ImGui_ImplRR_InitForOther(const std::shared_ptr<Windowing::Window>& window, bool install_callbacks)
+    bool ImGui_ImplRR_InitForOther(const std::shared_ptr<Platform::Window>& window, bool install_callbacks)
     {
         return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_Unknown);
     }
@@ -611,7 +621,7 @@ namespace RR
             const bool windowNoInput = (viewport->Flags & ImGuiViewportFlags_NoInputs) != 0;
 
             ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
-            vd->Window->SetWindowAttribute(Windowing::Window::Attribute::MousePassthrough, windowNoInput);
+            vd->Window->SetWindowAttribute(Platform::Window::Attribute::MousePassthrough, windowNoInput);
 
             if (glfwGetWindowAttrib(window, GLFW_HOVERED) && !windowNoInput)
                 mouse_viewport_id = viewport->ID;
@@ -760,16 +770,16 @@ namespace RR
     {
         ImGuiIO& io = ImGui::GetIO();
         ImGuiData* bd = ImGuiGetBackendData();
-        ASSERT(bd != nullptr && "Did you call ImGui_ImplGlfw_InitForXXX()?");
+        ASSERT_MSG(bd != nullptr, "Did you call ImGui_ImplGlfw_InitForXXX()?");
 
         // Setup display size (every frame to accommodate for window resizing)
-        int w, h;
-        int display_w, display_h;
-        glfwGetWindowSize(bd->GlfwWindow, &w, &h);
-        glfwGetFramebufferSize(bd->GlfwWindow, &display_w, &display_h);
-        io.DisplaySize = ImVec2((float)w, (float)h);
-        if (w > 0 && h > 0)
-            io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);
+        auto windowSize = bd->Window->GetSize();
+        auto framebuffer = bd->Window->GetFramebufferSize();
+        io.DisplaySize = Vector2iToImVec(windowSize);
+
+        if (windowSize.x > 0 && windowSize.y > 0)
+            io.DisplayFramebufferScale = ImVec2((float)framebuffer.x / (float)windowSize.x,
+                                                (float)framebuffer.y / (float)windowSize.y);
         if (bd->WantUpdateMonitors)
             ImGui_ImplGlfw_UpdateMonitors();
 
@@ -783,6 +793,8 @@ namespace RR
 
         // Update game controllers (if enabled and available)
         ImGui_ImplGlfw_UpdateGamepads();
+
+        ImGui::NewFrame();
     }
 
     //--------------------------------------------------------------------------------------------------------
@@ -839,9 +851,9 @@ namespace RR
         ImGuiViewportData* vd = IM_NEW(ImGuiViewportData)();
         viewport->PlatformUserData = vd;
 
-        auto& windowSystem = Windowing::WindowSystem::Instance();
+        auto& windowSystem = Platform::WindowSystem::Instance();
 
-        Windowing::Window::Description windowDesc;
+        Platform::Window::Description windowDesc;
         windowDesc.size = ImVecToVector2i(viewport->Size);
         windowDesc.title = "No Title Yet";
         windowDesc.visible = false;
@@ -913,8 +925,8 @@ namespace RR
 
         ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
 
-        vd->Window->SetWindowAttribute(Windowing::Window::Attribute::TaskbarIcon, !(viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon));
-        vd->Window->SetWindowAttribute(Windowing::Window::Attribute::MousePassthrough, true);
+        vd->Window->SetWindowAttribute(Platform::Window::Attribute::TaskbarIcon, !(viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon));
+        vd->Window->SetWindowAttribute(Platform::Window::Attribute::MousePassthrough, true);
         vd->Window->Show();
     }
 
@@ -977,7 +989,7 @@ namespace RR
         ASSERT(viewport->PlatformUserData);
 
         ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
-        return vd->Window->GetWindowAttribute(Windowing::Window::Attribute::Focused) != 0;
+        return vd->Window->GetWindowAttribute(Platform::Window::Attribute::Focused) != 0;
     }
 
     static bool Platform_GetWindowMinimized(ImGuiViewport* viewport)
@@ -985,7 +997,7 @@ namespace RR
         ASSERT(viewport->PlatformUserData);
 
         ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
-        return vd->Window->GetWindowAttribute(Windowing::Window::Attribute::Minimized) != 0;
+        return vd->Window->GetWindowAttribute(Platform::Window::Attribute::Minimized) != 0;
     }
 
     static void Platform_SetWindowAlpha(ImGuiViewport* viewport, float alpha)

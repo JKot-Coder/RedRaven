@@ -1,19 +1,12 @@
 #include "WindowSystem.hpp"
 
-#include "common/Exception.hpp"
-#include "common/Math.hpp"
-
 #include "platform/Window.hpp"
-
-#include <GLFW/glfw3.h>
+#include "platform/GlfwWindowImpl.hpp"
 
 namespace RR
 {
-    namespace Windowing
+    namespace Platform
     {
-        WindowSystem::WindowSystem()
-        {
-        }
 
         WindowSystem::~WindowSystem()
         {
@@ -34,7 +27,7 @@ namespace RR
         {
             ASSERT(isInited_);
 
-            const auto& window = std::shared_ptr<Window>(new Window());
+            const auto& window = std::shared_ptr<Window>(new GlfwWindowImpl());
 
             if (!window->Init(callbacks, description))
                 return nullptr;

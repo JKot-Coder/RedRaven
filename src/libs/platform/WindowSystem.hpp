@@ -6,7 +6,7 @@
 
 namespace RR
 {
-    namespace Windowing
+    namespace Platform
     {
 #ifdef OS_WINDOWS
         constexpr wchar_t WINDOW_CLASS_NAME[] = L"RedRevenWndClass";
@@ -15,7 +15,7 @@ namespace RR
         class WindowSystem final : public Singleton<WindowSystem>
         {
         public:
-            WindowSystem();
+            WindowSystem() = default;
             ~WindowSystem();
 
             void Init();

@@ -5,12 +5,12 @@
 
 namespace RR
 {
-    namespace Windowing
+    namespace Platform
     {
         class InputtingWindow;
     }
 
-    class Application : public Windowing::Window::ICallbacks
+    class Application : public Platform::Window::ICallbacks
     {
     public:
         Application() = default;
@@ -21,7 +21,7 @@ namespace RR
     private:
         bool _quit = false;
 
-        std::shared_ptr<Windowing::Window> _window;
+        std::shared_ptr<Platform::Window> _window;
         std::shared_ptr<GAPI::SwapChain> swapChain_;
 
         void init();

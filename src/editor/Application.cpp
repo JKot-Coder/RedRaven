@@ -300,10 +300,10 @@ namespace RR
     {
         init();
 
-        auto& windowSystem = Windowing::WindowSystem::Instance();
+        auto& windowSystem = Platform::WindowSystem::Instance();
         windowSystem.Init();
 
-        Windowing::Window::Description windowDesc;
+        Platform::Window::Description windowDesc;
         windowDesc.size = { 800, 600 };
         windowDesc.title = "Demo";
 
@@ -395,7 +395,6 @@ namespace RR
             // Start the Dear ImGui frame
             ImGui_ImplDX12_NewFrame();
             ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
 
             // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
             if (show_demo_window)

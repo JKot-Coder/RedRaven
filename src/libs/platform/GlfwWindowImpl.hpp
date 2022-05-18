@@ -10,9 +10,11 @@
 
 namespace RR
 {
-    namespace Windowing
+    namespace Platform
     {
-        class GlfwWindowImpl final : public IWindowImpl
+        class GlfwWindowSystem;
+
+        class GlfwWindowImpl final : public Window
         {
         public:
             ~GlfwWindowImpl() override;
@@ -22,6 +24,7 @@ namespace RR
             void ShowCursor(bool value) override;
 
             Vector2i GetSize() const override;
+            Vector2i GetFramebufferSize() const override;
             void SetSize(const Vector2i& size) const override;
 
             Vector2i GetPosition() const override;
@@ -33,6 +36,9 @@ namespace RR
             int32_t GetWindowAttribute(Window::Attribute attribute) const override;
             void SetWindowAttribute(Window::Attribute attribute, int32_t value) override;
 
+            void SetClipboardText(const U8String& text) const override;
+            U8String GetClipboardText() const override;
+
             std::any GetNativeHandle() const override;
             std::any GetNativeHandleRaw() const override;
 
@@ -40,6 +46,8 @@ namespace RR
             void Show() const override;
 
         private:
+            GlfwWindowImpl() = default;
+
             static void windowUpdateCallback(GLFWwindow* glfwWindow);
             static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
             static void windowCloseCallback(GLFWwindow* glfwWindow);
@@ -55,6 +63,9 @@ namespace RR
 #endif
             bool mousePassthrough_ = false;
             bool taskbarIcon_ = false;
+
+        private:
+            friend class Platform::WindowSystem;
         };
     }
 }

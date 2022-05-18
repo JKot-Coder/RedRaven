@@ -17,7 +17,7 @@ static_assert(false, "platform is not supported");
 
 namespace RR
 {
-    namespace Windowing
+    namespace Platform
     {
         void GlfwWindowImpl::windowUpdateCallback(GLFWwindow* glfwWindow)
         {
@@ -138,6 +138,14 @@ namespace RR
             glfwGetWindowSize(window_, &w, &h);
             return Vector2i(w, h);
         }
+        Vector2i GlfwWindowImpl::GetFramebufferSize() const
+        {
+            ASSERT(window_);
+
+            int32_t w, h;
+            glfwGetFramebufferSize(window_, &w, &h);
+            return Vector2i(w, h);
+        }
 
         void GlfwWindowImpl::SetSize(const Vector2i& size) const
         {
@@ -182,15 +190,15 @@ namespace RR
 
             switch (attribute)
             {
-                case RR::Windowing::Window::Attribute::Minimized:
+                case RR::Platform::Window::Attribute::Minimized:
                     return glfwGetWindowAttrib(window_, GLFW_ICONIFIED) != 0;
-                case RR::Windowing::Window::Attribute::Maximized:
+                case RR::Platform::Window::Attribute::Maximized:
                     return glfwGetWindowAttrib(window_, GLFW_MAXIMIZED) != 0;
-                case RR::Windowing::Window::Attribute::Focused:
+                case RR::Platform::Window::Attribute::Focused:
                     return glfwGetWindowAttrib(window_, GLFW_FOCUSED) != 0;
-                case RR::Windowing::Window::Attribute::MousePassthrough:
+                case RR::Platform::Window::Attribute::MousePassthrough:
                     return mousePassthrough_;
-                case RR::Windowing::Window::Attribute::TaskbarIcon:
+                case RR::Platform::Window::Attribute::TaskbarIcon:
                     return taskbarIcon_;
                 default:
                     ASSERT_MSG(false, "Unknown window attribute");
@@ -205,19 +213,33 @@ namespace RR
 
             switch (attribute)
             {
-                case RR::Windowing::Window::Attribute::Minimized:
+                case RR::Platform::Window::Attribute::Minimized:
                     return glfwSetWindowAttrib(window_, GLFW_ICONIFIED, value != 0);
-                case RR::Windowing::Window::Attribute::Maximized:
+                case RR::Platform::Window::Attribute::Maximized:
                     return glfwSetWindowAttrib(window_, GLFW_MAXIMIZED, value != 0);
-                case RR::Windowing::Window::Attribute::Focused:
+                case RR::Platform::Window::Attribute::Focused:
                     return glfwSetWindowAttrib(window_, GLFW_FOCUSED, value != 0);
-                case RR::Windowing::Window::Attribute::MousePassthrough:
+                case RR::Platform::Window::Attribute::MousePassthrough:
                     return setWindowMousePassthrough(value != 0);
-                case RR::Windowing::Window::Attribute::TaskbarIcon:
+                case RR::Platform::Window::Attribute::TaskbarIcon:
                     return setTaskbarIcon(value != 0);
                 default:
                     ASSERT_MSG(false, "Unknown window attribute");
             }
+        }
+
+        U8String GlfwWindowImpl::GetClipboardText() const
+        {
+            ASSERT(window_);
+
+            return glfwGetClipboardString(window_);
+        }
+
+        void GlfwWindowImpl::SetClipboardText(const U8String& text) const
+        {
+            ASSERT(window_);
+
+            glfwSetClipboardString(window_, text.c_str());
         }
 
         std::any GlfwWindowImpl::GetNativeHandle() const
