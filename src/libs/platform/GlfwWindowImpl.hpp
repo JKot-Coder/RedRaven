@@ -19,7 +19,7 @@ namespace RR
         public:
             ~GlfwWindowImpl() override;
 
-            bool Init(Window::ICallbacks* callbacks, const Window::Description& description) override;
+            bool Init(const Window::Description& description) override;
 
             void ShowCursor(bool value) override;
 
@@ -29,6 +29,9 @@ namespace RR
 
             Vector2i GetPosition() const override;
             void SetPosition(const Vector2i& position) const override;
+
+            Vector2i GetMousePosition() const override;
+            void SetMousePosition(const Vector2i& position) const override;
 
             void SetTitle(const U8String& title) const override;
             void SetWindowAlpha(float alpha) const override;
@@ -48,15 +51,18 @@ namespace RR
         private:
             GlfwWindowImpl() = default;
 
-            static void windowUpdateCallback(GLFWwindow* glfwWindow);
-            static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
             static void windowCloseCallback(GLFWwindow* glfwWindow);
+            static void windowFocusCallback(GLFWwindow* glfwWindow, int focused);
+            static void mouseMoveCallback(GLFWwindow* glfwWindow, double x, double y);
+            static void mouseButtonCallback(GLFWwindow* glfwWindow, int button, int action, int mods);
+            static void windowPosCallback(GLFWwindow* glfwWindow, int x, int y);
+            static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
+            static void windowUpdateCallback(GLFWwindow* glfwWindow);
 
             void setWindowMousePassthrough(bool enabled);
             void setTaskbarIcon(bool enabled);
 
         private:
-            Window::ICallbacks* callbacks_;
             GLFWwindow* window_;
 #ifdef OS_WINDOWS
             HBRUSH bgBrush_;

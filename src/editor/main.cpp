@@ -4,6 +4,7 @@ namespace
 {
     int runApp(int argc, char** argv)
     {
+
         std::ignore = argc;
         std::ignore = argv;
 

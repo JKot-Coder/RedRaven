@@ -23,13 +23,13 @@ namespace RR
             isInited_ = true;
         }
 
-        std::shared_ptr<Window> WindowSystem::Create(Window::ICallbacks* callbacks, const Window::Description& description) const
+        std::shared_ptr<Window> WindowSystem::Create(const Window::Description& description) const
         {
             ASSERT(isInited_);
 
             const auto& window = std::shared_ptr<Window>(new GlfwWindowImpl());
 
-            if (!window->Init(callbacks, description))
+            if (!window->Init(description))
                 return nullptr;
 
             return window;

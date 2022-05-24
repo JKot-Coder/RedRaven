@@ -20,7 +20,7 @@ namespace RR
 
             void Init();
 
-            std::shared_ptr<Window> Create(Window::ICallbacks* callbacks, const Window::Description& description) const;
+            std::shared_ptr<Window> Create(const Window::Description& description) const;
             void PoolEvents() const;
 
         private:

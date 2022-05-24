@@ -25,25 +25,27 @@ source_group( "Debug" FILES ${DEBUG_SRC} )
 
 set( COMMON_SRC
     pch.hpp
-    Math.hpp  
-    Math.cpp
-    Config.hpp
-    VecMath.h
     Check.cpp
     CircularBuffer.hpp
-    String.hpp
-    Exception.hpp
-    Stream.hpp
-    Time.cpp
-    Time.hpp
-    OnScopeExit.hpp
-    NonCopyableMovable.hpp
-    Singleton.hpp
+    Config.hpp
     EnumClassOperators.hpp
+    Event.cpp
+    Event.hpp
     EventProvider.hpp
+    Exception.hpp
     LinearAllocator.cpp
     LinearAllocator.hpp
     LinearAllocator.inl
+    Math.cpp
+    Math.hpp  
+    NonCopyableMovable.hpp
+    OnScopeExit.hpp
+    Singleton.hpp
+    Stream.hpp
+    String.hpp
+    Time.cpp
+    Time.hpp
+    VecMath.h
 )
 source_group( "" FILES ${COMMON_SRC} )
 

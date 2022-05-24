@@ -2,8 +2,8 @@
 
 #include <Windows.h>
 
-#include "backends/imgui_impl_dx12.h"
 #include "ImguiPlatformImplementation.hpp"
+#include "backends/imgui_impl_dx12.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <imgui.h>
@@ -12,12 +12,11 @@
 #include "platform/Window.hpp"
 #include "platform/WindowSystem.hpp"
 
+
 namespace RR
 {
-
     namespace
     {
-
         struct FrameContext
         {
             ID3D12CommandAllocator* CommandAllocator;
@@ -308,7 +307,7 @@ namespace RR
         windowDesc.title = "Demo";
 
         // Create window with graphics context
-        auto window = windowSystem.Create(this, windowDesc);
+        auto window = windowSystem.Create(windowDesc);
         if (!window)
             return 1;
 
@@ -330,7 +329,6 @@ namespace RR
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
-
 
         io.ConfigDockingTransparentPayload = true;
         //io.ConfigViewportsNoAutoMerge = true;
@@ -491,8 +489,21 @@ namespace RR
 
         return 0;
     }
+    Event<> testEvent;
+    void foo()
+    {
+
+    }
+
+    void Application::bar()
+    {
+  
+    }
 
     void Application::init()
     {
+
+
+     //   testEvent.Register<Application>(this, &Application::bar);
     }
 }

@@ -1,15 +1,14 @@
 #pragma once
 
- #include "platform/WindowSystem.hpp"
-
 namespace RR
 {
-    class Application final : public Platform::Window::ICallbacks
+    class Application final
     {
     public:
         int Run();
 
     private:
         void init();
+        void bar();
     };
 }
