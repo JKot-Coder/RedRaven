@@ -170,9 +170,6 @@ namespace RR::Platform
         glfwSetWindowRefreshCallback(window_, &windowUpdateCallback);
         glfwSetWindowSizeCallback(window_, &windowResizeCallback);
 
-        Event<const Window&, Input::MouseButton, Input::ModifierFlag> OnMouseButtonPress;
-        Event<const Window&, Input::MouseButton, Input::ModifierFlag> OnMouseButtonRelease;
-
         glfwSetWindowUserPointer(window_, this);
 
 #ifdef OS_WINDOWS

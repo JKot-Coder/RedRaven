@@ -489,16 +489,6 @@ namespace RR
 
         return 0;
     }
-    Event<> testEvent;
-    void foo()
-    {
-
-    }
-
-    void Application::bar()
-    {
-  
-    }
 
     void Application::init()
     {

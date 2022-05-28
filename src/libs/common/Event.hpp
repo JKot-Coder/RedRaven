@@ -6,23 +6,17 @@ namespace RR
 {
     namespace Common
     {
-        template <typename... Args>
-        class Event
+
+        template <typename Signature>
+        class Event;
+
+        template <typename ReturnType, typename... Args>
+        class Event<ReturnType(Args...)>
         {
         private:
-            // It is possible to implement optionally interrupted events.
-            // A good start is to declare ReturnType as std::conditional
-            using ReturnType = void;
-
-            template <class Class>
-            using ClassMemberCallback = ReturnType (Class::*)(Args...);
-            using CallbackFunction = ReturnType (*)(Args...);
-
             struct Delegate
             {
             public:
-                using StubFunction = ReturnType (*)(void*, Args...);
-
                 ReturnType operator()(Args... args) const
                 {
                     return (*callback_)(target_, args...);
@@ -39,22 +33,28 @@ namespace RR
                 }
 
             public:
-                template <CallbackFunction Callback>
+                template <auto Callback>
                 static Delegate Create()
                 {
                     Delegate delegate;
                     delegate.target_ = nullptr;
-                    delegate.callback_ = &stabFunction<Callback>;
+                    delegate.callback_ = +[](void*, Args... args) -> ReturnType
+                    {
+                        return Callback(args...);
+                    };
 
                     return delegate;
                 }
 
-                template <class Class, ClassMemberCallback<Class> Callback>
+                template <class Class, auto Callback>
                 static Delegate Create(Class* target)
                 {
                     Delegate delegate;
                     delegate.target_ = static_cast<void*>(target);
-                    delegate.callback_ = &stabFunction<Class, Callback>;
+                    delegate.callback_ = +[](void* target, Args... args) -> ReturnType
+                    {
+                        return (static_cast<Class*>(target)->*Callback)(args...);
+                    };
 
                     return delegate;
                 }
@@ -63,25 +63,16 @@ namespace RR
                 Delegate() = default;
 
             private:
-                template <CallbackFunction Callback>
-                static void stabFunction(void*, Args... args)
-                {
-                    return Callback(args...);
-                }
+                using StubFunction = ReturnType (*)(void*, Args...);
 
-                template <class Class, ClassMemberCallback<Class> Callback>
-                static void stabFunction(void* target, Args... args)
-                {
-                    return (static_cast<Class*>(target)->*Callback)(args...);
-                }
-
-            private:
                 void* target_;
                 StubFunction callback_;
             };
 
         public:
-            template <CallbackFunction Callback>
+            Event(std::size_t initialSize = 8U) { delegates_.reserve(initialSize); }
+
+            template <auto Callback>
             void Register()
             {
                 const auto delegate = Delegate::Create<Callback>();
@@ -89,10 +80,10 @@ namespace RR
                 ASSERT_MSG(!isRegistered(delegate), "Callback already registered");
                 ASSERT_MSG(!protect_, "Callback registration is not allowed during dispatching");
 
-                delegates_.push_back(Delegate::Create<Callback>());
+                delegates_.push_back(delegate);
             }
 
-            template <class Class, ClassMemberCallback<Class> Callback>
+            template <class Class, auto Callback>
             void Register(Class* target)
             {
                 const auto delegate = Delegate::Create<Class, Callback>(target);
@@ -103,32 +94,32 @@ namespace RR
                 delegates_.push_back(delegate);
             }
 
-            template <CallbackFunction Callback>
+            template <auto Callback>
             void Unregister()
             {
                 ASSERT_MSG(!protect_, "Callback unregistration is not allowed during dispatching");
 
-                unregister(Delegate::Create<Callback>());
+                unregister(Delegate::template Create<Callback>());
             }
 
-            template <class Class, ClassMemberCallback<Class> Callback>
+            template <class Class, auto Callback>
             void Unregister(Class* target)
             {
                 ASSERT_MSG(!protect_, "Callback unregistration is not allowed during dispatching");
 
-                unregister(Delegate::Create<Class, Callback>(target));
+                unregister(Delegate::template Create<Class, Callback>(target));
             }
 
-            template <CallbackFunction Callback>
+            template <auto Callback>
             bool IsRegistered() const
             {
-                return isRegistered(Delegate::Create<Callback>());
+                return isRegistered(Delegate.template Create<Callback>());
             }
 
-            template <class Class, ClassMemberCallback<Class> Callback>
+            template <class Class, auto Callback>
             bool IsRegistered() const
             {
-                return isRegistered(Delegate::Create<Class, Callback>());
+                return isRegistered(Delegate.template Create<Class, Callback>());
             }
 
             void Dispatch(Args... args) const

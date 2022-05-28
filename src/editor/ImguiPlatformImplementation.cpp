@@ -568,7 +568,7 @@ namespace RR
             ImGuiViewport* viewport = platform_io.Viewports[index];
             ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
             auto window = vd->Window;
-            auto glfwWindow = vd->GLFWWindow;
+           // auto glfwWindow = vd->GLFWWindow;
 
             const bool isFocused = window->GetWindowAttribute(Platform::Window::Attribute::Focused) != 0;
             if (isFocused)
