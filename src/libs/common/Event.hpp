@@ -74,7 +74,7 @@ namespace RR
             template <auto Callback>
             void Register()
             {
-                const auto delegate = Delegate::Create<Callback>();
+                const auto delegate = Delegate::template Create<Callback>();
 
                 ASSERT_MSG(!isRegistered(delegate), "Callback already registered");
                 ASSERT_MSG(!protect_, "Callback registration is not allowed during dispatching");
@@ -85,7 +85,7 @@ namespace RR
             template <class Class, auto Callback>
             void Register(Class* target)
             {
-                const auto delegate = Delegate::Create<Class, Callback>(target);
+                const auto delegate = Delegate::template Create<Class, Callback>(target);
 
                 ASSERT_MSG(!isRegistered(delegate), "Callback already registered");
                 ASSERT_MSG(!protect_, "Callback registration is not allowed during dispatching");
@@ -112,13 +112,13 @@ namespace RR
             template <auto Callback>
             bool IsRegistered() const
             {
-                return isRegistered(Delegate.template Create<Callback>());
+                return isRegistered(Delegate::template Create<Callback>());
             }
 
             template <class Class, auto Callback>
             bool IsRegistered() const
             {
-                return isRegistered(Delegate.template Create<Class, Callback>());
+                return isRegistered(Delegate::template Create<Class, Callback>());
             }
 
             void Dispatch(Args... args) const

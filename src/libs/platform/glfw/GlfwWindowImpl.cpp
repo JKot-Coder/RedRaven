@@ -7,14 +7,15 @@
 #include <windows.h>
 #endif
 
-#ifndef OS_WINDOWS
-static_assert(false, "platform is not supported");
-#endif // !OS_WINDOW
-
 #ifdef OS_WINDOWS
 #define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
 #endif
+
+#ifdef OS_APPLE
+#define GLFW_EXPOSE_NATIVE_COCOA
+#endif
+
+#include <GLFW/glfw3native.h>
 
 namespace RR::Platform
 {
@@ -365,7 +366,13 @@ namespace RR::Platform
     {
         ASSERT(window_);
 
+#if OS_WINDOWS
         return glfwGetWin32Window(window_);
+#elif OS_APPLE
+        return glfwGetCocoaWindow(window_);
+#else
+        return nullptr;
+#endif
     }
 
     void GlfwWindowImpl::Focus() const
