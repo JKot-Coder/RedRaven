@@ -2,8 +2,7 @@
 #include "imgui.h"
 
 #include "platform/Input.hpp"
-#include "platform/Platform.hpp"
-#include "platform/WindowSystem.hpp"
+#include "platform/Toolkit.hpp"
 
 // GLFW
 #include <GLFW/glfw3.h>
@@ -710,21 +709,17 @@ namespace RR
         ImGuiData* bd = ImGuiGetBackendData();
         ImGuiPlatformIO& platformIo = ImGui::GetPlatformIO();
 
-        const auto& monitors = Platform::GetMonitors();
+        const auto& toolkit = Platform::Toolkit::Instance();
+        const auto& monitors = toolkit.GetMonitors();
         for (const auto& monitor : monitors)
         {
             ImGuiPlatformMonitor imGuiMonitor;
 
-            imGuiMonitor.MainPos = imGuiMonitor.WorkPos = Vector2iToImVec(monitor.position);
-            imGuiMonitor.MainSize = imGuiMonitor.WorkSize = Vector2iToImVec(monitor.videoMode.resolution);
+            imGuiMonitor.MainPos = Vector2iToImVec(monitor.position);
+            imGuiMonitor.MainSize = Vector2iToImVec(monitor.videoMode.resolution);
 
-            // Workaround a small GLFW issue reporting zero on monitor changes: https://github.com/glfw/glfw/pull/1761
-            if (monitor.workArea.width > 0 &&
-                monitor.workArea.height > 0)
-            {
-                imGuiMonitor.WorkPos = Vector2iToImVec(monitor.workArea.GetPosition());
-                imGuiMonitor.WorkSize = Vector2iToImVec(monitor.workArea.GetSize());
-            }
+            imGuiMonitor.WorkPos = Vector2iToImVec(monitor.workArea.GetPosition());
+            imGuiMonitor.WorkSize = Vector2iToImVec(monitor.workArea.GetSize());
 
             // Warning: the validity of monitor DPI information on Windows depends on the application DPI awareness settings, which generally needs to be set in the manifest or at runtime.
             imGuiMonitor.DpiScale = monitor.dpiScale.x;
@@ -825,7 +820,7 @@ namespace RR
         ImGuiViewportData* vd = IM_NEW(ImGuiViewportData)();
         viewport->PlatformUserData = vd;
 
-        auto& windowSystem = Platform::WindowSystem::Instance();
+        auto& toolkit = Platform::Toolkit::Instance();
 
         Platform::Window::Description windowDesc;
         windowDesc.size = ImVecToVector2i(viewport->Size);
@@ -843,7 +838,7 @@ namespace RR
         // TODO ShareWindow for opengl
         // glfwCreateWindow((int)viewport->Size.x, (int)viewport->Size.y, "No Title Yet", nullptr, share_window);
 
-        vd->Window = windowSystem.Create(windowDesc); // TODO asserts
+        vd->Window = toolkit.CreatePlatformWindow(windowDesc); // TODO asserts
         vd->GLFWWindow = std::any_cast<GLFWwindow*>(vd->Window->GetNativeHandle());
 
         vd->WindowOwned = true;

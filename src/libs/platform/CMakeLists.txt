@@ -1,18 +1,24 @@
 project (platform)
 
 set(SRC
-    "GlfwWindowImpl.cpp"
-    "GlfwWindowImpl.hpp"
-    "GlfwWindowSystem.cpp"
     "Input.cpp"
     "Input.hpp"
-    "Platform.cpp"
-    "Platform.hpp"
     "Window.hpp"
-    "WindowSystem.hpp"
+    "Toolkit.hpp"
     )
-
 source_group( "" FILES ${SRC} )
+
+set (GLFW_SRC
+    "glfw/GlfwWindowImpl.cpp"
+    "glfw/GlfwWindowImpl.hpp"
+    "glfw/GlfwToolkitImpl.cpp"
+    )
+source_group( "glfw" FILES ${GLFW_SRC} )
+
+set (SRC
+    ${SRC}
+    ${GLFW_SRC}
+    )
 
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")

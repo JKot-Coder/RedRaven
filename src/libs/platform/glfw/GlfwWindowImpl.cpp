@@ -1,7 +1,7 @@
 #include "GlfwWindowImpl.hpp"
 
 #include "platform/Input.hpp"
-#include "platform/WindowSystem.hpp"
+#include "platform/Toolkit.hpp"
 
 #ifdef OS_WINDOWS
 #include <windows.h>
@@ -150,7 +150,7 @@ namespace RR::Platform
 #endif
     }
 
-    bool GlfwWindowImpl::Init(const Description& description)
+    bool GlfwWindowImpl::init(const Description& description)
     {
         ASSERT(!window_);
 
@@ -456,4 +456,14 @@ namespace RR::Platform
         ASSERT_MSG(false, "Not implemented");
     }
 #endif
+
+    std::shared_ptr<Window> GlfwWindowImpl::Create(const Window::Description& description)
+    {
+        const auto& window = new GlfwWindowImpl();
+
+        if (!window->init(description))
+            return nullptr;
+
+        return std::shared_ptr<Window>(window);
+    }
 }

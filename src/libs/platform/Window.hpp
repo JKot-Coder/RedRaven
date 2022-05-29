@@ -6,8 +6,6 @@
 
 namespace RR::Platform
 {
-    class WindowSystem;
-
     namespace Input
     {
         enum class MouseButton : uint32_t;
@@ -57,8 +55,6 @@ namespace RR::Platform
 
     public:
         virtual ~Window() = default;
-
-        virtual bool Init(const Description& description) = 0;
 
         virtual void ShowCursor(bool value) = 0;
 

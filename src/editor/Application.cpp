@@ -10,7 +10,7 @@
 #include <tchar.h>
 
 #include "platform/Window.hpp"
-#include "platform/WindowSystem.hpp"
+#include "platform/Toolkit.hpp"
 
 
 namespace RR
@@ -299,15 +299,15 @@ namespace RR
     {
         init();
 
-        auto& windowSystem = Platform::WindowSystem::Instance();
-        windowSystem.Init();
+        auto& platformToolkit = Platform::Toolkit::Instance();
+        platformToolkit.Init();
 
         Platform::Window::Description windowDesc;
         windowDesc.size = { 800, 600 };
         windowDesc.title = "Demo";
 
         // Create window with graphics context
-        auto window = windowSystem.Create(windowDesc);
+        auto window = platformToolkit.CreatePlatformWindow(windowDesc);
         if (!window)
             return 1;
 

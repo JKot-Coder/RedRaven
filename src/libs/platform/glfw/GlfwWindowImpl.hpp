@@ -12,14 +12,10 @@ namespace RR
 {
     namespace Platform
     {
-        class GlfwWindowSystem;
-
         class GlfwWindowImpl final : public Window
         {
         public:
             ~GlfwWindowImpl() override;
-
-            bool Init(const Window::Description& description) override;
 
             void ShowCursor(bool value) override;
 
@@ -48,6 +44,9 @@ namespace RR
             void Focus() const override;
             void Show() const override;
 
+        public:
+            static std::shared_ptr<Window> Create(const Window::Description& description);
+
         private:
             GlfwWindowImpl() = default;
 
@@ -64,6 +63,8 @@ namespace RR
             void setWindowMousePassthrough(bool enabled);
             void setTaskbarIcon(bool enabled);
 
+            bool init(const Window::Description& description);
+
         private:
             GLFWwindow* window_;
 #ifdef OS_WINDOWS
@@ -71,9 +72,6 @@ namespace RR
 #endif
             bool mousePassthrough_ = false;
             bool taskbarIcon_ = false;
-
-        private:
-            friend class Platform::WindowSystem;
         };
     }
 }

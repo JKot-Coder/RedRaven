@@ -6,7 +6,6 @@ namespace RR
 {
     namespace Common
     {
-
         template <typename Signature>
         class Event;
 
