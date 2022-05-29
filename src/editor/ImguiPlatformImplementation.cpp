@@ -2,6 +2,7 @@
 #include "imgui.h"
 
 #include "platform/Input.hpp"
+#include "platform/Platform.hpp"
 #include "platform/WindowSystem.hpp"
 
 // GLFW
@@ -66,7 +67,6 @@ namespace RR
         bool WantUpdateMonitors;
 
         // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
-        GLFWscrollfun PrevUserCallbackScroll;
         GLFWkeyfun PrevUserCallbackKey;
         GLFWcharfun PrevUserCallbackChar;
         GLFWmonitorfun PrevUserCallbackMonitor;
@@ -76,6 +76,11 @@ namespace RR
 
     namespace
     {
+        ImVec2 Vector2ToImVec(const Vector2& vector)
+        {
+            return *reinterpret_cast<const ImVec2*>(&vector);
+        }
+
         ImVec2 Vector2iToImVec(const Vector2i& vector)
         {
             auto fVector = vector.Cast<float>();
@@ -102,7 +107,7 @@ namespace RR
     }
 
     // Forward Declarations
-    static void ImGui_ImplGlfw_UpdateMonitors();
+    static void UpdateMonitors();
     static void ImGuiInitPlatformInterface();
     static void ImGuiShutdownPlatformInterface();
 
@@ -262,7 +267,16 @@ namespace RR
         io.AddKeyEvent(ImGuiKey_ModSuper, (mods & GLFW_MOD_SUPER) != 0);
     }
 
-    void MouseButtonPressCallback(const Platform::Window& window, Platform::Input::MouseButton button, Platform::Input::ModifierFlag modFlags)
+    void MouseCrossCallback(const Platform::Window& window, bool entered)
+    {
+        std::ignore = window;
+        ImGuiIO& io = ImGui::GetIO();
+
+        if (!entered)
+            io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+    }
+
+    void MouseButtonCallback(const Platform::Window& window, Platform::Input::MouseButton button, Platform::Input::ModifierFlag modFlags, bool pressed)
     {
         std::ignore = window;
         std::ignore = modFlags;
@@ -273,39 +287,19 @@ namespace RR
         ImGuiIO& io = ImGui::GetIO();
         switch (button)
         {
-            case Platform::Input::MouseButton::Left: io.AddMouseButtonEvent(ImGuiMouseButton_Left, true); break;
-            case Platform::Input::MouseButton::Right: io.AddMouseButtonEvent(ImGuiMouseButton_Right, true); break;
-            case Platform::Input::MouseButton::Middle: io.AddMouseButtonEvent(ImGuiMouseButton_Middle, true); break;
+            case Platform::Input::MouseButton::Left: io.AddMouseButtonEvent(ImGuiMouseButton_Left, pressed); break;
+            case Platform::Input::MouseButton::Right: io.AddMouseButtonEvent(ImGuiMouseButton_Right, pressed); break;
+            case Platform::Input::MouseButton::Middle: io.AddMouseButtonEvent(ImGuiMouseButton_Middle, pressed); break;
             default: return;
         }
     }
 
-    void MouseButtonReleaseCallback(const Platform::Window& window, Platform::Input::MouseButton button, Platform::Input::ModifierFlag modFlags)
+    void ScrollCallback(const Platform::Window& window, const Vector2& wheel)
     {
         std::ignore = window;
-        std::ignore = modFlags;
-
-        // TODO
-        // ImGui_ImplGlfw_UpdateKeyModifiers(mods);
 
         ImGuiIO& io = ImGui::GetIO();
-        switch (button)
-        {
-            case Platform::Input::MouseButton::Left: io.AddMouseButtonEvent(ImGuiMouseButton_Left, false); break;
-            case Platform::Input::MouseButton::Right: io.AddMouseButtonEvent(ImGuiMouseButton_Right, false); break;
-            case Platform::Input::MouseButton::Middle: io.AddMouseButtonEvent(ImGuiMouseButton_Middle, false); break;
-            default: return;
-        }
-    }
-
-    void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-    {
-        ImGuiData* bd = ImGuiGetBackendData();
-        if (bd->PrevUserCallbackScroll != nullptr && window == bd->GlfwWindow)
-            bd->PrevUserCallbackScroll(window, xoffset, yoffset);
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.AddMouseWheelEvent((float)xoffset, (float)yoffset);
+        io.AddMouseWheelEvent(wheel.x, wheel.y);
     }
 
     static int ImGui_ImplGlfw_TranslateUntranslatedKey(int key, int scancode)
@@ -382,7 +376,7 @@ namespace RR
         io.AddFocusEvent(focused);
     }
 
-    void CursorPosCallback(const Platform::Window& window, const Vector2i& position)
+    void MouseMoveCallback(const Platform::Window& window, const Vector2i& position)
     {
         ImGuiData* bd = ImGuiGetBackendData();
         ImGuiIO& io = ImGui::GetIO();
@@ -422,10 +416,9 @@ namespace RR
         ASSERT(bd->GlfwWindow == glfwWindow);
 
         window->OnFocus.Register<WindowFocusCallback>();
-        window->OnMouseMove.Register<CursorPosCallback>();
-        window->OnMouseButtonPress.Register<MouseButtonPressCallback>();
-        window->OnMouseButtonRelease.Register<MouseButtonReleaseCallback>();
-        bd->PrevUserCallbackScroll = glfwSetScrollCallback(glfwWindow, ImGui_ImplGlfw_ScrollCallback);
+        window->OnMouseMove.Register<MouseMoveCallback>();
+        window->OnMouseButton.Register<MouseButtonCallback>();
+        window->OnScroll.Register<ScrollCallback>();
         bd->PrevUserCallbackKey = glfwSetKeyCallback(glfwWindow, ImGui_ImplGlfw_KeyCallback);
         bd->PrevUserCallbackChar = glfwSetCharCallback(glfwWindow, ImGui_ImplGlfw_CharCallback);
         bd->PrevUserCallbackMonitor = glfwSetMonitorCallback(ImGui_ImplGlfw_MonitorCallback);
@@ -440,15 +433,13 @@ namespace RR
         ASSERT(bd->GlfwWindow == glfwWindow);
 
         window->OnFocus.Unregister<WindowFocusCallback>();
-        window->OnMouseMove.Unregister<CursorPosCallback>();
-        window->OnMouseButtonPress.Unregister<MouseButtonPressCallback>();
-        window->OnMouseButtonRelease.Unregister<MouseButtonReleaseCallback>();
-        glfwSetScrollCallback(glfwWindow, bd->PrevUserCallbackScroll);
+        window->OnMouseMove.Unregister<MouseMoveCallback>();
+        window->OnMouseButton.Unregister<MouseButtonCallback>();
+        window->OnScroll.Unregister<ScrollCallback>();
         glfwSetKeyCallback(glfwWindow, bd->PrevUserCallbackKey);
         glfwSetCharCallback(glfwWindow, bd->PrevUserCallbackChar);
         glfwSetMonitorCallback(bd->PrevUserCallbackMonitor);
         bd->InstalledCallbacks = false;
-        bd->PrevUserCallbackScroll = nullptr;
         bd->PrevUserCallbackKey = nullptr;
         bd->PrevUserCallbackChar = nullptr;
         bd->PrevUserCallbackMonitor = nullptr;
@@ -505,7 +496,7 @@ namespace RR
             ImGui_ImplGlfw_InstallCallbacks(window);
 
         // Update monitors the first time (note: monitor callback are broken in GLFW 3.2 and earlier, see github.com/glfw/glfw/issues/784)
-        ImGui_ImplGlfw_UpdateMonitors();
+        UpdateMonitors();
         glfwSetMonitorCallback(ImGui_ImplGlfw_MonitorCallback);
 
         // Our mouse update function expect PlatformHandle to be filled for the main viewport
@@ -557,7 +548,7 @@ namespace RR
 
     static void UpdateMouseData()
     {
-       // ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
+        // ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
         ImGuiIO& io = ImGui::GetIO();
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
@@ -568,7 +559,7 @@ namespace RR
             ImGuiViewport* viewport = platform_io.Viewports[index];
             ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
             auto window = vd->Window;
-           // auto glfwWindow = vd->GLFWWindow;
+            // auto glfwWindow = vd->GLFWWindow;
 
             const bool isFocused = window->GetWindowAttribute(Platform::Window::Attribute::Focused) != 0;
             if (isFocused)
@@ -714,36 +705,31 @@ namespace RR
 #undef MAP_ANALOG
     }
 
-    static void ImGui_ImplGlfw_UpdateMonitors()
+    static void UpdateMonitors()
     {
         ImGuiData* bd = ImGuiGetBackendData();
-        ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-        int monitors_count = 0;
-        GLFWmonitor** glfw_monitors = glfwGetMonitors(&monitors_count);
-        platform_io.Monitors.resize(0);
-        for (int n = 0; n < monitors_count; n++)
-        {
-            ImGuiPlatformMonitor monitor;
-            int x, y;
-            glfwGetMonitorPos(glfw_monitors[n], &x, &y);
-            const GLFWvidmode* vid_mode = glfwGetVideoMode(glfw_monitors[n]);
-            monitor.MainPos = monitor.WorkPos = ImVec2((float)x, (float)y);
-            monitor.MainSize = monitor.WorkSize = ImVec2((float)vid_mode->width, (float)vid_mode->height);
+        ImGuiPlatformIO& platformIo = ImGui::GetPlatformIO();
 
-            int w, h;
-            glfwGetMonitorWorkarea(glfw_monitors[n], &x, &y, &w, &h);
-            if (w > 0 && h > 0) // Workaround a small GLFW issue reporting zero on monitor changes: https://github.com/glfw/glfw/pull/1761
+        const auto& monitors = Platform::GetMonitors();
+        for (const auto& monitor : monitors)
+        {
+            ImGuiPlatformMonitor imGuiMonitor;
+
+            imGuiMonitor.MainPos = imGuiMonitor.WorkPos = Vector2iToImVec(monitor.position);
+            imGuiMonitor.MainSize = imGuiMonitor.WorkSize = Vector2iToImVec(monitor.videoMode.resolution);
+
+            // Workaround a small GLFW issue reporting zero on monitor changes: https://github.com/glfw/glfw/pull/1761
+            if (monitor.workArea.width > 0 &&
+                monitor.workArea.height > 0)
             {
-                monitor.WorkPos = ImVec2((float)x, (float)y);
-                monitor.WorkSize = ImVec2((float)w, (float)h);
+                imGuiMonitor.WorkPos = Vector2iToImVec(monitor.workArea.GetPosition());
+                imGuiMonitor.WorkSize = Vector2iToImVec(monitor.workArea.GetSize());
             }
 
             // Warning: the validity of monitor DPI information on Windows depends on the application DPI awareness settings, which generally needs to be set in the manifest or at runtime.
-            float x_scale, y_scale;
-            glfwGetMonitorContentScale(glfw_monitors[n], &x_scale, &y_scale);
-            monitor.DpiScale = x_scale;
+            imGuiMonitor.DpiScale = monitor.dpiScale.x;
 
-            platform_io.Monitors.push_back(monitor);
+            platformIo.Monitors.push_back(imGuiMonitor);
         }
         bd->WantUpdateMonitors = false;
     }
@@ -763,7 +749,7 @@ namespace RR
             io.DisplayFramebufferScale = ImVec2((float)framebuffer.x / (float)windowSize.x,
                                                 (float)framebuffer.y / (float)windowSize.y);
         if (bd->WantUpdateMonitors)
-            ImGui_ImplGlfw_UpdateMonitors();
+            UpdateMonitors();
 
         // Setup time step
         double current_time = glfwGetTime();
@@ -868,18 +854,17 @@ namespace RR
         vd->Window->SetPosition(ImVecToVector2i(viewport->Pos));
 
         // Install GLFW callbacks for secondary viewports
-
-        glfwSetScrollCallback(vd->GLFWWindow, ImGui_ImplGlfw_ScrollCallback);
         glfwSetKeyCallback(vd->GLFWWindow, ImGui_ImplGlfw_KeyCallback);
         glfwSetCharCallback(vd->GLFWWindow, ImGui_ImplGlfw_CharCallback);
 
-        vd->Window->OnMouseButtonPress.Register<MouseButtonPressCallback>();
-        vd->Window->OnMouseButtonRelease.Register<MouseButtonReleaseCallback>();
-        vd->Window->OnMouseMove.Register<CursorPosCallback>();
         vd->Window->OnClose.Register<WindowCloseCallback>();
         vd->Window->OnFocus.Register<WindowFocusCallback>();
+        vd->Window->OnMouseButton.Register<MouseButtonCallback>();
+        vd->Window->OnMouseCross.Register<MouseCrossCallback>();
+        vd->Window->OnMouseMove.Register<MouseMoveCallback>();
         vd->Window->OnMove.Register<WindowPosCallback>();
         vd->Window->OnResize.Register<WindowSizeCallback>();
+        vd->Window->OnScroll.Register<ScrollCallback>();
 
         if (bd->ClientApi == GlfwClientApi_OpenGL)
         {

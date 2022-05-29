@@ -51,10 +51,12 @@ namespace RR
         private:
             GlfwWindowImpl() = default;
 
+            static void cursorEnterCallback(GLFWwindow* glfwWindow, int entered);
+            static void cursorPosCallback(GLFWwindow* glfwWindow, double x, double y);
+            static void mouseButtonCallback(GLFWwindow* glfwWindow, int button, int action, int mods);
+            static void scrollCallback(GLFWwindow* glfwWindow, double xoffset, double yoffset);
             static void windowCloseCallback(GLFWwindow* glfwWindow);
             static void windowFocusCallback(GLFWwindow* glfwWindow, int focused);
-            static void mouseMoveCallback(GLFWwindow* glfwWindow, double x, double y);
-            static void mouseButtonCallback(GLFWwindow* glfwWindow, int button, int action, int mods);
             static void windowPosCallback(GLFWwindow* glfwWindow, int x, int y);
             static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
             static void windowUpdateCallback(GLFWwindow* glfwWindow);

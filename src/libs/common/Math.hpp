@@ -1700,7 +1700,7 @@ namespace RR
             return !(left == rect);
         }
 
-        using Rect2u = Rect<uint32_t>;
+        using Rect2i = Rect<int32_t>;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
         // Box

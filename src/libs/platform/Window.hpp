@@ -88,13 +88,13 @@ namespace RR::Platform
         virtual void Show() const = 0;
 
     public:
-        Event<void(const Window& window)> OnClose;
-        Event<void(const Window& window, bool focus)> OnFocus;
-        Event<void(const Window& window, Input::MouseButton mouseButton, Input::ModifierFlag modifierflags)> OnMouseButtonPress;
-        Event<void(const Window& window, Input::MouseButton mouseButton, Input::ModifierFlag modifierflags)> OnMouseButtonRelease;
-        Event<void(const Window& window, const Vector2i& mousePosition)> OnMouseMove;
-        Event<void(const Window& window, const Vector2i& mouseWheel)> OnMouseWheel;
-        Event<void(const Window& window, const Vector2i& position)> OnMove;
-        Event<void(const Window& window, const Vector2i& size)> OnResize;
+        Event<void(const Window&)> OnClose;
+        Event<void(const Window&, bool focus)> OnFocus;
+        Event<void(const Window&, Input::MouseButton mouseButton, Input::ModifierFlag modifierflags, bool pressed)> OnMouseButton;
+        Event<void(const Window&, bool entered)> OnMouseCross;
+        Event<void(const Window&, const Vector2i& mousePosition)> OnMouseMove;
+        Event<void(const Window&, const Vector2i& position)> OnMove;
+        Event<void(const Window&, const Vector2i& size)> OnResize;
+        Event<void(const Window&, const Vector2& wheel)> OnScroll;
     };
 }

@@ -45,21 +45,46 @@ namespace RR::Platform
         };
     }
 
-    void GlfwWindowImpl::windowUpdateCallback(GLFWwindow* glfwWindow)
+    void GlfwWindowImpl::cursorEnterCallback(GLFWwindow* glfwWindow, int entered)
     {
-#ifdef OS_WINDOWS
-        const auto handle = glfwGetWin32Window(glfwWindow);
-
-        const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);
-        auto windowImpl = static_cast<GlfwWindowImpl*>(windowPtr);
+        const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
         ASSERT(windowImpl);
 
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(handle, &ps);
+        windowImpl->OnMouseCross.Dispatch(*windowImpl, entered != 0);
+    }
 
-        FillRect(hdc, &ps.rcPaint, windowImpl->bgBrush_);
-        EndPaint(handle, &ps);
-#endif
+    void GlfwWindowImpl::cursorPosCallback(GLFWwindow* glfwWindow, double x, double y)
+    {
+        const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
+        ASSERT(windowImpl);
+
+        windowImpl->OnMouseMove.Dispatch(*windowImpl, Vector2(static_cast<int32_t>(x),
+                                                              static_cast<int32_t>(y)));
+    }
+
+    void GlfwWindowImpl::mouseButtonCallback(GLFWwindow* glfwWindow, int button, int action, int mods)
+    {
+        if (action != GLFW_PRESS && action != GLFW_RELEASE)
+            return;
+
+        const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
+        ASSERT(windowImpl);
+
+        const auto mouseButton = convertMouseButton(button);
+
+        if (mouseButton == Input::MouseButton::Unknown)
+            return;
+
+        const auto modifierFlags = convertMods(mods);
+        windowImpl->OnMouseButton.Dispatch(*windowImpl, mouseButton, modifierFlags, action == GLFW_PRESS);
+    }
+
+    void GlfwWindowImpl::scrollCallback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
+    {
+        const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
+        ASSERT(windowImpl);
+
+        windowImpl->OnScroll.Dispatch(*windowImpl, Vector2(xoffset, yoffset));
     }
 
     void GlfwWindowImpl::windowCloseCallback(GLFWwindow* glfwWindow)
@@ -78,32 +103,12 @@ namespace RR::Platform
         windowImpl->OnFocus.Dispatch(*windowImpl, focused != 0);
     }
 
-    void GlfwWindowImpl::mouseMoveCallback(GLFWwindow* glfwWindow, double x, double y)
+    void GlfwWindowImpl::windowPosCallback(GLFWwindow* glfwWindow, int x, int y)
     {
         const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
         ASSERT(windowImpl);
 
-        windowImpl->OnMouseMove.Dispatch(*windowImpl, Vector2(static_cast<int32_t>(x),
-                                                              static_cast<int32_t>(y)));
-    }
-
-    void GlfwWindowImpl::mouseButtonCallback(GLFWwindow* glfwWindow, int button, int action, int mods)
-    {
-        const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
-        ASSERT(windowImpl);
-
-        const auto mouseButton = convertMouseButton(button);
-
-        if (mouseButton == Input::MouseButton::Unknown)
-            return;
-
-        const auto modifierFlags = convertMods(mods);
-
-        if (action == GLFW_PRESS)
-            windowImpl->OnMouseButtonPress.Dispatch(*windowImpl, mouseButton, modifierFlags);
-
-        if (action == GLFW_RELEASE)
-            windowImpl->OnMouseButtonRelease.Dispatch(*windowImpl, mouseButton, modifierFlags);
+        windowImpl->OnMove.Dispatch(*windowImpl, Vector2i(x, y));
     }
 
     void GlfwWindowImpl::windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
@@ -117,12 +122,21 @@ namespace RR::Platform
         windowImpl->OnResize.Dispatch(*windowImpl, Vector2i(width, height));
     }
 
-    void GlfwWindowImpl::windowPosCallback(GLFWwindow* glfwWindow, int x, int y)
+    void GlfwWindowImpl::windowUpdateCallback(GLFWwindow* glfwWindow)
     {
-        const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
+#ifdef OS_WINDOWS
+        const auto handle = glfwGetWin32Window(glfwWindow);
+
+        const auto windowPtr = glfwGetWindowUserPointer(glfwWindow);
+        auto windowImpl = static_cast<GlfwWindowImpl*>(windowPtr);
         ASSERT(windowImpl);
 
-        windowImpl->OnMove.Dispatch(*windowImpl, Vector2i(x, y));
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(handle, &ps);
+
+        FillRect(hdc, &ps.rcPaint, windowImpl->bgBrush_);
+        EndPaint(handle, &ps);
+#endif
     }
 
     GlfwWindowImpl::~GlfwWindowImpl()
@@ -162,11 +176,13 @@ namespace RR::Platform
         if (!window_)
             return false;
 
+        glfwSetCursorEnterCallback(window_, &cursorEnterCallback);
+        glfwSetCursorPosCallback(window_, &cursorPosCallback);
+        glfwSetMouseButtonCallback(window_, &mouseButtonCallback);
+        glfwSetScrollCallback(window_, &scrollCallback);
         glfwSetWindowCloseCallback(window_, &windowCloseCallback);
         glfwSetWindowFocusCallback(window_, &windowFocusCallback);
-        glfwSetMouseButtonCallback(window_, &mouseButtonCallback);
         glfwSetWindowPosCallback(window_, &windowPosCallback);
-        glfwSetCursorPosCallback(window_, &mouseMoveCallback);
         glfwSetWindowRefreshCallback(window_, &windowUpdateCallback);
         glfwSetWindowSizeCallback(window_, &windowResizeCallback);
 
