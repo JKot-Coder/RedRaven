@@ -16,9 +16,9 @@ namespace RR
             struct Delegate
             {
             public:
-                ReturnType operator()(Args... args) const
+                ReturnType operator()(Args&&... args) const
                 {
-                    return (*callback_)(target_, args...);
+                    return (*callback_)(target_, std::forward<Args>(args)...);
                 }
 
                 bool operator==(const Delegate& other) const
@@ -37,9 +37,9 @@ namespace RR
                 {
                     Delegate delegate;
                     delegate.target_ = nullptr;
-                    delegate.callback_ = +[](void*, Args... args) -> ReturnType
+                    delegate.callback_ = +[](void*, Args&&... args) -> ReturnType
                     {
-                        return Callback(args...);
+                        return Callback(std::forward<Args>(args)...);
                     };
 
                     return delegate;
@@ -50,9 +50,9 @@ namespace RR
                 {
                     Delegate delegate;
                     delegate.target_ = static_cast<void*>(target);
-                    delegate.callback_ = +[](void* target, Args... args) -> ReturnType
+                    delegate.callback_ = +[](void* target, Args&&... args) -> ReturnType
                     {
-                        return (static_cast<Class*>(target)->*Callback)(args...);
+                        return (static_cast<Class*>(target)->*Callback)(std::forward<Args>(args)...);
                     };
 
                     return delegate;
@@ -62,7 +62,7 @@ namespace RR
                 Delegate() = default;
 
             private:
-                using StubFunction = ReturnType (*)(void*, Args...);
+                using StubFunction = ReturnType (*)(void*, Args&&...);
 
                 void* target_;
                 StubFunction callback_;
@@ -126,7 +126,7 @@ namespace RR
                 protect_ = true;
 
                 for (const auto& delegate : delegates_)
-                    delegate(args...);
+                    delegate(std::forward<Args>(args)...);
 
                 protect_ = false;
             }
