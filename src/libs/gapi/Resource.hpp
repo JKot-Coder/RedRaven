@@ -45,13 +45,13 @@ namespace RR
             inline U8String GetName() const { return name_; }
 
         protected:
-            template <std::enable_if_t<IsNamed, bool> = true>
+            template <typename bool isNamed = IsNamed, std::enable_if_t<isNamed, bool> = true>
             Resource(Type type, const U8String& name)
                 : name_(name), Object(type)
             {
             }
 
-            template <std::enable_if_t<IsNamed, bool> = false>
+            template <typename bool isNamed = IsNamed, std::enable_if_t<!isNamed, bool> = true>
             Resource(Type type)
                 : Object(type)
             {

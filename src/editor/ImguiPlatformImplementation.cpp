@@ -414,10 +414,10 @@ namespace RR
         ASSERT(bd->InstalledCallbacks == false && "Callbacks already installed!");
         ASSERT(bd->GlfwWindow == glfwWindow);
 
-        window->OnFocus.Register<WindowFocusCallback>();
-        window->OnMouseMove.Register<MouseMoveCallback>();
-        window->OnMouseButton.Register<MouseButtonCallback>();
-        window->OnScroll.Register<ScrollCallback>();
+        window->OnFocus.Subscribe<WindowFocusCallback>();
+        window->OnMouseMove.Subscribe<MouseMoveCallback>();
+        window->OnMouseButton.Subscribe<MouseButtonCallback>();
+        window->OnScroll.Subscribe<ScrollCallback>();
         bd->PrevUserCallbackKey = glfwSetKeyCallback(glfwWindow, ImGui_ImplGlfw_KeyCallback);
         bd->PrevUserCallbackChar = glfwSetCharCallback(glfwWindow, ImGui_ImplGlfw_CharCallback);
         bd->PrevUserCallbackMonitor = glfwSetMonitorCallback(ImGui_ImplGlfw_MonitorCallback);
@@ -431,10 +431,10 @@ namespace RR
         ASSERT(bd->InstalledCallbacks == true && "Callbacks not installed!");
         ASSERT(bd->GlfwWindow == glfwWindow);
 
-        window->OnFocus.Unregister<WindowFocusCallback>();
-        window->OnMouseMove.Unregister<MouseMoveCallback>();
-        window->OnMouseButton.Unregister<MouseButtonCallback>();
-        window->OnScroll.Unregister<ScrollCallback>();
+        window->OnFocus.Unsubscribe<WindowFocusCallback>();
+        window->OnMouseMove.Unsubscribe<MouseMoveCallback>();
+        window->OnMouseButton.Unsubscribe<MouseButtonCallback>();
+        window->OnScroll.Unsubscribe<ScrollCallback>();
         glfwSetKeyCallback(glfwWindow, bd->PrevUserCallbackKey);
         glfwSetCharCallback(glfwWindow, bd->PrevUserCallbackChar);
         glfwSetMonitorCallback(bd->PrevUserCallbackMonitor);
@@ -852,14 +852,14 @@ namespace RR
         glfwSetKeyCallback(vd->GLFWWindow, ImGui_ImplGlfw_KeyCallback);
         glfwSetCharCallback(vd->GLFWWindow, ImGui_ImplGlfw_CharCallback);
 
-        vd->Window->OnClose.Register<WindowCloseCallback>();
-        vd->Window->OnFocus.Register<WindowFocusCallback>();
-        vd->Window->OnMouseButton.Register<MouseButtonCallback>();
-        vd->Window->OnMouseCross.Register<MouseCrossCallback>();
-        vd->Window->OnMouseMove.Register<MouseMoveCallback>();
-        vd->Window->OnMove.Register<WindowPosCallback>();
-        vd->Window->OnResize.Register<WindowSizeCallback>();
-        vd->Window->OnScroll.Register<ScrollCallback>();
+        vd->Window->OnClose.Subscribe<WindowCloseCallback>();
+        vd->Window->OnFocus.Subscribe<WindowFocusCallback>();
+        vd->Window->OnMouseButton.Subscribe<MouseButtonCallback>();
+        vd->Window->OnMouseCross.Subscribe<MouseCrossCallback>();
+        vd->Window->OnMouseMove.Subscribe<MouseMoveCallback>();
+        vd->Window->OnMove.Subscribe<WindowPosCallback>();
+        vd->Window->OnResize.Subscribe<WindowSizeCallback>();
+        vd->Window->OnScroll.Subscribe<ScrollCallback>();
 
         if (bd->ClientApi == GlfwClientApi_OpenGL)
         {

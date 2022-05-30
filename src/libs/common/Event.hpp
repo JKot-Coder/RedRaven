@@ -72,53 +72,53 @@ namespace RR
             Event(std::size_t initialSize = 8U) { delegates_.reserve(initialSize); }
 
             template <auto Callback>
-            void Register()
+            void Subscribe()
             {
                 const auto delegate = Delegate::template Create<Callback>();
 
-                ASSERT_MSG(!isRegistered(delegate), "Callback already registered");
-                ASSERT_MSG(!protect_, "Callback registration is not allowed during dispatching");
+                ASSERT_MSG(!isSubscribed(delegate), "Callback already subscribed");
+                ASSERT_MSG(!protect_, "Callback subscribing is not allowed during dispatching");
 
                 delegates_.push_back(delegate);
             }
 
             template <class Class, auto Callback>
-            void Register(Class* target)
+            void Subscribe(Class* target)
             {
                 const auto delegate = Delegate::template Create<Class, Callback>(target);
 
-                ASSERT_MSG(!isRegistered(delegate), "Callback already registered");
-                ASSERT_MSG(!protect_, "Callback registration is not allowed during dispatching");
+                ASSERT_MSG(!isSubscribed(delegate), "Callback already subscribed");
+                ASSERT_MSG(!protect_, "Callback subscribing is not allowed during dispatching");
 
                 delegates_.push_back(delegate);
             }
 
             template <auto Callback>
-            void Unregister()
+            void Unsubscribe()
             {
-                ASSERT_MSG(!protect_, "Callback unregistration is not allowed during dispatching");
+                ASSERT_MSG(!protect_, "Callback unsubscribing is not allowed during dispatching");
 
-                unregister(Delegate::template Create<Callback>());
+                unsubscribe(Delegate::template Create<Callback>());
             }
 
             template <class Class, auto Callback>
-            void Unregister(Class* target)
+            void Unsubscribe(Class* target)
             {
-                ASSERT_MSG(!protect_, "Callback unregistration is not allowed during dispatching");
+                ASSERT_MSG(!protect_, "Callback unsubscribing is not allowed during dispatching");
 
-                unregister(Delegate::template Create<Class, Callback>(target));
+                unsubscribe(Delegate::template Create<Class, Callback>(target));
             }
 
             template <auto Callback>
-            bool IsRegistered() const
+            bool IsSubscribed() const
             {
-                return isRegistered(Delegate::template Create<Callback>());
+                return isSubscribed(Delegate::template Create<Callback>());
             }
 
             template <class Class, auto Callback>
-            bool IsRegistered() const
+            bool IsSubscribed() const
             {
-                return isRegistered(Delegate::template Create<Class, Callback>());
+                return isSubscribed(Delegate::template Create<Class, Callback>());
             }
 
             void Dispatch(Args... args) const
@@ -132,12 +132,12 @@ namespace RR
             }
 
         private:
-            inline bool isRegistered(const Delegate& delegate) const
+            inline bool isSubscribed(const Delegate& delegate) const
             {
                 return std::find(delegates_.begin(), delegates_.end(), delegate) != delegates_.end();
             }
 
-            inline void unregister(const Delegate& delegate)
+            inline void unsubscribe(const Delegate& delegate)
             {
                 delegates_.erase(
                     std::remove(delegates_.begin(), delegates_.end(), delegate),
