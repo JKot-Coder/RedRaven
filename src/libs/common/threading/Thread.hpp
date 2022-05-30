@@ -34,7 +34,7 @@ namespace RR
                     const auto& wThreadName = StringConversions::UTF8ToWString(threadName);
                     SetThreadDescription(static_cast<HANDLE>(GetNativeHandle()), wThreadName.c_str());
 #else
-                    static_assert(false, "Unsupported platform")
+                    ASSERT_MSG(false, "Not implemented");
 #endif
                 }
 

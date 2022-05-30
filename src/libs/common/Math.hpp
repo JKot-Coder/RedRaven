@@ -292,10 +292,10 @@ namespace RR
             template <AngleUnitType From, AngleUnitType To>
             static inline constexpr FloatFormat cast(FloatFormat value);
 
-            template <>
+            template <AngleUnitType From, AngleUnitType To>
             static inline constexpr FloatFormat cast<AngleUnitType::Degree, AngleUnitType::Radian>(FloatFormat value) { return value * DEG2RAD; }
 
-            template <>
+            template <AngleUnitType From, AngleUnitType To>
             static inline constexpr FloatFormat cast<AngleUnitType::Radian, AngleUnitType::Degree>(FloatFormat value) { return value * RAD2DEG; }
 
             FloatFormat value_ = 0.0f;
