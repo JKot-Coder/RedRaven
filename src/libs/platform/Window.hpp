@@ -10,6 +10,8 @@ namespace RR::Platform
     {
         enum class MouseButton : uint32_t;
         enum class ModifierFlag : uint32_t;
+        enum class KeyAction : uint32_t;
+        enum class Key : uint32_t;
     }
 
     class Window : public std::enable_shared_from_this<Window>, private NonCopyable
@@ -84,9 +86,12 @@ namespace RR::Platform
         virtual void Show() const = 0;
 
     public:
+        Event<void(const Window&, U8Glyph ch)> OnChar;
         Event<void(const Window&)> OnClose;
-        Event<void(const Window&, bool focus)> OnFocus;
-        Event<void(const Window&, Input::MouseButton mouseButton, Input::ModifierFlag modifierflags, bool pressed)> OnMouseButton;
+        Event<void(const Window&, const Vector2i& scale)> OnContentScaleChange;
+        Event<void(const Window&, bool focused)> OnFocus;
+        Event<void(const Window&, Input::Key key, int32_t scancode, Input::KeyAction action, Input::ModifierFlag modifierflags)> OnKey;
+        Event<void(const Window&, Input::MouseButton mouseButton, Input::KeyAction action, Input::ModifierFlag modifierflags)> OnMouseButton;
         Event<void(const Window&, bool entered)> OnMouseCross;
         Event<void(const Window&, const Vector2i& mousePosition)> OnMouseMove;
         Event<void(const Window&, const Vector2i& position)> OnMove;

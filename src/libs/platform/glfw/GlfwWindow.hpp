@@ -2,11 +2,7 @@
 
 #include "platform/Window.hpp"
 
-#ifdef OS_WINDOWS
-#include <Windows.h>
-#endif
-
-#include <GLFW/glfw3.h>
+struct GLFWwindow;
 
 namespace RR
 {
@@ -14,6 +10,9 @@ namespace RR
     {
         class GlfwWindowImpl final : public Window
         {
+        private:
+            struct PlatformData;
+
         public:
             ~GlfwWindowImpl() override;
 
@@ -48,13 +47,16 @@ namespace RR
             static std::shared_ptr<Window> Create(const Window::Description& description);
 
         private:
-            GlfwWindowImpl() = default;
+            GlfwWindowImpl();
 
+            static void charCallback(GLFWwindow* glfwWindow, unsigned int c);
             static void cursorEnterCallback(GLFWwindow* glfwWindow, int entered);
             static void cursorPosCallback(GLFWwindow* glfwWindow, double x, double y);
+            static void keyCallback(GLFWwindow* glfwWindow, int keycode, int scancode, int action, int mods);
             static void mouseButtonCallback(GLFWwindow* glfwWindow, int button, int action, int mods);
             static void scrollCallback(GLFWwindow* glfwWindow, double xoffset, double yoffset);
             static void windowCloseCallback(GLFWwindow* glfwWindow);
+            static void windowContentScale(GLFWwindow* glfwWindow, float xscale, float yscale);
             static void windowFocusCallback(GLFWwindow* glfwWindow, int focused);
             static void windowPosCallback(GLFWwindow* glfwWindow, int x, int y);
             static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height);
@@ -66,12 +68,10 @@ namespace RR
             bool init(const Window::Description& description);
 
         private:
-            GLFWwindow* window_;
-#ifdef OS_WINDOWS
-            HBRUSH bgBrush_;
-#endif
+            std::unique_ptr<PlatformData> platformData_;
             bool mousePassthrough_ = false;
             bool taskbarIcon_ = false;
+            GLFWwindow* window_ = nullptr;
         };
     }
 }

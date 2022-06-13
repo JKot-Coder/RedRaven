@@ -29,7 +29,7 @@ namespace RR
                 return viewFormat;
             }
 
-            const GpuResourceViewDescription& createViewDesctiption(const GpuResourceDescription& resDesctiption, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
+            GpuResourceViewDescription createViewDesctiption(const GpuResourceDescription& resDesctiption, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
             {
                 const auto resArraySize = resDesctiption.GetArraySize();
                 const auto resMipLevels = resDesctiption.GetMipCount();
@@ -53,7 +53,7 @@ namespace RR
 
         ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
         {
-            const const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+            const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {

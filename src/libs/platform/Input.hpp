@@ -62,7 +62,7 @@ namespace RR::Platform::Input
         Enter,
         Backspace,
         Insert,
-        Del,
+        Delete,
         Right,
         Left,
         Down,
@@ -98,7 +98,7 @@ namespace RR::Platform::Input
         Keypad7,
         Keypad8,
         Keypad9,
-        KeypadDel,
+        KeypadDecimal,
         KeypadDivide,
         KeypadMultiply,
         KeypadSubtract,
@@ -118,6 +118,13 @@ namespace RR::Platform::Input
 
         Count,
     };
+    
+    enum class KeyAction : uint32_t
+    {
+        Press,
+        Release,
+        Repeat
+    };
 
     enum class ModifierFlag : uint32_t
     {
@@ -136,7 +143,6 @@ namespace RR::Platform::Input
         Left,
         Right,
         Middle,
-        Unknown,
         Count
     };
 }

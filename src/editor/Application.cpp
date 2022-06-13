@@ -391,6 +391,7 @@ namespace RR
                 break;
 
             // Start the Dear ImGui frame
+            Platform::Toolkit::Instance().PoolEvents();
             ImGui_ImplDX12_NewFrame();
             ImGui_ImplGlfw_NewFrame();
 

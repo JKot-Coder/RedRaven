@@ -32,6 +32,17 @@ namespace RR
             Vector2 dpiScale;
         };
 
+        class IToolkit
+        {
+        public:
+            virtual ~IToolkit() = default;
+
+        public:
+            virtual std::vector<Monitor> GetMonitors() const = 0;
+            virtual void PoolEvents() const = 0;
+            virtual std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const = 0;
+        };
+
         class Toolkit final : public Singleton<Toolkit>
         {
         public:
@@ -40,16 +51,33 @@ namespace RR
 
             void Init();
 
-            Event<void(const Monitor& monitor, Monitor::Event event)> OnMonitorConfigChanged;
-            std::vector<Monitor> GetMonitors() const;
-
-            void PoolEvents() const;
+            std::vector<Monitor> GetMonitors() const { return getPrivateImpl()->GetMonitors(); }
+            void PoolEvents() const { getPrivateImpl()->PoolEvents(); }
 
             // CreatePlatformWindow to avoid name collision with CreateWindow define from Windows.h
-            std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const;
+            std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const
+            {
+                return getPrivateImpl()->CreatePlatformWindow(description);
+            }
+
+        public:
+            Event<void(const Monitor& monitor, Monitor::Event event)> OnMonitorConfigChanged;
 
         private:
-            bool isInited_ = false;
+            inline IToolkit* getPrivateImpl() const
+            {
+                ASSERT(impl_);
+                return impl_.get();
+            }
+
+            inline IToolkit* getPrivateImpl()
+            {
+                ASSERT(impl_);
+                return impl_.get();
+            }
+
+        private:
+            std::unique_ptr<IToolkit> impl_;
         };
     }
 }

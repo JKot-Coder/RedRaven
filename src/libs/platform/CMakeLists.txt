@@ -5,13 +5,15 @@ set(SRC
     "Input.hpp"
     "Window.hpp"
     "Toolkit.hpp"
+    "Toolkit.cpp"
     )
 source_group( "" FILES ${SRC} )
 
 set (GLFW_SRC
-    "glfw/GlfwWindowImpl.cpp"
-    "glfw/GlfwWindowImpl.hpp"
-    "glfw/GlfwToolkitImpl.cpp"
+    "glfw/GlfwWindow.cpp"
+    "glfw/GlfwWindow.hpp"
+    "glfw/GlfwToolkit.cpp"
+    "glfw/GlfwToolkit.hpp"
     )
 source_group( "glfw" FILES ${GLFW_SRC} )
 
