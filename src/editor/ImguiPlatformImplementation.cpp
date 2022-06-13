@@ -34,7 +34,6 @@ namespace RR
     // Helper structure we store in the void* RenderUserData field of each ImGuiViewport to easily retrieve our backend data.
     struct ImGuiViewportData
     {
-        GLFWwindow* GLFWWindow;
         std::shared_ptr<Window> Window;
         bool WindowOwned;
         int IgnoreWindowPosEventFrame;
@@ -42,7 +41,6 @@ namespace RR
 
         ImGuiViewportData()
         {
-            GLFWWindow = nullptr;
             Window = nullptr;
             WindowOwned = false;
             IgnoreWindowSizeEventFrame = IgnoreWindowPosEventFrame = -1;
@@ -51,19 +49,17 @@ namespace RR
         ~ImGuiViewportData()
         {
             ASSERT(Window == nullptr);
-            ASSERT(GLFWWindow == nullptr);
         }
     };
 
     struct ImGuiData
     {
-        GLFWwindow* GlfwWindow;
         std::shared_ptr<Window> Window;
         GlfwClientApi ClientApi;
         double Time;
         GLFWcursor* MouseCursors[ImGuiMouseCursor_COUNT];
         ImVec2 LastValidMousePos;
-        GLFWwindow* KeyOwnerWindows[GLFW_KEY_LAST];
+        std::array<Platform::Window*, size_t(Input::Key::Count)> KeyOwnerWindows;
         bool InstalledCallbacks;
         bool WantUpdateMonitors;
         ImGuiData() { memset((void*)this, 0, sizeof(*this)); }
@@ -364,9 +360,8 @@ namespace RR
     void ImGui_ImplGlfw_InstallCallbacks(const std::shared_ptr<Window>& window)
     {
         ImGuiData* bd = ImGuiGetBackendData();
-        const auto glfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle());
         ASSERT(bd->InstalledCallbacks == false && "Callbacks already installed!");
-        ASSERT(bd->GlfwWindow == glfwWindow);
+        ASSERT(bd->Window == window);
 
         window->OnContentScaleChange.Subscribe<ContentScaleChange>();
         window->OnFocus.Subscribe<WindowFocusCallback>();
@@ -382,10 +377,9 @@ namespace RR
 
     void ImGui_ImplGlfw_RestoreCallbacks(const std::shared_ptr<Window>& window)
     {
-        const auto glfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle());
         ImGuiData* bd = ImGuiGetBackendData();
         ASSERT(bd->InstalledCallbacks == true && "Callbacks not installed!");
-        ASSERT(bd->GlfwWindow == glfwWindow);
+        ASSERT(bd->Window == window);
 
         window->OnContentScaleChange.Unsubscribe<ContentScaleChange>();
         window->OnFocus.Unsubscribe<WindowFocusCallback>();
@@ -413,7 +407,6 @@ namespace RR
         io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
 
         bd->Window = window;
-        bd->GlfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle());
         bd->Time = 0.0;
         bd->WantUpdateMonitors = true;
 
@@ -453,7 +446,7 @@ namespace RR
 
         // Our mouse update function expect PlatformHandle to be filled for the main viewport
         ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-        main_viewport->PlatformHandle = (void*)bd->GlfwWindow;
+        main_viewport->PlatformHandle = (void*)bd->Window.get();
 #ifdef _WIN32
         main_viewport->PlatformHandleRaw = std::any_cast<HWND>(bd->Window->GetNativeHandleRaw());
 #endif
@@ -688,7 +681,7 @@ namespace RR
         ImGuiData* bd = ImGuiGetBackendData();
         ASSERT_MSG(bd != nullptr, "Did you call ImGui_ImplGlfw_InitForXXX()?");
 
-        // Setup display size (every frame to accommodate for glfwWindow resizing)
+        // Setup display size (every frame to accommodate for window resizing)
         auto windowSize = bd->Window->GetSize();
         auto framebuffer = bd->Window->GetFramebufferSize();
         io.DisplaySize = Vector2iToImVec(windowSize);
@@ -721,8 +714,7 @@ namespace RR
 
     static void WindowCloseCallback(const Window& window)
     {
-        const auto glfwWindow = std::any_cast<GLFWwindow*>(window.GetNativeHandle());
-        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(glfwWindow))
+        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)&window))
             viewport->PlatformRequestClose = true;
     }
 
@@ -736,8 +728,7 @@ namespace RR
     {
         std::ignore = pos;
 
-        const auto glfwWindow = std::any_cast<GLFWwindow*>(window.GetNativeHandle());
-        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(glfwWindow))
+        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)&window))
         {
             if (ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData)
             {
@@ -753,8 +744,7 @@ namespace RR
     static void WindowSizeCallback(const Window& window, const Vector2i& size)
     {
         std::ignore = size;
-        const auto glfwWindow = std::any_cast<GLFWwindow*>(window.GetNativeHandle());
-        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(glfwWindow))
+        if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)&window))
         {
             if (ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData)
             {
@@ -767,9 +757,8 @@ namespace RR
         }
     }
 
-    static void ImGui_ImplGlfw_CreateWindow(ImGuiViewport* viewport)
+    static void Platform_CreateWindow(ImGuiViewport* viewport)
     {
-        ImGuiData* bd = ImGuiGetBackendData();
         ImGuiViewportData* vd = IM_NEW(ImGuiViewportData)();
         viewport->PlatformUserData = vd;
 
@@ -784,17 +773,11 @@ namespace RR
         windowDesc.decorated = (viewport->Flags & ImGuiViewportFlags_NoDecoration) ? false : true;
         windowDesc.floating = (viewport->Flags & ImGuiViewportFlags_TopMost) ? true : false;
 
-        GLFWwindow* share_window = (bd->ClientApi == GlfwClientApi_OpenGL) ? bd->GlfwWindow : nullptr;
-
-        std::ignore = share_window;
-        // TODO ShareWindow for opengl
-        // glfwCreateWindow((int)viewport->Size.x, (int)viewport->Size.y, "No Title Yet", nullptr, share_window);
-
-        vd->Window = toolkit.CreatePlatformWindow(windowDesc); // TODO asserts
-        vd->GLFWWindow = std::any_cast<GLFWwindow*>(vd->Window->GetNativeHandle());
+        vd->Window = toolkit.CreatePlatformWindow(windowDesc);
+        ASSERT(vd->Window);
 
         vd->WindowOwned = true;
-        viewport->PlatformHandle = (void*)vd->GLFWWindow;
+        viewport->PlatformHandle = (void*)vd->Window.get();
 #ifdef _WIN32
         viewport->PlatformHandleRaw = std::any_cast<HWND>(vd->Window->GetNativeHandleRaw());
 #endif
@@ -814,26 +797,24 @@ namespace RR
         vd->Window->OnScroll.Subscribe<ScrollCallback>();
     }
 
-    static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
+    static void Platform_DestroyWindow(ImGuiViewport* viewport)
     {
         ImGuiData* bd = ImGuiGetBackendData();
 
-        std::ignore = bd;
-
         if (ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData)
         {
+            ASSERT(vd->Window);
+            const auto* window = vd->Window.get();
+
             if (vd->WindowOwned)
             {
-                // Release any keys that were pressed in the glfwWindow being destroyed and are still held down,
-                // because we will not receive any release events after glfwWindow is destroyed.
-
-                /* for (int i = 0; i < IM_ARRAYSIZE(bd->KeyOwnerWindows); i++)
-                    if (bd->KeyOwnerWindows[i] == vd->GLFWWindow)
-                        ImGui_ImplGlfw_KeyCallback(vd->GLFWWindow, i, 0, GLFW_RELEASE, 0); // Later params are only used for main viewport, on which this function is never called.
-                        */
-                //    glfwDestroyWindow(vd->GLFWWindow);
+                // Release any keys that were pressed in the window being destroyed and are still held down,
+                // because we will not receive any release events after window is destroyed.
+                for (size_t keyIndex = 0; keyIndex < bd->KeyOwnerWindows.size(); keyIndex++)
+                    if (bd->KeyOwnerWindows[keyIndex] == window)
+                        // Later params are only used for main viewport, on which this function is never called.
+                        KeyCallback(*window, Input::Key(keyIndex), 0, Input::KeyAction::Release, Input::ModifierFlag::None); 
             }
-            vd->GLFWWindow = nullptr;
             vd->Window = nullptr;
             IM_DELETE(vd);
         }
@@ -934,8 +915,8 @@ namespace RR
         // Register platform interface (will be coupled with a renderer interface)
         ImGuiData* bd = ImGuiGetBackendData();
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-        platform_io.Platform_CreateWindow = ImGui_ImplGlfw_CreateWindow;
-        platform_io.Platform_DestroyWindow = ImGui_ImplGlfw_DestroyWindow;
+        platform_io.Platform_CreateWindow = Platform_CreateWindow;
+        platform_io.Platform_DestroyWindow = Platform_DestroyWindow;
         platform_io.Platform_ShowWindow = Platform_ShowWindow;
         platform_io.Platform_SetWindowPos = Platform_SetWindowPos;
         platform_io.Platform_GetWindowPos = Platform_GetWindowPos;
@@ -948,15 +929,14 @@ namespace RR
         platform_io.Platform_SetWindowAlpha = Platform_SetWindowAlpha;
         // platform_io.Platform_CreateVkSurface = Platform_CreateVkSurface; TODO: Vulkan support
 
-        // Register main glfwWindow handle (which is owned by the main application, not by us)
+        // Register main window handle (which is owned by the main application, not by us)
         // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
-        ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+        ImGuiViewport* mainViewport = ImGui::GetMainViewport();
         ImGuiViewportData* vd = IM_NEW(ImGuiViewportData)();
         vd->Window = bd->Window;
-        vd->GLFWWindow = bd->GlfwWindow;
         vd->WindowOwned = false;
-        main_viewport->PlatformUserData = vd;
-        main_viewport->PlatformHandle = (void*)bd->GlfwWindow;
+        mainViewport->PlatformUserData = vd;
+        mainViewport->PlatformHandle = (void*)bd->Window.get();
     }
 
     static void ImGuiShutdownPlatformInterface()
