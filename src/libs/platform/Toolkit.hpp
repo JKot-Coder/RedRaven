@@ -32,6 +32,20 @@ namespace RR
             Vector2 dpiScale;
         };
 
+        struct Cursor
+        {
+            enum class Type
+            {
+                Arrow,
+                IBeam,
+                Crosshair,
+                Hand,
+                HResize,
+                VResize,
+                Count
+            };
+        };
+
         class IToolkit
         {
         public:
@@ -40,7 +54,10 @@ namespace RR
         public:
             virtual std::vector<Monitor> GetMonitors() const = 0;
             virtual void PoolEvents() const = 0;
+
+            // CreatePlatformWindow to avoid name collision with CreateWindow define from Windows.h
             virtual std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const = 0;
+            virtual std::shared_ptr<Cursor> CreateCursor(Cursor::Type type) const = 0;
         };
 
         class Toolkit final : public Singleton<Toolkit>
@@ -58,6 +75,11 @@ namespace RR
             std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const
             {
                 return getPrivateImpl()->CreatePlatformWindow(description);
+            }
+
+            std::shared_ptr<Cursor> CreateCursor(Cursor::Type type) const
+            {
+                return getPrivateImpl()->CreateCursor(type);
             }
 
         public:

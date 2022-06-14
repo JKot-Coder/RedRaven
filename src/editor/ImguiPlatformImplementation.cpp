@@ -11,14 +11,6 @@
 #include "windows.h" // for HWND
 #endif
 
-#ifdef GLFW_RESIZE_NESW_CURSOR // Let's be nice to people who pulled GLFW between 2019-04-16 (3.4 define) and 2019-11-29 (cursors defines) // FIXME: Remove when GLFW 3.4 is released?
-#define GLFW_HAS_NEW_CURSORS (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3400) // 3.4+ GLFW_RESIZE_ALL_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_NWSE_CURSOR, GLFW_NOT_ALLOWED_CURSOR
-#else
-#define GLFW_HAS_NEW_CURSORS (0)
-#endif
-#define GLFW_HAS_GAMEPAD_API (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ glfwGetGamepadState() new api
-#define GLFW_HAS_GET_KEY_NAME (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3200) // 3.2+ glfwGetKeyName()
-
 namespace RR
 {
     using namespace Platform;
@@ -57,9 +49,9 @@ namespace RR
         std::shared_ptr<Window> Window;
         GlfwClientApi ClientApi;
         double Time;
-        GLFWcursor* MouseCursors[ImGuiMouseCursor_COUNT];
+        std::array<std::shared_ptr<Cursor>, size_t(ImGuiMouseCursor_COUNT)> MouseCursors;
         ImVec2 LastValidMousePos;
-        std::array<Platform::Window*, size_t(Input::Key::Count)> KeyOwnerWindows;
+        std::array<const Platform::Window*, size_t(Input::Key::Count)> KeyOwnerWindows;
         bool InstalledCallbacks;
         bool WantUpdateMonitors;
         ImGuiData() { memset((void*)this, 0, sizeof(*this)); }
@@ -89,7 +81,7 @@ namespace RR
     // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
     // FIXME: multi-context support is not well tested and probably dysfunctional in this backend.
     // - Because glfwPollEvents() process all windows and some events may be called outside of it, you will need to register your own callbacks
-    //   (passing install_callbacks=false in ImGui_ImplGlfw_InitXXX functions), set the current dear imgui context and then call our callbacks.
+    //   (passing installCallbacks=false in ImGui_ImplGlfw_InitXXX functions), set the current dear imgui context and then call our callbacks.
     // - Otherwise we may need to store a GLFWWindow* -> ImGuiContext* map and handle this in the backend, adding a little bit of extra complexity to it.
     // FIXME: some shared resources (mouse cursor shape, gamepad) are mishandled when using multi-context.
     static ImGuiData* ImGuiGetBackendData()
@@ -235,15 +227,15 @@ namespace RR
             default: return ImGuiKey_None;
         }
     }
-    /*
-    static void ImGui_ImplGlfw_UpdateKeyModifiers(int mods)
+
+    static void UpdateKeyModifiers(Input::ModifierFlag modFlags)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.AddKeyEvent(ImGuiKey_ModCtrl, (mods & GLFW_MOD_CONTROL) != 0);
-        io.AddKeyEvent(ImGuiKey_ModShift, (mods & GLFW_MOD_SHIFT) != 0);
-        io.AddKeyEvent(ImGuiKey_ModAlt, (mods & GLFW_MOD_ALT) != 0);
-        io.AddKeyEvent(ImGuiKey_ModSuper, (mods & GLFW_MOD_SUPER) != 0);
-    }*/
+        io.AddKeyEvent(ImGuiKey_ModCtrl, IsSet(modFlags, Input::ModifierFlag::Control));
+        io.AddKeyEvent(ImGuiKey_ModShift, IsSet(modFlags, Input::ModifierFlag::Shift));
+        io.AddKeyEvent(ImGuiKey_ModAlt, IsSet(modFlags, Input::ModifierFlag::Alt));
+        io.AddKeyEvent(ImGuiKey_ModSuper, IsSet(modFlags, Input::ModifierFlag::Super));
+    }
 
     void MouseCrossCallback(const Window& window, bool entered)
     {
@@ -257,10 +249,7 @@ namespace RR
     void MouseButtonCallback(const Window& window, Input::MouseButton button, Input::KeyAction action, Input::ModifierFlag modFlags)
     {
         std::ignore = window;
-        std::ignore = modFlags;
-
-        // TODO
-        // ImGui_ImplGlfw_UpdateKeyModifiers(mods);
+        UpdateKeyModifiers(modFlags);
 
         if (action != Input::KeyAction::Press &&
             action != Input::KeyAction::Release)
@@ -284,7 +273,7 @@ namespace RR
         io.AddMouseWheelEvent(wheel.x, wheel.y);
     }
 
-    void KeyCallback(const Window& window, Input::Key keycode, int32_t scancode, Input::KeyAction action, Input::ModifierFlag modifier)
+    void KeyCallback(const Window& window, Input::Key keycode, int32_t scancode, Input::KeyAction action, Input::ModifierFlag modFlags)
     {
         ImGuiData* bd = ImGuiGetBackendData();
 
@@ -292,14 +281,8 @@ namespace RR
             action != Input::KeyAction::Release)
             return;
 
-        std::ignore = bd;
-        std::ignore = window;
-        std::ignore = modifier;
-
-        //ImGui_ImplGlfw_UpdateKeyModifiers(mods);
-
-        //        if (keycode >= 0 && keycode < IM_ARRAYSIZE(bd->KeyOwnerWindows))
-        //          bd->KeyOwnerWindows[keycode] = (action == Input::KeyAction::Press) ? window : nullptr;
+        UpdateKeyModifiers(modFlags);
+        bd->KeyOwnerWindows[size_t(keycode)] = (action == Input::KeyAction::Press) ? &window : nullptr;
 
         ImGuiIO& io = ImGui::GetIO();
         ImGuiKey imgui_key = KeyToImGuiKey(keycode);
@@ -357,7 +340,7 @@ namespace RR
         bd->WantUpdateMonitors = true;
     }
 
-    void ImGui_ImplGlfw_InstallCallbacks(const std::shared_ptr<Window>& window)
+    void InstallCallbacks(const std::shared_ptr<Window>& window)
     {
         ImGuiData* bd = ImGuiGetBackendData();
         ASSERT(bd->InstalledCallbacks == false && "Callbacks already installed!");
@@ -375,7 +358,7 @@ namespace RR
         bd->InstalledCallbacks = true;
     }
 
-    void ImGui_ImplGlfw_RestoreCallbacks(const std::shared_ptr<Window>& window)
+    void RestoreCallbacks(const std::shared_ptr<Window>& window)
     {
         ImGuiData* bd = ImGuiGetBackendData();
         ASSERT(bd->InstalledCallbacks == true && "Callbacks not installed!");
@@ -392,7 +375,7 @@ namespace RR
         bd->InstalledCallbacks = false;
     }
 
-    static bool ImGui_ImplRR_Init(const std::shared_ptr<Window>& window, bool install_callbacks, GlfwClientApi client_api)
+    static bool ImGui_ImplRR_Init(const std::shared_ptr<Window>& window, bool installCallbacks, GlfwClientApi client_api)
     {
         ImGuiIO& io = ImGui::GetIO();
         ASSERT(io.BackendPlatformUserData == nullptr && "Already initialized a platform backend!");
@@ -414,34 +397,29 @@ namespace RR
         io.GetClipboardTextFn = Platform_GetClipboardText;
         io.ClipboardUserData = nullptr;
 
-        // Create mouse cursors
-        // (By design, on X11 cursors are user configurable and some cursors may be missing. When a cursor doesn't exist,
-        // GLFW will emit an error which will often be printed by the app, so we temporarily disable error reporting.
-        // Missing cursors will return nullptr and our _UpdateMouseCursor() function will use the Arrow cursor instead.)
-        GLFWerrorfun prev_error_callback = glfwSetErrorCallback(nullptr);
-        bd->MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-#if GLFW_HAS_NEW_CURSORS
-        bd->MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
+        const auto& toolkit = Toolkit::Instance();
+
+        bd->MouseCursors[ImGuiMouseCursor_Arrow] = toolkit.CreateCursor(Cursor::Type::Arrow);
+        bd->MouseCursors[ImGuiMouseCursor_TextInput] = toolkit.CreateCursor(Cursor::Type::IBeam);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeNS] = toolkit.CreateCursor(Cursor::Type::VResize);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeEW] = toolkit.CreateCursor(Cursor::Type::HResize);
+        bd->MouseCursors[ImGuiMouseCursor_Hand] = toolkit.CreateCursor(Cursor::Type::Hand);
+#if 0
+        bd->MouseCursors[ImGuiMouseCursor_ResizeAll] = toolkit.CreateCursor(Cursor::Type::Count);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeNESW] = toolkit.CreateCursor(Cursor::Type::Count);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeNWSE] = toolkit.CreateCursor(Cursor::Type::Count);
+        bd->MouseCursors[ImGuiMouseCursor_NotAllowed] = toolkit.CreateCursor(Cursor::Type::Count);
 #else
-        bd->MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        bd->MouseCursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeAll] = toolkit.CreateCursor(Cursor::Type::Arrow);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeNESW] = toolkit.CreateCursor(Cursor::Type::Arrow);
+        bd->MouseCursors[ImGuiMouseCursor_ResizeNWSE] = toolkit.CreateCursor(Cursor::Type::Arrow);
+        bd->MouseCursors[ImGuiMouseCursor_NotAllowed] = toolkit.CreateCursor(Cursor::Type::Arrow);
 #endif
-        glfwSetErrorCallback(prev_error_callback);
 
-        // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
-        if (install_callbacks)
-            ImGui_ImplGlfw_InstallCallbacks(window);
+        if (installCallbacks)
+            InstallCallbacks(window);
 
-        // Update monitors the first time (note: monitor callback are broken in GLFW 3.2 and earlier, see github.com/glfw/glfw/issues/784)
+        // Update monitors the first time
         UpdateMonitors();
 
         // Our mouse update function expect PlatformHandle to be filled for the main viewport
@@ -472,7 +450,7 @@ namespace RR
         return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_Unknown);
     }
 
-    void ImGui_ImplGlfw_Shutdown()
+    void Shutdown()
     {
         ImGuiData* bd = ImGuiGetBackendData();
         ASSERT(bd != nullptr && "No platform backend to shutdown, or already shutdown?");
@@ -481,10 +459,7 @@ namespace RR
         ImGuiShutdownPlatformInterface();
 
         if (bd->InstalledCallbacks)
-            ImGui_ImplGlfw_RestoreCallbacks(bd->Window);
-
-        for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
-            glfwDestroyCursor(bd->MouseCursors[cursor_n]);
+            RestoreCallbacks(bd->Window);
 
         io.BackendPlatformName = nullptr;
         io.BackendPlatformUserData = nullptr;
@@ -547,12 +522,12 @@ namespace RR
             io.AddMouseViewportEvent(mouseViewportId);
     }
 
-    static void ImGui_ImplGlfw_UpdateMouseCursor()
+    static void UpdateMouseCursor()
     {
         ImGuiIO& io = ImGui::GetIO();
         ImGuiData* bd = ImGuiGetBackendData();
         if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) ||
-            (static_cast<Window::Cursor>(bd->Window->GetWindowAttribute(Window::Attribute::Cursor)) == Window::Cursor::Disabled))
+            (static_cast<Window::CursorState>(bd->Window->GetWindowAttribute(Window::Attribute::Cursor)) == Window::CursorState::Disabled))
             return;
 
         ImGuiMouseCursor imGuiCursor = ImGui::GetMouseCursor();
@@ -561,93 +536,18 @@ namespace RR
         {
             ImGuiViewportData* vd = (ImGuiViewportData*)platform_io.Viewports[index]->PlatformUserData;
             auto window = vd->Window;
-            const auto glfwWindow = std::any_cast<GLFWwindow*>(window->GetNativeHandle());
 
             if (imGuiCursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
             {
                 // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-                window->SetWindowAttribute(Window::Attribute::Cursor, static_cast<int32_t>(Window::Cursor::Hidden));
+                window->SetWindowAttribute(Window::Attribute::Cursor, static_cast<int32_t>(Window::CursorState::Hidden));
             }
             else
             {
-                glfwSetCursor(glfwWindow, bd->MouseCursors[imGuiCursor] ? bd->MouseCursors[imGuiCursor] : bd->MouseCursors[ImGuiMouseCursor_Arrow]);
-                window->SetWindowAttribute(Window::Attribute::Cursor, static_cast<int32_t>(Window::Cursor::Normal));
+                window->SetCursor(bd->MouseCursors[imGuiCursor] ? bd->MouseCursors[imGuiCursor] : bd->MouseCursors[ImGuiMouseCursor_Arrow]);
+                window->SetWindowAttribute(Window::Attribute::Cursor, static_cast<int32_t>(Window::CursorState::Normal));
             }
         }
-    }
-
-    // Update gamepad inputs
-    static inline float Saturate(float v) { return v < 0.0f ? 0.0f : v > 1.0f ? 1.0f
-                                                                              : v; }
-    static void ImGui_ImplGlfw_UpdateGamepads()
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0)
-            return;
-
-        io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
-#if GLFW_HAS_GAMEPAD_API
-        GLFWgamepadstate gamepad;
-        if (!glfwGetGamepadState(GLFW_JOYSTICK_1, &gamepad))
-            return;
-#define MAP_BUTTON(KEY_NO, BUTTON_NO, _UNUSED)                   \
-    do                                                           \
-    {                                                            \
-        io.AddKeyEvent(KEY_NO, gamepad.buttons[BUTTON_NO] != 0); \
-    } while (0)
-#define MAP_ANALOG(KEY_NO, AXIS_NO, _UNUSED, V0, V1)          \
-    do                                                        \
-    {                                                         \
-        float v = gamepad.axes[AXIS_NO];                      \
-        v = (v - V0) / (V1 - V0);                             \
-        io.AddKeyAnalogEvent(KEY_NO, v > 0.10f, Saturate(v)); \
-    } while (0)
-#else
-        int axes_count = 0, buttons_count = 0;
-        const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axes_count);
-        const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttons_count);
-        if (axes_count == 0 || buttons_count == 0)
-            return;
-#define MAP_BUTTON(KEY_NO, _UNUSED, BUTTON_NO)                                                   \
-    do                                                                                           \
-    {                                                                                            \
-        io.AddKeyEvent(KEY_NO, (buttons_count > BUTTON_NO && buttons[BUTTON_NO] == GLFW_PRESS)); \
-    } while (0)
-#define MAP_ANALOG(KEY_NO, _UNUSED, AXIS_NO, V0, V1)           \
-    do                                                         \
-    {                                                          \
-        float v = (axes_count > AXIS_NO) ? axes[AXIS_NO] : V0; \
-        v = (v - V0) / (V1 - V0);                              \
-        io.AddKeyAnalogEvent(KEY_NO, v > 0.10f, Saturate(v));  \
-    } while (0)
-#endif
-        io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-        MAP_BUTTON(ImGuiKey_GamepadStart, GLFW_GAMEPAD_BUTTON_START, 7);
-        MAP_BUTTON(ImGuiKey_GamepadBack, GLFW_GAMEPAD_BUTTON_BACK, 6);
-        MAP_BUTTON(ImGuiKey_GamepadFaceDown, GLFW_GAMEPAD_BUTTON_A, 0); // Xbox A, PS Cross
-        MAP_BUTTON(ImGuiKey_GamepadFaceRight, GLFW_GAMEPAD_BUTTON_B, 1); // Xbox B, PS Circle
-        MAP_BUTTON(ImGuiKey_GamepadFaceLeft, GLFW_GAMEPAD_BUTTON_X, 2); // Xbox X, PS Square
-        MAP_BUTTON(ImGuiKey_GamepadFaceUp, GLFW_GAMEPAD_BUTTON_Y, 3); // Xbox Y, PS Triangle
-        MAP_BUTTON(ImGuiKey_GamepadDpadLeft, GLFW_GAMEPAD_BUTTON_DPAD_LEFT, 13);
-        MAP_BUTTON(ImGuiKey_GamepadDpadRight, GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, 11);
-        MAP_BUTTON(ImGuiKey_GamepadDpadUp, GLFW_GAMEPAD_BUTTON_DPAD_UP, 10);
-        MAP_BUTTON(ImGuiKey_GamepadDpadDown, GLFW_GAMEPAD_BUTTON_DPAD_DOWN, 12);
-        MAP_BUTTON(ImGuiKey_GamepadL1, GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, 4);
-        MAP_BUTTON(ImGuiKey_GamepadR1, GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, 5);
-        MAP_ANALOG(ImGuiKey_GamepadL2, GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, 4, -0.75f, +1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadR2, GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, 5, -0.75f, +1.0f);
-        MAP_BUTTON(ImGuiKey_GamepadL3, GLFW_GAMEPAD_BUTTON_LEFT_THUMB, 8);
-        MAP_BUTTON(ImGuiKey_GamepadR3, GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, 9);
-        MAP_ANALOG(ImGuiKey_GamepadLStickLeft, GLFW_GAMEPAD_AXIS_LEFT_X, 0, -0.25f, -1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadLStickRight, GLFW_GAMEPAD_AXIS_LEFT_X, 0, +0.25f, +1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadLStickUp, GLFW_GAMEPAD_AXIS_LEFT_Y, 1, -0.25f, -1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadLStickDown, GLFW_GAMEPAD_AXIS_LEFT_Y, 1, +0.25f, +1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadRStickLeft, GLFW_GAMEPAD_AXIS_RIGHT_X, 2, -0.25f, -1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadRStickRight, GLFW_GAMEPAD_AXIS_RIGHT_X, 2, +0.25f, +1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadRStickUp, GLFW_GAMEPAD_AXIS_RIGHT_Y, 3, -0.25f, -1.0f);
-        MAP_ANALOG(ImGuiKey_GamepadRStickDown, GLFW_GAMEPAD_AXIS_RIGHT_Y, 3, +0.25f, +1.0f);
-#undef MAP_BUTTON
-#undef MAP_ANALOG
     }
 
     static void UpdateMonitors()
@@ -698,10 +598,7 @@ namespace RR
         bd->Time = current_time;
 
         UpdateMouseData();
-        ImGui_ImplGlfw_UpdateMouseCursor();
-
-        // Update game controllers (if enabled and available)
-        ImGui_ImplGlfw_UpdateGamepads();
+        UpdateMouseCursor();
 
         ImGui::NewFrame();
     }
@@ -813,7 +710,7 @@ namespace RR
                 for (size_t keyIndex = 0; keyIndex < bd->KeyOwnerWindows.size(); keyIndex++)
                     if (bd->KeyOwnerWindows[keyIndex] == window)
                         // Later params are only used for main viewport, on which this function is never called.
-                        KeyCallback(*window, Input::Key(keyIndex), 0, Input::KeyAction::Release, Input::ModifierFlag::None); 
+                        KeyCallback(*window, Input::Key(keyIndex), 0, Input::KeyAction::Release, Input::ModifierFlag::None);
             }
             vd->Window = nullptr;
             IM_DELETE(vd);

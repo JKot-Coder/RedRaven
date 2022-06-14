@@ -482,7 +482,7 @@ namespace RR
 
         // Cleanup
         ImGui_ImplDX12_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
+        Shutdown();
         ImGui::DestroyContext();
 
         CleanupDeviceD3D();

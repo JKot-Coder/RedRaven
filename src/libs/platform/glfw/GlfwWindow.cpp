@@ -2,6 +2,7 @@
 
 #include "platform/Input.hpp"
 #include "platform/Toolkit.hpp"
+#include "platform/glfw/GlfwToolkit.hpp"
 
 #ifdef OS_WINDOWS
 #include <windows.h>
@@ -390,6 +391,14 @@ namespace RR::Platform
         }
     }
 
+    void GlfwWindowImpl::SetCursor(const std::shared_ptr<Cursor>& cursor) const
+    {
+        ASSERT(window_);
+        ASSERT(cursor);
+
+        glfwSetCursor(window_, std::static_pointer_cast<GlfwCursor>(cursor)->cursor);
+    }
+
     Vector2i GlfwWindowImpl::GetSize() const
     {
         ASSERT(window_);
@@ -472,9 +481,9 @@ namespace RR::Platform
             {
                 switch (glfwGetInputMode(window_, GLFW_CURSOR))
                 {
-                    case GLFW_CURSOR_NORMAL: return static_cast<int32_t>(Cursor::Normal);
-                    case GLFW_CURSOR_HIDDEN: return static_cast<int32_t>(Cursor::Hidden);
-                    case GLFW_CURSOR_DISABLED: return static_cast<int32_t>(Cursor::Disabled);
+                    case GLFW_CURSOR_NORMAL: return static_cast<int32_t>(CursorState::Normal);
+                    case GLFW_CURSOR_HIDDEN: return static_cast<int32_t>(CursorState::Hidden);
+                    case GLFW_CURSOR_DISABLED: return static_cast<int32_t>(CursorState::Disabled);
                     default: ASSERT_MSG(false, "Unknown input mode"); return -1;
                 };
                 break;
@@ -499,11 +508,11 @@ namespace RR::Platform
         {
             case Attribute::Cursor:
             {
-                switch (static_cast<Cursor>(value))
+                switch (static_cast<CursorState>(value))
                 {
-                    case Cursor::Normal: return glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                    case Cursor::Hidden: return glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-                    case Cursor::Disabled: return glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                    case CursorState::Normal: return glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                    case CursorState::Hidden: return glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+                    case CursorState::Disabled: return glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                     default: ASSERT_MSG(false, "Unknown cursor mode"); return;
                 };
                 break;

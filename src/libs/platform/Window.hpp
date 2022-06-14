@@ -6,6 +6,8 @@
 
 namespace RR::Platform
 {
+    struct Cursor;
+
     namespace Input
     {
         enum class MouseButton : uint32_t;
@@ -31,7 +33,7 @@ namespace RR::Platform
             TaskbarIcon,
         };
 
-        enum class Cursor : int32_t
+        enum class CursorState : int32_t
         {
             Normal,
             Hidden,
@@ -58,8 +60,6 @@ namespace RR::Platform
     public:
         virtual ~Window() = default;
 
-        virtual void ShowCursor(bool value) = 0;
-
         virtual Vector2i GetSize() const = 0;
         virtual Vector2i GetFramebufferSize() const = 0;
         virtual void SetSize(const Vector2i& size) const = 0;
@@ -78,6 +78,9 @@ namespace RR::Platform
 
         virtual void SetClipboardText(const U8String& text) const = 0;
         virtual U8String GetClipboardText() const = 0;
+
+        virtual void ShowCursor(bool value) = 0;
+        virtual void SetCursor(const std::shared_ptr<Cursor>& cursor) const = 0;
 
         virtual std::any GetNativeHandle() const = 0;
         virtual std::any GetNativeHandleRaw() const = 0;

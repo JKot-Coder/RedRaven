@@ -16,8 +16,6 @@ namespace RR
         public:
             ~GlfwWindowImpl() override;
 
-            void ShowCursor(bool value) override;
-
             Vector2i GetSize() const override;
             Vector2i GetFramebufferSize() const override;
             void SetSize(const Vector2i& size) const override;
@@ -36,6 +34,9 @@ namespace RR
 
             void SetClipboardText(const U8String& text) const override;
             U8String GetClipboardText() const override;
+
+            void ShowCursor(bool value) override;
+            void SetCursor(const std::shared_ptr<Cursor>& cursor) const override;
 
             std::any GetNativeHandle() const override;
             std::any GetNativeHandleRaw() const override;
