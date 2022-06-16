@@ -4,13 +4,16 @@
 #include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
 
+// TODO temporary
+#include <any>
+
 namespace RR
 {
     namespace Platform
     {
         class Window;
     }
-    
+
     namespace GAPI
     {
         struct SwapChainDescription
@@ -42,6 +45,9 @@ namespace RR
         public:
             virtual ~ISwapChain() {};
 
+            virtual uint32_t GetCurrentBackBufferIndex() const = 0;
+            virtual std::any GetWaitableObject() const = 0;
+
             virtual void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
 
             virtual void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
@@ -53,9 +59,13 @@ namespace RR
             using SharedPtr = std::shared_ptr<SwapChain>;
             using SharedConstPtr = std::shared_ptr<const SwapChain>;
 
-            std::shared_ptr<Texture> GetTexture(uint32_t backBufferIndex);
+            std::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
 
             const SwapChainDescription& GetDescription() const { return description_; }
+            uint32_t GetCurrentBackBufferIndex() const { return GetPrivateImpl()->GetCurrentBackBufferIndex(); }
+
+            // TODO temporary
+            std::any GetWaitableObject() const { return GetPrivateImpl()->GetWaitableObject(); }
 
         private:
             static SharedPtr Create(const SwapChainDescription& description, const U8String& name)

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "gapi/Resource.hpp"
+// TODO temporary
+#include <any>
 
 namespace RR
 {
@@ -26,6 +28,8 @@ namespace RR
         public:
             virtual ~ICommandQueue() = default;
 
+            // TODO temporary
+            virtual std::any GetNativeHandle() const = 0;
             virtual void Submit(const std::shared_ptr<CommandList>& commandList) = 0;
             virtual void WaitForGpu() = 0;
         };
@@ -38,6 +42,7 @@ namespace RR
 
             CommandQueue() = delete;
 
+            inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
             inline void Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
 
             inline const CommandQueueType GetCommandQueueType() const { return type_; }

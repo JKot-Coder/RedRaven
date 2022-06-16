@@ -5,6 +5,8 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
 
+#include <any>
+
 namespace RR
 {
     namespace GAPI
@@ -59,6 +61,8 @@ namespace RR
             virtual void InitTexture(Texture& resource) const = 0;
             virtual void InitBuffer(Buffer& resource) const = 0;
             virtual void InitGpuResourceView(GpuResourceView& view) const = 0;
+
+            virtual std::any GetRawDevice() const = 0;
         };
 
         class IDevice : public ISingleThreadDevice, public IMultiThreadDevice
@@ -98,6 +102,8 @@ namespace RR
             void InitTexture(Texture& resource) const override { GetPrivateImpl()->InitTexture(resource); };
             void InitBuffer(Buffer& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
             void InitGpuResourceView(GpuResourceView& view) const override { GetPrivateImpl()->InitGpuResourceView(view); };
+
+            std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
         private:
             static SharedPtr Create(const Description& description, const U8String& name)

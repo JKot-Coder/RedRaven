@@ -22,6 +22,8 @@ namespace RR
                 CommandQueueImpl(CommandQueueType type) : type_(type) {};
                 ~CommandQueueImpl();
 
+                std::any GetNativeHandle() const override { return D3DCommandQueue_.get(); }
+
                 void ImmediateD3DObjectRelease();
 
                 void Init(const U8String& name);

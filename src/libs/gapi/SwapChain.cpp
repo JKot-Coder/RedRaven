@@ -38,23 +38,23 @@ namespace RR
             }
         }
 
-        Texture::SharedPtr SwapChain::GetTexture(uint32_t backBufferIndex)
+        Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
         {
-            ASSERT(backBufferIndex < description_.bufferCount);
+            ASSERT(index < description_.bufferCount);
 
-            if (backBuffers_[backBufferIndex])
-                return backBuffers_[backBufferIndex];
+            if (backBuffers_[index])
+                return backBuffers_[index];
 
             const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource, 1, 1);
             auto& renderContext = Render::DeviceContext::Instance();
 
-            backBuffers_[backBufferIndex] = renderContext.CreateSwapChainBackBuffer(
+            backBuffers_[index] = renderContext.CreateSwapChainBackBuffer(
                 std::static_pointer_cast<SwapChain>(shared_from_this()),
-                backBufferIndex,
+                index,
                 desc,
-                fmt::sprintf("%s BackBufferTexture:%d", GetName(), backBufferIndex)); //TODO move it
+                fmt::sprintf("%s BackBufferTexture:%d", GetName(), index)); //TODO move it
 
-            return backBuffers_[backBufferIndex];
+            return backBuffers_[index];
         }
     }
 }

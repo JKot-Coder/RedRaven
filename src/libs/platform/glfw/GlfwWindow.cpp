@@ -602,8 +602,8 @@ namespace RR::Platform
                     exStyle &= ~WS_EX_LAYERED;
             }
         }
-
-        SetWindowLongW(hwnd, GWL_EXSTYLE, exStyle);
+        // TODO temporary disable cause it provides stall in multithreading
+        // SetWindowLongW(hwnd, GWL_EXSTYLE, exStyle);
 
         if (enabled)
             SetLayeredWindowAttributes(hwnd, key, alpha, flags);

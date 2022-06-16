@@ -35,10 +35,8 @@ namespace RR
                 void InitBuffer(Buffer& resource) const override;
                 void InitGpuResourceView(GpuResourceView& view) const override;
 
-                ID3D12Device* GetDevice() const
-                {
-                    return d3dDevice_.get();
-                }
+                std::any GetRawDevice() const override { return d3dDevice_.get(); }
+                ID3D12Device* GetDevice() const { return d3dDevice_.get(); }
 
             private:
                 void waitForGpu();

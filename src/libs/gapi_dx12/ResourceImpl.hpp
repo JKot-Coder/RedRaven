@@ -26,6 +26,7 @@ namespace RR
 
                 void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 
+                std::any GetRawHandle() const override { return D3DResource_.get(); }
                 const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
                 void Map(uint32_t subresource, const D3D12_RANGE& readRange, void*& memory);

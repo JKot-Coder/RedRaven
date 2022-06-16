@@ -40,13 +40,14 @@ namespace RR
                 // Swapchain don't have name
                 std::ignore = name;
 
+                // TODO move here?
                 const auto& targetSwapChainDesc = D3DUtils::GetDxgiSwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
 
                 ComSharedPtr<IDXGISwapChain1> swapChain1;
                 // Create a swap chain for the window.
                 D3DCall(dxgiFactory->CreateSwapChainForHwnd(
                     commandQueue.get(),
-                    std::any_cast<HWND>(description.window->GetNativeHandle()),
+                    std::any_cast<HWND>(description.window->GetNativeHandleRaw()),
                     &targetSwapChainDesc,
                     nullptr,
                     nullptr,
@@ -54,8 +55,8 @@ namespace RR
 
                 if (!swapChain1.try_as(D3DSwapChain_))
                     LOG_FATAL("Failed to cast swapchain");
-
-                swapChain1.as(D3DSwapChain_);
+                // TODO DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
+                 D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);
             }
 
             void SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
@@ -97,6 +98,20 @@ namespace RR
                 //   if (voidU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))
                 // {
                 // }*/
+            }
+
+            uint32_t SwapChainImpl::GetCurrentBackBufferIndex() const
+            {
+                ASSERT(D3DSwapChain_);
+
+                return D3DSwapChain_->GetCurrentBackBufferIndex();
+            }
+
+            std::any SwapChainImpl::GetWaitableObject() const
+            {
+                ASSERT(D3DSwapChain_);
+
+                return D3DSwapChain_->GetFrameLatencyWaitableObject();
             }
 
             void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource)

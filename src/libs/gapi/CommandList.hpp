@@ -3,6 +3,9 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Resource.hpp"
 
+// TODO temporary
+#include <any>
+
 namespace RR
 {
     namespace Common
@@ -35,6 +38,9 @@ namespace RR
         public:
             virtual ~ICommandList() = default;
             virtual void Close() = 0;
+
+            // TODO temporary
+            virtual std::any GetNativeHandle() const = 0;
 
             // ---------------------------------------------------------------------------------------------
             // Copy command list
@@ -72,7 +78,7 @@ namespace RR
             using SharedConstPtr = std::shared_ptr<const CommandList>;
 
             inline CommandListType GetCommandListType() const { return type_; };
-
+            inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); } 
             inline void Close() { return GetPrivateImpl()->Close(); }
 
         protected:

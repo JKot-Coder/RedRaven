@@ -18,6 +18,9 @@ namespace RR
                 void Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name);
                 void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers);
 
+                virtual std::any GetWaitableObject() const override;
+                uint32_t GetCurrentBackBufferIndex() const override;
+
                 void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) override;
 
                 HRESULT Present(uint32_t interval);

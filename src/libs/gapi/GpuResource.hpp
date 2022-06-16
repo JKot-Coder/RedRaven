@@ -8,6 +8,9 @@
 
 #include <unordered_map>
 
+// TODO Temporary
+#include <any>
+
 namespace RR
 {
     namespace GAPI
@@ -415,6 +418,8 @@ namespace RR
         {
         public:
             virtual ~IGpuResource() = default;
+
+            virtual std::any GetRawHandle() const = 0;
         };
 
         class GpuResource : public Resource<IGpuResource>
@@ -432,6 +437,8 @@ namespace RR
             inline const bool IsTexture() const { return description_.dimension_ != GpuResourceDimension::Buffer; }
             inline const GpuResourceDescription& GetDescription() const { return description_; }
             inline GpuResourceCpuAccess GetCpuAccess() const { return cpuAccess_; }
+            // TODO Temporary
+            inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
 
         protected:
             GpuResource(GpuResourceDescription description, GpuResourceCpuAccess cpuAccess, const U8String& name)

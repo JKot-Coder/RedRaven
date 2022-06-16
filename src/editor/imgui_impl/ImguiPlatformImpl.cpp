@@ -394,8 +394,7 @@ namespace RR
         for (int index = 0; index < platform_io.Viewports.Size; index++)
         {
             ImGuiViewport* viewport = platform_io.Viewports[index];
-            ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
-            auto window = vd->Window;
+            auto window = (Platform::Window*)viewport->PlatformHandle;
 
             const bool isFocused = window->GetWindowAttribute(Window::Attribute::Focused) != 0;
             if (isFocused)
@@ -411,8 +410,8 @@ namespace RR
             // (Optional) When using multiple viewports: call io.AddMouseViewportEvent() with the viewport the OS mouse cursor is hovering.
             const bool windowNoInput = (viewport->Flags & ImGuiViewportFlags_NoInputs) != 0;
 
-            vd->Window->SetWindowAttribute(Window::Attribute::MousePassthrough, windowNoInput);
-            if (vd->Window->GetWindowAttribute(Window::Attribute::Hovered) && !windowNoInput)
+            window->SetWindowAttribute(Window::Attribute::MousePassthrough, windowNoInput);
+            if (window->GetWindowAttribute(Window::Attribute::Hovered) && !windowNoInput)
                 mouseViewportId = viewport->ID;
         }
 
@@ -433,8 +432,7 @@ namespace RR
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
         for (int index = 0; index < platform_io.Viewports.Size; index++)
         {
-            ImGuiViewportData* vd = (ImGuiViewportData*)platform_io.Viewports[index]->PlatformUserData;
-            auto window = vd->Window;
+            auto window = (Platform::Window*)platform_io.Viewports[index]->PlatformHandle;
 
             if (imGuiCursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
             {

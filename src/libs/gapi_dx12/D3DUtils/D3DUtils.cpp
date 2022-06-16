@@ -162,7 +162,7 @@ namespace RR
                     output.Scaling = DXGI_SCALING_STRETCH;
                     output.SwapEffect = swapEffect;
                     output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-                    output.Flags = 0;
+                    output.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
                     return output;
                 }
 

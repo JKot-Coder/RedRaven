@@ -20,7 +20,7 @@ namespace RR
                 ~CommandListImpl();
 
                 void Init(const U8String& name);
-
+                std::any GetNativeHandle() const override { return D3DCommandList_.get(); }
                 void Close() override;
 
                 // ---------------------------------------------------------------------------------------------
