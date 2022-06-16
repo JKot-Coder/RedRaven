@@ -21,8 +21,8 @@ namespace RR
 
             void Init();
             std::vector<Monitor> GetMonitors() const override;
-
             void PoolEvents() const override;
+            double GetTime() const override;
 
             std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const override;
             std::shared_ptr<Cursor> CreateCursor(Cursor::Type type) const override;

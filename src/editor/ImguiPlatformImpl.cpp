@@ -1,11 +1,9 @@
-#include "ImguiPlatformImplementation.hpp"
+#include "ImguiPlatformImpl.hpp"
 #include "imgui.h"
 
 #include "platform/Input.hpp"
 #include "platform/Toolkit.hpp"
 
-// GLFW
-#include <GLFW/glfw3.h>
 #ifdef _WIN32
 #undef APIENTRY
 #include "windows.h" // for HWND
@@ -14,14 +12,6 @@
 namespace RR
 {
     using namespace Platform;
-
-    // GLFW data
-    enum GlfwClientApi
-    {
-        GlfwClientApi_Unknown,
-        GlfwClientApi_OpenGL,
-        GlfwClientApi_Vulkan
-    };
 
     // Helper structure we store in the void* RenderUserData field of each ImGuiViewport to easily retrieve our backend data.
     struct ImGuiViewportData
@@ -47,10 +37,7 @@ namespace RR
     struct ImGuiData
     {
         std::shared_ptr<Window> Window;
-        GlfwClientApi ClientApi;
-        double Time;
         std::array<std::shared_ptr<Cursor>, size_t(ImGuiMouseCursor_COUNT)> MouseCursors;
-        ImVec2 LastValidMousePos;
         std::array<const Platform::Window*, size_t(Input::Key::Count)> KeyOwnerWindows;
         bool InstalledCallbacks;
         bool WantUpdateMonitors;
@@ -309,7 +296,6 @@ namespace RR
 
     void MouseMoveCallback(const Window& window, const Vector2i& position)
     {
-        ImGuiData* bd = ImGuiGetBackendData();
         ImGuiIO& io = ImGui::GetIO();
 
         Vector2i mousePosition = position;
@@ -320,7 +306,6 @@ namespace RR
         const ImVec2& fmousePosition = Vector2iToImVec(mousePosition);
 
         io.AddMousePosEvent(fmousePosition.x, fmousePosition.y);
-        bd->LastValidMousePos = fmousePosition;
     }
 
     void CharCallback(const Window& window, U8Glyph ch)
@@ -375,7 +360,7 @@ namespace RR
         bd->InstalledCallbacks = false;
     }
 
-    static bool ImGui_ImplRR_Init(const std::shared_ptr<Window>& window, bool installCallbacks, GlfwClientApi client_api)
+    bool ImguiPlatfomImpl::Init(const std::shared_ptr<Window>& window, bool installCallbacks)
     {
         ImGuiIO& io = ImGui::GetIO();
         ASSERT(io.BackendPlatformUserData == nullptr && "Already initialized a platform backend!");
@@ -390,7 +375,6 @@ namespace RR
         io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
 
         bd->Window = window;
-        bd->Time = 0.0;
         bd->WantUpdateMonitors = true;
 
         io.SetClipboardTextFn = Platform_SetClipboardText;
@@ -431,26 +415,10 @@ namespace RR
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
             ImGuiInitPlatformInterface();
 
-        bd->ClientApi = client_api;
         return true;
     }
 
-    bool ImGui_ImplRR_InitForOpenGL(const std::shared_ptr<Window>& window, bool install_callbacks)
-    {
-        return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_OpenGL);
-    }
-
-    bool ImGui_ImplRR_InitForVulkan(const std::shared_ptr<Window>& window, bool install_callbacks)
-    {
-        return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_Vulkan);
-    }
-
-    bool ImGui_ImplRR_InitForOther(const std::shared_ptr<Window>& window, bool install_callbacks)
-    {
-        return ImGui_ImplRR_Init(window, install_callbacks, GlfwClientApi_Unknown);
-    }
-
-    void Shutdown()
+    void ImguiPlatfomImpl::Shutdown()
     {
         ImGuiData* bd = ImGuiGetBackendData();
         ASSERT(bd != nullptr && "No platform backend to shutdown, or already shutdown?");
@@ -468,7 +436,6 @@ namespace RR
 
     static void UpdateMouseData()
     {
-        // ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
         ImGuiIO& io = ImGui::GetIO();
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
@@ -479,7 +446,6 @@ namespace RR
             ImGuiViewport* viewport = platform_io.Viewports[index];
             ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData;
             auto window = vd->Window;
-            // auto glfwWindow = vd->GLFWWindow;
 
             const bool isFocused = window->GetWindowAttribute(Window::Attribute::Focused) != 0;
             if (isFocused)
@@ -490,24 +456,6 @@ namespace RR
                     window->SetMousePosition(Vector2(mousePos.x - viewport->Pos.x,
                                                      mousePos.y - viewport->Pos.y)
                                                  .Cast<int32_t>());
-                /*
-                // (Optional) Fallback to provide mouse position when focused (ImGui_ImplGlfw_CursorPosCallback already provides this when hovered or captured)
-                if (bd->MouseWindow == NULL)
-                {
-                    double mouse_x, mouse_y;
-                    glfwGetCursorPos(glfwWindow, &mouse_x, &mouse_y);
-                    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-                    {
-                        // Single viewport mode: mouse position in client window coordinates (io.MousePos is (0,0) when the mouse is on the upper-left corner of the app window)
-                        // Multi-viewport mode: mouse position in OS absolute coordinates (io.MousePos is (0,0) when the mouse is on the upper-left of the primary monitor)
-                        int window_x, window_y;
-                        glfwGetWindowPos(glfwWindow, &window_x, &window_y);
-                        mouse_x += window_x;
-                        mouse_y += window_y;
-                    }
-                    bd->LastValidMousePos = ImVec2((float)mouse_x, (float)mouse_y);
-                    io.AddMousePosEvent((float)mouse_x, (float)mouse_y);
-                }*/
             }
 
             // (Optional) When using multiple viewports: call io.AddMouseViewportEvent() with the viewport the OS mouse cursor is hovering.
@@ -575,7 +523,7 @@ namespace RR
         bd->WantUpdateMonitors = false;
     }
 
-    void ImGui_ImplGlfw_NewFrame()
+    void ImguiPlatfomImpl::NewFrame(float dt)
     {
         ImGuiIO& io = ImGui::GetIO();
         ImGuiData* bd = ImGuiGetBackendData();
@@ -592,10 +540,7 @@ namespace RR
         if (bd->WantUpdateMonitors)
             UpdateMonitors();
 
-        // Setup time step
-        double current_time = glfwGetTime();
-        io.DeltaTime = bd->Time > 0.0 ? (float)(current_time - bd->Time) : (float)(1.0f / 60.0f);
-        bd->Time = current_time;
+        io.DeltaTime = dt;
 
         UpdateMouseData();
         UpdateMouseCursor();

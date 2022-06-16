@@ -65,6 +65,7 @@ namespace RR::Platform
                 case GLFW_RELEASE: return Input::KeyAction::Release;
                 case GLFW_REPEAT: return Input::KeyAction::Repeat;
                 default: ASSERT_MSG(false, "Unknown action");
+                    return Input::KeyAction(-1);
             }
         }
 

@@ -3,8 +3,9 @@ project(editor)
 set(SRC
     "Application.cpp"
     "Application.hpp"
-    "ImguiPlatformImplementation.cpp"
-    "ImguiPlatformImplementation.hpp"
+    "ImguiPlatformImpl.cpp"
+    "ImguiPlatformImpl.hpp"
+
     "main.cpp")
 source_group("" FILES ${SRC})
 
@@ -14,8 +15,7 @@ set(LIBRARIES
     common
     platform
     render
-    imgui
-    glfw)
+    imgui)
 
 if (WIN32)
     set(EDITOR_LINK_LIBRARIES ${EDITOR_LINK_LIBRARIES} gapi_dx12)

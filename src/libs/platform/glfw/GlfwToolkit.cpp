@@ -133,5 +133,12 @@ namespace RR
 
             glfwPollEvents();
         }
+
+        double GlfwToolkit::GetTime() const
+        {
+            ASSERT(isInited_);
+
+            return glfwGetTime();
+        }
     }
 }

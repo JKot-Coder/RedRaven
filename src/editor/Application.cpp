@@ -9,9 +9,8 @@
 #include <imgui.h>
 #include <tchar.h>
 
-#include "platform/Window.hpp"
 #include "platform/Toolkit.hpp"
-
+#include "platform/Window.hpp"
 
 namespace RR
 {
@@ -346,8 +345,9 @@ namespace RR
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
+        ImguiPlatfomImpl imguiPlatformInput;
         // Setup Platform/Renderer backends
-        ImGui_ImplRR_InitForOther(window, true);
+        imguiPlatformInput.Init(window, true);
         ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
                             DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
                             g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
@@ -374,7 +374,10 @@ namespace RR
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         // Main loop
+        const auto& toolkit = Platform::Toolkit::Instance();
         bool done = false;
+        float dt = 0;
+        float last_time = (float) toolkit.GetTime();
         while (!done)
         {
             // Poll and handle messages (inputs, window resize, etc.)
@@ -393,7 +396,7 @@ namespace RR
             // Start the Dear ImGui frame
             Platform::Toolkit::Instance().PoolEvents();
             ImGui_ImplDX12_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
+             imguiPlatformInput.NewFrame(dt);
 
             // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
             if (show_demo_window)
@@ -476,13 +479,17 @@ namespace RR
             g_pd3dCommandQueue->Signal(g_fence, fenceValue);
             g_fenceLastSignaledValue = fenceValue;
             frameCtx->FenceValue = fenceValue;
+
+            float current_time = (float) toolkit.GetTime();
+            dt = (current_time - last_time);
+            last_time = current_time;
         }
 
         WaitForLastSubmittedFrame();
 
         // Cleanup
         ImGui_ImplDX12_Shutdown();
-        Shutdown();
+        imguiPlatformInput.Shutdown();
         ImGui::DestroyContext();
 
         CleanupDeviceD3D();
@@ -494,7 +501,6 @@ namespace RR
     void Application::init()
     {
 
-
-     //   testEvent.Register<Application>(this, &Application::bar);
+        //   testEvent.Register<Application>(this, &Application::bar);
     }
 }

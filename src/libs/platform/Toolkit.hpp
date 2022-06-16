@@ -54,6 +54,7 @@ namespace RR
         public:
             virtual std::vector<Monitor> GetMonitors() const = 0;
             virtual void PoolEvents() const = 0;
+            virtual double GetTime() const = 0;
 
             // CreatePlatformWindow to avoid name collision with CreateWindow define from Windows.h
             virtual std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const = 0;
@@ -70,6 +71,7 @@ namespace RR
 
             std::vector<Monitor> GetMonitors() const { return getPrivateImpl()->GetMonitors(); }
             void PoolEvents() const { getPrivateImpl()->PoolEvents(); }
+            double GetTime() const { return getPrivateImpl()->GetTime(); }
 
             // CreatePlatformWindow to avoid name collision with CreateWindow define from Windows.h
             std::shared_ptr<Window> CreatePlatformWindow(const Window::Description& description) const
