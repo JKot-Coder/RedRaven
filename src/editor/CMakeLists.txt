@@ -3,13 +3,19 @@ project(editor)
 set(SRC
     "Application.cpp"
     "Application.hpp"
-    "ImguiPlatformImpl.cpp"
-    "ImguiPlatformImpl.hpp"
-
     "main.cpp")
 source_group("" FILES ${SRC})
 
-set(SRC ${SRC})
+set(IMGUI_IMPL_SRC
+    "imgui_impl/ImguiPlatformImpl.cpp"
+    "imgui_impl/ImguiPlatformImpl.hpp"
+    "imgui_impl/ImguiRenderImpl.cpp"
+    "imgui_impl/ImguiRenderImpl.hpp")
+source_group("ImguiImpl" FILES ${IMGUI_IMPL_SRC})
+
+set(SRC 
+    ${SRC}
+    ${IMGUI_IMPL_SRC})
 
 set(LIBRARIES
     common
