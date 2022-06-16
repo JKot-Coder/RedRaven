@@ -38,7 +38,7 @@ namespace RR
         static int const NUM_FRAMES_IN_FLIGHT = 3;
         static FrameContext g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
         static UINT g_frameIndex = 0;
-
+        static bool g_done = false;
         static uint32_t swindex = 0;
         static int const NUM_BACK_BUFFERS = 3;
         static ID3D12Device* g_pd3dDevice = NULL;
@@ -56,24 +56,6 @@ namespace RR
         // Helper functions
         bool CreateDeviceD3D(const Platform::Window::SharedPtr& window)
         {
-            // Setup swap chain
-            DXGI_SWAP_CHAIN_DESC1 sd;
-            {
-                ZeroMemory(&sd, sizeof(sd));
-                sd.BufferCount = NUM_BACK_BUFFERS;
-                sd.Width = 0;
-                sd.Height = 0;
-                sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-                sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-                sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-                sd.SampleDesc.Count = 1;
-                sd.SampleDesc.Quality = 0;
-                sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-                sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-                sd.Scaling = DXGI_SCALING_STRETCH;
-                sd.Stereo = FALSE;
-            }
-
             auto& deviceContext = Render::DeviceContext::Instance();
             deviceContext.Init();
             deviceContext.ExecuteAwait([](GAPI::Device& device)
@@ -145,19 +127,11 @@ namespace RR
                     g_frameContext[i].CommandAllocator->Release();
                     g_frameContext[i].CommandAllocator = NULL;
                 }
-            if (g_pd3dCommandQueue)
-            {
-                g_pd3dCommandQueue->Release();
-                g_pd3dCommandQueue = NULL;
-            }
-            if (g_pd3dCommandList)
-            {
-                g_pd3dCommandList = NULL;
-            }
-            if (g_pSwapChain)
-            {
-                g_pSwapChain = NULL;
-            }
+
+            g_pd3dCommandQueue = NULL;
+            g_pd3dCommandList = NULL;
+            g_pSwapChain = NULL;
+
             if (g_pd3dRtvDescHeap)
             {
                 g_pd3dRtvDescHeap->Release();
@@ -214,6 +188,28 @@ namespace RR
         }
     }
 
+    void CloseCallback(const Platform::Window&)
+    {
+        g_done = true;
+    }
+
+    void ResizeCallback(const Platform::Window&, const Vector2i& size)
+    {
+        WaitForLastSubmittedFrame();
+        CleanupRenderTarget();
+
+        GAPI::SwapChainDescription desc = g_pSwapChain->GetDescription();
+        desc.width = size.x;
+        desc.height = size.y;
+
+        auto& renderContext = Render::DeviceContext::Instance();
+        renderContext.ResetSwapChain(g_pSwapChain, desc);
+
+        swindex = 0;
+
+        CreateRenderTarget();
+    }
+
     int Application::Run()
     {
         init();
@@ -230,6 +226,9 @@ namespace RR
         if (!window)
             return 1;
 
+        window->OnResize.Subscribe<ResizeCallback>();
+        window->OnClose.Subscribe<CloseCallback>();
+
         // Initialize Direct3D
         if (!CreateDeviceD3D(window))
         {
@@ -245,7 +244,7 @@ namespace RR
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
         //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-     //   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+        //   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
 
@@ -296,24 +295,10 @@ namespace RR
         // Main loop
         auto& deviceContext = Render::DeviceContext::Instance();
         const auto& toolkit = Platform::Toolkit::Instance();
-        bool done = false;
         float dt = 0;
         float last_time = (float)toolkit.GetTime();
-        while (!done)
+        while (!g_done)
         {
-            // Poll and handle messages (inputs, window resize, etc.)
-            // See the WndProc() function below for our to dispatch events to the Win32 backend.
-            MSG msg;
-            while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
-            {
-                ::TranslateMessage(&msg);
-                ::DispatchMessage(&msg);
-                if (msg.message == WM_QUIT)
-                    done = true;
-            }
-            if (done)
-                break;
-
             Platform::Toolkit::Instance().PoolEvents();
 
             deviceContext.ExecuteAsync(
@@ -425,6 +410,9 @@ namespace RR
         ImGui::DestroyContext();
 
         CleanupDeviceD3D();
+
+        Render::DeviceContext::Instance().Terminate();
+
         window = nullptr;
 
         return 0;

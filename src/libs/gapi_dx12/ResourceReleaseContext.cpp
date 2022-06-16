@@ -13,7 +13,7 @@ namespace RR
             ResourceReleaseContext::~ResourceReleaseContext()
             {
                 Threading::ReadWriteGuard lock(spinlock_);
-                ASSERT(!fence_);
+                ASSERT_MSG(!fence_, "Fence is still alive, did you call Terminate()?");
                 ASSERT(queue_.size() == 0);
             }
 
