@@ -68,6 +68,7 @@ namespace RR
             // Graphics command list
             // ---------------------------------------------------------------------------------------------
 
+            virtual void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) = 0;
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
@@ -78,7 +79,7 @@ namespace RR
             using SharedConstPtr = std::shared_ptr<const CommandList>;
 
             inline CommandListType GetCommandListType() const { return type_; };
-            inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); } 
+            inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
             inline void Close() { return GetPrivateImpl()->Close(); }
 
         protected:
@@ -156,6 +157,7 @@ namespace RR
             using SharedPtr = std::shared_ptr<GraphicsCommandList>;
             using SharedConstPtr = std::shared_ptr<const GraphicsCommandList>;
 
+            inline void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) { GetPrivateImpl()->SetFrameBuffer(framebuffer); }
             inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:

@@ -138,6 +138,12 @@ namespace RR
             U8String ToString(GpuResourceFormat format);
         };
 
+        enum class MultisampleType : uint32_t
+        {
+            None,
+            MSAA_2
+        };
+
         enum class GpuResourceCpuAccess : uint32_t
         {
             None,
@@ -152,7 +158,8 @@ namespace RR
             Texture2D,
             Texture2DMS,
             Texture3D,
-            TextureCube
+            TextureCube,
+            Count
         };
 
         struct GpuResourceDescription
@@ -161,37 +168,37 @@ namespace RR
 
             static GpuResourceDescription Buffer(uint32_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
             {
-                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, GpuResourceFormat::Unknown, bindFlags, 1, 1, 1);
+                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, GpuResourceFormat::Unknown, bindFlags, MultisampleType::None, 1, 1);
             }
 
             static GpuResourceDescription StructuredBuffer(uint32_t size, uint32_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource)
             {
-                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, GpuResourceFormat::Unknown, bindFlags, 1, 1, 1, structSize);
+                return GpuResourceDescription(GpuResourceDimension::Buffer, size, 1, 1, GpuResourceFormat::Unknown, bindFlags, MultisampleType::None, 1, 1, structSize);
             }
 
             static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture1D, width, 1, 1, format, bindFlags, 1, arraySize, mipLevels);
+                return GpuResourceDescription(GpuResourceDimension::Texture1D, width, 1, 1, format, bindFlags, MultisampleType::None, arraySize, mipLevels);
             }
 
             static GpuResourceDescription Texture2D(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture2D, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
+                return GpuResourceDescription(GpuResourceDimension::Texture2D, width, height, 1, format, bindFlags, MultisampleType::None, arraySize, mipLevels);
             }
 
-            static GpuResourceDescription Texture2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, uint32_t sampleCount, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1)
+            static GpuResourceDescription Texture2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, MultisampleType multisampleType, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture2DMS, width, height, 1, format, bindFlags, sampleCount, arraySize, 1);
+                return GpuResourceDescription(GpuResourceDimension::Texture2DMS, width, height, 1, format, bindFlags, multisampleType, arraySize, 1);
             }
 
             static GpuResourceDescription Texture3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture3D, width, height, depth, format, bindFlags, 1, 1, mipLevels);
+                return GpuResourceDescription(GpuResourceDimension::Texture3D, width, height, depth, format, bindFlags, MultisampleType::None, 1, mipLevels);
             }
 
             static GpuResourceDescription TextureCube(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::TextureCube, width, height, 1, format, bindFlags, 1, arraySize, mipLevels);
+                return GpuResourceDescription(GpuResourceDimension::TextureCube, width, height, 1, format, bindFlags, MultisampleType::None, arraySize, mipLevels);
             }
 
             GpuResourceFormat GetFormat() const { return format_; }
@@ -242,7 +249,11 @@ namespace RR
                 return (mipLevel < mipLevels_) ? std::max(1U, depth_ >> mipLevel) : 0u;
             }
 
-            uint32_t GetSampleCount() const { return sampleCount_; }
+            MultisampleType GetMultisampleType() const
+            {
+                ASSERT(dimension_ != GpuResourceDimension::Buffer);
+                return multisampleType_;
+            }
 
             uint32_t GetMipCount() const
             {
@@ -316,7 +327,7 @@ namespace RR
                        lhs.depth_ == rhs.depth_ &&
                        lhs.format_ == rhs.format_ &&
                        lhs.bindflags_ == rhs.bindflags_ &&
-                       lhs.sampleCount_ == rhs.sampleCount_ &&
+                       lhs.multisampleType_ == rhs.multisampleType_ &&
                        lhs.arraySize_ == rhs.arraySize_ &&
                        lhs.structSize_ == rhs.structSize_ &&
                        lhs.mipLevels_ == rhs.mipLevels_;
@@ -324,14 +335,14 @@ namespace RR
             inline friend bool operator!=(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs) { return !(lhs == rhs); }
 
         private:
-            GpuResourceDescription(GpuResourceDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags, uint32_t sampleCount, uint32_t arraySize, uint32_t mipLevels, uint32_t structSize = 0)
+            GpuResourceDescription(GpuResourceDimension dimension, uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags, MultisampleType multisampleType, uint32_t arraySize, uint32_t mipLevels, uint32_t structSize = 0)
                 : dimension_(dimension),
                   width_(width),
                   height_(height),
                   depth_(depth),
                   format_(format),
                   bindflags_(bindFlags),
-                  sampleCount_(sampleCount),
+                  multisampleType_(multisampleType),
                   arraySize_(arraySize),
                   structSize_(structSize),
                   // Limit/Calc maximum mip count
@@ -345,9 +356,9 @@ namespace RR
             uint32_t height_;
             uint32_t depth_;
             uint32_t mipLevels_;
-            uint32_t sampleCount_;
             uint32_t arraySize_;
             uint32_t structSize_;
+            MultisampleType multisampleType_;
             GpuResourceFormat format_;
             GpuResourceDimension dimension_;
             GpuResourceBindFlags bindflags_;

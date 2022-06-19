@@ -10,7 +10,7 @@ namespace RR
         class IFence
         {
         public:
-            virtual ~IFence() {};
+            virtual ~IFence() = default;
 
             virtual void Signal(const std::shared_ptr<CommandQueue>& queue) = 0;
 

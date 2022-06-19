@@ -14,6 +14,7 @@ namespace RR
                 CommandQueue,
                 Device,
                 Fence,
+                Framebuffer,
                 GpuResource,
                 GpuResourceView,
                 MemoryAllocation,

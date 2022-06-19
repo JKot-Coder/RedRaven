@@ -88,8 +88,20 @@ namespace RR
                     return d3d;
                 }
 
+                DXGI_SAMPLE_DESC GetSampleDesc(MultisampleType multisampleType)
+                {
+                    switch (multisampleType)
+                    {
+                        case MultisampleType::None: return { 1, 0 };
+                        case MultisampleType::MSAA_2: return { 2, 0 };
+                        default: ASSERT_MSG(false, "Unknown multisample type"); return { 0, 0 };
+                    }
+                }
+
                 D3D12_RESOURCE_DESC GetResourceDesc(const GpuResourceDescription& resourceDesc)
                 {
+                    ASSERT(resourceDesc.IsValid());
+
                     DXGI_FORMAT format = GetDxgiResourceFormat(resourceDesc.GetFormat());
 
                     if (GpuResourceFormatInfo::IsDepth(resourceDesc.GetFormat()) && IsAny(resourceDesc.GetBindFlags(), GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
@@ -106,8 +118,11 @@ namespace RR
                             break;
                         case GpuResourceDimension::Texture2D:
                         case GpuResourceDimension::Texture2DMS:
-                            desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount(), resourceDesc.GetSampleCount());
-                            break;
+                        {
+                            const auto& sampleDesc = GetSampleDesc(resourceDesc.GetMultisampleType());
+                            desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount(), sampleDesc.Count, sampleDesc.Quality);
+                        }
+                        break;
                         case GpuResourceDimension::Texture3D:
                             desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetDepth(), resourceDesc.GetMipCount());
                             break;

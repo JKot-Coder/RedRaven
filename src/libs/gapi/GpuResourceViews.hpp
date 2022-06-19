@@ -49,7 +49,7 @@ namespace RR
             {
                 struct
                 {
-                    uint32_t mipLevel; // TODO uint8_t ?? 
+                    uint32_t mipLevel;
                     uint32_t mipCount;
                     uint32_t firstArraySlice = 0;
                     uint32_t arraySliceCount = 0;

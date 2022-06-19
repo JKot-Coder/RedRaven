@@ -40,19 +40,20 @@ namespace RR
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const;
 
-            std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
-            std::shared_ptr<GAPI::ComputeCommandList> CreateComputeCommandList(const U8String& name) const;
-            std::shared_ptr<GAPI::GraphicsCommandList> CreateGraphicsCommandList(const U8String& name) const;
-            std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
-            std::shared_ptr<GAPI::Fence> CreateFence(const U8String& name = "") const;
             std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, GAPI::GpuResourceCpuAccess cpuAccess = GAPI::GpuResourceCpuAccess::None, const U8String& name = "") const;
-            std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, GAPI::GpuResourceCpuAccess cpuAccess = GAPI::GpuResourceCpuAccess::None, const U8String& name = "") const;
-            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const U8String& name = "") const;
-            std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
+            std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
+            std::shared_ptr<GAPI::ComputeCommandList> CreateComputeCommandList(const U8String& name) const;
+            std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
+            std::shared_ptr<GAPI::Fence> CreateFence(const U8String& name = "") const;
+            std::shared_ptr<GAPI::Framebuffer> CreateFramebuffer(const GAPI::FramebufferDescription& desc) const;
+            std::shared_ptr<GAPI::GraphicsCommandList> CreateGraphicsCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
-            std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
+            std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, GAPI::GpuResourceCpuAccess cpuAccess = GAPI::GpuResourceCpuAccess::None, const U8String& name = "") const;
+            std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
 
         private:
             // TODO sync with GPU_MAX

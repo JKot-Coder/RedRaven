@@ -3,33 +3,27 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/SwapChain.hpp"
 
-namespace RR
+namespace RR::GAPI::DX12
 {
-    namespace GAPI
+    class SwapChainImpl final : public ISwapChain
     {
-        namespace DX12
-        {
-            class SwapChainImpl final : public ISwapChain
-            {
-            public:
-                SwapChainImpl() = default;
-                ~SwapChainImpl();
+    public:
+        SwapChainImpl() = default;
+        ~SwapChainImpl();
 
-                void Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name);
-                void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers);
+        void Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name);
+        void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers);
 
-                virtual std::any GetWaitableObject() const override;
-                uint32_t GetCurrentBackBufferIndex() const override;
+        virtual std::any GetWaitableObject() const override;
+        uint32_t GetCurrentBackBufferIndex() const override;
 
-                void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) override;
+        void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) override;
 
-                HRESULT Present(uint32_t interval);
+        HRESULT Present(uint32_t interval);
 
-                const ComSharedPtr<IDXGISwapChain3>& GetD3DObject() const { return D3DSwapChain_; }
+        const ComSharedPtr<IDXGISwapChain3>& GetD3DObject() const { return D3DSwapChain_; }
 
-            private:
-                ComSharedPtr<IDXGISwapChain3> D3DSwapChain_;
-            };
-        }
-    }
+    private:
+        ComSharedPtr<IDXGISwapChain3> D3DSwapChain_;
+    };
 }

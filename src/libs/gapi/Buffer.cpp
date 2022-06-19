@@ -14,7 +14,7 @@ namespace RR
     {
         namespace
         {
-            const GpuResourceViewDescription& createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
+            GpuResourceViewDescription createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
             {
                 const auto elementSize = GpuResourceFormatInfo::GetBlockSize(format);
 
@@ -47,7 +47,7 @@ namespace RR
 
         UnorderedAccessView::SharedPtr Buffer::GetUAV(GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
         {
-            const auto viewDesc = createViewDescription(description_, format, firstElement, numElements);
+            const auto& viewDesc = createViewDescription(description_, format, firstElement, numElements);
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {

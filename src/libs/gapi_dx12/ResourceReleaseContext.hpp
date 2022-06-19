@@ -5,6 +5,8 @@
 
 #include <queue>
 
+#include "gapi_dx12/D3DUtils/D3DUtils.hpp"
+
 namespace D3D12MA
 {
     class Allocation;
@@ -36,10 +38,20 @@ namespace RR
                 void Init();
                 void Terminate();
 
+                bool IsInited() const { return inited_; }
+
                 template <class T>
                 void static DeferredD3DResourceRelease(ComSharedPtr<T>& resource, D3D12MA::Allocation* allocation = nullptr)
                 {
-                    Instance().deferredD3DResourceRelease(resource.as<IUnknown>(), allocation);
+                    auto& instance = Instance();
+                    if (!instance.IsInited())
+                    {
+                        Log::Format::Warning("Resource of type {} has been leaked.\n", D3DUtils::GetTypeName<T>());
+                        resource.detach();
+                        return;
+                    }
+
+                    instance.deferredD3DResourceRelease(resource.as<IUnknown>(), allocation);
                     resource = nullptr;
                 }
 
@@ -53,6 +65,7 @@ namespace RR
                 void executeDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue);
 
             private:
+                bool inited_ = false;
                 std::unique_ptr<FenceImpl> fence_;
                 std::queue<ResourceRelease> queue_;
                 Threading::SpinLock spinlock_;

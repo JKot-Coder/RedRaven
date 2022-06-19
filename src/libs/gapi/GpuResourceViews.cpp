@@ -18,6 +18,7 @@ namespace RR
                 }
                 else
                 {
+                    // TODO actually  firstArraySlice should be compared with depth on 3d textures.
                     result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.GetMipCount();
                     result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.GetArraySize();
                 }

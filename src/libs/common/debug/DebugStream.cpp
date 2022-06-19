@@ -59,7 +59,8 @@ namespace RR
             template <class CharT, class TraitsT>
             DebugStream<CharT, TraitsT>::~DebugStream()
             {
-                delete rdbuf();
+                // TODO WTF is this?
+                //delete rdbuf();
             }
         }
     }

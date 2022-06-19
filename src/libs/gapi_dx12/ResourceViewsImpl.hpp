@@ -15,7 +15,7 @@ namespace RR
             public:
                 RenderTargetViewImpl() = default;
 
-                void Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHeap::Allocation& handle)
+                void Init(ID3D12Device* device, const RenderTargetView& rtv, const DescriptorHeap::Descriptor& handle)
                 {
                    // handle_()
                 }
@@ -26,7 +26,7 @@ namespace RR
                 }
 
             private:
-                DescriptorHeap::Allocation handle;
+                DescriptorHeap::Descriptor handle;
             };*/
         }
     }

@@ -13,30 +13,33 @@ namespace RR
             ResourceReleaseContext::~ResourceReleaseContext()
             {
                 Threading::ReadWriteGuard lock(spinlock_);
-                ASSERT_MSG(!fence_, "Fence is still alive, did you call Terminate()?");
+                ASSERT_MSG(!inited_, "Resource release context is alive, did you call Terminate()?");
                 ASSERT(queue_.size() == 0);
             }
 
             void ResourceReleaseContext::Init()
             {
+                ASSERT(!inited_);
+
                 fence_ = std::make_unique<FenceImpl>();
                 fence_->Init("ResourceRelease");
+
+                inited_ = true;
             }
 
             void ResourceReleaseContext::Terminate()
             {
+                inited_ = false;
                 fence_ = nullptr;
             }
 
             void ResourceReleaseContext::deferredD3DResourceRelease(const ComSharedPtr<IUnknown>& resource, D3D12MA::Allocation* allocation)
             {
+                ASSERT(inited_);
+
                 if (!resource)
                     return;
 
-                //Resource might be leaked. Ignore it
-                if (!fence_)
-                    return;
-                    
                 Threading::ReadWriteGuard lock(spinlock_);
                 queue_.push({ fence_->GetCpuValue(), resource, allocation });
             }
@@ -45,7 +48,7 @@ namespace RR
             {
                 Threading::ReadWriteGuard lock(spinlock_);
 
-                ASSERT(fence_);
+                ASSERT(inited_);
                 ASSERT(queue);
 
                 const auto gpuFenceValue = fence_->GetGpuValue();

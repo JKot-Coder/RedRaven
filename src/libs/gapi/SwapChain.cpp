@@ -21,6 +21,8 @@ namespace RR
             ASSERT(description.window);
         }
 
+        // Todo comment about multhreading
+        // Todo just new size and that's it.
         void SwapChain::Reset(const SwapChainDescription& description)
         {
             ASSERT(description.isStereo == description_.isStereo);

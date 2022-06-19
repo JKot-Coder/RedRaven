@@ -5,6 +5,7 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
+#include "gapi/Framebuffer.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
@@ -42,10 +43,11 @@ namespace RR
             submission_->Start(device);
 
             // Init Device
-            submission_->ExecuteAwait([&description](GAPI::Device& device) {
-                if (!GAPI::DX12::InitDevice(device))
-                    LOG_FATAL("Can't init device");
-            });
+            submission_->ExecuteAwait([&description](GAPI::Device& device)
+                                      {
+                                          if (!GAPI::DX12::InitDevice(device))
+                                              LOG_FATAL("Can't init device");
+                                      });
 
             inited_ = true;
 
@@ -74,18 +76,16 @@ namespace RR
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAsync([swapChain](GAPI::Device& device) {
-                device.Present(swapChain);
-            });
+            submission_->ExecuteAsync([swapChain](GAPI::Device& device)
+                                      { device.Present(swapChain); });
         }
 
         void DeviceContext::WaitForGpu(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([commandQueue](GAPI::Device& device) {
-                commandQueue->WaitForGpu();
-            });
+            submission_->ExecuteAwait([commandQueue](GAPI::Device& device)
+                                      { commandQueue->WaitForGpu(); });
         }
 
         void DeviceContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
@@ -95,25 +95,26 @@ namespace RR
             static uint32_t submissionFrame = 0;
 
             // TODO this is not valid. We should sync all command list with primary command list.
-            submission_->ExecuteAsync([fence = fence_, commandQueue](GAPI::Device& device) {
-                submissionFrame++;
+            submission_->ExecuteAsync([fence = fence_, commandQueue](GAPI::Device& device)
+                                      {
+                                          submissionFrame++;
 
-                // Schedule a Signal command in the queue.
-                fence->Signal(commandQueue);
+                                          // Schedule a Signal command in the queue.
+                                          fence->Signal(commandQueue);
 
-                if (fence->GetCpuValue() >= GpuFramesBuffered)
-                {
-                    uint64_t syncFenceValue = fence->GetCpuValue() - GpuFramesBuffered;
+                                          if (fence->GetCpuValue() >= GpuFramesBuffered)
+                                          {
+                                              uint64_t syncFenceValue = fence->GetCpuValue() - GpuFramesBuffered;
 
-                    // We shoud had at least one completed frame in ringbuffer.
-                    syncFenceValue++;
+                                              // We shoud had at least one completed frame in ringbuffer.
+                                              syncFenceValue++;
 
-                    // Throttle cpu if gpu behind
-                    fence->SyncCPU(syncFenceValue, INFINITE);
-                }
+                                              // Throttle cpu if gpu behind
+                                              fence->SyncCPU(syncFenceValue, INFINITE);
+                                          }
 
-                device.MoveToNextFrame(submissionFrame);
-            });
+                                          device.MoveToNextFrame(submissionFrame);
+                                      });
 
             // Todo throttle main thread?
         }
@@ -136,9 +137,8 @@ namespace RR
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device) {
-                swapchain->Reset(description);
-            });
+            submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device)
+                                      { swapchain->Reset(description); });
         }
 
         std::shared_ptr<GAPI::CpuResourceData> DeviceContext::AllocateIntermediateResourceData(
@@ -188,6 +188,16 @@ namespace RR
 
             auto& resource = GAPI::CommandQueue::Create(type, name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandQueue(*resource.get());
+
+            return resource;
+        }
+
+        GAPI::Framebuffer::SharedPtr DeviceContext::CreateFramebuffer(const GAPI::FramebufferDescription& desc) const
+        {
+            ASSERT(inited_);
+
+            auto& resource = GAPI::Framebuffer::Create(desc);
+            submission_->GetIMultiThreadDevice().lock()->InitFramebuffer(*resource.get());
 
             return resource;
         }

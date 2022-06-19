@@ -27,13 +27,14 @@ namespace RR
                     uint32_t firstSubresourceIndex = 0,
                     uint32_t numSubresources = MaxPossible) const override;
 
-                void InitSwapChain(SwapChain& resource) const override;
-                void InitFence(Fence& resource) const override;
-                void InitCommandQueue(CommandQueue& resource) const override;
-                void InitCommandList(CommandList& resource) const override;
-                void InitTexture(Texture& resource) const override;
                 void InitBuffer(Buffer& resource) const override;
+                void InitCommandList(CommandList& resource) const override;
+                void InitCommandQueue(CommandQueue& resource) const override;
+                void InitFence(Fence& resource) const override;
+                void InitFramebuffer(Framebuffer& resource) const override;
                 void InitGpuResourceView(GpuResourceView& view) const override;
+                void InitSwapChain(SwapChain& resource) const override;
+                void InitTexture(Texture& resource) const override;
 
                 std::any GetRawDevice() const override { return d3dDevice_.get(); }
                 ID3D12Device* GetDevice() const { return d3dDevice_.get(); }

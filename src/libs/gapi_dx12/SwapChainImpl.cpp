@@ -128,12 +128,12 @@ namespace RR
                 ASSERT(backBufferIndex <= currentSwapChainDesc.BufferCount);
 #endif
 
-                ComSharedPtr<ID3D12Resource> backBuffer_;
-                D3DCall(D3DSwapChain_->GetBuffer(backBufferIndex, IID_PPV_ARGS(backBuffer_.put())));
-                ASSERT(backBuffer_);
+                ComSharedPtr<ID3D12Resource> backBuffer;
+                D3DCall(D3DSwapChain_->GetBuffer(backBufferIndex, IID_PPV_ARGS(backBuffer.put())));
+                ASSERT(backBuffer);
 
                 auto impl = new ResourceImpl();
-                impl->Init(backBuffer_, nullptr, resource->GetName());
+                impl->Init(backBuffer, nullptr, resource->GetName());
                 resource->SetPrivateImpl(impl);
             }
 

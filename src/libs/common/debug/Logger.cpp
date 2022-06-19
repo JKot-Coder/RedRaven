@@ -33,8 +33,9 @@ namespace RR
 
 #if defined(OS_WINDOWS)
                 // No utf-8 support;
-                Debug::WStream << StringConversions::UTF8ToWString(msg).c_str();
-                std::wcerr << StringConversions::UTF8ToWString(msg).c_str();
+                const auto& wstring = StringConversions::UTF8ToWString(msg);
+                Debug::WStream << wstring.c_str();
+                std::wcerr << wstring.c_str();
 #else
                 Debug::Stream << msg.c_str();
 #endif

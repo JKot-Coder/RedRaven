@@ -49,13 +49,14 @@ namespace RR
                 // Graphics command list
                 // ---------------------------------------------------------------------------------------------
 
+                void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) override;
                 void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
                 // ---------------------------------------------------------------------------------------------
 
                 void ResetAfterSubmit(CommandQueueImpl& commandQueue);
 
-                const ComSharedPtr<ID3D12GraphicsCommandList>& GetD3DObject() const { return D3DCommandList_; }
+                const ComSharedPtr<ID3D12GraphicsCommandList4>& GetD3DObject() const { return D3DCommandList_; }
 
             private:
                 // One frame executing on GPU
@@ -96,7 +97,9 @@ namespace RR
 
             private:
                 D3D12_COMMAND_LIST_TYPE type_;
-                ComSharedPtr<ID3D12GraphicsCommandList> D3DCommandList_;
+
+                // TODO do we need 4 version?
+                ComSharedPtr<ID3D12GraphicsCommandList4> D3DCommandList_;
                 CommandAllocatorsPool commandAllocatorsPool_;
             };
         };

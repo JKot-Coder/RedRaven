@@ -7,6 +7,7 @@
 #include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
+#include "gapi_dx12/FramebufferImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
@@ -269,10 +270,10 @@ namespace RR
 
                 if (cpuReadWriteResourceData)
                 {
-                    // Alloc intermediate resource in upload/readback heap.
+                    // Allocate intermediate resource in upload/readback heap.
                     auto memoryType = readback ? MemoryAllocationType::Readback : MemoryAllocationType::Upload;
 
-                    CpuResourceData = CpuResourceDataAllocator::Alloc(
+                    CpuResourceData = CpuResourceDataAllocator::Allocate(
                         resourceData->GetResourceDescription(),
                         memoryType,
                         resourceData->GetFirstSubresource(),
@@ -355,6 +356,16 @@ namespace RR
             // Compute command list
             // ---------------------------------------------------------------------------------------------
 
+            void CommandListImpl::SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer)
+            {
+                ASSERT(framebuffer);
+
+                const auto frameBufferImpl = framebuffer->GetPrivateImpl<FramebufferImpl>();
+                ASSERT(frameBufferImpl);
+
+                D3DCommandList_->OMSetRenderTargets(frameBufferImpl->GetRTVDescriptiorsCount(), frameBufferImpl->GetRTVDescriptiors(), false, frameBufferImpl->GetDSVDescriptor());
+            }
+
             void CommandListImpl::ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue)
             {
                 ASSERT(unorderedAcessView);
@@ -365,7 +376,7 @@ namespace RR
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
 
-                const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Allocation>();
+                const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Descriptor>();
                 ASSERT(resourceViewImpl);
 
                 D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -387,7 +398,7 @@ namespace RR
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);
 
-                const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Allocation>();
+                const auto resourceViewImpl = unorderedAcessView->GetPrivateImpl<DescriptorHeap::Descriptor>();
                 ASSERT(resourceViewImpl);
 
                 D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -408,7 +419,7 @@ namespace RR
                 ASSERT(renderTargetView);
                 ASSERT(D3DCommandList_);
 
-                const auto allocation = renderTargetView->GetPrivateImpl<DescriptorHeap::Allocation>();
+                const auto allocation = renderTargetView->GetPrivateImpl<DescriptorHeap::Descriptor>();
                 ASSERT(allocation);
 
                 const auto& resource = renderTargetView->GetGpuResource().lock();

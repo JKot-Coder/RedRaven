@@ -17,7 +17,7 @@ namespace RR
                 using SharedPtr = std::shared_ptr<DescriptorHeap>;
                 using SharedConstPtr = std::shared_ptr<const DescriptorHeap>;
 
-                struct Allocation;
+                struct Descriptor;
                 struct DescriptorHeapDesc;
 
                 DescriptorHeap() = default;
@@ -25,7 +25,7 @@ namespace RR
 
                 void Init(const DescriptorHeapDesc& desc);
 
-                void Allocate(Allocation& allocation)
+                void Allocate(Descriptor& descriptor)
                 {
                     ASSERT(d3d12Heap_);
 
@@ -36,15 +36,14 @@ namespace RR
 
                     Chunk* currentChunk = freeChunks_.front();
 
-                    const auto indexInChunk = currentChunk->Alloc();
+                    const auto indexInChunk = currentChunk->Allocate();
                     const auto indexInHeap = indexInChunk + currentChunk->Offset;
 
                     // Chunk is exhausted
                     if (currentChunk->GetNumAvailable() == 0)
                         freeChunks_.pop_front();
 
-                    allocation = Allocation(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap), getGpuHandle(indexInHeap));
-
+                    descriptor = Descriptor(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap), getGpuHandle(indexInHeap));
                     allocated_++;
                 }
 
@@ -74,29 +73,24 @@ namespace RR
                     D3D12_DESCRIPTOR_HEAP_FLAGS flags;
                 };
 
-                struct Allocation final : public IGpuResourceView
+                struct Descriptor final : public IGpuResourceView
                 {
-                    Allocation() = default;
-                    Allocation(Allocation&& donor) noexcept = delete;
-                    ~Allocation() { release(); }
+                    Descriptor() = default;
+                    Descriptor(Descriptor&& other) noexcept { swap(other); }
+                    ~Descriptor() { release(); }
 
-                    bool operator==(const Allocation& alloc) const
+                    bool operator==(const Descriptor& desc) const
                     {
-                        return (cpuHandle_.ptr == alloc.cpuHandle_.ptr) && (heap_ == alloc.heap_) && (indexInHeap_ == alloc.indexInHeap_);
+                        static_assert(sizeof(Descriptor) == 48);
+                        return (cpuHandle_.ptr == desc.cpuHandle_.ptr) && (heap_ == desc.heap_) && (indexInHeap_ == desc.indexInHeap_);
                     }
 
-                    bool operator!=(const Allocation& alloc) const { return !(*this == alloc); }
+                    bool operator!=(const Descriptor& desc) const { return !(*this == desc); }
 
-                    Allocation& operator=(Allocation&& alloc) noexcept
+                    Descriptor& Descriptor::operator=(Descriptor&& other) noexcept
                     {
-                        static_assert(sizeof(Allocation) == 48);
-
-                        std::swap(heap_, alloc.heap_);
-                        std::swap(indexInHeap_, alloc.indexInHeap_);
-                        std::swap(cpuHandle_, alloc.cpuHandle_);
-                        std::swap(gpuHandle_, alloc.gpuHandle_);
-
-                        alloc.release();
+                        release();
+                        swap(other);
 
                         return *this;
                     }
@@ -116,7 +110,7 @@ namespace RR
                 private:
                     friend DescriptorHeap;
 
-                    Allocation(const DescriptorHeap::SharedPtr& heap, uint32_t indexInHeap, CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle, CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+                    Descriptor(const DescriptorHeap::SharedPtr& heap, uint32_t indexInHeap, CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle, CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle)
                         : heap_(heap),
                           indexInHeap_(indexInHeap),
                           cpuHandle_(cpuHandle),
@@ -125,11 +119,22 @@ namespace RR
                         ASSERT(heap_)
                     }
 
+                    void Descriptor::swap(Descriptor& other) noexcept
+                    {
+                        static_assert(sizeof(Descriptor) == 48);
+
+                        std::swap(heap_, other.heap_);
+                        std::swap(indexInHeap_, other.indexInHeap_);
+                        std::swap(cpuHandle_, other.cpuHandle_);
+                        std::swap(gpuHandle_, other.gpuHandle_);
+                    }
+
                     void release()
                     {
                         if (heap_)
                             heap_->Free(indexInHeap_);
 
+                        static_assert(sizeof(Descriptor) == 48);
                         heap_ = nullptr;
                         indexInHeap_ = 0;
                         cpuHandle_ = CD3DX12_DEFAULT();
@@ -155,7 +160,7 @@ namespace RR
                             indices_[i] = i;
                     }
 
-                    inline uint32_t Alloc()
+                    inline uint32_t Allocate()
                     {
                         ASSERT(cursor_ < SIZE)
                         return static_cast<uint32_t>(indices_[cursor_++]);

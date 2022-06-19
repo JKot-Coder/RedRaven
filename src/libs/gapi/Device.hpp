@@ -54,13 +54,14 @@ namespace RR
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const = 0;
 
-            virtual void InitSwapChain(SwapChain& resource) const = 0;
-            virtual void InitFence(Fence& resource) const = 0;
-            virtual void InitCommandQueue(CommandQueue& resource) const = 0;
-            virtual void InitCommandList(CommandList& resource) const = 0;
-            virtual void InitTexture(Texture& resource) const = 0;
             virtual void InitBuffer(Buffer& resource) const = 0;
+            virtual void InitCommandList(CommandList& resource) const = 0;
+            virtual void InitCommandQueue(CommandQueue& resource) const = 0;
+            virtual void InitFence(Fence& resource) const = 0;
+            virtual void InitFramebuffer(Framebuffer& resource) const = 0;
             virtual void InitGpuResourceView(GpuResourceView& view) const = 0;
+            virtual void InitSwapChain(SwapChain& resource) const = 0;
+            virtual void InitTexture(Texture& resource) const = 0;
 
             virtual std::any GetRawDevice() const = 0;
         };
@@ -95,13 +96,15 @@ namespace RR
                 return GetPrivateImpl()->AllocateIntermediateResourceData(desc, memoryType, firstSubresourceIndex, numSubresources);
             };
 
-            void InitSwapChain(SwapChain& resource) const override { GetPrivateImpl()->InitSwapChain(resource); };
-            void InitFence(Fence& resource) const override { GetPrivateImpl()->InitFence(resource); };
-            void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };
-            void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
-            void InitTexture(Texture& resource) const override { GetPrivateImpl()->InitTexture(resource); };
+            // Todo init resource?
             void InitBuffer(Buffer& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
+            void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
+            void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };
+            void InitFence(Fence& resource) const override { GetPrivateImpl()->InitFence(resource); };
+            void InitFramebuffer(Framebuffer& resource) const override { GetPrivateImpl()->InitFramebuffer(resource); };
             void InitGpuResourceView(GpuResourceView& view) const override { GetPrivateImpl()->InitGpuResourceView(view); };
+            void InitSwapChain(SwapChain& resource) const override { GetPrivateImpl()->InitSwapChain(resource); };
+            void InitTexture(Texture& resource) const override { GetPrivateImpl()->InitTexture(resource); };
 
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 

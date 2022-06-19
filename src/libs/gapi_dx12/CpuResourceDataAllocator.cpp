@@ -72,7 +72,7 @@ namespace RR
                 return resource_->GetD3DObject();
             }
 
-            std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Alloc(
+            std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Allocate(
                 const GpuResourceDescription& resourceDesc,
                 MemoryAllocationType memoryType,
                 uint32_t firstSubresourceIndex,
@@ -82,7 +82,6 @@ namespace RR
                     numSubresources = resourceDesc.GetNumSubresources();
 
                 ASSERT(resourceDesc.GetDimension() != GpuResourceDimension::Texture2DMS);
-                ASSERT((resourceDesc.GetSampleCount() == 1) || (resourceDesc.GetDimension() != GpuResourceDimension::Buffer));
                 ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources());
                 D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc);
 

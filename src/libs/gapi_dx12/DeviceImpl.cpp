@@ -12,8 +12,8 @@
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/CpuResourceDataAllocator.hpp"
-#include "gapi_dx12/DescriptorAllocator.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
+#include "gapi_dx12/DescriptorManager.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
@@ -67,7 +67,7 @@ namespace RR
                 gpuWaitFence_ = nullptr;
 
                 ResourceReleaseContext::Instance().Terminate();
-                DescriptorAllocator::Instance().Terminate();
+                DescriptorManager::Instance().Terminate();
 
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
@@ -119,7 +119,7 @@ namespace RR
                 graphicsCommandQueue->Init("Primary");
 
                 ResourceReleaseContext::Instance().Init();
-                DescriptorAllocator::Instance().Init();
+                DescriptorManager::Instance().Init();
 
                 DeviceContext::Init(
                     allocator,
@@ -146,7 +146,13 @@ namespace RR
                 uint32_t numSubresources) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return CpuResourceDataAllocator::Alloc(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
+                return CpuResourceDataAllocator::Allocate(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
+            }
+
+            void DeviceImpl::InitFramebuffer(Framebuffer& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceCreator::InitFramebuffer(resource);
             }
 
             void DeviceImpl::InitSwapChain(SwapChain& resource) const

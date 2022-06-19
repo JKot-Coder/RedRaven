@@ -32,11 +32,12 @@ namespace RR
 
             namespace ResourceCreator
             {
-                void InitSwapChain(SwapChain& resource);
-                void InitFence(Fence& resource);
-                void InitCommandQueue(CommandQueue& resource);
                 void InitCommandList(CommandList& resource);
+                void InitCommandQueue(CommandQueue& resource);
+                void InitFence(Fence& resource);
                 void InitGpuResourceView(GpuResourceView& view);
+                void InitFramebuffer(Framebuffer& resource);
+                void InitSwapChain(SwapChain& resource);
             }
         }
     }

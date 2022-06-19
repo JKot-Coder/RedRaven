@@ -45,7 +45,7 @@ namespace RR
             class CpuResourceDataAllocator
             {
             public:
-                static std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Alloc(
+                static std::shared_ptr<CpuResourceData> const CpuResourceDataAllocator::Allocate(
                     const GpuResourceDescription& resourceDesc,
                     MemoryAllocationType memoryType,
                     uint32_t firstSubresourceIndex,

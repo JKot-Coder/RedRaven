@@ -210,10 +210,10 @@ namespace RR
                 return false;
             }
 
-            if (((sampleCount_ > 1) && (dimension_ != GpuResourceDimension::Texture2DMS)) ||
-                ((sampleCount_ == 1) && (dimension_ == GpuResourceDimension::Texture2DMS)))
+            if (((multisampleType_ != MultisampleType::None) && (dimension_ != GpuResourceDimension::Texture2DMS)) ||
+                ((multisampleType_ == MultisampleType::None) && (dimension_ == GpuResourceDimension::Texture2DMS)))
             {
-                LOG_WARNING("Wrong number of samples");
+                LOG_WARNING("Wrong multisample type");
                 return false;
             }
 

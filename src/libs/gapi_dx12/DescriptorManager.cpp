@@ -1,4 +1,4 @@
-#include "DescriptorAllocator.hpp"
+#include "DescriptorManager.hpp"
 
 #include "gapi/GpuResource.hpp"
 
@@ -21,20 +21,15 @@ namespace RR
                 {
                     switch (dimension)
                     {
-                        case GpuResourceDimension::Texture1D:
-                            return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE1DARRAY : D3D12_RTV_DIMENSION_TEXTURE1D;
-                        case GpuResourceDimension::Texture2D:
-                            return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DARRAY : D3D12_RTV_DIMENSION_TEXTURE2D;
-                        case GpuResourceDimension::Texture3D:
-                            ASSERT(isTextureArray == false);
-                            return D3D12_RTV_DIMENSION_TEXTURE3D;
-                        case GpuResourceDimension::Texture2DMS:
-                            return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DMS;
-                        case GpuResourceDimension::TextureCube:
-                            return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+                        case GpuResourceDimension::Buffer: return D3D12_RTV_DIMENSION_BUFFER;
+                        case GpuResourceDimension::Texture1D: return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE1DARRAY : D3D12_RTV_DIMENSION_TEXTURE1D;
+                        case GpuResourceDimension::Texture2D: return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DARRAY : D3D12_RTV_DIMENSION_TEXTURE2D;
+                        case GpuResourceDimension::Texture3D: ASSERT(isTextureArray == false); return D3D12_RTV_DIMENSION_TEXTURE3D;
+                        case GpuResourceDimension::Texture2DMS: return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DMS;
+                        case GpuResourceDimension::TextureCube: return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
                     }
 
-                    LOG_FATAL("Wrong resource dimension");
+                    ASSERT_MSG(false, "Wrong resource dimension");
                     return D3D12_RTV_DIMENSION_UNKNOWN;
                 }
 
@@ -43,17 +38,13 @@ namespace RR
                 {
                     switch (dimension)
                     {
-                        case GpuResourceDimension::Texture1D:
-                            return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE1DARRAY : D3D12_DSV_DIMENSION_TEXTURE1D;
-                        case GpuResourceDimension::Texture2D:
-                            return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DARRAY : D3D12_DSV_DIMENSION_TEXTURE2D;
-                        case GpuResourceDimension::Texture2DMS:
-                            return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DMS;
-                        case GpuResourceDimension::TextureCube:
-                            return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+                        case GpuResourceDimension::Texture1D: return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE1DARRAY : D3D12_DSV_DIMENSION_TEXTURE1D;
+                        case GpuResourceDimension::Texture2D: return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DARRAY : D3D12_DSV_DIMENSION_TEXTURE2D;
+                        case GpuResourceDimension::Texture2DMS: return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DMS;
+                        case GpuResourceDimension::TextureCube: return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
                     }
 
-                    LOG_FATAL("Wrong resource dimension");
+                    ASSERT_MSG(false, "Wrong resource dimension");
                     return D3D12_DSV_DIMENSION_UNKNOWN;
                 }
 
@@ -62,17 +53,13 @@ namespace RR
                 {
                     switch (dimension)
                     {
-                        case GpuResourceDimension::Buffer:
-                            return D3D12_UAV_DIMENSION_BUFFER;
-                        case GpuResourceDimension::Texture1D:
-                            return (isTextureArray) ? D3D12_UAV_DIMENSION_TEXTURE1DARRAY : D3D12_UAV_DIMENSION_TEXTURE1D;
-                        case GpuResourceDimension::Texture2D:
-                            return (isTextureArray) ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D;
-                        case GpuResourceDimension::TextureCube:
-                            return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+                        case GpuResourceDimension::Buffer: return D3D12_UAV_DIMENSION_BUFFER;
+                        case GpuResourceDimension::Texture1D: return (isTextureArray) ? D3D12_UAV_DIMENSION_TEXTURE1DARRAY : D3D12_UAV_DIMENSION_TEXTURE1D;
+                        case GpuResourceDimension::Texture2D: return (isTextureArray) ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D;
+                        case GpuResourceDimension::TextureCube: return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
                     }
 
-                    LOG_FATAL("Wrong resource dimension");
+                    ASSERT_MSG(false, "Wrong resource dimension");
                     return D3D12_UAV_DIMENSION_UNKNOWN;
                 }
 
@@ -158,14 +145,14 @@ namespace RR
                 }
 
                 template <typename DescType>
-                DescType createDsvRtvDesc(const GpuResourceDescription& GpuResourceDescription, const GpuResourceViewDescription& description)
+                DescType createDsvRtvDesc(const GpuResourceDescription& gpuResourceDescription, const GpuResourceViewDescription& description)
                 {
                     static_assert(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value);
 
-                    DescType result = createDsvRtvUavDescCommon<DescType>(GpuResourceDescription, description);
+                    DescType result = createDsvRtvUavDescCommon<DescType>(gpuResourceDescription, description);
 
-                    if ((GpuResourceDescription.GetDimension() == GpuResourceDimension::Texture2DMS) &&
-                        (GpuResourceDescription.GetArraySize() > 1))
+                    if ((gpuResourceDescription.GetDimension() == GpuResourceDimension::Texture2DMS) &&
+                        (gpuResourceDescription.GetArraySize() > 1))
                     {
                         result.Texture2DMSArray.ArraySize = description.texture.firstArraySlice;
                         result.Texture2DMSArray.FirstArraySlice = description.texture.arraySliceCount;
@@ -198,7 +185,7 @@ namespace RR
                 }
             }
 
-            void DescriptorAllocator::Init()
+            void DescriptorManager::Init()
             {
                 ASSERT(!isInited_)
 
@@ -224,10 +211,22 @@ namespace RR
                     rtvDescriptorHeap_ = createDescpriptiorHeap(desription);
                 }
 
+                const auto& device = DeviceContext::GetDevice();
+                for (size_t index = 0; index < size_t(GpuResourceDimension::Count); index++)
+                {
+                    D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+                    rtvDesc.ViewDimension = getViewDimension<D3D12_RTV_DIMENSION>(GpuResourceDimension(index), false);
+                    rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+                    auto& descriptor = nullRtvDescriptors_[index];
+                    rtvDescriptorHeap_->Allocate(descriptor);
+                    device->CreateRenderTargetView(nullptr, &rtvDesc, descriptor.GetCPUHandle());
+                }
+
                 isInited_ = true;
             }
 
-            void DescriptorAllocator::Terminate()
+            void DescriptorManager::Terminate()
             {
                 ASSERT(isInited_);
 
@@ -237,7 +236,7 @@ namespace RR
                 isInited_ = false;
             }
 
-            void DescriptorAllocator::Allocate(GpuResourceView& resourceView)
+            void DescriptorManager::Allocate(GpuResourceView& resourceView)
             {
                 ASSERT(isInited_);
 
@@ -250,29 +249,29 @@ namespace RR
                 const auto& resourceD3dObject = resourcePrivateImpl->GetD3DObject();
                 ASSERT(resourceD3dObject);
 
-                auto allocation = std::make_unique<DescriptorHeap::Allocation>();
-
-                cbvUavSrvDescriptorHeap_->Allocate(*allocation);
+                auto descriptor = std::make_unique<DescriptorHeap::Descriptor>();
 
                 switch (resourceView.GetViewType())
                 {
                     case GpuResourceView::ViewType::RenderTargetView:
                     {
+                        rtvDescriptorHeap_->Allocate(*descriptor);
                         const auto& desc = createRtvDesc(resourceSharedPtr, resourceView.GetDescription());
-                        DeviceContext::GetDevice()->CreateRenderTargetView(resourceD3dObject.get(), &desc, allocation->GetCPUHandle());
+                        DeviceContext::GetDevice()->CreateRenderTargetView(resourceD3dObject.get(), &desc, descriptor->GetCPUHandle());
                     }
                     break;
                     case GpuResourceView::ViewType::UnorderedAccessView:
                     {
+                        cbvUavSrvDescriptorHeap_->Allocate(*descriptor);
                         const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDescription());
-                        DeviceContext::GetDevice()->CreateUnorderedAccessView(resourceD3dObject.get(), nullptr, &desc, allocation->GetCPUHandle());
+                        DeviceContext::GetDevice()->CreateUnorderedAccessView(resourceD3dObject.get(), nullptr, &desc, descriptor->GetCPUHandle());
                     }
                     break;
                     default:
                         LOG_FATAL("Unsupported resource view type");
                 }
 
-                resourceView.SetPrivateImpl(allocation.release());
+                resourceView.SetPrivateImpl(descriptor.release());
             }
         }
     }

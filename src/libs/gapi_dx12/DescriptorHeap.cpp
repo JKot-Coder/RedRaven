@@ -27,12 +27,12 @@ namespace RR
                 descriptorSize_ = device->GetDescriptorHandleIncrementSize(desc.type);
                 uint32_t chunkCount = (numDescriptors_ + Chunk::SIZE - 1) / Chunk::SIZE;
 
-                D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
-                rtvDescriptorHeapDesc.NumDescriptors = chunkCount * Chunk::SIZE;
-                rtvDescriptorHeapDesc.Type = desc.type;
-                rtvDescriptorHeapDesc.Flags = desc.flags;
+                D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+                descriptorHeapDesc.NumDescriptors = chunkCount * Chunk::SIZE;
+                descriptorHeapDesc.Type = desc.type;
+                descriptorHeapDesc.Flags = desc.flags;
 
-                D3DCall(device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(d3d12Heap_.put())));
+                D3DCall(device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(d3d12Heap_.put())));
 
                 D3DUtils::SetAPIName(d3d12Heap_.get(), name_);
 
