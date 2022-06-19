@@ -11,6 +11,7 @@
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/Framebuffer.hpp"
 #include "gapi/Texture.hpp"
 #include "render/DeviceContext.hpp"
 
@@ -21,9 +22,33 @@ namespace RR
 {
     namespace
     {
-        struct FrameContext
+        //------------------------------------------------------------------------------------------------
+        struct CD3DX12_CLEAR_VALUE : public D3D12_CLEAR_VALUE
         {
-            ID3D12CommandAllocator* CommandAllocator;
+            CD3DX12_CLEAR_VALUE() = default;
+            explicit CD3DX12_CLEAR_VALUE(const D3D12_CLEAR_VALUE& o) noexcept : D3D12_CLEAR_VALUE(o)
+            {
+            }
+            CD3DX12_CLEAR_VALUE(
+                DXGI_FORMAT format,
+                const FLOAT color[4])
+            noexcept
+            {
+                Format = format;
+                memcpy(Color, color, sizeof(Color));
+            }
+            CD3DX12_CLEAR_VALUE(
+                DXGI_FORMAT format,
+                FLOAT depth,
+                UINT8 stencil)
+            noexcept
+            {
+                Format = format;
+                memset(&Color, 0, sizeof(Color));
+                /* Use memcpy to preserve NAN values */
+                memcpy(&DepthStencil.Depth, &depth, sizeof(depth));
+                DepthStencil.Stencil = stencil;
+            }
         };
 
         // Forward declarations of helper functions
@@ -32,26 +57,21 @@ namespace RR
         void CreateRenderTarget();
         void CleanupRenderTarget();
         void WaitForLastSubmittedFrame();
-        FrameContext* WaitForNextFrameResources();
 
         // Data
         static int const NUM_FRAMES_IN_FLIGHT = 3;
-        static FrameContext g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
         static UINT g_frameIndex = 0;
         static bool g_done = false;
         static uint32_t swindex = 0;
         static int const NUM_BACK_BUFFERS = 3;
-        static ID3D12Device* g_pd3dDevice = NULL;
-        static ID3D12DescriptorHeap* g_pd3dRtvDescHeap = NULL;
-        static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
-        static ID3D12CommandQueue* g_pd3dCommandQueue = NULL;
-        static GAPI::CommandQueue::SharedPtr g_CommandQueue = NULL;
-        static GAPI::GraphicsCommandList::SharedPtr g_CommandList = NULL;
-        static ID3D12GraphicsCommandList* g_pd3dCommandList = NULL;
+        static ID3D12Device* g_pd3dDevice = nullptr;
+        static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
+        static GAPI::CommandQueue::SharedPtr g_CommandQueue = nullptr;
+        static GAPI::GraphicsCommandList::SharedPtr g_CommandList = nullptr;
+        static ID3D12GraphicsCommandList4* g_pd3dCommandList = nullptr;
         static GAPI::SwapChain::SharedPtr g_pSwapChain;
-        static HANDLE g_hSwapChainWaitableObject = NULL;
+        static std::array<GAPI::Framebuffer::SharedPtr, NUM_BACK_BUFFERS> g_frameBuffers;
         static ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
-        static D3D12_CPU_DESCRIPTOR_HANDLE g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 
         // Helper functions
         bool CreateDeviceD3D(const Platform::Window::SharedPtr& window)
@@ -63,24 +83,6 @@ namespace RR
 
             {
                 D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-                desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-                desc.NumDescriptors = NUM_BACK_BUFFERS;
-                desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-                desc.NodeMask = 1;
-                if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dRtvDescHeap)) != S_OK)
-                    return false;
-
-                SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-                D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
-                for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
-                {
-                    g_mainRenderTargetDescriptor[i] = rtvHandle;
-                    rtvHandle.ptr += rtvDescriptorSize;
-                }
-            }
-
-            {
-                D3D12_DESCRIPTOR_HEAP_DESC desc = {};
                 desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
                 desc.NumDescriptors = 1;
                 desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -88,14 +90,9 @@ namespace RR
                     return false;
             }
             g_CommandQueue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, "Primary");
-            g_pd3dCommandQueue = std::any_cast<ID3D12CommandQueue*>(g_CommandQueue->GetNativeHandle());
-
-            for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
-                if (g_pd3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_frameContext[i].CommandAllocator)) != S_OK)
-                    return false;
 
             g_CommandList = deviceContext.CreateGraphicsCommandList("Primary");
-            g_pd3dCommandList = std::any_cast<ID3D12GraphicsCommandList*>(g_CommandList->GetNativeHandle());
+            g_pd3dCommandList = std::any_cast<ID3D12GraphicsCommandList4*>(g_CommandList->GetNativeHandle());
             //  g_pd3dCommandList->Close();
 
             GAPI::SwapChainDescription desciption = {};
@@ -107,7 +104,6 @@ namespace RR
             desciption.window = window;
 
             g_pSwapChain = deviceContext.CreateSwapchain(desciption, "Primary");
-            g_hSwapChainWaitableObject = std::any_cast<HANDLE>(g_pSwapChain->GetWaitableObject());
 
             CreateRenderTarget();
             return true;
@@ -116,42 +112,29 @@ namespace RR
         void CleanupDeviceD3D()
         {
             CleanupRenderTarget();
+            g_CommandList = nullptr;
+            g_pd3dCommandList = nullptr;
+            g_pSwapChain = nullptr;
+            g_CommandQueue = nullptr;
 
-            if (g_hSwapChainWaitableObject != NULL)
-            {
-                CloseHandle(g_hSwapChainWaitableObject);
-            }
-            for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
-                if (g_frameContext[i].CommandAllocator)
-                {
-                    g_frameContext[i].CommandAllocator->Release();
-                    g_frameContext[i].CommandAllocator = NULL;
-                }
-
-            g_pd3dCommandQueue = NULL;
-            g_pd3dCommandList = NULL;
-            g_pSwapChain = NULL;
-
-            if (g_pd3dRtvDescHeap)
-            {
-                g_pd3dRtvDescHeap->Release();
-                g_pd3dRtvDescHeap = NULL;
-            }
             if (g_pd3dSrvDescHeap)
             {
                 g_pd3dSrvDescHeap->Release();
-                g_pd3dSrvDescHeap = NULL;
+                g_pd3dSrvDescHeap = nullptr;
             }
         }
 
         void CreateRenderTarget()
         {
+            auto& deviceContext = Render::DeviceContext::Instance();
             for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
             {
-                ID3D12Resource* pBackBuffer = NULL;
+                ID3D12Resource* pBackBuffer = nullptr;
                 pBackBuffer = std::any_cast<ID3D12Resource*>(g_pSwapChain->GetBackBufferTexture(i)->GetRawHandle());
-                g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, g_mainRenderTargetDescriptor[i]);
                 g_mainRenderTargetResource[i] = pBackBuffer;
+
+                GAPI::FramebufferDescription desc = GAPI::FramebufferDescription::Make().BindColorTarget(0, g_pSwapChain->GetBackBufferTexture(i)->GetRTV());
+                g_frameBuffers[i] = deviceContext.CreateFramebuffer(desc);
             }
         }
 
@@ -163,28 +146,14 @@ namespace RR
                 if (g_mainRenderTargetResource[i])
                 {
                     g_mainRenderTargetResource[i]->Release();
-                    g_mainRenderTargetResource[i] = NULL;
+                    g_mainRenderTargetResource[i] = nullptr;
+                    g_frameBuffers[i] = nullptr;
                 }
         }
 
         void WaitForLastSubmittedFrame()
         {
             Render::DeviceContext::Instance().WaitForGpu(g_CommandQueue);
-        }
-
-        FrameContext* WaitForNextFrameResources()
-        {
-            UINT nextFrameIndex = g_frameIndex + 1;
-            g_frameIndex = nextFrameIndex;
-
-            HANDLE waitableObjects[] = { g_hSwapChainWaitableObject, NULL };
-            DWORD numWaitableObjects = 1;
-
-            FrameContext* frameCtx = &g_frameContext[nextFrameIndex % NUM_FRAMES_IN_FLIGHT];
-
-            WaitForMultipleObjects(numWaitableObjects, waitableObjects, TRUE, INFINITE);
-
-            return frameCtx;
         }
     }
 
@@ -275,7 +244,7 @@ namespace RR
         // Load Fonts
         // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
         // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-        // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+        // - If the file cannot be loaded, the function will return nullptr. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
         // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
         // - Read 'docs/FONTS.md' for more instructions and details.
         // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
@@ -284,8 +253,8 @@ namespace RR
         //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
         //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
         //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-        //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-        //IM_ASSERT(font != NULL);
+        //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+        //IM_ASSERT(font != nullptr);
 
         // Our state
         bool show_demo_window = true;
@@ -351,9 +320,7 @@ namespace RR
                     ImGui::Render();
                 });
 
-            FrameContext* frameCtx = WaitForNextFrameResources();
             UINT backBufferIdx = swindex; //           g_pSwapChain->GetCurrentBackBufferIndex();
-            frameCtx->CommandAllocator->Reset();
 
             deviceContext.ExecuteAsync(
                 [backBufferIdx, clear_color](GAPI::Device& device)
@@ -367,17 +334,20 @@ namespace RR
                     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
                     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
                     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-                    //   g_pd3dCommandList->Reset(frameCtx->CommandAllocator, NULL);
-                    g_pd3dCommandList->ResourceBarrier(1, &barrier);
 
                     // Render Dear ImGui graphics
-                    const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-                    g_pd3dCommandList->ClearRenderTargetView(g_mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0, NULL);
-                    g_pd3dCommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, NULL);
+
+                    g_CommandList->ClearRenderTargetView(g_frameBuffers[backBufferIdx]->GetDescription().renderTargetViews[0], Vector4(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w));
+
+                    g_pd3dCommandList->ResourceBarrier(1, &barrier);
+                    g_CommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
                     g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+
                     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_pd3dCommandList);
+
                     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
                     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+
                     g_pd3dCommandList->ResourceBarrier(1, &barrier);
                     g_CommandList->Close();
                 });
@@ -385,13 +355,12 @@ namespace RR
             swindex = (++swindex % NUM_BACK_BUFFERS);
 
             deviceContext.Submit(g_CommandQueue, g_CommandList);
-            //    g_pd3dCommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&g_pd3dCommandList);
 
             // Update and Render additional Platform Windows
             if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
             {
                 // ImGui::UpdatePlatformWindows();
-                //   ImGui::RenderPlatformWindowsDefault(NULL, (void*)g_pd3dCommandList);
+                //   ImGui::RenderPlatformWindowsDefault(nullptr, (void*)g_pd3dCommandList);
             }
 
             deviceContext.Present(g_pSwapChain);
@@ -412,6 +381,8 @@ namespace RR
         CleanupDeviceD3D();
 
         Render::DeviceContext::Instance().Terminate();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         window = nullptr;
 
