@@ -24,9 +24,7 @@ set( DEBUG_SRC
 source_group( "Debug" FILES ${DEBUG_SRC} )
 
 set( COMMON_SRC
-    pch.hpp
     Check.cpp
-    CircularBuffer.hpp
     Config.hpp
     EnumClassOperators.hpp
     Event.cpp
@@ -40,6 +38,9 @@ set( COMMON_SRC
     Math.hpp  
     NonCopyableMovable.hpp
     OnScopeExit.hpp
+    pch.hpp
+    RingBuffer.hpp
+    RingQueue.hpp
     Singleton.hpp
     Stream.hpp
     String.hpp
@@ -50,9 +51,9 @@ set( COMMON_SRC
 source_group( "" FILES ${COMMON_SRC} )
 
 set( COMMON_SRC
-        ${COMMON_SRC}
-        ${THREADING_SRC}
-        ${DEBUG_SRC}
+    ${COMMON_SRC}
+    ${THREADING_SRC}
+    ${DEBUG_SRC}
 )
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})

@@ -4,7 +4,10 @@ set(SRC
     DeviceContext.cpp
     DeviceContext.hpp
     Submission.hpp
-    Submission.cpp)
+    Submission.cpp
+    GpuResourceUploader.cpp
+    GpuResourceUploader.hpp)
+
 source_group( "" FILES ${SRC} )
         
 add_library(${PROJECT_NAME} ${SRC})

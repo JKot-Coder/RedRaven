@@ -55,6 +55,7 @@ namespace RR
                 const U8String& name)
             {
                 type_ = type;
+                name_ = name;
                 fence_ = std::make_unique<FenceImpl>();
                 fence_->Init(name);
 
@@ -89,15 +90,9 @@ namespace RR
             {
                 switch (commandListType)
                 {
-                    case CommandListType::Graphics:
-                        type_ = D3D12_COMMAND_LIST_TYPE_DIRECT;
-                        break;
-                    case CommandListType::Compute:
-                        type_ = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-                        break;
-                    case CommandListType::Copy:
-                        type_ = D3D12_COMMAND_LIST_TYPE_COPY;
-                        break;
+                    case CommandListType::Graphics: type_ = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+                    case CommandListType::Compute: type_ = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
+                    case CommandListType::Copy: type_ = D3D12_COMMAND_LIST_TYPE_COPY; break;
                     default:
                         ASSERT_MSG(false, "Unsuported command list type");
                 }

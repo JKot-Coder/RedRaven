@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/CircularBuffer.hpp"
+#include "common/RingQueue.hpp"
 #include "common/threading/ConditionVariable.hpp"
 #include "common/threading/Mutex.hpp"
 
@@ -88,7 +88,7 @@ namespace RR
                 Threading::ConditionVariable inputWait_;
                 Threading::ConditionVariable outputWait_;
                 Threading::Mutex mutex_;
-                CircularBuffer<T, BufferSize> buffer_;
+                RingQueue<T, BufferSize> buffer_;
             };
         }
     }

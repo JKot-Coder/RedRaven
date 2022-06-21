@@ -14,6 +14,7 @@
 #include "gapi/Framebuffer.hpp"
 #include "gapi/Texture.hpp"
 #include "render/DeviceContext.hpp"
+#include "render/GpuResourceUploader.hpp"
 
 #include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
@@ -171,8 +172,8 @@ namespace RR
         desc.width = size.x;
         desc.height = size.y;
 
-        auto& renderContext = Render::DeviceContext::Instance();
-        renderContext.ResetSwapChain(g_pSwapChain, desc);
+        auto& deviceContext = Render::DeviceContext::Instance();
+        deviceContext.ResetSwapChain(g_pSwapChain, desc);
 
         swindex = 0;
 
@@ -205,6 +206,8 @@ namespace RR
             return 1;
         }
 
+        Render::GpuResourceTransfer::Instance().Init();
+
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -236,7 +239,9 @@ namespace RR
         ImguiPlatfomImpl imguiPlatformInput;
         // Setup Platform/Renderer backends
         imguiPlatformInput.Init(window, true);
-        ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
+
+        auto& deviceContext = Render::DeviceContext::Instance();
+        ImGui_ImplDX12_Init(deviceContext, NUM_FRAMES_IN_FLIGHT,
                             DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
                             g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
                             g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
@@ -262,9 +267,8 @@ namespace RR
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         // Main loop
-        auto& deviceContext = Render::DeviceContext::Instance();
         const auto& toolkit = Platform::Toolkit::Instance();
-        float dt = 0;
+        float dt = 1.0f / 60.0f;
         float last_time = (float)toolkit.GetTime();
         while (!g_done)
         {
@@ -364,7 +368,9 @@ namespace RR
             }
 
             deviceContext.Present(g_pSwapChain);
+            Render::GpuResourceTransfer::Instance().PerformTransfers(g_CommandQueue);
             deviceContext.MoveToNextFrame(g_CommandQueue);
+            //   deviceContext.WaitForGpu(g_CommandQueue);
 
             float current_time = (float)toolkit.GetTime();
             dt = (current_time - last_time);
@@ -380,6 +386,7 @@ namespace RR
 
         CleanupDeviceD3D();
 
+        Render::GpuResourceTransfer::Instance().Terminate();
         Render::DeviceContext::Instance().Terminate();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
