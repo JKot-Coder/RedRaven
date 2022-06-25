@@ -45,17 +45,10 @@ namespace RR
 
                 switch (type_)
                 {
-                case CommandQueueType::Graphics:
-                    desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-                    break;
-                case CommandQueueType::Compute:
-                    desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-                    break;
-                case CommandQueueType::Copy:
-                    desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
-                    break;
-                default:
-                    LOG_FATAL( "Unsuported command queue type");
+                    case CommandQueueType::Graphics: desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+                    case CommandQueueType::Compute: desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
+                    case CommandQueueType::Copy: desc.Type = D3D12_COMMAND_LIST_TYPE_COPY; break;
+                    default: LOG_FATAL("Unsuported command queue type");
                 }
 
                 D3DCall(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())));
@@ -93,7 +86,7 @@ namespace RR
             {
                 ASSERT(D3DCommandQueue_);
                 ASSERT(fence);
-                
+
                 D3DCall(D3DCommandQueue_->Wait(fence.get(), value));
             }
 
