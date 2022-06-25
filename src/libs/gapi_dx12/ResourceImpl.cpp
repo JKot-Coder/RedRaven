@@ -43,12 +43,9 @@ namespace RR
                 {
                     switch (cpuAccess)
                     {
-                        case GpuResourceCpuAccess::None:
-                            return &DefaultHeapProps;
-                        case GpuResourceCpuAccess::Write:
-                            return &UploadHeapProps;
-                        case GpuResourceCpuAccess::Read:
-                            return &ReadbackHeapProps;
+                        case GpuResourceCpuAccess::None: return &DefaultHeapProps;
+                        case GpuResourceCpuAccess::Write: return &UploadHeapProps;
+                        case GpuResourceCpuAccess::Read: return &ReadbackHeapProps;
                         default:
                             LOG_FATAL("Unsupported cpuAcess");
                     }

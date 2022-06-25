@@ -95,17 +95,10 @@ namespace RR
                 IMemoryAllocation* memoryAllocation;
                 switch (memoryType)
                 {
-                    case MemoryAllocationType::Upload:
-                        memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_UPLOAD, intermediateSize);
-                        break;
-                    case MemoryAllocationType::Readback:
-                        memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_READBACK, intermediateSize);
-                        break;
-                    case MemoryAllocationType::CpuReadWrite:
-                        memoryAllocation = new CpuAllocation(intermediateSize);
-                        break;
-                    default:
-                        LOG_FATAL("Unsupported memory type");
+                    case MemoryAllocationType::Upload: memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_UPLOAD, intermediateSize); break;
+                    case MemoryAllocationType::Readback: memoryAllocation = new HeapAllocation(D3D12_HEAP_TYPE_READBACK, intermediateSize); break;
+                    case MemoryAllocationType::CpuReadWrite: memoryAllocation = new CpuAllocation(intermediateSize); break;
+                    default: LOG_FATAL("Unsupported memory type");
                 }
 
                 ASSERT(memoryAllocation);

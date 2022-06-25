@@ -16,9 +16,9 @@
 
 #undef NOMINMAX
 #pragma warning(push)
-#pragma warning(disable:4267)
-#pragma warning(disable:4996)
-#pragma warning(disable:26495)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4996)
+#pragma warning(disable : 26495)
 #include "dependencies/backward-cpp/backward.hpp"
 #pragma warning(pop)
 #define NOMINMAX
@@ -92,10 +92,37 @@ namespace RR
 #if ENABLE_SUBMISSION_THREAD
             ASSERT(!submissionThread_.IsJoinable());
 
-            submissionThread_ = Threading::Thread("Submission Thread", [this] {
-                this->threadFunc();
-            });
+            submissionThread_ = Threading::Thread("Submission Thread", [this]
+                                                  { this->threadFunc(); });
 #endif
+        }
+
+        bool Submission::isSubmissionThread()
+        {
+#if ENABLE_SUBMISSION_THREAD
+            return std::this_thread::get_id() == submissionThread_.GetId();
+#else
+            return true;
+#endif
+        }
+
+        template <>
+        inline void Submission::doTask(const Task::Submit& task)
+        {
+            task.commandQueue->Submit(task.commandList);
+        }
+
+        template <>
+        inline void Submission::doTask(const Task::Callback& task)
+        {
+            task.function(*device_);
+        }
+
+        template <>
+        inline void Submission::doTask(const Task::Terminate& task)
+        {
+            device_.reset();
+            Log::Print::Info("Device terminated.\n");
         }
 
         template <typename T>
@@ -129,7 +156,12 @@ namespace RR
             task.commandQueue = commandQueue;
             task.commandList = commandList;
 
-            putTask(task);
+            if (!isSubmissionThread())
+            {
+                putTask(task);
+            }
+            else
+                doTask(task);
         }
 
         void Submission::ExecuteAsync(const CallbackFunction&& function)
@@ -149,25 +181,25 @@ namespace RR
             Threading::UniqueLock<Threading::Mutex> lock(mutex);
             Threading::ConditionVariable condition;
 
-            task.function = [&condition, &function, &mutex](GAPI::Device& device) {
-                Threading::UniqueLock<Threading::Mutex> lock(mutex);
-                function(device);
-                condition.notify_one();
-            };
+            if (!isSubmissionThread())
+            {
+                task.function = [&condition, &function, &mutex](GAPI::Device& device)
+                {
+                    Threading::UniqueLock<Threading::Mutex> lock(mutex);
+                    function(device);
+                    condition.notify_one();
+                };
 
-            putTask(task);
+                putTask(task);
 
-            condition.wait(lock);
-#else
-            GAPI::void result = GAPI::void ::Fail;
-
-            task.function = [&function, &result](GAPI::Device& device) {
-                result = function(device);
-                return result;
-            };
-
-            putTask(task);
+                condition.wait(lock);
+            }
+            else
 #endif
+            {
+                task.function = function;
+                doTask(task);
+            }
         }
 
         void Submission::Terminate()
@@ -184,25 +216,6 @@ namespace RR
 
             //Reset channel to allow reuse submission after terminate
             inputTaskChannel_ = std::make_unique<BufferedChannel>();
-        }
-
-        template <>
-        inline void Submission::doTask(const Task::Submit& task)
-        {
-            task.commandQueue->Submit(task.commandList);
-        }
-
-        template <>
-        inline void Submission::doTask(const Task::Callback& task)
-        {
-            task.function(*device_);
-        }
-
-        template <>
-        inline void Submission::doTask(const Task::Terminate& task)
-        {
-            device_.reset();
-            Log::Print::Info("Device terminated.\n");
         }
 
         // helper type for the visitor
@@ -231,9 +244,12 @@ namespace RR
 
                 std::visit(
                     overloaded {
-                        [this](const Task::Submit& task) { return doTask(task); },
-                        [this](const Task::Callback& task) { return doTask(task); },
-                        [this](const Task::Terminate& task) { return doTask(task); },
+                        [this](const Task::Submit& task)
+                        { return doTask(task); },
+                        [this](const Task::Callback& task)
+                        { return doTask(task); },
+                        [this](const Task::Terminate& task)
+                        { return doTask(task); },
                     },
                     inputTask.taskVariant);
 

@@ -330,6 +330,7 @@ namespace RR
                 [backBufferIdx, clear_color](GAPI::Device& device)
                 {
                     std::ignore = device;
+                    Render::GpuResourceTransfer::Instance().PerformTransfers(g_CommandQueue);
 
                     D3D12_RESOURCE_BARRIER barrier = {};
                     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -368,7 +369,7 @@ namespace RR
             }
 
             deviceContext.Present(g_pSwapChain);
-            Render::GpuResourceTransfer::Instance().PerformTransfers(g_CommandQueue);
+
             deviceContext.MoveToNextFrame(g_CommandQueue);
             //   deviceContext.WaitForGpu(g_CommandQueue);
 

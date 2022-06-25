@@ -51,6 +51,7 @@
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 #endif
 
+#include "gapi/Buffer.hpp"
 #include "gapi/Device.hpp"
 #include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
@@ -87,6 +88,8 @@ struct ImGui_ImplDX12_RenderBuffers
 {
     ID3D12Resource* IndexBuffer;
     ID3D12Resource* VertexBuffer;
+    std::shared_ptr<RR::GAPI::Buffer> VertexBufferO;
+    std::shared_ptr<RR::GAPI::Buffer> IndexBufferO;
     int IndexBufferSize;
     int VertexBufferSize;
 };
@@ -255,49 +258,23 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
     // Create and grow vertex/index buffers if needed
     if (fr->VertexBuffer == NULL || fr->VertexBufferSize < draw_data->TotalVtxCount)
     {
-        SafeRelease(fr->VertexBuffer);
         fr->VertexBufferSize = draw_data->TotalVtxCount + 5000;
-        D3D12_HEAP_PROPERTIES props;
-        memset(&props, 0, sizeof(D3D12_HEAP_PROPERTIES));
-        props.Type = D3D12_HEAP_TYPE_UPLOAD;
-        props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        D3D12_RESOURCE_DESC desc;
-        memset(&desc, 0, sizeof(D3D12_RESOURCE_DESC));
-        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        desc.Width = fr->VertexBufferSize * sizeof(ImDrawVert);
-        desc.Height = 1;
-        desc.DepthOrArraySize = 1;
-        desc.MipLevels = 1;
-        desc.Format = DXGI_FORMAT_UNKNOWN;
-        desc.SampleDesc.Count = 1;
-        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        if (bd->pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&fr->VertexBuffer)) < 0)
-            return;
+
+        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->VertexBufferSize, sizeof(ImDrawVert));
+        //const auto cpuData = bd->deviceContext->AllocateIntermediateResourceData(desc, RR::GAPI::MemoryAllocationType::CpuReadWrite);
+
+        fr->VertexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceCpuAccess::Write);
+        fr->VertexBuffer = std::any_cast<ID3D12Resource*>(fr->VertexBufferO->GetRawHandle());
     }
+
     if (fr->IndexBuffer == NULL || fr->IndexBufferSize < draw_data->TotalIdxCount)
     {
-        SafeRelease(fr->IndexBuffer);
         fr->IndexBufferSize = draw_data->TotalIdxCount + 10000;
-        D3D12_HEAP_PROPERTIES props;
-        memset(&props, 0, sizeof(D3D12_HEAP_PROPERTIES));
-        props.Type = D3D12_HEAP_TYPE_UPLOAD;
-        props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        D3D12_RESOURCE_DESC desc;
-        memset(&desc, 0, sizeof(D3D12_RESOURCE_DESC));
-        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        desc.Width = fr->IndexBufferSize * sizeof(ImDrawIdx);
-        desc.Height = 1;
-        desc.DepthOrArraySize = 1;
-        desc.MipLevels = 1;
-        desc.Format = DXGI_FORMAT_UNKNOWN;
-        desc.SampleDesc.Count = 1;
-        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        if (bd->pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&fr->IndexBuffer)) < 0)
-            return;
+
+        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->IndexBufferSize, sizeof(ImDrawIdx));
+
+        fr->IndexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceCpuAccess::Write);
+        fr->IndexBuffer = std::any_cast<ID3D12Resource*>(fr->IndexBufferO->GetRawHandle());
     }
 
     // Upload vertex/index data into a single contiguous GPU buffer

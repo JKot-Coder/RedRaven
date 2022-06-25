@@ -93,8 +93,7 @@ namespace RR
                     case CommandListType::Graphics: type_ = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
                     case CommandListType::Compute: type_ = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
                     case CommandListType::Copy: type_ = D3D12_COMMAND_LIST_TYPE_COPY; break;
-                    default:
-                        ASSERT_MSG(false, "Unsuported command list type");
+                    default: ASSERT_MSG(false, "Unsuported command list type");
                 }
             }
 

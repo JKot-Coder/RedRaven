@@ -50,6 +50,8 @@ namespace RR
             template <typename T>
             inline void doTask(const T& task);
 
+            inline bool isSubmissionThread();
+
 #if ENABLE_SUBMISSION_THREAD
             void threadFunc();
 #endif
