@@ -34,7 +34,7 @@ namespace RR
         enum class GpuResourceDimension : uint32_t;
         enum class GpuResourceBindFlags : uint32_t;
         enum class GpuResourceFormat : uint32_t;
-        enum class GpuResourceCpuAccess : uint32_t;
+        enum class GpuResourceUsage : uint32_t;
         enum class MultisampleType : uint32_t;
 
         class GpuResourceView;

@@ -95,7 +95,7 @@ namespace RR
                 const auto sourceData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Upload);
                 initResourceData(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Source");
+                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceUsage::Default, "Source");
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(0);

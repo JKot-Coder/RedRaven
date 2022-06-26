@@ -36,10 +36,11 @@ set(TESTS_LINK_LIBRARIES
     render
     gapi
     gapi_dx12
-    windowing
+    platform
     Catch2::Catch2WithMain
     ApprovalTests
-    DirectXTex)
+    DirectXTex
+    )
 
 set(TESTS_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/libs

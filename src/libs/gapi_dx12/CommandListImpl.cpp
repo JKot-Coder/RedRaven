@@ -26,9 +26,9 @@ namespace RR
                     ASSERT(dest);
 
                     // Allow copy (gpu->gpu || cpuWrite->gpu)
-                    ASSERT(source->GetCpuAccess() == GpuResourceCpuAccess::Write ||
-                           source->GetCpuAccess() == GpuResourceCpuAccess::None);
-                    ASSERT(dest->GetCpuAccess() == GpuResourceCpuAccess::None);
+                    ASSERT(source->GetUsage() == GpuResourceUsage::Upload ||
+                           source->GetUsage() == GpuResourceUsage::Default);
+                    ASSERT(dest->GetUsage() == GpuResourceUsage::Default);
                 }
             }
 

@@ -124,7 +124,6 @@ namespace RR
 
         TestContextFixture::TestContextFixture() : renderContext(Render::DeviceContext::Instance())
         {
-   
         }
 
         const GAPI::GpuResourceDescription& TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
@@ -133,16 +132,11 @@ namespace RR
 
             switch (dimension)
             {
-                case GAPI::GpuResourceDimension::Texture1D:
-                    return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture2D:
-                    return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture2DMS:
-                    return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, 2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture3D:
-                    return GAPI::GpuResourceDescription::Texture3D(size, size, size, format);
-                case GAPI::GpuResourceDimension::TextureCube:
-                    return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture1D: return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture2D: return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture2DMS: return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, GAPI::MultisampleType::MSAA_2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture3D: return GAPI::GpuResourceDescription::Texture3D(size, size, size, format);
+                case GAPI::GpuResourceDimension::TextureCube: return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
             }
 
             ASSERT_MSG(false, "Unsupported GpuResourceDimension");
@@ -153,19 +147,12 @@ namespace RR
         {
             switch (description.GetFormat())
             {
-                case GAPI::GpuResourceFormat::Unknown:
-                    fillBufferData(description, resourceData);
-                    break;
+                case GAPI::GpuResourceFormat::Unknown: fillBufferData(description, resourceData); break;
                 case GAPI::GpuResourceFormat::RGBA8Uint:
-                case GAPI::GpuResourceFormat::BGRA8Unorm:
-                    fillColorData<uint32_t>(description, resourceData);
-                    break;
+                case GAPI::GpuResourceFormat::BGRA8Unorm: fillColorData<uint32_t>(description, resourceData); break;
                 case GAPI::GpuResourceFormat::RGBA16Float:
-                case GAPI::GpuResourceFormat::RGBA32Float:
-                    fillColorData<Vector4>(description, resourceData);
-                    break;
-                default:
-                    LOG_FATAL("Unsupported format");
+                case GAPI::GpuResourceFormat::RGBA32Float: fillColorData<Vector4>(description, resourceData); break;
+                default: LOG_FATAL("Unsupported format");
             }
         }
 
@@ -175,15 +162,12 @@ namespace RR
             const auto bufferData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
 
             const auto dataPointer = static_cast<char*>(bufferData->GetAllocation()->Map());
-            ON_SCOPE_EXIT(
-                {
-                    bufferData->GetAllocation()->Unmap();
-                });
+            ON_SCOPE_EXIT({ bufferData->GetAllocation()->Unmap(); });
 
             const auto& footprint = bufferData->GetSubresourceFootprintAt(0);
             memcpy(dataPointer, data, footprint.rowSizeInBytes);
 
-            auto result = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Source");
+            auto result = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Source");
             commandList->UpdateGpuResource(result, bufferData);
 
             return result;

@@ -144,11 +144,11 @@ namespace RR
             MSAA_2
         };
 
-        enum class GpuResourceCpuAccess : uint32_t
+        enum class GpuResourceUsage : uint32_t
         {
-            None,
-            Read,
-            Write
+            Default, // CPU no access, GPU read/write
+            Upload, // CPU write, GPU read
+            Readback // CPU read, GPU write
         };
 
         enum class GpuResourceDimension : uint32_t
@@ -344,10 +344,11 @@ namespace RR
                   bindflags_(bindFlags),
                   multisampleType_(multisampleType),
                   arraySize_(arraySize),
-                  structSize_(structSize),
-                  // Limit/Calc maximum mip count
-                  mipLevels_(std::min(GetMaxMipLevel(), mipLevels))
+                  structSize_(structSize)
             {
+                // Limit/Calc maximum mip count
+                mipLevels_ = (std::min(GetMaxMipLevel(), mipLevels));
+
                 ASSERT(IsValid());
             }
 
@@ -405,7 +406,6 @@ namespace RR
             {
                 ASSERT(allocation);
                 ASSERT(subresourceFootprints.size() > 0);
-                ASSERT(firstSubresource < description.GetNumSubresources());
                 ASSERT(firstSubresource + subresourceFootprints.size() <= description.GetNumSubresources());
             };
 
@@ -447,21 +447,21 @@ namespace RR
             inline const bool IsBuffer() const { return description_.dimension_ == GpuResourceDimension::Buffer; }
             inline const bool IsTexture() const { return description_.dimension_ != GpuResourceDimension::Buffer; }
             inline const GpuResourceDescription& GetDescription() const { return description_; }
-            inline GpuResourceCpuAccess GetCpuAccess() const { return cpuAccess_; }
+            inline GpuResourceUsage GetUsage() const { return usage_; }
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
 
         protected:
-            GpuResource(GpuResourceDescription description, GpuResourceCpuAccess cpuAccess, const U8String& name)
+            GpuResource(GpuResourceDescription description, GpuResourceUsage usage, const U8String& name)
                 : Resource(Object::Type::GpuResource, name),
                   description_(description),
-                  cpuAccess_(cpuAccess)
+                  usage_(usage)
             {
                 ASSERT(description.IsValid());
             };
 
             GpuResourceDescription description_;
-            GpuResourceCpuAccess cpuAccess_;
+            GpuResourceUsage usage_;
 
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;

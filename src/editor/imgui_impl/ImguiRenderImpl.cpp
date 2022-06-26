@@ -263,7 +263,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
         const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->VertexBufferSize, sizeof(ImDrawVert));
         //const auto cpuData = bd->deviceContext->AllocateIntermediateResourceData(desc, RR::GAPI::MemoryAllocationType::CpuReadWrite);
 
-        fr->VertexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceCpuAccess::Write);
+        fr->VertexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceUsage::Upload);
         fr->VertexBuffer = std::any_cast<ID3D12Resource*>(fr->VertexBufferO->GetRawHandle());
     }
 
@@ -273,7 +273,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
 
         const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->IndexBufferSize, sizeof(ImDrawIdx));
 
-        fr->IndexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceCpuAccess::Write);
+        fr->IndexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceUsage::Upload);
         fr->IndexBuffer = std::any_cast<ID3D12Resource*>(fr->IndexBufferO->GetRawHandle());
     }
 
@@ -370,7 +370,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
             cpuData->GetAllocation()->Unmap();
         }
 
-        auto fontTexture = bd->deviceContext->CreateTexture(desc, RR::GAPI::GpuResourceCpuAccess::None, "Imgui font texture");
+        auto fontTexture = bd->deviceContext->CreateTexture(desc, RR::GAPI::GpuResourceUsage::Default, "Imgui font texture");
         ID3D12Resource* pTexture = std::any_cast<ID3D12Resource*>(fontTexture->GetRawHandle());
 
         RR::Render::GpuResourceTransfer::Instance().DefferedUpload(fontTexture, cpuData);

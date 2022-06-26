@@ -99,7 +99,6 @@ set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Glfw)
 
 #================================ DirectXTex =================================#
-if(FALSE)
 FetchContent_Declare(
   DirectXTex
   GIT_REPOSITORY https://github.com/microsoft/DirectXTex
@@ -108,7 +107,6 @@ FetchContent_Declare(
 set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(DirectXTex)
-endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
@@ -119,7 +117,7 @@ set_property(TARGET Catch2WithMain PROPERTY FOLDER "Dependencies")
 set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui PROPERTY FOLDER "Dependencies")
-#set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
+set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
 if (WIN32)

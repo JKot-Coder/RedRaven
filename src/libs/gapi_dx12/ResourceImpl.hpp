@@ -22,7 +22,7 @@ namespace RR
 
                 void Init(const Buffer& resource);
                 void Init(const Texture& resource);
-                void Init(const GpuResourceDescription& resourceDesc, GpuResourceCpuAccess cpuAccess, const U8String& name);
+                void Init(const GpuResourceDescription& resourceDesc, GpuResourceUsage usage, const U8String& name);
 
                 void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 

@@ -2,7 +2,7 @@
 
 #include "gapi/CommandQueue.hpp"
 #include "render/DeviceContext.hpp"
-#include "platform/WindowSystem.hpp"
+#include "platform/Toolkit.hpp"
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
@@ -56,9 +56,8 @@ namespace RR
         bool Application::init()
         {
             Platform::Window::Description description;
-            description.Height = 480;
-            description.Width = 640;
-            description.Title = "Tests";
+            description.size = Vector2i(640, 480);
+            description.title = "Tests";
             /*
             window_ = Windowing std::shared_ptr<Platform::InputtingWindow>(new Platform::InputtingWindow());
             if (!window_->Init(description, true))

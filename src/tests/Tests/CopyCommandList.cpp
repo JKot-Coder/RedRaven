@@ -65,7 +65,7 @@ namespace RR
 
                 initResourceData(description, cpuData);
 
-                auto testBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Test");
+                auto testBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Test");
 
                 commandList->UpdateGpuResource(testBuffer, cpuData);
                 commandList->ReadbackGpuResource(testBuffer, readbackData);
@@ -86,7 +86,7 @@ namespace RR
                 initResourceData(description, cpuData);
                 sourceData->CopyDataFrom(cpuData);
 
-                auto testTexture = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Test");
+                auto testTexture = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Test");
 
                 commandList->UpdateGpuResource(testTexture, sourceData);
                 commandList->ReadbackGpuResource(testTexture, readbackData);
@@ -105,8 +105,8 @@ namespace RR
 
                 initResourceData(description, sourceData);
 
-                auto source = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Source");
-                auto dest = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Dest");
+                auto source = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Source");
+                auto dest = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Dest");
 
                 commandList->UpdateGpuResource(source, sourceData);
                 commandList->CopyGpuResource(source, dest);
@@ -138,8 +138,8 @@ namespace RR
 
                     initResourceData(description, sourceData);
 
-                    auto source = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Source");
-                    auto dest = renderContext.CreateBuffer(description, GAPI::GpuResourceCpuAccess::None, "Dest");
+                    auto source = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Source");
+                    auto dest = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Dest");
 
                     commandList->UpdateGpuResource(source, sourceData);
                     commandList->CopyGpuResource(source, dest);
@@ -236,7 +236,7 @@ namespace RR
 
                         initResourceData(description, cpuData);
 
-                        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
+                        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceUsage::Default, "Test");
 
                         commandList->UpdateGpuResource(testTexture, cpuData);
                         commandList->ReadbackGpuResource(testTexture, readbackData);
@@ -257,7 +257,7 @@ namespace RR
                         initResourceData(description, cpuData);
                         sourceData->CopyDataFrom(cpuData);
 
-                        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
+                        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceUsage::Default, "Test");
 
                         commandList->UpdateGpuResource(testTexture, sourceData);
                         commandList->ReadbackGpuResource(testTexture, readbackData);
@@ -276,8 +276,8 @@ namespace RR
 
                         initResourceData(description, sourceData);
 
-                        auto source = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Source");
-                        auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Dest");
+                        auto source = renderContext.CreateTexture(description, GAPI::GpuResourceUsage::Default, "Source");
+                        auto dest = renderContext.CreateTexture(description, GAPI::GpuResourceUsage::Default, "Dest");
 
                         commandList->UpdateGpuResource(source, sourceData);
                         commandList->CopyGpuResource(source, dest);
@@ -293,14 +293,14 @@ namespace RR
                     {
                         const auto sourceDescription = createTextureDescription(dimension, 256, format);
                         const auto sourceData = renderContext.AllocateIntermediateResourceData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
+                        auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceUsage::Default, "Source");
 
                         initResourceData(sourceDescription, sourceData);
                         commandList->UpdateGpuResource(source, sourceData);
 
                         const auto destDescription = createTextureDescription(dimension, 128, format);
                         const auto destData = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
+                        auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceUsage::Default, "Dest");
 
                         initResourceData(destDescription, destData);
                         commandList->UpdateGpuResource(dest, destData);
@@ -338,14 +338,14 @@ namespace RR
                 {
                     const auto sourceDescription = createTextureDescription(GAPI::GpuResourceDimension::Texture3D, 128, format);
                     const auto sourceData = renderContext.AllocateIntermediateResourceData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                    auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
+                    auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceUsage::Default, "Source");
 
                     initResourceData(sourceDescription, sourceData);
                     commandList->UpdateGpuResource(source, sourceData);
 
                     const auto destDescription = createTextureDescription(GAPI::GpuResourceDimension::Texture3D, 64, format);
                     const auto destData = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Upload);
-                    auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
+                    auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceUsage::Default, "Dest");
 
                     initResourceData(destDescription, destData);
                     commandList->UpdateGpuResource(dest, destData);
