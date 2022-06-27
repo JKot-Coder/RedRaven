@@ -18,11 +18,14 @@ set(TESTS_SRC
 source_group( "Tests" FILES ${TESTS_SRC} )
 
 set(APPROVAL_INTEGRAION_SRC
-    "ApprovalIntegration/ImageWriter.hpp"
-    "ApprovalIntegration/ImageWriter.cpp"
+    "ApprovalIntegration/BufferApprover.hpp"
+    "ApprovalIntegration/BufferWriter.cpp"
+    "ApprovalIntegration/BufferWriter.hpp"
+    "ApprovalIntegration/ImageApprover.hpp"
     "ApprovalIntegration/ImageComparator.hpp"
     "ApprovalIntegration/ImageComporator.cpp"
-    "ApprovalIntegration/ImageApprover.hpp"
+    "ApprovalIntegration/ImageWriter.cpp"
+    "ApprovalIntegration/ImageWriter.hpp"
     )
 source_group( "ApprovalIntegration" FILES ${APPROVAL_INTEGRAION_SRC} )
 

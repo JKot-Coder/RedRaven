@@ -27,14 +27,20 @@ namespace RR
                 void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 
                 std::any GetRawHandle() const override { return D3DResource_.get(); }
-                const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
+                D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
 
-                void Map(uint32_t subresource, const D3D12_RANGE& readRange, void*& memory);
-                void Unmap(uint32_t subresource, const D3D12_RANGE& writtenRange);
+                std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
+                CpuResourceData::SubresourceFootprint GetSubresourceFootprint(const GpuResourceDescription& desc, uint32_t subresourceIndex) const override;
+
+                void* Map() override;
+                void Unmap() override;
+
+                const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
             private:
                 ComSharedPtr<ID3D12Resource> D3DResource_;
                 D3D12MA::Allocation* allocation_;
+                D3D12_RESOURCE_STATES defaultState_;
             };
         }
     }

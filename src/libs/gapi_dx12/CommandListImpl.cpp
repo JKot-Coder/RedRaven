@@ -20,15 +20,17 @@ namespace RR
         {
             namespace
             {
-                void CheckIsCopyAllowed(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest)
+                bool isCopyAllowed(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest)
                 {
                     ASSERT(source);
                     ASSERT(dest);
 
-                    // Allow copy (gpu->gpu || cpuWrite->gpu)
-                    ASSERT(source->GetUsage() == GpuResourceUsage::Upload ||
-                           source->GetUsage() == GpuResourceUsage::Default);
-                    ASSERT(dest->GetUsage() == GpuResourceUsage::Default);
+                    const auto sourceUsage = source->GetUsage();
+                    const auto destUsage = dest->GetUsage();
+
+                    return (sourceUsage == GpuResourceUsage::Default && destUsage == GpuResourceUsage::Default) ||
+                           (sourceUsage == GpuResourceUsage::Upload && destUsage == GpuResourceUsage::Default) ||
+                           (sourceUsage == GpuResourceUsage::Default && destUsage == GpuResourceUsage::Readback);
                 }
             }
 
@@ -129,7 +131,10 @@ namespace RR
 
             void CommandListImpl::CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest)
             {
-                CheckIsCopyAllowed(source, dest);
+                ASSERT(source);
+                ASSERT(dest);
+
+                ASSERT(isCopyAllowed(source, dest));
 
                 const auto sourceImpl = source->GetPrivateImpl<ResourceImpl>();
                 ASSERT(sourceImpl);
@@ -152,14 +157,20 @@ namespace RR
 
                 D3DCommandList_->CopyResource(destImpl->GetD3DObject().get(), sourceImpl->GetD3DObject().get());
 
-                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(destImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
-                D3DCommandList_->ResourceBarrier(1, &barrier);
+                if (destImpl->GetDefaultResourceState() != D3D12_RESOURCE_STATE_COPY_DEST)
+                {
+                    D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(destImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_DEST, destImpl->GetDefaultResourceState());
+                    D3DCommandList_->ResourceBarrier(1, &barrier);
+                }
             }
 
             void CommandListImpl::CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
                                                    const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes)
             {
-                CheckIsCopyAllowed(sourceBuffer, destBuffer);
+                ASSERT(sourceBuffer);
+                ASSERT(destBuffer);
+
+                ASSERT(isCopyAllowed(sourceBuffer, destBuffer));
 
                 const auto sourceImpl = sourceBuffer->GetPrivateImpl<ResourceImpl>();
                 ASSERT(sourceImpl);
@@ -179,7 +190,10 @@ namespace RR
             void CommandListImpl::CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
                                                          const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx)
             {
-                CheckIsCopyAllowed(sourceTexture, destTexture);
+                ASSERT(sourceTexture);
+                ASSERT(destTexture);
+
+                ASSERT(isCopyAllowed(sourceTexture, destTexture));
 
                 const auto sourceImpl = sourceTexture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(sourceImpl);
@@ -198,7 +212,10 @@ namespace RR
             void CommandListImpl::CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                                const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
             {
-                CheckIsCopyAllowed(sourceTexture, destTexture);
+                ASSERT(sourceTexture);
+                ASSERT(destTexture);
+
+                ASSERT(isCopyAllowed(sourceTexture, destTexture));
 
                 const auto sourceImpl = sourceTexture->GetPrivateImpl<ResourceImpl>();
                 ASSERT(sourceImpl);

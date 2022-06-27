@@ -431,6 +431,12 @@ namespace RR
             virtual ~IGpuResource() = default;
 
             virtual std::any GetRawHandle() const = 0;
+
+            virtual std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const = 0;
+            virtual CpuResourceData::SubresourceFootprint GetSubresourceFootprint(const GpuResourceDescription& desc, uint32_t subresourceIndex) const = 0;
+
+            virtual void* Map() = 0;
+            virtual void Unmap() = 0;
         };
 
         class GpuResource : public Resource<IGpuResource>
@@ -450,6 +456,19 @@ namespace RR
             inline GpuResourceUsage GetUsage() const { return usage_; }
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
+
+            inline std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints() const
+            {
+                return GetPrivateImpl()->GetSubresourceFootprints(description_);
+            }
+
+            inline CpuResourceData::SubresourceFootprint GetSubresourceFootprint(uint32_t subresourceIndex) const
+            {
+                return GetPrivateImpl()->GetSubresourceFootprint(description_, subresourceIndex);
+            }
+
+            inline void* Map() { return GetPrivateImpl()->Map(); }
+            inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
             GpuResource(GpuResourceDescription description, GpuResourceUsage usage, const U8String& name)

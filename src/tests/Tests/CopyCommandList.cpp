@@ -2,6 +2,7 @@
 
 #include "TestContextFixture.hpp"
 
+#include "ApprovalIntegration/BufferApprover.hpp"
 #include "ApprovalIntegration/ImageApprover.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
@@ -11,7 +12,7 @@
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/MemoryAllocation.hpp"
-//#include "gapi/Texture.hpp"
+#include "gapi/Texture.hpp"
 
 #include "render/DeviceContext.hpp"
 
@@ -32,7 +33,7 @@ namespace RR
             }
         }
 
-        TEST_CASE_METHOD(TestContextFixture, "CopyBuffer", "[CommandList][CopyCommandList][CopyBuffer]")
+        TEST_CASE_METHOD(TestContextFixture, "CopyBuffer_old", "[CommandList][CopyCommandList][CopyBuffer]")
         {
             auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
             REQUIRE(commandList != nullptr);
@@ -149,6 +150,119 @@ namespace RR
 
                     submitAndWait(queue, commandList);
                     REQUIRE(isResourceEqual(sourceData, readbackData));
+                }
+
+                DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer region", formatName))
+                {
+                    const auto sourceData = "1234567890";
+                    auto source = initBufferWithData(sourceData, commandList);
+
+                    const auto destData = "QWERTYUIOP";
+                    auto dest = initBufferWithData(destData, commandList);
+
+                    const auto testData = "QWE6789IOP";
+
+                    const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(destData));
+                    const auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
+
+                    commandList->CopyBufferRegion(source, 5, dest, 3, 4);
+                    commandList->ReadbackGpuResource(dest, readbackData);
+                    commandList->Close();
+
+                    submitAndWait(queue, commandList);
+
+                    const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
+                    ON_SCOPE_EXIT(
+                        {
+                            readbackData->GetAllocation()->Unmap();
+                        });
+
+                    const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
+                    REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
+                }
+            }
+        }
+
+        TEST_CASE_METHOD(TestContextFixture, "CopyBuffer", "[CommandList][CopyCommandList][CopyBuffer]")
+        {
+            auto commandList = renderContext.CreateCopyCommandList(u8"CopyCommandList");
+            REQUIRE(commandList != nullptr);
+
+            auto queue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
+            REQUIRE(queue != nullptr);
+
+            const auto format = GAPI::GpuResourceFormat::Unknown;
+            const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Upload buffer", formatName))
+            {
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128);
+
+                auto uploadBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Upload, "UploadBuffer");
+                auto gpuBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Test");
+                auto readbackBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Readback, "ReadbackBuffer");
+
+                initResourceData(uploadBuffer);
+
+                commandList->CopyGpuResource(uploadBuffer, gpuBuffer);
+                commandList->CopyGpuResource(gpuBuffer, readbackBuffer);
+                commandList->Close();
+
+                submitAndWait(queue, commandList);
+                BufferApprover::verify(readbackBuffer);
+            }
+
+            DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer on GPU", formatName))
+            {
+                const auto& description = GAPI::GpuResourceDescription::Buffer(128);
+
+                auto uploadBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Upload, "UploadBuffer");
+                auto sourceBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Source");
+                auto destBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Dest");
+                auto readbackBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Readback, "ReadbackBuffer");
+
+                initResourceData(uploadBuffer);
+
+                commandList->CopyGpuResource(uploadBuffer, sourceBuffer);
+                commandList->CopyGpuResource(sourceBuffer, destBuffer);
+                commandList->CopyGpuResource(destBuffer, readbackBuffer);
+
+                commandList->Close();
+
+                submitAndWait(queue, commandList);
+                BufferApprover::verify(readbackBuffer);
+            }
+
+            {
+                const auto format = GAPI::GpuResourceFormat::Unknown;
+                const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
+
+                DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy structured buffer on GPU", formatName))
+                {
+                    struct TestStuct
+                    {
+                        uint32_t a1;
+                        float a2;
+                        bool a3;
+                    };
+
+                    const auto& description = GAPI::GpuResourceDescription::StructuredBuffer(128, sizeof(TestStuct));
+
+                    const auto uploadBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Upload, "UploadBuffer");
+                    const auto sourceBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Source");
+                    const auto destBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Default, "Dest");
+                    const auto readbackBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Readback, "ReadbackBuffer");
+
+                    initResourceData(uploadBuffer);
+
+                    commandList->CopyGpuResource(uploadBuffer, sourceBuffer);
+                    commandList->CopyGpuResource(sourceBuffer, destBuffer);
+                    commandList->CopyGpuResource(destBuffer, readbackBuffer);
+
+                    commandList->Close();
+
+                    submitAndWait(queue, commandList);
+                    BufferApprover::verify(readbackBuffer);
                 }
 
                 DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer region", formatName))

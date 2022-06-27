@@ -64,6 +64,22 @@ namespace RR
 
                     return D3D12_RESOURCE_STATE_COMMON;
                 }
+
+                CpuResourceData::SubresourceFootprint getSubresourceFootprint(const GpuResourceDescription& resourceDesc,
+                                                                              const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout,
+                                                                              UINT numRows,
+                                                                              UINT64 rowSizeInBytes)
+                {
+                    const auto rowPitch = layout.Footprint.RowPitch;
+                    const auto depthPitch = numRows * rowPitch;
+
+                    return CpuResourceData::SubresourceFootprint(
+                        layout.Offset,
+                        (resourceDesc.GetDimension() == GpuResourceDimension::Buffer) ? resourceDesc.GetNumElements() : layout.Footprint.Width,
+                        layout.Footprint.Height,
+                        layout.Footprint.Depth,
+                        numRows, rowSizeInBytes, rowPitch, depthPitch);
+                }
             }
 
             ResourceImpl::~ResourceImpl()
@@ -106,12 +122,14 @@ namespace RR
                     d3dResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(intermediateSize);
                 };
 
+                defaultState_ = getDefaultResourceState(usage);
+
                 D3DCall(
                     DeviceContext::GetDevice()->CreateCommittedResource(
                         getHeapProperties(usage),
                         D3D12_HEAP_FLAG_NONE,
                         &d3dResourceDesc,
-                        getDefaultResourceState(usage),
+                        defaultState_,
                         pOptimizedClearValue,
                         IID_PPV_ARGS(D3DResource_.put())));
 
@@ -125,6 +143,7 @@ namespace RR
 
                 allocation_ = allocation;
                 D3DResource_ = resource;
+                defaultState_ = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON;
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
             }
 
@@ -133,21 +152,62 @@ namespace RR
                 return Init(resource.GetDescription(), resource.GetUsage(), resource.GetName());
             }
 
-            void ResourceImpl::Map(uint32_t subresource, const D3D12_RANGE& readRange, void*& memory)
+            std::vector<CpuResourceData::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& resourceDesc) const
             {
-                ASSERT(D3DResource_);
-                // todo subresource readRange asserts
-                // todo mapped unmaped protection
+                const auto& device = DeviceContext::GetDevice();
 
-                D3DCall(D3DResource_->Map(subresource, &readRange, &memory));
+                const auto numSubresources = resourceDesc.GetNumSubresources();
+
+                std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
+                std::vector<UINT> numRowsVector(numSubresources);
+                std::vector<UINT64> rowSizeInBytesVector(numSubresources);
+
+                D3D12_RESOURCE_DESC d3d12Desc = D3DUtils::GetResourceDesc(resourceDesc);
+                device->GetCopyableFootprints(&d3d12Desc, 0, numSubresources, 0, layouts.data(), numRowsVector.data(), rowSizeInBytesVector.data(), nullptr);
+
+                std::vector<CpuResourceData::SubresourceFootprint> subresourceFootprints(numSubresources);
+                for (uint32_t index = 0; index < numSubresources; index++)
+                {
+                    const auto& layout = layouts[index];
+                    const auto numRows = numRowsVector[index];
+                    const auto rowSizeInBytes = rowSizeInBytesVector[index];
+
+                    subresourceFootprints[index] = getSubresourceFootprint(resourceDesc, layout, numRows, rowSizeInBytes);
+                }
+
+                return subresourceFootprints;
             }
 
-            void ResourceImpl::Unmap(uint32_t subresource, const D3D12_RANGE& writtenRange)
+            CpuResourceData::SubresourceFootprint ResourceImpl::GetSubresourceFootprint(const GpuResourceDescription& resourceDesc, uint32_t subresourceIndex) const
+            {
+                const auto& device = DeviceContext::GetDevice();
+
+                D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+                UINT numRows;
+                UINT64 rowSizeInBytes;
+
+                D3D12_RESOURCE_DESC d3d12Desc = D3DUtils::GetResourceDesc(resourceDesc);
+                device->GetCopyableFootprints(&d3d12Desc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, nullptr);
+
+                return getSubresourceFootprint(resourceDesc, layout, numRows, rowSizeInBytes);
+            }
+
+            void* ResourceImpl::Map()
             {
                 ASSERT(D3DResource_);
-                // todo subresource readRange asserts
+                // todo mapped unmaped protection
 
-                D3DResource_->Unmap(subresource, &writtenRange);
+                void* memory;
+                D3DCall(D3DResource_->Map(0, nullptr, &memory));
+
+                return memory;
+            }
+
+            void ResourceImpl::Unmap()
+            {
+                ASSERT(D3DResource_);
+
+                D3DResource_->Unmap(0, nullptr);
             }
         }
     }

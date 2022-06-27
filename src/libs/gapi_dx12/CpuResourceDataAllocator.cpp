@@ -51,10 +51,7 @@ namespace RR
 
                 isMapped_ = true;
 
-                void* mappedData;
-                resource_->Map(0, readRange, mappedData);
-
-                return mappedData;
+                return resource_->Map();
             }
 
             void HeapAllocation::Unmap() const
@@ -62,7 +59,7 @@ namespace RR
                 ASSERT(isMapped_);
 
                 D3D12_RANGE writtenRange { 0, heapType_ == D3D12_HEAP_TYPE_UPLOAD ? size_ : 0 };
-                resource_->Unmap(0, writtenRange);
+                resource_->Unmap();
 
                 isMapped_ = false;
             }

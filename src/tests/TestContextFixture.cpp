@@ -120,13 +120,38 @@ namespace RR
                     }
                 }
             }
+
+            void fillBufferData(const GAPI::GpuResource::SharedPtr& resource)
+            {
+                ASSERT(resource->IsBuffer());
+
+                const auto& description = resource->GetDescription();
+                const auto& subresourceFootprints = resource->GetSubresourceFootprints();
+
+                const auto dataPointer = static_cast<uint8_t*>(resource->Map());
+                std::array<uint8_t, 10> testBufferData = { 0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42 };
+
+                for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
+                {
+                    const auto& subresourceFootprint = subresourceFootprints[index];
+                    ASSERT(subresourceFootprint.width * std::max(description.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
+                   
+                    auto subresourcePointer = reinterpret_cast<uint8_t*>(dataPointer) + subresourceFootprint.offset;
+
+                    for (uint32_t byte = 0; byte < subresourceFootprint.width; byte++)
+                    {
+                        *subresourcePointer = testBufferData[byte % testBufferData.size()];
+                        subresourcePointer++;
+                    }
+                }
+            }
         }
 
         TestContextFixture::TestContextFixture() : renderContext(Render::DeviceContext::Instance())
         {
         }
 
-        const GAPI::GpuResourceDescription& TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
+        GAPI::GpuResourceDescription TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
         {
             const auto numArraySlices = 3;
 
@@ -141,6 +166,17 @@ namespace RR
 
             ASSERT_MSG(false, "Unsupported GpuResourceDimension");
             return GAPI::GpuResourceDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
+        }
+
+        void TestContextFixture::initResourceData(const GAPI::GpuResource::SharedPtr& resource)
+        {
+            if (resource->IsBuffer())
+            {
+                fillBufferData(resource);
+            }
+            else
+            {
+            }
         }
 
         void TestContextFixture::initResourceData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
