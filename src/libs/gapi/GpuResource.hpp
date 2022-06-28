@@ -433,7 +433,7 @@ namespace RR
             virtual std::any GetRawHandle() const = 0;
 
             virtual std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const = 0;
-            virtual CpuResourceData::SubresourceFootprint GetSubresourceFootprint(const GpuResourceDescription& desc, uint32_t subresourceIndex) const = 0;
+            virtual CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(const GpuResourceDescription& desc, uint32_t subresourceIndex) const = 0;
 
             virtual void* Map() = 0;
             virtual void Unmap() = 0;
@@ -462,9 +462,9 @@ namespace RR
                 return GetPrivateImpl()->GetSubresourceFootprints(description_);
             }
 
-            inline CpuResourceData::SubresourceFootprint GetSubresourceFootprint(uint32_t subresourceIndex) const
+            inline CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(uint32_t subresourceIndex) const
             {
-                return GetPrivateImpl()->GetSubresourceFootprint(description_, subresourceIndex);
+                return GetPrivateImpl()->GetSubresourceFootprintAt(description_, subresourceIndex);
             }
 
             inline void* Map() { return GetPrivateImpl()->Map(); }

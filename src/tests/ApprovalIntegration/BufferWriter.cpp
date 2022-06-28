@@ -31,7 +31,7 @@ namespace RR::Tests
 
             for (uint32_t subresourceIdx = 0; subresourceIdx < resourceDesc.GetNumSubresources(); subresourceIdx++)
             {
-                const auto& subresourceFootprint = resource->GetSubresourceFootprint(subresourceIdx);
+                const auto& subresourceFootprint = resource->GetSubresourceFootprintAt(subresourceIdx);
 
                 ASSERT(subresourceFootprint.width * std::max(resourceDesc.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
 

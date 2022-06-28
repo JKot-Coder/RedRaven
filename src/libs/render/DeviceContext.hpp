@@ -43,7 +43,7 @@ namespace RR
             std::vector<GAPI::CpuResourceData::SubresourceFootprint> GetResourceFootprints(const GAPI::GpuResourceDescription& desc) const;
 
 
-            std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, GAPI::GpuResourceUsage usage = GAPI::GpuResourceUsage::Default, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, void* data, GAPI::GpuResourceUsage usage = GAPI::GpuResourceUsage::Default, const U8String& name = "") const;
             std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
             std::shared_ptr<GAPI::ComputeCommandList> CreateComputeCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;

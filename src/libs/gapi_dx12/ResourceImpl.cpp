@@ -178,7 +178,7 @@ namespace RR
                 return subresourceFootprints;
             }
 
-            CpuResourceData::SubresourceFootprint ResourceImpl::GetSubresourceFootprint(const GpuResourceDescription& resourceDesc, uint32_t subresourceIndex) const
+            CpuResourceData::SubresourceFootprint ResourceImpl::GetSubresourceFootprintAt(const GpuResourceDescription& resourceDesc, uint32_t subresourceIndex) const
             {
                 const auto& device = DeviceContext::GetDevice();
 

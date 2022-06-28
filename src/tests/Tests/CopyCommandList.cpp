@@ -276,21 +276,21 @@ namespace RR
                     const auto testData = "QWE6789IOP";
 
                     const auto& description = GAPI::GpuResourceDescription::Buffer(strlen(destData));
-                    const auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
+                    const auto readbackBuffer = renderContext.CreateBuffer(description, GAPI::GpuResourceUsage::Readback, "ReadbackBuffer");
 
                     commandList->CopyBufferRegion(source, 5, dest, 3, 4);
-                    commandList->ReadbackGpuResource(dest, readbackData);
+                    commandList->CopyGpuResource(dest, readbackBuffer);
                     commandList->Close();
 
                     submitAndWait(queue, commandList);
 
-                    const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
+                    const auto dataPointer = static_cast<uint8_t*>(readbackBuffer->Map());
                     ON_SCOPE_EXIT(
                         {
-                            readbackData->GetAllocation()->Unmap();
+                            readbackBuffer->Unmap();
                         });
 
-                    const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
+                    const auto& footprint = readbackBuffer->GetSubresourceFootprintAt(0);
                     REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
                 }
             }

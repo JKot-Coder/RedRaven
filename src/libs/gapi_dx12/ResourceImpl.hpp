@@ -30,7 +30,7 @@ namespace RR
                 D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
 
                 std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
-                CpuResourceData::SubresourceFootprint GetSubresourceFootprint(const GpuResourceDescription& desc, uint32_t subresourceIndex) const override;
+                CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(const GpuResourceDescription& desc, uint32_t subresourceIndex) const override;
 
                 void* Map() override;
                 void Unmap() override;
