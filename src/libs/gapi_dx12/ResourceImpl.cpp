@@ -89,11 +89,12 @@ namespace RR
 
             void ResourceImpl::Init(const Texture& resource)
             {
-                return Init(resource.GetDescription(), resource.GetUsage(), resource.GetName());
+                return Init(resource.GetDescription(), resource.GetInitialData(), resource.GetUsage(), resource.GetName());
             }
 
             void ResourceImpl::Init(
                 const GpuResourceDescription& resourceDesc,
+                const IDataBuffer::SharedPtr& initialData,
                 GpuResourceUsage usage,
                 const U8String& name)
             {
@@ -134,6 +135,13 @@ namespace RR
                         IID_PPV_ARGS(D3DResource_.put())));
 
                 D3DUtils::SetAPIName(D3DResource_.get(), name);
+
+                ASSERT_MSG(!initialData || (usage != GpuResourceUsage::Default), "Initial resource data can only be applied to a resource with 'Default' usage.");
+                if (initialData && (usage == GpuResourceUsage::Default))
+                {
+                    DeviceContext::GetInitialDataUploader(); 
+                }
+
             }
 
             void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name)
@@ -149,7 +157,7 @@ namespace RR
 
             void ResourceImpl::Init(const Buffer& resource)
             {
-                return Init(resource.GetDescription(), resource.GetUsage(), resource.GetName());
+                return Init(resource.GetDescription(), resource.GetInitialData(), resource.GetUsage(), resource.GetName());
             }
 
             std::vector<CpuResourceData::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& resourceDesc) const
@@ -176,20 +184,6 @@ namespace RR
                 }
 
                 return subresourceFootprints;
-            }
-
-            CpuResourceData::SubresourceFootprint ResourceImpl::GetSubresourceFootprintAt(const GpuResourceDescription& resourceDesc, uint32_t subresourceIndex) const
-            {
-                const auto& device = DeviceContext::GetDevice();
-
-                D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-                UINT numRows;
-                UINT64 rowSizeInBytes;
-
-                D3D12_RESOURCE_DESC d3d12Desc = D3DUtils::GetResourceDesc(resourceDesc);
-                device->GetCopyableFootprints(&d3d12Desc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, nullptr);
-
-                return getSubresourceFootprint(resourceDesc, layout, numRows, rowSizeInBytes);
             }
 
             void* ResourceImpl::Map()

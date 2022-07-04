@@ -13,6 +13,7 @@ namespace RR
         {
             class DescriptorHeapSet;
             class CommandQueueImpl;
+            class InitialDataUploder;
 
             class DeviceContext
             {
@@ -21,7 +22,8 @@ namespace RR
                                  const ComSharedPtr<IDXGIFactory2>& dxgiFactory);
 
                 static void Init(D3D12MA::Allocator* allocator,
-                                 const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue);
+                                 const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
+                                 const std::shared_ptr<InitialDataUploder>& initialDataUploder);
 
                 static void Terminate();
 
@@ -49,11 +51,18 @@ namespace RR
                     return graphicsCommandQueue_;
                 }
 
+                static std::shared_ptr<InitialDataUploder> GetInitialDataUploader()
+                {
+                    ASSERT(initialDataUploder_);
+                    return initialDataUploder_;
+                }
+
             private:
                 static D3D12MA::Allocator* allocator_;
                 static ComSharedPtr<ID3D12Device> device_;
                 static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
                 static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
+                static std::shared_ptr<InitialDataUploder> initialDataUploder_;
             };
         }
     }

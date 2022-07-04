@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/DataBuffer.hpp"
 #include "common/EnumClassOperators.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
@@ -431,9 +432,7 @@ namespace RR
             virtual ~IGpuResource() = default;
 
             virtual std::any GetRawHandle() const = 0;
-
-            virtual std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const = 0;
-            virtual CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(const GpuResourceDescription& desc, uint32_t subresourceIndex) const = 0;
+            virtual std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& decription) const = 0;
 
             virtual void* Map() = 0;
             virtual void Unmap() = 0;
@@ -446,6 +445,34 @@ namespace RR
             using SharedConstPtr = std::shared_ptr<const GpuResource>;
             using WeakPtr = std::weak_ptr<GpuResource>;
 
+            class ResourceData : public IDataBuffer
+            {
+            public:
+                ResourceData(size_t size, const GpuResource::SharedPtr& resource, const std::vector<CpuResourceData::SubresourceFootprint>& footprints)
+                    : size_(size), resource_(resource), footprints_(footprints)
+                {
+                    data_ = resource_->Map();
+                }
+
+                ~ResourceData() { resource_->Unmap(); }
+
+                const std::vector<CpuResourceData::SubresourceFootprint>& GetSubresourceFootprints() const { return footprints_; }
+                CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(uint32_t subresourceIndex) const
+                {
+                    ASSERT(subresourceIndex < footprints_.size());
+                    return footprints_[subresourceIndex];
+                }
+
+                size_t Size() override { return size_; }
+                void* Data() override { return data_; }
+
+            private:
+                size_t size_;
+                void* data_;
+                std::vector<CpuResourceData::SubresourceFootprint> footprints_;
+                GpuResource::SharedPtr resource_;
+            };
+
         public:
             template <typename Type>
             std::shared_ptr<Type> GetTyped();
@@ -454,32 +481,35 @@ namespace RR
             inline const bool IsTexture() const { return description_.dimension_ != GpuResourceDimension::Buffer; }
             inline const GpuResourceDescription& GetDescription() const { return description_; }
             inline GpuResourceUsage GetUsage() const { return usage_; }
+            inline const IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
+
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
 
-            inline std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints() const
+            inline std::shared_ptr<ResourceData> GetResourceData()
             {
-                return GetPrivateImpl()->GetSubresourceFootprints(description_);
+                const auto& footprints = GetPrivateImpl()->GetSubresourceFootprints(description_);
+                return std::make_shared<ResourceData>(0, std::static_pointer_cast<GpuResource>(shared_from_this()), footprints);
             }
 
-            inline CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(uint32_t subresourceIndex) const
-            {
-                return GetPrivateImpl()->GetSubresourceFootprintAt(description_, subresourceIndex);
-            }
-
+        private:
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
+            friend ResourceData;
+
         protected:
-            GpuResource(GpuResourceDescription description, GpuResourceUsage usage, const U8String& name)
+            GpuResource(GpuResourceDescription description, IDataBuffer::SharedPtr initialData, GpuResourceUsage usage, const U8String& name)
                 : Resource(Object::Type::GpuResource, name),
                   description_(description),
+                  initialData_(initialData),
                   usage_(usage)
             {
                 ASSERT(description.IsValid());
             };
 
             GpuResourceDescription description_;
+            IDataBuffer::SharedPtr initialData_;
             GpuResourceUsage usage_;
 
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;

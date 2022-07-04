@@ -22,7 +22,7 @@ namespace RR
 
                 void Init(const Buffer& resource);
                 void Init(const Texture& resource);
-                void Init(const GpuResourceDescription& resourceDesc, GpuResourceUsage usage, const U8String& name);
+                void Init(const GpuResourceDescription& resourceDesc, const IDataBuffer::SharedPtr& initialData, GpuResourceUsage usage, const U8String& name);
 
                 void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 
@@ -30,7 +30,6 @@ namespace RR
                 D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
 
                 std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
-                CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(const GpuResourceDescription& desc, uint32_t subresourceIndex) const override;
 
                 void* Map() override;
                 void Unmap() override;

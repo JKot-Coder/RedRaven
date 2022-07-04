@@ -16,26 +16,22 @@ namespace RR::Tests
 
             const auto& resourceDesc = resource->GetDescription();
 
-            const auto dataPointer = static_cast<uint8_t*>(resource->Map());
+            const auto& resoucerData = resource->GetResourceData();
 
             std::fstream file;
-
-            ON_SCOPE_EXIT(
-                {
-                    resource->Unmap();
-                    file.close();
-                });
+            ON_SCOPE_EXIT({ file.close(); });
 
             file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
             file.open(path, std::ios::out | std::ios::binary);
 
+            auto dataPointer = resoucerData->Data();
             for (uint32_t subresourceIdx = 0; subresourceIdx < resourceDesc.GetNumSubresources(); subresourceIdx++)
             {
-                const auto& subresourceFootprint = resource->GetSubresourceFootprintAt(subresourceIdx);
+                const auto& subresourceFootprint = resoucerData->GetSubresourceFootprintAt(subresourceIdx);
 
                 ASSERT(subresourceFootprint.width * std::max(resourceDesc.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
 
-                auto subresourcePointer = reinterpret_cast<char*>(dataPointer) + subresourceFootprint.offset;
+                auto subresourcePointer = static_cast<char*>(dataPointer) + subresourceFootprint.offset;
 
                 file.write(subresourcePointer, subresourceFootprint.width);
             }

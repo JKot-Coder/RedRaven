@@ -26,6 +26,7 @@ source_group( "Debug" FILES ${DEBUG_SRC} )
 set( COMMON_SRC
     Check.cpp
     Config.hpp
+    DataBuffer.hpp
     EnumClassOperators.hpp
     Event.cpp
     Event.hpp

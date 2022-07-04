@@ -10,7 +10,7 @@ namespace OpenDemo
         {
             class CommandListImpl;
 
-            class InitialUploadsManager final
+            class InitialDataUploder final
             {
             public:
                 void Init();

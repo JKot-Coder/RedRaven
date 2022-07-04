@@ -24,13 +24,16 @@ namespace RR
             }
 
             void DeviceContext::Init(D3D12MA::Allocator* allocator,
-                                     const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue)
+                                     const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
+                                     std::shared_ptr<InitialDataUploder>& initialDataUploder)
             {
                 ASSERT(allocator);
                 ASSERT(graphicsCommandQueue);
+                ASSERT(initialDataUploder);
 
                 allocator_ = allocator;
                 graphicsCommandQueue_ = graphicsCommandQueue;
+                initialDataUploder_ = initialDataUploder;
             }
 
             void DeviceContext::Terminate()

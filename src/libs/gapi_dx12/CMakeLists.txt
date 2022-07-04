@@ -40,8 +40,6 @@ set(IMPL_SRC
 source_group( "Implementations" FILES ${IMPL_SRC} )
 
 set(SRC
-    #InitialUploadsManager.cpp
-    #InitialUploadsManager.hpp
     ComSharedPtr.hpp
     Config.hpp
     CpuResourceDataAllocator.cpp
@@ -54,6 +52,8 @@ set(SRC
     Device.hpp
     DeviceContext.cpp
     DeviceContext.hpp
+    InitialDataUploder.cpp
+    InitialDataUploder.hpp
     pch.hpp
     ResourceCreator.cpp
     ResourceCreator.hpp

@@ -42,7 +42,7 @@ namespace RR
             SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
             {
                 const auto sourceData = "1234567890qwertyasdfg";
-                const auto source = initBufferWithData(sourceData, commandList, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto source = initBufferWithData(sourceData, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint);
@@ -67,7 +67,7 @@ namespace RR
             SECTION(fmt::format("[Buffer::RawBuffer] Partical ClearUnorderedAccessViewFloat"))
             {
                 const auto sourceData = "1234567890qwertyasdfg";
-                const auto source = initBufferWithData(sourceData, commandList, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto source = initBufferWithData(sourceData, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);
@@ -95,7 +95,7 @@ namespace RR
                 const auto sourceData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Upload);
                 initResourceData(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, GAPI::GpuResourceUsage::Default, "Source");
+                auto source = renderContext.CreateTexture(description, nullptr, GAPI::GpuResourceUsage::Default, "Source");
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(0);
@@ -114,7 +114,7 @@ namespace RR
                     });
 
                 const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
-               // REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
+                // REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
             }
         }
     }

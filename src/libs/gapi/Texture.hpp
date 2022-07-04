@@ -23,14 +23,15 @@ namespace RR
         private:
             static SharedPtr Create(
                 const GpuResourceDescription& description,
+                IDataBuffer::SharedPtr initialData,
                 GpuResourceUsage usage,
                 const U8String& name)
             {
-                return SharedPtr(new Texture(description, usage, name));
+                return SharedPtr(new Texture(description, initialData, usage, name));
             }
 
-            Texture(const GpuResourceDescription& description, GpuResourceUsage usage, const U8String& name)
-                : GpuResource(description, usage, name) {};
+            Texture(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, GpuResourceUsage usage, const U8String& name)
+                : GpuResource(description, initialData, usage, name) {};
 
         private:
             friend class Render::DeviceContext;
