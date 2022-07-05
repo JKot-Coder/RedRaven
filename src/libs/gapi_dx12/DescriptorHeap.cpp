@@ -12,6 +12,7 @@ namespace RR
             {
                 // No any leaks
                 ASSERT(allocated_ == 0);
+                d3d12Heap_ = nullptr;
             }
 
             void DescriptorHeap::Init(const DescriptorHeapDesc& desc)

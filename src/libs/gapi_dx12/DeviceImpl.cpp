@@ -1,5 +1,6 @@
 #include "DeviceImpl.hpp"
 
+#include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Device.hpp"
@@ -16,6 +17,7 @@
 #include "gapi_dx12/DescriptorManager.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
+#include "gapi_dx12/InitialDataUploder.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -62,12 +64,13 @@ namespace RR
                 waitForGpu();
                 waitForGpu();
 
+                InitialDataUploder::Instance().Terminate();
+                DescriptorManager::Instance().Terminate();
+                ResourceReleaseContext::Instance().Terminate();
+
                 DeviceContext::GetGraphicsCommandQueue()->ImmediateD3DObjectRelease();
                 DeviceContext::Terminate();
                 gpuWaitFence_ = nullptr;
-
-                ResourceReleaseContext::Instance().Terminate();
-                DescriptorManager::Instance().Terminate();
 
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
@@ -120,6 +123,7 @@ namespace RR
 
                 ResourceReleaseContext::Instance().Init();
                 DescriptorManager::Instance().Init();
+                InitialDataUploder::Instance().Init();
 
                 DeviceContext::Init(
                     allocator,
@@ -179,24 +183,26 @@ namespace RR
                 return ResourceCreator::InitCommandList(resource);
             }
 
-            void DeviceImpl::InitTexture(Texture& resource) const
+            void DeviceImpl::InitTexture(const std::shared_ptr<Texture>& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
+                ASSERT(resource);
                 auto impl = std::make_unique<ResourceImpl>();
                 impl->Init(resource);
 
-                resource.SetPrivateImpl(impl.release());
+                resource->SetPrivateImpl(impl.release());
             }
 
-            void DeviceImpl::InitBuffer(Buffer& resource) const
+            void DeviceImpl::InitBuffer(const std::shared_ptr<Buffer>& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
+                ASSERT(resource);
                 auto impl = std::make_unique<ResourceImpl>();
                 impl->Init(resource);
 
-                resource.SetPrivateImpl(impl.release());
+                resource->SetPrivateImpl(impl.release());
             }
 
             void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
@@ -204,10 +210,10 @@ namespace RR
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
             }
-
+            /* 
             void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
             {
-                /* ASSERT_IS_CREATION_THREAD;
+                ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(commandList)
 
@@ -222,8 +228,8 @@ namespace RR
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
                 commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
-                */
-            }
+                
+            }*/
 
             void DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
             {

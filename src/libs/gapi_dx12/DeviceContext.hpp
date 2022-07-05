@@ -7,63 +7,52 @@ namespace D3D12MA
 
 namespace RR
 {
-    namespace GAPI
+    namespace GAPI::DX12
     {
-        namespace DX12
+        class DescriptorHeapSet;
+        class CommandQueueImpl;
+        class InitialDataUploder;
+
+        class DeviceContext
         {
-            class DescriptorHeapSet;
-            class CommandQueueImpl;
-            class InitialDataUploder;
+        public:
+            static void Init(const ComSharedPtr<ID3D12Device>& device,
+                             const ComSharedPtr<IDXGIFactory2>& dxgiFactory);
 
-            class DeviceContext
+            static void Init(D3D12MA::Allocator* allocator,
+                             const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue);
+
+            static void Terminate();
+
+            static D3D12MA::Allocator* GetAllocator()
             {
-            public:
-                static void Init(const ComSharedPtr<ID3D12Device>& device,
-                                 const ComSharedPtr<IDXGIFactory2>& dxgiFactory);
+                ASSERT(allocator_);
+                return allocator_;
+            }
 
-                static void Init(D3D12MA::Allocator* allocator,
-                                 const std::shared_ptr<CommandQueueImpl>& graphicsCommandQueue,
-                                 const std::shared_ptr<InitialDataUploder>& initialDataUploder);
+            static ComSharedPtr<ID3D12Device> GetDevice()
+            {
+                ASSERT(device_);
+                return device_;
+            }
 
-                static void Terminate();
+            static ComSharedPtr<IDXGIFactory2> GetDxgiFactory()
+            {
+                ASSERT(dxgiFactory_);
+                return dxgiFactory_;
+            }
 
-                static D3D12MA::Allocator* GetAllocator()
-                {
-                    ASSERT(allocator_);
-                    return allocator_;
-                }
+            static std::shared_ptr<CommandQueueImpl> GetGraphicsCommandQueue()
+            {
+                ASSERT(graphicsCommandQueue_);
+                return graphicsCommandQueue_;
+            }
 
-                static ComSharedPtr<ID3D12Device> GetDevice()
-                {
-                    ASSERT(device_);
-                    return device_;
-                }
-
-                static ComSharedPtr<IDXGIFactory2> GetDxgiFactory()
-                {
-                    ASSERT(dxgiFactory_);
-                    return dxgiFactory_;
-                }
-
-                static std::shared_ptr<CommandQueueImpl> GetGraphicsCommandQueue()
-                {
-                    ASSERT(graphicsCommandQueue_);
-                    return graphicsCommandQueue_;
-                }
-
-                static std::shared_ptr<InitialDataUploder> GetInitialDataUploader()
-                {
-                    ASSERT(initialDataUploder_);
-                    return initialDataUploder_;
-                }
-
-            private:
-                static D3D12MA::Allocator* allocator_;
-                static ComSharedPtr<ID3D12Device> device_;
-                static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
-                static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
-                static std::shared_ptr<InitialDataUploder> initialDataUploder_;
-            };
-        }
+        private:
+            static D3D12MA::Allocator* allocator_;
+            static ComSharedPtr<ID3D12Device> device_;
+            static ComSharedPtr<IDXGIFactory2> dxgiFactory_;
+            static std::shared_ptr<CommandQueueImpl> graphicsCommandQueue_;
+        };
     }
 }

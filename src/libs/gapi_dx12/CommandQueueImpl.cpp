@@ -6,6 +6,7 @@
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
+#include "gapi_dx12/InitialDataUploder.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
 namespace RR
@@ -14,15 +15,16 @@ namespace RR
     {
         namespace DX12
         {
-            namespace
+            CommandQueueImpl::CommandQueueImpl(CommandQueueType type)
             {
-                bool isListTypeCompatable(CommandQueueType commandQueueType, CommandListType commandListType)
+                switch (type)
                 {
-                    return (commandQueueType == CommandQueueType::Copy && commandListType == CommandListType::Copy) ||
-                           (commandQueueType == CommandQueueType::Compute && commandListType == CommandListType::Compute) ||
-                           (commandQueueType == CommandQueueType::Graphics && commandListType == CommandListType::Graphics);
+                    case CommandQueueType::Graphics: type_ = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+                    case CommandQueueType::Compute: type_ = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
+                    case CommandQueueType::Copy: type_ = D3D12_COMMAND_LIST_TYPE_COPY; break;
+                    default: LOG_FATAL("Unknown command queue type");
                 }
-            }
+            };
 
             CommandQueueImpl::~CommandQueueImpl()
             {
@@ -41,15 +43,8 @@ namespace RR
                 const auto& device = DeviceContext::GetDevice();
 
                 D3D12_COMMAND_QUEUE_DESC desc = {};
+                desc.Type = type_;
                 desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-
-                switch (type_)
-                {
-                    case CommandQueueType::Graphics: desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
-                    case CommandQueueType::Compute: desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
-                    case CommandQueueType::Copy: desc.Type = D3D12_COMMAND_LIST_TYPE_COPY; break;
-                    default: LOG_FATAL("Unsuported command queue type");
-                }
 
                 D3DCall(device->CreateCommandQueue(&desc, IID_PPV_ARGS(D3DCommandQueue_.put())));
                 D3DUtils::SetAPIName(D3DCommandQueue_.get(), name);
@@ -58,36 +53,52 @@ namespace RR
                 fence_->Init(name);
             }
 
-            void CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
+            void CommandQueueImpl::Submit(CommandListImpl& commandList, bool waitForPendingUploads)
             {
                 ASSERT(D3DCommandQueue_);
+                ASSERT(type_ == commandList.GetType());
+
+                if (waitForPendingUploads)
+                    InitialDataUploder::Instance().FlushAndWaitFor(*this);
+
+                std::array<ID3D12CommandList*, 2> commandLists;
+                size_t numCommandLists = 0;
+
+                auto pushCommandList = [&commandLists, &numCommandLists](const CommandListImpl& commandList)
+                {
+                    const auto& d3dCommandList = commandList.GetD3DObject();
+                    ASSERT(d3dCommandList);
+
+                    commandLists[numCommandLists] = d3dCommandList.get();
+                    numCommandLists++;
+                };
+
+                pushCommandList(commandList);
+
+                D3DCommandQueue_->ExecuteCommandLists(numCommandLists, commandLists.data());
+                commandList.ResetAfterSubmit(*this);
+            }
+
+            void CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)
+            {
                 ASSERT(commandList);
-                ASSERT(isListTypeCompatable(type_, commandList->GetCommandListType()));
 
                 const auto& commandListImpl = commandList->GetPrivateImpl<CommandListImpl>();
                 ASSERT(commandListImpl);
 
-                const auto& d3dCommandList = commandListImpl->GetD3DObject();
-                ASSERT(d3dCommandList);
-
-                ID3D12CommandList* commandLists[] = { d3dCommandList.get() };
-                D3DCommandQueue_->ExecuteCommandLists(1, commandLists);
-
-                commandListImpl->ResetAfterSubmit(*this);
+                Submit(*commandListImpl, true);
             }
 
-            void CommandQueueImpl::Signal(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
+            void CommandQueueImpl::Signal(const FenceImpl& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
-                D3DCall(D3DCommandQueue_->Signal(fence.get(), value));
+                D3DCall(D3DCommandQueue_->Signal(fence.GetD3DObject().get(), value));
             }
 
-            void CommandQueueImpl::Wait(const ComSharedPtr<ID3D12Fence>& fence, uint64_t value)
+            void CommandQueueImpl::Wait(const FenceImpl& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
-                ASSERT(fence);
-
-                D3DCall(D3DCommandQueue_->Wait(fence.get(), value));
+                D3DCall(D3DCommandQueue_->Wait(fence.GetD3DObject().get(), value));
             }
 
             void CommandQueueImpl::WaitForGpu()

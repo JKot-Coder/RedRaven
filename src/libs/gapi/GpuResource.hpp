@@ -481,7 +481,7 @@ namespace RR
             inline const bool IsTexture() const { return description_.dimension_ != GpuResourceDimension::Buffer; }
             inline const GpuResourceDescription& GetDescription() const { return description_; }
             inline GpuResourceUsage GetUsage() const { return usage_; }
-            inline const IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
+            inline IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
 
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
@@ -490,6 +490,12 @@ namespace RR
             {
                 const auto& footprints = GetPrivateImpl()->GetSubresourceFootprints(description_);
                 return std::make_shared<ResourceData>(0, std::static_pointer_cast<GpuResource>(shared_from_this()), footprints);
+            }
+
+            inline void ResetInitialData()
+            {
+                ASSERT(initialData_);
+                initialData_.reset();
             }
 
         private:

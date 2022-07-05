@@ -230,6 +230,7 @@ namespace RR
             {
                 ASSERT(isInited_);
 
+                std::destroy(std::begin(nullRtvDescriptors_), std::end(nullRtvDescriptors_));
                 cbvUavSrvDescriptorHeap_ = nullptr;
                 rtvDescriptorHeap_ = nullptr;
 

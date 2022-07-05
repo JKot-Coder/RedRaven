@@ -4,6 +4,7 @@
 #include "common/Time.hpp"
 #include "common/debug/LeakDetector.hpp"
 
+#include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
@@ -14,8 +15,8 @@
 
 #include "render/DeviceContext.hpp"
 
+#include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
-#include "platform/WindowSystem.hpp"
 
 namespace RR
 {
@@ -180,16 +181,25 @@ namespace RR
         }
 
     }
-    void Application::OnWindowResize(uint32_t width, uint32_t height)
+    void Application::OnWindowResize(const Platform::Window&, const Vector2i& size)
     {
         GAPI::SwapChainDescription desc = swapChain_->GetDescription();
-        desc.width = width;
-        desc.height = height;
+        desc.width = size.x;
+        desc.height = size.y;
 
         auto& renderContext = Render::DeviceContext::Instance();
         renderContext.ResetSwapChain(swapChain_, desc);
 
         swindex = 0;
+    }
+
+    GAPI::Buffer::SharedPtr initBufferWithData(const char* data, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::ShaderResource)
+    {
+        const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
+        const auto& description = GAPI::GpuResourceDescription::Buffer(uint32_t(dataBuffer->Size()), bindFlags);
+
+        auto& renderContext = Render::DeviceContext::Instance();
+        return renderContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, "Source");
     }
 
     void Application::Start()
@@ -227,12 +237,12 @@ namespace RR
 
         const auto& description = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
 
-        const auto cpuData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-        const auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
+        auto cpuData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+        auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
 
         initTextureData(description, cpuData);
 
-        auto testTexture = renderContext.CreateTexture(description, GAPI::GpuResourceCpuAccess::None, "Test");
+        auto testTexture = renderContext.CreateTexture(description, nullptr, GAPI::GpuResourceUsage::Default, "Test");
 
         GAPI::SwapChainDescription desciption = {};
         desciption.width = 100;
@@ -246,11 +256,11 @@ namespace RR
 
         auto fence = renderContext.CreateFence("qwe");
 
-        const auto& windowSystem = Platform::WindowSystem::Instance();
+        const auto& platform = Platform::Toolkit::Instance();
 
         while (!_quit)
         {
-            windowSystem.PoolEvents();
+            platform.PoolEvents();
             //Platform::WindowSystem::PoolEvents();
 
             // renderContext.Submit(commandQueue, commandList);
@@ -270,24 +280,42 @@ namespace RR
             std::shared_ptr<GAPI::CpuResourceData> readbackData1;
 
             renderContext.ExecuteAsync(
-                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData, &readbackData1](GAPI::Device& device) {
+                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData, &readbackData1](GAPI::Device& device)
+                {
                     std::ignore = device;
 
-                    auto swapChainTexture = swapChain->GetTexture(index2);
+                    auto swapChainTexture = swapChain->GetBackBufferTexture(index2);
                     //Log::Print::Info("Texture %s\n", texture->GetName());
+
                     {
+                        const auto sourceData = "1234567890";
+                        auto source = initBufferWithData(sourceData);
+
+                        const auto destData = "QWERTYUIOP";
+                        auto dest = initBufferWithData(destData);
+
                         auto& renderContext = Render::DeviceContext::Instance();
+                        const auto& description = GAPI::GpuResourceDescription::Buffer(uint32_t(strlen(destData)));
+                        readbackData1 = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
+
+                        commandList->CopyBufferRegion(source, 5, dest, 3, 4);
+                        commandList->ReadbackGpuResource(dest, readbackData1);
+                        commandList->Close();
+                    }
+
+                    {
+                        /* auto& renderContext = Render::DeviceContext::Instance();
 
                         const auto& sourceDescription = GAPI::GpuResourceDescription::Texture3D(256, 256, 256, GAPI::GpuResourceFormat::RGBA8Uint);
                         const auto sourceData = renderContext.AllocateIntermediateResourceData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        auto source = renderContext.CreateTexture(sourceDescription, GAPI::GpuResourceCpuAccess::None, "Source");
+                        auto source = renderContext.CreateTexture(sourceDescription, nullptr, GAPI::GpuResourceUsage::Default, "Source");
 
                         initTextureData(sourceDescription, sourceData);
                         commandList->UpdateGpuResource(source, sourceData);
 
                         const auto& destDescription = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
                         const auto destData = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Upload);
-                        auto dest = renderContext.CreateTexture(destDescription, GAPI::GpuResourceCpuAccess::None, "Dest");
+                        auto dest = renderContext.CreateTexture(destDescription, nullptr, GAPI::GpuResourceUsage::Default, "Dest");
 
                         initTextureData(destDescription, destData);
                         commandList->UpdateGpuResource(dest, destData);
@@ -299,7 +327,7 @@ namespace RR
                         readbackData1 = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Readback);
                         commandList->ReadbackGpuResource(dest, readbackData1);
 
-                        commandList->Close();
+                        commandList->Close();*/
                     }
                     /*
                     auto swapChainRtv = swapChainTexture->GetRTV();
@@ -319,7 +347,7 @@ namespace RR
 
                     commandList->Close();*/
                 });
-
+            /*
             renderContext.Submit(commandQueue, commandList);
             renderContext.WaitForGpu(commandQueue);
 
@@ -329,7 +357,21 @@ namespace RR
             ON_SCOPE_EXIT(
                 {
                     readbackData1->GetAllocation()->Unmap();
-                })
+                })*/
+
+            renderContext.Submit(commandQueue, commandList);
+            renderContext.WaitForGpu(commandQueue);
+
+            const auto dataPointer = static_cast<uint8_t*>(readbackData1->GetAllocation()->Map());
+            ON_SCOPE_EXIT(
+                {
+                    readbackData1->GetAllocation()->Unmap();
+                });
+
+            std::ignore = dataPointer;
+
+            // const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
+            // REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
 
             renderContext.Present(swapChain_);
             renderContext.MoveToNextFrame(commandQueue);
@@ -340,6 +382,10 @@ namespace RR
             time->Update();
         }
 
+        cpuData = nullptr;
+        readbackData = nullptr;
+        texture = nullptr;
+        testTexture = nullptr;
         commandQueue = nullptr;
         commandList = nullptr;
 
@@ -352,7 +398,7 @@ namespace RR
         terminate();
     }
 
-    void Application::OnClose()
+    void Application::OnClose(const Platform::Window&)
     {
         _quit = true;
     }
@@ -360,15 +406,16 @@ namespace RR
     void Application::init()
     {
         Platform::Window::Description windowDesc;
-        windowDesc.Width = 800;
-        windowDesc.Height = 600;
-        windowDesc.Title = "Demo";
+        windowDesc.size = Vector2i(800, 600);
+        windowDesc.title = "Demo";
 
-        auto& windowSystem = Platform::WindowSystem::Instance();
-        windowSystem.Init();
+        auto& platform = Platform::Toolkit::Instance();
+        platform.Init();
 
-        _window = windowSystem.Create(this, windowDesc);
+        _window = platform.CreatePlatformWindow(windowDesc);
         ASSERT(_window);
+        _window->OnClose.Subscribe<Application, &Application::OnClose>(this);
+        _window->OnResize.Subscribe<Application, &Application::OnWindowResize>(this);
 
         // Inputting::Instance()->Init();
         // Inputting::Instance()->SubscribeToWindow(_window);

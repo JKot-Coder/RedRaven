@@ -1,8 +1,10 @@
 #include "ResourceReleaseContext.hpp"
 
-#include "common/threading/Mutex.hpp"
+#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
+
+#include "common/threading/Mutex.hpp"
 
 namespace RR
 {
@@ -29,6 +31,23 @@ namespace RR
 
             void ResourceReleaseContext::Terminate()
             {
+                ASSERT(inited_);
+
+                const auto gpuFenceValue = fence_->GetGpuValue();
+                while (!queue_.empty())
+                {
+                    ASSERT(queue_.front().cpuFrameIndex >= gpuFenceValue);
+
+                    auto& allocation = queue_.front().allocation;
+
+                    if (allocation)
+                        allocation->Release();
+
+                    allocation = nullptr;
+
+                    queue_.pop();
+                }
+
                 inited_ = false;
                 fence_ = nullptr;
             }

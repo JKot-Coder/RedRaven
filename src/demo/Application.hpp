@@ -1,22 +1,22 @@
 #pragma once
 
 #include "gapi/Device.hpp"
-#include "platform/WindowSystem.hpp"
+#include "platform/Toolkit.hpp"
 
 namespace RR
 {
     namespace Platform
     {
-        class InputtingWindow;
+        class Window;
     }
 
-    class Application : public Platform::Window::ICallbacks
+    class Application
     {
     public:
         Application() = default;
 
         void Start();
-        virtual void OnClose() override;
+        void OnClose(const Platform::Window&);
 
     private:
         bool _quit = false;
@@ -29,6 +29,6 @@ namespace RR
 
         void loadResouces();
 
-        void OnWindowResize(uint32_t width, uint32_t height) override;
+        void OnWindowResize(const Platform::Window&, const Vector2i& size);
     };
 }

@@ -1,28 +1,47 @@
 #pragma once
 
-#include "common/threading/Mutex.hpp"
+#include "common/RingBuffer.hpp"
+#include "common/Singleton.hpp"
+#include "common/threading/SpinLock.hpp"
 
-namespace OpenDemo
+namespace RR
 {
-    namespace GAPI
+    namespace Common
     {
-        namespace DX12
+        class IDataBuffer;
+    }
+
+    namespace GAPI::DX12
+    {
+        class CommandListImpl;
+        class CommandQueueImpl;
+        class FenceImpl;
+        class ResourceImpl;
+
+        class InitialDataUploder final : public Singleton<InitialDataUploder>
         {
-            class CommandListImpl;
+        public:
+            InitialDataUploder();
+            void Init();
+            void Terminate();
+            void DefferedUpload(const ResourceImpl& resource, const std::shared_ptr<IDataBuffer>& initialData);
+            void FlushAndWaitFor(CommandQueueImpl& commandQueue);
 
-            class InitialDataUploder final
-            {
-            public:
-                void Init();
-                void DefferedUploadTexture(const std::shared_ptr<Texture>& texture, const std::shared_ptr<IntermediateMemory>& textureData);
+        private:
+            void submit();
 
-                void PerformUploads();
+        private:
+            static constexpr size_t UploadBatchSize = 16;
+        
+        private:
+            bool inited_ = false;
 
-            private:
-                std::unique_ptr<CommandListImpl> commandList_;
-                std::atomic_bool isWaitingDefferdCommands;
-                Threading::Mutex mutex_;
-            };
-        }
+            std::unique_ptr<FenceImpl> fence_;
+            std::unique_ptr<CommandQueueImpl> commandQueue_;
+            std::unique_ptr<CommandListImpl> commandList_;
+            size_t pendingDefferedUploads;
+
+            Threading::SpinLock spinlock_;
+        };
     }
 }

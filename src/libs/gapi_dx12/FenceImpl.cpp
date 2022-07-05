@@ -49,7 +49,8 @@ namespace RR
 
                 cpuValue_++;
 
-                queue.Signal(D3DFence_, cpuValue_);
+                //Todo reverse dependecies;
+                queue.Signal(*this, cpuValue_);
             }
 
             void FenceImpl::SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const
@@ -74,7 +75,7 @@ namespace RR
                 ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetPrivateImpl()));
 
                 const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetPrivateImpl());
-                queueImpl->Wait(D3DFence_, cpuValue_);
+                queueImpl->Wait(*this, cpuValue_);
             }
         }
     }

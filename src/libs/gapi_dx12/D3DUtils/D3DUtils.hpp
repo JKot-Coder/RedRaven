@@ -56,15 +56,16 @@ namespace RR
                 }
 
                 template <typename T>
-                inline void SetAPIName(const T& apiObject, const U8String& name)
+                inline void SetAPIName(const T& apiObject, const U8String& name, int32_t index = -1)
                 {
-                    apiObject->SetName(StringConversions::UTF8ToWString(fmt::format(FMT_STRING("{}::{}"), GetTypeName<T>(), name)).c_str());
-                }
-
-                template <typename T>
-                inline void SetAPIName(const T& apiObject, const U8String& name, int index)
-                {
-                    apiObject->SetName(StringConversions::UTF8ToWString(fmt::format(FMT_STRING("{}::{}_{:02}"), GetTypeName<T>(), name, index)).c_str());
+                    if (index > 0)
+                    {
+                        apiObject->SetName(StringConversions::UTF8ToWString(fmt::format(FMT_STRING("{}::{}_{:02}"), GetTypeName<T>(), name, index)).c_str());
+                    }
+                    else
+                    {
+                        apiObject->SetName(StringConversions::UTF8ToWString(fmt::format(FMT_STRING("{}::{}"), GetTypeName<T>(), name)).c_str());
+                    }
                 }
 #else
                 template <typename T>

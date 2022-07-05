@@ -221,7 +221,7 @@ namespace RR
             ASSERT(inited_);
 
             auto& resource = GAPI::Buffer::Create(desc, initialData, usage, name);
-            submission_->GetIMultiThreadDevice().lock()->InitBuffer(*resource.get());
+            submission_->GetIMultiThreadDevice().lock()->InitBuffer(resource);
 
             return resource;
         }
@@ -235,7 +235,7 @@ namespace RR
             ASSERT(inited_);
 
             auto& resource = GAPI::Texture::Create(desc, initialData, usage, name);
-            submission_->GetIMultiThreadDevice().lock()->InitTexture(*resource.get());
+            submission_->GetIMultiThreadDevice().lock()->InitTexture(resource);
 
             return resource;
         }

@@ -1,6 +1,7 @@
 #include "SwapChainImpl.hpp"
 
 #include "gapi/SwapChain.hpp"
+#include "gapi/Texture.hpp"
 
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
@@ -56,7 +57,7 @@ namespace RR
                 if (!swapChain1.try_as(D3DSwapChain_))
                     LOG_FATAL("Failed to cast swapchain");
                 // TODO DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
-                 D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);
+                D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);
             }
 
             void SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)

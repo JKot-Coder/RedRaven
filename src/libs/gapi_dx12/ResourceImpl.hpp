@@ -1,7 +1,6 @@
 #pragma once
 
-#include "gapi/Buffer.hpp"
-#include "gapi/Texture.hpp"
+#include "gapi/GpuResource.hpp"
 
 namespace D3D12MA
 {
@@ -10,37 +9,32 @@ namespace D3D12MA
 
 namespace RR
 {
-    namespace GAPI
+    namespace GAPI::DX12
     {
-        namespace DX12
+        class ResourceImpl final : public IGpuResource
         {
-            class ResourceImpl final : public IGpuResource
-            {
-            public:
-                ResourceImpl() = default;
-                ~ResourceImpl();
+        public:
+            ResourceImpl() = default;
+            ~ResourceImpl();
 
-                void Init(const Buffer& resource);
-                void Init(const Texture& resource);
-                void Init(const GpuResourceDescription& resourceDesc, const IDataBuffer::SharedPtr& initialData, GpuResourceUsage usage, const U8String& name);
+            void Init(const std::shared_ptr<GpuResource>& resource);
+            void Init(const GpuResourceDescription& resourceDesc, GpuResourceUsage usage, const U8String& name);
+            void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 
-                void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
+            std::any GetRawHandle() const override { return D3DResource_.get(); }
+            D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
 
-                std::any GetRawHandle() const override { return D3DResource_.get(); }
-                D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
+            std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
 
-                std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
+            void* Map() override;
+            void Unmap() override;
 
-                void* Map() override;
-                void Unmap() override;
+            const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
-                const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
-
-            private:
-                ComSharedPtr<ID3D12Resource> D3DResource_;
-                D3D12MA::Allocation* allocation_;
-                D3D12_RESOURCE_STATES defaultState_;
-            };
-        }
+        private:
+            ComSharedPtr<ID3D12Resource> D3DResource_;
+            D3D12MA::Allocation* allocation_;
+            D3D12_RESOURCE_STATES defaultState_;
+        };
     }
 }

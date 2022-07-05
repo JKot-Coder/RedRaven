@@ -47,6 +47,7 @@ namespace RR
             if (backBuffers_[index])
                 return backBuffers_[index];
 
+            // TODO  description_.width = 0 sometimes happends
             const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource, 1, 1);
             auto& renderContext = Render::DeviceContext::Instance();
 
