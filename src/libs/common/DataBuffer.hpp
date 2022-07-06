@@ -10,8 +10,8 @@ namespace RR::Common
     public:
         virtual ~IDataBuffer() = default;
 
-        virtual size_t Size() = 0;
-        virtual void* Data() = 0;
+        virtual size_t Size() const = 0;
+        virtual void* Data() const = 0;
     };
 
     class DataBuffer final : public IDataBuffer
@@ -26,8 +26,8 @@ namespace RR::Common
         }
         ~DataBuffer() { delete[] data_; }
 
-        size_t Size() override { return size_; }
-        void* Data() override { return data_; }
+        size_t Size() const override { return size_; }
+        void* Data() const override { return data_; }
 
     private:
         size_t size_;

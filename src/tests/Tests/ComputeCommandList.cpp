@@ -42,7 +42,7 @@ namespace RR
             SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
             {
                 const auto sourceData = "1234567890qwertyasdfg";
-                const auto source = initBufferWithData(sourceData, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto source = createBufferWithData(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint);
@@ -67,7 +67,7 @@ namespace RR
             SECTION(fmt::format("[Buffer::RawBuffer] Partical ClearUnorderedAccessViewFloat"))
             {
                 const auto sourceData = "1234567890qwertyasdfg";
-                const auto source = initBufferWithData(sourceData, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto source = createBufferWithData(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);

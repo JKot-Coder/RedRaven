@@ -445,34 +445,6 @@ namespace RR
             using SharedConstPtr = std::shared_ptr<const GpuResource>;
             using WeakPtr = std::weak_ptr<GpuResource>;
 
-            class ResourceData : public IDataBuffer
-            {
-            public:
-                ResourceData(size_t size, const GpuResource::SharedPtr& resource, const std::vector<CpuResourceData::SubresourceFootprint>& footprints)
-                    : size_(size), resource_(resource), footprints_(footprints)
-                {
-                    data_ = resource_->Map();
-                }
-
-                ~ResourceData() { resource_->Unmap(); }
-
-                const std::vector<CpuResourceData::SubresourceFootprint>& GetSubresourceFootprints() const { return footprints_; }
-                CpuResourceData::SubresourceFootprint GetSubresourceFootprintAt(uint32_t subresourceIndex) const
-                {
-                    ASSERT(subresourceIndex < footprints_.size());
-                    return footprints_[subresourceIndex];
-                }
-
-                size_t Size() override { return size_; }
-                void* Data() override { return data_; }
-
-            private:
-                size_t size_;
-                void* data_;
-                std::vector<CpuResourceData::SubresourceFootprint> footprints_;
-                GpuResource::SharedPtr resource_;
-            };
-
         public:
             template <typename Type>
             std::shared_ptr<Type> GetTyped();
@@ -486,10 +458,9 @@ namespace RR
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
 
-            inline std::shared_ptr<ResourceData> GetResourceData()
+            inline std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints()
             {
-                const auto& footprints = GetPrivateImpl()->GetSubresourceFootprints(description_);
-                return std::make_shared<ResourceData>(0, std::static_pointer_cast<GpuResource>(shared_from_this()), footprints);
+                return GetPrivateImpl()->GetSubresourceFootprints(description_);
             }
 
             inline void ResetInitialData()
@@ -498,11 +469,8 @@ namespace RR
                 initialData_.reset();
             }
 
-        private:
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
-
-            friend ResourceData;
 
         protected:
             GpuResource(GpuResourceDescription description, IDataBuffer::SharedPtr initialData, GpuResourceUsage usage, const U8String& name)
@@ -529,5 +497,25 @@ namespace RR
 
         template <>
         std::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>();
+
+        class GpuResourceDataGuard : public IDataBuffer
+        {
+        public:
+            GpuResourceDataGuard(const GpuResource::SharedPtr& resource)
+                : size_(0), resource_(resource)
+            {
+                data_ = resource_->Map();
+            }
+
+            ~GpuResourceDataGuard() { resource_->Unmap(); }
+
+            size_t Size() const override { return size_; }
+            void* Data() const override { return data_; }
+
+        private:
+            size_t size_;
+            void* data_;
+            GpuResource::SharedPtr resource_;
+        };
     }
 }

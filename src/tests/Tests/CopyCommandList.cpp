@@ -155,10 +155,10 @@ namespace RR
                 DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer region", formatName))
                 {
                     const auto sourceData = "1234567890";
-                    auto source = initBufferWithData(sourceData);
+                    auto source = createBufferWithData(sourceData, "Source");
 
                     const auto destData = "QWERTYUIOP";
-                    auto dest = initBufferWithData(destData);
+                    auto dest = createBufferWithData(destData, "Dest");
 
                     const auto testData = "QWE6789IOP";
 
@@ -286,10 +286,10 @@ namespace RR
                 DYNAMIC_SECTION(fmt::format("[Buffer::{}] Copy buffer region", formatName))
                 {
                     const auto sourceData = "1234567890";
-                    auto source = initBufferWithData(sourceData);
+                    auto source = createBufferWithData(sourceData, "Source");
 
                     const auto destData = "QWERTYUIOP";
-                    auto dest = initBufferWithData(destData);
+                    auto dest = createBufferWithData(destData, "Dest");
 
                     const auto testData = "QWE6789IOP";
 
@@ -302,11 +302,10 @@ namespace RR
 
                     submitAndWait(queue, commandList);
 
-                    const auto& resourceData = readbackBuffer->GetResourceData();
-                    const auto dataPointer = static_cast<uint8_t*>(resourceData->Data());
+                    const auto resouceData = GAPI::GpuResourceDataGuard(readbackBuffer);
 
-                    const auto& footprint = resourceData->GetSubresourceFootprintAt(0);
-                    REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
+                    const auto& footprint = readbackBuffer->GetSubresourceFootprints()[0];
+                    REQUIRE(memcmp(resouceData.Data(), testData, footprint.rowSizeInBytes) == 0);
                 }
             }
         }

@@ -126,11 +126,9 @@ namespace RR
                 ASSERT(resource->IsBuffer());
 
                 const auto& description = resource->GetDescription();
+                const auto resourceData = GAPI::GpuResourceDataGuard(resource);
 
-                const auto& resourceData = resource->GetResourceData();
-                const auto dataPointer = resourceData->Data();
-
-                const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
+                const auto& subresourceFootprints = resource->GetSubresourceFootprints();
 
                 std::array<uint8_t, 10> testBufferData = { 0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42 };
 
@@ -139,9 +137,9 @@ namespace RR
                     const auto& subresourceFootprint = subresourceFootprints[index];
                     ASSERT(subresourceFootprint.width * std::max(description.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
 
-                    auto subresourcePointer = reinterpret_cast<uint8_t*>(dataPointer) + subresourceFootprint.offset;
+                    auto subresourcePointer = reinterpret_cast<uint8_t*>(resourceData.Data()) + subresourceFootprint.offset;
 
-                    for (uint32_t byte = 0; byte < subresourceFootprint.width; byte++)
+                    for (uint32_t byte = 0; byte < subresourceFootprint.width * std::max(description.GetStructSize(), 1u); byte++)
                     {
                         *subresourcePointer = testBufferData[byte % testBufferData.size()];
                         subresourcePointer++;
@@ -195,12 +193,12 @@ namespace RR
             }
         }
 
-        GAPI::Buffer::SharedPtr TestContextFixture::initBufferWithData(const char* data, GAPI::GpuResourceBindFlags bindFlags)
+        GAPI::Buffer::SharedPtr TestContextFixture::createBufferWithData(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
             const auto& description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), bindFlags);
 
-            return renderContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, "Source");
+            return renderContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, name);
         }
 
         bool TestContextFixture::isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,

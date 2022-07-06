@@ -15,8 +15,8 @@ namespace RR::Tests
             ASSERT(resource);
 
             const auto& resourceDesc = resource->GetDescription();
-
-            const auto& resoucerData = resource->GetResourceData();
+            const auto& resourceFootprints = resource->GetSubresourceFootprints();
+            const auto resoucerData = GAPI::GpuResourceDataGuard(resource);
 
             std::fstream file;
             ON_SCOPE_EXIT({ file.close(); });
@@ -24,16 +24,13 @@ namespace RR::Tests
             file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
             file.open(path, std::ios::out | std::ios::binary);
 
-            auto dataPointer = resoucerData->Data();
-            for (uint32_t subresourceIdx = 0; subresourceIdx < resourceDesc.GetNumSubresources(); subresourceIdx++)
+            for (uint32_t subresourceIdx = 0; subresourceIdx < resourceFootprints.size(); subresourceIdx++)
             {
-                const auto& subresourceFootprint = resoucerData->GetSubresourceFootprintAt(subresourceIdx);
-
+                const auto& subresourceFootprint = resourceFootprints[subresourceIdx];
                 ASSERT(subresourceFootprint.width * std::max(resourceDesc.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
 
-                auto subresourcePointer = static_cast<char*>(dataPointer) + subresourceFootprint.offset;
-
-                file.write(subresourcePointer, subresourceFootprint.width);
+                auto subresourcePointer = static_cast<char*>(resoucerData.Data()) + subresourceFootprint.offset;
+                file.write(subresourcePointer, subresourceFootprint.width * std::max(resourceDesc.GetStructSize(), 1u));
             }
         }
 
