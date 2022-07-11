@@ -1,5 +1,8 @@
 #include "ResourceImpl.hpp"
 
+#include "gapi/Buffer.hpp"
+#include "gapi/Texture.hpp"
+
 #include "gapi_dx12/CommandListImpl.hpp" // TODO ??
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
@@ -92,11 +95,22 @@ namespace RR
         {
             ASSERT(resource);
 
-            const auto usage = resource->GetUsage();
+            GpuResourceUsage usage;
 
-            Init(resource->GetDescription(),
-                 usage,
-                 resource->GetName());
+            //Todo shitty code
+            if (resource->IsTexture())
+            {
+                const auto& desc = resource->GetTyped<Texture>()->GetDescription();
+                usage = desc.usage;
+                Init(desc, resource->GetName());
+            }
+
+            if (resource->IsBuffer())
+            {
+                const auto& desc = resource->GetTyped<Texture>()->GetDescription();
+                usage = desc.usage;
+                Init(desc, resource->GetName());
+            }
 
             const auto& initialData = resource->GetInitialData();
             ASSERT_MSG(!initialData || (usage == GpuResourceUsage::Default), "Initial resource data can only be applied to a resource with 'Default' usage.");
@@ -143,6 +157,47 @@ namespace RR
             D3DCall(
                 DeviceContext::GetDevice()->CreateCommittedResource(
                     getHeapProperties(usage),
+                    D3D12_HEAP_FLAG_NONE,
+                    &d3dResourceDesc,
+                    defaultState_,
+                    pOptimizedClearValue,
+                    IID_PPV_ARGS(D3DResource_.put())));
+
+            D3DUtils::SetAPIName(D3DResource_.get(), name);
+        }
+
+        template <typename DescriptionType>
+        void ResourceImpl::Init(const DescriptionType& desc, const U8String& name)
+        {
+            // TextureDesc ASSERT checks done on Texture initialization;
+            ASSERT(!D3DResource_);
+
+            const bool isCPUAccessible = (desc.usage == GpuResourceUsage::Readback || desc.usage == GpuResourceUsage::Upload);
+
+            D3D12_RESOURCE_DESC d3dResourceDesc = D3DUtils::GetResourceDesc(desc);
+
+            const auto& device = DeviceContext::GetDevice();
+
+            UINT64 intermediateSize;
+            device->GetCopyableFootprints(&d3dResourceDesc, 0, desc.GetNumSubresources(), 0, nullptr, nullptr, nullptr, &intermediateSize);
+
+            const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(desc.format);
+
+            D3D12_CLEAR_VALUE optimizedClearValue;
+            D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
+            getOptimizedClearValue(desc.bindFlags, format, pOptimizedClearValue);
+
+            if (isCPUAccessible)
+            {
+                // Dx12 don't allow textures for Upload and Readback resorces.
+                d3dResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(intermediateSize);
+            };
+
+            defaultState_ = getDefaultResourceState(desc.usage);
+
+            D3DCall(
+                DeviceContext::GetDevice()->CreateCommittedResource(
+                    getHeapProperties(desc.usage),
                     D3D12_HEAP_FLAG_NONE,
                     &d3dResourceDesc,
                     defaultState_,

@@ -27,10 +27,10 @@ namespace RR::Tests
             for (uint32_t subresourceIdx = 0; subresourceIdx < resourceFootprints.size(); subresourceIdx++)
             {
                 const auto& subresourceFootprint = resourceFootprints[subresourceIdx];
-                ASSERT(subresourceFootprint.width * std::max(resourceDesc.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
+                ASSERT(subresourceFootprint.width * resourceDesc.stride == subresourceFootprint.rowSizeInBytes);
 
                 auto subresourcePointer = static_cast<char*>(resoucerData.Data()) + subresourceFootprint.offset;
-                file.write(subresourcePointer, subresourceFootprint.width * std::max(resourceDesc.GetStructSize(), 1u));
+                file.write(subresourcePointer, subresourceFootprint.width * resourceDesc.stride);
             }
         }
 

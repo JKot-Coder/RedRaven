@@ -163,6 +163,12 @@ namespace RR
             Count
         };
 
+        enum class GpuResourceType : uint32_t
+        {
+            Buffer,
+            Texture,
+        };
+
         struct GpuResourceDescription
         {
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
@@ -449,19 +455,13 @@ namespace RR
             template <typename Type>
             std::shared_ptr<Type> GetTyped();
 
-            inline const bool IsBuffer() const { return description_.dimension_ == GpuResourceDimension::Buffer; }
-            inline const bool IsTexture() const { return description_.dimension_ != GpuResourceDimension::Buffer; }
-            inline const GpuResourceDescription& GetDescription() const { return description_; }
-            inline GpuResourceUsage GetUsage() const { return usage_; }
+            inline const GpuResourceType GetResourceType() const { return resourceType_; }
+            inline const bool IsBuffer() const { return resourceType_ == GpuResourceType::Buffer; }
+            inline const bool IsTexture() const { return resourceType_ != GpuResourceType::Buffer; }
             inline IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
 
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
-
-            inline std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints()
-            {
-                return GetPrivateImpl()->GetSubresourceFootprints(description_);
-            }
 
             inline void ResetInitialData()
             {
@@ -473,18 +473,13 @@ namespace RR
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
-            GpuResource(GpuResourceDescription description, IDataBuffer::SharedPtr initialData, GpuResourceUsage usage, const U8String& name)
+            GpuResource(GpuResourceType resourceType, IDataBuffer::SharedPtr initialData, const U8String& name)
                 : Resource(Object::Type::GpuResource, name),
-                  description_(description),
-                  initialData_(initialData),
-                  usage_(usage)
-            {
-                ASSERT(description.IsValid());
-            };
+                  resourceType_(resourceType),
+                  initialData_(initialData) {};
 
-            GpuResourceDescription description_;
+            GpuResourceType resourceType_;
             IDataBuffer::SharedPtr initialData_;
-            GpuResourceUsage usage_;
 
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
             std::unordered_map<GpuResourceViewDescription, std::shared_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;

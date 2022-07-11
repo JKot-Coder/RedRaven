@@ -81,6 +81,8 @@ namespace RR
 
                 D3D12_RESOURCE_FLAGS GetResourceFlags(GpuResourceBindFlags flags);
                 D3D12_RESOURCE_DESC GetResourceDesc(const GpuResourceDescription& resourceDesc);
+                D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc);
+                D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc);
 
                 bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right);
                 DXGI_SWAP_CHAIN_DESC1 GetDxgiSwapChainDesc1(const PresentOptions& presentOptions, DXGI_SWAP_EFFECT swapEffect);

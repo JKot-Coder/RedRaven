@@ -19,6 +19,8 @@ namespace RR
 
             void Init(const std::shared_ptr<GpuResource>& resource);
             void Init(const GpuResourceDescription& resourceDesc, GpuResourceUsage usage, const U8String& name);
+            template<typename DescriptionType>
+            void Init(const DescriptionType& desc, const U8String& name);
             void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);
 
             std::any GetRawHandle() const override { return D3DResource_.get(); }

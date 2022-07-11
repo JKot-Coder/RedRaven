@@ -120,8 +120,8 @@ namespace RR
                 ASSERT(resource);
                 ASSERT(!resource->GetPrivateImpl());
                 ASSERT(D3DSwapChain_);
-                ASSERT(resource->GetUsage() == GpuResourceUsage::Default);
-                ASSERT(IsSet(resource->GetDescription().GetBindFlags(), GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource));
+                ASSERT(resource->GetDescription().usage == GpuResourceUsage::Default);
+                ASSERT(IsSet(resource->GetDescription().bindFlags, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource));
 
 #ifdef ENABLE_ASSERTS
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;

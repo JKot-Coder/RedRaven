@@ -27,12 +27,14 @@ namespace RR
                     ASSERT(source);
                     ASSERT(dest);
 
-                    const auto sourceUsage = source->GetUsage();
+                    return false;
+                    /*
+                    const auto sourceUsage = source.d();
                     const auto destUsage = dest->GetUsage();
 
                     return (sourceUsage == GpuResourceUsage::Default && destUsage == GpuResourceUsage::Default) ||
                            (sourceUsage == GpuResourceUsage::Upload && destUsage == GpuResourceUsage::Default) ||
-                           (sourceUsage == GpuResourceUsage::Default && destUsage == GpuResourceUsage::Readback);
+                           (sourceUsage == GpuResourceUsage::Default && destUsage == GpuResourceUsage::Readback);*/
                 }
             }
 
@@ -162,11 +164,11 @@ namespace RR
                 const auto destImpl = dest->GetPrivateImpl<ResourceImpl>();
                 ASSERT(destImpl);
 
-                const auto& sourceDesc = source->GetDescription();
-                const auto& destDesc = dest->GetDescription();
+               // const auto& sourceDesc = source->GetResDescription();
+             //   const auto& destDesc = dest->GetResDescription();
 
                 // Actually we can copy textures with different format with restrictions. So reconsider this assert
-                ASSERT(sourceDesc == destDesc);
+              //  ASSERT(sourceDesc == destDesc);
 
                 // TOOD use impl vyshe
 
@@ -264,12 +266,12 @@ namespace RR
                 barrier = CD3DX12_RESOURCE_BARRIER::Transition(sourceImpl->GetD3DObject().get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
                 D3DCommandList_->ResourceBarrier(1, &barrier);
             }
-
+           
             void CommandListImpl::copyIntermediate(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData, bool readback) const
             {
                 ASSERT(resource);
-                ASSERT(resourceData);
-                ASSERT(resource->GetDescription().GetNumSubresources() == resourceData->GetNumSubresources() - resourceData->GetFirstSubresource());
+                /*    ASSERT(resourceData);
+                ASSERT(resource->GetResDescription().GetNumSubresources() == resourceData->GetNumSubresources() - resourceData->GetFirstSubresource());
                 // Todo add copy checks and move up to rendercontext;
 
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
@@ -372,7 +374,7 @@ namespace RR
 
                     barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), readback ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
                     D3DCommandList_->ResourceBarrier(1, &barrier);
-                }
+                }*/
             }
 
             void CommandListImpl::UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<IDataBuffer>& resourceData)

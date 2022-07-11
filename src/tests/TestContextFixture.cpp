@@ -3,6 +3,7 @@
 #include "render/DeviceContext.hpp"
 
 #include "gapi/Buffer.hpp"
+#include "gapi/Texture.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/MemoryAllocation.hpp"
 
@@ -125,7 +126,7 @@ namespace RR
             {
                 ASSERT(resource->IsBuffer());
 
-                const auto& description = resource->GetDescription();
+                const auto& description = resource->GetResDescription();
                 const auto resourceData = GAPI::GpuResourceDataGuard(resource);
 
                 const auto& subresourceFootprints = resource->GetSubresourceFootprints();
@@ -152,7 +153,7 @@ namespace RR
         {
         }
 
-        GAPI::GpuResourceDescription TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
+        GAPI::GpuResourceDescription TestContextFixture::createResTexDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
         {
             const auto numArraySlices = 3;
 
@@ -167,6 +168,23 @@ namespace RR
 
             ASSERT_MSG(false, "Unsupported GpuResourceDimension");
             return GAPI::GpuResourceDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
+        }
+
+        GAPI::TextureDescription TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format, GAPI::GpuResourceUsage usage)
+        {
+            const auto numArraySlices = 3;
+
+            switch (dimension)
+            {
+                case GAPI::GpuResourceDimension::Texture1D: return GAPI::TextureDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture2D: return GAPI::TextureDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture2DMS: return GAPI::TextureDescription::Texture2DMS(size, size, format, GAPI::MultisampleType::MSAA_2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, usage, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture3D: return GAPI::TextureDescription::Texture3D(size, size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage);
+                case GAPI::GpuResourceDimension::TextureCube: return GAPI::TextureDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage, numArraySlices);
+            }
+
+            ASSERT_MSG(false, "Unsupported GpuResourceDimension");
+            return GAPI::TextureDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
         }
 
         void TestContextFixture::initResourceData(const GAPI::GpuResource::SharedPtr& resource)
@@ -196,9 +214,10 @@ namespace RR
         GAPI::Buffer::SharedPtr TestContextFixture::createBufferWithData(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
-            const auto& description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), bindFlags);
+            const auto& resdescription = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), bindFlags);
+            const auto description = GAPI::BufferDescription::Buffer(dataBuffer->Size(), GAPI::GpuResourceFormat::Unknown, bindFlags);
 
-            return renderContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, name);
+            return renderContext.CreateBuffer(resdescription, description, dataBuffer, GAPI::GpuResourceUsage::Default, name);
         }
 
         bool TestContextFixture::isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,

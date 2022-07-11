@@ -2,7 +2,7 @@
 
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
-#include "gapi/Resource.hpp"
+#include "gapi/Texture.hpp"
 
 // TODO temporary
 #include <any>
@@ -76,35 +76,33 @@ namespace RR::GAPI
             return (!desc_.IsAnyColorTargetBinded() && desc_.depthStencilView == nullptr);
         }
 
-        GpuResourceDescription getResourceDescription(const GpuResourceView::SharedPtr rv)
+        TextureDescription getTextureDescription(const GpuResourceView::SharedPtr rv)
         {
             ASSERT(rv);
             const auto gpuResource = rv->GetGpuResource().lock();
             ASSERT(gpuResource);
 
-            return gpuResource->GetDescription();
+            return gpuResource->GetTyped<Texture>()->GetDescription();
         }
 
         void updateMultisampleAndResolution(const GpuResourceView::SharedPtr rv)
         {
-            const auto& resourceDescription = getResourceDescription(rv);
-            ASSERT(resourceDescription.GetDimension() != GpuResourceDimension::Buffer)
+            const auto& textureDesc = getTextureDescription(rv);
 
             const auto mipLevel = rv->GetDescription().texture.mipLevel;
-            const auto targetWidth = resourceDescription.GetWidth(mipLevel);
-            const auto targetHeight = resourceDescription.GetHeight(mipLevel);
-            const auto targetMultisampleType = resourceDescription.GetMultisampleType();
+            const auto textureWidth = textureDesc.GetWidth(mipLevel);
+            const auto textureHeight = textureDesc.GetHeight(mipLevel);
 
             if (isBindigsEmpty())
             {
-                desc_.multisampleType = targetMultisampleType;
-                desc_.width = targetWidth;
-                desc_.height = targetHeight;
+                desc_.multisampleType = textureDesc.multisampleType;
+                desc_.width = textureWidth;
+                desc_.height = textureHeight;
             }
 
-            ASSERT(desc_.multisampleType == targetMultisampleType);
-            ASSERT(desc_.width == targetWidth);
-            ASSERT(desc_.height == targetHeight);
+            ASSERT(desc_.multisampleType == textureDesc.multisampleType);
+            ASSERT(desc_.width == textureWidth);
+            ASSERT(desc_.height == textureHeight);
         }
 
     private:
