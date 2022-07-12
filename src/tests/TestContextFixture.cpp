@@ -136,11 +136,11 @@ namespace RR
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * description.buffer.stride == subresourceFootprint.rowSizeInBytes);
+                    ASSERT(subresourceFootprint.width == subresourceFootprint.rowSizeInBytes);
 
                     auto subresourcePointer = reinterpret_cast<uint8_t*>(resourceData.Data()) + subresourceFootprint.offset;
 
-                    for (uint32_t byte = 0; byte < subresourceFootprint.width * description.buffer.stride; byte++)
+                    for (size_t byte = 0; byte < subresourceFootprint.width; byte++)
                     {
                         *subresourcePointer = testBufferData[byte % testBufferData.size()];
                         subresourcePointer++;
