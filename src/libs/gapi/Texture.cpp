@@ -46,59 +46,6 @@ namespace RR::GAPI
         }
     }
 
-    bool TextureDescription::IsValid() const
-    {
-        if ((mipLevels > GetMaxMipLevel()) || (mipLevels <= 0))
-        {
-            LOG_WARNING("MipMaps levels must be greater zero and less or equal MaxMipLevel");
-            return false;
-        }
-
-        if (format == GpuResourceFormat::Unknown)
-        {
-            LOG_WARNING("Unknown resource format");
-            return false;
-        }
-        if (dimension == Dimension::Texture2DMS && !IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
-        {
-            LOG_WARNING("Multisampled texture must be allowed to bind as render target");
-            return false;
-        }
-
-        if (((multisampleType != MultisampleType::None) && (dimension != Dimension::Texture2DMS)) ||
-            ((multisampleType == MultisampleType::None) && (dimension == Dimension::Texture2DMS)))
-        {
-            LOG_WARNING("Wrong multisample type");
-            return false;
-        }
-
-        if (width < 1)
-        {
-            LOG_WARNING("Wrong size of resource");
-            return false;
-        }
-
-       
-
-        if (GpuResourceFormatInfo::IsCompressed(format))
-        {
-            if ((dimension != Dimension::Texture2D) && (dimension != Dimension::TextureCube))
-            {
-                LOG_WARNING("Compressed resource formats only allowed for 2D and Cube textures");
-                return false;
-            }
-
-            if ((AlignTo(width, GpuResourceFormatInfo::GetCompressionBlockWidth(format)) != width) ||
-                (AlignTo(height, GpuResourceFormatInfo::GetCompressionBlockHeight(format)) == height))
-            {
-                LOG_WARNING("Size of compressed texture must be aligned to CompressionBlock");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
         const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);

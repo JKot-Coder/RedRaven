@@ -5,14 +5,9 @@ namespace RR
     namespace GAPI
     {
         class Object;
-
         class Fence;
-
         class Texture;
-        struct TextureDescription;
-
         class Buffer;
-        struct BufferDescription;
 
         class Framebuffer;
         struct FramebufferDescription;

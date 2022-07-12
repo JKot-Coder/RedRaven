@@ -365,7 +365,7 @@ namespace RR
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Copy texure data on CPU", dimensionTitle, formatName))
                     {
-                        const auto description = createResTexDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
+                        const auto description = createTexureDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
 
                         const auto sourceData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto destData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
@@ -378,7 +378,7 @@ namespace RR
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Upload texure indirect", dimensionTitle, formatName))
                     {
-                        const auto description = createResTexDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
+                        const auto description = createTexureDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
 
                         const auto cpuData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
@@ -397,7 +397,7 @@ namespace RR
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Upload texure direct", dimensionTitle, formatName))
                     {
-                        const auto resdescription = createResTexDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
+                        const auto resdescription = createTexureDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
 
                         const auto cpuData = renderContext.AllocateIntermediateResourceData(resdescription, GAPI::MemoryAllocationType::CpuReadWrite);
                         const auto sourceData = renderContext.AllocateIntermediateResourceData(resdescription, GAPI::MemoryAllocationType::Upload);
@@ -418,16 +418,15 @@ namespace RR
 
                     DYNAMIC_SECTION(fmt::format("[{}::{}] Copy texure on GPU", dimensionTitle, formatName))
                     {
-                        const auto resdescription = createResTexDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
-                        const auto description = createTextureDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
+                        const auto description = createTexureDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
 
-                        const auto sourceData = renderContext.AllocateIntermediateResourceData(resdescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        const auto readbackData = renderContext.AllocateIntermediateResourceData(resdescription, GAPI::MemoryAllocationType::Readback);
+                        const auto sourceData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+                        const auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
 
-                        initResourceData(resdescription, sourceData);
+                        initResourceData(description, sourceData);
 
-                        auto source = renderContext.CreateTexture(resdescription, nullptr, "Source");
-                        auto dest = renderContext.CreateTexture(resdescription, nullptr, "Dest");
+                        auto source = renderContext.CreateTexture(description, nullptr, "Source");
+                        auto dest = renderContext.CreateTexture(description, nullptr, "Dest");
 
                         commandList->UpdateGpuResource(source, sourceData);
                         commandList->CopyGpuResource(source, dest);

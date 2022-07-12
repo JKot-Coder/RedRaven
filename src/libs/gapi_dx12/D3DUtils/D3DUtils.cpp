@@ -122,42 +122,6 @@ namespace RR::GAPI::DX12::D3DUtils
         return desc;
     }
 
-    D3D12_RESOURCE_DESC GetResourceDesc(const BufferDescription& resourceDesc)
-    {
-        ASSERT(resourceDesc.IsValid());
-
-        return CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.size, GetResourceFlags(resourceDesc.bindFlags));
-    }
-
-    D3D12_RESOURCE_DESC GetResourceDesc(const TextureDescription& resourceDesc)
-    {
-        ASSERT(resourceDesc.IsValid());
-
-        DXGI_FORMAT format = GetDxgiResourceFormat(resourceDesc.format);
-
-        if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(resourceDesc.bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
-            format = GetDxgiTypelessFormat(resourceDesc.format);
-
-        D3D12_RESOURCE_DESC desc;
-        switch (resourceDesc.dimension)
-        {
-            case TextureDescription::Dimension::Texture1D: desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.width, resourceDesc.arraySize, resourceDesc.mipLevels); break;
-            case TextureDescription::Dimension::Texture2D:
-            case TextureDescription::Dimension::Texture2DMS:
-            {
-                const auto& sampleDesc = GetSampleDesc(resourceDesc.multisampleType);
-                desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize, resourceDesc.mipLevels, sampleDesc.Count, sampleDesc.Quality);
-                break;
-            }
-            case TextureDescription::Dimension::Texture3D: desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.width, resourceDesc.height, resourceDesc.depth, resourceDesc.mipLevels); break;
-            case TextureDescription::Dimension::TextureCube: desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.width, resourceDesc.height, resourceDesc.arraySize * 6, resourceDesc.mipLevels); break;
-            default: LOG_FATAL("Unsupported texture dimension");
-        }
-
-        desc.Flags = GetResourceFlags(resourceDesc.bindFlags);
-        return desc;
-    }
-
     bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right)
     {
         return (left.Stereo == right.Stereo &&

@@ -33,44 +33,6 @@ namespace RR
             }
         }
 
-        bool BufferDescription::IsValid() const
-        {
-            if (size < 1)
-            {
-                LOG_WARNING("Wrong size of resource");
-                return false;
-            }
-
-            if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
-            {
-                LOG_WARNING("Buffer can't be binded as RenderTarget");
-                return false;
-            }
-
-            if (GpuResourceFormatInfo::IsCompressed(format))
-            {
-                LOG_WARNING("Compressed resource formats not allowed for buffer");
-                return false;
-            }
-
-            if (format != GpuResourceFormat::Unknown)
-            {
-                if (GpuResourceFormatInfo::GetBlockSize(format) != stride)
-                {
-                    LOG_WARNING("Wrong stride size for resource format");
-                    return false;
-                }
-            }
-
-            if (size % stride != 0)
-            {
-                LOG_WARNING("The size of the buffer must be a multiple of the stride.");
-                return false;
-            }
-
-            return true;
-        }
-
         ShaderResourceView::SharedPtr Buffer::GetSRV(GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
         {
             const auto viewDesc = createViewDescription(description_, format, firstElement, numElements);
