@@ -78,7 +78,7 @@ namespace RR
                 if (numSubresources == Texture::MaxPossible)
                     numSubresources = resourceDesc.GetNumSubresources();
 
-                ASSERT(resourceDesc.GetDimension() != GpuResourceDimension::Texture2DMS);
+                ASSERT(resourceDesc.dimension != GpuResourceDimension::Texture2DMS);
                 ASSERT(firstSubresourceIndex + numSubresources <= resourceDesc.GetNumSubresources());
                 D3D12_RESOURCE_DESC desc = D3DUtils::GetResourceDesc(resourceDesc);
 
@@ -118,7 +118,7 @@ namespace RR
 
                     subresourceFootprints[index] = CpuResourceData::SubresourceFootprint(
                         layout.Offset,
-                        (resourceDesc.GetDimension() == GpuResourceDimension::Buffer) ? resourceDesc.GetNumElements() : layout.Footprint.Width,
+                        (resourceDesc.dimension == GpuResourceDimension::Buffer) ? resourceDesc.GetNumElements() : layout.Footprint.Width,
                         layout.Footprint.Height,
                         layout.Footprint.Depth,
                         numRows, rowSizeInBytes, rowPitch, depthPitch);

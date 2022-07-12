@@ -1,5 +1,6 @@
 #include "GpuResourceViews.hpp"
 
+#include "gapi/GpuResource.hpp"
 #include "gapi/Texture.hpp"
 
 namespace RR
@@ -12,18 +13,28 @@ namespace RR
             {
                 bool result = resourceDesc.IsValid();
 
-                if (resourceDesc.GetDimension() == GAPI::GpuResourceDimension::Buffer)
+                // TODO actually  firstArraySlice should be compared with depth on 3d textures.
+                if (resourceDesc.IsBuffer())
                 {
                     result &= desc.buffer.firstElement + desc.buffer.elementCount <= resourceDesc.GetNumElements();
                 }
                 else
                 {
-                    // TODO actually  firstArraySlice should be compared with depth on 3d textures.
-                    result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.GetMipCount();
-                    result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.GetArraySize();
+                    result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.texture.mipLevels;
+                    result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.texture.arraySize;
                 }
 
                 return result;
+            }
+
+            void check(const GpuResourceViewDescription& desc, const std::weak_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
+            {
+                ASSERT(!gpuResource.expired());
+                const auto sharedGpuResource = gpuResource.lock();
+                const auto& resourceDescription = sharedGpuResource->GetDescription();
+
+                ASSERT(isCompatable(desc, resourceDescription));
+                ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
             }
         }
 
@@ -43,55 +54,38 @@ namespace RR
 
         ShaderResourceView::ShaderResourceView(
             const std::weak_ptr<GpuResource>& gpuResource,
-            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
+            const GpuResourceViewDescription& desc)
+            : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
             ASSERT(!gpuResource.expired());
-
-            const auto sharedGpuResource = gpuResource.lock();
-            const auto& resoureDescription = sharedGpuResource->GetDescription();
-
-            ASSERT(isCompatable(desc, resoureDescription));
-            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::ShaderResource));
+            check(desc, gpuResource, GpuResourceBindFlags::ShaderResource);
         }
 
         DepthStencilView::DepthStencilView(
             const std::weak_ptr<Texture>& texture,
-            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
+            const GpuResourceViewDescription& desc)
+            : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
             ASSERT(!texture.expired());
-
-            const auto sharedGpuResource = texture.lock();
-            const auto& resoureDescription = sharedGpuResource->GetDescription();
-
-            ASSERT(isCompatable(desc, resoureDescription));
-            ASSERT(resoureDescription.GetDimension() != GAPI::GpuResourceDimension::Buffer);
-            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::RenderTarget));
+            check(desc, texture, GpuResourceBindFlags::RenderTarget);
         }
 
         RenderTargetView::RenderTargetView(
             const std::weak_ptr<Texture>& texture,
-            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
+            const GpuResourceViewDescription& desc)
+            : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
         {
             ASSERT(!texture.expired());
-
-            const auto sharedTexutre = texture.lock();
-            const auto& resoureDescription = sharedTexutre->GetDescription();
-
-            ASSERT(isCompatable(desc, resoureDescription));
-            ASSERT(resoureDescription.GetDimension() != GAPI::GpuResourceDimension::Buffer);
-            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::RenderTarget));
+            check(desc, texture, GpuResourceBindFlags::RenderTarget);
         }
 
         UnorderedAccessView::UnorderedAccessView(
             const std::weak_ptr<GpuResource>& gpuResource,
-            const GpuResourceViewDescription& desc) : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
+            const GpuResourceViewDescription& desc)
+            : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {
             ASSERT(!gpuResource.expired());
-            const auto sharedGpuResource = gpuResource.lock();
-            const auto& resoureDescription = sharedGpuResource->GetDescription();
-
-            ASSERT(isCompatable(desc, resoureDescription));
-            ASSERT(IsSet(resoureDescription.GetBindFlags(), GpuResourceBindFlags::UnorderedAccess));
+            check(desc, gpuResource, GpuResourceBindFlags::UnorderedAccess);
         }
     }
 }

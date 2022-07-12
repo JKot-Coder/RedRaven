@@ -22,14 +22,17 @@ namespace RR
             static SharedPtr Create(
                 const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
-                GpuResourceUsage usage,
                 const U8String& name)
             {
-                return SharedPtr(new Buffer(description, initialData, usage, name));
+                return SharedPtr(new Buffer(description, initialData, name));
             }
 
-            Buffer(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, GpuResourceUsage usage, const U8String& name)
-                : GpuResource(description, initialData, usage, name) {};
+            Buffer(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
+                : GpuResource(description, initialData, name)
+            {
+                if (!description.IsBuffer())
+                    LOG_FATAL("Wrong Description");
+            }
 
         private:
             friend class Render::DeviceContext;

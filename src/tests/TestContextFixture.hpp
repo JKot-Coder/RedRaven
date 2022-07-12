@@ -15,7 +15,7 @@ namespace RR
             ~TestContextFixture() = default;
 
         protected:
-            GAPI::GpuResourceDescription createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format);
+            GAPI::GpuResourceDescription createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format, GAPI::GpuResourceUsage usage);
             void initResourceData(const GAPI::GpuResourceDescription& description, const std::shared_ptr<GAPI::CpuResourceData>& resourceData);
             void initResourceData(const GAPI::GpuResource::SharedPtr& resource);
             std::shared_ptr<GAPI::Buffer> createBufferWithData(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags = GAPI::GpuResourceBindFlags::ShaderResource);

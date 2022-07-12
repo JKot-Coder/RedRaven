@@ -1,5 +1,8 @@
 #include "ResourceImpl.hpp"
 
+#include "gapi/Buffer.hpp"
+#include "gapi/Texture.hpp"
+
 #include "gapi_dx12/CommandListImpl.hpp" // TODO ??
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
@@ -71,12 +74,14 @@ namespace RR
                                                                           UINT numRows,
                                                                           UINT64 rowSizeInBytes)
             {
+
+                std::ignore = resourceDesc; // TODO;
                 const auto rowPitch = layout.Footprint.RowPitch;
                 const auto depthPitch = numRows * rowPitch;
 
                 return CpuResourceData::SubresourceFootprint(
                     layout.Offset,
-                    (resourceDesc.GetDimension() == GpuResourceDimension::Buffer) ? resourceDesc.GetNumElements() : layout.Footprint.Width,
+                    layout.Footprint.Width,
                     layout.Footprint.Height,
                     layout.Footprint.Depth,
                     numRows, rowSizeInBytes, rowPitch, depthPitch);
@@ -92,11 +97,9 @@ namespace RR
         {
             ASSERT(resource);
 
-            const auto usage = resource->GetUsage();
-
-            Init(resource->GetDescription(),
-                 usage,
-                 resource->GetName());
+            const auto& desc = resource->GetDescription();
+            const auto usage = desc.usage;
+            Init(desc, resource->GetName());
 
             const auto& initialData = resource->GetInitialData();
             ASSERT_MSG(!initialData || (usage == GpuResourceUsage::Default), "Initial resource data can only be applied to a resource with 'Default' usage.");
@@ -110,14 +113,12 @@ namespace RR
                 resource->ResetInitialData();
         }
 
-        void ResourceImpl::Init(const GpuResourceDescription& resourceDesc, GpuResourceUsage usage, const U8String& name)
+        void ResourceImpl::Init(const GpuResourceDescription& resourceDesc, const U8String& name)
         {
             // TextureDesc ASSERT checks done on Texture initialization;
-
             ASSERT(!D3DResource_);
 
-            const bool isCPUAccessible = (usage == GpuResourceUsage::Readback || usage == GpuResourceUsage::Upload);
-            const bool isTexutre = resourceDesc.GetDimension() != GpuResourceDimension::Buffer;
+            const bool isCPUAccessible = (resourceDesc.usage == GpuResourceUsage::Readback || resourceDesc.usage == GpuResourceUsage::Upload);
 
             D3D12_RESOURCE_DESC d3dResourceDesc = D3DUtils::GetResourceDesc(resourceDesc);
 
@@ -126,23 +127,23 @@ namespace RR
             UINT64 intermediateSize;
             device->GetCopyableFootprints(&d3dResourceDesc, 0, resourceDesc.GetNumSubresources(), 0, nullptr, nullptr, nullptr, &intermediateSize);
 
-            const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(resourceDesc.GetFormat());
+            const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(resourceDesc.format);
 
             D3D12_CLEAR_VALUE optimizedClearValue;
             D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
-            getOptimizedClearValue(resourceDesc.GetBindFlags(), format, pOptimizedClearValue);
+            getOptimizedClearValue(resourceDesc.bindFlags, format, pOptimizedClearValue);
 
-            if (isCPUAccessible && isTexutre)
+            if (isCPUAccessible && resourceDesc.IsTexture())
             {
                 // Dx12 don't allow textures for Upload and Readback resorces.
                 d3dResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(intermediateSize);
             };
 
-            defaultState_ = getDefaultResourceState(usage);
+            defaultState_ = getDefaultResourceState(resourceDesc.usage);
 
             D3DCall(
                 DeviceContext::GetDevice()->CreateCommittedResource(
-                    getHeapProperties(usage),
+                    getHeapProperties(resourceDesc.usage),
                     D3D12_HEAP_FLAG_NONE,
                     &d3dResourceDesc,
                     defaultState_,

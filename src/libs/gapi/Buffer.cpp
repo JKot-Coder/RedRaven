@@ -19,6 +19,8 @@ namespace RR
                 const auto elementSize = GpuResourceFormatInfo::GetBlockSize(format);
 
                 //Dx12 requerement
+                //TODO WTF /4
+                // MOVE TO BufferDescription
                 ASSERT(firstElement % 4 == 0);
                 ASSERT(firstElement * elementSize < resourceDesc.GetNumElements());
 

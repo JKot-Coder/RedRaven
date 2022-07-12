@@ -5,6 +5,7 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/MemoryAllocation.hpp"
+#include "gapi/Texture.hpp"
 
 #include "common/OnScopeExit.hpp"
 
@@ -61,14 +62,14 @@ namespace RR
             void fillColorData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
             {
                 ASSERT(resourceData->GetFirstSubresource() == 0);
-                ASSERT((std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA8Uint) ||
-                       (std::is_same<T, uint32_t>::value && description.GetFormat() == GAPI::GpuResourceFormat::BGRA8Unorm) ||
-                       (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA16Float) ||
-                       (std::is_same<T, Vector4>::value && description.GetFormat() == GAPI::GpuResourceFormat::RGBA32Float));
+                ASSERT((std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::RGBA8Uint) ||
+                       (std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::BGRA8Unorm) ||
+                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA16Float) ||
+                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA32Float));
 
                 const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
                 const auto dataPointer = static_cast<uint8_t*>(resourceData->GetAllocation()->Map());
-                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.GetFormat());
+                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.format);
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
@@ -100,7 +101,7 @@ namespace RR
 
             void fillBufferData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
             {
-                ASSERT(description.GetDimension() == GAPI::GpuResourceDimension::Buffer);
+                ASSERT(description.dimension == GAPI::GpuResourceDimension::Buffer);
 
                 const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
                 const auto dataPointer = static_cast<uint8_t*>(resourceData->GetAllocation()->Map());
@@ -109,7 +110,7 @@ namespace RR
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * std::max(description.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
+                    ASSERT(subresourceFootprint.width * description.buffer.stride == subresourceFootprint.rowSizeInBytes);
 
                     auto columnPointer = reinterpret_cast<uint8_t*>(dataPointer);
 
@@ -123,7 +124,7 @@ namespace RR
 
             void fillBufferData(const GAPI::GpuResource::SharedPtr& resource)
             {
-                ASSERT(resource->IsBuffer());
+                ASSERT(resource->GetDescription().IsBuffer());
 
                 const auto& description = resource->GetDescription();
                 const auto resourceData = GAPI::GpuResourceDataGuard(resource);
@@ -135,11 +136,11 @@ namespace RR
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
                     const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * std::max(description.GetStructSize(), 1u) == subresourceFootprint.rowSizeInBytes);
+                    ASSERT(subresourceFootprint.width * description.buffer.stride == subresourceFootprint.rowSizeInBytes);
 
                     auto subresourcePointer = reinterpret_cast<uint8_t*>(resourceData.Data()) + subresourceFootprint.offset;
 
-                    for (uint32_t byte = 0; byte < subresourceFootprint.width * std::max(description.GetStructSize(), 1u); byte++)
+                    for (uint32_t byte = 0; byte < subresourceFootprint.width * description.buffer.stride; byte++)
                     {
                         *subresourcePointer = testBufferData[byte % testBufferData.size()];
                         subresourcePointer++;
@@ -152,17 +153,17 @@ namespace RR
         {
         }
 
-        GAPI::GpuResourceDescription TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format)
+        GAPI::GpuResourceDescription TestContextFixture::createTextureDescription(GAPI::GpuResourceDimension dimension, uint32_t size, GAPI::GpuResourceFormat format, GAPI::GpuResourceUsage usage)
         {
             const auto numArraySlices = 3;
 
             switch (dimension)
             {
-                case GAPI::GpuResourceDimension::Texture1D: return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture2D: return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture2DMS: return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, GAPI::MultisampleType::MSAA_2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, numArraySlices);
-                case GAPI::GpuResourceDimension::Texture3D: return GAPI::GpuResourceDescription::Texture3D(size, size, size, format);
-                case GAPI::GpuResourceDimension::TextureCube: return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture1D: return GAPI::GpuResourceDescription::Texture1D(size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture2D: return GAPI::GpuResourceDescription::Texture2D(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture2DMS: return GAPI::GpuResourceDescription::Texture2DMS(size, size, format, GAPI::MultisampleType::MSAA_2, GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::RenderTarget, usage, numArraySlices);
+                case GAPI::GpuResourceDimension::Texture3D: return GAPI::GpuResourceDescription::Texture3D(size, size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage);
+                case GAPI::GpuResourceDimension::TextureCube: return GAPI::GpuResourceDescription::TextureCube(size, size, format, GAPI::GpuResourceBindFlags::ShaderResource, usage, numArraySlices);
             }
 
             ASSERT_MSG(false, "Unsupported GpuResourceDimension");
@@ -171,7 +172,7 @@ namespace RR
 
         void TestContextFixture::initResourceData(const GAPI::GpuResource::SharedPtr& resource)
         {
-            if (resource->IsBuffer())
+            if (resource->GetDescription().IsBuffer())
             {
                 fillBufferData(resource);
             }
@@ -182,7 +183,7 @@ namespace RR
 
         void TestContextFixture::initResourceData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
         {
-            switch (description.GetFormat())
+            switch (description.format)
             {
                 case GAPI::GpuResourceFormat::Unknown: fillBufferData(description, resourceData); break;
                 case GAPI::GpuResourceFormat::RGBA8Uint:
@@ -196,9 +197,9 @@ namespace RR
         GAPI::Buffer::SharedPtr TestContextFixture::createBufferWithData(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
-            const auto& description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), bindFlags);
+            const auto description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), GAPI::GpuResourceFormat::Unknown, bindFlags);
 
-            return renderContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, name);
+            return renderContext.CreateBuffer(description, dataBuffer, name);
         }
 
         bool TestContextFixture::isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,

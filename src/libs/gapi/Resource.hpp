@@ -46,16 +46,10 @@ namespace RR
 
         protected:
             template <typename bool isNamed = IsNamed, std::enable_if_t<isNamed, bool> = true>
-            Resource(Type type, const U8String& name)
-                : name_(name), Object(type)
-            {
-            }
+            Resource(Type type, const U8String& name) : name_(name), Object(type) { }
 
             template <typename bool isNamed = IsNamed, std::enable_if_t<!isNamed, bool> = true>
-            Resource(Type type)
-                : Object(type)
-            {
-            }
+            Resource(Type type) : Object(type) { }
 
         private:
             // clang-format off

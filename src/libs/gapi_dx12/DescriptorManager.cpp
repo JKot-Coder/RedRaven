@@ -81,10 +81,10 @@ namespace RR
                 template <>
                 void initDsvRtvUavBufferDesc(D3D12_UNORDERED_ACCESS_VIEW_DESC& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
                 {
-                    description.Buffer.StructureByteStride = gpuResDesc.GetStructSize();
+                    description.Buffer.StructureByteStride = gpuResDesc.buffer.stride;
                     description.Buffer.CounterOffsetInBytes = 0;
 
-                    if (!gpuResDesc.IsTyped())
+                    if (gpuResDesc.format != GpuResourceFormat::Unknown)
                     {
                         description.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
                     }
@@ -98,16 +98,17 @@ namespace RR
                 {
                     DescType result = {};
 
-                    const uint32_t arraySize = (gpuResDesc.GetDimension() == GpuResourceDimension::Buffer) ? 1 : gpuResDesc.GetArraySize();
-                    const uint32_t arrayMultiplier = (gpuResDesc.GetDimension() == GpuResourceDimension::TextureCube) ? 6 : 1;
+                    // TODO move to desc?
+                    const uint32_t arraySize = (gpuResDesc.IsBuffer() ? 1 : gpuResDesc.texture.arraySize);
+                    const uint32_t arrayMultiplier = (gpuResDesc.dimension == GpuResourceDimension::TextureCube) ? 6 : 1;
 
-                    ASSERT((gpuResDesc.GetDimension() == GpuResourceDimension::Buffer) ||
+                    ASSERT(gpuResDesc.IsBuffer() ||
                            ((viewDesc.texture.firstArraySlice + viewDesc.texture.arraySliceCount) * arrayMultiplier <= arraySize));
 
-                    result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(gpuResDesc.GetDimension(), arraySize > 1);
-                    result.Format = D3DUtils::GetDxgiResourceFormat(gpuResDesc.GetFormat());
+                    result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(gpuResDesc.dimension, arraySize > 1);
+                    result.Format = D3DUtils::GetDxgiResourceFormat(gpuResDesc.format);
 
-                    switch (gpuResDesc.GetDimension())
+                    switch (gpuResDesc.dimension)
                     {
                         case GpuResourceDimension::Buffer:
                             initDsvRtvUavBufferDesc(result, gpuResDesc, viewDesc);
@@ -151,8 +152,9 @@ namespace RR
 
                     DescType result = createDsvRtvUavDescCommon<DescType>(gpuResourceDescription, description);
 
-                    if ((gpuResourceDescription.GetDimension() == GpuResourceDimension::Texture2DMS) &&
-                        (gpuResourceDescription.GetArraySize() > 1))
+                    // TODO wtf?
+                    if ((gpuResourceDescription.dimension == GpuResourceDimension::Texture2DMS) &&
+                        (gpuResourceDescription.texture.arraySize > 1))
                     {
                         result.Texture2DMSArray.ArraySize = description.texture.firstArraySlice;
                         result.Texture2DMSArray.FirstArraySlice = description.texture.arraySliceCount;

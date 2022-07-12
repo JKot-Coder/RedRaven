@@ -27,8 +27,8 @@ namespace RR
                     ASSERT(source);
                     ASSERT(dest);
 
-                    const auto sourceUsage = source->GetUsage();
-                    const auto destUsage = dest->GetUsage();
+                    const auto sourceUsage = source->GetDescription().usage;
+                    const auto destUsage = dest->GetDescription().usage;
 
                     return (sourceUsage == GpuResourceUsage::Default && destUsage == GpuResourceUsage::Default) ||
                            (sourceUsage == GpuResourceUsage::Upload && destUsage == GpuResourceUsage::Default) ||
@@ -281,7 +281,7 @@ namespace RR
                 const auto allocation = resourceData->GetAllocation();
                 ASSERT(allocation);
 
-                const auto isTextureResource = resource->IsTexture();
+                const auto isTextureResource = resource->GetDescription().IsTexture();
 
                 const auto& device = DeviceContext::GetDevice();
                 auto desc = d3dResource->GetDesc();
@@ -388,7 +388,7 @@ namespace RR
                 const auto d3dResource = resourceImpl->GetD3DObject();
                 ASSERT(d3dResource);
 
-                const auto isTextureResource = resource->IsTexture();
+                const auto isTextureResource = resource->GetDescription().IsTexture();
 
                 const auto& device = DeviceContext::GetDevice();
                 auto desc = d3dResource->GetDesc();
@@ -565,7 +565,7 @@ namespace RR
 
                 const auto& resource = renderTargetView->GetGpuResource().lock();
                 ASSERT(resource);
-                ASSERT(resource->IsTexture());
+                ASSERT(resource->GetDescription().IsTexture());
 
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);

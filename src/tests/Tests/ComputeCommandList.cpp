@@ -91,11 +91,11 @@ namespace RR
 
             SECTION("[Texture2D::RGBA8] Partical ClearUnorderedAccessViewUint")
             {
-                const auto& description = createTextureDescription(GAPI::GpuResourceDimension::Texture2D, 128, GAPI::GpuResourceFormat::RGBA8Uint);
+                auto description = createTextureDescription(GAPI::GpuResourceDimension::Texture2D, 128, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceUsage::Default);
                 const auto sourceData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Upload);
-                initResourceData(description, sourceData);
 
-                auto source = renderContext.CreateTexture(description, nullptr, GAPI::GpuResourceUsage::Default, "Source");
+                initResourceData(description, sourceData);
+                auto source = renderContext.CreateTexture(description, nullptr, "Source");
                 const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(0);

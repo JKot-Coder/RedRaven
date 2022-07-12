@@ -192,122 +192,129 @@ namespace RR
 
         bool GpuResourceDescription::IsValid() const
         {
-            if ((mipLevels_ > GetMaxMipLevel()) || (mipLevels_ <= 0))
+            if (dimension == GpuResourceDimension::Buffer)
             {
-                LOG_WARNING("MipMaps levels must be greater zero and less or equal MaxMipLevel");
-                return false;
-            }
-
-            if (dimension_ == GpuResourceDimension::Buffer && format_ != GpuResourceFormat::Unknown)
-            {
-                LOG_WARNING("Buffer format should be Unknown");
-                return false;
-            }
-
-            if (dimension_ != GpuResourceDimension::Buffer && format_ == GpuResourceFormat::Unknown)
-            {
-                LOG_WARNING("Unknown resource format");
-                return false;
-            }
-
-            if (((multisampleType_ != MultisampleType::None) && (dimension_ != GpuResourceDimension::Texture2DMS)) ||
-                ((multisampleType_ == MultisampleType::None) && (dimension_ == GpuResourceDimension::Texture2DMS)))
-            {
-                LOG_WARNING("Wrong multisample type");
-                return false;
-            }
-
-            if (width_ < 1)
-            {
-                LOG_WARNING("Wrong size of resource");
-                return false;
-            }
-
-            switch (dimension_)
-            {
-                case GpuResourceDimension::Buffer:
-                    if ((depth_ != 1) || (height_ != 1))
-                    {
-                        LOG_WARNING("Wrong size of buffer");
-                        return false;
-                    }
-
-                    if (arraySize_ != 1)
-                    {
-                        LOG_WARNING("Wrong size of array");
-                        return false;
-                    }
-
-                    if (IsSet(bindflags_, GpuResourceBindFlags::RenderTarget))
-                    {
-                        LOG_WARNING("Buffer can't be binded as RenderTarget");
-                        return false;
-                    }
-
-                    if ((structSize_ != 0) && (format_ != GpuResourceFormat::Unknown))
-                    {
-                        LOG_WARNING("Stuctured buffer must be Unknown resource format");
-                        return false;
-                    }
-                    break;
-                case GpuResourceDimension::Texture1D:
-                    if ((depth_ != 1) || (height_ != 1))
-                    {
-                        LOG_WARNING("Wrong texture size");
-                        return false;
-                    }
-                    break;
-                case GpuResourceDimension::Texture2D:
-                case GpuResourceDimension::TextureCube:
-                    if ((height_ < 1) || (depth_ != 1))
-                    {
-                        LOG_WARNING("Wrong texture size");
-                        return false;
-                    }
-                    break;
-                case GpuResourceDimension::Texture2DMS:
-                    if ((height_ < 1) || (depth_ != 1))
-                    {
-                        LOG_WARNING("Wrong texture size");
-                        return false;
-                    }
-
-                    if (!IsSet(bindflags_, GpuResourceBindFlags::RenderTarget))
-                    {
-                        LOG_WARNING("Multisampled texture must be allowed to bind as render target");
-                        return false;
-                    }
-                    break;
-                case GpuResourceDimension::Texture3D:
-                    if ((height_ < 1) || (depth_ < 1))
-                    {
-                        LOG_WARNING("Wrong texture size");
-                        return false;
-                    }
-
-                    if (arraySize_ != 1)
-                    {
-                        LOG_WARNING("Wrong size of array");
-                        return false;
-                    }
-                    break;
-                default:
-                    LOG_FATAL("Unsupported resource dimension");
-            }
-
-            if (GpuResourceFormatInfo::IsCompressed(format_))
-            {
-                if ((dimension_ != GpuResourceDimension::Texture2D) && (dimension_ != GpuResourceDimension::TextureCube))
+                if (buffer.size < 1)
                 {
-                    LOG_WARNING("Compressed resource formats only allowed for 2D and Cube textures");
+                    LOG_WARNING("Wrong size of resource");
                     return false;
                 }
 
-                if ((AlignTo(width_, GpuResourceFormatInfo::GetCompressionBlockWidth(format_)) != width_) ||
-                    (AlignTo(height_, GpuResourceFormatInfo::GetCompressionBlockHeight(format_)) == height_))
+                if (buffer.stride == 0)
                 {
-                    LOG_WARNING("Size of compressed texture must be aligned to CompressionBlock");
+                    LOG_WARNING("Wrong buffer stride");
                     return false;
+                }
+
+                if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
+                {
+                    LOG_WARNING("Buffer can't be binded as RenderTarget");
+                    return false;
+                }
+
+                if (GpuResourceFormatInfo::IsCompressed(format))
+                {
+                    LOG_WARNING("Compressed resource formats not allowed for buffer");
+                    return false;
+                }
+
+                if (format != GpuResourceFormat::Unknown)
+                {
+                    if (GpuResourceFormatInfo::GetBlockSize(format) != buffer.stride)
+                    {
+                        LOG_WARNING("Wrong stride size for resource format");
+                        return false;
+                    }
+                }
+
+                if (buffer.size % buffer.stride != 0)
+                {
+                    LOG_WARNING("The size of the buffer must be a multiple of the stride.");
+                    return false;
+                }
+            }
+            else
+            {
+                if ((texture.mipLevels > GetMaxMipLevel()) || (texture.mipLevels <= 0))
+                {
+                    LOG_WARNING("MipMaps levels must be greater zero and less or equal MaxMipLevel");
+                    return false;
+                }
+
+                if (format == GpuResourceFormat::Unknown)
+                {
+                    LOG_WARNING("Unknown resource format");
+                    return false;
+                }
+
+                if (dimension == GpuResourceDimension::Texture2DMS && !IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
+                {
+                    LOG_WARNING("Multisampled texture must be allowed to bind as render target");
+                    return false;
+                }
+
+                if (((texture.multisampleType != MultisampleType::None) && (dimension != GpuResourceDimension::Texture2DMS)) ||
+                    ((texture.multisampleType == MultisampleType::None) && (dimension == GpuResourceDimension::Texture2DMS)))
+                {
+                    LOG_WARNING("Wrong multisample type");
+                    return false;
+                }
+
+                if (texture.width < 1)
+                {
+                    LOG_WARNING("Wrong size of resource");
+                    return false;
+                }
+
+                switch (dimension)
+                {
+                    case GpuResourceDimension::Texture1D:
+                        if ((texture.depth != 1) || (texture.height != 1))
+                        {
+                            LOG_WARNING("Wrong texture size");
+                            return false;
+                        }
+                        break;
+                    case GpuResourceDimension::Texture2D:
+                    case GpuResourceDimension::TextureCube:
+                    case GpuResourceDimension::Texture2DMS:
+                        if ((texture.height < 1) || (texture.depth != 1))
+                        {
+                            LOG_WARNING("Wrong texture size");
+                            return false;
+                        }
+                        break;
+                    case GpuResourceDimension::Texture3D:
+                        if ((texture.height < 1) || (texture.depth < 1))
+                        {
+                            LOG_WARNING("Wrong texture size");
+                            return false;
+                        }
+
+                        if (texture.arraySize != 1)
+                        {
+                            LOG_WARNING("Wrong size of array");
+                            return false;
+                        }
+                        break;
+                    default:
+                        LOG_FATAL("Unsupported resource dimension");
+                }
+
+                if (GpuResourceFormatInfo::IsCompressed(format))
+                {
+                    if ((dimension != GpuResourceDimension::Texture2D) && (dimension != GpuResourceDimension::TextureCube))
+                    {
+                        LOG_WARNING("Compressed resource formats only allowed for 2D and Cube textures");
+                        return false;
+                    }
+
+                    if ((AlignTo(texture.width, GpuResourceFormatInfo::GetCompressionBlockWidth(format)) != texture.width) ||
+                        (AlignTo(texture.height, GpuResourceFormatInfo::GetCompressionBlockHeight(format)) == texture.height))
+                    {
+                        LOG_WARNING("Size of compressed texture must be aligned to CompressionBlock");
+                        return false;
+                    }
                 }
             }
 
@@ -317,7 +324,7 @@ namespace RR
         template <>
         std::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
         {
-            ASSERT(IsTexture());
+            ASSERT(description_.IsTexture());
             //TODO inherit_shared_from_this
             return std::static_pointer_cast<Texture>(shared_from_this());
         }
@@ -325,7 +332,7 @@ namespace RR
         template <>
         std::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>()
         {
-            ASSERT(IsBuffer());
+            ASSERT(description_.IsBuffer());
             //TODO inherit_shared_from_this
             return std::static_pointer_cast<Buffer>(shared_from_this());
         }

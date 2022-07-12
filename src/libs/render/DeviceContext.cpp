@@ -215,12 +215,11 @@ namespace RR
         GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(
             const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,
-            GAPI::GpuResourceUsage usage,
             const U8String& name) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Buffer::Create(desc, initialData, usage, name);
+            auto& resource = GAPI::Buffer::Create(desc, initialData, name);
             submission_->GetIMultiThreadDevice().lock()->InitBuffer(resource);
 
             return resource;
@@ -229,12 +228,11 @@ namespace RR
         GAPI::Texture::SharedPtr DeviceContext::CreateTexture(
             const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,
-            GAPI::GpuResourceUsage usage,
             const U8String& name) const
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Texture::Create(desc, initialData, usage, name);
+            auto& resource = GAPI::Texture::Create(desc, initialData, name);
             submission_->GetIMultiThreadDevice().lock()->InitTexture(resource);
 
             return resource;
@@ -248,10 +246,11 @@ namespace RR
         {
             ASSERT(inited_);
             ASSERT(swapchain);
-            ASSERT(desc.GetDimension() == GAPI::GpuResourceDimension::Texture2D);
+            ASSERT(desc.dimension == GAPI::GpuResourceDimension::Texture2D);
+            ASSERT(desc.usage == GAPI::GpuResourceUsage::Default);
             ASSERT(desc.GetNumSubresources() == 1);
 
-            auto& resource = GAPI::Texture::Create(desc, nullptr, GAPI::GpuResourceUsage::Default, name);
+            auto& resource = GAPI::Texture::Create(desc, nullptr, name);
             swapchain->InitBackBufferTexture(backBufferIndex, resource);
 
             return resource;
