@@ -152,16 +152,16 @@ namespace RR
                 const auto& resourceDesc = resource->GetResourceDescription();
                 const auto firstSubresource = resource->GetSubresourceFootprintAt(0);
 
-                ASSERT(resourceDesc.GetDimension() != GAPI::GpuResourceDimension::TextureCube);
+                ASSERT(resourceDesc.dimension != GAPI::GpuResourceDimension::TextureCube);
 
                 DirectX::TexMetadata metadata = {};
                 metadata.width = resourceDesc.GetWidth();
                 metadata.height = resourceDesc.GetHeight();
                 metadata.depth = resourceDesc.GetDepth();
                 metadata.arraySize = 1;
-                metadata.mipLevels = resourceDesc.GetMipCount();
-                metadata.format = getDxgiResourceFormat(resourceDesc.GetFormat());
-                metadata.dimension = getTextureDimension(resourceDesc.GetDimension());
+                metadata.mipLevels = resourceDesc.texture.mipLevels;
+                metadata.format = getDxgiResourceFormat(resourceDesc.format);
+                metadata.dimension = getTextureDimension(resourceDesc.dimension);
 
                 return metadata;
             }
@@ -173,7 +173,7 @@ namespace RR
                 const auto& resourceDesc = resource->GetResourceDescription();
 
                 ASSERT(resourceDesc.GetNumSubresources() == resource->GetNumSubresources());
-                ASSERT(resourceDesc.GetDimension() != GAPI::GpuResourceDimension::TextureCube);
+                ASSERT(resourceDesc.dimension != GAPI::GpuResourceDimension::TextureCube);
 
                 const auto dataPointer = static_cast<uint8_t*>(resource->GetAllocation()->Map());
 
@@ -193,7 +193,7 @@ namespace RR
                         DirectX::Image image;
                         image.width = subresourceFootprint.width;
                         image.height = subresourceFootprint.height; // Might be use rows??
-                        image.format = getDxgiResourceFormat(resourceDesc.GetFormat());
+                        image.format = getDxgiResourceFormat(resourceDesc.format);
                         image.rowPitch = subresourceFootprint.rowPitch;
                         image.slicePitch = subresourceFootprint.depthPitch;
                         image.pixels = dataPointer + subresourceFootprint.offset + subresourceFootprint.depthPitch * slice;

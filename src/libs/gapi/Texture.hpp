@@ -161,7 +161,6 @@ namespace RR::GAPI
         static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
     public:
-        const TextureDescription& GetDescription() const { return description_; }
         std::shared_ptr<ShaderResourceView> GetSRV(uint32_t mipLevel = 0, uint32_t mipCount = MaxPossible, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
         std::shared_ptr<RenderTargetView> GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
         std::shared_ptr<DepthStencilView> GetDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
@@ -169,20 +168,21 @@ namespace RR::GAPI
 
     private:
         static SharedPtr Create(
-            const TextureDescription& description,
+            const GpuResourceDescription& description,
             IDataBuffer::SharedPtr initialData,
             const U8String& name)
         {
             return SharedPtr(new Texture(description, initialData, name));
         }
 
-        Texture(const TextureDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
-            : GpuResource(GpuResourceType::Texture, initialData, name),
-              description_(description) {};
+        Texture(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
+            : GpuResource(description, initialData, name)
+        {
+            if (!description.IsTexture())            
+                LOG_FATAL("Wrong Description");
+        };
 
     private:
-        TextureDescription description_;
-
         friend class Render::DeviceContext;
     };
 }

@@ -213,7 +213,7 @@ namespace RR
         }
 
         GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(
-            const GAPI::BufferDescription& desc,
+            const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,
             const U8String& name) const
         {
@@ -226,7 +226,7 @@ namespace RR
         }
 
         GAPI::Texture::SharedPtr DeviceContext::CreateTexture(
-            const GAPI::TextureDescription& desc,
+            const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,
             const U8String& name) const
         {
@@ -241,12 +241,12 @@ namespace RR
         GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(
             const std::shared_ptr<GAPI::SwapChain>& swapchain,
             uint32_t backBufferIndex,
-            const GAPI::TextureDescription& desc,
+            const GAPI::GpuResourceDescription& desc,
             const U8String& name) const
         {
             ASSERT(inited_);
             ASSERT(swapchain);
-            ASSERT(desc.dimension == GAPI::TextureDescription::Dimension::Texture2D);
+            ASSERT(desc.dimension == GAPI::GpuResourceDimension::Texture2D);
             ASSERT(desc.usage == GAPI::GpuResourceUsage::Default);
             ASSERT(desc.GetNumSubresources() == 1);
 

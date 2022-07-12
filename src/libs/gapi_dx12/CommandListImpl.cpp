@@ -390,7 +390,7 @@ namespace RR
                 const auto d3dResource = resourceImpl->GetD3DObject();
                 ASSERT(d3dResource);
 
-                const auto isTextureResource = resource->IsTexture();
+            //    const auto isTextureResource = resource->IsTexture();
 
                 const auto& device = DeviceContext::GetDevice();
                 auto desc = d3dResource->GetDesc();
@@ -567,7 +567,6 @@ namespace RR
 
                 const auto& resource = renderTargetView->GetGpuResource().lock();
                 ASSERT(resource);
-                ASSERT(resource->IsTexture());
 
                 const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
                 ASSERT(resourceImpl);

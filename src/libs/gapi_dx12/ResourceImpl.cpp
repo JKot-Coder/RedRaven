@@ -74,12 +74,14 @@ namespace RR
                                                                           UINT numRows,
                                                                           UINT64 rowSizeInBytes)
             {
+
+                std::ignore = resourceDesc; // TODO;
                 const auto rowPitch = layout.Footprint.RowPitch;
                 const auto depthPitch = numRows * rowPitch;
 
                 return CpuResourceData::SubresourceFootprint(
                     layout.Offset,
-                    (resourceDesc.GetDimension() == GpuResourceDimension::Buffer) ? resourceDesc.GetNumElements() : layout.Footprint.Width,
+                    layout.Footprint.Width,
                     layout.Footprint.Height,
                     layout.Footprint.Depth,
                     numRows, rowSizeInBytes, rowPitch, depthPitch);
@@ -97,21 +99,10 @@ namespace RR
 
             GpuResourceUsage usage;
 
-            //Todo shitty code
-            if (resource->IsTexture())
-            {
-                const auto& desc = resource->GetTyped<Texture>()->GetDescription();
-                usage = desc.usage;
-                Init(desc, resource->GetName());
-            }
-
-            if (resource->IsBuffer())
-            {
-                const auto& desc = resource->GetTyped<Texture>()->GetDescription();
-                usage = desc.usage;
-                Init(desc, resource->GetName());
-            }
-
+            const auto& desc = resource->GetDescription();
+            usage = desc.usage;
+            Init(desc, resource->GetName());
+      
             const auto& initialData = resource->GetInitialData();
             ASSERT_MSG(!initialData || (usage == GpuResourceUsage::Default), "Initial resource data can only be applied to a resource with 'Default' usage.");
             if (initialData && (usage == GpuResourceUsage::Default))
@@ -124,50 +115,7 @@ namespace RR
                 resource->ResetInitialData();
         }
 
-        void ResourceImpl::Init(const GpuResourceDescription& resourceDesc, GpuResourceUsage usage, const U8String& name)
-        {
-            // TextureDesc ASSERT checks done on Texture initialization;
-
-            ASSERT(!D3DResource_);
-
-            const bool isCPUAccessible = (usage == GpuResourceUsage::Readback || usage == GpuResourceUsage::Upload);
-            const bool isTexutre = resourceDesc.GetDimension() != GpuResourceDimension::Buffer;
-
-            D3D12_RESOURCE_DESC d3dResourceDesc = D3DUtils::GetResourceDesc(resourceDesc);
-
-            const auto& device = DeviceContext::GetDevice();
-
-            UINT64 intermediateSize;
-            device->GetCopyableFootprints(&d3dResourceDesc, 0, resourceDesc.GetNumSubresources(), 0, nullptr, nullptr, nullptr, &intermediateSize);
-
-            const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(resourceDesc.GetFormat());
-
-            D3D12_CLEAR_VALUE optimizedClearValue;
-            D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
-            getOptimizedClearValue(resourceDesc.GetBindFlags(), format, pOptimizedClearValue);
-
-            if (isCPUAccessible && isTexutre)
-            {
-                // Dx12 don't allow textures for Upload and Readback resorces.
-                d3dResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(intermediateSize);
-            };
-
-            defaultState_ = getDefaultResourceState(usage);
-
-            D3DCall(
-                DeviceContext::GetDevice()->CreateCommittedResource(
-                    getHeapProperties(usage),
-                    D3D12_HEAP_FLAG_NONE,
-                    &d3dResourceDesc,
-                    defaultState_,
-                    pOptimizedClearValue,
-                    IID_PPV_ARGS(D3DResource_.put())));
-
-            D3DUtils::SetAPIName(D3DResource_.get(), name);
-        }
-
-        template <typename DescriptionType>
-        void ResourceImpl::Init(const DescriptionType& desc, const U8String& name)
+        void ResourceImpl::Init(const GpuResourceDescription& desc, const U8String& name)
         {
             // TextureDesc ASSERT checks done on Texture initialization;
             ASSERT(!D3DResource_);

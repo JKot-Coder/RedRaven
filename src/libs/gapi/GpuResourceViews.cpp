@@ -9,21 +9,21 @@ namespace RR
     {
         namespace
         {
-            bool isCompatable(const GpuResourceViewDescription& desc, const TextureDescription& resourceDesc)
+            bool isCompatable(const GpuResourceViewDescription& desc, const GpuResourceDescription& resourceDesc)
             {
                 bool result = resourceDesc.IsValid();
 
                 // TODO actually  firstArraySlice should be compared with depth on 3d textures.
-                result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.mipLevels;
-                result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.arraySize;
+                if (resourceDesc.IsBuffer())
+                {
+                    result &= desc.buffer.firstElement + desc.buffer.elementCount <= resourceDesc.GetNumElements();
+                }
+                else
+                {
+                    result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.texture.mipLevels;
+                    result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.texture.arraySize;
+                }
 
-                return result;
-            }
-
-            bool isCompatable(const GpuResourceViewDescription& desc, const BufferDescription& resourceDesc)
-            {
-                bool result = resourceDesc.IsValid();
-                result &= desc.buffer.firstElement + desc.buffer.elementCount <= resourceDesc.GetNumElements();
                 return result;
             }
 
@@ -31,25 +31,10 @@ namespace RR
             {
                 ASSERT(!gpuResource.expired());
                 const auto sharedGpuResource = gpuResource.lock();
+                const auto& resourceDescription = sharedGpuResource->GetDescription();
 
-                switch (sharedGpuResource->GetResourceType())
-                {
-                    case GpuResourceType::Buffer:
-                    {
-                        const auto buffer = sharedGpuResource->GetTyped<Buffer>();
-                        ASSERT(isCompatable(desc, buffer->GetDescription()));
-                        ASSERT(IsSet(buffer->GetDescription().bindFlags, requiredBindFlags));
-                    }
-                    break;
-                    case GpuResourceType::Texture:
-                    {
-                        const auto texture = sharedGpuResource->GetTyped<Texture>();
-                        ASSERT(isCompatable(desc, texture->GetDescription()));
-                        ASSERT(IsSet(texture->GetDescription().bindFlags, requiredBindFlags));
-                    }
-                    break;
-                    default: ASSERT_MSG(false, "Unknow resouce type");
-                }
+                ASSERT(isCompatable(desc, resourceDescription));
+                ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
             }
         }
 

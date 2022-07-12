@@ -27,19 +27,19 @@ namespace RR::GAPI
             return viewFormat;
         }
 
-        GpuResourceViewDescription createViewDesctiption(const TextureDescription& resDescription, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
+        GpuResourceViewDescription createViewDesctiption(const GpuResourceDescription& resDescription, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
         {
-            ASSERT(firstArraySlice < resDescription.arraySize);
-            ASSERT(mipLevel < resDescription.mipLevels);
+            ASSERT(firstArraySlice < resDescription.texture.arraySize);
+            ASSERT(mipLevel < resDescription.texture.mipLevels);
 
             if (mipCount == Texture::MaxPossible)
-                mipCount = resDescription.mipLevels - mipLevel;
+                mipCount = resDescription.texture.mipLevels - mipLevel;
 
             if (arraySliceCount == Texture::MaxPossible)
-                arraySliceCount = resDescription.arraySize - firstArraySlice;
+                arraySliceCount = resDescription.texture.arraySize - firstArraySlice;
 
-            ASSERT(firstArraySlice + arraySliceCount <= resDescription.arraySize);
-            ASSERT(mipLevel + mipCount <= resDescription.mipLevels);
+            ASSERT(firstArraySlice + arraySliceCount <= resDescription.texture.arraySize);
+            ASSERT(mipLevel + mipCount <= resDescription.texture.mipLevels);
 
             viewFormat = getViewFormat(resDescription.format, viewFormat);
             return GpuResourceViewDescription::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
@@ -78,40 +78,7 @@ namespace RR::GAPI
             return false;
         }
 
-        switch (dimension)
-        {
-            case Dimension::Texture1D:
-                if ((depth != 1) || (height != 1))
-                {
-                    LOG_WARNING("Wrong texture size");
-                    return false;
-                }
-                break;
-            case Dimension::Texture2D:
-            case Dimension::TextureCube:
-            case Dimension::Texture2DMS:
-                if ((height < 1) || (depth!= 1))
-                {
-                    LOG_WARNING("Wrong texture size");
-                    return false;
-                }
-                break;
-            case Dimension::Texture3D:
-                if ((height < 1) || (depth < 1))
-                {
-                    LOG_WARNING("Wrong texture size");
-                    return false;
-                }
-
-                if (arraySize != 1)
-                {
-                    LOG_WARNING("Wrong size of array");
-                    return false;
-                }
-                break;
-            default:
-                LOG_FATAL("Unsupported resource dimension");
-        }
+       
 
         if (GpuResourceFormatInfo::IsCompressed(format))
         {

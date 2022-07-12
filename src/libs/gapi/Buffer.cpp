@@ -14,7 +14,7 @@ namespace RR
     {
         namespace
         {
-            GpuResourceViewDescription createViewDescription(const BufferDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
+            GpuResourceViewDescription createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
             {
                 const auto elementSize = GpuResourceFormatInfo::GetBlockSize(format);
 
@@ -59,7 +59,7 @@ namespace RR
                 {
                     LOG_WARNING("Wrong stride size for resource format");
                     return false;
-                }            
+                }
             }
 
             if (size % stride != 0)
@@ -67,7 +67,7 @@ namespace RR
                 LOG_WARNING("The size of the buffer must be a multiple of the stride.");
                 return false;
             }
-  
+
             return true;
         }
 

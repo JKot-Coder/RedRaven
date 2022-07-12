@@ -15,7 +15,7 @@ namespace RR::Tests
             ASSERT(resource);
 
             const auto& resourceDesc = resource->GetDescription();
-            const auto& resourceFootprints = resource->GetSubresourceFootprints();
+            const auto& resourceFootprints = resource-> GetSubresourceFootprints();
             const auto resoucerData = GAPI::GpuResourceDataGuard(resource);
 
             std::fstream file;
@@ -27,10 +27,10 @@ namespace RR::Tests
             for (uint32_t subresourceIdx = 0; subresourceIdx < resourceFootprints.size(); subresourceIdx++)
             {
                 const auto& subresourceFootprint = resourceFootprints[subresourceIdx];
-                ASSERT(subresourceFootprint.width * resourceDesc.stride == subresourceFootprint.rowSizeInBytes);
+                ASSERT(subresourceFootprint.width * resourceDesc.buffer.stride == subresourceFootprint.rowSizeInBytes);
 
                 auto subresourcePointer = static_cast<char*>(resoucerData.Data()) + subresourceFootprint.offset;
-                file.write(subresourcePointer, subresourceFootprint.width * resourceDesc.stride);
+                file.write(subresourcePointer, subresourceFootprint.width * resourceDesc.buffer.stride);
             }
         }
 

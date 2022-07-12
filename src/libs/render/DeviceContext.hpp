@@ -42,7 +42,7 @@ namespace RR
 
             std::vector<GAPI::CpuResourceData::SubresourceFootprint> GetResourceFootprints(const GAPI::GpuResourceDescription& desc) const;
 
-            std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::BufferDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;
             std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
             std::shared_ptr<GAPI::ComputeCommandList> CreateComputeCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
@@ -53,8 +53,8 @@ namespace RR
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
-            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::TextureDescription& desc, const U8String& name = "") const;
-            std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::TextureDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;
             std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
 
         private:

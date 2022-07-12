@@ -96,29 +96,29 @@ namespace RR::GAPI::DX12::D3DUtils
     {
         ASSERT(resourceDesc.IsValid());
 
-        DXGI_FORMAT format = GetDxgiResourceFormat(resourceDesc.GetFormat());
+        DXGI_FORMAT format = GetDxgiResourceFormat(resourceDesc.format);
 
-        if (GpuResourceFormatInfo::IsDepth(resourceDesc.GetFormat()) && IsAny(resourceDesc.GetBindFlags(), GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
-            format = GetDxgiTypelessFormat(resourceDesc.GetFormat());
+        if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(resourceDesc.bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
+            format = GetDxgiTypelessFormat(resourceDesc.format);
 
         D3D12_RESOURCE_DESC desc;
-        switch (resourceDesc.GetDimension())
+        switch (resourceDesc.dimension)
         {
-            case GpuResourceDimension::Buffer: desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.GetSize()); break;
-            case GpuResourceDimension::Texture1D: desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.GetWidth(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount()); break;
+            case GpuResourceDimension::Buffer: desc = CD3DX12_RESOURCE_DESC::Buffer(resourceDesc.buffer.size); break;
+            case GpuResourceDimension::Texture1D: desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.texture.width, resourceDesc.texture.arraySize, resourceDesc.texture.mipLevels); break;
             case GpuResourceDimension::Texture2D:
             case GpuResourceDimension::Texture2DMS:
             {
-                const auto& sampleDesc = GetSampleDesc(resourceDesc.GetMultisampleType());
-                desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount(), sampleDesc.Count, sampleDesc.Quality);
+                const auto& sampleDesc = GetSampleDesc(resourceDesc.texture.multisampleType);
+                desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.texture.width, resourceDesc.texture.height, resourceDesc.texture.arraySize, resourceDesc.texture.mipLevels, sampleDesc.Count, sampleDesc.Quality);
                 break;
             }
-            case GpuResourceDimension::Texture3D: desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetDepth(), resourceDesc.GetMipCount()); break;
-            case GpuResourceDimension::TextureCube: desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize() * 6, resourceDesc.GetMipCount()); break;
+            case GpuResourceDimension::Texture3D: desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.texture.width, resourceDesc.texture.height, resourceDesc.texture.depth, resourceDesc.texture.mipLevels); break;
+            case GpuResourceDimension::TextureCube: desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.texture.width, resourceDesc.texture.height, resourceDesc.texture.arraySize * 6, resourceDesc.texture.mipLevels); break;
             default: LOG_FATAL("Unsupported texture dimension");
         }
 
-        desc.Flags = GetResourceFlags(resourceDesc.GetBindFlags());
+        desc.Flags = GetResourceFlags(resourceDesc.bindFlags);
         return desc;
     }
 

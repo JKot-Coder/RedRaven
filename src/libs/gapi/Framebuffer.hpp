@@ -75,32 +75,31 @@ namespace RR::GAPI
         {
             return (!desc_.IsAnyColorTargetBinded() && desc_.depthStencilView == nullptr);
         }
-
-        TextureDescription getTextureDescription(const GpuResourceView::SharedPtr rv)
+        GpuResourceDescription getResourceDescription(const GpuResourceView::SharedPtr rv)
         {
             ASSERT(rv);
             const auto gpuResource = rv->GetGpuResource().lock();
             ASSERT(gpuResource);
 
-            return gpuResource->GetTyped<Texture>()->GetDescription();
+            return gpuResource->GetDescription();
         }
 
         void updateMultisampleAndResolution(const GpuResourceView::SharedPtr rv)
         {
-            const auto& textureDesc = getTextureDescription(rv);
+            const auto& resourceDesc = getResourceDescription(rv);
 
             const auto mipLevel = rv->GetDescription().texture.mipLevel;
-            const auto textureWidth = textureDesc.GetWidth(mipLevel);
-            const auto textureHeight = textureDesc.GetHeight(mipLevel);
+            const auto textureWidth = resourceDesc.GetWidth(mipLevel);
+            const auto textureHeight = resourceDesc.GetHeight(mipLevel);
 
             if (isBindigsEmpty())
             {
-                desc_.multisampleType = textureDesc.multisampleType;
+                desc_.multisampleType = resourceDesc.texture.multisampleType;
                 desc_.width = textureWidth;
                 desc_.height = textureHeight;
             }
 
-            ASSERT(desc_.multisampleType == textureDesc.multisampleType);
+            ASSERT(desc_.multisampleType == resourceDesc.texture.multisampleType);
             ASSERT(desc_.width == textureWidth);
             ASSERT(desc_.height == textureHeight);
         }

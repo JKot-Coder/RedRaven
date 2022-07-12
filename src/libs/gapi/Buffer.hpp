@@ -63,24 +63,23 @@ namespace RR
             std::shared_ptr<ShaderResourceView> GetSRV(GpuResourceFormat format, uint32_t firstElement = 0, uint32_t numElements = MaxPossible);
             std::shared_ptr<UnorderedAccessView> GetUAV(GpuResourceFormat format, uint32_t firstElement = 0, uint32_t numElements = MaxPossible);
 
-            const BufferDescription& GetDescription() const { return description_; }
-
         private:
             static SharedPtr Create(
-                const BufferDescription& description,
+                const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
                 const U8String& name)
             {
                 return SharedPtr(new Buffer(description, initialData, name));
             }
 
-            Buffer(const BufferDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
-                : GpuResource(GpuResourceType::Buffer, initialData, name),
-                  description_(description) {};
+            Buffer(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
+                : GpuResource(description, initialData, name)
+            {
+                if (!description.IsBuffer())
+                    LOG_FATAL("Wrong Description");
+            }
 
         private:
-            BufferDescription description_;
-
             friend class Render::DeviceContext;
         };
     }
