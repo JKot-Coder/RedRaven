@@ -325,7 +325,7 @@ namespace RR
 
                     const auto resouceData = GAPI::GpuResourceDataGuard(readbackBuffer);
 
-                    const auto& footprint = readbackBuffer->GetSubresourceFootprints()[0];
+                    const auto footprint = readbackBuffer->GetSubresourceFootprints()[0];
                     REQUIRE(memcmp(resouceData.Data(), testData, footprint.rowSizeInBytes) == 0);
                 }
             }
