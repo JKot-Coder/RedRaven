@@ -187,8 +187,8 @@ namespace RR
         desc.width = size.x;
         desc.height = size.y;
 
-        auto& renderContext = Render::DeviceContext::Instance();
-        renderContext.ResetSwapChain(swapChain_, desc);
+        auto& deviceContext = Render::DeviceContext::Instance();
+        deviceContext.ResetSwapChain(swapChain_, desc);
 
         swindex = 0;
     }
@@ -198,8 +198,8 @@ namespace RR
         const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
         const auto& description = GAPI::GpuResourceDescription::Buffer(uint32_t(dataBuffer->Size()), bindFlags);
 
-        auto& renderContext = Render::DeviceContext::Instance();
-        return renderContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, "Source");
+        auto& deviceContext = Render::DeviceContext::Instance();
+        return deviceContext.CreateBuffer(description, dataBuffer, GAPI::GpuResourceUsage::Default, "Source");
     }
 
     void Application::Start()
@@ -225,24 +225,24 @@ namespace RR
 
         time->Init();
 
-        auto& renderContext = Render::DeviceContext::Instance();
+        auto& deviceContext = Render::DeviceContext::Instance();
 
-        auto commandQueue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
-        auto commandList = renderContext.CreateGraphicsCommandList(u8"qwew");
+        auto commandQueue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, u8"Primary");
+        auto commandList = deviceContext.CreateGraphicsCommandList(u8"qwew");
 
         const auto desc = GAPI::GpuResourceDescription::Texture2D(100, 100, GAPI::GpuResourceFormat::BGRA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget, 1, 1);
-        auto texture = renderContext.CreateTexture(desc);
+        auto texture = deviceContext.CreateTexture(desc);
         //  ASSERT(commandList)
         // commandList->Close();
 
         const auto& description = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
 
-        auto cpuData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
-        auto readbackData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
+        auto cpuData = deviceContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::CpuReadWrite);
+        auto readbackData = deviceContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
 
         initTextureData(description, cpuData);
 
-        auto testTexture = renderContext.CreateTexture(description, nullptr, GAPI::GpuResourceUsage::Default, "Test");
+        auto testTexture = deviceContext.CreateTexture(description, nullptr, GAPI::GpuResourceUsage::Default, "Test");
 
         GAPI::SwapChainDescription desciption = {};
         desciption.width = 100;
@@ -252,9 +252,9 @@ namespace RR
         desciption.gpuResourceFormat = GAPI::GpuResourceFormat::BGRA8Unorm;
         desciption.window = _window;
 
-        swapChain_ = renderContext.CreateSwapchain(desciption, "Primary");
+        swapChain_ = deviceContext.CreateSwapchain(desciption, "Primary");
 
-        auto fence = renderContext.CreateFence("qwe");
+        auto fence = deviceContext.CreateFence("qwe");
 
         const auto& platform = Platform::Toolkit::Instance();
 
@@ -263,7 +263,7 @@ namespace RR
             platform.PoolEvents();
             //Platform::WindowSystem::PoolEvents();
 
-            // renderContext.Submit(commandQueue, commandList);
+            // deviceContext.Submit(commandQueue, commandList);
 
             //  renderPipeline->Collect(_scene);
             //    renderPipeline->Draw();
@@ -273,13 +273,13 @@ namespace RR
             //    render->SwapBuffers();
             //  input->Update();
 
-            // renderContext.Present();
+            // deviceContext.Present();
 
             // auto index2 = index;
 
             std::shared_ptr<GAPI::CpuResourceData> readbackData1;
 
-            renderContext.ExecuteAsync(
+            deviceContext.ExecuteAsync(
                 [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData, &readbackData1](GAPI::Device& device)
                 {
                     std::ignore = device;
@@ -294,9 +294,9 @@ namespace RR
                         const auto destData = "QWERTYUIOP";
                         auto dest = initBufferWithData(destData);
 
-                        auto& renderContext = Render::DeviceContext::Instance();
+                        auto& deviceContext = Render::DeviceContext::Instance();
                         const auto& description = GAPI::GpuResourceDescription::Buffer(uint32_t(strlen(destData)));
-                        readbackData1 = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
+                        readbackData1 = deviceContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Readback);
 
                         commandList->CopyBufferRegion(source, 5, dest, 3, 4);
                         commandList->ReadbackGpuResource(dest, readbackData1);
@@ -304,18 +304,18 @@ namespace RR
                     }
 
                     {
-                        /* auto& renderContext = Render::DeviceContext::Instance();
+                        /* auto& deviceContext = Render::DeviceContext::Instance();
 
                         const auto& sourceDescription = GAPI::GpuResourceDescription::Texture3D(256, 256, 256, GAPI::GpuResourceFormat::RGBA8Uint);
-                        const auto sourceData = renderContext.AllocateIntermediateResourceData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        auto source = renderContext.CreateTexture(sourceDescription, nullptr, GAPI::GpuResourceUsage::Default, "Source");
+                        const auto sourceData = deviceContext.AllocateIntermediateResourceData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
+                        auto source = deviceContext.CreateTexture(sourceDescription, nullptr, GAPI::GpuResourceUsage::Default, "Source");
 
                         initTextureData(sourceDescription, sourceData);
                         commandList->UpdateGpuResource(source, sourceData);
 
                         const auto& destDescription = GAPI::GpuResourceDescription::Texture3D(128, 128, 128, GAPI::GpuResourceFormat::RGBA8Uint);
-                        const auto destData = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Upload);
-                        auto dest = renderContext.CreateTexture(destDescription, nullptr, GAPI::GpuResourceUsage::Default, "Dest");
+                        const auto destData = deviceContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Upload);
+                        auto dest = deviceContext.CreateTexture(destDescription, nullptr, GAPI::GpuResourceUsage::Default, "Dest");
 
                         initTextureData(destDescription, destData);
                         commandList->UpdateGpuResource(dest, destData);
@@ -324,7 +324,7 @@ namespace RR
                         commandList->CopyTextureSubresourceRegion(source, 2, Box3u(0, 0, 0, 32, 32, 32), dest, 1, Vector3u(16, 16, 16));
                         commandList->CopyTextureSubresourceRegion(source, 0, Box3u(45, 128, 205, 16, 16, 16), dest, 2, Vector3u(0, 0, 0));
 
-                        readbackData1 = renderContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Readback);
+                        readbackData1 = deviceContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Readback);
                         commandList->ReadbackGpuResource(dest, readbackData1);
 
                         commandList->Close();*/
@@ -348,8 +348,8 @@ namespace RR
                     commandList->Close();*/
                 });
             /*
-            renderContext.Submit(commandQueue, commandList);
-            renderContext.WaitForGpu(commandQueue);
+            deviceContext.Submit(commandQueue, commandList);
+            deviceContext.WaitForGpu(commandQueue);
 
             const auto pointer = readbackData1->GetAllocation()->Map();
 
@@ -359,8 +359,8 @@ namespace RR
                     readbackData1->GetAllocation()->Unmap();
                 })*/
 
-            renderContext.Submit(commandQueue, commandList);
-            renderContext.WaitForGpu(commandQueue);
+            deviceContext.Submit(commandQueue, commandList);
+            deviceContext.WaitForGpu(commandQueue);
 
             const auto dataPointer = static_cast<uint8_t*>(readbackData1->GetAllocation()->Map());
             ON_SCOPE_EXIT(
@@ -373,8 +373,8 @@ namespace RR
             // const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
             // REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
 
-            renderContext.Present(swapChain_);
-            renderContext.MoveToNextFrame(commandQueue);
+            deviceContext.Present(swapChain_);
+            deviceContext.MoveToNextFrame(commandQueue);
 
             swindex = (++swindex % swapChain_->GetDescription().bufferCount);
             frame++;
@@ -420,8 +420,8 @@ namespace RR
         // Inputting::Instance()->Init();
         // Inputting::Instance()->SubscribeToWindow(_window);
 
-        auto& renderContext = Render::DeviceContext::Instance();
-        renderContext.Init();
+        auto& deviceContext = Render::DeviceContext::Instance();
+        deviceContext.Init();
 
         // auto& render = Rendering::Instance();
         // render->Init(_window);

@@ -52,9 +52,9 @@ namespace RR::GAPI
 
         if (srvs_.find(viewDesc) == srvs_.end())
         {
-            auto& renderContext = Render::DeviceContext::Instance();
+            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            srvs_[viewDesc] = deviceContext.CreateShaderResourceView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return srvs_[viewDesc];
@@ -67,9 +67,9 @@ namespace RR::GAPI
 
         if (dsvs_.find(viewDesc) == dsvs_.end())
         {
-            auto& renderContext = Render::DeviceContext::Instance();
+            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            dsvs_[viewDesc] = renderContext.CreateDepthStencilView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            dsvs_[viewDesc] = deviceContext.CreateDepthStencilView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return dsvs_[viewDesc];
@@ -81,9 +81,9 @@ namespace RR::GAPI
 
         if (rtvs_.find(viewDesc) == rtvs_.end())
         {
-            auto& renderContext = Render::DeviceContext::Instance();
+            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            rtvs_[viewDesc] = renderContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            rtvs_[viewDesc] = deviceContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return rtvs_[viewDesc];
@@ -95,9 +95,9 @@ namespace RR::GAPI
 
         if (uavs_.find(viewDesc) == uavs_.end())
         {
-            auto& renderContext = Render::DeviceContext::Instance();
+            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return uavs_[viewDesc];

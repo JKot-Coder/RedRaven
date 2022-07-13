@@ -66,21 +66,21 @@ namespace RR
                 return false;
             }*/
 
-            auto& renderContext = Render::DeviceContext::Instance();
-            renderContext.Init();
+            auto& deviceContext = Render::DeviceContext::Instance();
+            deviceContext.Init();
             /*
             TODO 
             
-            if (!renderContext.Init())
+            if (!deviceContext.Init())
             {
                 ASSERT_MSG(false, "Error initialize render context");
                 return false;
             }
             */
 
-            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Copy)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "Copy");
-            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "Compute");
-            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Graphics)] = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, "Primary");
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Copy)] = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "Copy");
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "Compute");
+            commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Graphics)] = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, "Primary");
 
             return true;
         }
@@ -91,8 +91,8 @@ namespace RR
             commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Compute)] = nullptr;
             commandQueue_[static_cast<size_t>(GAPI::CommandQueueType::Graphics)] = nullptr;
 
-            auto& renderContext = Render::DeviceContext::Instance();
-            renderContext.Terminate();
+            auto& deviceContext = Render::DeviceContext::Instance();
+            deviceContext.Terminate();
         }
     }
 }

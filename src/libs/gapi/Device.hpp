@@ -3,6 +3,7 @@
 #include "common/Math.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
+#include "gapi/GpuResource.hpp"
 #include "gapi/Resource.hpp"
 
 #include <any>
@@ -54,6 +55,8 @@ namespace RR
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const = 0;
 
+            virtual GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const = 0;
+
             virtual void InitBuffer(const std::shared_ptr<Buffer>& resource) const = 0;
             virtual void InitCommandList(CommandList& resource) const = 0;
             virtual void InitCommandQueue(CommandQueue& resource) const = 0;
@@ -95,6 +98,9 @@ namespace RR
             {
                 return GetPrivateImpl()->AllocateIntermediateResourceData(desc, memoryType, firstSubresourceIndex, numSubresources);
             };
+
+            GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const
+                override { return GetPrivateImpl()->GetResourceFootprint(description); };
 
             // Todo init resource?
             void InitBuffer(const std::shared_ptr<Buffer>& resource) const override { GetPrivateImpl()->InitBuffer(resource); };

@@ -22,7 +22,7 @@ namespace RR
     {
         TEST_CASE_METHOD(TestContextFixture, "ComputeCommmandList", "[CommandList][ComputeCommandList]")
         {
-            auto commandList = renderContext.CreateCopyCommandList(u8"ComputeCommmandList");
+            auto commandList = deviceContext.CreateCopyCommandList(u8"ComputeCommmandList");
             REQUIRE(commandList != nullptr);
 
             SECTION("Close")
@@ -33,17 +33,17 @@ namespace RR
 
         TEST_CASE_METHOD(TestContextFixture, "ClearBufferUAV", "[CommandList][ComputeCommandList][ClearUAV]")
         {
-            auto commandList = renderContext.CreateComputeCommandList(u8"ComputeCommmandList");
+            auto commandList = deviceContext.CreateComputeCommandList(u8"ComputeCommmandList");
             REQUIRE(commandList != nullptr);
 
-            auto queue = renderContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "ComputeQueue");
+            auto queue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "ComputeQueue");
             REQUIRE(queue != nullptr);
 
             SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
             {
                 const auto sourceData = "1234567890qwertyasdfg";
-                const auto source = createBufferWithData(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
-                const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+                const auto source = createBufferFromString(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto readbackData = deviceContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint);
 
@@ -67,8 +67,8 @@ namespace RR
             SECTION(fmt::format("[Buffer::RawBuffer] Partical ClearUnorderedAccessViewFloat"))
             {
                 const auto sourceData = "1234567890qwertyasdfg";
-                const auto source = createBufferWithData(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
-                const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+                const auto source = createBufferFromString(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
+                const auto readbackData = deviceContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);
 
@@ -91,12 +91,10 @@ namespace RR
 
             SECTION("[Texture2D::RGBA8] Partical ClearUnorderedAccessViewUint")
             {
-                auto description = createTextureDescription(GAPI::GpuResourceDimension::Texture2D, 128, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceUsage::Default);
-                const auto sourceData = renderContext.AllocateIntermediateResourceData(description, GAPI::MemoryAllocationType::Upload);
+                /*auto description = createTextureDescription(GAPI::GpuResourceDimension::Texture2D, 128, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceUsage::Default);
 
-                initResourceData(description, sourceData);
-                auto source = renderContext.CreateTexture(description, nullptr, "Source");
-                const auto readbackData = renderContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+                auto source = deviceContext.CreateTexture(description, createTestColorData(description), "Source");
+                const auto readbackData = deviceContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
                 const auto uav = source->GetUAV(0);
 
@@ -113,7 +111,7 @@ namespace RR
                         readbackData->GetAllocation()->Unmap();
                     });
 
-                const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
+                const auto& footprint = readbackData->GetSubresourceFootprintAt(0);*/ 
                 // REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
             }
         }

@@ -50,9 +50,9 @@ namespace RR
             // TODO  description_.width = 0 sometimes happends
             const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget | GpuResourceBindFlags::ShaderResource, GpuResourceUsage::Default, 1, 1);
 
-            auto& renderContext = Render::DeviceContext::Instance();
+            auto& deviceContext = Render::DeviceContext::Instance();
 
-            backBuffers_[index] = renderContext.CreateSwapChainBackBuffer(
+            backBuffers_[index] = deviceContext.CreateSwapChainBackBuffer(
                 std::static_pointer_cast<SwapChain>(shared_from_this()),
                 index,
                 desc,

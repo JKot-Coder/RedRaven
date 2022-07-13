@@ -31,6 +31,9 @@ namespace RR
 
             const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
+        public:
+            static GpuResourceFootprint GetFootprint(const GpuResourceDescription& resourceDesc);
+
         private:
             ComSharedPtr<ID3D12Resource> D3DResource_;
             D3D12MA::Allocation* allocation_;

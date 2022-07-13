@@ -173,9 +173,9 @@ namespace RR
                 return GpuResourceDescription(size, format == GpuResourceFormat::Unknown ? 1 : GpuResourceFormatInfo::GetBlockSize(format), format, bindFlags, usage);
             }
 
-            static GpuResourceDescription StructuredBuffer(uint32_t size, uint32_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDescription StructuredBuffer(uint32_t numElements, uint32_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(size, structSize, GpuResourceFormat::Unknown, bindFlags, usage);
+                return GpuResourceDescription(numElements * structSize, structSize, GpuResourceFormat::Unknown, bindFlags, usage);
             }
 
             static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
@@ -207,7 +207,7 @@ namespace RR
             {
                 static_assert(sizeof(GpuResourceDescription) == 10 * sizeof(uint32_t), "Check for tighly packed structure");
                 static_assert(sizeof(TextureDescription) == 6 * sizeof(uint32_t), "Check for tighly packed structure");
-                static_assert(sizeof(BufferDescription) == 2 * sizeof(uint32_t), "Check for tighly packed structure");
+                static_assert(sizeof(BufferDescription) == 2 * sizeof(size_t), "Check for tighly packed structure");
 
                 bool resourceDescriptionCmp = lhs.dimension == rhs.dimension &&
                                               lhs.format == rhs.format &&
@@ -336,8 +336,8 @@ namespace RR
                 ASSERT(IsValid());
             }
 
-            GpuResourceDescription(uint32_t size,
-                                   uint32_t stride,
+            GpuResourceDescription(size_t size,
+                                   size_t stride,
                                    GpuResourceFormat format,
                                    GpuResourceBindFlags bindFlags,
                                    GpuResourceUsage usage)
@@ -365,8 +365,8 @@ namespace RR
 
             struct BufferDescription
             {
-                uint32_t size = 1;
-                uint32_t stride = 1;
+                size_t size = 1;
+                size_t stride = 1;
             };
 
         public:
@@ -435,6 +435,12 @@ namespace RR
             std::vector<SubresourceFootprint> subresourceFootprints_;
             GpuResourceDescription description_;
             uint32_t firstSubresource_;
+        };
+
+        struct GpuResourceFootprint
+        {
+            std::vector<CpuResourceData::SubresourceFootprint> subresourceFootprints;
+            size_t totalSize;
         };
 
         class IGpuResource

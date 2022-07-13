@@ -55,16 +55,16 @@ namespace RR::GAPI::DX12
         const auto& device = DeviceContext::GetDevice();
 
         const auto d3dResourceDesc = resourceImpl.GetD3DObject()->GetDesc();
+        const uint32_t numSubresources = D3DUtils::GetSubresourcesCount(d3dResourceDesc);
 
-        // TODO to UTILS?
-        constexpr uint32_t planeSlices = 1;
-        const uint32_t numFaces = (d3dResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D ? 6u : 1u);
-        const uint32_t numSubresource = planeSlices * numFaces * d3dResourceDesc.DepthOrArraySize * d3dResourceDesc.MipLevels;
+        std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
+        std::vector<UINT> numRowsVector(numSubresources);
+        std::vector<UINT64> rowSizeInBytesVector(numSubresources);
 
-        UINT64 intermediateSize;
-        device->GetCopyableFootprints(&d3dResourceDesc, 0, numSubresource, 0, nullptr, nullptr, nullptr, &intermediateSize);
+        UINT64 totalSize;
+        device->GetCopyableFootprints(&d3dResourceDesc, 0, numSubresources, 0, layouts.data(), numRowsVector.data(), rowSizeInBytesVector.data(), &totalSize);
 
-        const auto& intermediateResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(intermediateSize);
+        const auto& intermediateResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(totalSize);
 
         D3D12MA::ALLOCATION_DESC allocationDesc = {};
         allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
@@ -85,16 +85,38 @@ namespace RR::GAPI::DX12
 
         auto dataPointer = intermediateResource.Map();
         // TODO TON OF ASSERTS AND LOGICK HERE
-        memcpy(dataPointer, initialData->Data(), intermediateSize);
+        memcpy(dataPointer, initialData->Data(), totalSize);
 
         intermediateResource.Unmap();
+
+        const auto d3dCommandList = commandList_->GetD3DObject();
+        const auto d3dDestinationResource = resourceImpl.GetD3DObject();
+        const auto d3dIntermediateResource = intermediateResource.GetD3DObject();
 
         {
             Threading::ReadWriteGuard lock(spinlock_);
 
             pendingDefferedUploads++;
 
-            commandList_->CopyGpuResource(intermediateResource, resourceImpl);
+            if (d3dResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+            {
+                d3dCommandList->CopyBufferRegion(d3dDestinationResource.get(), 0, d3dIntermediateResource.get(), layouts[0].Offset, layouts[0].Footprint.Width);
+            }
+            else
+            {
+                for (uint32_t i = 0; i < numSubresources; ++i)
+                {
+                    CD3DX12_TEXTURE_COPY_LOCATION Dst(d3dDestinationResource.get(), i);
+                    CD3DX12_TEXTURE_COPY_LOCATION Src(d3dIntermediateResource.get(), layouts[i]);
+                    d3dCommandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
+                }
+            }
+
+            if (resourceImpl.GetDefaultResourceState() != D3D12_RESOURCE_STATE_COPY_DEST)
+            {
+                D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dDestinationResource.get(), D3D12_RESOURCE_STATE_COPY_DEST, resourceImpl.GetDefaultResourceState());
+                d3dCommandList->ResourceBarrier(1, &barrier);
+            }
         }
 
         if (pendingDefferedUploads == UploadBatchSize)

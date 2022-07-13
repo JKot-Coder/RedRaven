@@ -153,6 +153,12 @@ namespace RR
                 return CpuResourceDataAllocator::Allocate(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
             }
 
+            GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDescription& description) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                return ResourceImpl::GetFootprint(description);
+            }
+
             void DeviceImpl::InitFramebuffer(Framebuffer& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;

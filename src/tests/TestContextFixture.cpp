@@ -7,6 +7,7 @@
 #include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
+#include "common/DataBuffer.hpp"
 #include "common/OnScopeExit.hpp"
 
 namespace RR
@@ -56,6 +57,50 @@ namespace RR
                        static_cast<uint32_t>(value.z * 255.0f) << 16 |
                        static_cast<uint32_t>(value.y * 255.0f) << 8 |
                        static_cast<uint32_t>(value.x * 255.0f);
+            }
+
+            template <typename T>
+            IDataBuffer::SharedPtr getColorData(const GAPI::GpuResourceDescription& description)
+            {
+                const auto& deviceContext = Render::DeviceContext::Instance();
+
+                ASSERT((std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::RGBA8Uint) ||
+                       (std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::BGRA8Unorm) ||
+                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA16Float) ||
+                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA32Float));
+
+                const auto footprint = deviceContext.GetResourceFootprint(description);
+                const auto buffer = std::make_shared<DataBuffer>(footprint.totalSize);
+
+                const auto& subresourceFootprints = footprint.subresourceFootprints;
+                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.format);
+
+                for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
+                {
+                    const auto& subresourceFootprint = subresourceFootprints[index];
+                    ASSERT(subresourceFootprint.width * blockSize == subresourceFootprint.rowSizeInBytes);
+
+                    for (uint32_t depth = 0; depth < subresourceFootprint.depth; depth++)
+                    {
+                        const auto depthPointer = static_cast<std::byte*>(buffer->Data()) + subresourceFootprint.offset +
+                                                  depth * subresourceFootprint.depthPitch;
+                        for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
+                        {
+                            const auto rowPointer = depthPointer + row * subresourceFootprint.rowPitch;
+                            auto columnPointer = reinterpret_cast<T*>(rowPointer);
+
+                            for (uint32_t column = 0; column < subresourceFootprint.width; column++)
+                            {
+                                const auto texel = Vector3u(column, row, depth);
+
+                                *columnPointer = checkerboardPattern<T>(texel, index);
+                                columnPointer++;
+                            }
+                        }
+                    }
+                }
+
+                return buffer;
             }
 
             template <typename T>
@@ -149,7 +194,7 @@ namespace RR
             }
         }
 
-        TestContextFixture::TestContextFixture() : renderContext(Render::DeviceContext::Instance())
+        TestContextFixture::TestContextFixture() : deviceContext(Render::DeviceContext::Instance())
         {
         }
 
@@ -181,7 +226,7 @@ namespace RR
             }
         }
 
-        void TestContextFixture::initResourceData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
+        void TestContextFixture::initTextureData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
         {
             switch (description.format)
             {
@@ -194,12 +239,40 @@ namespace RR
             }
         }
 
-        GAPI::Buffer::SharedPtr TestContextFixture::createBufferWithData(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
+        GAPI::Buffer::SharedPtr TestContextFixture::createBufferFromString(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
             const auto description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), GAPI::GpuResourceFormat::Unknown, bindFlags);
 
-            return renderContext.CreateBuffer(description, dataBuffer, name);
+            return deviceContext.CreateBuffer(description, dataBuffer, name);
+        }
+
+        IDataBuffer::SharedPtr TestContextFixture::createTestColorData(const GAPI::GpuResourceDescription& description)
+        {
+            switch (description.format)
+            {
+                case GAPI::GpuResourceFormat::RGBA8Uint:
+                case GAPI::GpuResourceFormat::BGRA8Unorm:
+                    return getColorData<uint32_t>(description);
+                case GAPI::GpuResourceFormat::RGBA16Float:
+                case GAPI::GpuResourceFormat::RGBA32Float:
+                    return getColorData<Vector4>(description);
+                default: LOG_FATAL("Unsupported format"); return nullptr;
+            }
+        }
+
+        bool TestContextFixture::isDataEqual(const GAPI::GpuResourceDescription& description,
+                                             const std::shared_ptr<IDataBuffer>& lhs,
+                                             const std::shared_ptr<IDataBuffer>& rhs)
+        {
+            ASSERT(lhs != rhs);
+            const auto footprint = deviceContext.GetResourceFootprint(description);
+
+            for (const auto& subresourceFootprint : footprint.subresourceFootprints)
+                if (!isSubresourceEqual(subresourceFootprint, lhs, rhs))
+                    return false;
+
+            return true;
         }
 
         bool TestContextFixture::isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,
@@ -212,6 +285,29 @@ namespace RR
             for (uint32_t index = 0; index < numSubresources; index++)
                 if (!isSubresourceEqual(lhs, index, rhs, index))
                     return false;
+
+            return true;
+        }
+
+        bool TestContextFixture::isSubresourceEqual(const GAPI::CpuResourceData::SubresourceFootprint& footprint,
+                                                    const std::shared_ptr<IDataBuffer>& lhs,
+                                                    const std::shared_ptr<IDataBuffer>& rhs)
+        {
+            ASSERT(lhs);
+            ASSERT(rhs);
+            ASSERT(lhs != rhs);
+
+            auto lrowPointer = static_cast<std::byte*>(lhs->Data()) + footprint.offset;
+            auto rrowPointer = static_cast<std::byte*>(rhs->Data()) + footprint.offset;
+
+            for (uint32_t row = 0; row < footprint.numRows; row++)
+            {
+                if (memcmp(lrowPointer, rrowPointer, footprint.rowSizeInBytes) != 0)
+                    return false;
+
+                lrowPointer += footprint.rowPitch;
+                rrowPointer += footprint.rowPitch;
+            }
 
             return true;
         }
@@ -258,9 +354,9 @@ namespace RR
 
         void TestContextFixture::submitAndWait(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {
-            renderContext.Submit(commandQueue, commandList);
-            renderContext.WaitForGpu(commandQueue);
-            renderContext.MoveToNextFrame(commandQueue);
+            deviceContext.Submit(commandQueue, commandList);
+            deviceContext.WaitForGpu(commandQueue);
+            deviceContext.MoveToNextFrame(commandQueue);
         }
     }
 }

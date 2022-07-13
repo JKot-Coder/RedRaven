@@ -31,6 +31,8 @@ namespace RR
 
         class GpuResource;
         struct GpuResourceDescription;
+        struct GpuResourceFootprint;
+
         enum class GpuResourceDimension : uint32_t;
         enum class GpuResourceBindFlags : uint32_t;
         enum class GpuResourceFormat : uint32_t;

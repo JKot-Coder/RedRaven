@@ -212,6 +212,12 @@ namespace RR
             return resource;
         }
 
+        GAPI::GpuResourceFootprint DeviceContext::GetResourceFootprint(const GAPI::GpuResourceDescription& desc) const
+        {
+            ASSERT(inited_);
+            return submission_->GetIMultiThreadDevice().lock()->GetResourceFootprint(desc);           
+        }
+
         GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(
             const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,

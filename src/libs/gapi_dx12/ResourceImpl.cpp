@@ -101,12 +101,32 @@ namespace RR
             const auto usage = desc.usage;
             Init(desc, resource->GetName());
 
+            // TODO UPDATE THIS CODE
             const auto& initialData = resource->GetInitialData();
-            ASSERT_MSG(!initialData || (usage == GpuResourceUsage::Default), "Initial resource data can only be applied to a resource with 'Default' usage.");
-            if (initialData && (usage == GpuResourceUsage::Default))
+            ASSERT_MSG(!initialData || (usage == GpuResourceUsage::Default) || (usage == GpuResourceUsage::Upload), "Initial resource data can only be applied to a resource with 'Default' or 'Upload' usage.");
+            if (initialData)
             {
-                auto& initilDataUploader = InitialDataUploder::Instance();
-                initilDataUploader.DefferedUpload(*this, initialData);
+                if (usage == GpuResourceUsage::Default)
+                {
+                    auto& initilDataUploader = InitialDataUploder::Instance();
+                    initilDataUploader.DefferedUpload(*this, initialData);
+                }
+
+                if (usage == GpuResourceUsage::Upload)
+                {
+                    const auto dataPointer = Map();
+
+                    UINT64 intermediateSize;
+                    const auto& device = DeviceContext::GetDevice();
+
+                    D3D12_RESOURCE_DESC d3dResourceDesc = D3DUtils::GetResourceDesc(desc);
+                    device->GetCopyableFootprints(&d3dResourceDesc, 0, desc.GetNumSubresources(), 0, nullptr, nullptr, nullptr, &intermediateSize);
+
+                    // TODO TON OF ASSERTS AND LOGICK HERE
+                    memcpy(dataPointer, initialData->Data(), intermediateSize);
+
+                    Unmap();
+                }
             }
 
             if (initialData)
@@ -162,6 +182,34 @@ namespace RR
             D3DResource_ = resource;
             defaultState_ = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON;
             D3DUtils::SetAPIName(D3DResource_.get(), name);
+        }
+
+        GpuResourceFootprint ResourceImpl::GetFootprint(const GpuResourceDescription& resourceDesc)
+        {
+            const auto& device = DeviceContext::GetDevice();
+            const auto numSubresources = resourceDesc.GetNumSubresources();
+
+            D3D12_RESOURCE_DESC d3d12Desc = D3DUtils::GetResourceDesc(resourceDesc);
+
+            UINT64 intermediateSize;
+            device->GetCopyableFootprints(&d3d12Desc, 0, numSubresources, 0, nullptr, nullptr, nullptr, &intermediateSize);
+
+            std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
+            std::vector<UINT> numRowsVector(numSubresources);
+            std::vector<UINT64> rowSizeInBytesVector(numSubresources);
+            device->GetCopyableFootprints(&d3d12Desc, 0, numSubresources, 0, layouts.data(), numRowsVector.data(), rowSizeInBytesVector.data(), nullptr);
+
+            GpuResourceFootprint footprint = { std::vector<CpuResourceData::SubresourceFootprint>(numSubresources), intermediateSize };
+            for (uint32_t index = 0; index < numSubresources; index++)
+            {
+                const auto& layout = layouts[index];
+                const auto numRows = numRowsVector[index];
+                const auto rowSizeInBytes = rowSizeInBytesVector[index];
+
+                footprint.subresourceFootprints[index] = getSubresourceFootprint(resourceDesc, layout, numRows, rowSizeInBytes);
+            }
+
+            return footprint;
         }
 
         std::vector<CpuResourceData::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& resourceDesc) const

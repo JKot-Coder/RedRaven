@@ -122,6 +122,13 @@ namespace RR::GAPI::DX12::D3DUtils
         return desc;
     }
 
+    uint32_t GetSubresourcesCount(const D3D12_RESOURCE_DESC& desc)
+    {
+        constexpr uint32_t planeSlices = 1;
+        const auto arraySize = (desc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? desc.DepthOrArraySize : 1;
+        return planeSlices * arraySize * desc.MipLevels;
+    }
+
     bool SwapChainDesc1MatchesForReset(const DXGI_SWAP_CHAIN_DESC1& left, const DXGI_SWAP_CHAIN_DESC1& right)
     {
         return (left.Stereo == right.Stereo &&

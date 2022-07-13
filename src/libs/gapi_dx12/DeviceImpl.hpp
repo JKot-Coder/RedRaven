@@ -26,6 +26,8 @@ namespace RR
                     uint32_t firstSubresourceIndex = 0,
                     uint32_t numSubresources = MaxPossible) const override;
 
+                GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const override;
+
                 void InitBuffer(const std::shared_ptr<Buffer>& resource) const override;
                 void InitCommandList(CommandList& resource) const override;
                 void InitCommandQueue(CommandQueue& resource) const override;

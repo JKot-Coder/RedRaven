@@ -4,9 +4,7 @@ set(SRC
     DeviceContext.cpp
     DeviceContext.hpp
     Submission.hpp
-    Submission.cpp
-    GpuResourceUploader.cpp
-    GpuResourceUploader.hpp)
+    Submission.cpp)
 
 source_group( "" FILES ${SRC} )
         

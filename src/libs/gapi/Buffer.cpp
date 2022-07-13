@@ -39,9 +39,9 @@ namespace RR
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
-                auto& renderContext = Render::DeviceContext::Instance();
+                auto& deviceContext = Render::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_
-                srvs_[viewDesc] = renderContext.CreateShaderResourceView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
+                srvs_[viewDesc] = deviceContext.CreateShaderResourceView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
 
             return srvs_[viewDesc];
@@ -53,9 +53,9 @@ namespace RR
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {
-                auto& renderContext = Render::DeviceContext::Instance();
+                auto& deviceContext = Render::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_
-                uavs_[viewDesc] = renderContext.CreateUnorderedAccessView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
+                uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(std::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
 
             return uavs_[viewDesc];

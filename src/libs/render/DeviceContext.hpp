@@ -40,7 +40,7 @@ namespace RR
                 uint32_t firstSubresourceIndex = 0,
                 uint32_t numSubresources = MaxPossible) const;
 
-            std::vector<GAPI::CpuResourceData::SubresourceFootprint> GetResourceFootprints(const GAPI::GpuResourceDescription& desc) const;
+            GAPI::GpuResourceFootprint GetResourceFootprint(const GAPI::GpuResourceDescription& desc) const;
 
             std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;
             std::shared_ptr<GAPI::CommandQueue> CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const;
