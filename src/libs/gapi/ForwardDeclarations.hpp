@@ -46,10 +46,6 @@ namespace RR
         class RenderTargetView;
         class DepthStencilView;
         class UnorderedAccessView;
-
-        class MemoryAllocation;
-        enum class MemoryAllocationType : uint32_t;
-        class CpuResourceData;
     }
 
     namespace Render

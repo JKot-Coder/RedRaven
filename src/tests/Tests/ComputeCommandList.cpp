@@ -9,7 +9,6 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
 #include "render/DeviceContext.hpp"
@@ -39,7 +38,7 @@ namespace RR
             auto queue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "ComputeQueue");
             REQUIRE(queue != nullptr);
 
-            SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
+         /* SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
             {
                 const auto sourceData = "1234567890qwertyasdfg";
                 const auto source = createBufferFromString(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
@@ -87,7 +86,7 @@ namespace RR
                 const auto testData = "1234567890qwerty€ihfg";
                 const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
                 REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
-            }
+            }*/
 
             SECTION("[Texture2D::RGBA8] Partical ClearUnorderedAccessViewUint")
             {

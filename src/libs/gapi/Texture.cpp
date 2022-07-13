@@ -3,7 +3,6 @@
 #include "Texture.hpp"
 
 #include "gapi/GpuResourceViews.hpp"
-#include "gapi/MemoryAllocation.hpp"
 
 #include "render/DeviceContext.hpp"
 
@@ -101,48 +100,5 @@ namespace RR::GAPI
         }
 
         return uavs_[viewDesc];
-    }
-
-    void CpuResourceData::CopyDataFrom(const GAPI::CpuResourceData::SharedPtr& source)
-    {
-        ASSERT(source);
-        ASSERT(source != shared_from_this());
-        static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
-        ASSERT(allocation_->GetMemoryType() != GAPI::MemoryAllocationType::Readback);
-        ASSERT(source->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
-        ASSERT(source->GetFirstSubresource() == GetFirstSubresource());
-        ASSERT(source->GetNumSubresources() == GetNumSubresources());
-
-        const auto sourceDataPointer = static_cast<uint8_t*>(source->GetAllocation()->Map());
-        const auto destDataPointer = static_cast<uint8_t*>(allocation_->Map());
-
-        ON_SCOPE_EXIT(
-            {
-                source->GetAllocation()->Unmap();
-                allocation_->Unmap();
-            });
-
-        const auto numSubresources = source->GetNumSubresources();
-        for (uint32_t index = 0; index < numSubresources; index++)
-        {
-            const auto& sourceFootprint = source->GetSubresourceFootprintAt(index);
-            const auto& destFootprint = GetSubresourceFootprintAt(index);
-
-            ASSERT(sourceFootprint.isComplatable(destFootprint));
-
-            for (uint32_t depth = 0; depth < sourceFootprint.depth; depth++)
-            {
-                auto sourceRowPointer = sourceDataPointer + sourceFootprint.offset + sourceFootprint.depthPitch * depth;
-                auto destRowPointer = destDataPointer + destFootprint.offset + destFootprint.depthPitch * depth;
-
-                for (uint32_t row = 0; row < sourceFootprint.numRows; row++)
-                {
-                    std::memcpy(destRowPointer, sourceRowPointer, sourceFootprint.rowSizeInBytes);
-
-                    sourceRowPointer += sourceFootprint.rowPitch;
-                    destRowPointer += destFootprint.rowPitch;
-                }
-            }
-        }
     }
 }

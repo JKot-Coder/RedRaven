@@ -382,12 +382,8 @@ namespace RR
             GpuResourceUsage usage = GpuResourceUsage::Default;
         };
 
-        class CpuResourceData : public std::enable_shared_from_this<CpuResourceData>
+        struct GpuResourceFootprint
         {
-        public:
-            using SharedPtr = std::shared_ptr<CpuResourceData>;
-            using SharedConstPtr = std::shared_ptr<const CpuResourceData>;
-
             struct SubresourceFootprint
             {
                 SubresourceFootprint() = default;
@@ -410,36 +406,7 @@ namespace RR
                 size_t depthPitch;
             };
 
-            CpuResourceData(const std::shared_ptr<MemoryAllocation>& allocation, const GpuResourceDescription& description, const std::vector<SubresourceFootprint>& subresourceFootprints, uint32_t firstSubresource)
-                : allocation_(allocation),
-                  description_(description),
-                  subresourceFootprints_(subresourceFootprints),
-                  firstSubresource_(firstSubresource)
-            {
-                ASSERT(allocation);
-                ASSERT(subresourceFootprints.size() > 0);
-                ASSERT(firstSubresource + subresourceFootprints.size() <= description.GetNumSubresources());
-            };
-
-            inline std::shared_ptr<MemoryAllocation> GetAllocation() const { return allocation_; }
-            inline uint32_t GetFirstSubresource() const { return firstSubresource_; }
-            inline size_t GetNumSubresources() const { return subresourceFootprints_.size(); }
-            inline const GpuResourceDescription& GetResourceDescription() const { return description_; }
-            inline const SubresourceFootprint& GetSubresourceFootprintAt(uint32_t index) const { return subresourceFootprints_[index]; }
-            inline const std::vector<SubresourceFootprint>& GetSubresourceFootprints() const { return subresourceFootprints_; }
-
-            void CopyDataFrom(const GAPI::CpuResourceData::SharedPtr& source);
-
-        private:
-            std::shared_ptr<MemoryAllocation> allocation_;
-            std::vector<SubresourceFootprint> subresourceFootprints_;
-            GpuResourceDescription description_;
-            uint32_t firstSubresource_;
-        };
-
-        struct GpuResourceFootprint
-        {
-            std::vector<CpuResourceData::SubresourceFootprint> subresourceFootprints;
+            std::vector<SubresourceFootprint> subresourceFootprints;
             size_t totalSize;
         };
 
@@ -449,7 +416,7 @@ namespace RR
             virtual ~IGpuResource() = default;
 
             virtual std::any GetRawHandle() const = 0;
-            virtual std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& decription) const = 0;
+            virtual std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& decription) const = 0;
 
             virtual void* Map() = 0;
             virtual void Unmap() = 0;
@@ -468,7 +435,7 @@ namespace RR
 
             inline const GpuResourceDescription& GetDescription() const { return description_; }
             inline IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
-            inline std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints() const
+            inline std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints() const
             {
                 return GetPrivateImpl()->GetSubresourceFootprints(description_);
             }

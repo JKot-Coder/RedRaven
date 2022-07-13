@@ -18,7 +18,6 @@ set(SRC
     GpuResourceViews.cpp
     GpuResourceViews.hpp
     Limits.hpp
-    MemoryAllocation.hpp
     Object.hpp
     Resource.hpp
     SwapChain.cpp

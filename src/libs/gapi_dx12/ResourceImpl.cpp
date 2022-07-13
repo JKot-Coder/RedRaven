@@ -69,7 +69,7 @@ namespace RR
                 return D3D12_RESOURCE_STATE_COMMON;
             }
 
-            CpuResourceData::SubresourceFootprint getSubresourceFootprint(const GpuResourceDescription& resourceDesc,
+            GpuResourceFootprint::SubresourceFootprint getSubresourceFootprint(const GpuResourceDescription& resourceDesc,
                                                                           const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout,
                                                                           UINT numRows,
                                                                           UINT64 rowSizeInBytes)
@@ -79,7 +79,7 @@ namespace RR
                 const auto rowPitch = layout.Footprint.RowPitch;
                 const auto depthPitch = numRows * rowPitch;
 
-                return CpuResourceData::SubresourceFootprint(
+                return GpuResourceFootprint::SubresourceFootprint(
                     layout.Offset,
                     layout.Footprint.Width,
                     layout.Footprint.Height,
@@ -199,7 +199,7 @@ namespace RR
             std::vector<UINT64> rowSizeInBytesVector(numSubresources);
             device->GetCopyableFootprints(&d3d12Desc, 0, numSubresources, 0, layouts.data(), numRowsVector.data(), rowSizeInBytesVector.data(), nullptr);
 
-            GpuResourceFootprint footprint = { std::vector<CpuResourceData::SubresourceFootprint>(numSubresources), intermediateSize };
+            GpuResourceFootprint footprint = { std::vector<GpuResourceFootprint::SubresourceFootprint>(numSubresources), intermediateSize };
             for (uint32_t index = 0; index < numSubresources; index++)
             {
                 const auto& layout = layouts[index];
@@ -212,7 +212,7 @@ namespace RR
             return footprint;
         }
 
-        std::vector<CpuResourceData::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& resourceDesc) const
+        std::vector<GpuResourceFootprint::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& resourceDesc) const
         {
             const auto& device = DeviceContext::GetDevice();
 
@@ -225,7 +225,7 @@ namespace RR
             D3D12_RESOURCE_DESC d3d12Desc = D3DUtils::GetResourceDesc(resourceDesc);
             device->GetCopyableFootprints(&d3d12Desc, 0, numSubresources, 0, layouts.data(), numRowsVector.data(), rowSizeInBytesVector.data(), nullptr);
 
-            std::vector<CpuResourceData::SubresourceFootprint> subresourceFootprints(numSubresources);
+            std::vector<GpuResourceFootprint::SubresourceFootprint> subresourceFootprints(numSubresources);
             for (uint32_t index = 0; index < numSubresources; index++)
             {
                 const auto& layout = layouts[index];

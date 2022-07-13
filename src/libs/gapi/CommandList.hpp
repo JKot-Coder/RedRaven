@@ -54,9 +54,6 @@ namespace RR
             virtual void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                                       const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
 
-            virtual void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) = 0;
-            virtual void ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) = 0;
-
             // ---------------------------------------------------------------------------------------------
             // Compute command list
             // ---------------------------------------------------------------------------------------------
@@ -106,9 +103,6 @@ namespace RR
                                         const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx);
             void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint);
-
-            void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData);
-            void ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData);
 
         private:
             static SharedPtr Create(const U8String& name)

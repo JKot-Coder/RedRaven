@@ -34,12 +34,6 @@ namespace RR
             void ExecuteAsync(const Submission::CallbackFunction&& function);
             void ExecuteAwait(const Submission::CallbackFunction&& function);
 
-            std::shared_ptr<GAPI::CpuResourceData> AllocateIntermediateResourceData(
-                const GAPI::GpuResourceDescription& desc,
-                GAPI::MemoryAllocationType memoryType,
-                uint32_t firstSubresourceIndex = 0,
-                uint32_t numSubresources = MaxPossible) const;
-
             GAPI::GpuResourceFootprint GetResourceFootprint(const GAPI::GpuResourceDescription& desc) const;
 
             std::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;

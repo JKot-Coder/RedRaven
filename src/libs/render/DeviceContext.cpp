@@ -141,17 +141,6 @@ namespace RR
                                       { swapchain->Reset(description); });
         }
 
-        std::shared_ptr<GAPI::CpuResourceData> DeviceContext::AllocateIntermediateResourceData(
-            const GAPI::GpuResourceDescription& desc,
-            GAPI::MemoryAllocationType memoryType,
-            uint32_t firstSubresourceIndex,
-            uint32_t numSubresources) const
-        {
-            ASSERT(inited_);
-
-            return submission_->GetIMultiThreadDevice().lock()->AllocateIntermediateResourceData(desc, memoryType, firstSubresourceIndex, numSubresources);
-        }
-
         GAPI::CopyCommandList::SharedPtr DeviceContext::CreateCopyCommandList(const U8String& name) const
         {
             ASSERT(inited_);

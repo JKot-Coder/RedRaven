@@ -11,7 +11,6 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
 #include "render/DeviceContext.hpp"

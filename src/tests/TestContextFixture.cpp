@@ -4,7 +4,6 @@
 
 #include "gapi/Buffer.hpp"
 #include "gapi/CommandList.hpp"
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
 #include "common/DataBuffer.hpp"
@@ -103,70 +102,7 @@ namespace RR
                 return buffer;
             }
 
-            template <typename T>
-            void fillColorData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
-            {
-                ASSERT(resourceData->GetFirstSubresource() == 0);
-                ASSERT((std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::RGBA8Uint) ||
-                       (std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::BGRA8Unorm) ||
-                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA16Float) ||
-                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA32Float));
-
-                const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
-                const auto dataPointer = static_cast<uint8_t*>(resourceData->GetAllocation()->Map());
-                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.format);
-
-                for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
-                {
-                    const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * blockSize == subresourceFootprint.rowSizeInBytes);
-
-                    for (uint32_t depth = 0; depth < subresourceFootprint.depth; depth++)
-                    {
-                        const auto depthPointer = dataPointer + subresourceFootprint.offset +
-                                                  depth * subresourceFootprint.depthPitch;
-                        for (uint32_t row = 0; row < subresourceFootprint.numRows; row++)
-                        {
-                            const auto rowPointer = depthPointer + row * subresourceFootprint.rowPitch;
-                            auto columnPointer = reinterpret_cast<T*>(rowPointer);
-
-                            for (uint32_t column = 0; column < subresourceFootprint.width; column++)
-                            {
-                                const auto texel = Vector3u(column, row, depth);
-
-                                *columnPointer = checkerboardPattern<T>(texel, index);
-                                columnPointer++;
-                            }
-                        }
-                    }
-                }
-
-                resourceData->GetAllocation()->Unmap();
-            }
-
-            void fillBufferData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
-            {
-                ASSERT(description.dimension == GAPI::GpuResourceDimension::Buffer);
-
-                const auto& subresourceFootprints = resourceData->GetSubresourceFootprints();
-                const auto dataPointer = static_cast<uint8_t*>(resourceData->GetAllocation()->Map());
-                std::array<uint8_t, 10> testBufferData = { 0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42 };
-
-                for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
-                {
-                    const auto& subresourceFootprint = subresourceFootprints[index];
-                    ASSERT(subresourceFootprint.width * description.buffer.stride == subresourceFootprint.rowSizeInBytes);
-
-                    auto columnPointer = reinterpret_cast<uint8_t*>(dataPointer);
-
-                    for (uint32_t byte = 0; byte < subresourceFootprint.width; byte++)
-                    {
-                        *columnPointer = testBufferData[byte % testBufferData.size()];
-                        columnPointer++;
-                    }
-                }
-            }
-
+      
             void fillBufferData(const GAPI::GpuResource::SharedPtr& resource)
             {
                 ASSERT(resource->GetDescription().IsBuffer());
@@ -226,19 +162,6 @@ namespace RR
             }
         }
 
-        void TestContextFixture::initTextureData(const GAPI::GpuResourceDescription& description, const GAPI::CpuResourceData::SharedPtr& resourceData)
-        {
-            switch (description.format)
-            {
-                case GAPI::GpuResourceFormat::Unknown: fillBufferData(description, resourceData); break;
-                case GAPI::GpuResourceFormat::RGBA8Uint:
-                case GAPI::GpuResourceFormat::BGRA8Unorm: fillColorData<uint32_t>(description, resourceData); break;
-                case GAPI::GpuResourceFormat::RGBA16Float:
-                case GAPI::GpuResourceFormat::RGBA32Float: fillColorData<Vector4>(description, resourceData); break;
-                default: LOG_FATAL("Unsupported format");
-            }
-        }
-
         GAPI::Buffer::SharedPtr TestContextFixture::createBufferFromString(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
@@ -275,21 +198,7 @@ namespace RR
             return true;
         }
 
-        bool TestContextFixture::isResourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs,
-                                                 const GAPI::CpuResourceData::SharedPtr& rhs)
-        {
-            ASSERT(lhs != rhs);
-            ASSERT(lhs->GetNumSubresources() == rhs->GetNumSubresources());
-
-            const auto numSubresources = lhs->GetNumSubresources();
-            for (uint32_t index = 0; index < numSubresources; index++)
-                if (!isSubresourceEqual(lhs, index, rhs, index))
-                    return false;
-
-            return true;
-        }
-
-        bool TestContextFixture::isSubresourceEqual(const GAPI::CpuResourceData::SubresourceFootprint& footprint,
+        bool TestContextFixture::isSubresourceEqual(const GAPI::GpuResourceFootprint::SubresourceFootprint& footprint,
                                                     const std::shared_ptr<IDataBuffer>& lhs,
                                                     const std::shared_ptr<IDataBuffer>& rhs)
         {
@@ -310,47 +219,7 @@ namespace RR
             }
 
             return true;
-        }
-
-        bool TestContextFixture::isSubresourceEqual(const GAPI::CpuResourceData::SharedPtr& lhs, uint32_t lSubresourceIndex,
-                                                    const GAPI::CpuResourceData::SharedPtr& rhs, uint32_t rSubresourceIndex)
-        {
-            ASSERT(lhs);
-            ASSERT(rhs);
-            ASSERT(lhs != rhs);
-            ASSERT(lSubresourceIndex < lhs->GetNumSubresources());
-            ASSERT(rSubresourceIndex < lhs->GetNumSubresources());
-            ASSERT(lhs->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
-            ASSERT(rhs->GetAllocation()->GetMemoryType() != GAPI::MemoryAllocationType::Upload);
-
-            const auto ldataPointer = static_cast<uint8_t*>(lhs->GetAllocation()->Map());
-            const auto rdataPointer = static_cast<uint8_t*>(rhs->GetAllocation()->Map());
-
-            ON_SCOPE_EXIT(
-                {
-                    lhs->GetAllocation()->Unmap();
-                    rhs->GetAllocation()->Unmap();
-                });
-
-            const auto& lfootprint = lhs->GetSubresourceFootprintAt(lSubresourceIndex);
-            const auto& rfootprint = rhs->GetSubresourceFootprintAt(rSubresourceIndex);
-
-            ASSERT(lfootprint.isComplatable(rfootprint));
-
-            auto lrowPointer = ldataPointer + lfootprint.offset;
-            auto rrowPointer = rdataPointer + rfootprint.offset;
-
-            for (uint32_t row = 0; row < lfootprint.numRows; row++)
-            {
-                if (memcmp(lrowPointer, rrowPointer, lfootprint.rowSizeInBytes) != 0)
-                    return false;
-
-                lrowPointer += lfootprint.rowPitch;
-                rrowPointer += rfootprint.rowPitch;
-            }
-
-            return true;
-        }
+        }        
 
         void TestContextFixture::submitAndWait(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {

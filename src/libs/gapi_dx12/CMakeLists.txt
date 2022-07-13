@@ -42,8 +42,6 @@ source_group( "Implementations" FILES ${IMPL_SRC} )
 set(SRC
     ComSharedPtr.hpp
     Config.hpp
-    CpuResourceDataAllocator.cpp
-    CpuResourceDataAllocator.hpp
     DescriptorHeap.cpp
     DescriptorHeap.hpp
     DescriptorManager.cpp 

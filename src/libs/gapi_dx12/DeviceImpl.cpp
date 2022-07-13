@@ -12,7 +12,6 @@
 
 #include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
-#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorManager.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
@@ -141,16 +140,6 @@ namespace RR
                 gpuWaitFence_->Signal(*DeviceContext::GetGraphicsCommandQueue().get());
                 gpuWaitFence_->SyncCPU(std::nullopt);
                 ResourceReleaseContext::ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
-            }
-
-            std::shared_ptr<CpuResourceData> const DeviceImpl::AllocateIntermediateResourceData(
-                const GpuResourceDescription& resourceDesc,
-                MemoryAllocationType memoryType,
-                uint32_t firstSubresourceIndex,
-                uint32_t numSubresources) const
-            {
-                ASSERT_IS_DEVICE_INITED;
-                return CpuResourceDataAllocator::Allocate(resourceDesc, memoryType, firstSubresourceIndex, numSubresources);
             }
 
             GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDescription& description) const

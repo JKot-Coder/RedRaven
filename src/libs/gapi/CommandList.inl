@@ -87,21 +87,5 @@ namespace RR
 
             GetPrivateImpl()->CopyTextureSubresourceRegion(sourceTexture, sourceSubresourceIdx, sourceBox, destTexture, destSubresourceIdx, destPoint);
         }
-
-        INLINE void CopyCommandList::UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData)
-        {
-            ASSERT(resource);
-            ASSERT(resourceData);
-
-            GetPrivateImpl()->UpdateGpuResource(resource, resourceData);
-        }
-
-        INLINE void CopyCommandList::ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData)
-        {
-            ASSERT(resource);
-            ASSERT(resourceData);
-
-            GetPrivateImpl()->ReadbackGpuResource(resource, resourceData);
-        }
     }
 }

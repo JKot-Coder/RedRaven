@@ -11,7 +11,7 @@ namespace RR
 {
     namespace Tests
     {
-        class ImageApprover
+        /* class ImageApprover
         {
         public:
             static void verify(const GAPI::CpuResourceData::SharedPtr& resource,
@@ -20,6 +20,6 @@ namespace RR
                 ImageWriter image_writer(resource);
                 ApprovalTests::Approvals::verify(image_writer, options);
             }
-        };
+        };*/
     }
 }

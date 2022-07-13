@@ -1,6 +1,5 @@
 #include "ImageWriter.hpp"
 
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
 #include "common/OnScopeExit.hpp"
@@ -143,7 +142,7 @@ namespace RR
                 }
                 return static_cast<DirectX::TEX_DIMENSION>(0);
             }
-
+            /*
             DirectX::TexMetadata getTextureMetadata(const GAPI::CpuResourceData::SharedPtr& resource)
             {
                 ASSERT(resource);
@@ -212,7 +211,7 @@ namespace RR
                 setupImageArray(*images, resource);
 
                 return DirectX::SaveToDDSFile(images->data(), images->size(), metadata, DirectX::DDS_FLAGS_NONE, StringConversions::UTF8ToWString(path).c_str());
-            }
+            }*/
             /*
             KTX_error_code setImageFromData(ktxTexture2* texture, const GAPI::CpuResourceData::SharedPtr& resource)
             {
@@ -264,7 +263,7 @@ namespace RR
                 return KTX_SUCCESS;
             }*/
         }
-
+        /*
         void ImageWriter::write(std::string path) const
         {
             ASSERT(resource_);
@@ -272,5 +271,6 @@ namespace RR
             const auto hr = saveToDDSFile(resource_, path);
             ASSERT(SUCCEEDED(hr));
         }
+        */
     }
 }

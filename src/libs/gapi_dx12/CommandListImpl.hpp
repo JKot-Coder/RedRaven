@@ -42,11 +42,8 @@ namespace RR
                                         const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) override;
             void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
-
             void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<IDataBuffer>& resourceData);
-            void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData) override;
-            void ReadbackGpuResource(const std::shared_ptr<GpuResource>& texture, const std::shared_ptr<CpuResourceData>& textureData) override;
-
+ 
             // ---------------------------------------------------------------------------------------------
             // Compute command list
             // ---------------------------------------------------------------------------------------------
@@ -68,8 +65,6 @@ namespace RR
             const ComSharedPtr<ID3D12GraphicsCommandList4>& GetD3DObject() const { return D3DCommandList_; }
 
         private:
-            void copyIntermediate(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData, bool readback) const;
-
             class CommandAllocatorsPool final
             {
             public:

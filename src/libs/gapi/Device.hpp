@@ -49,12 +49,6 @@ namespace RR
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            virtual std::shared_ptr<CpuResourceData> const AllocateIntermediateResourceData(
-                const GpuResourceDescription& desc,
-                MemoryAllocationType memoryType,
-                uint32_t firstSubresourceIndex = 0,
-                uint32_t numSubresources = MaxPossible) const = 0;
-
             virtual GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const = 0;
 
             virtual void InitBuffer(const std::shared_ptr<Buffer>& resource) const = 0;
@@ -89,15 +83,6 @@ namespace RR
             //   virtual void Submit(const std::shared_ptr<CommandList>& CommandList) = 0;
             void Present(const std::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
-
-            std::shared_ptr<CpuResourceData> const AllocateIntermediateResourceData(
-                const GpuResourceDescription& desc,
-                MemoryAllocationType memoryType,
-                uint32_t firstSubresourceIndex = 0,
-                uint32_t numSubresources = MaxPossible) const override
-            {
-                return GetPrivateImpl()->AllocateIntermediateResourceData(desc, memoryType, firstSubresourceIndex, numSubresources);
-            };
 
             GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const
                 override { return GetPrivateImpl()->GetResourceFootprint(description); };

@@ -24,7 +24,7 @@ namespace RR
             std::any GetRawHandle() const override { return D3DResource_.get(); }
             D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
 
-            std::vector<CpuResourceData::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
+            std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
 
             void* Map() override;
             void Unmap() override;

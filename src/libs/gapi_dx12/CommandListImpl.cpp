@@ -3,10 +3,8 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 
-#include "gapi_dx12/CpuResourceDataAllocator.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/FramebufferImpl.hpp"
@@ -334,116 +332,6 @@ namespace RR::GAPI::DX12
         D3DCommandList_->ResourceBarrier(1, &barrier);
     }
 
-    void CommandListImpl::copyIntermediate(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData, bool readback) const
-    {
-        ASSERT(resource);
-        ASSERT(resourceData);
-        ASSERT(resource->GetDescription().GetNumSubresources() == resourceData->GetNumSubresources() - resourceData->GetFirstSubresource());
-        // Todo add copy checks and move up to rendercontext;
-
-        const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
-        ASSERT(resourceImpl);
-
-        const auto d3dResource = resourceImpl->GetD3DObject();
-        ASSERT(d3dResource);
-
-        const auto allocation = resourceData->GetAllocation();
-        ASSERT(allocation);
-
-        const auto isTextureResource = resource->GetDescription().IsTexture();
-
-        const auto& device = DeviceContext::GetDevice();
-        auto desc = d3dResource->GetDesc();
-
-        static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
-        ASSERT(
-            ((allocation->GetMemoryType() == MemoryAllocationType::Upload ||
-              allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite) &&
-             readback == false) ||
-            (allocation->GetMemoryType() == MemoryAllocationType::Readback && readback == true));
-
-        const bool cpuReadWriteResourceData = allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite;
-
-        ComSharedPtr<ID3D12Resource> intermediateResource;
-        size_t intermediateDataOffset;
-        std::shared_ptr<CpuResourceData> CpuResourceData;
-
-        HeapAllocation* gpuHeapAlloc = nullptr;
-
-        if (cpuReadWriteResourceData)
-        {
-            // Allocate intermediate resource in upload/readback heap.
-            auto memoryType = readback ? MemoryAllocationType::Readback : MemoryAllocationType::Upload;
-
-            CpuResourceData = CpuResourceDataAllocator::Allocate(
-                resourceData->GetResourceDescription(),
-                memoryType,
-                resourceData->GetFirstSubresource(),
-                resourceData->GetNumSubresources());
-
-            if (!readback)
-                CpuResourceData->CopyDataFrom(resourceData);
-
-            gpuHeapAlloc = CpuResourceData->GetAllocation()->GetPrivateImpl<HeapAllocation>();
-        }
-        else
-        {
-            gpuHeapAlloc = allocation->GetPrivateImpl<HeapAllocation>();
-        }
-
-        intermediateDataOffset = gpuHeapAlloc->GetOffset();
-        intermediateResource = gpuHeapAlloc->GetD3DResouce();
-
-        const auto firstResource = resourceData->GetFirstSubresource();
-        const auto numSubresources = resourceData->GetNumSubresources();
-        UINT64 itermediateSize;
-        std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layouts(numSubresources);
-        std::vector<UINT> numRowsVector(numSubresources);
-        std::vector<UINT64> rowSizeInBytesVector(numSubresources);
-        device->GetCopyableFootprints(&desc, firstResource, numSubresources, intermediateDataOffset, &layouts[0], &numRowsVector[0], &rowSizeInBytesVector[0], &itermediateSize);
-        ASSERT(allocation->GetSize() == itermediateSize);
-
-        for (uint32_t index = 0; index < resourceData->GetNumSubresources(); index++)
-        {
-            const auto subresourceIndex = firstResource + index;
-
-            const auto& footprint = resourceData->GetSubresourceFootprints()[index];
-            const auto& layout = layouts[index];
-            const auto numRows = numRowsVector[index];
-            const auto rowSizeInBytes = rowSizeInBytesVector[index];
-            const auto rowPitch = layout.Footprint.RowPitch;
-            const auto depthPitch = numRows * rowPitch;
-
-            ASSERT(footprint.rowSizeInBytes == rowSizeInBytes);
-            ASSERT(footprint.depthPitch == depthPitch);
-            ASSERT(footprint.rowPitch == layout.Footprint.RowPitch);
-
-            D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), D3D12_RESOURCE_STATE_COMMON, readback ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_COPY_DEST);
-            D3DCommandList_->ResourceBarrier(1, &barrier);
-
-            if (isTextureResource)
-            {
-                CD3DX12_TEXTURE_COPY_LOCATION resourceLocation(d3dResource.get(), subresourceIndex);
-                CD3DX12_TEXTURE_COPY_LOCATION intermediateLocation(intermediateResource.get(), layout);
-
-                const auto src = readback ? &resourceLocation : &intermediateLocation;
-                const auto dst = readback ? &intermediateLocation : &resourceLocation;
-
-                D3DCommandList_->CopyTextureRegion(dst, 0, 0, 0, src, nullptr);
-            }
-            else
-            {
-                const auto src = readback ? d3dResource.get() : intermediateResource.get();
-                const auto dst = readback ? intermediateResource.get() : d3dResource.get();
-
-                D3DCommandList_->CopyBufferRegion(dst, 0, src, 0, rowSizeInBytes);
-            }
-
-            barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), readback ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
-            D3DCommandList_->ResourceBarrier(1, &barrier);
-        }
-    }
-
     void CommandListImpl::UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<IDataBuffer>& resourceData)
     {
         ASSERT(resource);
@@ -462,7 +350,7 @@ namespace RR::GAPI::DX12
         const auto& device = DeviceContext::GetDevice();
         auto desc = d3dResource->GetDesc();
 
-        static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
+      //  static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
         /* ASSERT(
                     ((allocation->GetMemoryType() == MemoryAllocationType::Upload ||
                       allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite) &&
@@ -550,16 +438,6 @@ namespace RR::GAPI::DX12
                     barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3dResource.get(), readback ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
                     D3DCommandList_->ResourceBarrier(1, &barrier);
                 }*/
-    }
-
-    void CommandListImpl::UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData)
-    {
-        copyIntermediate(resource, resourceData, false);
-    }
-
-    void CommandListImpl::ReadbackGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<CpuResourceData>& resourceData)
-    {
-        copyIntermediate(resource, resourceData, true);
     }
 
     // ---------------------------------------------------------------------------------------------
