@@ -261,22 +261,20 @@ namespace RR
                         submitAndWait(copyQueue, commandList);
                         REQUIRE(isDataEqual(description, initialData, std::make_shared<GAPI::GpuResourceDataGuard>(readback)));
                     }
-                    /*
+
                     DYNAMIC_SECTION(fmt::format("[{}::{}] CopyTextureSubresource", dimensionTitle, formatName))
                     {
-                        const auto sourceDescription = createTextureDescription(dimension, 256, format);
-                        const auto sourceData = deviceContext.AllocateIntermediateResourceData(sourceDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        auto source = deviceContext.CreateTexture(sourceDescription, nullptr, GAPI::GpuResourceUsage::Default, "Source");
+                        const auto sourceDescription = createTextureDescription(dimension, 256, format, GAPI::GpuResourceUsage::Default);
+                        const auto sourceData = createTestColorData(sourceDescription);
+                        auto source = deviceContext.CreateTexture(sourceDescription, sourceData, "Source");
 
-                        initResourceData(sourceDescription, sourceData);
-                        commandList->UpdateGpuResource(source, sourceData);
+                        const auto destDescription = createTextureDescription(dimension, 128, format, GAPI::GpuResourceUsage::Default);
+                        const auto destData = createTestColorData(destDescription);
+                        auto dest = deviceContext.CreateTexture(destDescription, destData, "Dest");
 
-                        const auto destDescription = createTextureDescription(dimension, 128, format);
-                        const auto destData = deviceContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::CpuReadWrite);
-                        auto dest = deviceContext.CreateTexture(destDescription, nullptr, GAPI::GpuResourceUsage::Default, "Dest");
-
-                        initResourceData(destDescription, destData);
-                        commandList->UpdateGpuResource(dest, destData);
+                        auto readbackDescription = destDescription;
+                        readbackDescription.usage = GAPI::GpuResourceUsage::Readback;
+                        auto readback = deviceContext.CreateTexture(readbackDescription, nullptr, "Readback");
 
                         for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
                         {
@@ -288,23 +286,32 @@ namespace RR
                                 commandList->CopyTextureSubresource(source, sourceDescription.GetSubresourceIndex(arraySlice, mipLevel + 1, face), dest, index);
                         }
 
-                        const auto readbackData = deviceContext.AllocateIntermediateResourceData(destDescription, GAPI::MemoryAllocationType::Readback);
-                        commandList->ReadbackGpuResource(dest, readbackData);
+                        commandList->CopyGpuResource(dest, readback);
                         commandList->Close();
 
                         submitAndWait(copyQueue, commandList);
 
-                        for (uint32_t index = 0; index < destDescription.GetNumSubresources(); index++)
-                        {
-                            const auto mipLevel = destDescription.GetSubresourceMipLevel(index);
-                            const auto arraySlice = destDescription.GetSubresourceArraySlice(index);
-                            const auto face = destDescription.GetSubresourceFace(index);
+                        const auto& sourceFootprints = source->GetSubresourceFootprints();
+                        const auto& destFootprints = dest->GetSubresourceFootprints();
+                        const auto& readbackFootprints = readback->GetSubresourceFootprints();
 
-                            bool equal = (mipLevel % 2 != 0) ? isSubresourceEqual(sourceData, sourceDescription.GetSubresourceIndex(arraySlice, mipLevel + 1, face), readbackData, index)
-                                                             : isSubresourceEqual(destData, index, readbackData, index);
+                        for (uint32_t index = 0; index < readbackDescription.GetNumSubresources(); index++)
+                        {
+                            const auto mipLevel = readbackDescription.GetSubresourceMipLevel(index);
+                            const auto arraySlice = readbackDescription.GetSubresourceArraySlice(index);
+                            const auto face = readbackDescription.GetSubresourceFace(index);
+
+                            bool equal = (mipLevel % 2 != 0) ? isSubresourceEqual(sourceFootprints[sourceDescription.GetSubresourceIndex(arraySlice, mipLevel + 1, face)],
+                                                                                  sourceData,
+                                                                                  readbackFootprints[index],
+                                                                                  std::make_shared<GAPI::GpuResourceDataGuard>(readback))
+                                                             : isSubresourceEqual(destFootprints[index],
+                                                                                  destData,
+                                                                                  readbackFootprints[index],
+                                                                                  std::make_shared<GAPI::GpuResourceDataGuard>(readback));
                             REQUIRE(equal);
                         }
-                    }*/
+                    }
                 }
                 /*
                 DYNAMIC_SECTION(fmt::format("[Texture3D::{}] CopyTextureSubresource", formatName))

@@ -14,7 +14,6 @@
 #include "gapi/Framebuffer.hpp"
 #include "gapi/Texture.hpp"
 #include "render/DeviceContext.hpp"
-#include "render/GpuResourceUploader.hpp"
 
 #include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
@@ -206,8 +205,6 @@ namespace RR
             return 1;
         }
 
-        Render::GpuResourceTransfer::Instance().Init();
-
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -330,7 +327,6 @@ namespace RR
                 [backBufferIdx, clear_color](GAPI::Device& device)
                 {
                     std::ignore = device;
-                    Render::GpuResourceTransfer::Instance().PerformTransfers(g_CommandQueue);
 
                     D3D12_RESOURCE_BARRIER barrier = {};
                     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -387,7 +383,6 @@ namespace RR
 
         CleanupDeviceD3D();
 
-        Render::GpuResourceTransfer::Instance().Terminate();
         Render::DeviceContext::Instance().Terminate();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

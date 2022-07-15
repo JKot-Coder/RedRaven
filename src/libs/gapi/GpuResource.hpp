@@ -289,7 +289,7 @@ namespace RR
             uint32_t GetNumElements() const
             {
                 ASSERT(dimension == GpuResourceDimension::Buffer);
-                return buffer.stride > 0 ? buffer.size / buffer.stride : 1;
+                return buffer.stride > 0 ? uint32_t(buffer.size / buffer.stride) : 1;
             }
 
             uint32_t GetNumSubresources() const

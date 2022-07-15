@@ -53,10 +53,10 @@
 
 #include "gapi/Buffer.hpp"
 #include "gapi/Device.hpp"
-#include "gapi/MemoryAllocation.hpp"
 #include "gapi/Texture.hpp"
 #include "render/DeviceContext.hpp"
-#include "render/GpuResourceUploader.hpp"
+
+#include "common/DataBuffer.hpp"
 
 // DirectX data
 struct ImGui_ImplDX12_Data
@@ -260,10 +260,10 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
     {
         fr->VertexBufferSize = draw_data->TotalVtxCount + 5000;
 
-        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->VertexBufferSize, sizeof(ImDrawVert));
-        //const auto cpuData = bd->deviceContext->AllocateIntermediateResourceData(desc, RR::GAPI::MemoryAllocationType::CpuReadWrite);
-
-        fr->VertexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceUsage::Upload);
+        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->VertexBufferSize, sizeof(ImDrawVert),
+                                                                              RR::GAPI::GpuResourceBindFlags::None,
+                                                                              RR::GAPI::GpuResourceUsage::Upload);
+        fr->VertexBufferO = bd->deviceContext->CreateBuffer(desc, nullptr, "Imgui: Upload vertex buffer");
         fr->VertexBuffer = std::any_cast<ID3D12Resource*>(fr->VertexBufferO->GetRawHandle());
     }
 
@@ -271,9 +271,11 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
     {
         fr->IndexBufferSize = draw_data->TotalIdxCount + 10000;
 
-        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->IndexBufferSize, sizeof(ImDrawIdx));
+        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->IndexBufferSize, sizeof(ImDrawIdx),
+                                                                              RR::GAPI::GpuResourceBindFlags::None,
+                                                                              RR::GAPI::GpuResourceUsage::Upload);
 
-        fr->IndexBufferO = bd->deviceContext->CreateBuffer(desc, RR::GAPI::GpuResourceUsage::Upload);
+        fr->IndexBufferO = bd->deviceContext->CreateBuffer(desc, nullptr, "Imgui: Upload index buffer");
         fr->IndexBuffer = std::any_cast<ID3D12Resource*>(fr->IndexBufferO->GetRawHandle());
     }
 
@@ -354,33 +356,32 @@ static void ImGui_ImplDX12_CreateFontsTexture()
 
     // Upload texture to graphics system
     {
-        const auto& desc = RR::GAPI::GpuResourceDescription::Texture2D(width, height, RR::GAPI::GpuResourceFormat::RGBA8Unorm, RR::GAPI::GpuResourceBindFlags::ShaderResource, 1, 1);
-        const auto cpuData = bd->deviceContext->AllocateIntermediateResourceData(desc, RR::GAPI::MemoryAllocationType::CpuReadWrite);
+        const auto& desc = RR::GAPI::GpuResourceDescription::Texture2D(width, height, RR::GAPI::GpuResourceFormat::RGBA8Unorm,
+                                                                       RR::GAPI::GpuResourceBindFlags::ShaderResource,
+                                                                       RR::GAPI::GpuResourceUsage::Default,
+                                                                       1, 1);
 
+        const auto footprint = bd->deviceContext->GetResourceFootprint(desc);
+        const auto cpuData = std::make_shared<RR::Common::DataBuffer>(footprint.totalSize);
         {
-            const auto& subresourceFootprints = cpuData->GetSubresourceFootprints();
-            const auto mapped = static_cast<uint8_t*>(cpuData->GetAllocation()->Map());
+            const auto& subresourceFootprints = footprint.subresourceFootprints;
 
             ASSERT(subresourceFootprints.size() == 1);
             auto uploadPitch = subresourceFootprints[0].rowPitch;
 
             for (int y = 0; y < height; y++)
-                memcpy((void*)((uintptr_t)mapped + y * uploadPitch), pixels + y * width * 4, width * 4);
-
-            cpuData->GetAllocation()->Unmap();
+                memcpy((void*)((uintptr_t)cpuData->Data() + y * uploadPitch), pixels + y * width * 4, width * 4);
         }
 
-        auto fontTexture = bd->deviceContext->CreateTexture(desc, RR::GAPI::GpuResourceUsage::Default, "Imgui font texture");
+        auto fontTexture = bd->deviceContext->CreateTexture(desc, cpuData, "Imgui font texture");
         ID3D12Resource* pTexture = std::any_cast<ID3D12Resource*>(fontTexture->GetRawHandle());
-
-        RR::Render::GpuResourceTransfer::Instance().DefferedUpload(fontTexture, cpuData);
 
         // Create texture view
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
         ZeroMemory(&srvDesc, sizeof(srvDesc));
         srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels = desc.GetMipCount();
+        srvDesc.Texture2D.MipLevels = desc.texture.mipLevels;
         // .MipLevels;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;

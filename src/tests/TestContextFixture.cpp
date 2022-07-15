@@ -151,17 +151,6 @@ namespace RR
             return GAPI::GpuResourceDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
         }
 
-        void TestContextFixture::initResourceData(const GAPI::GpuResource::SharedPtr& resource)
-        {
-            if (resource->GetDescription().IsBuffer())
-            {
-                fillBufferData(resource);
-            }
-            else
-            {
-            }
-        }
-
         GAPI::Buffer::SharedPtr TestContextFixture::createBufferFromString(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
@@ -193,30 +182,35 @@ namespace RR
             const auto footprint = deviceContext.GetResourceFootprint(description);
 
             for (const auto& subresourceFootprint : footprint.subresourceFootprints)
-                if (!isSubresourceEqual(subresourceFootprint, lhs, rhs))
+                if (!isSubresourceEqual(subresourceFootprint, lhs, subresourceFootprint, rhs))
                     return false;
 
             return true;
         }
 
-        bool TestContextFixture::isSubresourceEqual(const GAPI::GpuResourceFootprint::SubresourceFootprint& footprint,
+        bool TestContextFixture::isSubresourceEqual(const GAPI::GpuResourceFootprint::SubresourceFootprint& lhsFootprint,
                                                     const std::shared_ptr<IDataBuffer>& lhs,
+                                                    const GAPI::GpuResourceFootprint::SubresourceFootprint& rhsFootprint,
                                                     const std::shared_ptr<IDataBuffer>& rhs)
         {
             ASSERT(lhs);
             ASSERT(rhs);
             ASSERT(lhs != rhs);
 
-            auto lrowPointer = static_cast<std::byte*>(lhs->Data()) + footprint.offset;
-            auto rrowPointer = static_cast<std::byte*>(rhs->Data()) + footprint.offset;
+            auto lrowPointer = static_cast<std::byte*>(lhs->Data()) + lhsFootprint.offset;
+            auto rrowPointer = static_cast<std::byte*>(rhs->Data()) + rhsFootprint.offset;
 
-            for (uint32_t row = 0; row < footprint.numRows; row++)
+            ASSERT(lhsFootprint.numRows == rhsFootprint.numRows);
+            ASSERT(lhsFootprint.rowSizeInBytes == rhsFootprint.rowSizeInBytes);
+            ASSERT(lhsFootprint.rowSizeInBytes == rhsFootprint.rowSizeInBytes);
+
+            for (uint32_t row = 0; row < lhsFootprint.numRows; row++)
             {
-                if (memcmp(lrowPointer, rrowPointer, footprint.rowSizeInBytes) != 0)
+                if (memcmp(lrowPointer, rrowPointer, lhsFootprint.rowSizeInBytes) != 0)
                     return false;
 
-                lrowPointer += footprint.rowPitch;
-                rrowPointer += footprint.rowPitch;
+                lrowPointer += lhsFootprint.rowPitch;
+                rrowPointer += rhsFootprint.rowPitch;
             }
 
             return true;
