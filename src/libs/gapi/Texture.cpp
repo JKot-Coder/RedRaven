@@ -40,7 +40,7 @@ namespace RR::GAPI
             ASSERT(firstArraySlice + arraySliceCount <= resDescription.texture.arraySize);
             ASSERT(mipLevel + mipCount <= resDescription.texture.mipLevels);
 
-            viewFormat = getViewFormat(resDescription.format, viewFormat);
+            viewFormat = getViewFormat(resDescription.texture.format, viewFormat);
             return GpuResourceViewDescription::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
         }
     }

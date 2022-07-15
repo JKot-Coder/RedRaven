@@ -168,14 +168,14 @@ namespace RR
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static GpuResourceDescription Buffer(uint32_t size, GpuResourceFormat format = GpuResourceFormat::Unknown, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDescription Buffer(uint32_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(size, format == GpuResourceFormat::Unknown ? 1 : GpuResourceFormatInfo::GetBlockSize(format), format, bindFlags, usage);
+                return GpuResourceDescription(size, 0, bindFlags, usage);
             }
 
             static GpuResourceDescription StructuredBuffer(uint32_t numElements, uint32_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(numElements * structSize, structSize, GpuResourceFormat::Unknown, bindFlags, usage);
+                return GpuResourceDescription(numElements * structSize, structSize, bindFlags, usage);
             }
 
             static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
@@ -205,12 +205,12 @@ namespace RR
 
             inline friend bool operator==(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs)
             {
-                static_assert(sizeof(GpuResourceDescription) == 10 * sizeof(uint32_t), "Check for tighly packed structure");
-                static_assert(sizeof(TextureDescription) == 6 * sizeof(uint32_t), "Check for tighly packed structure");
+                static_assert(sizeof(GpuResourceDescription) == 12 * sizeof(uint32_t), "Check for tighly packed structure");
+                static_assert(sizeof(TextureDescription) == 7 * sizeof(uint32_t), "Check for tighly packed structure");
                 static_assert(sizeof(BufferDescription) == 2 * sizeof(size_t), "Check for tighly packed structure");
 
                 bool resourceDescriptionCmp = lhs.dimension == rhs.dimension &&
-                                              lhs.format == rhs.format &&
+                                              lhs.usage == rhs.usage &&
                                               lhs.bindFlags == rhs.bindFlags;
 
                 resourceDescriptionCmp &= lhs.dimension == GpuResourceDimension::Buffer
@@ -289,9 +289,7 @@ namespace RR
             uint32_t GetNumElements() const
             {
                 ASSERT(dimension == GpuResourceDimension::Buffer);
-                ASSERT(buffer.stride > 0);
-
-                return buffer.size / buffer.stride;
+                return buffer.stride > 0 ? buffer.size / buffer.stride : 1;
             }
 
             uint32_t GetNumSubresources() const
@@ -321,10 +319,10 @@ namespace RR
                                    uint32_t arraySize,
                                    uint32_t mipLevels)
                 : dimension(dimension),
-                  format(format),
                   bindFlags(bindFlags),
                   usage(usage)
             {
+                texture.format = format;
                 texture.width = width;
                 texture.height = height;
                 texture.depth = depth;
@@ -338,11 +336,9 @@ namespace RR
 
             GpuResourceDescription(size_t size,
                                    size_t stride,
-                                   GpuResourceFormat format,
                                    GpuResourceBindFlags bindFlags,
                                    GpuResourceUsage usage)
                 : dimension(GpuResourceDimension::Buffer),
-                  format(format),
                   bindFlags(bindFlags),
                   usage(usage)
             {
@@ -360,6 +356,7 @@ namespace RR
                 uint32_t depth = 1;
                 uint32_t mipLevels = 1;
                 uint32_t arraySize = 1;
+                GpuResourceFormat format = GpuResourceFormat::Unknown;
                 MultisampleType multisampleType = MultisampleType::None;
             };
 
@@ -377,7 +374,6 @@ namespace RR
             };
 
             GpuResourceDimension dimension = GpuResourceDimension::Texture2D;
-            GpuResourceFormat format = GpuResourceFormat::Unknown;
             GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource;
             GpuResourceUsage usage = GpuResourceUsage::Default;
         };

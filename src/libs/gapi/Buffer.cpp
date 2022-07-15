@@ -16,19 +16,23 @@ namespace RR
         {
             GpuResourceViewDescription createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
             {
-                const auto elementSize = GpuResourceFormatInfo::GetBlockSize(format);
+                uint32_t elementSize = 1;
 
-                //Dx12 requerement
-                //TODO WTF /4
-                // MOVE TO BufferDescription
-                ASSERT(firstElement % 4 == 0);
-                ASSERT(firstElement * elementSize < resourceDesc.GetNumElements());
+                if (format != GpuResourceFormat::Unknown)
+                {
+                    elementSize = GpuResourceFormatInfo::GetBlockSize(format);
+                }
+                else if (resourceDesc.buffer.stride > 0)
+                {
+                    elementSize = resourceDesc.buffer.stride;
+                }
+
+                ASSERT(firstElement * elementSize < resourceDesc.buffer.size);
 
                 if (numElements == Buffer::MaxPossible)
-                    numElements = (resourceDesc.GetNumElements() - firstElement) / 4;
+                    numElements = (resourceDesc.buffer.size / elementSize - firstElement);
 
-                ASSERT((firstElement + numElements) * elementSize < resourceDesc.GetNumElements());
-
+                ASSERT((firstElement + numElements) * elementSize < resourceDesc.buffer.size);
                 return GpuResourceViewDescription::Buffer(format, firstElement, numElements);
             }
         }

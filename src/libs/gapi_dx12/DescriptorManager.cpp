@@ -84,11 +84,12 @@ namespace RR
                     description.Buffer.StructureByteStride = gpuResDesc.buffer.stride;
                     description.Buffer.CounterOffsetInBytes = 0;
 
-                    if (gpuResDesc.format != GpuResourceFormat::Unknown)
+                    /*if (gpuResDesc.texture.format != GpuResourceFormat::Unknown)
                     {
+                       
                         description.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-                    }
-                    description.Format = D3DUtils::GetDxgiTypelessFormat(viewDesc.format);
+                    }*/
+                    description.Format = D3DUtils::GetDxgiResourceFormat(viewDesc.format);
                     description.Buffer.FirstElement = viewDesc.buffer.firstElement;
                     description.Buffer.NumElements = viewDesc.buffer.elementCount;
                 }
@@ -106,7 +107,7 @@ namespace RR
                            ((viewDesc.texture.firstArraySlice + viewDesc.texture.arraySliceCount) * arrayMultiplier <= arraySize));
 
                     result.ViewDimension = getViewDimension<decltype(result.ViewDimension)>(gpuResDesc.dimension, arraySize > 1);
-                    result.Format = D3DUtils::GetDxgiResourceFormat(gpuResDesc.format);
+                    result.Format = D3DUtils::GetDxgiResourceFormat(viewDesc.format);
 
                     switch (gpuResDesc.dimension)
                     {

@@ -9,10 +9,10 @@ namespace RR
 {
     namespace Tests
     {
-        /* class ImageWriter : public ApprovalTests::ApprovalWriter
+        class ImageWriter : public ApprovalTests::ApprovalWriter
         {
         public:
-            explicit ImageWriter(const GAPI::CpuResourceData::SharedPtr& resource,
+            explicit ImageWriter(const GAPI::Texture::SharedPtr& resource,
                                  std::string fileExtensionWithDot = ".dds")
                 : resource_(resource), fileExtensionWithDot_(fileExtensionWithDot)
             {
@@ -31,8 +31,8 @@ namespace RR
             }
 
         private:
-            GAPI::CpuResourceData::SharedPtr resource_;
+            GAPI::Texture::SharedPtr resource_;
             std::string fileExtensionWithDot_;
-        };*/
+        };
     }
 }

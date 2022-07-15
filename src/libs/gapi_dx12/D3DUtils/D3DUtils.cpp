@@ -96,10 +96,17 @@ namespace RR::GAPI::DX12::D3DUtils
     {
         ASSERT(resourceDesc.IsValid());
 
-        DXGI_FORMAT format = GetDxgiResourceFormat(resourceDesc.format);
+        DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 
-        if (GpuResourceFormatInfo::IsDepth(resourceDesc.format) && IsAny(resourceDesc.bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
-            format = GetDxgiTypelessFormat(resourceDesc.format);
+        if (resourceDesc.dimension != GpuResourceDimension::Buffer)
+        {
+            format = GetDxgiResourceFormat(resourceDesc.texture.format);
+
+            if (GpuResourceFormatInfo::IsDepth(resourceDesc.texture.format) && IsAny(resourceDesc.bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
+                format = GetDxgiTypelessFormat(resourceDesc.texture.format);
+            
+            ASSERT(format != DXGI_FORMAT_UNKNOWN);
+        }
 
         D3D12_RESOURCE_DESC desc;
         switch (resourceDesc.dimension)

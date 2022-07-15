@@ -38,80 +38,71 @@ namespace RR
             auto queue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Compute, "ComputeQueue");
             REQUIRE(queue != nullptr);
 
-         /* SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
+            SECTION("[Buffer::RawBuffer] UAV clear ClearUnorderedAccessViewUint")
             {
                 const auto sourceData = "1234567890qwertyasdfg";
                 const auto source = createBufferFromString(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
-                const auto readbackData = deviceContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
+
+                auto readbackDesc = GAPI::GpuResourceDescription::Buffer(
+                    source->GetDescription().buffer.size,
+                    GAPI::GpuResourceBindFlags::None,
+                    GAPI::GpuResourceUsage::Readback);
+                const auto readback = deviceContext.CreateBuffer(readbackDesc, nullptr, "Readback");
 
                 const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint);
 
                 commandList->ClearUnorderedAccessViewUint(uav, Vector4u(0x61626365, 13, 8, 64));
-                commandList->ReadbackGpuResource(source, readbackData);
+                commandList->CopyGpuResource(source, readback);
                 commandList->Close();
 
                 submitAndWait(queue, commandList);
 
-                const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
-                ON_SCOPE_EXIT(
-                    {
-                        readbackData->GetAllocation()->Unmap();
-                    });
-
+                auto data = GAPI::GpuResourceDataGuard(readback);
                 const auto testData = "ecbaecbaecbaecbaecbag";
-                const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
-                REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
+                REQUIRE(memcmp(data.Data(), testData, strlen(testData)) == 0);
             }
 
             SECTION(fmt::format("[Buffer::RawBuffer] Partical ClearUnorderedAccessViewFloat"))
             {
                 const auto sourceData = "1234567890qwertyasdfg";
                 const auto source = createBufferFromString(sourceData, "Source", GAPI::GpuResourceBindFlags::ShaderResource | GAPI::GpuResourceBindFlags::UnorderedAccess);
-                const auto readbackData = deviceContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
-                const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 4, 1);
+                auto readbackDesc = GAPI::GpuResourceDescription::Buffer(
+                    source->GetDescription().buffer.size,
+                    GAPI::GpuResourceBindFlags::None,
+                    GAPI::GpuResourceUsage::Readback);
+                const auto readback = deviceContext.CreateBuffer(readbackDesc, nullptr, "Readback");
 
-                commandList->ClearUnorderedAccessViewFloat(uav, Vector4(0x66686984, 13, 8, 64));
-                commandList->ReadbackGpuResource(source, readbackData);
+                const auto uav = source->GetUAV(GAPI::GpuResourceFormat::R32Uint, 1, 1);
+
+                commandList->ClearUnorderedAccessViewFloat(uav, Vector4(0x23232323, 13, 8, 64));
+                commandList->CopyGpuResource(source, readback);
                 commandList->Close();
 
                 submitAndWait(queue, commandList);
 
-                const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
-                ON_SCOPE_EXIT(
-                    {
-                        readbackData->GetAllocation()->Unmap();
-                    });
-
-                const auto testData = "1234567890qwerty€ihfg";
-                const auto& footprint = readbackData->GetSubresourceFootprintAt(0);
-                REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
-            }*/
+                const auto testData = "1234@###90qwertyasdfg";
+                auto data = GAPI::GpuResourceDataGuard(readback);
+                REQUIRE(memcmp(data.Data(), testData, strlen(testData)) == 0);
+            }
 
             SECTION("[Texture2D::RGBA8] Partical ClearUnorderedAccessViewUint")
             {
-                /*auto description = createTextureDescription(GAPI::GpuResourceDimension::Texture2D, 128, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceUsage::Default);
+                auto description = GAPI::GpuResourceDescription::Texture2D(128, 128, GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceBindFlags::UnorderedAccess);
 
                 auto source = deviceContext.CreateTexture(description, createTestColorData(description), "Source");
-                const auto readbackData = deviceContext.AllocateIntermediateResourceData(source->GetDescription(), GAPI::MemoryAllocationType::Readback);
 
-                const auto uav = source->GetUAV(0);
+                description.usage = GAPI::GpuResourceUsage::Readback;
+                const auto readback = deviceContext.CreateTexture(description, nullptr, "Source");
 
-                commandList->UpdateGpuResource(source, sourceData);
-                commandList->ClearUnorderedAccessViewUint(uav, Vector4u(0x66686984, 13, 8, 64));
-                commandList->ReadbackGpuResource(source, readbackData);
+                const auto uav = source->GetUAV(1);
+
+                commandList->ClearUnorderedAccessViewUint(uav, Vector4u(128, 255, 64, 255));
+                commandList->CopyGpuResource(source, readback);
                 commandList->Close();
 
                 submitAndWait(queue, commandList);
-
-                const auto dataPointer = static_cast<uint8_t*>(readbackData->GetAllocation()->Map());
-                ON_SCOPE_EXIT(
-                    {
-                        readbackData->GetAllocation()->Unmap();
-                    });
-
-                const auto& footprint = readbackData->GetSubresourceFootprintAt(0);*/ 
-                // REQUIRE(memcmp(dataPointer, testData, footprint.rowSizeInBytes) == 0);
+                ImageApprover::verify(readback);
             }
         }
     }

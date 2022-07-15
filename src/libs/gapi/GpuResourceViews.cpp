@@ -13,14 +13,14 @@ namespace RR
             {
                 bool result = resourceDesc.IsValid();
 
-                // TODO actually  firstArraySlice should be compared with depth on 3d textures.
                 if (resourceDesc.IsBuffer())
                 {
-                    result &= desc.buffer.firstElement + desc.buffer.elementCount <= resourceDesc.GetNumElements();
+                    result &= desc.buffer.firstElement + desc.buffer.elementCount <= resourceDesc.buffer.size;
                 }
                 else
                 {
                     result &= desc.texture.mipLevel + desc.texture.mipCount <= resourceDesc.texture.mipLevels;
+                    // TODO actually  firstArraySlice should be compared with depth on 3d textures.
                     result &= desc.texture.firstArraySlice + desc.texture.arraySliceCount <= resourceDesc.texture.arraySize;
                 }
 
@@ -50,6 +50,7 @@ namespace RR
               format(format)
         {
             ASSERT(format != GpuResourceFormat::Unknown);
+            ASSERT(elementsCount > 0);
         }
 
         ShaderResourceView::ShaderResourceView(

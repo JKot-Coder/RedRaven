@@ -40,8 +40,8 @@ namespace RR
                     config.showDurations = Catch::ShowDurations::Always;
                     config.useColour = Catch::UseColour::No;
                     config.outputFilename = "%debug";
-                    config.testsOrTags.push_back("[CopyCommandList]");
-                   // config.testsOrTags.push_back("[ComputeCommandList]");
+             //       config.testsOrTags.push_back("[CopyCommandList]");
+               //     config.testsOrTags.push_back("[ComputeCommandList]");
                     session.useConfigData(config);
                 }
 

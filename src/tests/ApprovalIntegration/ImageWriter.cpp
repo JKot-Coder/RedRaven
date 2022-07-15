@@ -2,7 +2,7 @@
 
 #include "gapi/Texture.hpp"
 
-#include "common/OnScopeExit.hpp"
+#include "common/DataBuffer.hpp"
 
 #include "DirectXTex.h"
 
@@ -129,27 +129,26 @@ namespace RR
             {
                 switch (dimension)
                 {
-                case GAPI::GpuResourceDimension::Texture1D:
-                    return DirectX::TEX_DIMENSION_TEXTURE1D;
-                case GAPI::GpuResourceDimension::Texture2D:
-                case GAPI::GpuResourceDimension::Texture2DMS:
-                case GAPI::GpuResourceDimension::TextureCube:
-                    return DirectX::TEX_DIMENSION_TEXTURE2D;
-                case GAPI::GpuResourceDimension::Texture3D:
-                    return DirectX::TEX_DIMENSION_TEXTURE3D;
-                default:
-                    ASSERT_MSG(false, "Unsuported texture dimension");
+                    case GAPI::GpuResourceDimension::Texture1D:
+                        return DirectX::TEX_DIMENSION_TEXTURE1D;
+                    case GAPI::GpuResourceDimension::Texture2D:
+                    case GAPI::GpuResourceDimension::Texture2DMS:
+                    case GAPI::GpuResourceDimension::TextureCube:
+                        return DirectX::TEX_DIMENSION_TEXTURE2D;
+                    case GAPI::GpuResourceDimension::Texture3D:
+                        return DirectX::TEX_DIMENSION_TEXTURE3D;
+                    default:
+                        ASSERT_MSG(false, "Unsuported texture dimension");
                 }
                 return static_cast<DirectX::TEX_DIMENSION>(0);
             }
-            /*
-            DirectX::TexMetadata getTextureMetadata(const GAPI::CpuResourceData::SharedPtr& resource)
+
+            DirectX::TexMetadata getTextureMetadata(const GAPI::Texture::SharedPtr& resource)
             {
                 ASSERT(resource);
-                ASSERT(resource->GetNumSubresources() > 0);
+                ASSERT(resource->GetDescription().GetNumSubresources() > 0);
 
-                const auto& resourceDesc = resource->GetResourceDescription();
-                const auto firstSubresource = resource->GetSubresourceFootprintAt(0);
+                const auto& resourceDesc = resource->GetDescription();
 
                 ASSERT(resourceDesc.dimension != GAPI::GpuResourceDimension::TextureCube);
 
@@ -159,31 +158,26 @@ namespace RR
                 metadata.depth = resourceDesc.GetDepth();
                 metadata.arraySize = 1;
                 metadata.mipLevels = resourceDesc.texture.mipLevels;
-                metadata.format = getDxgiResourceFormat(resourceDesc.format);
+                metadata.format = getDxgiResourceFormat(resourceDesc.texture.format);
                 metadata.dimension = getTextureDimension(resourceDesc.dimension);
 
                 return metadata;
             }
 
-            void setupImageArray(std::vector<DirectX::Image>& images, const GAPI::CpuResourceData::SharedPtr& resource)
+            void setupImageArray(std::vector<DirectX::Image>& images, const GAPI::Texture::SharedPtr& resource)
             {
                 ASSERT(resource);
 
-                const auto& resourceDesc = resource->GetResourceDescription();
-
-                ASSERT(resourceDesc.GetNumSubresources() == resource->GetNumSubresources());
+                const auto& resourceDesc = resource->GetDescription();
                 ASSERT(resourceDesc.dimension != GAPI::GpuResourceDimension::TextureCube);
 
-                const auto dataPointer = static_cast<uint8_t*>(resource->GetAllocation()->Map());
+                auto data = GAPI::GpuResourceDataGuard(resource);
 
-                ON_SCOPE_EXIT(
-                    {
-                        resource->GetAllocation()->Unmap();
-                    });
+                const auto& footprints = resource->GetSubresourceFootprints();
 
-                for (uint32_t subresourceIdx = 0; subresourceIdx < resourceDesc.GetNumSubresources(); subresourceIdx++)
+                for (uint32_t subresourceIdx = 0; subresourceIdx < footprints.size(); subresourceIdx++)
                 {
-                    const auto& subresourceFootprint = resource->GetSubresourceFootprintAt(subresourceIdx);
+                    const auto& subresourceFootprint = footprints[subresourceIdx];
                     const auto arraySlice = resourceDesc.GetSubresourceArraySlice(subresourceIdx);
                     const auto mipLevel = resourceDesc.GetSubresourceMipLevel(subresourceIdx);
 
@@ -192,16 +186,16 @@ namespace RR
                         DirectX::Image image;
                         image.width = subresourceFootprint.width;
                         image.height = subresourceFootprint.height; // Might be use rows??
-                        image.format = getDxgiResourceFormat(resourceDesc.format);
+                        image.format = getDxgiResourceFormat(resourceDesc.texture.format);
                         image.rowPitch = subresourceFootprint.rowPitch;
                         image.slicePitch = subresourceFootprint.depthPitch;
-                        image.pixels = dataPointer + subresourceFootprint.offset + subresourceFootprint.depthPitch * slice;
+                        image.pixels = static_cast<uint8_t*>(data.Data()) + subresourceFootprint.offset + subresourceFootprint.depthPitch * slice;
                         images.push_back(image);
                     }
                 }
             }
 
-            HRESULT saveToDDSFile(const GAPI::CpuResourceData::SharedPtr& resource, std::string path)
+            HRESULT saveToDDSFile(const GAPI::Texture::SharedPtr& resource, std::string path)
             {
                 ASSERT(resource);
 
@@ -211,7 +205,8 @@ namespace RR
                 setupImageArray(*images, resource);
 
                 return DirectX::SaveToDDSFile(images->data(), images->size(), metadata, DirectX::DDS_FLAGS_NONE, StringConversions::UTF8ToWString(path).c_str());
-            }*/
+            }
+
             /*
             KTX_error_code setImageFromData(ktxTexture2* texture, const GAPI::CpuResourceData::SharedPtr& resource)
             {
@@ -263,7 +258,7 @@ namespace RR
                 return KTX_SUCCESS;
             }*/
         }
-        /*
+
         void ImageWriter::write(std::string path) const
         {
             ASSERT(resource_);
@@ -271,6 +266,5 @@ namespace RR
             const auto hr = saveToDDSFile(resource_, path);
             ASSERT(SUCCEEDED(hr));
         }
-        */
     }
 }

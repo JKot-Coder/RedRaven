@@ -27,7 +27,6 @@ namespace RR
         }                                                                                                         \
     }
 
-#ifdef ENABLE_API_OBJECT_NAMES
                 template <typename T>
                 struct D3D12TypeName
                 {
@@ -54,7 +53,7 @@ namespace RR
 
                     return D3D12TypeName<Type>::name;
                 }
-
+#ifdef ENABLE_API_OBJECT_NAMES
                 template <typename T>
                 inline void SetAPIName(const T& apiObject, const U8String& name, int32_t index = -1)
                 {

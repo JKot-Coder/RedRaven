@@ -70,9 +70,9 @@ namespace RR
             }
 
             GpuResourceFootprint::SubresourceFootprint getSubresourceFootprint(const GpuResourceDescription& resourceDesc,
-                                                                          const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout,
-                                                                          UINT numRows,
-                                                                          UINT64 rowSizeInBytes)
+                                                                               const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout,
+                                                                               UINT numRows,
+                                                                               UINT64 rowSizeInBytes)
             {
 
                 std::ignore = resourceDesc; // TODO;
@@ -147,11 +147,17 @@ namespace RR
             UINT64 intermediateSize;
             device->GetCopyableFootprints(&d3dResourceDesc, 0, resourceDesc.GetNumSubresources(), 0, nullptr, nullptr, nullptr, &intermediateSize);
 
-            const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(resourceDesc.format);
-
             D3D12_CLEAR_VALUE optimizedClearValue;
-            D3D12_CLEAR_VALUE* pOptimizedClearValue = &optimizedClearValue;
-            getOptimizedClearValue(resourceDesc.bindFlags, format, pOptimizedClearValue);
+            D3D12_CLEAR_VALUE* pOptimizedClearValue = nullptr;
+
+            if ((resourceDesc.dimension != GpuResourceDimension::Buffer) &&
+                IsSet(resourceDesc.bindFlags, GpuResourceBindFlags::RenderTarget))
+            {
+                const DXGI_FORMAT format = D3DUtils::GetDxgiResourceFormat(resourceDesc.texture.format);
+
+                pOptimizedClearValue = &optimizedClearValue;
+                getOptimizedClearValue(resourceDesc.bindFlags, format, pOptimizedClearValue);
+            }
 
             if (isCPUAccessible && resourceDesc.IsTexture())
             {

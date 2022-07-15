@@ -200,34 +200,13 @@ namespace RR
                     return false;
                 }
 
-                if (buffer.stride == 0)
-                {
-                    LOG_WARNING("Wrong buffer stride");
-                    return false;
-                }
-
                 if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
                 {
                     LOG_WARNING("Buffer can't be binded as RenderTarget");
                     return false;
                 }
 
-                if (GpuResourceFormatInfo::IsCompressed(format))
-                {
-                    LOG_WARNING("Compressed resource formats not allowed for buffer");
-                    return false;
-                }
-
-                if (format != GpuResourceFormat::Unknown)
-                {
-                    if (GpuResourceFormatInfo::GetBlockSize(format) != buffer.stride)
-                    {
-                        LOG_WARNING("Wrong stride size for resource format");
-                        return false;
-                    }
-                }
-
-                if (buffer.size % buffer.stride != 0)
+                if ((buffer.stride != 0) && (buffer.size % buffer.stride != 0))
                 {
                     LOG_WARNING("The size of the buffer must be a multiple of the stride.");
                     return false;
@@ -241,7 +220,7 @@ namespace RR
                     return false;
                 }
 
-                if (format == GpuResourceFormat::Unknown)
+                if (texture.format == GpuResourceFormat::Unknown)
                 {
                     LOG_WARNING("Unknown resource format");
                     return false;
@@ -301,7 +280,7 @@ namespace RR
                         LOG_FATAL("Unsupported resource dimension");
                 }
 
-                if (GpuResourceFormatInfo::IsCompressed(format))
+                if (GpuResourceFormatInfo::IsCompressed(texture.format))
                 {
                     if ((dimension != GpuResourceDimension::Texture2D) && (dimension != GpuResourceDimension::TextureCube))
                     {
@@ -309,8 +288,8 @@ namespace RR
                         return false;
                     }
 
-                    if ((AlignTo(texture.width, GpuResourceFormatInfo::GetCompressionBlockWidth(format)) != texture.width) ||
-                        (AlignTo(texture.height, GpuResourceFormatInfo::GetCompressionBlockHeight(format)) == texture.height))
+                    if ((AlignTo(texture.width, GpuResourceFormatInfo::GetCompressionBlockWidth(texture.format)) != texture.width) ||
+                        (AlignTo(texture.height, GpuResourceFormatInfo::GetCompressionBlockHeight(texture.format)) == texture.height))
                     {
                         LOG_WARNING("Size of compressed texture must be aligned to CompressionBlock");
                         return false;

@@ -11,15 +11,15 @@ namespace RR
 {
     namespace Tests
     {
-        /* class ImageApprover
+        class ImageApprover
         {
         public:
-            static void verify(const GAPI::CpuResourceData::SharedPtr& resource,
+            static void verify(const GAPI::Texture::SharedPtr& resource,
                                const ApprovalTests::Options& options = ApprovalTests::Options())
             {
                 ImageWriter image_writer(resource);
                 ApprovalTests::Approvals::verify(image_writer, options);
             }
-        };*/
+        };
     }
 }

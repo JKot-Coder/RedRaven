@@ -63,16 +63,17 @@ namespace RR
             {
                 const auto& deviceContext = Render::DeviceContext::Instance();
 
-                ASSERT((std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::RGBA8Uint) ||
-                       (std::is_same<T, uint32_t>::value && description.format == GAPI::GpuResourceFormat::BGRA8Unorm) ||
-                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA16Float) ||
-                       (std::is_same<T, Vector4>::value && description.format == GAPI::GpuResourceFormat::RGBA32Float));
+                ASSERT(description.dimension != GAPI::GpuResourceDimension::Buffer);
+                ASSERT((std::is_same<T, uint32_t>::value && description.texture.format == GAPI::GpuResourceFormat::RGBA8Uint) ||
+                       (std::is_same<T, uint32_t>::value && description.texture.format == GAPI::GpuResourceFormat::BGRA8Unorm) ||
+                       (std::is_same<T, Vector4>::value && description.texture.format == GAPI::GpuResourceFormat::RGBA16Float) ||
+                       (std::is_same<T, Vector4>::value && description.texture.format == GAPI::GpuResourceFormat::RGBA32Float));
 
                 const auto footprint = deviceContext.GetResourceFootprint(description);
                 const auto buffer = std::make_shared<DataBuffer>(footprint.totalSize);
 
                 const auto& subresourceFootprints = footprint.subresourceFootprints;
-                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.format);
+                const auto blockSize = GAPI::GpuResourceFormatInfo::GetBlockSize(description.texture.format);
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {
@@ -102,7 +103,6 @@ namespace RR
                 return buffer;
             }
 
-      
             void fillBufferData(const GAPI::GpuResource::SharedPtr& resource)
             {
                 ASSERT(resource->GetDescription().IsBuffer());
@@ -165,14 +165,15 @@ namespace RR
         GAPI::Buffer::SharedPtr TestContextFixture::createBufferFromString(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
-            const auto description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), GAPI::GpuResourceFormat::Unknown, bindFlags);
+            const auto description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), bindFlags);
 
             return deviceContext.CreateBuffer(description, dataBuffer, name);
         }
 
         IDataBuffer::SharedPtr TestContextFixture::createTestColorData(const GAPI::GpuResourceDescription& description)
         {
-            switch (description.format)
+            ASSERT(description.dimension != GAPI::GpuResourceDimension::Buffer);
+            switch (description.texture.format)
             {
                 case GAPI::GpuResourceFormat::RGBA8Uint:
                 case GAPI::GpuResourceFormat::BGRA8Unorm:
@@ -219,7 +220,7 @@ namespace RR
             }
 
             return true;
-        }        
+        }
 
         void TestContextFixture::submitAndWait(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& commandList)
         {
