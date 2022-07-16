@@ -344,7 +344,7 @@ namespace RR
                     g_CommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
                     g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
 
-                    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_pd3dCommandList);
+                    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_CommandList);
 
                     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
                     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;

@@ -52,6 +52,7 @@
 #endif
 
 #include "gapi/Buffer.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/Device.hpp"
 #include "gapi/Texture.hpp"
 #include "render/DeviceContext.hpp"
@@ -110,6 +111,7 @@ struct ImGui_ImplDX12_ViewportData
     // Window
     ID3D12CommandQueue* CommandQueue;
     ID3D12GraphicsCommandList* CommandList;
+    std::shared_ptr<RR::GAPI::GraphicsCommandList> CommandListO;
     ID3D12DescriptorHeap* RtvDescHeap;
     IDXGISwapChain3* SwapChain;
     ID3D12Fence* Fence;
@@ -126,6 +128,7 @@ struct ImGui_ImplDX12_ViewportData
     {
         CommandQueue = NULL;
         CommandList = NULL;
+        CommandListO = NULL;
         RtvDescHeap = NULL;
         SwapChain = NULL;
         Fence = NULL;
@@ -179,9 +182,10 @@ static void ImGui_ImplDX12_InitPlatformInterface();
 static void ImGui_ImplDX12_ShutdownPlatformInterface();
 
 // Functions
-static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx, ImGui_ImplDX12_RenderBuffers* fr)
+static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, const RR::GAPI::GraphicsCommandList::SharedPtr& commandListO, ImGui_ImplDX12_RenderBuffers* fr)
 {
     ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
+    auto ctx = std::any_cast<ID3D12GraphicsCommandList4*>(commandListO->GetNativeHandle());
 
     // Setup orthographic projection matrix into our constant buffer
     // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right).
@@ -219,12 +223,10 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, ID3D12Graphic
     vbv.SizeInBytes = fr->VertexBufferSize * stride;
     vbv.StrideInBytes = stride;
     ctx->IASetVertexBuffers(0, 1, &vbv);
-    D3D12_INDEX_BUFFER_VIEW ibv;
-    memset(&ibv, 0, sizeof(D3D12_INDEX_BUFFER_VIEW));
-    ibv.BufferLocation = fr->IndexBuffer->GetGPUVirtualAddress();
-    ibv.SizeInBytes = fr->IndexBufferSize * sizeof(ImDrawIdx);
-    ibv.Format = sizeof(ImDrawIdx) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-    ctx->IASetIndexBuffer(&ibv);
+   
+
+
+    commandListO->SetIndexBuffer(fr->IndexBufferO);
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx->SetPipelineState(bd->pPipelineState);
     ctx->SetGraphicsRootSignature(bd->pRootSignature);
@@ -244,13 +246,14 @@ static inline void SafeRelease(T*& res)
 }
 
 // Render function
-void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx)
+void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, const RR::GAPI::GraphicsCommandList::SharedPtr& commandList)
 {
     // Avoid rendering when minimized
     if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
         return;
 
     ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
+    auto ctx = std::any_cast<ID3D12GraphicsCommandList4*>(commandList->GetNativeHandle());
     ImGui_ImplDX12_ViewportData* vd = (ImGui_ImplDX12_ViewportData*)draw_data->OwnerViewport->RendererUserData;
     vd->FrameIndex++;
     ImGui_ImplDX12_RenderBuffers* fr = &vd->FrameRenderBuffers[vd->FrameIndex % bd->numFramesInFlight];
@@ -271,9 +274,10 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
     {
         fr->IndexBufferSize = draw_data->TotalIdxCount + 10000;
 
-        const auto& desc = RR::GAPI::GpuResourceDescription::StructuredBuffer(fr->IndexBufferSize, sizeof(ImDrawIdx),
-                                                                              RR::GAPI::GpuResourceBindFlags::None,
-                                                                              RR::GAPI::GpuResourceUsage::Upload);
+        const auto format = sizeof(ImDrawIdx) == 2 ? RR::GAPI::GpuResourceFormat::R16Uint : RR::GAPI::GpuResourceFormat::Unknown;
+        const auto& desc = RR::GAPI::GpuResourceDescription::IndexBuffer(fr->IndexBufferSize,
+                                                                         format,
+                                                                         RR::GAPI::GpuResourceUsage::Upload);
 
         fr->IndexBufferO = bd->deviceContext->CreateBuffer(desc, nullptr, "Imgui: Upload index buffer");
         fr->IndexBuffer = std::any_cast<ID3D12Resource*>(fr->IndexBufferO->GetRawHandle());
@@ -301,7 +305,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
     fr->IndexBuffer->Unmap(0, &range);
 
     // Setup desired DX state
-    ImGui_ImplDX12_SetupRenderState(draw_data, ctx, fr);
+    ImGui_ImplDX12_SetupRenderState(draw_data, commandList, fr);
 
     // Render command lists
     // (Because we merged all buffers into a single one, we maintain our own offset into them)
@@ -319,7 +323,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-                    ImGui_ImplDX12_SetupRenderState(draw_data, ctx, fr);
+                    ImGui_ImplDX12_SetupRenderState(draw_data, commandList, fr);
                 else
                     pcmd->UserCallback(cmd_list, pcmd);
             }
@@ -928,7 +932,7 @@ static void ImGui_ImplDX12_RenderWindow(ImGuiViewport* viewport, void*)
         cmd_list->ClearRenderTargetView(vd->FrameCtx[back_buffer_idx].RenderTargetCpuDescriptors, (float*)&clear_color, 0, NULL);
     cmd_list->SetDescriptorHeaps(1, &bd->pd3dSrvDescHeap);
 
-    ImGui_ImplDX12_RenderDrawData(viewport->DrawData, cmd_list);
+    ImGui_ImplDX12_RenderDrawData(viewport->DrawData, vd->CommandListO);
 
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;

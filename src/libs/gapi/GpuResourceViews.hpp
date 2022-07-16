@@ -11,7 +11,7 @@ namespace RR
         struct GpuResourceViewDescription
         {
         public:
-            static GpuResourceViewDescription Buffer(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount)
+            static GpuResourceViewDescription Buffer(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
             {
                 return GpuResourceViewDescription(format, firstElement, elementsCount);
             }
@@ -23,7 +23,7 @@ namespace RR
 
             bool operator==(const GpuResourceViewDescription& other) const
             {
-                static_assert(sizeof(GpuResourceViewDescription) == 20);
+                static_assert(sizeof(GpuResourceViewDescription) == 24);
                 return (format == other.format) &&
                        (texture.mipLevel == other.texture.mipLevel) &&
                        (texture.mipCount == other.texture.mipCount) &&
@@ -35,7 +35,7 @@ namespace RR
             {
                 std::size_t operator()(const GpuResourceViewDescription& desc) const
                 {
-                    static_assert(sizeof(GpuResourceViewDescription) == 20);
+                    static_assert(sizeof(GpuResourceViewDescription) == 24);
                     return (std::hash<uint32_t>()(static_cast<uint32_t>(desc.format))) ^ // TODO StdHash?
                            (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1) ^
                            (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3) ^
@@ -51,14 +51,14 @@ namespace RR
                 {
                     uint32_t mipLevel;
                     uint32_t mipCount;
-                    uint32_t firstArraySlice = 0;
-                    uint32_t arraySliceCount = 0;
+                    uint32_t firstArraySlice;
+                    uint32_t arraySliceCount;
                 } texture;
 
                 struct
                 {
-                    uint32_t firstElement;
-                    uint32_t elementCount;
+                    size_t firstElement;
+                    size_t elementCount;
                 } buffer;
             };
 
@@ -66,7 +66,7 @@ namespace RR
 
         private:
             GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount);
-            GpuResourceViewDescription(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount);
+            GpuResourceViewDescription(GpuResourceFormat format, size_t firstElement, size_t elementsCount);
         };
 
         class IGpuResourceView

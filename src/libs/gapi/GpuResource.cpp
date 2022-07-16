@@ -200,6 +200,38 @@ namespace RR
                     return false;
                 }
 
+                if ((IsSet(buffer.flags, BufferFlags::RawBuffer) +
+                     IsSet(buffer.flags, BufferFlags::IndexBuffer) +
+                     IsSet(buffer.flags, BufferFlags::StructuredBuffer)) > 1)
+                {
+                    LOG_WARNING("Buffer can't be a RawBuffer/IndexBuffer/StructuredBuffer at the same time");
+                    return false;
+                }
+
+                if (IsSet(buffer.flags, BufferFlags::IndexBuffer) && (buffer.stride != 2 && buffer.stride != 4))
+                {
+                    LOG_WARNING("Index buffer stride must be 2 or 4");
+                    return false;
+                }
+
+                if (IsSet(buffer.flags, BufferFlags::StructuredBuffer) && (buffer.stride == 0))
+                {
+                    LOG_WARNING("Structured buffer stride cannot be zero");
+                    return false;
+                }
+
+                if (!IsAny(buffer.flags, BufferFlags::StructuredBuffer | BufferFlags::IndexBuffer) && (buffer.stride != 0))
+                {
+                    LOG_WARNING("Stride of non structured buffer should be zero");
+                    return false;
+                }
+
+                if (IsSet(buffer.flags, BufferFlags::RawBuffer) && (buffer.size % 4 != 0))
+                {
+                    LOG_WARNING("The size of the raw buffer must be a multiple of 4");
+                    return false;
+                }
+
                 if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
                 {
                     LOG_WARNING("Buffer can't be binded as RenderTarget");
@@ -208,7 +240,7 @@ namespace RR
 
                 if ((buffer.stride != 0) && (buffer.size % buffer.stride != 0))
                 {
-                    LOG_WARNING("The size of the buffer must be a multiple of the stride.");
+                    LOG_WARNING("The size of the buffer must be a multiple of the stride");
                     return false;
                 }
             }

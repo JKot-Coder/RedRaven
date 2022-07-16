@@ -45,7 +45,7 @@ namespace RR
             ASSERT(format != GpuResourceFormat::Unknown);
         }
 
-        GpuResourceViewDescription::GpuResourceViewDescription(GpuResourceFormat format, uint32_t firstElement, uint32_t elementsCount)
+        GpuResourceViewDescription::GpuResourceViewDescription(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
             : buffer({ firstElement, elementsCount }),
               format(format)
         {

@@ -66,6 +66,7 @@ namespace RR
             // ---------------------------------------------------------------------------------------------
 
             virtual void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) = 0;
+            virtual void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer, size_t offset = 0) = 0;
             virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
@@ -152,6 +153,7 @@ namespace RR
             using SharedConstPtr = std::shared_ptr<const GraphicsCommandList>;
 
             inline void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) { GetPrivateImpl()->SetFrameBuffer(framebuffer); }
+            inline void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer, size_t offset = 0) { GetPrivateImpl()->SetIndexBuffer(buffer, offset); }
             inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:

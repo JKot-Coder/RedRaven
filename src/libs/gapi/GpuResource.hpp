@@ -145,6 +145,15 @@ namespace RR
             MSAA_2
         };
 
+        enum class BufferFlags : uint32_t
+        {
+            None = 0,
+            RawBuffer = 1 << 0,
+            StructuredBuffer = 1 << 1,
+            IndexBuffer = 1 << 2,
+        };
+        ENUM_CLASS_OPERATORS(BufferFlags)
+
         enum class GpuResourceUsage : uint32_t
         {
             Default, // CPU no access, GPU read/write
@@ -168,14 +177,21 @@ namespace RR
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static GpuResourceDescription Buffer(uint32_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDescription Buffer(size_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(size, 0, bindFlags, usage);
+                return GpuResourceDescription(size, 0, BufferFlags::None, bindFlags, usage);
             }
 
-            static GpuResourceDescription StructuredBuffer(uint32_t numElements, uint32_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDescription StructuredBuffer(size_t numElements, size_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(numElements * structSize, structSize, bindFlags, usage);
+                return GpuResourceDescription(numElements * structSize, structSize, BufferFlags::StructuredBuffer, bindFlags, usage);
+            }
+
+            static GpuResourceDescription IndexBuffer(size_t numElements, GAPI::GpuResourceFormat format, GpuResourceUsage usage = GpuResourceUsage::Default)
+            {
+                ASSERT_MSG(format == GAPI::GpuResourceFormat::R16Uint || format == GAPI::GpuResourceFormat::R32Uint, "Only R16Uint and R32Uint formats are allowed for index buffers");
+                size_t elementSize = GpuResourceFormatInfo::GetBlockSize(format);
+                return GpuResourceDescription(numElements * elementSize, elementSize, BufferFlags::IndexBuffer, GpuResourceBindFlags::None, usage);
             }
 
             static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
@@ -207,14 +223,14 @@ namespace RR
             {
                 static_assert(sizeof(GpuResourceDescription) == 12 * sizeof(uint32_t), "Check for tighly packed structure");
                 static_assert(sizeof(TextureDescription) == 7 * sizeof(uint32_t), "Check for tighly packed structure");
-                static_assert(sizeof(BufferDescription) == 2 * sizeof(size_t), "Check for tighly packed structure");
+                static_assert(sizeof(BufferDescription) == 2 * sizeof(size_t) + 2 * sizeof(uint32_t), "Check for tighly packed structure");
 
                 bool resourceDescriptionCmp = lhs.dimension == rhs.dimension &&
                                               lhs.usage == rhs.usage &&
                                               lhs.bindFlags == rhs.bindFlags;
 
                 resourceDescriptionCmp &= lhs.dimension == GpuResourceDimension::Buffer
-                                              ? std::memcmp(&lhs.buffer, &rhs.buffer, sizeof(BufferDescription)) == 0
+                                              ? std::memcmp(&lhs.buffer, &rhs.buffer, 2 * sizeof(size_t) + sizeof(uint32_t)) == 0
                                               : std::memcmp(&lhs.texture, &rhs.texture, sizeof(TextureDescription)) == 0;
 
                 return resourceDescriptionCmp;
@@ -286,10 +302,10 @@ namespace RR
                 return mipLevel + (arraySlice * numFaces + faceIndex) * texture.mipLevels;
             }
 
-            uint32_t GetNumElements() const
+            size_t GetNumElements() const
             {
                 ASSERT(dimension == GpuResourceDimension::Buffer);
-                return buffer.stride > 0 ? uint32_t(buffer.size / buffer.stride) : 1;
+                return buffer.stride > 0 ? (buffer.size / buffer.stride) : 1;
             }
 
             uint32_t GetNumSubresources() const
@@ -301,10 +317,37 @@ namespace RR
                 return planeSlices * numFaces * arraySize * mipLevels;
             }
 
+            GpuResourceFormat GetIndexBufferFormat() const
+            {
+                ASSERT(dimension == GpuResourceDimension::Buffer);
+                ASSERT(IsIndex());
+                return buffer.stride == 2   ? GpuResourceFormat::R16Uint
+                       : buffer.stride == 4 ? GpuResourceFormat::R32Uint
+                                            : GpuResourceFormat::Unknown;
+            }
+
             uint32_t GetMaxMipLevel() const
             {
                 const uint32_t maxDimension = std::max(texture.width, std::max(texture.height, texture.depth));
                 return dimension == GpuResourceDimension::Buffer ? 1 : 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
+            }
+
+            bool IsStuctured() const
+            {
+                ASSERT(dimension == GpuResourceDimension::Buffer);
+                return IsSet(buffer.flags, BufferFlags::StructuredBuffer);
+            }
+
+            bool IsRaw() const
+            {
+                ASSERT(dimension == GpuResourceDimension::Buffer);
+                return IsSet(buffer.flags, BufferFlags::RawBuffer);
+            }
+
+            bool IsIndex() const
+            {
+                ASSERT(dimension == GpuResourceDimension::Buffer);
+                return IsSet(buffer.flags, BufferFlags::IndexBuffer);
             }
 
             bool IsValid() const;
@@ -336,6 +379,7 @@ namespace RR
 
             GpuResourceDescription(size_t size,
                                    size_t stride,
+                                   BufferFlags bufferFlags,
                                    GpuResourceBindFlags bindFlags,
                                    GpuResourceUsage usage)
                 : dimension(GpuResourceDimension::Buffer),
@@ -344,6 +388,7 @@ namespace RR
             {
                 buffer.size = size;
                 buffer.stride = stride;
+                buffer.flags = bufferFlags;
 
                 ASSERT(IsValid());
             }
@@ -364,6 +409,7 @@ namespace RR
             {
                 size_t size = 1;
                 size_t stride = 1;
+                BufferFlags flags = BufferFlags::None;
             };
 
         public:

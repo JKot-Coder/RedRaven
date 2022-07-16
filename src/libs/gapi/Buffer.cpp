@@ -14,7 +14,7 @@ namespace RR
     {
         namespace
         {
-            GpuResourceViewDescription createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
+            GpuResourceViewDescription createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, size_t firstElement, size_t numElements)
             {
                 uint32_t elementSize = 1;
 
@@ -37,7 +37,7 @@ namespace RR
             }
         }
 
-        ShaderResourceView::SharedPtr Buffer::GetSRV(GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
+        ShaderResourceView::SharedPtr Buffer::GetSRV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
             const auto viewDesc = createViewDescription(description_, format, firstElement, numElements);
 
@@ -51,7 +51,7 @@ namespace RR
             return srvs_[viewDesc];
         }
 
-        UnorderedAccessView::SharedPtr Buffer::GetUAV(GpuResourceFormat format, uint32_t firstElement, uint32_t numElements)
+        UnorderedAccessView::SharedPtr Buffer::GetUAV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
             const auto& viewDesc = createViewDescription(description_, format, firstElement, numElements);
 

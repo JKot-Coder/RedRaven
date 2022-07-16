@@ -350,7 +350,7 @@ namespace RR::GAPI::DX12
         const auto& device = DeviceContext::GetDevice();
         auto desc = d3dResource->GetDesc();
 
-      //  static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
+        //  static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
         /* ASSERT(
                     ((allocation->GetMemoryType() == MemoryAllocationType::Upload ||
                       allocation->GetMemoryType() == MemoryAllocationType::CpuReadWrite) &&
@@ -452,6 +452,23 @@ namespace RR::GAPI::DX12
         ASSERT(frameBufferImpl);
 
         D3DCommandList_->OMSetRenderTargets(frameBufferImpl->GetRTVDescriptiorsCount(), frameBufferImpl->GetRTVDescriptiors(), false, frameBufferImpl->GetDSVDescriptor());
+    }
+
+    void CommandListImpl::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer, size_t offset)
+    {
+        ASSERT(buffer);
+        ASSERT(buffer->GetDescription().IsIndex());
+        ASSERT(offset < buffer->GetDescription().buffer.size);
+
+        const auto bufferImpl = buffer->GetPrivateImpl<ResourceImpl>();
+        ASSERT(bufferImpl);
+
+        D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
+        indexBufferView.BufferLocation = bufferImpl->GetD3DObject()->GetGPUVirtualAddress() + offset;
+        indexBufferView.Format = D3DUtils::GetDxgiResourceFormat(buffer->GetDescription().GetIndexBufferFormat());
+        indexBufferView.SizeInBytes = buffer->GetDescription().buffer.size - offset;
+
+        D3DCommandList_->IASetIndexBuffer(&indexBufferView);
     }
 
     void CommandListImpl::ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue)

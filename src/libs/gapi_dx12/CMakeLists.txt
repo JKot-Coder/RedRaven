@@ -30,6 +30,8 @@ set(IMPL_SRC
     FenceImpl.hpp
     FramebufferImpl.cpp
     FramebufferImpl.hpp
+    PipelineStateImpl.cpp
+    PipelineStateImpl.hpp
     ResourceImpl.cpp
     ResourceImpl.hpp
     ResourceViewsImpl.cpp

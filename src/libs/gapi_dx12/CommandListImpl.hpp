@@ -43,7 +43,7 @@ namespace RR
             void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
             void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<IDataBuffer>& resourceData);
- 
+
             // ---------------------------------------------------------------------------------------------
             // Compute command list
             // ---------------------------------------------------------------------------------------------
@@ -56,6 +56,7 @@ namespace RR
             // ---------------------------------------------------------------------------------------------
 
             void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) override;
+            void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer, size_t offset = 0) override;
             void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) override;
 
             // ---------------------------------------------------------------------------------------------
