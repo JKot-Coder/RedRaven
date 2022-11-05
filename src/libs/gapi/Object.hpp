@@ -2,7 +2,7 @@
 
 namespace RR::GAPI
 {
-    class Object : public std::enable_shared_from_this<Object>, private NonCopyable
+    class Object : public std::enable_shared_from_this<Object>, private Common::NonCopyable
     {
     public:
         enum class Type

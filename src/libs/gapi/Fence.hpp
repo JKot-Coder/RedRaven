@@ -7,6 +7,8 @@ namespace RR
 {
     namespace GAPI
     {
+        static constexpr uint32_t INFINITY_WAIT = 0xFFFFFFFF;
+
         class IFence
         {
         public:

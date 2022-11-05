@@ -30,7 +30,7 @@ namespace RR::Common
                     lock_->unlock();
             }
 
-            ReadWriteGuard(ReadWriteGuard&& other) : lock(other.lock_)
+            ReadWriteGuard(ReadWriteGuard&& other) : lock_(other.lock_)
             {
                 other.lock_ = nullptr;
             }

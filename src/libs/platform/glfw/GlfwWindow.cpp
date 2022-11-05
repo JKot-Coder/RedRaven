@@ -28,7 +28,7 @@ namespace RR::Platform
     {
 #ifdef OS_WINDOWS
         HBRUSH bgBrush;
-#endif;
+#endif
     };
 
     namespace

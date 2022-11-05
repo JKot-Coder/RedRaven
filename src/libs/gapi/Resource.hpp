@@ -41,14 +41,14 @@ namespace RR
                 privateImpl_.reset(impl);
             }
 
-            template <typename = std::enable_if_t<IsNamed>>
+            template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
             inline U8String GetName() const { return name_; }
 
         protected:
-            template <typename bool isNamed = IsNamed, std::enable_if_t<isNamed, bool> = true>
+            template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
             Resource(Type type, const U8String& name) : name_(name), Object(type) { }
 
-            template <typename bool isNamed = IsNamed, std::enable_if_t<!isNamed, bool> = true>
+            template <bool isNamed = IsNamed, typename = std::enable_if_t<!isNamed>>
             Resource(Type type) : Object(type) { }
 
         private:
