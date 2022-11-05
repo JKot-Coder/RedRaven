@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16.0)
+cmake_minimum_required (VERSION 3.24.0)
 
 project(RedRaven VERSION 0.0.3 LANGUAGES CXX)
 
@@ -98,6 +98,30 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Glfw)
 
+#============================= DirectX-Headers ===============================#
+if(NOT WIN32)
+  FetchContent_Declare(
+    directx-headers
+    GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers
+    GIT_TAG        v1.606.4
+    OVERRIDE_FIND_PACKAGE
+  )
+  set(DXHEADERS_INSTALL ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(directx-headers)
+endif ()
+
+#=============================== DirectXMath =================================#
+if(NOT WIN32)
+  FetchContent_Declare(
+    directxmath
+    GIT_REPOSITORY https://github.com/microsoft/DirectXMath
+    GIT_TAG        may2022
+    OVERRIDE_FIND_PACKAGE
+  )
+  FetchContent_MakeAvailable(directxmath)
+  add_library(Microsoft::DirectXMath ALIAS DirectXMath)
+endif ()
+
 #================================ DirectXTex =================================#
 FetchContent_Declare(
   DirectXTex
@@ -106,6 +130,7 @@ FetchContent_Declare(
 )
 set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
+set(BUILD_DX12 OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(DirectXTex)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

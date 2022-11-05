@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Buffer.hpp"
 
 #include "gapi/GpuResourceViews.hpp"
