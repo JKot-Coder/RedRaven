@@ -9,7 +9,7 @@
 #endif
 
 #include "dxcapi.use.h"
-#include <winrt/base.h>
+//#include <winrt/base.h>
 
 namespace RR
 {
@@ -22,8 +22,8 @@ namespace RR
             if (FAILED(dxcDll.Initialize()))
                 return RfxResult::InternalFail;
 
-            winrt::com_ptr<IDxcCompiler3> dxcCompiler;
-            if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, dxcCompiler.put())))
+            CComPtr<IDxcCompiler3> dxcCompiler;
+            if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, &dxcCompiler)))
                 return RfxResult::InternalFail;
 
             std::vector<LPCWSTR> arguments;
@@ -49,15 +49,15 @@ namespace RR
             dxcSource.Size = source->GetContentSize();
             dxcSource.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
 
-            winrt::com_ptr<IDxcResult> dxcResult;
-            if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(dxcResult.put()))))
+            CComPtr<IDxcResult> dxcResult;
+            if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(&dxcResult))))
                 return RfxResult::InternalFail;
 
             auto convertBlob = [dxcResult](DXC_OUT_KIND from, ComPtr<IBlob>& output)
             {
-                winrt::com_ptr<IDxcBlobUtf8> dxcBlobUtf8;
+                CComPtr<IDxcBlobUtf8> dxcBlobUtf8;
 
-                if (FAILED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlobUtf8.put()), nullptr)))
+                if (FAILED(dxcResult->GetOutput(from, IID_PPV_ARGS(&dxcBlobUtf8), nullptr)))
                     return RfxResult::InternalFail;
 
                 output = ComPtr<IBlob>(new Blob(dxcBlobUtf8->GetStringPointer()));

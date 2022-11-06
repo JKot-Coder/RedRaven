@@ -30,7 +30,7 @@
 #endif
 
 #include "dxcapi.use.h"
-#include <winrt/base.h>
+//#include <winrt/base.h>
 
 namespace RR::Rfx
 {
@@ -79,7 +79,7 @@ namespace RR::Rfx
             if (token.type == Token::Type::RBrace)
                 dedent();
 
-            if (IsSet(token.flags, Token::Flags::AtStartOfLine))
+            if (Common::IsSet(token.flags, Token::Flags::AtStartOfLine))
             {
                 if (!output_.empty()) // Skip new line at the wery begining
                     output_.push_back('\n');
@@ -126,7 +126,7 @@ namespace RR::Rfx
                 line_++;
                 output_ += indentString_;
             }
-            else if (IsSet(token.flags, Token::Flags::AfterWhitespace))
+            else if (Common::IsSet(token.flags, Token::Flags::AfterWhitespace))
             {
                 output_ += " ";
             }
@@ -294,12 +294,12 @@ namespace RR::Rfx
         if (compilerRequest.defineCount > 0 && !compilerRequest.defines)
             return RfxResult::InvalidArgument;
 
-        winrt::com_ptr<IDxcCompiler3> dxcCompiler;
-        if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, dxcCompiler.put())))
+        CComPtr<IDxcCompiler3> dxcCompiler;
+        if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, &dxcCompiler)))
             return RfxResult::InternalFail;
 
-        winrt::com_ptr<IDxcUtils> dxcUtils;
-        if (FAILED(dxcDll.CreateInstance(CLSID_DxcUtils, dxcUtils.put())))
+        CComPtr<IDxcUtils> dxcUtils;
+        if (FAILED(dxcDll.CreateInstance(CLSID_DxcUtils, &dxcUtils)))
             return RfxResult::InternalFail;
 
         try
@@ -320,7 +320,7 @@ namespace RR::Rfx
 
             // auto bufferWriter = std::make_shared<BufferWriter>();
             //  diagnosticSink->AddWriter(bufferWriter);
-            winrt::com_ptr<IDxcResult> dxcResult;
+            CComPtr<IDxcResult> dxcResult;
 
             switch (compilerRequest.outputStage)
             {
@@ -413,7 +413,7 @@ namespace RR::Rfx
                     {
                         //  const auto output = dxcResult->GetOutputByIndex(i);
 
-                        winrt::com_ptr<IDxcBlobUtf8> preprocessedBlob;
+                        CComPtr<IDxcBlobUtf8> preprocessedBlob;
                         HRESULT hresult = dxcResult->GetOutput(output, IID_PPV_ARGS(preprocessedBlob.put()), nullptr);
 
                         LPCSTR qwe = nullptr;
@@ -425,11 +425,11 @@ namespace RR::Rfx
                         std::ignore = qwe;
                     }
 
-                    auto convertOutput = [compilerResult](const winrt::com_ptr<IDxcResult>& dxcResult, DXC_OUT_KIND from, CompileOutputType to)
+                    auto convertOutput = [compilerResult](const CComPtr<IDxcResult>& dxcResult, DXC_OUT_KIND from, CompileOutputType to)
                     {
                         if (from == DXC_OUT_OBJECT)
                         {
-                            winrt::com_ptr<IDxcBlob> dxcBlob;
+                            CComPtr<IDxcBlob> dxcBlob;
 
                             if (SUCCEEDED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlob.put()), nullptr)))
                             {
@@ -442,7 +442,7 @@ namespace RR::Rfx
                         }
                         else
                         {
-                            winrt::com_ptr<IDxcBlobUtf8> dxcBlobUtf8;
+                            CComPtr<IDxcBlobUtf8> dxcBlobUtf8;
 
                             if (SUCCEEDED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlobUtf8.put()), nullptr)))
                             {
@@ -468,7 +468,7 @@ namespace RR::Rfx
                     if (outputAssembly)
                     {
 
-                        winrt::com_ptr<IDxcBlob> objectBlob;
+                        CComPtr<IDxcBlob> objectBlob;
                         if (SUCCEEDED(dxcResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(objectBlob.put()), nullptr)))
                         {
                             DxcBuffer objectBuffer;
@@ -476,7 +476,7 @@ namespace RR::Rfx
                             objectBuffer.Size = objectBlob->GetBufferSize();
                             objectBuffer.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
 
-                            winrt::com_ptr<IDxcResult> dissasseblyResult;
+                            CComPtr<IDxcResult> dissasseblyResult;
                             if (FAILED(dxcCompiler->Disassemble(&objectBuffer, IID_PPV_ARGS(dissasseblyResult.put()))))
                                 return RfxResult::InternalFail;
 

@@ -112,7 +112,7 @@ namespace RR
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
         public:
-            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<Common::LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
 
             std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
@@ -170,7 +170,7 @@ namespace RR
             void lexStringLiteralBody(U8Glyph quote);
 
         private:
-            std::shared_ptr<LinearAllocator> allocator_;
+            std::shared_ptr<Common::LinearAllocator> allocator_;
             std::shared_ptr<SourceView> sourceView_;
             std::shared_ptr<DiagnosticSink> sink_;
 

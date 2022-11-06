@@ -3,9 +3,11 @@
 #include <cassert>
 #include <stdint.h>
 #include <type_traits>
+#include <utility>
 
 #ifdef _MSC_VER
 #define RFX_STDCALL __stdcall
+#define RFX_NOINLINE  __declspec(noinline)
 #ifdef RFX_DYNAMIC_EXPORT
 #define RFX_DLL_EXPORT __declspec(dllexport)
 #else
@@ -13,6 +15,7 @@
 #endif
 #else
 #define RFX_STDCALL
+#define RFX_NOINLINE
 #define RFX_DLL_EXPORT __attribute__((visibility("default")))
 #endif
 
@@ -267,7 +270,7 @@ namespace RR
                     unconditional_release_ref();
             }
 
-            __declspec(noinline) void unconditional_release_ref() noexcept
+            RFX_NOINLINE void unconditional_release_ref() noexcept
             {
                 std::exchange(ptr_, {})->release();
             }

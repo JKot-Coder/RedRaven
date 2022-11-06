@@ -1,3 +1,5 @@
+#pragma once
+
 #include <atomic>
 
 namespace RR::Rfx
@@ -7,9 +9,9 @@ namespace RR::Rfx
     {
     public:
         RefObject() = default;
-        RefObject(const RefObject&) = default;
+        //RefObject(const RefObject&) = default;
         virtual ~RefObject() { }
-        RefObject& operator=(const RefObject& rhs) = default;
+      //  RefObject& operator=(const RefObject& rhs) = default;
 
         uint32_t addReference() { return ++referenceCount_; }
         uint32_t decreaseReference() { return --referenceCount_; }

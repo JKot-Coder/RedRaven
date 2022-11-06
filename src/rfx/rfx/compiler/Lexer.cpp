@@ -97,7 +97,7 @@ namespace RR
             {
                 ASSERT(lexer);
 
-                if (IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
+                if (Common::IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
                     return;
 
                 lexer->GetDiagnosticSink()->Diagnose(location, humaneSourceLocation, info, args...);
@@ -136,7 +136,7 @@ namespace RR
         }
 
         Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView,
-                     const std::shared_ptr<LinearAllocator>& linearAllocator,
+                     const std::shared_ptr<Common::LinearAllocator>& linearAllocator,
                      const std::shared_ptr<DiagnosticSink>& diagnosticSink)
             : allocator_(linearAllocator),
               sourceView_(sourceView),
@@ -180,7 +180,7 @@ namespace RR
             auto tokenFlags = tokenflags_;
             auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
 
-            if (IsSet(tokenflags_, Token::Flags::EscapedNewLines))
+            if (Common::IsSet(tokenflags_, Token::Flags::EscapedNewLines))
             {
                 // Reset flag
                 tokenflags_ &= ~Token::Flags::EscapedNewLines;
