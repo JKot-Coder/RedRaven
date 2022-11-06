@@ -47,12 +47,12 @@ namespace RR::Platform
         Input::ModifierFlag convertMods(int mods)
         {
             Input::ModifierFlag result = Input::ModifierFlag::None;
-            result |= (mods & GLFW_MOD_SHIFT != 0) ? Input::ModifierFlag::Shift : Input::ModifierFlag::None;
-            result |= (mods & GLFW_MOD_CONTROL != 0) ? Input::ModifierFlag::Control : Input::ModifierFlag::None;
-            result |= (mods & GLFW_MOD_ALT != 0) ? Input::ModifierFlag::Alt : Input::ModifierFlag::None;
-            result |= (mods & GLFW_MOD_SUPER != 0) ? Input::ModifierFlag::Super : Input::ModifierFlag::None;
-            result |= (mods & GLFW_MOD_CAPS_LOCK != 0) ? Input::ModifierFlag::CapsLock : Input::ModifierFlag::None;
-            result |= (mods & GLFW_MOD_NUM_LOCK != 0) ? Input::ModifierFlag::NumLock : Input::ModifierFlag::None;
+            result |= (mods & GLFW_MOD_SHIFT) != 0 ? Input::ModifierFlag::Shift : Input::ModifierFlag::None;
+            result |= (mods & GLFW_MOD_CONTROL) != 0 ? Input::ModifierFlag::Control : Input::ModifierFlag::None;
+            result |= (mods & GLFW_MOD_ALT) != 0 ? Input::ModifierFlag::Alt : Input::ModifierFlag::None;
+            result |= (mods & GLFW_MOD_SUPER) != 0 ? Input::ModifierFlag::Super : Input::ModifierFlag::None;
+            result |= (mods & GLFW_MOD_CAPS_LOCK) != 0 ? Input::ModifierFlag::CapsLock : Input::ModifierFlag::None;
+            result |= (mods & GLFW_MOD_NUM_LOCK) != 0 ? Input::ModifierFlag::NumLock : Input::ModifierFlag::None;
 
             return result;
         };
@@ -64,8 +64,7 @@ namespace RR::Platform
                 case GLFW_PRESS: return Input::KeyAction::Press;
                 case GLFW_RELEASE: return Input::KeyAction::Release;
                 case GLFW_REPEAT: return Input::KeyAction::Repeat;
-                default: ASSERT_MSG(false, "Unknown action");
-                    return Input::KeyAction(-1);
+                default: ASSERT_MSG(false, "Unknown action"); return Input::KeyAction(-1);
             }
         }
 
@@ -230,7 +229,7 @@ namespace RR::Platform
         ASSERT(windowImpl);
 
         // Workaround: X11 does not include current pressed/released modifier key in 'mods' flags. https://github.com/glfw/glfw/issues/1630
-        //if (int keycode_to_mod = ImGui_ImplGlfw_KeyToModifier(keycode))
+        // if (int keycode_to_mod = ImGui_ImplGlfw_KeyToModifier(keycode))
         //   mods = (action == Input::KeyAction::Press) ? (mods | keycode_to_mod) : (mods & ~keycode_to_mod);
 
         const auto key = convertKey(keycode);
