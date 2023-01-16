@@ -4,6 +4,8 @@
 #include "rfx.hpp"
 #include "command.h"
 
+#include "common/ComPtr.hpp"
+
 namespace RR::Rfx
 {
     namespace Tests
@@ -12,7 +14,7 @@ namespace RR::Rfx
         {
         public:
             ~RfxWriter() { }
-            RfxWriter(const std::vector<ComPtr<Rfx::ICompileResult>>& compileResults)
+            RfxWriter(const std::vector<Common::ComPtr<Rfx::ICompileResult>>& compileResults)
                 : compileResults_(compileResults)
             {
             }
@@ -30,7 +32,7 @@ namespace RR::Rfx
             }
 
         private:
-            std::vector<ComPtr<Rfx::ICompileResult>> compileResults_;
+            std::vector<Common::ComPtr<Rfx::ICompileResult>> compileResults_;
         };
 
         class RfxWriter2 : public ApprovalTests::ApprovalWriter

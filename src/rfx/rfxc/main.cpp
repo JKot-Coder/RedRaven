@@ -1,5 +1,8 @@
 #include "rfx.hpp"
 
+#include "common/ComPtr.hpp"
+#include "common/Result.hpp"
+
 #include "cxxopts.hpp"
 #include <fstream>
 #include <ostream>
@@ -16,10 +19,7 @@ namespace RR
 
         inline void printErrorMessage(Rfx::RfxResult result)
         {
-            Rfx::ComPtr<Rfx::IBlob> message;
-
-            if (RFX_SUCCEEDED(Rfx::GetErrorMessage(result, message.put())))
-                printErrorMessage("Unexpected error: {}", message->GetBufferPointer());
+            printErrorMessage("Unexpected error: {}", Common::GetErrorMessage(result));
         }
 
         template <typename T>
@@ -57,7 +57,7 @@ namespace RR
         };
     }
 
-    void writeOutput(const std::string& filename, Rfx::CompileOutputType outputType, const Rfx::ComPtr<Rfx::IBlob>& output)
+    void writeOutput(const std::string& filename, Rfx::CompileOutputType outputType, const Common::ComPtr<Rfx::IBlob>& output)
     {
         assert(output);
 
@@ -67,23 +67,14 @@ namespace RR
         {
             switch (outputType)
             {
-                case RR::Rfx::CompileOutputType::Diagnostic:
-                    std::cout << "Diagnostic output:" << std::endl;
-                    break;
-                case RR::Rfx::CompileOutputType::Tokens:
-                    std::cout << "Tokens output:" << std::endl;
-                    break;
-                case RR::Rfx::CompileOutputType::Object:
+                case Rfx::CompileOutputType::Object:
                     std::cout.write(static_cast<const char*>(output->GetBufferPointer()), output->GetBufferSize());
                     return;
-                case RR::Rfx::CompileOutputType::Source:
-                    std::cout << "Preprocessor output:" << std::endl;
-                    break;
-                case RR::Rfx::CompileOutputType::Assembly:
-                    std::cout << "Assembly output:" << std::endl;
-                    break;
-                default:
-                    ASSERT_MSG(false, "Unknown output");
+                case Rfx::CompileOutputType::Diagnostic: std::cout << "Diagnostic output:" << std::endl; break;
+                case Rfx::CompileOutputType::Tokens: std::cout << "Tokens output:" << std::endl; break;
+                case Rfx::CompileOutputType::Source: std::cout << "Preprocessor output:" << std::endl; break;
+                case Rfx::CompileOutputType::Assembly: std::cout << "Assembly output:" << std::endl; break;
+                default: ASSERT_MSG(false, "Unknown output");
             }
 
             std::cout << outputString;
@@ -184,24 +175,24 @@ namespace RR
             compileRequestDesc.defines = (const char**)cstingAllocator.GetCStrings().data();
             compileRequestDesc.defineCount = cstingAllocator.GetCStrings().size();
 
-            Rfx::ComPtr<Rfx::ICompileResult> compileResult;
-            Rfx::RfxResult result = Rfx::RfxResult::Ok;
+            Common::ComPtr<Rfx::ICompileResult> compileResult;
+            Common::RResult result = Common::RResult::Ok;
 
-            Rfx::ComPtr<Rfx::ICompiler> compiler;
-            if (RFX_FAILED(result = Rfx::GetComplierInstance(compiler.put())))
+            Common::ComPtr<Rfx::ICompiler> compiler;
+            if (RR_FAILED(result = Rfx::GetComplierInstance(compiler.put())))
             {
                 printErrorMessage("Unexpeted error");
                 return 1;
             }
 
-            if (RFX_FAILED(result = compiler->Compile(compileRequestDesc, compileResult.put())))
+            if (RR_FAILED(result = compiler->Compile(compileRequestDesc, compileResult.put())))
             {
                 switch (result)
                 {
-                    case Rfx::RfxResult::Ok:
+                    case Common::RResult::Ok:
                         break;
-                    case Rfx::RfxResult::NotFound:
-                    case Rfx::RfxResult::CannotOpen:
+                    case Common::RResult::NotFound:
+                    case Common::RResult::CannotOpen:
                         printErrorMessage("Cannot open file: {}", compileRequestDesc.inputFile);
                         return 1;
                     default:
@@ -214,9 +205,9 @@ namespace RR
             for (size_t i = 0; i < outputsCount; i++)
             {
                 Rfx::CompileOutputType outputType;
-                Rfx::ComPtr<Rfx::IBlob> output;
+                Common::ComPtr<Rfx::IBlob> output;
 
-                if (RFX_FAILED(result = compileResult->GetOutput(i, outputType, output.put())))
+                if (RR_FAILED(result = compileResult->GetOutput(i, outputType, output.put())))
                 {
                     printErrorMessage(result);
                     return 1;

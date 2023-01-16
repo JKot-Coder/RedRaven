@@ -5,6 +5,8 @@
 
 #include "command.h"
 
+#include "common/Result.hpp"
+
 #include "ApprovalTests/ApprovalTests.hpp"
 #include <catch2/catch.hpp>
 #include <fstream>
@@ -18,26 +20,6 @@ namespace RR::Rfx::Tests
 {
     namespace
     {
-        U8String readAllFile(std::ifstream& file)
-        {
-            ASSERT(file);
-
-            file.seekg(0, file.end);
-            uint64_t sizeInBytes = file.tellg();
-            file.seekg(0, file.beg);
-
-            const uint64_t MaxFileSize = 0x40000000; // 1 Gib
-            if (sizeInBytes > MaxFileSize)
-                return ""; // It's too large to fit in memory.
-
-            U8String content;
-            content.resize(sizeInBytes);
-
-            file.read(&content[0], content.size());
-
-            return content;
-        }
-
         class CommandLineTestParser final
         {
         public:
@@ -92,11 +74,11 @@ namespace RR::Rfx::Tests
             std::string::const_iterator end_;
         };
 
-        RfxResult CommandLineTestParser::Parse(const fs::path& path, std::vector<std::string>& outCommandLineArgumets)
+        Common::RResult CommandLineTestParser::Parse(const fs::path& path, std::vector<std::string>& outCommandLineArgumets)
         {
-            auto result = RfxResult::Ok;
+            auto result = Common::RResult::Ok;
 
-            if (RFX_FAILED(result = readAllFile(path)))
+            if (RR_FAILED(result = readAllFile(path)))
                 return result;
 
             skipBOM();
@@ -122,7 +104,7 @@ namespace RR::Rfx::Tests
                 break;
             }
 
-            return outCommandLineArgumets.empty() ? RfxResult::NotFound : RfxResult::Ok;
+            return outCommandLineArgumets.empty() ? Common::RResult::NotFound : Common::RResult::Ok;
         }
 
         void CommandLineTestParser::skipBlockComment()
@@ -199,15 +181,15 @@ namespace RR::Rfx::Tests
             outCommandLineArgumets.push_back(std::string(begin, cursor_));
         }
 
-        RfxResult CommandLineTestParser::readAllFile(const fs::path& path)
+        Common::RResult CommandLineTestParser::readAllFile(const fs::path& path)
         {
             if (!fs::exists(path))
-                return RfxResult::NotFound;
+                return Common::RResult::NotFound;
 
             std::ifstream file(path);
 
             if (!file)
-                return RfxResult::Fail;
+                return Common::RResult::Fail;
 
             file.seekg(0, file.end);
             uint64_t sizeInBytes = file.tellg();
@@ -223,13 +205,13 @@ namespace RR::Rfx::Tests
             else
             {
                 file.close();
-                return RfxResult::CannotOpen; // It's too large to fit in memory.
+                return Common::RResult::CannotOpen; // It's too large to fit in memory.
             }
 
             path_ = path;
             end_ = content_.end();
             cursor_ = content_.begin();
-            return RfxResult::Ok;
+            return Common::RResult::Ok;
         }
 
         void runLexerTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
@@ -242,7 +224,7 @@ namespace RR::Rfx::Tests
         {
             std::vector<std::string> commandLineArguments;
             CommandLineTestParser commandLineTestParser;
-            REQUIRE(RFX_SUCCEEDED(commandLineTestParser.Parse(testFile, commandLineArguments)));
+            REQUIRE(RR_SUCCEEDED(commandLineTestParser.Parse(testFile, commandLineArguments)));
             REQUIRE(!commandLineArguments.empty());
 
             for (size_t index = 0; index < commandLineArguments.size(); index++)
