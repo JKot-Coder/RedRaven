@@ -9,10 +9,10 @@ namespace RR
         using RR::Common::ComPtr;
         class SourceFile;
 
-        class Preprocessor
+        class DxcPreprocessor
         {
         public:
-            Preprocessor() = default;
+            DxcPreprocessor() = default;
             RfxResult Preprocess(std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic);
 
             void DefineMacro(const U8String& define) { defines.push_back(define); }

@@ -2,7 +2,7 @@
 
 #include "compiler/DiagnosticSink.hpp"
 #include "compiler/Lexer.hpp"
-#include "compiler/Preprocessor.hpp"
+#include "compiler/DxcPreprocessor.hpp"
 
 #include "core/Blob.hpp"
 #include "core/CStringAllocator.hpp"
@@ -338,7 +338,7 @@ namespace RR::Rfx
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {
-                    Preprocessor preprocessor;
+                    DxcPreprocessor preprocessor;
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {

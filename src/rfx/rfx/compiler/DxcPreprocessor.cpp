@@ -1,4 +1,4 @@
-#include "Preprocessor.hpp"
+#include "DxcPreprocessor.hpp"
 
 #include "core/Blob.hpp"
 #include "core/CStringAllocator.hpp"
@@ -17,7 +17,7 @@ namespace RR
 {
     namespace Rfx
     {
-        RfxResult Preprocessor::Preprocess(std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic)
+        RfxResult DxcPreprocessor::Preprocess(std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic)
         {
             dxc::DxcDllSupport dxcDll;
 

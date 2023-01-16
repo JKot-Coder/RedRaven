@@ -9,29 +9,13 @@
 
 namespace RR
 {
-    namespace Common
-    {
-        class LinearAllocator;
-    }
-
     namespace Rfx
     {
         namespace
         {
-            inline bool isWhiteSpace(U8Glyph ch)
-            {
-                return (ch == ' ' || ch == '\t');
-            }
-
-            inline bool isNewLineChar(U8Glyph ch)
-            {
-                return (ch == '\n' || ch == '\r');
-            }
-
-            inline bool isEOF(U8Glyph ch)
-            {
-                return ch == Lexer::kEOF;
-            }
+            inline bool isWhiteSpace(U8Glyph ch) { return (ch == ' ' || ch == '\t'); }
+            inline bool isNewLineChar(U8Glyph ch) { return (ch == '\n' || ch == '\r'); }
+            inline bool isEOF(U8Glyph ch) { return ch == Lexer::kEOF; }
 
             bool isNumberExponent(U8Glyph ch, uint32_t base)
             {
@@ -262,9 +246,8 @@ namespace RR
 
             switch (peek())
             {
-                default:
-                    break;
-
+                default: break;
+               
                 case '\r':
                 case '\n':
                 {

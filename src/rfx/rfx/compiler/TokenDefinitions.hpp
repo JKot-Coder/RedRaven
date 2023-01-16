@@ -26,8 +26,6 @@ TOKEN(NewLine, "end of line")
 TOKEN(LineComment, "line comment")
 TOKEN(BlockComment, "block comment")
 
-#undef TOKEN
-
 #define PUNCTUATION(id, text) \
     TOKEN(id, "'" text "'")
 
@@ -89,4 +87,5 @@ PUNCTUATION(PoundPound, "##")
 
 PUNCTUATION(Scope, "::")
 
+#undef TOKEN
 #undef PUNCTUATION
