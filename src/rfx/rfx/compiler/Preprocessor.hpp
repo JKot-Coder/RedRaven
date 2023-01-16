@@ -1,9 +1,12 @@
 #pragma once
 
+#include "common/ComPtr.hpp"
+
 namespace RR
 {
     namespace Rfx
     {
+        using RR::Common::ComPtr;
         class SourceFile;
 
         class Preprocessor

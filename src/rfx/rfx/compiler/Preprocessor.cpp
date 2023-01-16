@@ -11,6 +11,8 @@
 #include "dxcapi.use.h"
 //#include <winrt/base.h>
 
+#include "common/Result.hpp"
+
 namespace RR
 {
     namespace Rfx

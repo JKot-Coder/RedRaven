@@ -3,6 +3,7 @@
 #include "core/FileSystem.hpp"
 #include "core/SourceLocation.hpp"
 
+#include "common/Result.hpp"
 #include "common/OnScopeExit.hpp"
 #include "common/LinearAllocator.hpp"
 
@@ -34,7 +35,7 @@ namespace RR
             {
                 RfxResult result = findFileImpl(pathToInclude, pathIncludedFrom, outPathInfo);
                 // It either succeeded or wasn't found, anything else is a failure passed back
-                if (RFX_SUCCEEDED(result) || result != RfxResult::NotFound)
+                if (RR_SUCCEEDED(result) || result != RfxResult::NotFound)
                     return result;
             }
             /*
@@ -74,7 +75,7 @@ namespace RR
 
             // Get the uniqueIdentity
             U8String uniqueIdentity;
-            RFX_RETURN_ON_FAIL(fileSystemExt_->GetPathUniqueIdentity(combinedPath, uniqueIdentity));
+            RR_RETURN_ON_FAIL(fileSystemExt_->GetPathUniqueIdentity(combinedPath, uniqueIdentity));
 
             // If the rel path exists -> a uniqueIdentity MUST exists too
             if (uniqueIdentity.length() <= 0)

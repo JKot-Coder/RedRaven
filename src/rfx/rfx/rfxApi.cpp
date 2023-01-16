@@ -6,13 +6,14 @@
 
 #include "core/Blob.hpp"
 #include "core/CStringAllocator.hpp"
-#include "core/Error.hpp"
 #include "core/FileSystem.hpp"
 #include "core/IncludeSystem.hpp"
 #include "core/SourceLocation.hpp"
 #include "core/StringEscapeUtil.hpp"
 
+#include "common/ComPtr.hpp"
 #include "common/LinearAllocator.hpp"
+#include "common/Result.hpp"
 
 #if !defined(NDEBUG) && OS_WINDOWS
 #define ENABLE_LEAK_DETECTION true
@@ -30,10 +31,12 @@
 #endif
 
 #include "dxcapi.use.h"
-//#include <winrt/base.h>
+// #include <winrt/base.h>
 
 namespace RR::Rfx
 {
+    using RR::Common::ComPtr;
+
     namespace
     {
 
@@ -257,15 +260,19 @@ namespace RR::Rfx
         uint32_t addRef() override { return addReference(); }
         uint32_t release() override { return releaseReference(); }
 
-        RfxResult Compile(const CompileRequestDescription& compilerRequest, ICompileResult** result) override;
+        RfxResult Compile(const CompileRequestDescription& compileRequest, ICompileResult** result) override;
 
     public:
         static ICompiler* GetInstance()
         {
             if (!instance_)
             {
-                if (FAILED(dxcDll.Initialize()))
+                const auto result = dxcDll.Initialize();
+                if (FAILED(result))
+                {
+                    LOG_ERROR("Failed to initialize dxc with error: {0}", GetErrorMessage((Common::RResult)result));
                     return nullptr;
+                }
 
                 instance_ = new Compiler();
             }
@@ -281,17 +288,17 @@ namespace RR::Rfx
     dxc::DxcDllSupport Compiler::dxcDll;
     ICompiler* Compiler::instance_ = nullptr;
 
-    RfxResult Compiler::Compile(const CompileRequestDescription& compilerRequest, ICompileResult** outCompilerResult)
+    RfxResult Compiler::Compile(const CompileRequestDescription& compileRequest, ICompileResult** outCompilerResult)
     {
         RfxResult result = RfxResult::Ok;
 
         if (!outCompilerResult)
             return RfxResult::InvalidArgument;
 
-        if (!compilerRequest.inputFile)
+        if (!compileRequest.inputFile)
             return RfxResult::InvalidArgument;
 
-        if (compilerRequest.defineCount > 0 && !compilerRequest.defines)
+        if (compileRequest.defineCount > 0 && !compileRequest.defines)
             return RfxResult::InvalidArgument;
 
         CComPtr<IDxcCompiler3> dxcCompiler;
@@ -309,11 +316,11 @@ namespace RR::Rfx
 
             const auto& fileSystem = std::make_shared<OSFileSystem>();
             const auto& includeSystem = std::make_shared<IncludeSystem>(fileSystem);
-            if (RFX_FAILED(result = includeSystem->FindFile(compilerRequest.inputFile, "", pathInfo)))
+            if (RR_FAILED(result = includeSystem->FindFile(compileRequest.inputFile, "", pathInfo)))
                 return result;
 
             std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-            if (RFX_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
+            if (RR_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
                 return result;
 
             auto diagnosticSink = std::make_shared<DiagnosticSink>();
@@ -322,7 +329,7 @@ namespace RR::Rfx
             //  diagnosticSink->AddWriter(bufferWriter);
             CComPtr<IDxcResult> dxcResult;
 
-            switch (compilerRequest.outputStage)
+            switch (compileRequest.outputStage)
             {
                 case CompileRequestDescription::OutputStage::Lexer:
 
@@ -333,9 +340,10 @@ namespace RR::Rfx
                 {
                     Preprocessor preprocessor;
 
-                    for (size_t index = 0; index < compilerRequest.defineCount; index++)
+                    for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
-                        const auto& define = *(compilerRequest.defines + index);
+                        ASSERT(compileRequest.defines + index);
+                        const auto& define = *(compileRequest.defines + index);
                         preprocessor.DefineMacro(define);
                     }
 
@@ -343,10 +351,10 @@ namespace RR::Rfx
                     ComPtr<IBlob> diagnostic;
 
                     RfxResult rfxResult;
-                    if (RFX_FAILED(rfxResult = preprocessor.Preprocess(sourceFile, output, diagnostic)))
+                    if (RR_FAILED(rfxResult = preprocessor.Preprocess(sourceFile, output, diagnostic)))
                         return rfxResult;
 
-                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
                     {
                         compilerResult->PushOutput(CompileOutputType::Source, output);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
@@ -355,7 +363,7 @@ namespace RR::Rfx
                     {
                         preprocessor.DefineMacro("RFX");
 
-                        if (RFX_FAILED(rfxResult = preprocessor.Preprocess(sourceFile, output, diagnostic)))
+                        if (RR_FAILED(rfxResult = preprocessor.Preprocess(sourceFile, output, diagnostic)))
                             return rfxResult;
 
                         compilerResult->PushOutput(CompileOutputType::Assembly, output);
@@ -370,7 +378,7 @@ namespace RR::Rfx
                     CStringAllocator<wchar_t> cstringAllocator;
                     std::vector<LPCWSTR> arguments;
 
-                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
                     {
                         arguments.push_back(L"-P");
                         arguments.push_back(L"preprocessed.hlsl");
@@ -378,10 +386,10 @@ namespace RR::Rfx
 
                     bool outputAssembly = false;
                     bool outputObject = false;
-                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Compiler)
+                    if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Compiler)
                     {
-                        outputObject = compilerRequest.compilerOptions.objectOutput;
-                        outputAssembly = compilerRequest.compilerOptions.assemblyOutput;
+                        outputObject = compileRequest.compilerOptions.objectOutput;
+                        outputAssembly = compileRequest.compilerOptions.assemblyOutput;
 
                         arguments.push_back(L"-T");
                         arguments.push_back(L"ps_6_0");
@@ -392,9 +400,9 @@ namespace RR::Rfx
 
                     wchar_t* cstring = nullptr;
 
-                    for (size_t index = 0; index < compilerRequest.defineCount; index++)
+                    for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
-                        const auto& define = *(compilerRequest.defines + index);
+                        const auto& define = *(compileRequest.defines + index);
 
                         arguments.push_back(L"-D");
 
@@ -457,7 +465,7 @@ namespace RR::Rfx
                         ASSERT_MSG(false, "Empty output");
                     };
 
-                    if (compilerRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
                         convertOutput(dxcResult, DXC_OUT_HLSL, CompileOutputType::Source);
 
                     if (outputObject)
@@ -491,7 +499,7 @@ namespace RR::Rfx
                     return RfxResult::InvalidArgument;
             }
             /*
-            if (compilerRequest.preprocessorOutput)
+            if (compileRequest.preprocessorOutput)
             {
 
                 //-E for the entry point (eg. PSMain)
@@ -524,7 +532,12 @@ namespace RR::Rfx
 
     RFX_API RfxResult GetComplierInstance(ICompiler** compiler)
     {
+        ASSERT(compiler)
+
         *compiler = Compiler::GetInstance();
+        if (!*compiler)
+            return RfxResult::NoInterface;
+
         (*compiler)->addRef();
         return RfxResult::Ok;
     }

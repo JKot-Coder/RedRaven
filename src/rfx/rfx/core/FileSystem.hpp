@@ -7,8 +7,6 @@ namespace RR
 {
     namespace Rfx
     {
-        enum class RfxResult : int32_t;
-
         class IRfxFileSystem
         {
         public:

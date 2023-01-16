@@ -12,8 +12,6 @@ source_group( "include" FILES ${RFX_INCLUDE} )
 set(RFX_CORE_SRC
     "core/Blob.hpp"
     "core/CStringAllocator.hpp"
-    "core/Error.cpp"
-    "core/Error.hpp"
     "core/Exception.hpp"
     "core/FileSystem.cpp"
     "core/FileSystem.hpp"

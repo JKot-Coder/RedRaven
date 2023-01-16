@@ -1,0 +1,7 @@
+%YAML 1.1
+---
+version: 1
+bundle:
+  name: imgui
+  include_mask: '*.*'
+  exclude_mask:

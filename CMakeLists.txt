@@ -140,6 +140,40 @@ set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
 set(BUILD_DX12 OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(DirectXTex)
 
+#================================== cxxopts ==================================#
+FetchContent_Declare(
+        cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG        v3.0.0
+        GIT_SHALLOW    TRUE
+)
+set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_ENABLE_WARNINGS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(cxxopts)
+
+#================================== cxxopts ==================================#
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
+  GIT_TAG        yaml-cpp-0.7.0
+)
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(yaml-cpp)
+
+#================================== stduuid ==================================#
+FetchContent_Declare(
+  stduuid
+  GIT_REPOSITORY https://github.com/mariusbancila/stduuid
+  GIT_TAG        v1.2.2
+)
+set(UUID_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(stduuid)
+
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
@@ -150,5 +184,7 @@ set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui PROPERTY FOLDER "Dependencies")
 set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
+set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
+set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)
