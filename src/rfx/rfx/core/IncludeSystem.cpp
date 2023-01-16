@@ -13,7 +13,7 @@ namespace RR
 {
     namespace Rfx
     {
-        RfxResult IncludeSystem::FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const
+        Common::RResult IncludeSystem::FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const
         {
             outPathInfo.type = PathInfo::Type::Unknown;
 

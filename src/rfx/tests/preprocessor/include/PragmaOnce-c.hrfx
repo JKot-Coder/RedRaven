@@ -1,0 +1,7 @@
+// PragmaOnce-c.hrfx
+
+// Used by the `PragmaOnce.rfx` test
+
+#pragma once
+
+#define ONLY_DEFINED_ONCE_C

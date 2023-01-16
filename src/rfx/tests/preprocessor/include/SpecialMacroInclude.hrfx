@@ -1,0 +1,3 @@
+// Used by the `SpecialMacroInclude.rfx` test
+
+__FILE__ __LINE__

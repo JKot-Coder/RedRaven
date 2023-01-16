@@ -1,0 +1,11 @@
+#pragma once
+
+#include "b.hrfx"
+
+#ifdef C_HRFX
+#   error "c.hrfx shouldn't be included twice"
+#endif
+
+#define C_HRFX
+
+float bar(float x) { return x; }

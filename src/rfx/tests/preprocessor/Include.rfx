@@ -1,0 +1,8 @@
+// -O PREPROCESSOR
+// #include support
+
+int foo() { return 0; }
+
+#include "Include-a.hrfx"
+
+int baz() { return bar(); }

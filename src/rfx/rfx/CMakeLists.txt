@@ -37,6 +37,8 @@ set(RFX_COMPILER_SRC
     "compiler/LexerDiagnosticDefinitions.hpp"
     "compiler/DxcPreprocessor.cpp"
     "compiler/DxcPreprocessor.hpp"
+    "compiler/Preprocessor.cpp"   
+    "compiler/Preprocessor.hpp"
     "compiler/Signal.cpp"
     "compiler/Signal.hpp"
     "compiler/Token.cpp"

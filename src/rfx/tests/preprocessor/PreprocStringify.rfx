@@ -1,0 +1,10 @@
+// -O PREPROCESSOR
+
+#define A a
+#define B b
+
+// Correct output 
+// "A B"
+
+#define STRINGIFY(x) #x
+STRINGIFY(A B);

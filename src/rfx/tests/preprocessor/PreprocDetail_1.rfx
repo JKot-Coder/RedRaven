@@ -1,0 +1,8 @@
+// -O PREPROCESSOR
+
+// If a macro can take a single parameter, it is valid to pass in 'nothing'.
+// Correct output: a b
+
+#define A(x) a x b
+
+A()
