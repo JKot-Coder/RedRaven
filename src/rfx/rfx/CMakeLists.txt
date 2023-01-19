@@ -39,6 +39,8 @@ set(RFX_COMPILER_SRC
     "compiler/DxcPreprocessor.hpp"
     "compiler/Preprocessor.cpp"   
     "compiler/Preprocessor.hpp"
+    "compiler/LinePreprocessor.cpp"
+    "compiler/LinePreprocessor.hpp"
     "compiler/Signal.cpp"
     "compiler/Signal.hpp"
     "compiler/Token.cpp"
