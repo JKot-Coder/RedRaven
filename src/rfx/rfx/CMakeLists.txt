@@ -25,10 +25,7 @@ set(RFX_CORE_SRC
     "core/UnownedStringSlice.hpp")
 source_group( "core" FILES ${RFX_CORE_SRC} )
 
-set(RFX_COMPILER_SRC    
-  #  "compiler/AST.hpp"
-   # "compiler/ASTBuilder.cpp"
-    #"compiler/ASTBuilder.hpp"
+set(RFX_COMPILER_SRC
     "compiler/CompileRequest.cpp"
     "compiler/CompileRequest.hpp"
     "compiler/DiagnosticCore.hpp"
@@ -40,10 +37,8 @@ set(RFX_COMPILER_SRC
     "compiler/LexerDiagnosticDefinitions.hpp"
     "compiler/DxcPreprocessor.cpp"
     "compiler/DxcPreprocessor.hpp"
-    "compiler/Preprocessor.cpp"   
+    "compiler/Preprocessor.cpp"
     "compiler/Preprocessor.hpp"
-   # "compiler/Parser.cpp"   
-   # "compiler/Parser.hpp"
     "compiler/LinePreprocessor.cpp"
     "compiler/LinePreprocessor.hpp"
     "compiler/Signal.cpp"

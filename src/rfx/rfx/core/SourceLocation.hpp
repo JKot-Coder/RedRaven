@@ -244,26 +244,28 @@ namespace RR
             using RawValue = size_t;
 
             SourceLocation() = default;
+            SourceLocation(const SourceLocation& loc) : raw_(loc.raw_), sourceView_(loc.sourceView_) { }
 
-            inline bool operator==(const SourceLocation& rhs) const { 
-                return (raw_ == rhs.raw_) && (sourceView_ == rhs.sourceView_); }
+            inline bool operator==(const SourceLocation& rhs) const { return (raw_ == rhs.raw_) && (sourceView_ == rhs.sourceView_); }
+            inline bool operator!=(const SourceLocation& rhs) const { return (raw_ != rhs.raw_) && (sourceView_ != rhs.sourceView_); }
 
-            inline HumaneSourceLocation GetHumaneSourceLocation() const { return humaneSourceLocation_; } 
+            inline SourceLocation& operator=(const SourceLocation& rhs) = default;
+            inline SourceLocation operator+(int32_t offset) const { return SourceLocation(RawValue(int64_t(raw_) + offset), sourceView_); }
+            inline SourceLocation operator+(RawValue offset) const { return SourceLocation(raw_ + offset, sourceView_); }
+
             inline std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
             inline bool IsValid() const { return sourceView_ != nullptr; }
 
         private:
             friend SourceView;
 
-            SourceLocation(RawValue raw, HumaneSourceLocation humaneSourceLocation, const std::shared_ptr<SourceView>& sourceView) : 
-                raw_(raw), humaneSourceLocation_(humaneSourceLocation), sourceView_(sourceView)
+            SourceLocation(RawValue raw, const std::shared_ptr<SourceView>& sourceView) : raw_(raw), sourceView_(sourceView)
             {
                 ASSERT(sourceView_)
             }
 
         private:
             RawValue raw_ = 0;
-            HumaneSourceLocation humaneSourceLocation_;
             std::shared_ptr<SourceView> sourceView_;
         };
 
