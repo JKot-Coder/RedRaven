@@ -721,6 +721,7 @@ namespace RR::Rfx
 
     void LinePreprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
     {
+        ASSERT(impl_);
         const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
         impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
     }

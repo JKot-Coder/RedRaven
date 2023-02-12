@@ -30,24 +30,13 @@ namespace RR
                                size_t);
 #endif
 
+                inline size_t GetRemained() const { return size_ - allocated_; }
+                inline size_t GetAllocated() const { return size_; }
+                inline size_t GetSize() const { return size_; }
+
                 inline void Reset()
                 {
                     allocated_ = 0;
-                }
-
-                inline size_t GetRemained() const
-                {
-                    return size_ - allocated_;
-                }
-
-                inline size_t GetAllocated() const
-                {
-                    return size_;
-                }
-
-                inline size_t GetSize() const
-                {
-                    return size_;
                 }
 
             private:
