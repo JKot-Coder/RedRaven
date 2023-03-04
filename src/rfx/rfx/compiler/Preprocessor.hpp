@@ -5,17 +5,29 @@ namespace RR
     namespace Rfx
     {
         class SourceFile;
+        class DiagnosticSink;
+        class IncludeSystem;
+        struct Token;
+        class PreprocessorImpl;
 
-        class Preprocessor
+        class Preprocessor final
         {
         public:
-            Preprocessor() = default;
-            RfxResult Preprocess(std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic);
+            Preprocessor() = delete;
+            Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                         const std::shared_ptr<DiagnosticSink>& diagnosticSink);
 
-            void DefineMacro(const U8String& define) { defines.push_back(define); }
+            ~Preprocessor();
+
+            void PushInputFile(const std::shared_ptr<SourceFile>& sourceFile);
+            void DefineMacro(const U8String& key, const U8String& value);
+
+            // read the entire input into tokens
+            std::vector<Token> ReadAllTokens();
 
         private:
-            std::vector<U8String> defines;
+            // TODO tempoprary shared. Is it possible not to use it?
+            std::shared_ptr<PreprocessorImpl> impl_;
         };
     }
 }

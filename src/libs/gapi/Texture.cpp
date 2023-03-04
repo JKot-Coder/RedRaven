@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Texture.hpp"
 
 #include "gapi/GpuResourceViews.hpp"

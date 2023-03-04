@@ -14,6 +14,6 @@
 #include <vector>
 #include <functional>
 
-using namespace RR::Common;
+//using namespace RR::Common;
 using namespace RR::Common::Debug;
 #endif // __cplusplus

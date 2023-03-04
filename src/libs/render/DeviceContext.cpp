@@ -110,7 +110,7 @@ namespace RR
                                               syncFenceValue++;
 
                                               // Throttle cpu if gpu behind
-                                              fence->SyncCPU(syncFenceValue, INFINITE);
+                                              fence->SyncCPU(syncFenceValue, GAPI::INFINITY_WAIT);
                                           }
 
                                           device.MoveToNextFrame(submissionFrame);
@@ -145,7 +145,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::CopyCommandList::Create(name);
+            auto resource = GAPI::CopyCommandList::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
 
             return resource;
@@ -155,7 +155,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::ComputeCommandList::Create(name);
+            auto resource = GAPI::ComputeCommandList::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
 
             return resource;
@@ -165,7 +165,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::GraphicsCommandList::Create(name);
+            auto resource = GAPI::GraphicsCommandList::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandList(*resource.get());
 
             return resource;
@@ -175,7 +175,7 @@ namespace RR
         {
             ASSERT(inited_)
 
-            auto& resource = GAPI::CommandQueue::Create(type, name);
+            auto resource = GAPI::CommandQueue::Create(type, name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandQueue(*resource.get());
 
             return resource;
@@ -185,7 +185,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Framebuffer::Create(desc);
+            auto resource = GAPI::Framebuffer::Create(desc);
             submission_->GetIMultiThreadDevice().lock()->InitFramebuffer(*resource.get());
 
             return resource;
@@ -195,7 +195,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Fence::Create(name);
+            auto resource = GAPI::Fence::Create(name);
             submission_->GetIMultiThreadDevice().lock()->InitFence(*resource.get());
 
             return resource;
@@ -214,7 +214,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Buffer::Create(desc, initialData, name);
+            auto resource = GAPI::Buffer::Create(desc, initialData, name);
             submission_->GetIMultiThreadDevice().lock()->InitBuffer(resource);
 
             return resource;
@@ -227,7 +227,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::Texture::Create(desc, initialData, name);
+            auto resource = GAPI::Texture::Create(desc, initialData, name);
             submission_->GetIMultiThreadDevice().lock()->InitTexture(resource);
 
             return resource;
@@ -245,7 +245,7 @@ namespace RR
             ASSERT(desc.usage == GAPI::GpuResourceUsage::Default);
             ASSERT(desc.GetNumSubresources() == 1);
 
-            auto& resource = GAPI::Texture::Create(desc, nullptr, name);
+            auto resource = GAPI::Texture::Create(desc, nullptr, name);
             swapchain->InitBackBufferTexture(backBufferIndex, resource);
 
             return resource;
@@ -257,7 +257,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::ShaderResourceView::Create(gpuResource, desc);
+            auto resource = GAPI::ShaderResourceView::Create(gpuResource, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -269,7 +269,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::DepthStencilView::Create(texture, desc);
+            auto resource = GAPI::DepthStencilView::Create(texture, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -281,7 +281,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::RenderTargetView::Create(texture, desc);
+            auto resource = GAPI::RenderTargetView::Create(texture, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -293,7 +293,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::UnorderedAccessView::Create(gpuResource, desc);
+            auto resource = GAPI::UnorderedAccessView::Create(gpuResource, desc);
             submission_->GetIMultiThreadDevice().lock()->InitGpuResourceView(*resource.get());
 
             return resource;
@@ -303,7 +303,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            auto& resource = GAPI::SwapChain::Create(description, name);
+            auto resource = GAPI::SwapChain::Create(description, name);
             submission_->GetIMultiThreadDevice().lock()->InitSwapChain(*resource.get());
 
             return resource;

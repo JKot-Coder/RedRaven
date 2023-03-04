@@ -23,8 +23,12 @@ set( DEBUG_SRC
 )
 source_group( "Debug" FILES ${DEBUG_SRC} )
 
+set(IO_SRC)
+add_subdirectory(io) # IO_SRC
+
 set( COMMON_SRC
     Check.cpp
+    ComPtr.hpp
     Config.hpp
     DataBuffer.hpp
     EnumClassOperators.hpp
@@ -42,6 +46,8 @@ set( COMMON_SRC
     pch.hpp
     RingBuffer.hpp
     RingQueue.hpp
+    Result.hpp
+    Result.cpp
     Singleton.hpp
     Stream.hpp
     String.hpp
@@ -55,6 +61,7 @@ set( COMMON_SRC
     ${COMMON_SRC}
     ${THREADING_SRC}
     ${DEBUG_SRC}
+    ${IO_SRC}
 )
         
 add_library(${PROJECT_NAME} ${COMMON_SRC})

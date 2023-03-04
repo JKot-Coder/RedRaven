@@ -64,7 +64,7 @@ namespace RR
                 const_iterator tokenReaderCursor;
             };
 
-            ParsingCursor getCursor()
+            ParsingCursor GetCursor()
             {
                 ParsingCursor rs;
                 rs.nextToken = nextToken_;
@@ -88,6 +88,8 @@ namespace RR
             bool IsAtEnd() const { return cursor_ == end_; }
             const Token& PeekToken() const { return nextToken_; }
             Token::Type PeekTokenType() const { return nextToken_.type; }
+            /// Peek the location of the next token in the input stream.
+            SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
 
         private:
             /// Update the lookahead token in `nextToken_` to reflect the cursor state
@@ -112,7 +114,7 @@ namespace RR
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
         public:
-            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<Common::LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
             ~Lexer();
 
             std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
@@ -170,7 +172,7 @@ namespace RR
             void lexStringLiteralBody(U8Glyph quote);
 
         private:
-            std::shared_ptr<LinearAllocator> allocator_;
+            std::shared_ptr<Common::LinearAllocator> allocator_;
             std::shared_ptr<SourceView> sourceView_;
             std::shared_ptr<DiagnosticSink> sink_;
 

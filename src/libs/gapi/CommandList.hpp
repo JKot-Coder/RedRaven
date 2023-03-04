@@ -8,6 +8,8 @@
 
 namespace RR
 {
+    using namespace Common;
+
     namespace Common
     {
         template <size_t Len, typename T>

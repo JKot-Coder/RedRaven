@@ -64,7 +64,7 @@ namespace RR
                 if (gpuVal < syncVal)
                 {
                     D3DCall(D3DFence_->SetEventOnCompletion(syncVal, event_));
-                    D3DCall(WaitForSingleObject(event_, timeout));
+                    D3DCall(WaitForSingleObject(event_, timeout == INFINITY_WAIT ? INFINITY : timeout));
                 }
             }
 

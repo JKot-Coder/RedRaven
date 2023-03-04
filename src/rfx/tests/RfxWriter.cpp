@@ -2,6 +2,8 @@
 
 #include "command.h"
 
+#include "common/Result.hpp"
+
 namespace RR::Rfx
 {
     namespace Tests
@@ -20,7 +22,7 @@ namespace RR::Rfx
                 return "";
             }
 
-            void writeOutput(std::ofstream& ofs, const std::string& outputName, const std::string& indent, const ComPtr<IBlob>& output)
+            void writeOutput(std::ofstream& ofs, const std::string& outputName, const std::string& indent, const Common::ComPtr<IBlob>& output)
             {
                 ASSERT(output);
 
@@ -53,11 +55,11 @@ namespace RR::Rfx
 
                 for (size_t j = 0; j < compileResult->GetOutputsCount(); j++)
                 {
-                    ComPtr<IBlob> output;
+                    Common::ComPtr<IBlob> output;
                     Rfx::CompileOutputType outputType;
 
                     auto result = compileResult->GetOutput(j, outputType, output.put());
-                    if (RFX_SUCCEEDED(result))
+                    if (RR_SUCCEEDED(result))
                         writeOutput(ofs, getOutputName(outputType), intent, output);
                 }
 

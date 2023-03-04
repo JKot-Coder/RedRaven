@@ -87,7 +87,5 @@ PUNCTUATION(PoundPound, "##")
 
 PUNCTUATION(Scope, "::")
 
-#undef PUNCTUATION
-
-// Un-define the `TOKEN` macro so that client doesn't have to
 #undef TOKEN
+#undef PUNCTUATION

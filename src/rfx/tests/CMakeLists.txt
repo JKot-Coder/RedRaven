@@ -23,10 +23,64 @@ set(RFX_TESTS_COMPILE_SRC
     "command_line/help.rfx")
 source_group( "commandLine" FILES ${RFX_TESTS_COMPILE_SRC} )
 
+set(RFX_TESTS_PREPROCESSOR_SRC
+    "preprocessor/_SpecialMacroComplex.rfx"
+    "preprocessor/bugs/Bug.rfx"
+    "preprocessor/CommandLineDefines.rfx"
+    "preprocessor/ConditionalDiagnostics.rfx"
+    "preprocessor/DefineFunctionLike.rfx"
+    "preprocessor/DefineRedefine.rfx"
+    "preprocessor/DefineSimple.rfx"
+    "preprocessor/DirectiveWhitespaces.rfx"
+    "preprocessor/Error.rfx"
+    "preprocessor/EscapedNewlines.rfx"
+    "preprocessor/file-indentity/b.hrfx"
+    "preprocessor/file-indentity/c.hrfx"
+    "preprocessor/file-indentity/sub-folder/FileIdentity.rfx"
+    "preprocessor/If.rfx"
+    "preprocessor/Ifdef.rfx"
+    "preprocessor/IfIgnore.rfx"
+    "preprocessor/IfMacroTokenPaste.rfx"
+    "preprocessor/Include.rfx"
+    "preprocessor/include/PragmaOnce-c.hrfx"
+    "preprocessor/include/SpecialMacroInclude.hrfx"
+    "preprocessor/Include-a.hrfx"
+    "preprocessor/IncludeMultiple.rfx"
+    "preprocessor/macros/MacroParensFromExpansion.rfx"
+    "preprocessor/macros/VariadicMacro.rfx"
+    "preprocessor/PasteNonExpansion.rfx"
+    "preprocessor/PoundPound_1.rfx"
+    "preprocessor/PoundPound_2.rfx"
+    "preprocessor/PragmaOnce.rfx"
+    "preprocessor/PragmaOnce-a.hrfx"
+    "preprocessor/PragmaOnce-b.hrfx"
+    "preprocessor/PreprocConcat_1.rfx"
+    "preprocessor/PreprocConcat_2.rfx"
+    "preprocessor/PreprocConcat_3.rfx"
+    "preprocessor/PreprocConcat_4.rfx"
+    "preprocessor/PreprocDetail_1.rfx"
+    "preprocessor/PreprocDetail_2.rfx"
+    "preprocessor/PreprocDetail_3.rfx"
+    "preprocessor/Preprocessor.cpp"
+    "preprocessor/PreprocStringify.rfx"
+    "preprocessor/RecursiveMacro.rfx"
+    "preprocessor/RepeatedMacroExpansion.rfx"
+    "preprocessor/SpecialMacroInclude.rfx"
+    "preprocessor/SpecialMacroMultiLine.rfx"
+    "preprocessor/SpecialMacroRedefineFunction.rfx"
+    "preprocessor/SpecialMacroRedefineObject.rfx"
+    "preprocessor/SpecialMacroSimple.rfx"
+    "preprocessor/Undef.rfx"
+    "preprocessor/Warning.rfx"
+    "preprocessor/X-macro.rfx"
+    )
+source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
+
 set(SRC
     ${RFX_TESTS_SRC}
     ${RFX_TESTS_LEXER_SRC}
-    ${RFX_TESTS_COMPILE_SRC})
+    ${RFX_TESTS_COMPILE_SRC}
+    ${RFX_TESTS_PREPROCESSOR_SRC})
 
 set(RFX_TESTS_LINK_LIBRARIES
     common

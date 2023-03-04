@@ -1,5 +1,7 @@
 #include "FileSystem.hpp"
 
+#include "common/Result.hpp"
+
 namespace RR
 {
     namespace Rfx

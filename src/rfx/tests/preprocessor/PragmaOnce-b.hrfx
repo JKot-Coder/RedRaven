@@ -1,0 +1,5 @@
+// PragmaOnce-b.hrfx
+
+// Used by the `PragmaOnce.rfx` test
+
+#define BAR foo

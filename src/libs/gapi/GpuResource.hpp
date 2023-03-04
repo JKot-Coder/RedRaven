@@ -14,6 +14,8 @@
 
 namespace RR
 {
+    using namespace Common;
+    
     namespace GAPI
     {
         enum class GpuResourceBindFlags : uint32_t

@@ -6,6 +6,8 @@
 
 namespace RR::Platform
 {
+    using namespace RR::Common;
+    
     struct Cursor;
 
     namespace Input

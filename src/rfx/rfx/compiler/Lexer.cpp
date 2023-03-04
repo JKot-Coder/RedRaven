@@ -9,29 +9,13 @@
 
 namespace RR
 {
-    namespace Common
-    {
-        class LinearAllocator;
-    }
-
     namespace Rfx
     {
         namespace
         {
-            inline bool isWhiteSpace(U8Glyph ch)
-            {
-                return (ch == ' ' || ch == '\t');
-            }
-
-            inline bool isNewLineChar(U8Glyph ch)
-            {
-                return (ch == '\n' || ch == '\r');
-            }
-
-            inline bool isEOF(U8Glyph ch)
-            {
-                return ch == Lexer::kEOF;
-            }
+            inline bool isWhiteSpace(U8Glyph ch) { return (ch == ' ' || ch == '\t'); }
+            inline bool isNewLineChar(U8Glyph ch) { return (ch == '\n' || ch == '\r'); }
+            inline bool isEOF(U8Glyph ch) { return ch == Lexer::kEOF; }
 
             bool isNumberExponent(U8Glyph ch, uint32_t base)
             {
@@ -97,7 +81,7 @@ namespace RR
             {
                 ASSERT(lexer);
 
-                if (IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
+                if (Common::IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
                     return;
 
                 lexer->GetDiagnosticSink()->Diagnose(location, humaneSourceLocation, info, args...);
@@ -136,7 +120,7 @@ namespace RR
         }
 
         Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView,
-                     const std::shared_ptr<LinearAllocator>& linearAllocator,
+                     const std::shared_ptr<Common::LinearAllocator>& linearAllocator,
                      const std::shared_ptr<DiagnosticSink>& diagnosticSink)
             : allocator_(linearAllocator),
               sourceView_(sourceView),
@@ -180,7 +164,7 @@ namespace RR
             auto tokenFlags = tokenflags_;
             auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
 
-            if (IsSet(tokenflags_, Token::Flags::EscapedNewLines))
+            if (Common::IsSet(tokenflags_, Token::Flags::EscapedNewLines))
             {
                 // Reset flag
                 tokenflags_ &= ~Token::Flags::EscapedNewLines;
@@ -262,9 +246,8 @@ namespace RR
 
             switch (peek())
             {
-                default:
-                    break;
-
+                default: break;
+               
                 case '\r':
                 case '\n':
                 {

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16.0)
+cmake_minimum_required (VERSION 3.24.0)
 
 project(RedRaven VERSION 0.0.3 LANGUAGES CXX)
 
@@ -14,7 +14,14 @@ include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+# ms-extensions
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
+  add_compile_options(-fms-extensions)
+  add_compile_options(-Wno-language-extension-token)
+endif()
+
 # Force MSVC to enable c++17 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/Zc:__cplusplus>")
 
@@ -98,6 +105,30 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Glfw)
 
+#============================= DirectX-Headers ===============================#
+if(NOT WIN32)
+  FetchContent_Declare(
+    directx-headers
+    GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers
+    GIT_TAG        v1.606.4
+    OVERRIDE_FIND_PACKAGE
+  )
+  set(DXHEADERS_INSTALL ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(directx-headers)
+endif ()
+
+#=============================== DirectXMath =================================#
+if(NOT WIN32)
+  FetchContent_Declare(
+    directxmath
+    GIT_REPOSITORY https://github.com/microsoft/DirectXMath
+    GIT_TAG        may2022
+    OVERRIDE_FIND_PACKAGE
+  )
+  FetchContent_MakeAvailable(directxmath)
+  add_library(Microsoft::DirectXMath ALIAS DirectXMath)
+endif ()
+
 #================================ DirectXTex =================================#
 FetchContent_Declare(
   DirectXTex
@@ -106,7 +137,42 @@ FetchContent_Declare(
 )
 set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
+set(BUILD_DX12 OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(DirectXTex)
+
+#================================== cxxopts ==================================#
+FetchContent_Declare(
+        cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG        v3.0.0
+        GIT_SHALLOW    TRUE
+)
+set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_ENABLE_WARNINGS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(cxxopts)
+
+#================================== cxxopts ==================================#
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
+  GIT_TAG        yaml-cpp-0.7.0
+)
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(yaml-cpp)
+
+#================================== stduuid ==================================#
+FetchContent_Declare(
+  stduuid
+  GIT_REPOSITORY https://github.com/mariusbancila/stduuid
+  GIT_TAG        v1.2.2
+)
+set(UUID_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(stduuid)
+
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
@@ -118,17 +184,7 @@ set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui PROPERTY FOLDER "Dependencies")
 set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
+set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
+set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi)
-if (WIN32)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/gapi_dx12)
-endif()
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/render)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/common)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/platform)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/libs/inputting)
-
-add_subdirectory(src/demo)
-add_subdirectory(src/editor)
-add_subdirectory(src/tests)
-add_subdirectory(src/rfx)
+add_subdirectory(src)

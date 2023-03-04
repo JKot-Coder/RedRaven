@@ -12,7 +12,6 @@ namespace RR
 
     namespace Rfx
     {
-        enum class RfxResult : int32_t;
         struct PathInfo;
         class IRfxFileSystem;
         class SourceFile;
