@@ -2,6 +2,7 @@
 
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
 
 // TODO temporary
@@ -9,13 +10,13 @@
 
 namespace RR::GAPI
 {
-    struct FramebufferDescription
+    struct FramebufferDesc
     {
     private:
         class Builder;
 
     public:
-        static constexpr uint32_t MaxRenderTargets = 8;
+        static constexpr uint32_t MaxRenderTargets = MAX_RENDER_TARGETS_COUNT;
 
         static Builder Make();
 
@@ -36,7 +37,7 @@ namespace RR::GAPI
         DepthStencilView::SharedPtr depthStencilView;
     };
 
-    class FramebufferDescription::Builder
+    class FramebufferDesc::Builder
     {
     public:
         Builder& BindColorTarget(uint32_t index, const RenderTargetView::SharedPtr rtv)
@@ -65,7 +66,7 @@ namespace RR::GAPI
             return *this;
         }
 
-        operator FramebufferDescription&&()
+        operator FramebufferDesc&&()
         {
             return std::move(desc_);
         }
@@ -108,10 +109,10 @@ namespace RR::GAPI
         }
 
     private:
-        FramebufferDescription desc_ = {};
+        FramebufferDesc desc_ = {};
     };
 
-    inline FramebufferDescription::Builder FramebufferDescription::Make()
+    inline FramebufferDesc::Builder FramebufferDesc::Make()
     {
         return Builder();
     }
@@ -127,17 +128,17 @@ namespace RR::GAPI
     public:
         using SharedPtr = std::shared_ptr<Framebuffer>;
 
-        static constexpr uint32_t MaxRenderTargets = FramebufferDescription::MaxRenderTargets;
+        static constexpr uint32_t MaxRenderTargets = FramebufferDesc::MaxRenderTargets;
 
-        const FramebufferDescription& GetDescription() const { return description_; }
+        const FramebufferDesc& GetDescription() const { return description_; }
 
     private:
-        static SharedPtr Create(const FramebufferDescription& description)
+        static SharedPtr Create(const FramebufferDesc& description)
         {
             return SharedPtr(new Framebuffer(description));
         }
 
-        Framebuffer(const FramebufferDescription& description)
+        Framebuffer(const FramebufferDesc& description)
             : Resource(Object::Type::Framebuffer),
               description_(description)
         {
@@ -151,7 +152,7 @@ namespace RR::GAPI
         }
 
     private:
-        FramebufferDescription description_;
+        FramebufferDesc description_;
 
         // Resouce ownership prevents deleting resource while framebuffer alive.
         std::array<GpuResource::SharedPtr, MaxRenderTargets> renderTargetResources_;

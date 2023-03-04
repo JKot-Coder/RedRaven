@@ -2,16 +2,14 @@
 
 namespace RR
 {
-    namespace GAPI
+    namespace GAPI::DX12
     {
-        namespace DX12
+        namespace D3DUtils
         {
-            namespace D3DUtils
-            {
-                DXGI_FORMAT GetDxgiResourceFormat(GpuResourceFormat format);
-                DXGI_FORMAT GetDxgiTypelessFormat(GpuResourceFormat format);
-                DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format);
-            }
+            DXGI_SAMPLE_DESC GetSampleDesc(MultisampleType multisampleType);
+            DXGI_FORMAT GetDxgiResourceFormat(GpuResourceFormat format);
+            DXGI_FORMAT GetDxgiTypelessFormat(GpuResourceFormat format);
+            DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format);
         }
     }
 }

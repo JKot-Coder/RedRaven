@@ -4,20 +4,18 @@
 
 namespace RR
 {
-    namespace GAPI
+    namespace GAPI::DX12
     {
-        namespace DX12
+        namespace D3DUtils
         {
-            namespace D3DUtils
+            struct GpuResourceFormatConversion
             {
-                struct GpuResourceFormatConversion
-                {
-                    GpuResourceFormat from;
-                    DXGI_FORMAT to;
-                    DXGI_FORMAT typeless;
-                };
+                GpuResourceFormat from;
+                DXGI_FORMAT to;
+                DXGI_FORMAT typeless;
+            };
 
-                // clang-format off
+            // clang-format off
                 static GpuResourceFormatConversion formatsConversion[] = {
                     { GpuResourceFormat::Unknown,           DXGI_FORMAT_UNKNOWN,                    DXGI_FORMAT_UNKNOWN },
                     { GpuResourceFormat::RGBA32Float,       DXGI_FORMAT_R32G32B32A32_FLOAT,         DXGI_FORMAT_R32G32B32A32_TYPELESS },
@@ -111,42 +109,48 @@ namespace RR
                     { GpuResourceFormat::R5G6B5Unorm,       DXGI_FORMAT_B5G6R5_UNORM,               DXGI_FORMAT_UNKNOWN },
                 }; // clang-format on
 
-                static_assert(std::is_same<std::underlying_type<GpuResourceFormat>::type, uint32_t>::value);
-                static_assert(std::size(formatsConversion) == static_cast<uint32_t>(GpuResourceFormat::Count));
+            static_assert(std::is_same<std::underlying_type<GpuResourceFormat>::type, uint32_t>::value);
+            static_assert(std::size(formatsConversion) == static_cast<uint32_t>(GpuResourceFormat::Count));
 
-                DXGI_FORMAT GetDxgiResourceFormat(GpuResourceFormat format)
+            DXGI_SAMPLE_DESC GetSampleDesc(MultisampleType multisampleType)
+            {
+                switch (multisampleType)
                 {
-                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
-                    ASSERT(format == GpuResourceFormat::Unknown ||
-                           formatsConversion[static_cast<uint32_t>(format)].to != DXGI_FORMAT_UNKNOWN);
-
-                    return formatsConversion[static_cast<uint32_t>(format)].to;
+                    case MultisampleType::None: return { 1, 0 };
+                    case MultisampleType::MSAA_2: return { 2, 0 };
+                    default: ASSERT_MSG(false, "Unknown multisample type"); return { 0, 0 };
                 }
+            }
 
-                DXGI_FORMAT GetDxgiTypelessFormat(GpuResourceFormat format)
+            DXGI_FORMAT GetDxgiResourceFormat(GpuResourceFormat format)
+            {
+                ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
+                ASSERT(format == GpuResourceFormat::Unknown ||
+                       formatsConversion[static_cast<uint32_t>(format)].to != DXGI_FORMAT_UNKNOWN);
+
+                return formatsConversion[static_cast<uint32_t>(format)].to;
+            }
+
+            DXGI_FORMAT GetDxgiTypelessFormat(GpuResourceFormat format)
+            {
+                ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
+                ASSERT(format == GpuResourceFormat::Unknown ||
+                       formatsConversion[static_cast<uint32_t>(format)].typeless != DXGI_FORMAT_UNKNOWN);
+
+                return formatsConversion[static_cast<uint32_t>(format)].typeless;
+            }
+
+            DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format)
+            {
+                switch (format)
                 {
-                    ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
-                    ASSERT(format == GpuResourceFormat::Unknown ||
-                           formatsConversion[static_cast<uint32_t>(format)].typeless != DXGI_FORMAT_UNKNOWN);
-
-                    return formatsConversion[static_cast<uint32_t>(format)].typeless;
-                }
-
-                DXGI_FORMAT SRGBToLinear(DXGI_FORMAT format)
-                {
-                    switch (format)
-                    {
-                        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-                            return DXGI_FORMAT_R8G8B8A8_UNORM;
-                        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                            return DXGI_FORMAT_B8G8R8A8_UNORM;
-                        case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                            return DXGI_FORMAT_B8G8R8X8_UNORM;
-                        default:
-                            return format;
-                    }
+                    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return DXGI_FORMAT_R8G8B8A8_UNORM;
+                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return DXGI_FORMAT_B8G8R8A8_UNORM;
+                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB: return DXGI_FORMAT_B8G8R8X8_UNORM;
+                    default: return format;
                 }
             }
         }
+
     }
 }

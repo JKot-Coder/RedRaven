@@ -11,7 +11,7 @@ namespace RR
         class Buffer;
 
         class Framebuffer;
-        struct FramebufferDescription;
+        struct FramebufferDesc;
 
         class SwapChain;
         struct SwapChainDescription;

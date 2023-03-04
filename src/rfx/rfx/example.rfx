@@ -1,0 +1,61 @@
+#include "GlobalDefines.h"
+
+selection bool isForestPass = false : [true, false];
+
+tehnique Blabla
+{	
+	pass ?????????
+	{
+		RenderState RenderState : RS_Z_TEST_DISABLE = 
+		{
+			FillMode = Solid;
+			CullMode = Front;			
+			AntialiasedLineEnable = false;
+			ConservativeRasterizationEnable = true;
+			SlopeScaledDepthBias  = 0.0f;
+			DepthBias = 1;
+
+			RenderTarget[0] = 
+			{
+				Format = RGB8;	
+				BlendEnable = true;
+				SrcBlend = srcAlpha;
+				DestBlend = INV_SRC_ALPHA;
+				BlendOp = ADD;
+
+				SrcBlendAlpha = ZERO;
+				DestBlendAlpha = INV_SRC_ALPHA;
+				BlendOpAlpha = ADD;
+
+				WriteMask = isForestPass? All : Red | Alpha;
+			}
+
+		    DepthAccess = Read;
+            DepthFunc = LessEqual;
+			
+			StencilEnable = True;
+			StencilRef = 0xFF;
+			StencilReadMask  = 0xFF;
+			StencilWriteMask = 0xFF;
+
+			StencilFront =
+			{
+				Func = Always;
+				FailOp = Replace;
+				DepthFailOp = Keep;
+				DepthStencilPassOp = Invert;
+			}
+
+			StencilBack =
+			{
+				Func = Always;
+				FailOp = Replace;
+				DepthFailOp = Keep;
+				DepthStencilPassOp = Invert;
+			}
+
+   			MultisampleEnable = ? true
+			ForcedSampleCount = 3;
+		} 
+	}
+}

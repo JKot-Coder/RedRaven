@@ -42,7 +42,7 @@ namespace RR
             std::shared_ptr<GAPI::CopyCommandList> CreateCopyCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::Fence> CreateFence(const U8String& name = "") const;
-            std::shared_ptr<GAPI::Framebuffer> CreateFramebuffer(const GAPI::FramebufferDescription& desc) const;
+            std::shared_ptr<GAPI::Framebuffer> CreateFramebuffer(const GAPI::FramebufferDesc& desc) const;
             std::shared_ptr<GAPI::GraphicsCommandList> CreateGraphicsCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;

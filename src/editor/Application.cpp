@@ -133,7 +133,7 @@ namespace RR
                 pBackBuffer = std::any_cast<ID3D12Resource*>(g_pSwapChain->GetBackBufferTexture(i)->GetRawHandle());
                 g_mainRenderTargetResource[i] = pBackBuffer;
 
-                GAPI::FramebufferDescription desc = GAPI::FramebufferDescription::Make().BindColorTarget(0, g_pSwapChain->GetBackBufferTexture(i)->GetRTV());
+                GAPI::FramebufferDesc desc = GAPI::FramebufferDesc::Make().BindColorTarget(0, g_pSwapChain->GetBackBufferTexture(i)->GetRTV());
                 g_frameBuffers[i] = deviceContext.CreateFramebuffer(desc);
             }
         }

@@ -7,7 +7,7 @@ namespace RR::GAPI::DX12
 {
     FramebufferImpl::~FramebufferImpl() { }
 
-    void FramebufferImpl::Init(const FramebufferDescription& description)
+    void FramebufferImpl::Init(const FramebufferDesc& description)
     {
         ASSERT(!inited_);
 

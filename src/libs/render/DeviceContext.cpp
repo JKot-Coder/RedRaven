@@ -181,7 +181,7 @@ namespace RR
             return resource;
         }
 
-        GAPI::Framebuffer::SharedPtr DeviceContext::CreateFramebuffer(const GAPI::FramebufferDescription& desc) const
+        GAPI::Framebuffer::SharedPtr DeviceContext::CreateFramebuffer(const GAPI::FramebufferDesc& desc) const
         {
             ASSERT(inited_);
 
