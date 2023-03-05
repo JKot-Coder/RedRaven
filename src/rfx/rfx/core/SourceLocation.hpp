@@ -29,6 +29,8 @@ interpretation for that lex/parse.
 
 #include "core/UnownedStringSlice.hpp"
 
+#include <sstream>
+
 namespace RR
 {
     namespace Rfx
@@ -146,6 +148,9 @@ namespace RR
 
             /// Get the content
             UnownedStringSlice GetContent() const { return UnownedStringSlice(content_.data(), content_.data() + contentSize_); }
+
+            /// Get the content stream
+            std::stringstream GetStream() const { return std::stringstream(content_); }
 
             /// Get path info
             const PathInfo& GetPathInfo() const { return pathInfo_; }
