@@ -39,6 +39,10 @@ set(RFX_COMPILER_SRC
     "compiler/DxcPreprocessor.hpp"
     "compiler/Preprocessor.cpp"
     "compiler/Preprocessor.hpp"
+    "compiler/Parser.cpp"
+    "compiler/Parser.hpp"
+    "compiler/EffectParser.cpp"
+    "compiler/EffectParser.hpp"
     "compiler/LinePreprocessor.cpp"
     "compiler/LinePreprocessor.hpp"
     "compiler/Signal.cpp"
@@ -57,7 +61,7 @@ set(RFX_SRC
 add_subdirectory(dxc)
 
 set(RFX_LINK_LIBRARIES
-    common dxclib)
+    common dxclib yaml-cpp)
 
 #================================== Target ===================================#
 

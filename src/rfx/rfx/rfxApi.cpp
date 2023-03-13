@@ -1,8 +1,8 @@
 #include "include/rfx.hpp"
 
 #include "compiler/DiagnosticSink.hpp"
-#include "compiler/Lexer.hpp"
 #include "compiler/DxcPreprocessor.hpp"
+#include "compiler/Lexer.hpp"
 
 #include "core/Blob.hpp"
 #include "core/CStringAllocator.hpp"
@@ -29,6 +29,8 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+
+#include "compiler/EffectParser.hpp"
 
 #include "dxcapi.use.h"
 // #include <winrt/base.h>
@@ -369,6 +371,12 @@ namespace RR::Rfx
                         compilerResult->PushOutput(CompileOutputType::Assembly, output);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
                     }
+
+                    EffectParser parser;
+
+                    if (RR_FAILED(rfxResult = parser.Parse(compileRequest.inputFile)))
+                        return rfxResult;
+
                     /*
                         DxcBuffer source;
                     source.Ptr = sourceFile->GetContent().Begin();
