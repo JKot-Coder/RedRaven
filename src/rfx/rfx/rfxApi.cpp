@@ -208,8 +208,8 @@ namespace RR::Rfx
     class ComplileResult : public ICompileResult, RefObject
     {
     public:
-        uint32_t addRef() override { return addReference(); }
-        uint32_t release() override { return releaseReference(); }
+        uint32_t AddRef() override { return addReference(); }
+        uint32_t Release() override { return releaseReference(); }
 
         void PushOutput(CompileOutputType type, const ComPtr<IBlob>& blob)
         {
@@ -257,8 +257,8 @@ namespace RR::Rfx
             dxcDll.Cleanup();
         }
 
-        uint32_t addRef() override { return addReference(); }
-        uint32_t release() override { return releaseReference(); }
+        uint32_t AddRef() override { return addReference(); }
+        uint32_t Release() override { return releaseReference(); }
 
         RfxResult Compile(const CompileRequestDescription& compileRequest, ICompileResult** result) override;
 
@@ -301,12 +301,12 @@ namespace RR::Rfx
         if (compileRequest.defineCount > 0 && !compileRequest.defines)
             return RfxResult::InvalidArgument;
 
-        CComPtr<IDxcCompiler3> dxcCompiler;
-        if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, &dxcCompiler)))
+        ComPtr<IDxcCompiler3> dxcCompiler;
+        if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, dxcCompiler.put())))
             return RfxResult::InternalFail;
 
-        CComPtr<IDxcUtils> dxcUtils;
-        if (FAILED(dxcDll.CreateInstance(CLSID_DxcUtils, &dxcUtils)))
+        ComPtr<IDxcUtils> dxcUtils;
+        if (FAILED(dxcDll.CreateInstance(CLSID_DxcUtils, dxcUtils.put())))
             return RfxResult::InternalFail;
 
         try
@@ -327,7 +327,7 @@ namespace RR::Rfx
 
             // auto bufferWriter = std::make_shared<BufferWriter>();
             //  diagnosticSink->AddWriter(bufferWriter);
-            CComPtr<IDxcResult> dxcResult;
+            ComPtr<IDxcResult> dxcResult;
 
             switch (compileRequest.outputStage)
             {
@@ -538,7 +538,7 @@ namespace RR::Rfx
         if (!*compiler)
             return RfxResult::NoInterface;
 
-        (*compiler)->addRef();
+        (*compiler)->AddRef();
         return RfxResult::Ok;
     }
 

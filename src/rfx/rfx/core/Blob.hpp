@@ -23,8 +23,8 @@ namespace RR::Rfx
             std::copy(static_cast<const char*>(data), static_cast<const char*>(data) + size, std::back_inserter(buffer_));
         }
 
-        uint32_t addRef() override { return addReference(); }
-        uint32_t release() override { return releaseReference(); }
+        uint32_t AddRef() override { return addReference(); }
+        uint32_t Release() override { return releaseReference(); }
 
         const void* GetBufferPointer() const override { return static_cast<const void*>(buffer_.data()); }
         size_t GetBufferSize() const override { return buffer_.size(); }
