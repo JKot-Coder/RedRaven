@@ -3,453 +3,323 @@
 #include "compiler/AST.hpp"
 #include "compiler/ASTBuilder.hpp"
 #include "compiler/DiagnosticCore.hpp"
+#include "compiler/JSONBuilder.hpp"
 #include "compiler/Lexer.hpp"
 
 #include "common/OnScopeExit.hpp"
+#include "common/Result.hpp"
 
 namespace RR::Rfx
 {
-    struct DeclBase
+    using RResult = Common::RResult;
+
+    namespace
     {
-    };
+        UnownedStringSlice unquotingToken(const Token& token)
+        {
+            if (token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral)
+                return UnownedStringSlice(token.stringSlice.Begin() + 1, token.stringSlice.End() - 1);
 
-    struct SyntaxDecl : DeclBase
+            return token.stringSlice;
+        }
+    }
+
+    /// An token reader that reads tokens directly using the `Lexer`
+    struct LexerReader
     {
-    };
+    public:
+        LexerReader() = delete;
 
-    struct Decl : DeclBase
-    {
-        /* data */
-    };
+        LexerReader(const std::shared_ptr<SourceView>& sourceView,
+                    const std::shared_ptr<Common::LinearAllocator>& linearAllocator,
+                    const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+        {
+            lexer_ = std::make_unique<Lexer>(sourceView, linearAllocator, diagnosticSink);
+            lookaheadToken_ = readTokenImpl();
+        }
 
-    enum class MatchedTokenType : uint32_t
-    {
-        Parentheses,
-        SquareBrackets,
-        CurlyBraces,
-        File,
-    };
+        Lexer& GetLexer() const { return *lexer_; }
 
-    /// Information on how to parse certain pairs of matches tokens
-    struct MatchedTokenInfo
-    {
-        /// The token type that opens the pair
-        Token::Type openTokenType;
+        // A common thread to many of the input stream implementations is to
+        // use a single token of lookahead in order to suppor the `peekToken()`
+        // operation with both simplicity and efficiency.
+        Token ReadToken()
+        {
+            auto result = lookaheadToken_;
+            lookaheadToken_ = readTokenImpl();
+            return result;
+        }
 
-        /// The token type that closes the pair
-        Token::Type closeTokenType;
+        Token PeekToken() const { return lookaheadToken_; }
+        Token::Type PeekTokenType() const { return lookaheadToken_.type; }
 
-        /// A list of token types that should lead the parser
-        /// to abandon its search for a matchign closing token
-        /// (terminated by `Token::Type::EndOfFile`).
-        const Token::Type* bailAtCloseTokens;
-    };
+    private:
+        /// Read a token from the lexer, bypassing lookahead
+        Token readTokenImpl()
+        {
+            for (;;)
+            {
+                Token token = lexer_->ReadToken();
+                switch (token.type)
+                {
+                    case Token::Type::WhiteSpace:
+                    case Token::Type::BlockComment:
+                    case Token::Type::LineComment:
+                    case Token::Type::InvalidCharacter:
+                        continue;
 
-    static const Token::Type BailAtEOF[] = { Token::Type::EndOfFile };
-    static const Token::Type BailAtCurlyBraceOrEOF[] = { Token::Type::RBrace, Token::Type::EndOfFile };
-    static const MatchedTokenInfo MatchedTokenInfos[] = {
-        { Token::Type::LParent, Token::Type::RParent, BailAtCurlyBraceOrEOF },
-        { Token::Type::LBracket, Token::Type::RBracket, BailAtCurlyBraceOrEOF },
-        { Token::Type::LBrace, Token::Type::RBrace, BailAtEOF },
-        { Token::Type::Unknown, Token::Type::EndOfFile, BailAtEOF },
+                    default: return Token(token);
+                }
+            }
+        }
+
+    private:
+        /// The lexer state that will provide input
+        std::unique_ptr<Lexer> lexer_;
+
+        /// One token of lookahead
+        Token lookaheadToken_;
     };
 
     class ParserImpl
     {
     public:
         ParserImpl() = delete;
-        ParserImpl(const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : sink_(diagnosticSink)
+        ParserImpl(const std::shared_ptr<SourceView>& sourceView,
+                   const std::shared_ptr<Common::LinearAllocator>& allocator,
+                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+            : sink_(diagnosticSink),
+              lexerReader_(sourceView, allocator, diagnosticSink),
+              builder_(diagnosticSink)
         {
             ASSERT(diagnosticSink);
         }
 
-        void Parse(const std::vector<Token>& tokens,
-                   const std::shared_ptr<ASTBuilder>& astBuilder);
+        RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
 
     private:
-        void pushScope();
-        void popScope();
+        Token peekToken() const { return lexerReader_.PeekToken(); }
+        Token::Type peekTokenType() const { return lexerReader_.PeekTokenType(); }
+        Token advance() { return lexerReader_.ReadToken(); }
 
-        bool lookAheadToken(Token::Type type) const;
+        void skipAllWhitespaces()
+        {
+            // All other whitespaces skipped by reader
+            while (peekTokenType() == Token::Type::NewLine)
+                advance();
+        }
 
-        Token peekToken() const;
-        Token::Type peekTokenType() const;
-        bool advanceIf(Token::Type tokenType, Token& outToken);
-        bool advanceIfMatch(MatchedTokenType matchedTokenType, Token& outToken);
+        bool advanceIf(std::initializer_list<Token::Type> tokens, Token& outToken);
+        bool inline advanceIf(Token::Type tokenType, Token& outToken) { return advanceIf({ tokenType }, outToken); }
+        bool inline advanceIf(Token::Type tokenType)
+        {
+            Token token;
+            return advanceIf(tokenType, token);
+        }
 
-        Token readToken(Token::Type expected, bool forceSkippingToClosingToken);
-        Token readToken(Token::Type expected) { return readToken(expected, false); };
+        RResult parseArray();
+        RResult parseDeclaration();
+        RResult parseObject(bool renameMe = false);
+        RResult parseValue();
+        RResult parseStringValue();
 
-        DeclBase* parseDecl();
-        DeclBase* parseDeclaratorDecl();
-        DeclBase* parseDeclWithModifiers();
-
-        template <typename T>
-        bool tryParseUsingSyntaxDecl(T*& outSyntax);
-
-        SyntaxDecl* tryLookUpSyntaxDecl(const U8String& name);
+        RResult expect(std::initializer_list<Token::Type> tokens, Token& outToken);
+        RResult expect(Token::Type expected, Token& outToken) { return expect({ expected }, outToken); };
+        RResult expect(Token::Type expected)
+        {
+            Token token;
+            return expect(expected, token);
+        };
 
     private:
         std::shared_ptr<DiagnosticSink> sink_;
-        Scope* currentScope_;
-        std::shared_ptr<ASTBuilder> astBuilder_;
-        TokenReader tokenReader_;
+        JSONBuilder builder_;
+        LexerReader lexerReader_;
     };
 
-    Token ParserImpl::peekToken() const
+    bool ParserImpl::advanceIf(std::initializer_list<Token::Type> tokens, Token& outToken)
     {
-        return tokenReader_.PeekToken();
-    }
+        const auto lookAheadTokenType = peekTokenType();
 
-    Token::Type ParserImpl::peekTokenType() const
-    {
-        return tokenReader_.PeekTokenType();
-    }
+        for (const auto& token : tokens)
+            if (lookAheadTokenType == token)
+            {
+                outToken = advance();
+                return true;
+            }
 
-    template <typename T>
-    bool ParserImpl::tryParseUsingSyntaxDecl(T*& outSyntax)
-    {
-        if (peekTokenType() != Token::Type::Identifier)
-            return false;
-
-        const auto nameToken = peekToken();
-        const auto name = nameToken.GetContentString();
-
-        auto syntaxDecl = tryLookUpSyntaxDecl(name);
-
-        if (!syntaxDecl)
-            return false;
-
-        return tryParseUsingSyntaxDecl(syntaxDecl, outSyntax);
-    }
-
-    SyntaxDecl* ParserImpl::tryLookUpSyntaxDecl(const U8String& name)
-    {
-        std::ignore = name;
-        // Let's look up the name and see what we find.
-        /* auto lookupResult = lookUp(
-            astBuilder_,
-            nullptr, // no semantics visitor available yet
-            name,
-            currentScope_);*/
-
-        // If we didn't find anything, or the result was overloaded,
-        // then we aren't going to be able to extract a single decl.
-        // if (!lookupResult.isValid() || lookupResult.isOverloaded())
-        return nullptr;
-        /*
-                auto decl = lookupResult.item.declRef.getDecl();
-                auto syntaxDecl = as<SyntaxDecl>(decl);
-
-                return syntaxDecl;*/
-    }
-
-    void ParserImpl::pushScope()
-    {
-        auto* newScope = astBuilder_->Create<Scope>();
-        newScope->parent = currentScope_;
-        currentScope_ = newScope;
-    }
-
-    void ParserImpl::popScope()
-    {
-        ASSERT(currentScope_);
-        currentScope_ = currentScope_->parent;
-    }
-
-    bool ParserImpl::lookAheadToken(Token::Type type) const
-    {
-        return peekTokenType() == type;
-    }
-
-    bool ParserImpl::advanceIf(Token::Type tokenType, Token& outToken)
-    {
-        if (lookAheadToken(tokenType))
-        {
-            outToken = tokenReader_.AdvanceToken();
-            return true;
-        }
         return false;
     }
 
-    DeclBase* ParserImpl::parseDecl(/*ContainerDecl*  containerDecl*/)
+    RResult ParserImpl::parseArray()
     {
-        // Modifiers modifiers = ParseModifiers(parser);
-        return parseDeclWithModifiers(/*containerDecl, modifiers*/);
-    }
+        RR_RETURN_ON_FAIL(expect(Token::Type::LBracket));
+        RR_RETURN_ON_FAIL(builder_.StartArray(peekToken()));
 
-    DeclBase* ParserImpl::parseDeclaratorDecl()
-    {
-        const auto startToken = peekToken();
-
-        // Parse a type name
-        auto typeName = readToken(TokenType::Identifier);
-
-        // We may need to build up multiple declarations in a group,
-        // but the common case will be when we have just a single
-        // declaration
-        DeclGroupBuilder declGroupBuilder;
-        declGroupBuilder.startToken = startToken;
-        declGroupBuilder.astBuilder = astBuilder_;
-
-        // The type specifier may include a declaration. E.g.,
-        // it might declare a `struct` type.
-        if (typeSpec.decl)
-            declGroupBuilder.addDecl(typeSpec.decl);
-
-        if (advanceIf(Token::Type::Semicolon))
+        while (true)
         {
-            // No actual variable is being declared here, but
-            // that might not be an error.
+            skipAllWhitespaces();
 
-            auto result = declGroupBuilder.getResult();
-            if (!result)
-                sink_->Diagnose(startToken, Diagnostics::declarationDidntDeclareAnything);
-            return result;
-        }
+            if (peekTokenType() == Token::Type::RBracket)
+                break;
 
-        // It is possible that we have a plain `struct`, `enum`,
-        // or similar declaration that isn't being used to declare
-        // any variable, and the user didn't put a trailing
-        // semicolon on it:
-        //
-        //      struct Batman
-        //      {
-        //          int cape;
-        //      }
-        //
-        // We want to allow this syntax (rather than give an
-        // inscrutable error), but also support the less common
-        // idiom where that declaration is used as part of
-        // a variable declaration:
-        //
-        //      struct Robin
-        //      {
-        //          float tights;
-        //      } boyWonder;
+            RR_RETURN_ON_FAIL(parseValue());
 
-        InitDeclarator initDeclarator = parseInitDeclarator(kDeclaratorParseOptions_None);
-
-        DeclaratorInfo declaratorInfo;
-        declaratorInfo.typeSpec = typeSpec.expr;
-
-        // Rather than parse function declarators properly for now,
-        // we'll just do a quick disambiguation here. This won't
-        // matter unless we actually decide to support function-type parameters,
-        // using C syntax.
-        //
-        if ((peekTokenType() == Token::Type::LParent ||
-             peekTokenType() == Token::Type::OpLess)
-
-            // Only parse as a function if we didn't already see mutually-exclusive
-            // constructs when parsing the declarator.
-            && !initDeclarator.initializer && !initDeclarator.semantics.first)
-        {
-            // Looks like a function, so parse it like one.
-            UnwrapDeclarator(parser->astBuilder, initDeclarator, &declaratorInfo);
-            return parseTraditionalFuncDecl(parser, declaratorInfo);
-        }
-
-        // Otherwise we are looking at a variable declaration, which could be one in a sequence...
-
-        if (AdvanceIf(parser, TokenType::Semicolon))
-        {
-            // easy case: we only had a single declaration!
-            UnwrapDeclarator(parser->astBuilder, initDeclarator, &declaratorInfo);
-            VarDeclBase* firstDecl = CreateVarDeclForContext(parser->astBuilder, containerDecl);
-            CompleteVarDecl(parser, firstDecl, declaratorInfo);
-
-            declGroupBuilder.addDecl(firstDecl);
-            return declGroupBuilder.getResult();
-        }
-
-        // Otherwise we have multiple declarations in a sequence, and these
-        // declarations need to somehow share both the type spec and modifiers.
-        //
-        // If there are any errors in the type specifier, we only want to hear
-        // about it once, so we need to share structure rather than just
-        // clone syntax.
-
-        auto sharedTypeSpec = astBuilder_->Create<SharedTypeExpr>();
-        sharedTypeSpec->loc = typeSpec.expr->loc;
-        sharedTypeSpec->base = TypeExp(typeSpec.expr);
-
-        for (;;)
-        {
-            declaratorInfo.typeSpec = sharedTypeSpec;
-            UnwrapDeclarator(astBuilder_, initDeclarator, &declaratorInfo);
-
-            VarDeclBase* varDecl = CreateVarDeclForContext(astBuilder_, containerDecl);
-            CompleteVarDecl(parser, varDecl, declaratorInfo);
-
-            declGroupBuilder.addDecl(varDecl);
-
-            // end of the sequence?
-            if (AdvanceIf(parser, TokenType::Semicolon))
-                return declGroupBuilder.getResult();
-
-            // ad-hoc recovery, to avoid infinite loops
-            if (parser->isRecovering)
+            if (peekTokenType() == Token::Type::Comma ||
+                peekTokenType() == Token::Type::NewLine)
             {
-                parser->ReadToken(TokenType::Semicolon);
-                return declGroupBuilder.getResult();
+                advance();
+                continue;
             }
 
-            // Let's default to assuming that a missing `,`
-            // indicates the end of a declaration,
-            // where a `;` would be expected, and not
-            // a continuation of this declaration, where
-            // a `,` would be expected (this is tailoring
-            // the diagnostic message a bit).
-            //
-            // TODO: a more advanced heuristic here might
-            // look at whether the next token is on the
-            // same line, to predict whether `,` or `;`
-            // would be more likely...
-
-            if (!advanceIf(Token::Type::Comma))
-            {
-                readToken(Token::Type::Semicolon);
-                return declGroupBuilder.getResult();
-            }
-
-            // expect another variable declaration...
-            initDeclarator = parseInitDeclarator(parser, kDeclaratorParseOptions_None);
+            break;
         }
+
+        RR_RETURN_ON_FAIL(expect(Token::Type::RBracket));
+        builder_.EndArray();
+
+        return RResult::Ok;
     }
 
-    DeclBase* ParserImpl::parseDeclWithModifiers()
+    RResult ParserImpl::parseDeclaration()
     {
-        DeclBase* decl = nullptr;
+        Token token;
+        RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, token));
+        RR_RETURN_ON_FAIL(builder_.AddKey(token));
 
-        //  const auto loc = tokenReader_.PeekLoc();
-
-        switch (peekTokenType())
+        if (peekTokenType() == Token::Type::OpLess)
         {
-            case Token::Type::Identifier:
-            {
-                // A declaration that starts with an identifier might be:
-                //
-                // - A keyword-based declaration (e.g., `cbuffer ...`)
-                // - The beginning of a type in a declarator-based declaration (e.g., `int ...`)
+            builder_.BeginInrehitance();
+            advance();
 
-                // First we will check whether we can use the identifier token
-                // as a declaration keyword and parse a declaration using
-                // its associated callback:
-                Decl* parsedDecl = nullptr;
-                if (tryParseUsingSyntaxDecl<Decl>(parsedDecl))
+            while (true)
+            {
+                RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, token));
+                RR_RETURN_ON_FAIL(builder_.AddParent(token));
+
+                if (peekTokenType() == Token::Type::Comma ||
+                    peekTokenType() == Token::Type::NewLine)
                 {
-                    decl = parsedDecl;
-                    break;
+                    advance();
+                    continue;
                 }
 
-                // Our final fallback case is to assume that the user is
-                // probably writing a C-style declarator-based declaration.
-                decl = parseDeclaratorDecl(/*containerDecl, modifiers*/);
                 break;
             }
+        }
 
-                // If nothing else matched, we try to parse an "ordinary" declarator-based declaration
-            default:
-                decl = parseDeclaratorDecl(/*containerDecl, modifiers*/);
+        return RResult::Ok;
+    }
+
+    RResult ParserImpl::parseObject(bool renameMe)
+    {
+        if (!renameMe)
+        {
+            RR_RETURN_ON_FAIL(expect(Token::Type::LBrace));
+            RR_RETURN_ON_FAIL(builder_.StartObject(peekToken()));
+        }
+
+        while (true)
+        {
+            skipAllWhitespaces();
+
+            if (peekTokenType() == Token::Type::RBrace ||
+                peekTokenType() == Token::Type::EndOfFile)
                 break;
-        }
 
-        return decl;
-    }
+            RR_RETURN_ON_FAIL(parseDeclaration());
+            RR_RETURN_ON_FAIL(expect(Token::Type::Colon));
 
-    bool ParserImpl::advanceIfMatch(MatchedTokenType matchedTokenType, Token& outToken)
-    {
-        // The behavior of the seatch for a match can depend on the
-        // type of matches tokens we are parsing.
-        const auto& matchedTokenInfo = MatchedTokenInfos[uint32_t(matchedTokenType)];
+            skipAllWhitespaces();
 
-        if (advanceIf(matchedTokenInfo.closeTokenType, outToken))
-            return true;
+            RR_RETURN_ON_FAIL(parseValue());
 
-        return false;
-    }
-
-    Token readToken(TokenType expected, bool forceSkippingToClosingToken);
-    {
-        if (tokenReader.peekTokenType() == expected)
-        {
-            isRecovering = false;
-            sameTokenPeekedTimes = 0;
-            return tokenReader.advanceToken();
-        }
-
-        if (!isRecovering)
-        {
-            Unexpected(this, expected);
-            if (!forceSkippingToClosingToken)
-                return tokenReader.peekToken();
-            switch (expected)
+            if (peekTokenType() == Token::Type::Comma ||
+                peekTokenType() == Token::Type::NewLine)
             {
-            case TokenType::RBrace:
-            case TokenType::RParent:
-            case TokenType::RBracket:
-                break;
-            default:
-                return tokenReader.peekToken();
+                advance();
+                continue;
             }
+
+            break;
         }
 
-        // Try to find a place to recover
-        if (TryRecoverBefore(this, expected))
+        if (!renameMe)
         {
-            isRecovering = false;
-            return tokenReader.advanceToken();
+            RR_RETURN_ON_FAIL(expect(Token::Type::RBrace));
+            builder_.EndObject();
         }
-        // This could be dangerous: if `ReadToken()` is being called
-        // in a loop we may never make forward progress, so we use
-        // a counter to limit the maximum amount of times we are allowed
-        // to peek the same token. If the outter parsing logic is
-        // correct, we will pop back to the right level. If there are
-        // erroneous parsing logic, this counter is to prevent us
-        // looping infinitely.
-        static const int kMaxTokenPeekCount = 64;
-        sameTokenPeekedTimes++;
-        if (sameTokenPeekedTimes < kMaxTokenPeekCount)
-            return tokenReader.peekToken();
         else
         {
-            sameTokenPeekedTimes = 0;
-            return tokenReader.advanceToken();
+            RR_RETURN_ON_FAIL(expect(Token::Type::EndOfFile));
+        }
+
+        return RResult::Ok;
+    }
+
+    RResult ParserImpl::parseValue()
+    {
+        switch (peekTokenType())
+        {
+            case Token::Type::StringLiteral:
+            case Token::Type::CharLiteral:
+            case Token::Type::Identifier:
+            case Token::Type::IntegerLiteral:
+            case Token::Type::FloatingPointLiteral:
+            {
+                const auto& token = advance();                
+                return builder_.AddValue(token);
+            }
+            case Token::Type::LBracket: return parseArray();
+            case Token::Type::LBrace: return parseObject();
+            default:
+            {
+                sink_->Diagnose(peekToken(), Diagnostics::unexpectedToken, peekTokenType());
+                return RResult::Fail;
+            }
         }
     }
 
-    void ParserImpl::Parse(const std::vector<Token>& tokens,
-                           const std::shared_ptr<ASTBuilder>& astBuilder)
+    RResult ParserImpl::expect(std::initializer_list<Token::Type> tokens, Token& out)
+    {
+        const auto lookAheadTokenType = peekTokenType();
+
+        for (const auto& token : tokens)
+            if (token == lookAheadTokenType)
+            {
+                out = advance();
+                return RResult::Ok;
+            }
+
+        const U8String& tokensString = fmt::format("{}\n", fmt::join(tokens, " or "));
+        sink_->Diagnose(peekToken(), Diagnostics::unexpectedTokenExpectedTokenType, peekTokenType(), tokensString);
+        return RResult::Fail;
+    }
+
+    RResult ParserImpl::Parse(const std::shared_ptr<ASTBuilder>& astBuilder)
     {
         ASSERT(astBuilder);
-        ASSERT(!astBuilder_);
+        //   ASSERT(!astBuilder_);
 
-        astBuilder_ = astBuilder;
-        ON_SCOPE_EXIT({ astBuilder_ = nullptr; });
+        //  astBuilder_ = astBuilder;
+        // ON_SCOPE_EXIT({ astBuilder_ = nullptr; });
 
-        Token closingBraceToken;
-        while (!advanceIfMatch(MatchedTokenType::File, closingBraceToken))
-        {
-            parseDecl(/*containerDecl*/);
-        }
-        // containerDecl->closingSourceLoc = closingBraceToken.loc;
-
-        std::ignore = tokens;
+        RR_RETURN_ON_FAIL(parseObject(true));
+        return expect(Token::Type::EndOfFile);
     }
 
     Parser::~Parser() { }
 
-    Parser::Parser(const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-        : impl_(std::make_unique<ParserImpl>(diagnosticSink))
+    Parser::Parser(const std::shared_ptr<SourceView>& sourceView,
+                   const std::shared_ptr<Common::LinearAllocator>& allocator,
+                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+        : impl_(std::make_unique<ParserImpl>(sourceView, allocator, diagnosticSink))
     {
     }
 
-    void Parser::Parse(const std::vector<Token>& tokens,
-                       const std::shared_ptr<ASTBuilder>& astBuilder)
+    RResult Parser::Parse(const std::shared_ptr<ASTBuilder>& astBuilder)
     {
-        ASSERT(impl_);
-        impl_->Parse(tokens, astBuilder);
+        ASSERT(impl_)
+        return impl_->Parse(astBuilder);
     }
 }

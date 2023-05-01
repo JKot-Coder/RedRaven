@@ -11,8 +11,6 @@
 #include "core/SourceLocation.hpp"
 #include "core/StringEscapeUtil.hpp"
 
-#include "common/ComPtr.hpp"
-#include "common/LinearAllocator.hpp"
 #include "common/Result.hpp"
 
 #if !defined(NDEBUG) && OS_WINDOWS
@@ -374,7 +372,7 @@ namespace RR::Rfx
 
                     EffectParser parser;
 
-                    if (RR_FAILED(rfxResult = parser.Parse(compileRequest.inputFile)))
+                    if (RR_FAILED(rfxResult = parser.Parse(sourceFile, output, diagnostic)))
                         return rfxResult;
 
                     /*

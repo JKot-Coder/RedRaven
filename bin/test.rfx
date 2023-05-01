@@ -1,0 +1,61 @@
+test:
+{
+  "qwe": "qweq",
+  a: true,
+  b: false,
+  c: null,
+}
+
+ZTestDisabled < test:
+{
+  depthAccess: none
+  depthFune: always
+}
+
+test2: 
+{
+  cullMode: 
+  none,
+  test: all,
+}
+
+/* test : ZTestDisabled
+{
+  array = [],
+  cullMode = none,
+  test = all
+}*/
+
+technique:
+{
+  name: SunCorona,
+  passes:
+  {
+//if defined( USE_32_BIT_HDR_TARGET )
+    RenderState:
+    {
+      CullMode: NONE,
+   //   ColorWriteMask: ["red", "green", "blue"],
+    }
+//#else
+    RenderState2:
+    {
+      CullMode: NONE
+      BlendEnable: true,
+      SrcBlend: DEST_ALPHA
+      DestBlend: ONE,
+      SrcBlendAlpha: ZERO
+      DestBlendAlpha: ONE,
+    }
+//#endif
+    VertexShader:
+    {
+      version:"3_0",
+      entry:"sunCorona",
+    }
+    VertexShader2:{
+      version:"3_0"
+      entry:"sunCorona"
+    }
+  }
+}

@@ -350,13 +350,12 @@ namespace RR::Rfx
                 Token token = lexer_->ReadToken();
                 switch (token.type)
                 {
-                    default:
-                        return token;
-
                     case Token::Type::WhiteSpace:
                     case Token::Type::BlockComment:
                     case Token::Type::LineComment:
                         break;
+
+                    default: return token;
                 }
             }
         }
@@ -444,7 +443,7 @@ namespace RR::Rfx
                 case Token::Type::NewLine:
                 case Token::Type::LineComment:
                 case Token::Type::BlockComment:
-                case Token::Type::Invalid:
+                case Token::Type::InvalidCharacter:
                     break;
             }
         }

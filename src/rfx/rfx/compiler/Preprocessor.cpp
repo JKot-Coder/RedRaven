@@ -1327,7 +1327,7 @@ namespace RR
                     case Token::Type::NewLine:
                     case Token::Type::LineComment:
                     case Token::Type::BlockComment:
-                    case Token::Type::Invalid:
+                    case Token::Type::InvalidCharacter:
                         break;
                 }
             }

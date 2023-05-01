@@ -12,12 +12,12 @@ namespace RR
                     ASSERT(!"unexpected");
                     return "<uknown>";
 
-                    // clang-format off
-                    #define TOKEN(NAME, DESC) \
-                        case Token::Type::NAME: \
-                            return DESC;
-                    #include "TokenDefinitions.hpp"
-                    // clang-format on
+                // clang-format off
+                #define TOKEN(NAME, DESC) \
+                    case Token::Type::NAME: \
+                        return DESC;
+                #include "TokenDefinitions.hpp"
+                // clang-format on
             }
         }
     }

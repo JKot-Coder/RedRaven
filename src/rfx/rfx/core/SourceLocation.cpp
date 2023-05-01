@@ -9,15 +9,11 @@ namespace RR
         {
             switch (type)
             {
-                case Type::Normal:
-                    return uniqueIdentity;
+                case Type::Normal: return uniqueIdentity;
                 case Type::FoundPath:
                 case Type::FromString:
-                {
                     return foundPath;
-                }
-                default:
-                    return "";
+                default: return "";
             }
         }
 
@@ -25,9 +21,7 @@ namespace RR
         {
             // They must be the same type
             if (type != rhs.type)
-            {
                 return false;
-            }
 
             switch (type)
             {
@@ -35,21 +29,13 @@ namespace RR
                 case Type::TypeParse:
                 case Type::Unknown:
                 case Type::CommandLine:
-                {
                     return true;
-                }
-                case Type::Normal:
-                {
-                    return foundPath == rhs.foundPath && uniqueIdentity == rhs.uniqueIdentity;
-                }
+                case Type::Normal: return foundPath == rhs.foundPath && uniqueIdentity == rhs.uniqueIdentity;
                 case Type::FromString:
                 case Type::FoundPath:
-                {
                     // Only have a found path
                     return foundPath == rhs.foundPath;
-                }
-                default:
-                    break;
+                default: break;
             }
 
             return false;

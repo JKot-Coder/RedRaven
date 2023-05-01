@@ -41,6 +41,8 @@ set(RFX_COMPILER_SRC
     "compiler/Preprocessor.hpp"
     "compiler/Parser.cpp"
     "compiler/Parser.hpp"
+    "compiler/JSONBuilder.cpp"
+    "compiler/JSONBuilder.hpp"
     "compiler/EffectParser.cpp"
     "compiler/EffectParser.hpp"
     "compiler/LinePreprocessor.cpp"

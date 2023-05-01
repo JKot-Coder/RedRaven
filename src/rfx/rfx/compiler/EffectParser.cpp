@@ -1,37 +1,37 @@
 #include "EffectParser.hpp"
 
-#include "core/FileSystem.hpp"
-#include "core/IncludeSystem.hpp"
+#include "common/ComPtr.hpp"
+#include "common/LinearAllocator.hpp"
+#include "common/Result.hpp"
+#include "compiler/DiagnosticSink.hpp"
+#include "compiler/ASTBuilder.hpp"
 #include "core/SourceLocation.hpp"
 
-#include "common/Result.hpp"
+#include "Parser.hpp"
 
-#include <yaml-cpp/yaml.h>
 #include <iostream>
 
 namespace RR::Rfx
 {
-    RfxResult EffectParser::Parse(const std::filesystem::path& path)
-    {
-        std::ignore = path;
+    using RR::Common::ComPtr;
 
+    RfxResult EffectParser::Parse(std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic)
+    {
+        std::ignore = diagnostic;
+        std::ignore = output;
         RfxResult result = RfxResult::Ok;
 
-        PathInfo pathInfo;
+        auto allocator = std::make_shared<Common::LinearAllocator>(2048);
+        auto diagnosticSink = std::make_shared<DiagnosticSink>();
+        auto astBuilder = std::make_shared<ASTBuilder>();
 
-        const auto& fileSystem = std::make_shared<OSFileSystem>();
-        const auto& includeSystem = std::make_shared<IncludeSystem>(fileSystem);
-        if (RR_FAILED(result = includeSystem->FindFile(path, "", pathInfo)))
-            return result;
+        Parser parser(SourceView::Create(source), allocator, diagnosticSink);
+        RR_RETURN_ON_FAIL(parser.Parse(astBuilder));
 
-        std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-        if (RR_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
-            return result;
+        auto stream = source->GetStream();
 
-        auto stream = sourceFile->GetStream();
-        const auto test = YAML::Load(stream);
-
-        std::cout  << test << "\n";
+        std::cout << "test"
+                  << "\n";
 
         return result;
     }
