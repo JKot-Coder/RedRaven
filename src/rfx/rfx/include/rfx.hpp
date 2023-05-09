@@ -69,8 +69,8 @@ namespace RR
         class IRfxUnknown
         {
         public:
-            virtual uint32_t addRef() = 0;
-            virtual uint32_t release() = 0;
+            virtual uint32_t AddRef() = 0;
+            virtual uint32_t Release() = 0;
         };
 
         class IBlob : public IRfxUnknown

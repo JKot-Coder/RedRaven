@@ -95,9 +95,9 @@ namespace RR
                     // Add caret
                     caretLine += "^";
 
-                    if (diagnostic.token.isValid())
+                    if (diagnostic.isTokenValid)
                     {
-                        const auto length = diagnostic.token.stringSlice.GetLength();
+                        const auto length = diagnostic.stringSlice.GetLength();
 
                         if (length > 1)
                             caretLine.append(length - 1, '~');
@@ -113,7 +113,7 @@ namespace RR
                         // We use the caretLine length if we have a token, because it will have underscores such that it's end is the end of
                         // the item at issue.
                         // If we don't have the token, we guesstimate using 1/4 of the maximum length
-                        const auto endIndex = diagnostic.token.isValid() ? caretLine.length() : (caretOffset + (maxLineLength / 4));
+                        const auto endIndex = diagnostic.isTokenValid ? caretLine.length() : (caretOffset + (maxLineLength / 4));
 
                         if (endIndex > maxLineLength)
                         {

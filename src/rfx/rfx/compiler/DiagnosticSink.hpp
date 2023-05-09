@@ -1,6 +1,5 @@
 #pragma once
 
-#include "compiler/Token.hpp"
 #include "core/SourceLocation.hpp"
 
 namespace RR
@@ -34,9 +33,11 @@ namespace RR
 
             U8String message;
             SourceLocation location;
-            Token token;
+            HumaneSourceLocation humaneSourceLocation;
             int32_t errorID = -1;
             Severity severity;
+            UnownedStringSlice stringSlice;
+            bool isTokenValid = false;
         };
 
         class DiagnosticSink final
@@ -51,12 +52,28 @@ namespace RR
             DiagnosticSink() = default;
 
             template <typename... Args>
-            inline void Diagnose(const SourceLocation& location,  const DiagnosticInfo& info, Args&&... args)
+            inline void Diagnose(const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
             {
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;
                 diagnostic.message = fmt::format(info.messageFormat, args...);
                 diagnostic.location = location;
+                diagnostic.humaneSourceLocation = humaneSourceLocation;
+                diagnostic.severity = info.severity;
+
+                diagnoseImpl(info, formatDiagnostic(diagnostic));
+            }
+
+            template <typename T, typename... Args>
+            inline void Diagnose(const T& token, const DiagnosticInfo& info, Args&&... args)
+            {
+                Diagnostic diagnostic;
+                diagnostic.errorID = info.id;
+                diagnostic.message = fmt::format(info.messageFormat, args...);
+                diagnostic.location = token.sourceLocation;
+                diagnostic.humaneSourceLocation = token.humaneSourceLocation;
+                diagnostic.isTokenValid = token.isValid();
+                diagnostic.stringSlice = token.stringSlice;
                 diagnostic.severity = info.severity;
 
                 diagnoseImpl(info, formatDiagnostic(diagnostic));

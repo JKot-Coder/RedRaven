@@ -1,26 +1,29 @@
 
-#include "common/OSFileSystem.hpp"
+#include "common/io/OSFileSystem.hpp"
 
-#include "Result.hpp"
+#include "common/Result.hpp"
 
-namespace RR::Common::IO
+namespace RR::Common
 {
-    fs::file_status OSFileSystem::GetPathStatus(const fs::path& path) const
+    namespace IO
     {
-        return fs::status(path);
-    }
+        fs::file_status OSFileSystem::GetPathStatus(const fs::path& path) const
+        {
+            return fs::status(path);
+        }
 
-    RResult OSFileSystem::GetPathUniqueIdentity(const fs::path& path, U8String& indetity) const
-    {
-        std::error_code errorcode;
-        indetity = fs::canonical(path, errorcode).generic_u8string();
+        RResult OSFileSystem::GetPathUniqueIdentity(const fs::path& path, U8String& indetity) const
+        {
+            std::error_code errorcode;
+            indetity = fs::canonical(path, errorcode).generic_u8string();
 
-        if (!errorcode)
-            return RResult::Ok;
+            if (!errorcode)
+                return RResult::Ok;
 
-        if (errorcode == std::errc::no_such_file_or_directory)
-            return RResult::NotFound;
+            if (errorcode == std::errc::no_such_file_or_directory)
+                return RResult::NotFound;
 
-        return RResult::Fail;
+            return RResult::Fail;
+        }
     }
 }

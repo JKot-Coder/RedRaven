@@ -130,8 +130,6 @@ namespace RR::Rfx::Tests
 
         void CommandLineTestParser::skipWhiteSpaces()
         {
-            ASSERT(isWhiteSpace());
-
             while (isWhiteSpace())
                 advance();
         }
@@ -232,7 +230,7 @@ namespace RR::Rfx::Tests
                 auto& commandLine = commandLineArguments[index];
                 commandLine = std::regex_replace(commandLine, std::regex("%INPUT%"), testFile.u8string());
 
-                const auto& commandResult = raymii::Command::exec(fmt::format("./rfxc {} 2>&1", commandLine));
+                const auto& commandResult = raymii::Command::exec(fmt::format(".\\rfxc {} 2>&1", commandLine));
 
                 std::error_code ec;
                 auto relativePath = fs::relative(testFile, testDirectory, ec);

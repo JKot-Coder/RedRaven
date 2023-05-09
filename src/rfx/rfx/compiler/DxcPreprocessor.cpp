@@ -24,8 +24,8 @@ namespace RR
             if (FAILED(dxcDll.Initialize()))
                 return RfxResult::InternalFail;
 
-            CComPtr<IDxcCompiler3> dxcCompiler;
-            if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, &dxcCompiler)))
+            ComPtr<IDxcCompiler3> dxcCompiler;
+            if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, dxcCompiler.put())))
                 return RfxResult::InternalFail;
 
             std::vector<LPCWSTR> arguments;
@@ -51,15 +51,15 @@ namespace RR
             dxcSource.Size = source->GetContentSize();
             dxcSource.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
 
-            CComPtr<IDxcResult> dxcResult;
-            if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(&dxcResult))))
+            ComPtr<IDxcResult> dxcResult;
+            if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(dxcResult.put()))))
                 return RfxResult::InternalFail;
 
             auto convertBlob = [dxcResult](DXC_OUT_KIND from, ComPtr<IBlob>& output)
             {
-                CComPtr<IDxcBlobUtf8> dxcBlobUtf8;
+                ComPtr<IDxcBlobUtf8> dxcBlobUtf8;
 
-                if (FAILED(dxcResult->GetOutput(from, IID_PPV_ARGS(&dxcBlobUtf8), nullptr)))
+                if (FAILED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlobUtf8.put()), nullptr)))
                     return RfxResult::InternalFail;
 
                 output = ComPtr<IBlob>(new Blob(dxcBlobUtf8->GetStringPointer()));

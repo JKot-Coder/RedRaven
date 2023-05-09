@@ -21,14 +21,15 @@ namespace RR
                 None = 0 << 0,
                 AtStartOfLine = 1 << 0,
                 AfterWhitespace = 1 << 1,
-                EscapedNewLines = 1 << 2
+                EscapedNewLines = 1 << 2,
+                EscapedCharacters = 1 << 3,
             };
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
         public:
             Token() = default;
-            Token(Token::Type inType, const UnownedStringSlice& stringSlice, const SourceLocation& sourceLocation, Flags flags = Flags::None)
-                : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(sourceLocation)
+            Token(Type inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation, const HumaneSourceLocation& humaneSourceLocation, Flags flags = Flags::None)
+                : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(SourceLocation), humaneSourceLocation(humaneSourceLocation)
             {
             }
 
@@ -40,13 +41,14 @@ namespace RR
                 return U8String(stringSlice.Begin(), stringSlice.End());
             }
 
-            inline bool isValid() const { return type != Token::Type::Unknown; }
+            inline bool isValid() const { return type != Type::Unknown; }
 
         public:
-            Token::Type type = Token::Type::Unknown;
+            Type type = Type::Unknown;
             Flags flags = Flags::None;
             UnownedStringSlice stringSlice;
             SourceLocation sourceLocation;
+            HumaneSourceLocation humaneSourceLocation;
         };
 
         U8String TokenTypeToString(Token::Type type);

@@ -15,7 +15,7 @@
 
 TOKEN(Unknown, "<unknown>")
 TOKEN(EndOfFile, "end of file")
-TOKEN(Invalid, "invalid character")
+TOKEN(InvalidCharacter, "invalid character")
 TOKEN(Identifier, "identifier")
 TOKEN(IntegerLiteral, "integer literal")
 TOKEN(FloatingPointLiteral, "floating-point literal")

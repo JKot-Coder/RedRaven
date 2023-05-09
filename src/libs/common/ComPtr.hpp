@@ -119,7 +119,7 @@ namespace RR::Common
         void addRef() const noexcept
         {
             if (ptr_)
-                const_cast<std::remove_const_t<Type>*>(ptr_)->addRef();
+                const_cast<std::remove_const_t<Type>*>(ptr_)->AddRef();
         }
 
         void releaseRef() noexcept
@@ -130,7 +130,7 @@ namespace RR::Common
 
         NOINLINE void unconditional_release_ref() noexcept
         {
-            std::exchange(ptr_, {})->release();
+            std::exchange(ptr_, {})->Release();
         }
 
         template <typename U>

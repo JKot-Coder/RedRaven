@@ -7,6 +7,9 @@ namespace RR::Rfx
     class ASTBuilder
     {
     public:
+        ASTBuilder() : allocator_(2048)
+        {
+        }
         /// Create AST types
         template <typename T>
         T* Create()

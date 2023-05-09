@@ -40,7 +40,7 @@ namespace RR
                 return isNewLineChar(next);
             }
 
-            char* scrubbingToken(const U8Char* srcBegin, const U8Char* srcEnd, U8Char* dstBegin)
+            char* scrubbingToken(const U8Char* srcBegin, const U8Char* srcEnd, U8Char* dstBegin, bool scrubbingEscapedCharacters)
             {
                 auto cursor = srcBegin;
                 auto dst = dstBegin;
@@ -68,6 +68,91 @@ namespace RR
                                 cursor++;
 
                             continue;
+                        }
+
+                        if (scrubbingEscapedCharacters)
+                        {
+                            const auto ch = *cursor++;
+
+                            switch (ch)
+                            {
+                                // clang-format off
+                                // Simple characters that just needed to be escaped
+                                case '\'': case '\"':
+                                case '\\': case '?':
+                                    *dst++ = *cursor++;
+                                    continue;
+
+                                // Traditional escape sequences for special characters
+                                case 'a': *dst++ = '\a'; cursor++; continue;
+                                case 'b': *dst++ = '\b'; cursor++; continue;
+                                case 'f': *dst++ = '\f'; cursor++; continue;
+                                case 'n': *dst++ = '\n'; cursor++; continue;
+                                case 'r': *dst++ = '\r'; cursor++; continue;
+                                case 't': *dst++ = '\t'; cursor++; continue;
+                                case 'v': *dst++ = '\v'; cursor++; continue;
+
+                                // Octal escape: up to 3 characterws
+                                case '0': case '1': case '2':
+                                case '3': case '4': case '5':
+                                case '6': case '7': // clang-format on
+                                {
+                                    cursor--;
+                                    int value = 0;
+                                    for (int ii = 0; ii < 3; ++ii)
+                                    {
+                                        char d = *cursor;
+                                        if (('0' <= d) && (d <= '7'))
+                                        {
+                                            value = value * 8 + (d - '0');
+                                            cursor++;
+                                            continue;
+                                        }
+                                        else
+                                            break;
+                                    }
+
+                                    // TODO: add support for appending an arbitrary code point?
+                                    *dst++ = (char)value;
+                                    cursor++;
+                                    continue;
+                                }
+
+                                // Hexadecimal escape: any number of characters
+                                case 'x':
+                                {
+                                    int value = 0;
+                                    for (;;)
+                                    {
+                                        char d = *cursor++;
+                                        int digitValue = 0;
+                                        if (('0' <= d) && (d <= '9'))
+                                        {
+                                            digitValue = d - '0';
+                                        }
+                                        else if (('a' <= d) && (d <= 'f'))
+                                        {
+                                            digitValue = d - 'a';
+                                        }
+                                        else if (('A' <= d) && (d <= 'F'))
+                                        {
+                                            digitValue = d - 'A';
+                                        }
+                                        else
+                                        {
+                                            cursor--;
+                                            break;
+                                        }
+
+                                        value = value * 16 + digitValue;
+                                    }
+
+                                    // TODO: add support for appending an arbitrary code point?
+                                    *dst++ = (char)value;
+                                    cursor++;
+                                    continue;
+                                }
+                            }
                         }
                     }
                     *dst++ = *cursor++;
@@ -164,20 +249,19 @@ namespace RR
             auto tokenFlags = tokenflags_;
             auto tokenSlice = UnownedStringSlice(tokenBegin, tokenEnd);
 
-            if (Common::IsSet(tokenflags_, Token::Flags::EscapedNewLines))
+            if (Common::IsAny(tokenflags_, Token::Flags::EscapedNewLines | Token::Flags::EscapedCharacters))
             {
-                // Reset flag
-                tokenflags_ &= ~Token::Flags::EscapedNewLines;
-
                 // "scrubbing" token value here to remove escaped newlines...
                 // Only perform this work if we encountered an escaped newline while lexing this token
                 // Allocate space that will always be more than enough for stripped contents
                 const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
 
                 const auto dstBegin = (char*)allocator_->Allocate(allocationSize);
-                const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin);
-
+                const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
                 tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
+
+                // Reset flags
+                tokenflags_ &= ~Token::Flags::EscapedNewLines & ~Token::Flags::EscapedCharacters;
             }
 
             switch (tokenType)
@@ -247,7 +331,7 @@ namespace RR
             switch (peek())
             {
                 default: break;
-               
+
                 case '\r':
                 case '\n':
                 {
@@ -558,7 +642,7 @@ namespace RR
                         break;
                 }
 
-                return Token::Type::Invalid;
+                return Token::Type::InvalidCharacter;
             }
         }
 
@@ -814,6 +898,7 @@ namespace RR
                     case '\\': // Need to handle various escape sequence cases
                         advance();
 
+                        tokenflags_ |= Token::Flags::EscapedCharacters;
                         switch (peek())
                         {
                             // clang-format off
@@ -857,9 +942,7 @@ namespace RR
                                         continue;
                                     }
                                     else
-                                    {
                                         break;
-                                    }
                                 }
                                 break;
                                 // TODO: Unicode escape sequences

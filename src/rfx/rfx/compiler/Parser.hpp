@@ -1,24 +1,35 @@
 #pragma once
 
-namespace RR::Rfx
+namespace RR
 {
-    class ParserImpl;
-    class DiagnosticSink;
-    class ASTBuilder;
-    struct Token;
-
-    class Parser
+    namespace Common
     {
-    public:
-        ~Parser();
-        Parser() = delete;
-        Parser(const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+        enum class RResult : int32_t;
+        class LinearAllocator;
+    }
 
-        void Parse(const std::vector<Token>& tokens,
-                   const std::shared_ptr<ASTBuilder>& astBuilder);
+    namespace Rfx
+    {
+        class ParserImpl;
+        class DiagnosticSink;
+        class ASTBuilder;
+        class SourceView;
+        struct Token;
 
-    private:
-        // TODO tempoprary shared. Is it possible not to use it?
-        std::unique_ptr<ParserImpl> impl_;
-    };
+        class Parser
+        {
+        public:
+            ~Parser();
+            Parser() = delete;
+            Parser(const std::shared_ptr<SourceView>& sourceView,
+                   const std::shared_ptr<Common::LinearAllocator>& allocator,
+                   const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+
+            Common::RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
+
+        private:
+            // TODO tempoprary shared. Is it possible not to use it?
+            std::unique_ptr<ParserImpl> impl_;
+        };
+    }
 }

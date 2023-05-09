@@ -1,8 +1,8 @@
 set( IO_SRC
-    File.hpp
-    FileSystem.hpp
-    OSFileSystem.hpp
-    OSFileSystem.cpp
+    io/File.hpp
+    io/FileSystem.hpp
+    io/OSFileSystem.hpp
+    io/OSFileSystem.cpp
     PARENT_SCOPE
 )
 
@@ -13,8 +13,8 @@ if ( UNIX OR APPLE )
     SET( OS_POSIX TRUE )
 endif()
 
-#if ( OS_POSIX )
+if ( OS_POSIX )
     set( IO_SRC ${IO_SRC} ${IO_POSIX_SRC} PARENT_SCOPE )
-#endif()
+endif()
 
 source_group( "IO" FILES ${IO_SRC} )
