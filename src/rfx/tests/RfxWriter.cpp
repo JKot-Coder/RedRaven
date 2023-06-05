@@ -63,10 +63,10 @@ namespace RR::Rfx
                         writeOutput(ofs, getOutputName(outputType), intent, output);
                 }
 
-             //   ComPtr<IBlob> output = nullptr;
-           //     auto result = compileResult->GetDiagnosticOutput(output.put());
-           //     if (RFX_SUCCEEDED(result))
-            //        writeOutput(ofs, "Diagnostic", intent, output);
+                //   ComPtr<IBlob> output = nullptr;
+                //     auto result = compileResult->GetDiagnosticOutput(output.put());
+                //     if (RFX_SUCCEEDED(result))
+                //        writeOutput(ofs, "Diagnostic", intent, output);
 
                 if (resultsCount > 1)
                     ofs << "]" << ((i != resultsCount - 1) ? "," : "") << "\n";
@@ -81,7 +81,19 @@ namespace RR::Rfx
             ASSERT(ofs.is_open())
 
             ofs << "exit_status:" << commandResult_.exitstatus << "\n";
-            ofs << "output: [\n" << commandResult_.output << "]\n";
+            ofs << "output: [\n"
+                << commandResult_.output << "]\n";
+            ofs.close();
+        }
+
+        void RfxWriter3::write(std::string path) const
+        {
+            std::ofstream ofs(path);
+            ASSERT(ofs.is_open())
+
+            ofs << "result:" << GetErrorMessage(result_) << "\n";
+            ofs << "output: [\n"
+                << output_ << "]\n";
             ofs.close();
         }
     }

@@ -6,6 +6,7 @@
 #include "command.h"
 
 #include "common/Result.hpp"
+#include "rfx/compiler/Lexer.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 #include <catch2/catch.hpp>
@@ -300,5 +301,16 @@ namespace RR::Rfx::Tests
 
             runTestOnFile(entry, directory, type);
         }
+    }
+
+    void verify(const fs::path& testFile, Common::RResult result)
+    {
+        // Remove extension from path
+        const auto flieName = (testFile.parent_path() / testFile.stem()).u8string();
+
+        auto namer = ApprovalTests::TemplatedCustomNamer::create(
+            "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + flieName + ".{ApprovedOrReceived}.{FileExtension}");
+
+        RfxApprover::verify3(result, "", ApprovalTests::Options().withNamer(namer));
     }
 }

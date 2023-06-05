@@ -3,9 +3,10 @@
 #include "common/ComPtr.hpp"
 #include "common/LinearAllocator.hpp"
 #include "common/Result.hpp"
-#include "compiler/DiagnosticSink.hpp"
-#include "compiler/ASTBuilder.hpp"
-#include "core/SourceLocation.hpp"
+#include "rfx/compiler/CompileContext.hpp"
+#include "rfx/compiler/DiagnosticSink.hpp"
+#include "rfx/compiler/ASTBuilder.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
 #include "Parser.hpp"
 
@@ -21,11 +22,10 @@ namespace RR::Rfx
         std::ignore = output;
         RfxResult result = RfxResult::Ok;
 
-        auto allocator = std::make_shared<Common::LinearAllocator>(2048);
-        auto diagnosticSink = std::make_shared<DiagnosticSink>();
         auto astBuilder = std::make_shared<ASTBuilder>();
+        auto context = std::make_shared<CompileContext>();
 
-        Parser parser(SourceView::Create(source), allocator, diagnosticSink);
+        Parser parser(SourceView::Create(source), context);
         RR_RETURN_ON_FAIL(parser.Parse(astBuilder));
 
         auto stream = source->GetStream();

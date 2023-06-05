@@ -1,0 +1,8 @@
+exit_status:1
+output: [
+..\src\rfx\tests\command_line\preprocessor_defines.rfx(3): error 20001: unexpected '#', expected identifier or string literal
+
+#ifdef TEST
+^
+Unexpected error: Unspecified failure
+]

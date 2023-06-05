@@ -29,6 +29,12 @@ namespace RR::Rfx
                 RfxWriter2 writer(commandResult);
                 ApprovalTests::Approvals::verify(writer, options);
             }
+
+            static void verify3(Common::RResult result, const U8String& result2, const ApprovalTests::Options& options = ApprovalTests::Options())
+            {
+                RfxWriter3 writer(result, result2);
+                ApprovalTests::Approvals::verify(writer, options);
+            }
         };
     }
 }

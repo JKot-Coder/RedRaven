@@ -17,7 +17,11 @@
 #define RFX_DLL_EXPORT __attribute__((visibility("default")))
 #endif
 
+#ifdef RFX_DYNAMIC
 #define RFX_API RFX_DLL_EXPORT
+#else
+#define RFX_API
+#endif
 
 #ifdef __cplusplus
 #define RFX_EXTERN_C extern "C"

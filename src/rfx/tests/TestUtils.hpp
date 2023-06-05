@@ -2,14 +2,44 @@
 
 #include <filesystem>
 
-namespace RR::Rfx::Tests
+namespace RR
 {
-    enum class TestType : uint32_t
+    namespace Common
     {
-        CommandLine,
-        LexerTest
-    };
+        enum class RResult : int32_t;
+    }
 
-    void runTestOnFile(const std::filesystem::path& testFile, const std::filesystem::path& testDirectory, TestType type);
-    void runTestsInDirectory(const std::filesystem::path& directory, TestType type);
+    namespace Rfx::Tests
+    {
+        enum class TestType : uint32_t
+        {
+            CommandLine,
+            LexerTest
+        };
+
+        struct
+        {
+        };
+
+        void runTestOnFile(const std::filesystem::path& testFile, const std::filesystem::path& testDirectory, TestType type);
+        void runTestsInDirectory(const std::filesystem::path& directory, TestType type);
+        void verify(const std::filesystem::path& testFile, Common::RResult result);
+
+        template <typename T>
+        void runTestsInDirectory2(const std::filesystem::path& directory, T testCase)
+        {
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(directory))
+            {
+                if (entry.path().extension() != ".rfx")
+                    continue;
+
+                std::error_code ec;
+                auto flieName = fs::relative(entry, directory, ec);
+                ASSERT(!(bool)ec);
+
+                Common::RResult result = testCase(flieName.u8string(), directory.u8string());
+                verify(flieName, result);
+            }
+        }
+    }
 }

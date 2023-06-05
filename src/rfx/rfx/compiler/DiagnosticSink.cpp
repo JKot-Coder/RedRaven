@@ -1,7 +1,7 @@
 #include "DiagnosticSink.hpp"
 
-#include "compiler/Lexer.hpp"
-#include "compiler/Signal.hpp"
+#include "rfx/compiler/Lexer.hpp"
+#include "rfx/compiler/Signal.hpp"
 
 namespace RR
 {

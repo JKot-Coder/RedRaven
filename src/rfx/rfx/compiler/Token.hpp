@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/SourceLocation.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
 #include "common/EnumClassOperators.hpp"
 
@@ -49,6 +49,19 @@ namespace RR
             UnownedStringSlice stringSlice;
             SourceLocation sourceLocation;
             HumaneSourceLocation humaneSourceLocation;
+        };
+
+
+        template <typename T, typename = void>
+        struct IsTokenStream : std::false_type
+        {
+        };
+
+        template <typename T>
+        struct IsTokenStream<T, std::void_t<decltype(std::declval<T>().AdvanceToken()),
+                                            decltype(std::declval<T>().PeekToken()),
+                                            decltype(std::declval<T>().PeekTokenType())>> : std::true_type
+        {
         };
 
         U8String TokenTypeToString(Token::Type type);

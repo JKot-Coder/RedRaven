@@ -11,6 +11,7 @@ namespace RR
     {
         class SourceFile;
         class DiagnosticSink;
+        struct CompileContext;
         struct Token;
         class LinePreprocessorImpl;
 
@@ -18,8 +19,7 @@ namespace RR
         {
         public:
             LinePreprocessor() = delete;
-            LinePreprocessor(const std::shared_ptr<Common::LinearAllocator>& allocator,
-                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+            LinePreprocessor(const std::shared_ptr<CompileContext>& context);
 
             ~LinePreprocessor();
 

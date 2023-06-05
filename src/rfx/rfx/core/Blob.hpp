@@ -1,6 +1,6 @@
-#include "include/rfx.hpp"
+#include "rfx.hpp"
 
-#include "core/RefObject.hpp"
+#include "rfx/core/RefObject.hpp"
 
 #include <string>
 

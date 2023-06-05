@@ -1,7 +1,7 @@
 #include "IncludeSystem.hpp"
 
-#include "core/FileSystem.hpp"
-#include "core/SourceLocation.hpp"
+#include "rfx/core/FileSystem.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
 #include "common/Result.hpp"
 #include "common/OnScopeExit.hpp"

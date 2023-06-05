@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ApprovalTests/ApprovalTests.hpp"
-#include "rfx.hpp"
 #include "command.h"
+#include "rfx.hpp"
 
 #include "common/ComPtr.hpp"
 
@@ -59,6 +59,33 @@ namespace RR::Rfx
 
         private:
             raymii::CommandResult commandResult_;
+        };
+
+        class RfxWriter3 : public ApprovalTests::ApprovalWriter
+        {
+        public:
+            ~RfxWriter3() = default;
+
+            RfxWriter3(Common::RResult result, const U8String& output)
+                : output_(output), result_(result)
+            {
+            }
+
+            std::string getFileExtensionWithDot() const override
+            {
+                return ".out";
+            }
+
+            void write(std::string path) const override;
+
+            void cleanUpReceived(std::string receivedPath) const override
+            {
+                remove(receivedPath.c_str());
+            }
+
+        private:
+            Common::RResult result_;
+            U8String output_;
         };
     }
 }

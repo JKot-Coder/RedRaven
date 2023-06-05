@@ -1,15 +1,15 @@
 #include "include/rfx.hpp"
 
-#include "compiler/DiagnosticSink.hpp"
-#include "compiler/DxcPreprocessor.hpp"
-#include "compiler/Lexer.hpp"
+#include "rfx/compiler/DiagnosticSink.hpp"
+#include "rfx/compiler/DxcPreprocessor.hpp"
+#include "rfx/compiler/Lexer.hpp"
 
-#include "core/Blob.hpp"
-#include "core/CStringAllocator.hpp"
-#include "core/FileSystem.hpp"
-#include "core/IncludeSystem.hpp"
-#include "core/SourceLocation.hpp"
-#include "core/StringEscapeUtil.hpp"
+#include "rfx/core/Blob.hpp"
+#include "rfx/core/CStringAllocator.hpp"
+#include "rfx/core/FileSystem.hpp"
+#include "rfx/core/IncludeSystem.hpp"
+#include "rfx/core/SourceLocation.hpp"
+#include "rfx/core/StringEscapeUtil.hpp"
 
 #include "common/Result.hpp"
 
@@ -28,7 +28,7 @@
 #include <Windows.h>
 #endif
 
-#include "compiler/EffectParser.hpp"
+#include "rfx/compiler/EffectParser.hpp"
 
 #include "dxcapi.use.h"
 // #include <winrt/base.h>

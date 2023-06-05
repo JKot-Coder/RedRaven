@@ -4,7 +4,6 @@
 
 namespace RR::Common
 {
-    enum class RfxResult : uint32_t;
     template <typename T>
     class ComPtr;
 }

@@ -1,6 +1,6 @@
 #include "StringEscapeUtil.hpp"
 
-#include "core/UnownedStringSlice.hpp"
+#include "rfx/core/UnownedStringSlice.hpp"
 
 #include <sstream>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/UnownedStringSlice.hpp"
+#include "rfx/core/UnownedStringSlice.hpp"
 #include <unordered_map>
 
 namespace RR
@@ -14,6 +14,7 @@ namespace RR
     {
         using RResult = Common::RResult;
 
+        struct CompileContext;
         struct SourceLocation;
         class JSONContainer;
         class DiagnosticSink;
@@ -187,9 +188,10 @@ namespace RR
             /// Get the root value. Will be set after valid construction
             // const JSONValue& getRootValue() const { return m_rootValue; }
 
-            JSONBuilder(std::shared_ptr<DiagnosticSink> diagnosticSink);
+            JSONBuilder(const std::shared_ptr<CompileContext>& context);
 
         private:
+            DiagnosticSink& getSink() const;
             std::shared_ptr<JSONContainer> currentContainer() { return stack_.back(); }
 
             int64_t tokenToInt(const Token& token, int radix);
@@ -211,7 +213,7 @@ namespace RR
             std::vector<std::shared_ptr<JSONContainer>> parents_;
             std::vector<std::shared_ptr<JSONContainer>> stack_;
             std::shared_ptr<JSONContainer> root_;
-            std::shared_ptr<DiagnosticSink> sink_;
+            std::shared_ptr<CompileContext> context_;
         };
 
         U8String JSONValueTypeToString(JSONValue::Type type);

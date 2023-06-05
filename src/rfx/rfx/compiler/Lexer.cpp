@@ -1,7 +1,7 @@
 #include "Lexer.hpp"
 
-#include "compiler/DiagnosticCore.hpp"
-
+#include "rfx/compiler/DiagnosticCore.hpp"
+#include "compiler/CompileContext.hpp"
 #include "common/LinearAllocator.hpp"
 
 #include <iterator>
@@ -169,7 +169,7 @@ namespace RR
                 if (Common::IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
                     return;
 
-                lexer->GetDiagnosticSink()->Diagnose(location, humaneSourceLocation, info, args...);
+                lexer->GetDiagnosticSink().Diagnose(location, humaneSourceLocation, info, args...);
             }
         }
 
@@ -205,14 +205,12 @@ namespace RR
         }
 
         Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView,
-                     const std::shared_ptr<Common::LinearAllocator>& linearAllocator,
-                     const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : allocator_(linearAllocator),
-              sourceView_(sourceView),
-              sink_(diagnosticSink)
+                     const std::shared_ptr<CompileContext>& context)
+            : sourceView_(sourceView),
+              context_(context)
         {
             ASSERT(sourceView)
-            ASSERT(diagnosticSink)
+            ASSERT(context)
 
             auto content = sourceView->GetContent();
 
@@ -228,6 +226,9 @@ namespace RR
         }
 
         Lexer::~Lexer() { }
+
+        Common::LinearAllocator& Lexer::getAllocator() { return context_->allocator; }
+        DiagnosticSink& Lexer::GetDiagnosticSink() const { return context_->sink; }
 
         Token Lexer::ReadToken()
         {
@@ -256,7 +257,7 @@ namespace RR
                 // Allocate space that will always be more than enough for stripped contents
                 const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
 
-                const auto dstBegin = (char*)allocator_->Allocate(allocationSize);
+                const auto dstBegin = (char*)getAllocator().Allocate(allocationSize);
                 const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
                 tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
 
