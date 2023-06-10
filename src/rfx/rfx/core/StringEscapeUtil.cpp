@@ -240,9 +240,6 @@ namespace RR
                     }
                     else if (ch < ' ')
                     {
-                        if (start < cur)
-                            out.append(start, cur);
-
                         appendHex16(uint32_t(ch), out);
                     }
                     else

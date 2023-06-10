@@ -1,5 +1,6 @@
 #include "include/rfx.hpp"
 
+#include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/DxcPreprocessor.hpp"
 #include "rfx/compiler/Lexer.hpp"
@@ -181,30 +182,6 @@ namespace RR::Rfx
         std::shared_ptr<SourceFile> currentSourceFile_;
     };
 
-    U8String writeTokens(const std::shared_ptr<Lexer>& lexer)
-    {
-        U8String result;
-
-        while (true)
-        {
-            const auto& token = lexer->ReadToken();
-
-            U8String escapedToken;
-            StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
-
-            result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
-                                  RR::Rfx::TokenTypeToString(token.type),
-                                  escapedToken,
-                                  token.humaneSourceLocation.line,
-                                  token.humaneSourceLocation.column);
-
-            if (token.type == Token::Type::EndOfFile)
-                break;
-        }
-
-        return result;
-    }
-
     class ComplileResult : public ICompileResult, RefObject
     {
     public:
@@ -288,6 +265,54 @@ namespace RR::Rfx
     dxc::DxcDllSupport Compiler::dxcDll;
     ICompiler* Compiler::instance_ = nullptr;
 
+    class LexerTokenReader
+    {
+    public:
+        LexerTokenReader(const std::shared_ptr<RR::Rfx::SourceFile>& sourceFile, const std::shared_ptr<RR::Rfx::CompileContext>& context)
+            : lexer_(SourceView::Create(sourceFile), context)
+        {
+        }
+
+        Token ReadToken() { return lexer_.ReadToken(); }
+
+        ComPtr<IBlob> ReadAllTokens()
+        {
+            U8String result;
+
+            for (;;)
+            {
+                const auto& token = ReadToken();
+
+                switch (token.type)
+                {
+                    default: break;
+                    case Token::Type::WhiteSpace:
+                    case Token::Type::NewLine:
+                        continue;
+                }
+
+                // TODO: really slow implementation
+                U8String escapedToken;
+                StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+
+                result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
+                                      RR::Rfx::TokenTypeToString(token.type),
+                                      escapedToken,
+                                      token.humaneSourceLocation.line,
+                                      token.humaneSourceLocation.column);
+
+                if (token.type == Token::Type::EndOfFile)
+                    break;
+            }
+
+            return new Blob(result);
+        }
+
+    private:
+        ComPtr<IBlob> output_;
+        Lexer lexer_;
+    };
+
     RfxResult Compiler::Compile(const CompileRequestDescription& compileRequest, ICompileResult** outCompilerResult)
     {
         RfxResult result = RfxResult::Ok;
@@ -323,18 +348,26 @@ namespace RR::Rfx
             if (RR_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
                 return result;
 
-            auto diagnosticSink = std::make_shared<DiagnosticSink>();
-
-            // auto bufferWriter = std::make_shared<BufferWriter>();
-            //  diagnosticSink->AddWriter(bufferWriter);
             ComPtr<IDxcResult> dxcResult;
 
             switch (compileRequest.outputStage)
             {
                 case CompileRequestDescription::OutputStage::Lexer:
+                {
+                    auto context = std::make_shared<CompileContext>();
 
-                    break;
+                    auto bufferWriter = std::make_shared<BufferWriter>();
+                    context->sink.AddWriter(bufferWriter);
 
+                    LexerTokenReader reader(sourceFile, context);
+                    const auto sourceBlob = reader.ReadAllTokens();
+
+                    // Todo optimize reduce copy
+                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                    compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                    compilerResult->PushOutput(CompileOutputType::Source, sourceBlob);
+                }
+                break;
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {

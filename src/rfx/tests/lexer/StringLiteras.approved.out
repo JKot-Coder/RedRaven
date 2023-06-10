@@ -1,28 +1,20 @@
-LexerOutput:[
-	{"Type":"line comment", "Content":"\/\/ -O LEXER", "Line":1, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":1, "Column":12},
-	{"Type":"end of line", "Content":"\r\n", "Line":2, "Column":1},
-	{"Type":"string literal", "Content":"\"Basic\"", "Line":3, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":3, "Column":8},
-	{"Type":"string literal", "Content":"\"Escaped symbols \\a\\b\\f\\n\\r\\t\\v\\'\\\"\\\\\"", "Line":4, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":4, "Column":39},
-	{"Type":"string literal", "Content":"\"HEX \\xFF\"", "Line":5, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":5, "Column":11},
-	{"Type":"string literal", "Content":"\"Invalid escaped sequences \\089 \\89 \\xQWERTY\"", "Line":6, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":6, "Column":46},
-	{"Type":"string literal", "Content":"\"MultiLine\"", "Line":7, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":8, "Column":6},
-	{"Type":"end of line", "Content":"\r\n", "Line":9, "Column":1},
-	{"Type":"string literal", "Content":"\"New line in string literal", "Line":10, "Column":1},
-	{"Type":"end of line", "Content":"\r\n", "Line":10, "Column":28},
-	{"Type":"string literal", "Content":"\"End of file in string literal", "Line":11, "Column":1},
-	{"Type":"end of file", "Content":"", "Line":11, "Column":31},
-]
-Diagnostic:[
-	..\src\rfx\tests\lexer\StringLiteras.rfx(10): error 10005: newline in literal
-	"New line in string literal
-	                           ^
-	..\src\rfx\tests\lexer\StringLiteras.rfx(11): error 10004: end of file in literal
-	"End of file in string literal
-	                              ^
+exit_status:0
+output: [
+Diagnostic output:
+..\src\rfx\tests\lexer\StringLiteras.rfx(10): error 10005: newline in literal
+"New line in string literal
+                           ^
+..\src\rfx\tests\lexer\StringLiteras.rfx(11): error 10004: end of file in literal
+"End of file in string literal
+                              ^
+Preprocessor output:
+{"Type":"line comment", "Content":"\/\/ :RUN_RFXC -L %STD_OUTPUT% %INPUT% ", "Line":1, "Column":1},
+{"Type":"string literal", "Content":"Basic", "Line":3, "Column":1},
+{"Type":"string literal", "Content":"Escaped symbols \u0007\b\f\n\r\t\u000b'\"\\", "Line":4, "Column":1},
+{"Type":"string literal", "Content":"HEX !", "Line":5, "Column":1},
+{"Type":"string literal", "Content":"Invalid escaped sequences \u000089 89 \u0000QWERTY", "Line":6, "Column":1},
+{"Type":"string literal", "Content":"MultiLine", "Line":7, "Column":1},
+{"Type":"string literal", "Content":"New line in string litera", "Line":10, "Column":1},
+{"Type":"string literal", "Content":"End of file in string litera", "Line":11, "Column":1},
+{"Type":"end of file", "Content":"", "Line":11, "Column":31},
 ]

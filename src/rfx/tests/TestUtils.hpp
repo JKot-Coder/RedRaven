@@ -17,11 +17,9 @@ namespace RR
             LexerTest
         };
 
-        struct
-        {
-        };
 
         void runTestOnFile(const std::filesystem::path& testFile, const std::filesystem::path& testDirectory, TestType type);
+        void runTestsInDirectory(const std::filesystem::path& directory);
         void runTestsInDirectory(const std::filesystem::path& directory, TestType type);
         void verify(const std::filesystem::path& testFile, Common::RResult result);
 

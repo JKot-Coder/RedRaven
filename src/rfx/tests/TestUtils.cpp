@@ -6,7 +6,6 @@
 #include "command.h"
 
 #include "common/Result.hpp"
-#include "rfx/compiler/Lexer.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 #include <catch2/catch.hpp>
@@ -289,6 +288,25 @@ namespace RR::Rfx::Tests
                 "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
             RfxApprover::verify(compileResults, ApprovalTests::Options().withNamer(namer));
             */
+        }
+    }
+
+    void runTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
+    {
+        DYNAMIC_SECTION(testFile.filename().u8string())
+        {
+            runCommandLineTestOnFile(testFile, testDirectory);
+        }
+    }
+
+    void runTestsInDirectory(const fs::path& directory)
+    {
+        for (const auto& entry : fs::recursive_directory_iterator(directory))
+        {
+            if (entry.path().extension() != ".rfx")
+                continue;
+
+            runTestOnFile(entry, directory);
         }
     }
 

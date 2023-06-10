@@ -1,8 +1,8 @@
-// -O LEXER
+// :RUN_RFXC -L %STD_OUTPUT% %INPUT% 
 
 "Basic"
 "Escaped symbols \a\b\f\n\r\t\v\'\"\\"
-"HEX \xFF"
+"HEX \x21"
 "Invalid escaped sequences \089 \89 \xQWERTY"
 "Multi\
 Line"

@@ -66,13 +66,13 @@ add_subdirectory(dxc)
 set(RFX_LINK_LIBRARIES
     common dxclib yaml-cpp)
 
-option(BUILD_RFX_SHARED "Build rfx as a shared library" OFF)
+option(BUILD_RFX_SHARED "Build rfx as a shared library" ON)
 
 #================================== Target ===================================#
 
 if(BUILD_RFX_SHARED)
     add_library(${PROJECT_NAME} SHARED ${RFX_SRC})
-    target_compile_definitions(${PROJECT_NAME} PRIVATE RFX_DYNAMIC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE RFX_DYNAMIC_EXPORT)
     target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/..")
 else()
     add_library(${PROJECT_NAME} ${RFX_SRC})

@@ -17,7 +17,7 @@
 #define RFX_DLL_EXPORT __attribute__((visibility("default")))
 #endif
 
-#ifdef RFX_DYNAMIC
+#ifdef RFX_DYNAMIC_EXPORT
 #define RFX_API RFX_DLL_EXPORT
 #else
 #define RFX_API

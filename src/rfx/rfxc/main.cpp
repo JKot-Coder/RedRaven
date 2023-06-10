@@ -1,6 +1,7 @@
 #include "rfx.hpp"
 
 #include "common/ComPtr.hpp"
+#include "stl/enum_array.hpp"
 #include "common/Result.hpp"
 
 #include "cxxopts.hpp"
@@ -115,7 +116,8 @@ namespace RR
             ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
 
         options.add_options("Utility Options") // clang-format off
-            ("P", "Preprocess to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
+            ("L", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file"); 
+            ("P", "Preprocessor output to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
 
         options.positional_help("<inputs>");
         cxxopts::ParseResult parseResult;
@@ -157,9 +159,17 @@ namespace RR
 
             compileRequestDesc.inputFile = inputFiles.front().c_str();
 
+            stl::enum_array<U8String, RR::Rfx::CompileOutputType> outputs;
+
             if (parseResult.count("P"))
             {
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Preprocessor;
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["P"].as<std::string>();
+            }
+            else if (parseResult.count("L"))
+            {
+                compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Lexer;
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["L"].as<std::string>();
             }
             else if (parseResult.count("Fc") || parseResult.count("Fo"))
             {
@@ -167,6 +177,9 @@ namespace RR
 
                 compileRequestDesc.compilerOptions.assemblyOutput = parseResult.count("Fc");
                 compileRequestDesc.compilerOptions.objectOutput = parseResult.count("Fo");
+
+                outputs[RR::Rfx::CompileOutputType::Assembly] = parseResult["Fc"].as<std::string>();
+                outputs[RR::Rfx::CompileOutputType::Object] = parseResult["Fo"].as<std::string>();
             }
 
             CStringAllocator<char> cstingAllocator;
@@ -219,13 +232,9 @@ namespace RR
                         writeOutput("%STD_OUTPUT%", outputType, output);
                         break;
                     case RR::Rfx::CompileOutputType::Source:
-                        writeOutput(parseResult["P"].as<std::string>(), outputType, output);
-                        break;
                     case RR::Rfx::CompileOutputType::Assembly:
-                        writeOutput(parseResult["Fc"].as<std::string>(), outputType, output);
-                        break;
                     case RR::Rfx::CompileOutputType::Object:
-                        writeOutput(parseResult["Fo"].as<std::string>(), outputType, output);
+                        writeOutput(outputs[outputType], outputType, output);
                         break;
                     case RR::Rfx::CompileOutputType::Tokens:
                         writeOutput("%STD_OUTPUT%", outputType, output);

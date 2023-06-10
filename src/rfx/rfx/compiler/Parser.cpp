@@ -14,17 +14,6 @@ namespace RR::Rfx
 {
     using RResult = Common::RResult;
 
-    namespace
-    {
-        UnownedStringSlice unquotingToken(const Token& token)
-        {
-            if (token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral)
-                return UnownedStringSlice(token.stringSlice.Begin() + 1, token.stringSlice.End() - 1);
-
-            return token.stringSlice;
-        }
-    }
-
     /// An token reader that reads tokens directly using the `Lexer`
     struct LexerReader
     {

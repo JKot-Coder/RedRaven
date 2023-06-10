@@ -163,21 +163,6 @@ namespace RR
             for (const auto& writer : writerList_)
                 writer->Write(formattedMessage);
 
-            Log::Print::Error(formattedMessage);
-            /*
-            else
-            {
-                outputBuffer.append(formattedMessage);
-            }
-            */
-
-            /*
-            if (m_parentSink)
-            {
-                m_parentSink->diagnoseImpl(info, formattedMessage);
-            }
-            */
-
             //TODO replace
             if (info.severity > Severity::Internal)
             {
