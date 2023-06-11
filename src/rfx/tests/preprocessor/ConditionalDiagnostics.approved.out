@@ -1,19 +1,15 @@
-PreprocessorOutput:[
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(4): error 15001: 'else' directive without '#if'
-	#else // directive without '#if'
-	 ^~~~
-	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(6): warning 15204: 'elif' directive requires an expression
-	#elif // directive after else 
-	 ^~~~
-	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(6): error 15001: 'elif' directive without '#if'
-	#elif // directive after else 
-	 ^~~~
-	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(11): error 15000: end of file encountered during preprocessor conditional
-	
-	^
-	..\src\rfx\tests\preprocessor\ConditionalDiagnostics.rfx(9): note: see 'ifdef' directive
-	#ifdef UNDEFINED
-	 ^~~~~
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/ConditionalDiagnostics.rfx"
+    
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/ConditionalDiagnostics.rfx:4:2: error: #else without #if
+    #else // directive without '#if'
+     ^
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/ConditionalDiagnostics.rfx:6:2: error: #elif without #if
+    #elif // directive after else 
+     ^
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/ConditionalDiagnostics.rfx:9:2: error: unterminated conditional directive
+    #ifdef UNDEFINED
+     ^

@@ -1,32 +1,31 @@
 exit_status:0
-output: [
+output:
 Diagnostic output:
-..\src\rfx\tests\lexer\Multiline.rfx(8): error 10000: illegal character 'П'
-Привет\
-^
-Preprocessor output:
-{"Type":"line comment", "Content":"\/\/ :RUN_RFXC -L %STD_OUTPUT% %INPUT% ", "Line":1, "Column":1},
-{"Type":"line comment", "Content":"\/\/ Basic", "Line":3, "Column":1},
-{"Type":"identifier", "Content":"FooBar", "Line":4, "Column":1},
-{"Type":"line comment", "Content":"\/\/ UTF-8", "Line":7, "Column":1},
-{"Type":"invalid character", "Content":"ПриветМир", "Line":8, "Column":1},
-{"Type":"line comment", "Content":"\/\/ UTF-8 string", "Line":11, "Column":1},
-{"Type":"string literal", "Content":"ПриветМир", "Line":12, "Column":1},
-{"Type":"line comment", "Content":"\/\/ IntegerLiteral ", "Line":15, "Column":1},
-{"Type":"integer literal", "Content":"123456789", "Line":16, "Column":1},
-{"Type":"line comment", "Content":"\/\/ FloatingPointLiteral", "Line":19, "Column":1},
-{"Type":"floating-point literal", "Content":"123.456", "Line":20, "Column":1},
-{"Type":"line comment", "Content":"\/\/ CharLiteral", "Line":23, "Column":1},
-{"Type":"character literal", "Content":"C", "Line":24, "Column":1},
-{"Type":"line comment", "Content":"\/\/ LineComment", "Line":27, "Column":1},
-{"Type":"line comment", "Content":"\/\/ Тест многострочных комментариев", "Line":28, "Column":1},
-{"Type":"line comment", "Content":"\/\/ ComplexTest", "Line":31, "Column":1},
-{"Type":"line comment", "Content":"\/\/ BlockComment", "Line":34, "Column":1},
-{"Type":"block comment", "Content":"\/*FooBar*\/", "Line":35, "Column":1},
-{"Type":"block comment", "Content":"\/*ComplexTest*\/", "Line":37, "Column":1},
-{"Type":"line comment", "Content":"\/\/ Puntuation", "Line":42, "Column":1},
-{"Type":"'...'", "Content":"...", "Line":43, "Column":1},
-{"Type":"'++'", "Content":"++", "Line":45, "Column":2},
-{"Type":"'<<='", "Content":"<<=", "Line":47, "Column":1},
-{"Type":"end of file", "Content":"", "Line":49, "Column":2},
-]
+    ..\src\rfx\tests\lexer\Multiline.rfx(8): error 10000: illegal character 'П'
+    Привет\
+    ^
+Source output:
+    {"Type":"line comment", "Content":"\/\/ :RUN_RFXC -L %STD_OUTPUT% %INPUT% ", "Line":1, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ Basic", "Line":3, "Column":1},
+    {"Type":"identifier", "Content":"FooBar", "Line":4, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ UTF-8", "Line":7, "Column":1},
+    {"Type":"invalid character", "Content":"ПриветМир", "Line":8, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ UTF-8 string", "Line":11, "Column":1},
+    {"Type":"string literal", "Content":"ПриветМир", "Line":12, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ IntegerLiteral ", "Line":15, "Column":1},
+    {"Type":"integer literal", "Content":"123456789", "Line":16, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ FloatingPointLiteral", "Line":19, "Column":1},
+    {"Type":"floating-point literal", "Content":"123.456", "Line":20, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ CharLiteral", "Line":23, "Column":1},
+    {"Type":"character literal", "Content":"C", "Line":24, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ LineComment", "Line":27, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ Тест многострочных комментариев", "Line":28, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ ComplexTest", "Line":31, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ BlockComment", "Line":34, "Column":1},
+    {"Type":"block comment", "Content":"\/*FooBar*\/", "Line":35, "Column":1},
+    {"Type":"block comment", "Content":"\/*ComplexTest*\/", "Line":37, "Column":1},
+    {"Type":"line comment", "Content":"\/\/ Puntuation", "Line":42, "Column":1},
+    {"Type":"'...'", "Content":"...", "Line":43, "Column":1},
+    {"Type":"'++'", "Content":"++", "Line":45, "Column":2},
+    {"Type":"'<<='", "Content":"<<=", "Line":47, "Column":1},
+    {"Type":"end of file", "Content":"", "Line":49, "Column":2},

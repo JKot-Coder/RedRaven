@@ -19,12 +19,16 @@ set(RFX_TESTS_LEXER_SRC
 source_group( "lexer" FILES ${RFX_TESTS_LEXER_SRC} )
 
 set(RFX_TESTS_COMPILE_SRC
-    "command_line/CommandLine.cpp"  
+    "command_line/CommandLine.cpp"
+    "command_line/compile_simple.rfx"
+    "command_line/preprocessor_defines.rfx"
+    "command_line/preprocessor_simple.rfx"
+    "command_line/version.rfx"
     "command_line/help.rfx")
 source_group( "commandLine" FILES ${RFX_TESTS_COMPILE_SRC} )
 
 set(RFX_TESTS_PREPROCESSOR_SRC
-    "preprocessor/_SpecialMacroComplex.rfx"
+    "preprocessor/SpecialMacroComplex.rfx"
     "preprocessor/bugs/Bug.rfx"
     "preprocessor/CommandLineDefines.rfx"
     "preprocessor/ConditionalDiagnostics.rfx"
@@ -36,7 +40,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/EscapedNewlines.rfx"
     "preprocessor/file-indentity/b.hrfx"
     "preprocessor/file-indentity/c.hrfx"
-    "preprocessor/file-indentity/sub-folder/FileIdentity.rfx"
+    "preprocessor/file-indentity/sub-folder/FileIdentity._rfx"
     "preprocessor/If.rfx"
     "preprocessor/Ifdef.rfx"
     "preprocessor/IfIgnore.rfx"
@@ -51,7 +55,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/PasteNonExpansion.rfx"
     "preprocessor/PoundPound_1.rfx"
     "preprocessor/PoundPound_2.rfx"
-    "preprocessor/PragmaOnce.rfx"
+    "preprocessor/PragmaOnce._rfx"
     "preprocessor/PragmaOnce-a.hrfx"
     "preprocessor/PragmaOnce-b.hrfx"
     "preprocessor/PreprocConcat_1.rfx"

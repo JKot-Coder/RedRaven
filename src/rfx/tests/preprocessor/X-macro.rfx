@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
 
 // Test the case of an "X macro" that takes another macro as a parameter
 

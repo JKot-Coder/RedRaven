@@ -1,6 +1,7 @@
-PreprocessorOutput:[
-	#line 21 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PreprocConcat_4.rfx"
-	CONCAT(a, b) A2B2 CONCAT(a, b)
-]
-Diagnostic:[
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_4.rfx"
+    #line 21 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_4.rfx"
+    CONCAT(a, b) A2B2 CONCAT(a, b)
+Diagnostic output:

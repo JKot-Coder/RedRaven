@@ -1,9 +1,15 @@
-PreprocessorOutput:[
-	#line 7 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PreprocDetail_2.rfx"
-	a b c
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\PreprocDetail_2.rfx(5): error 15408: redefinition of macro parameter 'x'
-	#define A(x, x) a x b x c
-	             ^
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocDetail_2.rfx"
+    
+    
+    
+    
+    
+    
+    A(,)
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocDetail_2.rfx:5:14: error: duplicate macro parameter name 'x'
+    #define A(x, x) a x b x c
+                 ^

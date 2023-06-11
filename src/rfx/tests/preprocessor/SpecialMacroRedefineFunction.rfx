@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
 
 // 
 // Check replacing __FILE__

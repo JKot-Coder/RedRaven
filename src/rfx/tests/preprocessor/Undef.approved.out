@@ -1,13 +1,11 @@
-PreprocessorOutput:[
-	#line 10 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\Undef.rfx"
-	float foo() { return 1.0f + 2.0; }
-	#line 20
-	typedef float BAR;
-	#line 22
-	BAR bar() { return 2.0; }
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\Undef.rfx(6): warning 15401: macro 'FOO' is not defined
-	#undef FOO
-	       ^~~
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Undef.rfx"
+    #line 10 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Undef.rfx"
+    float foo() { return 1.0f + 2.0; }
+    #line 20 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Undef.rfx"
+    typedef float BAR;
+    
+    BAR bar() { return 2.0; }
+Diagnostic output:

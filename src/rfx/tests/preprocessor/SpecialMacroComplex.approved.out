@@ -1,0 +1,27 @@
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    #line 11 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    Thing11
+    
+    
+    
+    
+    Yeppers
+    
+    
+    
+    
+    
+    
+    PasteConditional
+    #line 9 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    
+    10
+    #line 19 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    19
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx:13:7: error: #line directive requires a positive integer argument
+    #line default
+          ^

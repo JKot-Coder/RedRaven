@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
 // Confirm that we handle redefinition
 // of an existing define (with a diagnostic)
 

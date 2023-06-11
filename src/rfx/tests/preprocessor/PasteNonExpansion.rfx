@@ -1,6 +1,6 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
 //
-// This os a regression test for a bug in Slang preprocessor macro expansion.
+// This os a regression test for a bug in preprocessor macro expansion.
 
 #define CONCAT2(x, y) x ## y
 #define CONCAT(x, y) CONCAT2(x, y)
@@ -9,5 +9,5 @@
 
 // Should be someThingElse
 CONCAT(SOMETHING, Else)
-// Should be SOMETHINGAnother, but old Slang expands to produce someThingAnother
+// Should be SOMETHINGAnother, but old preprocessor expands to produce someThingAnother
 CONCAT2(SOMETHING, Another)

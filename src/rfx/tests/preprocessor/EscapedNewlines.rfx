@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
 //
 // Test support for escaped newlines in macro definitions.
 //

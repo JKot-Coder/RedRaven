@@ -81,8 +81,7 @@ namespace RR::Rfx
             ASSERT(ofs.is_open())
 
             ofs << "exit_status:" << commandResult_.exitstatus << "\n";
-            ofs << "output: [\n"
-                << commandResult_.output << "]\n";
+            ofs << "output:\n" << commandResult_.output;
             ofs.close();
         }
 
@@ -92,8 +91,7 @@ namespace RR::Rfx
             ASSERT(ofs.is_open())
 
             ofs << "result:" << GetErrorMessage(result_) << "\n";
-            ofs << "output: [\n"
-                << output_ << "]\n";
+            ofs << "output: \n" << output_;
             ofs.close();
         }
     }

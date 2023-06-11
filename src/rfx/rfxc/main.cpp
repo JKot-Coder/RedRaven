@@ -1,12 +1,13 @@
 #include "rfx.hpp"
 
 #include "common/ComPtr.hpp"
-#include "stl/enum_array.hpp"
 #include "common/Result.hpp"
+#include "stl/enum_array.hpp"
 
 #include "cxxopts.hpp"
 #include <fstream>
 #include <ostream>
+#include <sstream>
 
 namespace RR
 {
@@ -73,12 +74,16 @@ namespace RR
                     return;
                 case Rfx::CompileOutputType::Diagnostic: std::cout << "Diagnostic output:" << std::endl; break;
                 case Rfx::CompileOutputType::Tokens: std::cout << "Tokens output:" << std::endl; break;
-                case Rfx::CompileOutputType::Source: std::cout << "Preprocessor output:" << std::endl; break;
+                case Rfx::CompileOutputType::Source: std::cout << "Source output:" << std::endl; break;
                 case Rfx::CompileOutputType::Assembly: std::cout << "Assembly output:" << std::endl; break;
                 default: ASSERT_MSG(false, "Unknown output");
             }
 
-            std::cout << outputString;
+            auto stream = std::istringstream(outputString);
+            U8String line;
+            while (getline(stream, line))
+                std::cout << "    " << line << "\n";
+
             return;
         }
 
@@ -116,7 +121,7 @@ namespace RR
             ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
 
         options.add_options("Utility Options") // clang-format off
-            ("L", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file"); 
+            ("L", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file")
             ("P", "Preprocessor output to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
 
         options.positional_help("<inputs>");

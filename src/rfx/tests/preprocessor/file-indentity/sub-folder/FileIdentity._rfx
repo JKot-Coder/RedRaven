@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
 
 #include "../b.hrfx"
 #include "../c.hrfx"

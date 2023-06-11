@@ -1,11 +1,20 @@
-PreprocessorOutput:[
-	#line 8 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\SpecialMacroRedefineObject.rfx"
-	"Hello"
-	#line 12
-	__LINE__
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\SpecialMacroRedefineObject.rfx(6): warning 15404: Redefinition of builtin macro '__LINE__'
-	#define __LINE__ "Hello"
-	        ^~~~~~~~
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroRedefineObject.rfx"
+    
+    
+    
+    
+    
+    
+    
+    "Hello"
+    
+    
+    
+    __LINE__
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroRedefineObject.rfx:6:9: warning: redefining builtin macro [-Wbuiltin-macro-redefined]
+    #define __LINE__ "Hello"
+            ^

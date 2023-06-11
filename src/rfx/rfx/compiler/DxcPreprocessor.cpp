@@ -28,6 +28,14 @@ namespace RR
             if (FAILED(dxcDll.CreateInstance(CLSID_DxcCompiler, dxcCompiler.put())))
                 return RfxResult::InternalFail;
 
+            ComPtr<IDxcUtils> dxcUtils;
+            if (FAILED(dxcDll.CreateInstance(CLSID_DxcUtils, dxcUtils.put())))
+                return RfxResult::InternalFail;
+
+            ComPtr<IDxcIncludeHandler> dxcIncludeHandler;
+            if (FAILED(dxcUtils->CreateDefaultIncludeHandler(dxcIncludeHandler.put())))
+                return RfxResult::InternalFail;
+
             std::vector<LPCWSTR> arguments;
             arguments.push_back(L"-P");
             arguments.push_back(L"preprocessed.hlsl");
@@ -52,7 +60,7 @@ namespace RR
             dxcSource.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
 
             ComPtr<IDxcResult> dxcResult;
-            if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(dxcResult.put()))))
+            if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), dxcIncludeHandler.get(), IID_PPV_ARGS(dxcResult.put()))))
                 return RfxResult::InternalFail;
 
             auto convertBlob = [dxcResult](DXC_OUT_KIND from, ComPtr<IBlob>& output)

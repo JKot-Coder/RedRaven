@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
 // support for function-like macros
 
 #define FOO(x) 1.0 + x

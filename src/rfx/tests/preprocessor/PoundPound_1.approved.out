@@ -1,9 +1,17 @@
-PreprocessorOutput:[
-	#line 9 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PoundPound_1.rfx"
-	Hello ## There;
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\PoundPound_1.rfx(7): error 15405: '##' is not allowed at the start of a macro body
-	#define POUND_POUND ##
-	                    ^~
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PoundPound_1.rfx"
+    
+    
+    
+    
+    
+    
+    
+    
+    Hello POUND_POUND There;
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PoundPound_1.rfx:7:21: error: '##' cannot appear at start of macro expansion
+    #define POUND_POUND ##
+                        ^

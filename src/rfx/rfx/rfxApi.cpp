@@ -402,13 +402,13 @@ namespace RR::Rfx
                         compilerResult->PushOutput(CompileOutputType::Assembly, output);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
                     }
-
+                    /*
                     EffectParser parser;
 
                     if (RR_FAILED(rfxResult = parser.Parse(sourceFile, output, diagnostic)))
                         return rfxResult;
 
-                    /*
+              
                         DxcBuffer source;
                     source.Ptr = sourceFile->GetContent().Begin();
                     source.Size = sourceFile->GetContentSize();

@@ -1,12 +1,22 @@
-PreprocessorOutput:[
-	#line 9 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\SpecialMacroRedefineFunction.rfx"
-	"Is" "Anybody"
-	"Is" There
-	#line 14
-	__FILE__
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\SpecialMacroRedefineFunction.rfx(7): warning 15404: Redefinition of builtin macro '__FILE__'
-	#define __FILE__(x) "Is" x
-	        ^~~~~~~~
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroRedefineFunction.rfx"
+    
+    
+    
+    
+    
+    
+    
+    
+    "Is" "Anybody"
+    "Is" There
+    
+    
+    
+    __FILE__
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroRedefineFunction.rfx:7:9: warning: redefining builtin macro [-Wbuiltin-macro-redefined]
+    #define __FILE__(x) "Is" x
+            ^

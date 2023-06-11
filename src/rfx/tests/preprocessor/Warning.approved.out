@@ -1,7 +1,9 @@
-PreprocessorOutput:[
-]
-Diagnostic:[
-	..\src\rfx\tests\preprocessor\Warning.rfx(9): warning 15901: #warning: You wouldn't like me when I'm angry...
-	#warning You wouldn't like me when I'm angry...
-	 ^~~~~~~
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Warning.rfx"
+    
+Diagnostic output:
+    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Warning.rfx:9:2: warning: You wouldn't like me when I'm angry... [-W#warnings]
+    #warning You wouldn't like me when I'm angry...
+     ^

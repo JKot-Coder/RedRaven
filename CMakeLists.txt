@@ -96,7 +96,7 @@ FetchContent_MakeAvailable(ApprovalTests)
 #=================================== Glfw ====================================#
 FetchContent_Declare(
   Glfw
-  GIT_REPOSITORY https://github.com/glfw/glfw
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
   GIT_TAG        3.3.7
 )
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

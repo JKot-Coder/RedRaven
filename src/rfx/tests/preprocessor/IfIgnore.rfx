@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
 // Check #if expression is ignored if outer #if/#ifndef means it is skipped
 
 #if 0

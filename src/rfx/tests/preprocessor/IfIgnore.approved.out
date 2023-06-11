@@ -1,4 +1,6 @@
-PreprocessorOutput:[
-]
-Diagnostic:[
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/IfIgnore.rfx"
+    
+Diagnostic output:

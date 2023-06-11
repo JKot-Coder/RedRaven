@@ -1,12 +1,24 @@
-PreprocessorOutput:[
-	#line 8 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\macros\\VariadicMacro.rfx"
-	(1 ; 2, 3)
-	#line 15
-	(4, 5)
-	#line 27
-	(1 ,)
-	(2 , 3)
-	(4 , 5, 6)
-]
-Diagnostic:[
-]
+exit_status:0
+output:
+Source output:
+    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/macros/VariadicMacro.rfx"
+    
+    
+    
+    
+    
+    
+    
+    (1 ; 2, 3)
+    
+    
+    
+    
+    
+    
+    (4, 5)
+    #line 27 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/macros/VariadicMacro.rfx"
+    (1 , )
+    (2 , 3)
+    (4 , 5, 6)
+Diagnostic output:

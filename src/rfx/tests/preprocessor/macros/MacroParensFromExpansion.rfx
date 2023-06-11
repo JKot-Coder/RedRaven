@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
 //
 // This test covers a case where the parentheses for
 // a function-like macro invocation argument list are
