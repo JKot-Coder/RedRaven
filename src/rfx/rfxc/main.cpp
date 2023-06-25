@@ -23,40 +23,6 @@ namespace RR
         {
             printErrorMessage("Unexpected error: {}", Common::GetErrorMessage(result));
         }
-
-        template <typename T>
-        class CStringAllocator final
-        {
-        public:
-            ~CStringAllocator()
-            {
-                for (const auto cstring : cstring_)
-                    delete[] cstring;
-            }
-
-            void Allocate(const std::vector<std::basic_string<T>>& strings)
-            {
-                for (const auto& string : strings)
-                    Allocate(string);
-            }
-
-            T* Allocate(const std::basic_string<T>& string)
-            {
-                const auto stringLength = string.length();
-
-                auto cString = new T[stringLength + 1];
-                string.copy(cString, stringLength);
-                cString[stringLength] = '\0';
-
-                cstring_.push_back(cString);
-                return cString;
-            }
-
-            const std::vector<T*>& GetCStrings() const { return cstring_; }
-
-        private:
-            std::vector<T*> cstring_;
-        };
     }
 
     void writeOutput(const std::string& filename, Rfx::CompileOutputType outputType, const Common::ComPtr<Rfx::IBlob>& output)
@@ -187,7 +153,7 @@ namespace RR
                 outputs[RR::Rfx::CompileOutputType::Object] = parseResult["Fo"].as<std::string>();
             }
 
-            CStringAllocator<char> cstingAllocator;
+            Rfx::Utils::CStringAllocator<char> cstingAllocator;
             cstingAllocator.Allocate(definitions);
 
             compileRequestDesc.defines = (const char**)cstingAllocator.GetCStrings().data();

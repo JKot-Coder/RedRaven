@@ -80,11 +80,17 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     )
 source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
+set(RFX_TESTS_PARSER_SRC
+    "parser/Parser.cpp"
+    "parser/test.rfx")
+source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
+
 set(SRC
     ${RFX_TESTS_SRC}
     ${RFX_TESTS_LEXER_SRC}
     ${RFX_TESTS_COMPILE_SRC}
-    ${RFX_TESTS_PREPROCESSOR_SRC})
+    ${RFX_TESTS_PREPROCESSOR_SRC}
+    ${RFX_TESTS_PARSER_SRC})
 
 set(RFX_TESTS_LINK_LIBRARIES
     common

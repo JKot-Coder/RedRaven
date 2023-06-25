@@ -6,6 +6,8 @@
 #include "command.h"
 
 #include "common/Result.hpp"
+#include "stl/enum.hpp"
+#include "stl/enum_array.hpp"
 
 #include "ApprovalTests/ApprovalTests.hpp"
 #include <catch2/catch.hpp>
@@ -20,10 +22,19 @@ namespace RR::Rfx::Tests
 {
     namespace
     {
-        class CommandLineTestParser final
+        enum class TestCommand
+        {
+            RUN_RFXC,
+            LEXER,
+            Undefined
+        };
+
+        class CommandTestParser final
         {
         public:
-            RfxResult Parse(const fs::path& path, std::vector<std::string>& outCommandLineArgumets);
+            using CommandArgumentPair = std::pair<TestCommand, std::string>;
+
+            RfxResult Parse(const fs::path& path, std::vector<CommandArgumentPair>& outCommandArgumentPairs);
 
         private:
             static constexpr char32_t kEOF = 0xFFFFFF;
@@ -32,6 +43,7 @@ namespace RR::Rfx::Tests
 
             inline void skipBOM()
             {
+
                 auto it = cursor_;
 
                 if (((it != end_) && uint8_t(*it++) == 0xef) &&
@@ -63,7 +75,7 @@ namespace RR::Rfx::Tests
             void skipBlockComment();
             void skipWhiteSpaces();
 
-            void tryCommandLineArgumets(std::vector<std::string>& outCommandLineArgumets);
+            void tryParse(std::vector<CommandArgumentPair>& outCommandArgumentPairs);
 
             RfxResult readAllFile(const fs::path& path);
 
@@ -74,7 +86,7 @@ namespace RR::Rfx::Tests
             std::string::const_iterator end_;
         };
 
-        Common::RResult CommandLineTestParser::Parse(const fs::path& path, std::vector<std::string>& outCommandLineArgumets)
+        Common::RResult CommandTestParser::Parse(const fs::path& path, std::vector<CommandArgumentPair>& outCommandArgumentPairs)
         {
             auto result = Common::RResult::Ok;
 
@@ -91,7 +103,7 @@ namespace RR::Rfx::Tests
                         advance();
                         switch (peek())
                         { // clang-format off
-                            case '/': advance(); tryCommandLineArgumets(outCommandLineArgumets); break;
+                            case '/': advance(); tryParse(outCommandArgumentPairs); break;
                             case '*': skipBlockComment(); break;
                             default: advance(); continue;
                         } // clang-format on
@@ -104,10 +116,10 @@ namespace RR::Rfx::Tests
                 break;
             }
 
-            return outCommandLineArgumets.empty() ? Common::RResult::NotFound : Common::RResult::Ok;
+            return outCommandArgumentPairs.empty() ? Common::RResult::NotFound : Common::RResult::Ok;
         }
 
-        void CommandLineTestParser::skipBlockComment()
+        void CommandTestParser::skipBlockComment()
         {
             ASSERT(peek() == '*')
 
@@ -128,13 +140,13 @@ namespace RR::Rfx::Tests
             }
         }
 
-        void CommandLineTestParser::skipWhiteSpaces()
+        void CommandTestParser::skipWhiteSpaces()
         {
             while (isWhiteSpace())
                 advance();
         }
 
-        void CommandLineTestParser::tryCommandLineArgumets(std::vector<std::string>& outCommandLineArgumets)
+        void CommandTestParser::tryParse(std::vector<CommandArgumentPair>& outCommandArgumentPairs)
         {
             skipWhiteSpaces();
 
@@ -158,9 +170,7 @@ namespace RR::Rfx::Tests
                 break;
             }
 
-            const auto& command = std::string(begin, cursor_);
-            if (command != "RUN_RFXC")
-                return;
+            const auto& commandName = std::string(begin, cursor_);
 
             begin = cursor_;
             for (;;)
@@ -176,10 +186,12 @@ namespace RR::Rfx::Tests
                 break;
             }
 
-            outCommandLineArgumets.push_back(std::string(begin, cursor_));
+            const auto command = stl::enum_cast<TestCommand>(commandName).value_or(TestCommand::Undefined);
+
+            outCommandArgumentPairs.emplace_back(command, std::string(begin, cursor_));
         }
 
-        Common::RResult CommandLineTestParser::readAllFile(const fs::path& path)
+        Common::RResult CommandTestParser::readAllFile(const fs::path& path)
         {
             if (!fs::exists(path))
                 return Common::RResult::NotFound;
@@ -212,82 +224,63 @@ namespace RR::Rfx::Tests
             return Common::RResult::Ok;
         }
 
-        void runLexerTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
+        std::shared_ptr<ApprovalTests::TemplatedCustomNamer> getNamerForTest(const fs::path& testFile, const fs::path& testDirectory, size_t index, size_t testsCount)
         {
-            std::ignore = testFile;
-            std::ignore = testDirectory;
-        }
-
-        void runCommandLineTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
-        {
-            std::vector<std::string> commandLineArguments;
-            CommandLineTestParser commandLineTestParser;
-            REQUIRE(RR_SUCCEEDED(commandLineTestParser.Parse(testFile, commandLineArguments)));
-            REQUIRE(!commandLineArguments.empty());
-
-            for (size_t index = 0; index < commandLineArguments.size(); index++)
-            {
-                auto& commandLine = commandLineArguments[index];
-                commandLine = std::regex_replace(commandLine, std::regex("%INPUT%"), testFile.u8string());
-
-                const auto& commandResult = raymii::Command::exec(fmt::format(".\\rfxc {} 2>&1", commandLine));
-
-                std::error_code ec;
-                auto relativePath = fs::relative(testFile, testDirectory, ec);
-                REQUIRE(!(bool)ec);
-
-                // Remove extension from relativePath
-                relativePath = relativePath.parent_path() / relativePath.stem();
-
-                auto indexSuffix = fmt::format((commandLineArguments.size() > 1) ? "_{}" : "", index);
-                auto namer = ApprovalTests::TemplatedCustomNamer::create(
-                    "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + indexSuffix + ".{ApprovedOrReceived}.{FileExtension}");
-
-                RfxApprover::verify2(commandResult, ApprovalTests::Options().withNamer(namer));
-            }
-        }
-    }
-
-    void runTestOnFile(const fs::path& testFile, const fs::path& testDirectory, TestType type)
-    {
-        DYNAMIC_SECTION(testFile.filename().u8string())
-        {
-            switch (type)
-            {
-                case TestType::CommandLine: runCommandLineTestOnFile(testFile, testDirectory); break;
-                case TestType::LexerTest: runLexerTestOnFile(testFile, testDirectory); break;
-                default: FAIL("Unknown TestType"); break;
-            }
-            /*
-            ComPtr<ICompiler> compiler;
-            REQUIRE(RFX_SUCCEEDED(RR::Rfx::GetComplierInstance(compiler.put())));
-
             std::error_code ec;
             auto relativePath = fs::relative(testFile, testDirectory, ec);
             REQUIRE(!(bool)ec);
 
-            std::vector<CompilerRequestDescription> compileRequests;
-
-            CompilerRequestParser configurationParser;
-            REQUIRE(RFX_SUCCEEDED(configurationParser.Parse(testFile, compileRequests)));
-            REQUIRE(!compileRequests.empty());
-
-            std::vector<ComPtr<ICompileResult>> compileResults;
-            for (const auto& compileRequest : compileRequests)
-            {
-                ComPtr<ICompileResult> compileResult;
-                REQUIRE(RFX_SUCCEEDED(compiler->Compile(compileRequest, compileResult.put())));
-
-                compileResults.push_back(compileResult);
-            }
-
             // Remove extension from relativePath
             relativePath = relativePath.parent_path() / relativePath.stem();
 
-            auto namer = ApprovalTests::TemplatedCustomNamer::create(
-                "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + ".{ApprovedOrReceived}.{FileExtension}");
-            RfxApprover::verify(compileResults, ApprovalTests::Options().withNamer(namer));
-            */
+            auto indexSuffix = fmt::format((testsCount > 1) ? "_{}" : "", index);
+            return ApprovalTests::TemplatedCustomNamer::create(
+                "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + relativePath.u8string() + indexSuffix + ".{ApprovedOrReceived}.{FileExtension}");
+        }
+
+        void runCommandLineTestOnFile(const fs::path& testFile, const fs::path& testDirectory)
+        {
+            std::vector<CommandTestParser::CommandArgumentPair> testCommands;
+            CommandTestParser commandTestParser;
+            REQUIRE(RR_SUCCEEDED(commandTestParser.Parse(testFile, testCommands)));
+            REQUIRE(!testCommands.empty());
+
+            Utils::CStringAllocator<char> cstringAllocator;
+
+            for (size_t index = 0; index < testCommands.size(); index++)
+            {
+                auto& command = testCommands[index];
+
+                switch (command.first)
+                {
+                    case TestCommand::RUN_RFXC:
+                    {
+                        const auto arguments = std::regex_replace(command.second, std::regex("%INPUT%"), testFile.u8string());
+                        const auto& commandResult = raymii::Command::exec(fmt::format(".\\rfxc {} 2>&1", arguments));
+                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
+                        RfxApprover::verify(commandResult, ApprovalTests::Options().withNamer(namer));
+                        break;
+                    }
+                    case TestCommand::LEXER:
+                    {
+                        CompileRequestDescription request;
+                        request.outputStage = CompileRequestDescription::OutputStage::Lexer;
+                        request.inputFile = cstringAllocator.Allocate(testFile.u8string());
+
+                        Common::ComPtr<Rfx::ICompileResult> compileResult;
+                        Common::ComPtr<Rfx::ICompiler> compiler;
+                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));      
+                        REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
+
+                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
+
+                        RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
+                        break;
+                    }
+
+                    default: REQUIRE(false);
+                }
+            }
         }
     }
 
@@ -308,27 +301,5 @@ namespace RR::Rfx::Tests
 
             runTestOnFile(entry, directory);
         }
-    }
-
-    void runTestsInDirectory(const fs::path& directory, TestType type)
-    {
-        for (const auto& entry : fs::recursive_directory_iterator(directory))
-        {
-            if (entry.path().extension() != ".rfx")
-                continue;
-
-            runTestOnFile(entry, directory, type);
-        }
-    }
-
-    void verify(const fs::path& testFile, Common::RResult result)
-    {
-        // Remove extension from path
-        const auto flieName = (testFile.parent_path() / testFile.stem()).u8string();
-
-        auto namer = ApprovalTests::TemplatedCustomNamer::create(
-            "{TestSourceDirectory}/{ApprovalsSubdirectory}/" + flieName + ".{ApprovedOrReceived}.{FileExtension}");
-
-        RfxApprover::verify3(result, "", ApprovalTests::Options().withNamer(namer));
     }
 }

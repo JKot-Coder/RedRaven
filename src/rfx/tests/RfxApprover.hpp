@@ -18,21 +18,15 @@ namespace RR::Rfx
         class RfxApprover
         {
         public:
-            static void verify(const std::vector<Common::ComPtr<Rfx::ICompileResult>>& compileResults, const ApprovalTests::Options& options = ApprovalTests::Options())
+            static void verify(Common::ComPtr<Rfx::ICompileResult>& compileResult, const ApprovalTests::Options& options = ApprovalTests::Options())
             {
-                RfxWriter writer(compileResults);
+                RfxWriter writer(compileResult);
                 ApprovalTests::Approvals::verify(writer, options);
             }
 
-            static void verify2(const raymii::CommandResult& commandResult, const ApprovalTests::Options& options = ApprovalTests::Options())
+            static void verify(const raymii::CommandResult& commandResult, const ApprovalTests::Options& options = ApprovalTests::Options())
             {
                 RfxWriter2 writer(commandResult);
-                ApprovalTests::Approvals::verify(writer, options);
-            }
-
-            static void verify3(Common::RResult result, const U8String& result2, const ApprovalTests::Options& options = ApprovalTests::Options())
-            {
-                RfxWriter3 writer(result, result2);
                 ApprovalTests::Approvals::verify(writer, options);
             }
         };
