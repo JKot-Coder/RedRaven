@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Diagnostic output:
+Diagnostic:[
     ..\src\rfx\tests\lexer\Numbers.rfx(4): warning 10002: '0' prefix indicates octal literal
     0123456789     // Octal with invalid digits
     ^
@@ -34,8 +32,9 @@ Diagnostic output:
     ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '9'
     0b0123456789 // Binary with invalid digits
                ^
-Source output:
-    {"Type":"line comment", "Content":"\/\/ :RUN_RFXC -L %STD_OUTPUT% %INPUT% ", "Line":1, "Column":1},
+]
+SourceOutput:[
+    {"Type":"line comment", "Content":"\/\/ :LEXER", "Line":1, "Column":1},
     {"Type":"integer literal", "Content":"1234567890", "Line":3, "Column":1},
     {"Type":"line comment", "Content":"\/\/ Basic integer", "Line":3, "Column":14},
     {"Type":"integer literal", "Content":"0123456789", "Line":4, "Column":1},
@@ -54,3 +53,4 @@ Source output:
     {"Type":"floating-point literal", "Content":"0.1234580AnySuffixSymbols", "Line":13, "Column":1},
     {"Type":"integer literal", "Content":"1234suffix", "Line":14, "Column":1},
     {"Type":"end of file", "Content":"", "Line":14, "Column":11},
+]

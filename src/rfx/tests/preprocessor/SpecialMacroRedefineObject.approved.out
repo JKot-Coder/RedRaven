@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroRedefineObject.rfx"
     
     
@@ -14,7 +12,9 @@ Source output:
     
     
     __LINE__
-Diagnostic output:
+]
+Diagnostic:[
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroRedefineObject.rfx:6:9: warning: redefining builtin macro [-Wbuiltin-macro-redefined]
     #define __LINE__ "Hello"
             ^
+]

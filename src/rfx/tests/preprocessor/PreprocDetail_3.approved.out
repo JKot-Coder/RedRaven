@@ -1,6 +1,6 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocDetail_3.rfx"
     
-Diagnostic output:
+]
+Diagnostic:[
+]

@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+// :PREPROCESSOR
 // #include support
 
 int foo() { return 0; }

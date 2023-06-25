@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+// :PREPROCESSOR
 // Test odd whitespaces combinations in directives
 #define FOO_1
 #       define FOO_2

@@ -26,6 +26,7 @@ namespace RR::Rfx::Tests
         {
             RUN_RFXC,
             LEXER,
+            PREPROCESSOR,
             Undefined
         };
 
@@ -274,6 +275,21 @@ namespace RR::Rfx::Tests
 
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
 
+                        RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
+                        break;
+                    }
+                    case TestCommand::PREPROCESSOR:
+                    {
+                        CompileRequestDescription request;
+                        request.outputStage = CompileRequestDescription::OutputStage::Preprocessor;
+                        request.inputFile = cstringAllocator.Allocate(testFile.u8string());
+
+                        Common::ComPtr<Rfx::ICompileResult> compileResult;
+                        Common::ComPtr<Rfx::ICompiler> compiler;
+                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
+                        REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
+
+                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
                         RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
                         break;
                     }

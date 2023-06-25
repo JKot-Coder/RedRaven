@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
+// :PREPROCESSOR
 
 // #undef support
 // warning: undef of something not defined

@@ -1,13 +1,13 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_3.rfx"
     #line 16 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_3.rfx"
     CONCAT(a, a) CONCAT(b, b);
-Diagnostic output:
+]
+Diagnostic:[
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_3.rfx:16:1: error: pasting formed ')CONCAT', an invalid preprocessing token
     CONCAT(CONCAT(A2, A2), CONCAT(B2, B2));
     ^
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocConcat_3.rfx:3:24: note: expanded from macro 'CONCAT'
     #define CONCAT(a, b) a ## b
                            ^
+]

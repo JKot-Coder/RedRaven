@@ -1,9 +1,9 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PasteNonExpansion.rfx"
     #line 11 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PasteNonExpansion.rfx"
     someThingElse
     
     SOMETHINGAnother
-Diagnostic output:
+]
+Diagnostic:[
+]

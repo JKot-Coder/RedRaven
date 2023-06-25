@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Include.rfx"
     
     
@@ -16,8 +14,10 @@ Source output:
     
     
     int baz() { return bar(); }
-Diagnostic output:
+]
+Diagnostic:[
     In file included from D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Include.rfx:6:
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Include-a.hrfx:5:2: warning: Include-a.hrfx included [-W#warnings]
     #warning Include-a.hrfx included
      ^
+]

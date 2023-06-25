@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
+// :PREPROCESSOR
 
 // Testing of handling of __LINE__ in macros
 // Pasting, and some other aspects.

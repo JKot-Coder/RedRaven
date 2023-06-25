@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocDetail_2.rfx"
     
     
@@ -9,7 +7,9 @@ Source output:
     
     
     A(,)
-Diagnostic output:
+]
+Diagnostic:[
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocDetail_2.rfx:5:14: error: duplicate macro parameter name 'x'
     #define A(x, x) a x b x c
                  ^
+]

@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/EscapedNewlines.rfx"
     #line 15 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/EscapedNewlines.rfx"
     float bar(float a)
@@ -12,4 +10,6 @@ Source output:
     {
      return bar(x);
     }
-Diagnostic output:
+]
+Diagnostic:[
+]

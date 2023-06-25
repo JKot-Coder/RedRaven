@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/RecursiveMacro.rfx"
     #line 22 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/RecursiveMacro.rfx"
     int NO_EXPAND(int b)
@@ -27,4 +25,6 @@ Source output:
     
         return XYZ;
     }
-Diagnostic output:
+]
+Diagnostic:[
+]

@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+// :PREPROCESSOR
 
 #define A a
 #define B b

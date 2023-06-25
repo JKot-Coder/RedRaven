@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/DefineSimple.rfx"
     
     
@@ -13,4 +11,6 @@ Source output:
     
     
     int bar() { return 0; }
-Diagnostic output:
+]
+Diagnostic:[
+]

@@ -94,18 +94,19 @@ namespace RR
                 Lexer,
                 Preprocessor,
                 Compiler,
+                Unknown
             };
 
-            OutputStage outputStage;
+            OutputStage outputStage = OutputStage::Unknown;
 
-            const char* inputFile;
-            const char** defines;
-            size_t defineCount;
+            const char* inputFile = nullptr;
+            const char** defines = nullptr;
+            size_t defineCount = 0;
 
             struct CompilerOptions
             {
-                bool assemblyOutput;
-                bool objectOutput;
+                bool assemblyOutput = false;
+                bool objectOutput = false;
             } compilerOptions;
         };
 

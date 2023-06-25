@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+// :PREPROCESSOR
 
 // Test support for `#pragma once`
 

@@ -1,4 +1,4 @@
-﻿// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
+﻿// :PREPROCESSOR
 
 // The bug in this case was related to a use-after-free
 // where the list of "busy" macros for a function-like

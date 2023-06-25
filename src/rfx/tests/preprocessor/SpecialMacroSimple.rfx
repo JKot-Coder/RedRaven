@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT% 
+// :PREPROCESSOR
 
 //__LINE__ and __FILE__ support
 

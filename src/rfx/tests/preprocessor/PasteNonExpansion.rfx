@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+// :PREPROCESSOR
 //
 // This os a regression test for a bug in preprocessor macro expansion.
 

@@ -1,11 +1,10 @@
-exit_status:0
-output:
-Diagnostic output:
+Diagnostic:[
     ..\src\rfx\tests\lexer\Multiline.rfx(8): error 10000: illegal character 'П'
     Привет\
     ^
-Source output:
-    {"Type":"line comment", "Content":"\/\/ :RUN_RFXC -L %STD_OUTPUT% %INPUT% ", "Line":1, "Column":1},
+]
+SourceOutput:[
+    {"Type":"line comment", "Content":"\/\/ :LEXER", "Line":1, "Column":1},
     {"Type":"line comment", "Content":"\/\/ Basic", "Line":3, "Column":1},
     {"Type":"identifier", "Content":"FooBar", "Line":4, "Column":1},
     {"Type":"line comment", "Content":"\/\/ UTF-8", "Line":7, "Column":1},
@@ -29,3 +28,4 @@ Source output:
     {"Type":"'++'", "Content":"++", "Line":45, "Column":2},
     {"Type":"'<<='", "Content":"<<=", "Line":47, "Column":1},
     {"Type":"end of file", "Content":"", "Line":49, "Column":2},
+]

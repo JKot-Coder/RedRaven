@@ -1,4 +1,4 @@
-// :RUN_RFXC -L %STD_OUTPUT% %INPUT% 
+// :LEXER
 
 // Basic
 Foo\

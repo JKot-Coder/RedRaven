@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/DefineRedefine.rfx"
     
     
@@ -9,10 +7,12 @@ Source output:
     
     
     float foo() { return 1.0f + 2.0; }
-Diagnostic output:
+]
+Diagnostic:[
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/DefineRedefine.rfx:9:9: warning: 'FOO' macro redefined [-Wmacro-redefined]
     #define FOO 2.0f
             ^
     D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/DefineRedefine.rfx:5:9: note: previous definition is here
     #define FOO 1.0f
             ^
+]

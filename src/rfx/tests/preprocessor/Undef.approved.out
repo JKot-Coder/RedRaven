@@ -1,6 +1,4 @@
-exit_status:0
-output:
-Source output:
+SourceOutput:[
     #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Undef.rfx"
     #line 10 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Undef.rfx"
     float foo() { return 1.0f + 2.0; }
@@ -8,4 +6,6 @@ Source output:
     typedef float BAR;
     
     BAR bar() { return 2.0; }
-Diagnostic output:
+]
+Diagnostic:[
+]
