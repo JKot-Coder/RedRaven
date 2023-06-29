@@ -1,5 +1,4 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocStringify.rfx"
     #line 10 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocStringify.rfx"
     "A B";
 ]
