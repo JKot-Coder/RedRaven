@@ -1,5 +1,5 @@
 Diagnostic:[
-    ..\src\rfx\tests\lexer\EofInBlockLine.rfx(3): error 10006: end of file in block comment
+    ../src/rfx/tests/lexer/EofInBlockLine.rfx(3): error 10006: end of file in block comment
     /* EOF in block line
                         ^
 ]

@@ -81,7 +81,7 @@ namespace RR
             if (uniqueIdentity.length() <= 0)
                 return RfxResult::Fail; // Unique identity can't be empty
 
-            outPathInfo = PathInfo::makeNormal(combinedPath.lexically_normal().u8string(), uniqueIdentity);
+            outPathInfo = PathInfo::makeNormal(combinedPath.lexically_normal().generic_u8string(), uniqueIdentity);
 
             return RfxResult::Ok;
         }

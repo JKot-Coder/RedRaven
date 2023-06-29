@@ -1,18 +1,7 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Ifdef.rfx"
-    
-    
-    
-    
-    
+    #line 6 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Ifdef.rfx"
     int foo() { return 0; }
-    
-    
-    
-    
-    
-    
-    
+    #line 14
     int bar() { return foo(); }
 ]
 Diagnostic:[

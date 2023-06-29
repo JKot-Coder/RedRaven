@@ -1,14 +1,14 @@
 #include "Preprocessor.hpp"
 
+#include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticCore.hpp"
 #include "rfx/compiler/Lexer.hpp"
-#include "rfx/compiler/CompileContext.hpp"
 
 #include "rfx/core/IncludeSystem.hpp"
 #include "rfx/core/StringEscapeUtil.hpp"
 
-#include "common/Result.hpp"
 #include "common/LinearAllocator.hpp"
+#include "common/Result.hpp"
 
 #include <filesystem>
 #include <sstream>
@@ -28,10 +28,7 @@ namespace RR
                 // A file name usually doesn't process escape sequences
                 // (this is import on Windows, where `\\` is a valid
                 // path separator character).
-
-                // Just trim off the first and last characters to remove the quotes
-                // (whether they were `""` or `<>`.
-                return U8String(content.Begin() + 1, content.End() - 1);
+                return U8String(content.Begin(), content.End());
             }
 
             U8String getStringLiteralTokenValue(const Token& token)
@@ -303,13 +300,12 @@ namespace RR
 
         public:
             PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
-                              const std::shared_ptr<CompileContext>& context);
+                             const std::shared_ptr<CompileContext>& context);
 
             DiagnosticSink& GetSink() const { return context_->sink; }
             std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
             std::shared_ptr<CompileContext> GetContext() const { return context_; }
             Common::LinearAllocator& GetAllocator() const { return context_->allocator; }
-            
 
             std::vector<Token> ReadAllTokens();
 
@@ -722,7 +718,7 @@ namespace RR
         public:
             /// Initialize an input stream with list of `tokens`
             PretokenizedInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor, const TokenReader& tokens)
-                : InputStream(preprocessor), tokenReader_(tokens) {}
+                : InputStream(preprocessor), tokenReader_(tokens) { }
 
             // A pretokenized stream implements the key read/peek operations
             // by delegating to the underlying token reader.
@@ -1338,7 +1334,7 @@ namespace RR
         {
             PathInfo pathInfo = PathInfo::makeCommandLine();
 
-            //No funtion like macro is allowed here.
+            // No funtion like macro is allowed here.
             ASSERT(key.find('(') == std::string::npos);
 
             auto macro = std::make_shared<MacroDefinition>();
@@ -2318,20 +2314,15 @@ namespace RR
         {
             U8String result;
 
+            // This is a hacky shoddy way to get an unprocessed message string, with proper handling of a few whitespace characters, etc.
+            // But it should work fine, because the tokens in the directive must be from the same memory slice.
+            const auto begin = peekRawToken().stringSlice.Begin();
+            auto end = peekRawToken().stringSlice.End();
+
             while (!isEndOfLine())
-            {
-                Token token = advanceRawToken();
-
-                if (Common::IsSet(token.flags, Token::Flags::AfterWhitespace))
-                {
-                    if (!result.empty())
-                        result.append(" ");
-                }
-
-                result.append(token.stringSlice.Begin(), token.stringSlice.End());
-            }
-
-            return result;
+                end = advanceRawToken().stringSlice.End();
+          
+            return { begin, end };
         }
 
         // Handle a `#warning` directive
@@ -2404,7 +2395,7 @@ namespace RR
                 return;
 
             // Simplify the path
-            filePathInfo.foundPath = std::filesystem::path(filePathInfo.foundPath).lexically_normal().u8string();
+            filePathInfo.foundPath = std::filesystem::path(filePathInfo.foundPath).lexically_normal().generic_u8string();
 
             std::shared_ptr<SourceFile> includedFile;
 
@@ -3051,7 +3042,7 @@ namespace RR
                     // The initial logic here is similar to the unexpanded case above.
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
-                  
+
                     auto sourceView = SourceView::CreatePasted(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
                                                                initiatingMacroToken_.sourceLocation,
                                                                initiatingMacroToken_.humaneSourceLocation);
@@ -3063,39 +3054,39 @@ namespace RR
 
                     std::shared_ptr<InputStream> stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
                     //  if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
-                        /*
-                    std::shared_ptr<InputStream> stream;
-                    // When the macro is expanded, we must make sure that the flags of the first
-                    // token from the expansion are equal to the flags of the token that initiates the macro.
-                    if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
+                    /*
+                std::shared_ptr<InputStream> stream;
+                // When the macro is expanded, we must make sure that the flags of the first
+                // token from the expansion are equal to the flags of the token that initiates the macro.
+                if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
+                {
+                    TokenList tokenList;
+
+                    // Copy all tokens and modify flags of first token
+                    for (bool first = true; !tokenReader.IsAtEnd(); first = false)
                     {
-                        TokenList tokenList;
+                        auto token = tokenReader.AdvanceToken();
 
-                        // Copy all tokens and modify flags of first token
-                        for (bool first = true; !tokenReader.IsAtEnd(); first = false)
-                        {
-                            auto token = tokenReader.AdvanceToken();
+                        // Reset flags for first token in macro expansion
+                        if (first)
+                            token.flags = op.flags;
 
-                            // Reset flags for first token in macro expansion
-                            if (first)
-                                token.flags = op.flags;
-
-                            tokenList.push_back(token);
-                        }
-
-                        // Every token list needs to be terminated with an EOF,
-                        // so we will construct one that matches the location
-                        // for the `token`.
-                        Token eofToken;
-                        eofToken.type = Token::Type::EndOfFile;
-                        tokenList.push_back(eofToken);
-
-                        stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
+                        tokenList.push_back(token);
                     }
-                    else
-                    {
-                        stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
-                    }*/
+
+                    // Every token list needs to be terminated with an EOF,
+                    // so we will construct one that matches the location
+                    // for the `token`.
+                    Token eofToken;
+                    eofToken.type = Token::Type::EndOfFile;
+                    tokenList.push_back(eofToken);
+
+                    stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
+                }
+                else
+                {
+                    stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
+                }*/
 
                     // The only interesting addition to the unexpanded case is that we wrap
                     // the stream that "plays back" the argument tokens with a stream that
@@ -3163,8 +3154,7 @@ namespace RR
                     pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
                                                   {
                                                       std::ignore = loc;
-                                                      string += std::to_string(humaneLoc.line);
-                                                  });
+                                                      string += std::to_string(humaneLoc.line); });
                 }
                 break;
 
@@ -3175,8 +3165,7 @@ namespace RR
                     pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
                                                   {
                                                       std::ignore = humaneLoc;
-                                                      StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::Cpp, loc.GetSourceView()->GetPathInfo().foundPath, string);
-                                                  });
+                                                      StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::Cpp, loc.GetSourceView()->GetPathInfo().foundPath, string); });
                 }
                 break;
 
@@ -3522,7 +3511,7 @@ namespace RR
             while (!tokenReader.IsAtEnd())
             {
                 auto token = tokenReader.AdvanceToken();
-                token.sourceLocation = sourceView->GetSourceLocation(0); 
+                token.sourceLocation = sourceView->GetSourceLocation(0);
                 outTokenList.push_back(token);
             }
 

@@ -1,6 +1,7 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/PreprocDetail_3.rfx"
-    
 ]
 Diagnostic:[
+    ../src/rfx/tests/preprocessor/PreprocDetail_3.rfx(7): warning 15401: macro 'C' is not defined
+    #undef C
+           ^
 ]

@@ -1,8 +1,8 @@
 Diagnostic:[
-    ..\src\rfx\tests\lexer\StringLiteras.rfx(10): error 10005: newline in literal
+    ../src/rfx/tests/lexer/StringLiteras.rfx(10): error 10005: newline in literal
     "New line in string literal
                                ^
-    ..\src\rfx\tests\lexer\StringLiteras.rfx(11): error 10004: end of file in literal
+    ../src/rfx/tests/lexer/StringLiteras.rfx(11): error 10004: end of file in literal
     "End of file in string literal
                                   ^
 ]
@@ -13,7 +13,7 @@ SourceOutput:[
     {"Type":"string literal", "Content":"HEX !", "Line":5, "Column":1},
     {"Type":"string literal", "Content":"Invalid escaped sequences \u000089 89 \u0000QWERTY", "Line":6, "Column":1},
     {"Type":"string literal", "Content":"MultiLine", "Line":7, "Column":1},
-    {"Type":"string literal", "Content":"New line in string litera", "Line":10, "Column":1},
-    {"Type":"string literal", "Content":"End of file in string litera", "Line":11, "Column":1},
+    {"Type":"string literal", "Content":"New line in string literal", "Line":10, "Column":1},
+    {"Type":"string literal", "Content":"End of file in string literal", "Line":11, "Column":1},
     {"Type":"end of file", "Content":"", "Line":11, "Column":31},
 ]

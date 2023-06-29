@@ -1,5 +1,5 @@
 Diagnostic:[
-    ..\src\rfx\tests\lexer\Multiline.rfx(8): error 10000: illegal character 'П'
+    ../src/rfx/tests/lexer/Multiline.rfx(8): error 10000: illegal character 'П'
     Привет\
     ^
 ]

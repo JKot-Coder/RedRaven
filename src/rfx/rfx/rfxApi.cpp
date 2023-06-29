@@ -3,6 +3,7 @@
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/DxcPreprocessor.hpp"
+#include "rfx/compiler/Preprocessor.hpp"
 #include "rfx/compiler/Lexer.hpp"
 
 #include "rfx/core/Blob.hpp"
@@ -102,7 +103,7 @@ namespace RR::Rfx
                         auto uniquePaa = fs::path(uniqueP);
 
                         U8String escapedToken2; // TODO  Fix this
-                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, uniquePaa.make_preferred().u8string(), escapedToken2); //??
+                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, uniquePaa.make_preferred().generic_u8string(), escapedToken2); //??
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
                         output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedToken2);
@@ -313,6 +314,17 @@ namespace RR::Rfx
         Lexer lexer_;
     };
 
+    U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor)
+    {
+        const auto& tokens = preprocessor->ReadAllTokens();
+        SourceWriter writer;
+
+        for (const auto& token : tokens)
+            writer.Emit(token);
+
+        return writer.GetOutput();
+    }
+
     RfxResult Compiler::Compile(const CompileRequestDescription& compileRequest, ICompileResult** outCompilerResult)
     {
         RfxResult result = RfxResult::Ok;
@@ -350,15 +362,14 @@ namespace RR::Rfx
 
             ComPtr<IDxcResult> dxcResult;
 
+            auto context = std::make_shared<CompileContext>();
+            auto bufferWriter = std::make_shared<BufferWriter>();
+            context->sink.AddWriter(bufferWriter);
+
             switch (compileRequest.outputStage)
             {
                 case CompileRequestDescription::OutputStage::Lexer:
                 {
-                    auto context = std::make_shared<CompileContext>();
-
-                    auto bufferWriter = std::make_shared<BufferWriter>();
-                    context->sink.AddWriter(bufferWriter);
-
                     LexerTokenReader reader(sourceFile, context);
                     const auto sourceBlob = reader.ReadAllTokens();
 
@@ -371,6 +382,22 @@ namespace RR::Rfx
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {
+                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, context);
+
+                    for (size_t index = 0; index < compileRequest.defineCount; index++)
+                    {
+                        ASSERT(compileRequest.defines + index);
+                       // const auto& define = *(compileRequest.defines + index);
+                       // preprocessor.DefineMacro(define);
+                    }
+                    preprocessor->PushInputFile(sourceFile);
+
+                    const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor)));
+                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                    compilerResult->PushOutput(CompileOutputType::Source, blob);
+                    compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+
+                    /*
                     DxcPreprocessor preprocessor;
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
@@ -401,7 +428,8 @@ namespace RR::Rfx
 
                         compilerResult->PushOutput(CompileOutputType::Assembly, output);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
-                    }
+                    } */
+                    
                     /*
                     EffectParser parser;
 

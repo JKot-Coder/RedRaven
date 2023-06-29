@@ -140,18 +140,12 @@ namespace RR
         {
             switch (severity)
             {
-                case Severity::Note:
-                    return "note";
-                case Severity::Warning:
-                    return "warning";
-                case Severity::Error:
-                    return "error";
-                case Severity::Fatal:
-                    return "fatal error";
-                case Severity::Internal:
-                    return "internal error";
-                default:
-                    return "unknown error";
+                case Severity::Note: return "note";
+                case Severity::Warning: return "warning";
+                case Severity::Error: return "error";
+                case Severity::Fatal: return "fatal error";
+                case Severity::Internal: return "internal error";
+                default: return "unknown error";
             }
         }
 
@@ -163,7 +157,7 @@ namespace RR
             for (const auto& writer : writerList_)
                 writer->Write(formattedMessage);
 
-            //TODO replace
+            // TODO replace
             if (info.severity > Severity::Internal)
             {
                 // TODO: figure out a better policy for aborting compilation

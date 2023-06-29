@@ -1,5 +1,5 @@
 Diagnostic:[
-    ..\src\rfx\tests\lexer\BasicTokens.rfx(3): error 10000: illegal character 'И'
+    ../src/rfx/tests/lexer/BasicTokens.rfx(3): error 10000: illegal character 'И'
     Инвалид
     ^
 ]

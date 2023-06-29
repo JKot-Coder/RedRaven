@@ -1,35 +1,35 @@
 Diagnostic:[
-    ..\src\rfx\tests\lexer\Numbers.rfx(4): warning 10002: '0' prefix indicates octal literal
+    ../src/rfx/tests/lexer/Numbers.rfx(4): warning 10002: '0' prefix indicates octal literal
     0123456789     // Octal with invalid digits
     ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(4): error 10003: invalid digit for base-8 literal: '8'
+    ../src/rfx/tests/lexer/Numbers.rfx(4): error 10003: invalid digit for base-8 literal: '8'
     0123456789     // Octal with invalid digits
             ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(4): error 10003: invalid digit for base-8 literal: '9'
+    ../src/rfx/tests/lexer/Numbers.rfx(4): error 10003: invalid digit for base-8 literal: '9'
     0123456789     // Octal with invalid digits
              ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '2'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '2'
     0b0123456789 // Binary with invalid digits
         ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '3'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '3'
     0b0123456789 // Binary with invalid digits
          ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '4'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '4'
     0b0123456789 // Binary with invalid digits
           ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '5'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '5'
     0b0123456789 // Binary with invalid digits
            ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '6'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '6'
     0b0123456789 // Binary with invalid digits
             ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '7'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '7'
     0b0123456789 // Binary with invalid digits
              ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '8'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '8'
     0b0123456789 // Binary with invalid digits
               ^
-    ..\src\rfx\tests\lexer\Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '9'
+    ../src/rfx/tests/lexer/Numbers.rfx(6): error 10003: invalid digit for base-2 literal: '9'
     0b0123456789 // Binary with invalid digits
                ^
 ]

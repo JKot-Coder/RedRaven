@@ -17,6 +17,31 @@ namespace RR
             inline bool isNewLineChar(U8Glyph ch) { return (ch == '\n' || ch == '\r'); }
             inline bool isEOF(U8Glyph ch) { return ch == Lexer::kEOF; }
 
+            UnownedStringSlice trimQuoutes(const UnownedStringSlice& tokenSlice, Token::Type tokenType)
+            {
+                char quoteChar = 0;
+                switch (tokenType)
+                {
+                    case Token::Type::StringLiteral: quoteChar = '\"'; break;
+                    case Token::Type::CharLiteral: quoteChar = '\''; break;
+                    default: return tokenSlice;
+                }
+                
+                auto begin = tokenSlice.Begin();
+                auto end = tokenSlice.End();
+
+                if (*begin == quoteChar)
+                    begin++;
+
+                if (begin >= end)
+                    return UnownedStringSlice(begin, end);
+
+                if (*(end - 1) == quoteChar)
+                    end--;
+
+                return UnownedStringSlice(begin, end);
+            }
+
             bool isNumberExponent(U8Glyph ch, uint32_t base)
             {
                 switch (ch)
@@ -295,8 +320,7 @@ namespace RR
                 }
                 case Token::Type::StringLiteral:
                 case Token::Type::CharLiteral:
-                    // Trim quotings
-                    tokenSlice = UnownedStringSlice(tokenSlice.Begin() + 1, tokenSlice.End() - 1);
+                    tokenSlice = trimQuoutes(tokenSlice, tokenType);
                     break;
                 case Token::Type::WhiteSpace:
                 case Token::Type::BlockComment:

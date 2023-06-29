@@ -18,7 +18,7 @@ namespace RR::AssetImporter::Processors
             const auto result = file.Open(path, Common::IO::FileAccessMode::Create | Common::IO::FileAccessMode::Write);
             if (RR_FAILED(result))
             {
-                LOG_WARNING("Failed to save file: \'{0}\' with error: {1}", path.u8string(), Common::GetErrorMessage(result));
+                LOG_WARNING("Failed to save file: \'{0}\' with error: {1}", path.generic_u8string(), Common::GetErrorMessage(result));
                 return result;
             }
 
