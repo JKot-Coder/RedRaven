@@ -174,7 +174,7 @@ namespace RR
                         return -1;
 
                     // clang-format off
-                    case Token::Type::OpMul:     return 10;  
+                    case Token::Type::OpMul:     return 10;
                     case Token::Type::OpDiv:     return 10;
                     case Token::Type::OpMod:     return 10;
 
@@ -2321,7 +2321,7 @@ namespace RR
 
             while (!isEndOfLine())
                 end = advanceRawToken().stringSlice.End();
-          
+
             return { begin, end };
         }
 
@@ -2422,11 +2422,6 @@ namespace RR
                     break;
 
                 // `#line` and `#line default` directives are not supported
-                case Token::Type::EndOfFile:
-                case Token::Type::NewLine:
-                    expect(directiveContext, Token::Type::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
-                    return;
-
                 // else, fall through to:
                 default:
                     expect(directiveContext, Token::Type::IntegerLiteral, Diagnostics::expectedTokenInPreprocessorDirective);
@@ -3109,10 +3104,7 @@ namespace RR
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
 
-                    // A stringized parameter is always a `"`-enclosed string literal
-                    // (there is no way to stringize things to form a character literal).
                     U8String string;
-                    string.push_back('"');
                     for (bool first = true; !tokenReader.IsAtEnd(); first = false)
                     {
                         auto token = tokenReader.AdvanceToken();
@@ -3131,7 +3123,6 @@ namespace RR
                         // literal value.
                         StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, token.GetContentString(), string);
                     }
-                    string.push_back('"');
 
                     // Once we've constructed the content of the stringized result, we need to push
                     // a new single-token stream that represents that content.
@@ -3165,7 +3156,7 @@ namespace RR
                     pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
                                                   {
                                                       std::ignore = humaneLoc;
-                                                      StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::Cpp, loc.GetSourceView()->GetPathInfo().foundPath, string); });
+                                                      string = loc.GetSourceView()->GetPathInfo().foundPath; });
                 }
                 break;
 

@@ -1,5 +1,5 @@
 SourceOutput:[
-    #line 20 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/macros/MacroParensFromExpansion.rfx"
+    #line 20 "../src/rfx/tests/preprocessor/macros/MacroParensFromExpansion.rfx"
     ( 3 )
 ]
 Diagnostic:[

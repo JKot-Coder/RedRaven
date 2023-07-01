@@ -1,9 +1,9 @@
 SourceOutput:[
-    #line 10 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Undef.rfx"
+    #line 10 "../src/rfx/tests/preprocessor/Undef.rfx"
     float foo() { return 1.0f + 2.0; }
     #line 20
     typedef float BAR;
-    #line 22
+    
     BAR bar() { return 2.0; }
 ]
 Diagnostic:[

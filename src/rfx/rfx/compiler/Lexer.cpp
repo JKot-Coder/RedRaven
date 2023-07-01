@@ -195,6 +195,9 @@ namespace RR
                                     dst = appendGlyph(value, dst);
                                     continue;
                                 }
+                                default:
+                                    // Not an escaping character, append it as is.
+                                    *dst++ = '\\';
                             }
                         }
                     }

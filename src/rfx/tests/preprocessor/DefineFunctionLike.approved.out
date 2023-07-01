@@ -1,5 +1,5 @@
 SourceOutput:[
-    #line 6 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/DefineFunctionLike.rfx"
+    #line 6 "../src/rfx/tests/preprocessor/DefineFunctionLike.rfx"
     float foo(float y) { return 1.0 + y * 2.0; }
     #line 12
     float bar() { return 0.0; }

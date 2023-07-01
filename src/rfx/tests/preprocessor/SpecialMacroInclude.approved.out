@@ -1,19 +1,8 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroInclude.rfx"
-    
-    
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/./include/SpecialMacroInclude.hrfx"
-    
-    
-    "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/./include/SpecialMacroInclude.hrfx" 3
-    #line 3 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroInclude.rfx"
-    
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/include/SpecialMacroInclude.hrfx"
-    
-    
-    "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/include/SpecialMacroInclude.hrfx" 3
-    #line 4 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroInclude.rfx"
-    
+    #line 3 "../src/rfx/tests/preprocessor/include/SpecialMacroInclude.hrfx"
+    "../src/rfx/tests/preprocessor/include/SpecialMacroInclude.hrfx" 3
+    #line 3
+    "../src/rfx/tests/preprocessor/include/SpecialMacroInclude.hrfx" 3
 ]
 Diagnostic:[
 ]

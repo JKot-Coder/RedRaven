@@ -1,11 +1,11 @@
-PreprocessorOutput:[
-	#line 6 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PragmaOnce-a.hrfx"
-	float foo(float x) { return x; }
-	#line 51 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PragmaOnce.rfx"
-	float test(float x)
-	{
-	    return foo(x) + foo(x);
-	}
+SourceOutput:[
+    #line 6 "../src/rfx/tests/preprocessor/PragmaOnce-a.hrfx"
+    float foo(float x) { return x; }
+    #line 51 "../src/rfx/tests/preprocessor/PragmaOnce.rfx"
+    float test(float x)
+    {
+        return foo(x) + foo(x);
+    }
 ]
 Diagnostic:[
 ]

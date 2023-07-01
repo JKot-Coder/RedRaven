@@ -1,5 +1,5 @@
 SourceOutput:[
-    #line 5 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/If.rfx"
+    #line 5 "../src/rfx/tests/preprocessor/If.rfx"
     int foo() { return 0; }
     #line 13
     int bar() { return foo(); }

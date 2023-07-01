@@ -1,27 +1,17 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
-    #line 11 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    #line 11 "../src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
     Thing11
-    
-    
-    
-    
+    #line 16
     Yeppers
-    
-    
-    
-    
-    
-    
+    #line 23
     PasteConditional
-    #line 9 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
-    
+    #line 10
     10
-    #line 19 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    #line 19
     19
 ]
 Diagnostic:[
-    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/SpecialMacroComplex.rfx:13:7: error: #line directive requires a positive integer argument
+    ../src/rfx/tests/preprocessor/SpecialMacroComplex.rfx(13): error 15102: expected 'integer literal' in 'line' directive
     #line default
-          ^
+          ^~~~~~~
 ]

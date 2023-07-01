@@ -1,8 +1,9 @@
 SourceOutput:[
-    #line 9 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/RepeatedMacroExpansion.rfx"
+    #line 9 "../src/rfx/tests/preprocessor/RepeatedMacroExpansion.rfx"
     void test()
     {
-        #line 13
+    
+    
         ;
     }
 ]
