@@ -107,6 +107,7 @@ namespace RR
             {
                 bool assemblyOutput = false;
                 bool objectOutput = false;
+                bool onlyRelativePaths = false;
             } compilerOptions;
         };
 

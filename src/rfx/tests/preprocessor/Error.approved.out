@@ -1,9 +1,7 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Error.rfx"
-    
 ]
 Diagnostic:[
-    D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/Error.rfx:10:2: error: This isn't valid!
+    ../src/rfx/tests/preprocessor/Error.rfx(10): error 15900: #error: This isn't valid!
     #error This isn't valid!
-     ^
+     ^~~~~
 ]

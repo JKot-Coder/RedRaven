@@ -362,7 +362,7 @@ namespace RR::Rfx
 
             ComPtr<IDxcResult> dxcResult;
 
-            auto context = std::make_shared<CompileContext>();
+            auto context = std::make_shared<CompileContext>(compileRequest.compilerOptions.onlyRelativePaths);
             auto bufferWriter = std::make_shared<BufferWriter>();
             context->sink.AddWriter(bufferWriter);
 

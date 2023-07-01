@@ -201,9 +201,9 @@ namespace RR
                                                    includeInfo.humaneSourceLocation.line,
                                                    includeInfo.humaneSourceLocation.column);
                 }*/
-
+                const auto path = onlyRelativePaths_ ? sourceView->GetPathInfo().foundPath : sourceView->GetPathInfo().uniqueIdentity;
                 humaneLocString += fmt::format("{0}({1}): ",
-                                               sourceView->GetPathInfo().foundPath,
+                                               path,
                                                humaneLocation.line,
                                                humaneLocation.column);
             }

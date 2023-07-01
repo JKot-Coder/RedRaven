@@ -267,6 +267,7 @@ namespace RR::Rfx::Tests
                         CompileRequestDescription request;
                         request.outputStage = CompileRequestDescription::OutputStage::Lexer;
                         request.inputFile = cstringAllocator.Allocate(testFile.u8string());
+                        request.compilerOptions.onlyRelativePaths = true;
 
                         Common::ComPtr<Rfx::ICompileResult> compileResult;
                         Common::ComPtr<Rfx::ICompiler> compiler;
@@ -283,6 +284,7 @@ namespace RR::Rfx::Tests
                         CompileRequestDescription request;
                         request.outputStage = CompileRequestDescription::OutputStage::Preprocessor;
                         request.inputFile = cstringAllocator.Allocate(testFile.u8string());
+                        request.compilerOptions.onlyRelativePaths = true;
 
                         Common::ComPtr<Rfx::ICompileResult> compileResult;
                         Common::ComPtr<Rfx::ICompiler> compiler;

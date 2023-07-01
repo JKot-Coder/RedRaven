@@ -23,7 +23,7 @@ namespace RR::Rfx
         RfxResult result = RfxResult::Ok;
 
         auto astBuilder = std::make_shared<ASTBuilder>();
-        auto context = std::make_shared<CompileContext>();
+        auto context = std::make_shared<CompileContext>(false);
 
         Parser parser(SourceView::Create(source), context);
         RR_RETURN_ON_FAIL(parser.Parse(astBuilder));

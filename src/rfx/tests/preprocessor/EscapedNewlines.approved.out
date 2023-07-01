@@ -1,14 +1,13 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/EscapedNewlines.rfx"
     #line 15 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/EscapedNewlines.rfx"
     float bar(float a)
     {
-     return a;
+        return a;
     }
-    
+    #line 20
     float foo(float x)
     {
-     return bar(x);
+        return bar(x);
     }
 ]
 Diagnostic:[

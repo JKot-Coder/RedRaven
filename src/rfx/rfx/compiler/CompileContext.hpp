@@ -7,9 +7,11 @@ namespace RR::Rfx
 {
     struct CompileContext
     {
-        CompileContext() : allocator(2048) { }
+        CompileContext(bool onlyRelativePaths) : allocator(2048), sink(onlyRelativePaths), onlyRelativePaths(onlyRelativePaths) { }
 
         DiagnosticSink sink;
         Common::LinearAllocator allocator;
+
+        bool onlyRelativePaths = false;
     };
 }

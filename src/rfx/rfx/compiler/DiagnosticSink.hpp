@@ -49,7 +49,7 @@ namespace RR
                 virtual void Write(const U8String& message) = 0;
             };
 
-            DiagnosticSink() = default;
+            DiagnosticSink(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) {};
 
             template <typename... Args>
             inline void Diagnose(const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
@@ -101,6 +101,7 @@ namespace RR
             uint32_t errorCount_ = 0;
             size_t sourceLineMaxLength_ = 120;
             std::vector<std::shared_ptr<IWriter>> writerList_;
+            bool onlyRelativePaths_ = false;
         };
 
         class BufferWriter final : public DiagnosticSink::IWriter

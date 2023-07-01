@@ -1,28 +1,19 @@
 SourceOutput:[
-    #line 1 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/RecursiveMacro.rfx"
     #line 22 "D:/Work/my/OpenDemo/src/rfx/tests/preprocessor/RecursiveMacro.rfx"
     int NO_EXPAND(int b)
     {
         return b + ( ( 1 ) );
     }
-    
-    
-    
-    
+    #line 30
     int objectLikeMacroTest( int REC )
     {
-    
-    
+        #line 34
         return REC;
     }
-    
-    
-    
-    
+    #line 40
     int mutuallyRecursiveMacroTest( int XYZ )
     {
-    
-    
+        #line 44
         return XYZ;
     }
 ]
