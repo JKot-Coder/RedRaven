@@ -1,7 +1,7 @@
 SourceOutput:[
     #line 6 "../src/rfx/tests/preprocessor/PragmaOnce-a.hrfx"
     float foo(float x) { return x; }
-    #line 51 "../src/rfx/tests/preprocessor/PragmaOnce.rfx"
+    #line 49 "../src/rfx/tests/preprocessor/PragmaOnce.rfx"
     float test(float x)
     {
         return foo(x) + foo(x);

@@ -1,13 +1,13 @@
 SourceOutput:[
     #line 11 "../src/rfx/tests/preprocessor/file-indentity/c.hrfx"
-	float bar(float x) { return x; }
+    float bar(float x) { return x; }
     #line 11 "../src/rfx/tests/preprocessor/file-indentity/b.hrfx"
-	float foo(float x) { return x; }
+    float foo(float x) { return x; }
     #line 8 "../src/rfx/tests/preprocessor/file-indentity/sub-folder/FileIdentity.rfx"
-	float test(float x)
-	{
-	    return foo(x) + bar(x);
-	}
+    float test(float x)
+    {
+        return foo(x) + bar(x);
+    }
 ]
 Diagnostic:[
 ]
