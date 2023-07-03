@@ -13,19 +13,19 @@ namespace RR::Rfx
 
         return nullptr;
     }
-
+/*
     std::shared_ptr<SourceFile> SourceManager::createSourceFileWithString()
-    {
-    }
+    { 
+    }*/
 
     RResult SourceManager::LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile)
     {
         if (pathInfo.hasUniqueIdentity())
         {
-            if (sourceFile = findSourceFileByUniqueIdentity(pathInfo.getMostUniqueIdentity()))
+            if ((sourceFile = findSourceFileByUniqueIdentity(pathInfo.getMostUniqueIdentity())))
                 return RResult::Ok;
         }
 
-        return includeSystem_->LoadFile(pathInfo, sourceFile);
+        return RResult::Fail;//includeSystem_->LoadFile(pathInfo, sourceFile);
     }
 }

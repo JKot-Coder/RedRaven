@@ -76,9 +76,9 @@ namespace RR::Rfx
         ParserImpl() = delete;
         ParserImpl(const std::shared_ptr<SourceView>& sourceView,
                    const std::shared_ptr<CompileContext>& context)
-            : lexerReader_(sourceView, context),
-              context_(context),
-              builder_(context)
+            : context_(context),
+              builder_(context),
+              lexerReader_(sourceView, context)
         {
             ASSERT(context);
         }

@@ -64,12 +64,15 @@ endif ()
 
 add_definitions(${PLATFORM_DEFINITIONS})
 
-set(SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
+  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+endif()
+
 add_compile_options(${SANITIZE_FLAGS})
-#target_compile_options(fmt PRIVATE {SANITIZE_FLAGS})
+add_link_options(${LINK_SANITIZE_FLAGS})
 
 include_directories(src)
-
 
 #================================ Dependencies ===============================#
 

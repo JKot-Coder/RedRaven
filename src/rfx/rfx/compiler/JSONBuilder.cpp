@@ -94,9 +94,8 @@ namespace RR::Rfx
         }
     }
 
-    JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : root_(JSONContainer::MakeObject()),
-                                                                               key_({}),
-                                                                               expect_(Expect::ObjectKey),
+    JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
+                                                                               root_(JSONContainer::MakeObject()),
                                                                                context_(context)
     {
         stack_.emplace_back(root_);

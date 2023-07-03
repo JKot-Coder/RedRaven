@@ -89,9 +89,8 @@ namespace RR
                     case Type::Integer: return intValue != 0;
                     case Type::Float: return floatValue != 0;
                     case Type::Invalid: ASSERT_MSG(false, "Invalid value");
+                    default: return false;
                 }
-
-                return false;
             };
 
             int64_t AsInteger() const
@@ -103,9 +102,8 @@ namespace RR
                     case Type::Integer: return intValue;
                     case Type::Float: return int64_t(floatValue);
                     case Type::Invalid: ASSERT_MSG(false, "Invalid value");
+                    default: return 0;
                 }
-
-                return 0;
             }
 
             double AsFloat() const
@@ -117,9 +115,8 @@ namespace RR
                     case Type::Integer: return double(intValue);
                     case Type::Float: return floatValue;
                     case Type::Invalid: ASSERT_MSG(false, "Invalid value");
+                    default: return 0.0;
                 }
-
-                return 0.0;
             }
 
             Type type = Type::Invalid;
