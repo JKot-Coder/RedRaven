@@ -72,7 +72,7 @@ namespace RR
 
         options.add_options("Common") // clang-format off
             ("h,help", "Display available options")
-            ("version", "Display compiler version information")          
+            ("version", "Display compiler version information")
             ("inputs", "Inputs", cxxopts::value<std::vector<std::string>>(inputFiles));
 
       /*      ("d,debug", "Enable debugging") // a bool parameter
@@ -84,7 +84,8 @@ namespace RR
         options.add_options("Compilation") // clang-format off
             ("Fc", "Output assembly code listing file", cxxopts::value<std::string>(), "file")
             ("Fo", "Output object file", cxxopts::value<std::string>(), "file")
-            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
+            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions))
+            ("Rl", "Force the usage of only relative paths in the output and diagnostic messages"); // clang-format on
 
         options.add_options("Utility Options") // clang-format off
             ("L", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file")
@@ -132,6 +133,8 @@ namespace RR
 
             stl::enum_array<U8String, RR::Rfx::CompileOutputType> outputs;
 
+            compileRequestDesc.compilerOptions.onlyRelativePaths = parseResult.count("Rl");
+
             if (parseResult.count("P"))
             {
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Preprocessor;
@@ -173,15 +176,12 @@ namespace RR
             {
                 switch (result)
                 {
-                    case Common::RResult::Ok:
-                        break;
+                    case Common::RResult::Ok: break;
                     case Common::RResult::NotFound:
                     case Common::RResult::CannotOpen:
                         printErrorMessage("Cannot open file: {}", compileRequestDesc.inputFile);
                         return 1;
-                    default:
-                        printErrorMessage(result);
-                        return 1;
+                    default: printErrorMessage(result); return 1;
                 }
             }
 

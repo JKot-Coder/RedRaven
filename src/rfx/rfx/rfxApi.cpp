@@ -146,7 +146,7 @@ namespace RR::Rfx
             {
                 output_ += " ";
             }
-               
+
             switch (token.type)
             {
                 case Token::Type::StringLiteral:
@@ -417,8 +417,8 @@ namespace RR::Rfx
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
                         ASSERT(compileRequest.defines + index);
-                        // const auto& define = *(compileRequest.defines + index);
-                        // preprocessor.DefineMacro(define);
+                        const auto& define = *(compileRequest.defines + index);
+                        preprocessor->DefineMacro(define);
                     }
                     preprocessor->PushInputFile(sourceFile);
 

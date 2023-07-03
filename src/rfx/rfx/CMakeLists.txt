@@ -19,6 +19,8 @@ set(RFX_CORE_SRC
     "core/IncludeSystem.hpp"
     "core/SourceLocation.cpp"
     "core/SourceLocation.hpp"
+    "core/SourceManager.cpp"
+    "core/SourceManager.hpp"
     "core/StringEscapeUtil.cpp"
     "core/StringEscapeUtil.hpp"
     "core/UnownedStringSlice.cpp"
@@ -27,7 +29,7 @@ source_group( "core" FILES ${RFX_CORE_SRC} )
 
 set(RFX_COMPILER_SRC
     "compiler/CompileRequest.cpp"
-    "compiler/CompileRequest.hpp" 
+    "compiler/CompileRequest.hpp"
     "compiler/CompileContext.hpp"
     "compiler/DiagnosticCore.hpp"
     "compiler/DiagnosticDefinitions.hpp"

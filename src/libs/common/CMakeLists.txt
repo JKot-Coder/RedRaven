@@ -40,7 +40,7 @@ set( COMMON_SRC
     LinearAllocator.hpp
     LinearAllocator.inl
     Math.cpp
-    Math.hpp  
+    Math.hpp
     NonCopyableMovable.hpp
     OnScopeExit.hpp
     pch.hpp
@@ -63,7 +63,7 @@ set( COMMON_SRC
     ${DEBUG_SRC}
     ${IO_SRC}
 )
-        
+
 add_library(${PROJECT_NAME}  ${COMMON_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)

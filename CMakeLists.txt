@@ -22,7 +22,7 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GN
   add_compile_options(-Wno-language-extension-token)
 endif()
 
-# Force MSVC to enable c++17 
+# Force MSVC to enable c++17
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/Zc:__cplusplus>")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -45,7 +45,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-add_compile_definitions( $<$<CONFIG:Debug>:DEBUG>)
+add_compile_definitions( $<$<CONFIG:Debug>:DEBUG> )
 add_compile_definitions( $<$<CONFIG:Release>:RELEASE> )
 
 set(PLATFORM_DEFINITIONS)
@@ -61,10 +61,15 @@ endif ()
 if (LINUX)
     set(PLATFORM_DEFINITIONS -DOS_LINUX)
 endif ()
-                        
+
 add_definitions(${PLATFORM_DEFINITIONS})
 
+set(SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+add_compile_options(${SANITIZE_FLAGS})
+#target_compile_options(fmt PRIVATE {SANITIZE_FLAGS})
+
 include_directories(src)
+
 
 #================================ Dependencies ===============================#
 
@@ -194,6 +199,7 @@ set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
 set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
+
 
 
 add_subdirectory(src)

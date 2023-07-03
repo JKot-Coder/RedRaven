@@ -99,7 +99,7 @@ namespace RR
 
             if (!stream)
                 return RfxResult::Fail;
-            
+
             ON_SCOPE_EXIT({ stream.close(); });
 
             stream.seekg(0, stream.end);
@@ -112,7 +112,7 @@ namespace RR
 
             U8String content;
             content.resize(sizeInBytes);
-            stream.read(&content[0], content.size());            
+            stream.read(&content[0], content.size());
 
             if (!stream) // If not all read just return an error
                 return RfxResult::Fail;

@@ -309,6 +309,7 @@ namespace RR
 
             std::vector<Token> ReadAllTokens();
 
+            void DefineMacro(const U8String& macro);
             void DefineMacro(const U8String& key, const U8String& value);
 
             // Find the currently-defined macro of the given name, or return nullptr
@@ -807,9 +808,7 @@ namespace RR
                     Token token = lexer_->ReadToken();
                     switch (token.type)
                     {
-                        default:
-                            return token;
-
+                        default: return token;
                         case Token::Type::WhiteSpace:
                         case Token::Type::BlockComment:
                         case Token::Type::LineComment:
@@ -1330,12 +1329,28 @@ namespace RR
             }
         }
 
+        void PreprocessorImpl::DefineMacro(const U8String& macro)
+        {
+            auto delimiterPos = macro.find('=');
+
+            if (delimiterPos != std::string::npos)
+            {
+                DefineMacro(macro.substr(0, delimiterPos), macro.substr(delimiterPos + 1));
+                return;
+            }
+
+            DefineMacro(macro, "");
+        }
+
         void PreprocessorImpl::DefineMacro(const U8String& key, const U8String& value)
         {
             PathInfo pathInfo = PathInfo::makeCommandLine();
 
             // No funtion like macro is allowed here.
-            ASSERT(key.find('(') == std::string::npos);
+            bool functionLike = key.find('(') != std::string::npos;
+            ASSERT(!functionLike);
+            if (functionLike)
+                return;
 
             auto macro = std::make_shared<MacroDefinition>();
             macro->flavor = MacroDefinition::Flavor::ObjectLike;
@@ -2641,6 +2656,12 @@ namespace RR
         {
             const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
             impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
+        }
+
+        void Preprocessor::DefineMacro(const U8String& macro)
+        {
+            ASSERT(impl_);
+            impl_->DefineMacro(macro);
         }
 
         void Preprocessor::DefineMacro(const U8String& key, const U8String& value)
