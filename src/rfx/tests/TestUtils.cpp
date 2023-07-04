@@ -257,7 +257,7 @@ namespace RR::Rfx::Tests
                     case TestCommand::RUN_RFXC:
                     {
                         const auto arguments = std::regex_replace(command.second, std::regex("%INPUT%"), testFile.u8string());
-                        const auto& commandResult = raymii::Command::exec(fmt::format(".\\rfxc {} 2>&1", arguments));
+                        const auto& commandResult = raymii::Command::exec(fmt::format("./rfxc {} 2>&1", arguments));
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
                         RfxApprover::verify(commandResult, ApprovalTests::Options().withNamer(namer));
                         break;
@@ -271,7 +271,7 @@ namespace RR::Rfx::Tests
 
                         Common::ComPtr<Rfx::ICompileResult> compileResult;
                         Common::ComPtr<Rfx::ICompiler> compiler;
-                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));      
+                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
                         REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
 
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());

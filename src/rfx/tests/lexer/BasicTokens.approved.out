@@ -12,7 +12,7 @@ SourceOutput:[
     {"Type":"string literal", "Content":"String literal", "Line":7, "Column":1},
     {"Type":"character literal", "Content":"C", "Line":8, "Column":1},
     {"Type":"line comment", "Content":"\/\/ Line comment", "Line":9, "Column":1},
-    {"Type":"block comment", "Content":"\/* Block\r\n   Comment *\/", "Line":10, "Column":1},
+    {"Type":"block comment", "Content":"\/* Block\n   Comment *\/", "Line":10, "Column":1},
     {"Type":"string literal", "Content":"Escaping \f😊", "Line":12, "Column":1},
     {"Type":"';'", "Content":";", "Line":14, "Column":1},
     {"Type":"','", "Content":",", "Line":14, "Column":3},
