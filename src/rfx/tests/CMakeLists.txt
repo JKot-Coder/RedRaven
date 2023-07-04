@@ -121,4 +121,4 @@ endif(MSVC)
 
 #=============================== Tests ================================#
 
-add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

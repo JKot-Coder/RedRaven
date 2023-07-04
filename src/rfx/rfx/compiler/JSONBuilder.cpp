@@ -66,7 +66,9 @@ namespace RR::Rfx
     void JSONContainer::AddKeyValue(const UnownedStringSlice& key, const JSONValue& value)
     {
         ASSERT(type_ == Type::Object);
-        ASSERT(objectValues_.emplace(key, value).second);
+        const bool emplaced = objectValues_.emplace(key, value).second;
+        UNUSED(emplaced);
+        ASSERT(emplaced);
     }
 
     JSONValue JSONContainer::Find(const UnownedStringSlice& key) const

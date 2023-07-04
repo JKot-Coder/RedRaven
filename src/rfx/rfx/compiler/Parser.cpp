@@ -289,6 +289,7 @@ namespace RR::Rfx
     RResult ParserImpl::Parse(const std::shared_ptr<ASTBuilder>& astBuilder)
     {
         ASSERT(astBuilder);
+        UNUSED(astBuilder);
         //   ASSERT(!astBuilder_);
 
         //  astBuilder_ = astBuilder;

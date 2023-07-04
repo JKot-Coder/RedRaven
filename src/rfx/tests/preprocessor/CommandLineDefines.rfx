@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT% -D TEST -D FOO=BAR -D OK=
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT% --Rl -D TEST -D FOO=BAR -D OK=
 
 #ifdef PREPROCESSOR
 #error 'PREPROCESSOR' should not be defined!
