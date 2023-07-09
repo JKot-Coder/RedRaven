@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/LinearAllocator.hpp"
+#include "rfx/core/SourceManager.hpp"
 #include "rfx/compiler/DiagnosticCore.hpp"
 
 namespace RR::Rfx
@@ -11,6 +12,7 @@ namespace RR::Rfx
 
         DiagnosticSink sink;
         Common::LinearAllocator allocator;
+        SourceManager sourceManager;
 
         bool onlyRelativePaths = false;
     };

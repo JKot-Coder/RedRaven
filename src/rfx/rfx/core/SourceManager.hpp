@@ -19,7 +19,8 @@ namespace RR::Rfx
         RResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile);
 
     private:
-        std::shared_ptr<SourceFile> findSourceFileByUniqueIdentity(const U8String& uniqueIdentity) const;
+        RResult findSourceFileByUniqueIdentity(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const;
+        void addSourceFile(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile);
 
     private:
         std::unordered_map<U8String, std::shared_ptr<SourceFile>> sourceFileMap_;

@@ -5,27 +5,29 @@
 
 namespace RR::Rfx
 {
-    std::shared_ptr<SourceFile> SourceManager::findSourceFileByUniqueIdentity(const U8String& uniqueIdentity) const
+    RResult SourceManager::findSourceFileByUniqueIdentity(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const
     {
         const auto findIt = sourceFileMap_.find(uniqueIdentity);
         if (findIt != sourceFileMap_.end())
-            return findIt->second;
-
-        return nullptr;
-    }
-/*
-    std::shared_ptr<SourceFile> SourceManager::createSourceFileWithString()
-    { 
-    }*/
-
-    RResult SourceManager::LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile)
-    {
-        if (pathInfo.hasUniqueIdentity())
         {
-            if ((sourceFile = findSourceFileByUniqueIdentity(pathInfo.getMostUniqueIdentity())))
-                return RResult::Ok;
+            sourceFile = findIt->second;
+            return RResult::Ok;
         }
 
-        return RResult::Fail;//includeSystem_->LoadFile(pathInfo, sourceFile);
+        return RResult::NotFound;
+    }
+
+    void SourceManager::addSourceFile(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile)
+    {
+        ASSERT(RR_FAILED(findSourceFileByUniqueIdentity(uniqueIdentity, sourceFile)));
+        sourceFileMap_.emplace(uniqueIdentity, sourceFile);
+    }
+
+    RResult SourceManager::LoadFile(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile)
+    {
+        RR_RETURN_ON_SUCESS(findSourceFileByUniqueIdentity(uniqueIdentity, sourceFile));
+        RR_RETURN_ON_FAIL(includeSystem_->LoadFile(pathInfo, sourceFile));
+        addSourceFile(sourceFile);
+        return RResult::Ok;
     }
 }
