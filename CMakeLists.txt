@@ -69,7 +69,7 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GN
   set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
 endif()
 
-add_compile_options(${SANITIZE_FLAGS})
+add_compile_options(${COMPILE_SANITIZE_FLAGS})
 add_link_options(${LINK_SANITIZE_FLAGS})
 
 include_directories(src)

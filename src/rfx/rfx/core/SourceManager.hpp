@@ -16,6 +16,7 @@ namespace RR::Rfx
     class SourceManager final
     {
     public:
+        std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content);
         RResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile);
 
     private:
@@ -23,6 +24,7 @@ namespace RR::Rfx
         void addSourceFile(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile);
 
     private:
+        std::vector<std::shared_ptr<SourceFile>> sourceFiles_;
         std::unordered_map<U8String, std::shared_ptr<SourceFile>> sourceFileMap_;
     };
 }

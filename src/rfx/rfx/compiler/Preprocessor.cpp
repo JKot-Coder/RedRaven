@@ -303,6 +303,7 @@ namespace RR
                              const std::shared_ptr<CompileContext>& context);
 
             DiagnosticSink& GetSink() const { return context_->sink; }
+            SourceManager& GetSourceManager() const { return context_->sourceManager; }
             std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
             std::shared_ptr<CompileContext> GetContext() const { return context_; }
             Common::LinearAllocator& GetAllocator() const { return context_->allocator; }
@@ -1355,8 +1356,8 @@ namespace RR
             auto macro = std::make_shared<MacroDefinition>();
             macro->flavor = MacroDefinition::Flavor::ObjectLike;
 
-            auto keyFile = GetIncludeSystem()->CreateFileFromString(pathInfo, key);
-            auto valueFile = GetIncludeSystem()->CreateFileFromString(pathInfo, value);
+            auto keyFile = GetSourceManager().CreateFileFromString(pathInfo, key);
+            auto valueFile = GetSourceManager().CreateFileFromString(pathInfo, value);
 
             // Note that we don't need to pass a special source loc to identify that these are defined on the command line
             // because the PathInfo on the SourceFile, is marked 'command line'.
@@ -2414,7 +2415,7 @@ namespace RR
 
             std::shared_ptr<SourceFile> includedFile;
 
-            if (RR_FAILED(context_->sourceManager.LoadFile(filePathInfo, includedFile)))
+            if (RR_FAILED(GetSourceManager().LoadFile(filePathInfo, includedFile)))
             {
                 GetSink().Diagnose(pathToken, Diagnostics::includeFailed, path);
                 return;
@@ -2922,7 +2923,7 @@ namespace RR
                         const auto preprocessor = preprocessor_.lock();
                         ASSERT(preprocessor);
 
-                        const auto& sourceFile = preprocessor->GetIncludeSystem()->CreateFileFromString(pathInfo, pastedContent.str());
+                        const auto& sourceFile = preprocessor->GetSourceManager().CreateFileFromString(pathInfo, pastedContent.str());
                         auto sourceView = SourceView::CreatePasted(sourceFile, initiatingMacroToken_.sourceLocation, initiatingMacroToken_.humaneSourceLocation);
 
                         Lexer lexer(sourceView, preprocessor->GetContext());

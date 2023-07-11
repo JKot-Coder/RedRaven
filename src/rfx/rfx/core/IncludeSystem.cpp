@@ -85,17 +85,5 @@ namespace RR
 
             return RfxResult::Ok;
         }
-
-        std::shared_ptr<SourceFile> IncludeSystem::CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const
-        {
-            ASSERT(pathInfo.type == PathInfo::Type::CommandLine ||
-                   pathInfo.type == PathInfo::Type::FromString ||
-                   pathInfo.type == PathInfo::Type::TokenPaste);
-
-            const auto& outSourceFile = std::make_shared<SourceFile>(pathInfo);
-            outSourceFile->SetContent(std::move(content));
-
-            return outSourceFile;
-        }
     }
 }

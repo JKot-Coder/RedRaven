@@ -1,11 +1,11 @@
 #include "SourceManager.hpp"
 
+#include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
 #include "core/SourceLocation.hpp"
-#include "common/OnScopeExit.hpp"
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
 namespace RR::Rfx
 {
@@ -13,11 +13,11 @@ namespace RR::Rfx
     {
         namespace fs = std::filesystem;
 
-#define ASSERT_ON_FALSE(x) \
-    if (!x)                     \
-    {                           \
-        ASSERT(false);          \
-        return RResult::Fail;   \
+#define ASSERT_ON_FALSE(x)    \
+    if (!(x))                 \
+    {                         \
+        ASSERT(false);        \
+        return RResult::Fail; \
     }
 
         RResult readFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile)
@@ -73,6 +73,19 @@ namespace RR::Rfx
     {
         ASSERT(RR_FAILED(findSourceFileByUniqueIdentity(uniqueIdentity, sourceFile)));
         sourceFileMap_.emplace(uniqueIdentity, sourceFile);
+    }
+
+    std::shared_ptr<SourceFile> SourceManager::CreateFileFromString(const PathInfo& pathInfo, const U8String& content)
+    {
+        ASSERT(pathInfo.type == PathInfo::Type::CommandLine ||
+               pathInfo.type == PathInfo::Type::FromString ||
+               pathInfo.type == PathInfo::Type::TokenPaste);
+
+        const auto& sourceFile = std::make_shared<SourceFile>(pathInfo);
+        sourceFile->SetContent(std::move(content));
+        sourceFiles_.push_back(sourceFile);
+
+        return sourceFile;
     }
 
     RResult SourceManager::LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile)
