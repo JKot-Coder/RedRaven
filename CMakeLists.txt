@@ -22,7 +22,7 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GN
   add_compile_options(-Wno-language-extension-token)
 endif()
 
-# Force MSVC to enable c++17 
+# Force MSVC to enable c++17
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/Zc:__cplusplus>")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -45,7 +45,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-add_compile_definitions( $<$<CONFIG:Debug>:DEBUG>)
+add_compile_definitions( $<$<CONFIG:Debug>:DEBUG> )
 add_compile_definitions( $<$<CONFIG:Release>:RELEASE> )
 
 set(PLATFORM_DEFINITIONS)
@@ -61,8 +61,16 @@ endif ()
 if (LINUX)
     set(PLATFORM_DEFINITIONS -DOS_LINUX)
 endif ()
-                        
+
 add_definitions(${PLATFORM_DEFINITIONS})
+
+set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
+  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+endif()
+
+add_compile_options(${SANITIZE_FLAGS})
+add_link_options(${LINK_SANITIZE_FLAGS})
 
 include_directories(src)
 
@@ -96,7 +104,7 @@ FetchContent_MakeAvailable(ApprovalTests)
 #=================================== Glfw ====================================#
 FetchContent_Declare(
   Glfw
-  GIT_REPOSITORY https://github.com/glfw/glfw
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
   GIT_TAG        3.3.7
 )
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -173,6 +181,13 @@ FetchContent_Declare(
 set(UUID_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(stduuid)
 
+#================================= magic_enum ================================#
+FetchContent_Declare(
+  magic_enum
+  GIT_REPOSITORY https://github.com/Neargye/magic_enum
+  GIT_TAG        v0.9.1
+)
+FetchContent_MakeAvailable(magic_enum)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
@@ -186,5 +201,8 @@ set_property(TARGET imgui PROPERTY FOLDER "Dependencies")
 set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
 set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
+set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
+
+
 
 add_subdirectory(src)

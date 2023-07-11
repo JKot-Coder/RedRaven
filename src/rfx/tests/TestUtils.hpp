@@ -2,14 +2,16 @@
 
 #include <filesystem>
 
-namespace RR::Rfx::Tests
+namespace RR
 {
-    enum class TestType : uint32_t
+    namespace Common
     {
-        CommandLine,
-        LexerTest
-    };
+        enum class RResult : int32_t;
+    }
 
-    void runTestOnFile(const std::filesystem::path& testFile, const std::filesystem::path& testDirectory, TestType type);
-    void runTestsInDirectory(const std::filesystem::path& directory, TestType type);
+    namespace Rfx::Tests
+    {
+        void runTestOnFile(const std::filesystem::path& testFile, const std::filesystem::path& testDirectory);
+        void runTestsInDirectory(const std::filesystem::path& directory);
+    }
 }

@@ -19,6 +19,8 @@ set(RFX_CORE_SRC
     "core/IncludeSystem.hpp"
     "core/SourceLocation.cpp"
     "core/SourceLocation.hpp"
+    "core/SourceManager.cpp"
+    "core/SourceManager.hpp"
     "core/StringEscapeUtil.cpp"
     "core/StringEscapeUtil.hpp"
     "core/UnownedStringSlice.cpp"
@@ -28,6 +30,7 @@ source_group( "core" FILES ${RFX_CORE_SRC} )
 set(RFX_COMPILER_SRC
     "compiler/CompileRequest.cpp"
     "compiler/CompileRequest.hpp"
+    "compiler/CompileContext.hpp"
     "compiler/DiagnosticCore.hpp"
     "compiler/DiagnosticDefinitions.hpp"
     "compiler/DiagnosticSink.cpp"
@@ -65,13 +68,22 @@ add_subdirectory(dxc)
 set(RFX_LINK_LIBRARIES
     common dxclib yaml-cpp)
 
+option(BUILD_RFX_SHARED "Build rfx as a shared library" ON)
+
 #================================== Target ===================================#
 
-add_library(${PROJECT_NAME} SHARED ${RFX_SRC})
-target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE RFX_DYNAMIC_EXPORT)
+if(BUILD_RFX_SHARED)
+    add_library(${PROJECT_NAME} SHARED ${RFX_SRC})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE RFX_DYNAMIC_EXPORT)
+    target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/..")
+else()
+    add_library(${PROJECT_NAME} ${RFX_SRC})
+    target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/..")
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")
@@ -80,6 +92,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 if(MSVC)
 	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
-else(MSVC)
+else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif(MSVC)
+endif()

@@ -14,6 +14,7 @@ namespace RR
         class DiagnosticSink;
         class ASTBuilder;
         class SourceView;
+        struct CompileContext;
         struct Token;
 
         class Parser
@@ -22,8 +23,7 @@ namespace RR
             ~Parser();
             Parser() = delete;
             Parser(const std::shared_ptr<SourceView>& sourceView,
-                   const std::shared_ptr<Common::LinearAllocator>& allocator,
-                   const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+                   const std::shared_ptr<CompileContext>& context);
 
             Common::RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
 

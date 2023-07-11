@@ -1,0 +1,17 @@
+SourceOutput:[
+    #line 11 "../src/rfx/tests/preprocessor/SpecialMacroComplex.rfx"
+    Thing11
+    #line 16
+    Yeppers
+    #line 23
+    PasteConditional
+    #line 10
+    10
+    #line 19
+    19
+]
+Diagnostic:[
+    ../src/rfx/tests/preprocessor/SpecialMacroComplex.rfx(13): error 15102: expected 'integer literal' in 'line' directive
+    #line default
+          ^~~~~~~
+]

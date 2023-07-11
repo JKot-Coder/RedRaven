@@ -8,6 +8,7 @@ namespace RR
     namespace Common
     {
         class LinearAllocator;
+        enum class RResult : int32_t;
     }
 
     namespace Rfx
@@ -32,8 +33,7 @@ namespace RR
                 {
                 }*/
 
-            RfxResult FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const;
-            RfxResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile);
+            Common::RResult FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const;
 
             std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const;
             /*
@@ -43,7 +43,7 @@ namespace RR
             ISlangFileSystemExt* getFileSystem() const { return m_fileSystemExt; }*/
 
         private:
-            RfxResult findFileImpl(const fs::path& path, const fs::path& fromPath, PathInfo& outPathInfo) const;
+            Common::RResult findFileImpl(const fs::path& path, const fs::path& fromPath, PathInfo& outPathInfo) const;
 
             // SearchDirectoryList* m_searchDirectories;
             std::shared_ptr<IRfxFileSystem> fileSystemExt_;

@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 
 // Test for correct recursive macro behavior. In particular: 
 
@@ -31,7 +31,7 @@ int objectLikeMacroTest( int REC )
 {
 #define REC REC
 
-	return REC;	
+    return REC;	
 }
 
 // We also need to check the case where macros are
@@ -39,7 +39,7 @@ int objectLikeMacroTest( int REC )
 
 int mutuallyRecursiveMacroTest( int XYZ )
 {
-	#define ABC XYZ
-	#define XYZ ABC
-	return XYZ;
+    #define ABC XYZ
+    #define XYZ ABC
+    return XYZ;
 }

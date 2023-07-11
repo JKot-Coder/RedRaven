@@ -2,8 +2,9 @@
 
 #include "DiagnosticCore.hpp"
 #include "common/Result.hpp"
-#include "compiler/Token.hpp"
-#include "core/SourceLocation.hpp"
+#include "rfx/compiler/CompileContext.hpp"
+#include "rfx/compiler/Token.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
 namespace RR::Rfx
 {
@@ -65,7 +66,9 @@ namespace RR::Rfx
     void JSONContainer::AddKeyValue(const UnownedStringSlice& key, const JSONValue& value)
     {
         ASSERT(type_ == Type::Object);
-        ASSERT(objectValues_.emplace(key, value).second);
+        const bool emplaced = objectValues_.emplace(key, value).second;
+        UNUSED(emplaced);
+        ASSERT(emplaced);
     }
 
     JSONValue JSONContainer::Find(const UnownedStringSlice& key) const
@@ -93,13 +96,14 @@ namespace RR::Rfx
         }
     }
 
-    JSONBuilder::JSONBuilder(std::shared_ptr<DiagnosticSink> diagnosticSink) : root_(JSONContainer::MakeObject()),
-                                                                               key_({}),
-                                                                               expect_(Expect::ObjectKey),
-                                                                               sink_(diagnosticSink)
+    JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
+                                                                               root_(JSONContainer::MakeObject()),
+                                                                               context_(context)
     {
         stack_.emplace_back(root_);
     }
+
+    DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
 
     RResult JSONBuilder::StartObject(const Token& token)
     {
@@ -164,12 +168,12 @@ namespace RR::Rfx
             }
             case JSONValue::Type::Invalid:
             {
-                sink_->Diagnose(parent, Diagnostics::undeclaredIdentifier, parentName.AsString());
+                getSink().Diagnose(parent, Diagnostics::undeclaredIdentifier, parentName.AsString());
                 return RResult::NotFound;
             }
             default:
             {
-                sink_->Diagnose(parent, Diagnostics::invalidParentType, parentName.AsString(), value.type);
+                getSink().Diagnose(parent, Diagnostics::invalidParentType, parentName.AsString(), value.type);
                 return RResult::Fail;
             }
         }
@@ -185,7 +189,7 @@ namespace RR::Rfx
 
         if (currentContainer()->IsObjectValueExist(keyName))
         {
-            sink_->Diagnose(key, Diagnostics::duplicateKey, keyName.AsString());
+            getSink().Diagnose(key, Diagnostics::duplicateKey, keyName.AsString());
             return RResult::AlreadyExist;
         }
 
@@ -219,7 +223,7 @@ namespace RR::Rfx
                 return add(token, JSONValue::MakeFloat(tokenToFloat(token)));
             default:
             {
-                sink_->Diagnose(token, Diagnostics::unexpectedToken, token.type);
+                getSink().Diagnose(token, Diagnostics::unexpectedToken, token.type);
                 return RResult::Fail;
             }
         }
@@ -233,7 +237,7 @@ namespace RR::Rfx
             case Expect::Parent:
                 if (value.type != JSONValue::Type::Object)
                 {
-                    sink_->Diagnose(token, Diagnostics::invalidTypeForInheritance, key_.AsString(), value.type);
+                    getSink().Diagnose(token, Diagnostics::invalidTypeForInheritance, key_.AsString(), value.type);
                     return RResult::Fail;
                 }
                 [[fallthrough]];
@@ -256,12 +260,12 @@ namespace RR::Rfx
         const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
 
         if (errno == ERANGE)
-            sink_->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int64_t");
+            getSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int64_t");
 
         if (end == token.stringSlice.End())
             return result;
 
-        sink_->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+        getSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
         return 0;
     }
 
@@ -275,12 +279,12 @@ namespace RR::Rfx
         const auto result = std::strtod(token.stringSlice.Begin(), &end);
 
         if (errno == ERANGE)
-            sink_->Diagnose(token, Diagnostics::floatLiteralOutOfRange, token.GetContentString(), "double");
+            getSink().Diagnose(token, Diagnostics::floatLiteralOutOfRange, token.GetContentString(), "double");
 
         if (end == token.stringSlice.End())
             return result;
 
-        sink_->Diagnose(token, Diagnostics::floatLiteralUnexpected, token.GetContentString());
+        getSink().Diagnose(token, Diagnostics::floatLiteralUnexpected, token.GetContentString());
         return 0;
     }
 }

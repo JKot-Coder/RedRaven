@@ -1,8 +1,8 @@
-PreprocessorOutput:[
-	#line 6 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\DefineSimple.rfx"
-	float foo() { return 1.0f + 2.0; }
-	#line 11
-	int bar() { return 0; }
+SourceOutput:[
+    #line 6 "../src/rfx/tests/preprocessor/DefineSimple.rfx"
+    float foo() { return 1.0f + 2.0; }
+    #line 11
+    int bar() { return 0; }
 ]
 Diagnostic:[
 ]

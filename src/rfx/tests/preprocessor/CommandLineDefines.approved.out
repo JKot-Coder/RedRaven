@@ -1,0 +1,8 @@
+exit_status:0
+output:
+Source output:
+    #line 11 "../src/rfx/tests/preprocessor/CommandLineDefines.rfx"
+    BAR
+    #line 16
+    BAR2000
+Diagnostic output:

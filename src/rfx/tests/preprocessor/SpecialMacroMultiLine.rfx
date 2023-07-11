@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 
 #define M(ARG) __LINE__
 

@@ -1,4 +1,4 @@
-// -O LEXER
+// :LEXER
 
 Инвалид
 identifier
@@ -9,6 +9,7 @@ identifier
 // Line comment
 /* Block
    Comment */
+"Escaping \f\xF09F\x98\212"
 
 ; , . .. ...
 {}[]()

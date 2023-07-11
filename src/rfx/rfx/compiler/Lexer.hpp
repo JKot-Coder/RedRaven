@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/SourceLocation.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
-#include "compiler/Token.hpp"
+#include "rfx/compiler/Token.hpp"
 
 namespace RR
 {
@@ -14,6 +14,7 @@ namespace RR
     namespace Rfx
     {
         class DiagnosticSink;
+        struct CompileContext;
 
         using TokenList = std::vector<Token>;
 
@@ -114,11 +115,11 @@ namespace RR
             ENUM_CLASS_FRIEND_OPERATORS(Flags)
 
         public:
-            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<Common::LinearAllocator>& linearAllocator, const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+            Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<CompileContext>& context);
             ~Lexer();
 
             std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
-            std::shared_ptr<DiagnosticSink> GetDiagnosticSink() const { return sink_; }
+            DiagnosticSink& GetDiagnosticSink() const;
 
             Flags GetLexerFlags() const { return lexerFlags_; }
             void EnableFlags(Flags flags) { lexerFlags_ |= flags; }
@@ -142,6 +143,8 @@ namespace RR
             };
 
         private:
+            Common::LinearAllocator& getAllocator();
+
             inline bool isReachEOF() const { return cursor_ == end_; }
 
             inline U8Glyph peek() const
@@ -172,9 +175,8 @@ namespace RR
             void lexStringLiteralBody(U8Glyph quote);
 
         private:
-            std::shared_ptr<Common::LinearAllocator> allocator_;
             std::shared_ptr<SourceView> sourceView_;
-            std::shared_ptr<DiagnosticSink> sink_;
+            std::shared_ptr<CompileContext> context_;
 
             const char* cursor_;
             const char* begin_;

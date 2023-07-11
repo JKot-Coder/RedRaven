@@ -2,10 +2,12 @@
 
 #include "common/ComPtr.hpp"
 #include "common/Result.hpp"
+#include "stl/enum_array.hpp"
 
 #include "cxxopts.hpp"
 #include <fstream>
 #include <ostream>
+#include <sstream>
 
 namespace RR
 {
@@ -21,40 +23,6 @@ namespace RR
         {
             printErrorMessage("Unexpected error: {}", Common::GetErrorMessage(result));
         }
-
-        template <typename T>
-        class CStringAllocator final
-        {
-        public:
-            ~CStringAllocator()
-            {
-                for (const auto cstring : cstring_)
-                    delete[] cstring;
-            }
-
-            void Allocate(const std::vector<std::basic_string<T>>& strings)
-            {
-                for (const auto& string : strings)
-                    Allocate(string);
-            }
-
-            T* Allocate(const std::basic_string<T>& string)
-            {
-                const auto stringLength = string.length();
-
-                auto cString = new T[stringLength + 1];
-                string.copy(cString, stringLength);
-                cString[stringLength] = '\0';
-
-                cstring_.push_back(cString);
-                return cString;
-            }
-
-            const std::vector<T*>& GetCStrings() const { return cstring_; }
-
-        private:
-            std::vector<T*> cstring_;
-        };
     }
 
     void writeOutput(const std::string& filename, Rfx::CompileOutputType outputType, const Common::ComPtr<Rfx::IBlob>& output)
@@ -72,12 +40,16 @@ namespace RR
                     return;
                 case Rfx::CompileOutputType::Diagnostic: std::cout << "Diagnostic output:" << std::endl; break;
                 case Rfx::CompileOutputType::Tokens: std::cout << "Tokens output:" << std::endl; break;
-                case Rfx::CompileOutputType::Source: std::cout << "Preprocessor output:" << std::endl; break;
+                case Rfx::CompileOutputType::Source: std::cout << "Source output:" << std::endl; break;
                 case Rfx::CompileOutputType::Assembly: std::cout << "Assembly output:" << std::endl; break;
                 default: ASSERT_MSG(false, "Unknown output");
             }
 
-            std::cout << outputString;
+            auto stream = std::istringstream(outputString);
+            U8String line;
+            while (getline(stream, line))
+                std::cout << "    " << line << "\n";
+
             return;
         }
 
@@ -100,7 +72,7 @@ namespace RR
 
         options.add_options("Common") // clang-format off
             ("h,help", "Display available options")
-            ("version", "Display compiler version information")          
+            ("version", "Display compiler version information")
             ("inputs", "Inputs", cxxopts::value<std::vector<std::string>>(inputFiles));
 
       /*      ("d,debug", "Enable debugging") // a bool parameter
@@ -112,10 +84,12 @@ namespace RR
         options.add_options("Compilation") // clang-format off
             ("Fc", "Output assembly code listing file", cxxopts::value<std::string>(), "file")
             ("Fo", "Output object file", cxxopts::value<std::string>(), "file")
-            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
+            ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions))
+            ("Rl", "Force the usage of only relative paths in the output and diagnostic messages"); // clang-format on
 
         options.add_options("Utility Options") // clang-format off
-            ("P", "Preprocess to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
+            ("L", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file")
+            ("P", "Preprocessor output to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
 
         options.positional_help("<inputs>");
         cxxopts::ParseResult parseResult;
@@ -157,9 +131,19 @@ namespace RR
 
             compileRequestDesc.inputFile = inputFiles.front().c_str();
 
+            stl::enum_array<U8String, RR::Rfx::CompileOutputType> outputs;
+
+            compileRequestDesc.compilerOptions.onlyRelativePaths = parseResult.count("Rl");
+
             if (parseResult.count("P"))
             {
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Preprocessor;
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["P"].as<std::string>();
+            }
+            else if (parseResult.count("L"))
+            {
+                compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Lexer;
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["L"].as<std::string>();
             }
             else if (parseResult.count("Fc") || parseResult.count("Fo"))
             {
@@ -167,9 +151,12 @@ namespace RR
 
                 compileRequestDesc.compilerOptions.assemblyOutput = parseResult.count("Fc");
                 compileRequestDesc.compilerOptions.objectOutput = parseResult.count("Fo");
+
+                outputs[RR::Rfx::CompileOutputType::Assembly] = parseResult["Fc"].as<std::string>();
+                outputs[RR::Rfx::CompileOutputType::Object] = parseResult["Fo"].as<std::string>();
             }
 
-            CStringAllocator<char> cstingAllocator;
+            Rfx::Utils::CStringAllocator<char> cstingAllocator;
             cstingAllocator.Allocate(definitions);
 
             compileRequestDesc.defines = (const char**)cstingAllocator.GetCStrings().data();
@@ -189,15 +176,12 @@ namespace RR
             {
                 switch (result)
                 {
-                    case Common::RResult::Ok:
-                        break;
+                    case Common::RResult::Ok: break;
                     case Common::RResult::NotFound:
                     case Common::RResult::CannotOpen:
                         printErrorMessage("Cannot open file: {}", compileRequestDesc.inputFile);
                         return 1;
-                    default:
-                        printErrorMessage(result);
-                        return 1;
+                    default: printErrorMessage(result); return 1;
                 }
             }
 
@@ -219,13 +203,9 @@ namespace RR
                         writeOutput("%STD_OUTPUT%", outputType, output);
                         break;
                     case RR::Rfx::CompileOutputType::Source:
-                        writeOutput(parseResult["P"].as<std::string>(), outputType, output);
-                        break;
                     case RR::Rfx::CompileOutputType::Assembly:
-                        writeOutput(parseResult["Fc"].as<std::string>(), outputType, output);
-                        break;
                     case RR::Rfx::CompileOutputType::Object:
-                        writeOutput(parseResult["Fo"].as<std::string>(), outputType, output);
+                        writeOutput(outputs[outputType], outputType, output);
                         break;
                     case RR::Rfx::CompileOutputType::Tokens:
                         writeOutput("%STD_OUTPUT%", outputType, output);

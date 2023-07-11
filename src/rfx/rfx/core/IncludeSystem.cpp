@@ -1,7 +1,7 @@
 #include "IncludeSystem.hpp"
 
-#include "core/FileSystem.hpp"
-#include "core/SourceLocation.hpp"
+#include "rfx/core/FileSystem.hpp"
+#include "rfx/core/SourceLocation.hpp"
 
 #include "common/Result.hpp"
 #include "common/OnScopeExit.hpp"
@@ -81,44 +81,7 @@ namespace RR
             if (uniqueIdentity.length() <= 0)
                 return RfxResult::Fail; // Unique identity can't be empty
 
-            outPathInfo = PathInfo::makeNormal(combinedPath.lexically_normal().u8string(), uniqueIdentity);
-
-            return RfxResult::Ok;
-        }
-
-        RfxResult IncludeSystem::LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile)
-        {
-            ASSERT(pathInfo.type == PathInfo::Type::Normal);
-
-            const auto& path = fs::path(pathInfo.foundPath);
-
-            if (!fs::exists(path))
-                return RfxResult::NotFound;
-
-            std::ifstream stream(pathInfo.foundPath, std::ios::binary);
-
-            if (!stream)
-                return RfxResult::Fail;
-            
-            ON_SCOPE_EXIT({ stream.close(); });
-
-            stream.seekg(0, stream.end);
-            uint64_t sizeInBytes = stream.tellg();
-            stream.seekg(0, stream.beg);
-
-            const uint64_t MaxFileSize = 0x40000000; // 1 Gib
-            if (sizeInBytes > MaxFileSize)
-                return RfxResult::Fail; // It's too large to fit in memory.
-
-            U8String content;
-            content.resize(sizeInBytes);
-            stream.read(&content[0], content.size());            
-
-            if (!stream) // If not all read just return an error
-                return RfxResult::Fail;
-
-            outSourceFile = std::make_shared<SourceFile>(pathInfo);
-            outSourceFile->SetContent(std::move(content));
+            outPathInfo = PathInfo::makeNormal(combinedPath.lexically_normal().generic_u8string(), uniqueIdentity);
 
             return RfxResult::Ok;
         }

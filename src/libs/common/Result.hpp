@@ -28,6 +28,15 @@ It can be useful to have a consistent short name for a facility, as used in the 
             return _res;                \
     } while (0)
 
+//! Helper macro that can be used to return sucessed result.
+#define RR_RETURN_ON_SUCESS(x)          \
+    do                                  \
+    {                                   \
+        RR::Common::RResult _res = (x); \
+        if (RR_SUCCEEDED(_res))         \
+            return _res;                \
+    } while (0)
+
 //! Helper macro that can be used to test the return value from a call, and will return in a void method/function
 #define RR_RETURN_VOID_ON_FAIL(x)       \
     do {                                \
@@ -43,7 +52,7 @@ It can be useful to have a consistent short name for a facility, as used in the 
         if (RR_FAILED(_res))            \
             return false;               \
     } while (0)
-    
+
 //! Helper macro that will return nullptr on failure.
 #define RR_RETURN_NULL_ON_FAIL(x)       \
     do {                                \
@@ -118,7 +127,7 @@ namespace RR::Common
         Abort = RR_MAKE_ERROR(RR_FACILITY_WIN_GENERAL, 0x4004), // Operation was aborted (did not correctly complete) (0x80004004)
         Fail = RR_MAKE_ERROR(RR_FACILITY_WIN_GENERAL, 0x4005), // Fail is the generic failure code - meaning a serious error occurred and the call couldn't complete (0x80004005)
         Unexpected = RR_MAKE_ERROR(RR_FACILITY_WIN_GENERAL, 0xFFFF), // Unexpected failure (0x8000FFFF)
- 
+
         /* *************************** other Results **************************************/
         CannotOpen = RR_MAKE_ERROR(RR_FACILITY_CORE, 4), // Indicates a file/resource could not be opened
         NotFound = RR_MAKE_ERROR(RR_FACILITY_CORE, 5), // Indicates a file/resource could not be found

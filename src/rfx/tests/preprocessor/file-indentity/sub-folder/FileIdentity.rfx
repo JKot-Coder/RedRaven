@@ -1,4 +1,4 @@
-//PREPROCESSOR_TEST:
+// :PREPROCESSOR
 
 #include "../b.hrfx"
 #include "../c.hrfx"
@@ -7,5 +7,5 @@
 
 float test(float x)
 {
-	return foo(x) + bar(x);
+    return foo(x) + bar(x);
 }

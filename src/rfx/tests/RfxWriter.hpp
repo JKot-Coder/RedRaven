@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ApprovalTests/ApprovalTests.hpp"
-#include "rfx.hpp"
 #include "command.h"
+#include "rfx.hpp"
 
 #include "common/ComPtr.hpp"
 
@@ -14,8 +14,8 @@ namespace RR::Rfx
         {
         public:
             ~RfxWriter() { }
-            RfxWriter(const std::vector<Common::ComPtr<Rfx::ICompileResult>>& compileResults)
-                : compileResults_(compileResults)
+            RfxWriter(Common::ComPtr<Rfx::ICompileResult>& compileResult)
+                : compileResult_(compileResult)
             {
             }
 
@@ -32,7 +32,7 @@ namespace RR::Rfx
             }
 
         private:
-            std::vector<Common::ComPtr<Rfx::ICompileResult>> compileResults_;
+            Common::ComPtr<Rfx::ICompileResult> compileResult_;
         };
 
         class RfxWriter2 : public ApprovalTests::ApprovalWriter

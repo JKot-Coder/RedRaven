@@ -1,6 +1,6 @@
-PreprocessorOutput:[
-	#line 10 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\PreprocStringify.rfx"
-	"A B";
+SourceOutput:[
+    #line 10 "../src/rfx/tests/preprocessor/PreprocStringify.rfx"
+    "A B";
 ]
 Diagnostic:[
 ]

@@ -1,6 +1,6 @@
 #include "StringEscapeUtil.hpp"
 
-#include "core/UnownedStringSlice.hpp"
+#include "rfx/core/UnownedStringSlice.hpp"
 
 #include <sstream>
 
@@ -15,7 +15,7 @@ namespace RR
                 return (v <= 9) ? char(v + '0') : char(v - 10 + 'A');
             }
 
-            char getCppEscapedChar(char c)
+            char getCppEscapedChar(U8Glyph c)
             {
                 switch (c)
                 {
@@ -53,53 +53,61 @@ namespace RR
 
             // Outputs ioSlice with the chars remaining after utf8 encoded value
             // Returns ~uint32_t(0) if can't decode
-         /*   uint32_t getUnicodePointFromUTF8(UnownedStringSlice& ioSlice)
-            {
-                const auto length = ioSlice.GetLength();
-                ASSERT(length > 0);
-                const auto cur = ioSlice.Begin();
+            /*   uint32_t getUnicodePointFromUTF8(UnownedStringSlice& ioSlice)
+               {
+                   const auto length = ioSlice.GetLength();
+                   ASSERT(length > 0);
+                   const auto cur = ioSlice.Begin();
 
-                uint32_t codePoint = 0;
-                unsigned int leading = cur[0];
-                unsigned int mask = 0x80;
+                   uint32_t codePoint = 0;
+                   unsigned int leading = cur[0];
+                   unsigned int mask = 0x80;
 
-                int count = 0;
-                while (leading & mask)
-                {
-                    count++;
-                    mask >>= 1;
-                }
+                   int count = 0;
+                   while (leading & mask)
+                   {
+                       count++;
+                       mask >>= 1;
+                   }
 
-                if (size_t(count) > length)
-                {
-                    ASSERT(!"Can't decode");
-                    ioSlice = UnownedStringSlice(ioSlice.End(), ioSlice.End());
-                    return ~uint32_t(0);
-                }
+                   if (size_t(count) > length)
+                   {
+                       ASSERT(!"Can't decode");
+                       ioSlice = UnownedStringSlice(ioSlice.End(), ioSlice.End());
+                       return ~uint32_t(0);
+                   }
 
-                codePoint = (leading & (mask - 1));
-                for (int i = 1; i <= count - 1; i++)
-                {
-                    codePoint <<= 6;
-                    codePoint += (cur[i] & 0x3F);
-                }
+                   codePoint = (leading & (mask - 1));
+                   for (int i = 1; i <= count - 1; i++)
+                   {
+                       codePoint <<= 6;
+                       codePoint += (cur[i] & 0x3F);
+                   }
 
-                ioSlice = UnownedStringSlice(cur + count, ioSlice.End());
-                return codePoint;
-            }*/
+                   ioSlice = UnownedStringSlice(cur + count, ioSlice.End());
+                   return codePoint;
+               }*/
             void appendHex16(uint32_t value, U8String& out)
             {
-                static const char s_hex[] = "0123456789abcdef";
-
                 // Let's go with hex
                 char buf[] = "\\u0000";
 
-                buf[2] = s_hex[(value >> 12) & 0xf];
-                buf[3] = s_hex[(value >> 8) & 0xf];
-                buf[4] = s_hex[(value >> 4) & 0xf];
-                buf[5] = s_hex[(value >> 0) & 0xf];
+                buf[2] = getHexChar((value >> 12) & 0xf);
+                buf[3] = getHexChar((value >> 8) & 0xf);
+                buf[4] = getHexChar((value >> 4) & 0xf);
+                buf[5] = getHexChar((value >> 0) & 0xf);
 
                 out.append(buf, 6);
+            }
+
+            void appendHex8(uint32_t value, U8String& out)
+            {
+                // Let's go with hex
+                char buf[5] = "\\0x0";
+                buf[3] = getHexChar((value >> 4) & 0xf);
+                buf[4] = getHexChar((value >> 0) & 0xf);
+
+                out.append(buf, buf + 4);
             }
 
             class StringEscapeHandler
@@ -121,13 +129,13 @@ namespace RR
                 virtual void AppendEscaped(const UnownedStringSlice& slice, U8String& out) const = 0;
                 /// Given a slice append it unescaped
                 /// Does not consume surrounding quotes
-                //virtual void AppendUnescaped(const UnownedStringSlice& slice, U8String& out) const = 0;
+                // virtual void AppendUnescaped(const UnownedStringSlice& slice, U8String& out) const = 0;
 
                 /// Lex quoted text.
                 /// The first character of cursor should be the quoteCharacter.
                 /// cursor points to the string to be lexed - must typically be 0 terminated.
                 /// outCursor on successful lex will be at the next character after was processed.
-                //virtual SlangResult lexQuoted(const char* cursor, const char** outCursor) = 0;
+                // virtual SlangResult lexQuoted(const char* cursor, const char** outCursor) = 0;
 
                 inline char GetQuoteChar() const { return quoteChar_; }
 
@@ -159,46 +167,31 @@ namespace RR
 
             void CppStringEscapeHandler::AppendEscaped(const UnownedStringSlice& slice, U8String& out) const
             {
-                // TODO: UTF-8 support here
                 const char* start = slice.Begin();
                 const char* cur = start;
                 const char* const end = slice.End();
 
-                for (; cur < end; ++cur)
+                for (; cur < end;)
                 {
-                    const char c = *cur;
-                    const char escapedChar = getCppEscapedChar(c);
+                    const auto ch = utf8::next(cur, end);
+                    const auto escapedChar = getCppEscapedChar(ch);
 
                     if (escapedChar)
                     {
-                        // Flush
-                        if (start < cur)
-                            out.append(start, cur);
-
                         out.push_back('\\');
                         out.push_back(escapedChar);
-                        start = cur + 1;
                     }
-                    else if (c < ' ' || c > 126)
+                    else if (ch < ' ')
                     {
-                        // Flush
-                        if (start < cur)
-                        {
-                            out.append(start, cur);
-                        }
-
-                        char buf[5] = "\\0x0";
-                        buf[3] = getHexChar((int(c) >> 4) & 0xf);
-                        buf[4] = getHexChar(c & 0xf);
-
-                        out.append(buf, buf + 4);
-
-                        start = cur + 1;
+                        appendHex8(uint32_t(ch), out);
                     }
+                    else if (ch > 126)
+                    {
+                        appendHex16(uint32_t(ch), out);
+                    }
+                    else
+                        utf8::append(static_cast<U8Glyph>(ch), out);
                 }
-
-                if (start < end)
-                    out.append(start, end);
             }
 
             // !!!!!!!!!!!!!!!!!!!!!!!!!! JSONStringEscapeHandler !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -216,8 +209,8 @@ namespace RR
                 //  virtual bool isEscapingNeeded(const UnownedStringSlice& slice) override;
                 // virtual bool isUnescapingNeeeded(const UnownedStringSlice& slice) override;
                 virtual void AppendEscaped(const UnownedStringSlice& slice, U8String& out) const override;
-                //virtual RfxResult appendUnescaped(const UnownedStringSlice& slice, StringBuilder& out) override;
-                //virtual RfxResult lexQuoted(const char* cursor, const char** outCursor) override;
+                // virtual RfxResult appendUnescaped(const UnownedStringSlice& slice, StringBuilder& out) override;
+                // virtual RfxResult lexQuoted(const char* cursor, const char** outCursor) override;
 
                 JSONStringEscapeHandler() : Super('"') { }
             };
@@ -240,9 +233,6 @@ namespace RR
                     }
                     else if (ch < ' ')
                     {
-                        if (start < cur)
-                            out.append(start, cur);
-
                         appendHex16(uint32_t(ch), out);
                     }
                     else

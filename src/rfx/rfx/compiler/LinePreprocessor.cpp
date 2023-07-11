@@ -1,10 +1,11 @@
 #include "LinePreprocessor.hpp"
 
-#include "compiler/DiagnosticCore.hpp"
-#include "compiler/Lexer.hpp"
+#include "rfx/compiler/CompileContext.hpp"
+#include "rfx/compiler/DiagnosticCore.hpp"
+#include "rfx/compiler/Lexer.hpp"
 
-#include "core/IncludeSystem.hpp"
-#include "core/StringEscapeUtil.hpp"
+#include "rfx/core/IncludeSystem.hpp"
+#include "rfx/core/StringEscapeUtil.hpp"
 
 #include "common/LinearAllocator.hpp"
 #include "common/Result.hpp"
@@ -157,11 +158,11 @@ namespace RR::Rfx
     class LinePreprocessorImpl final : public std::enable_shared_from_this<LinePreprocessorImpl>
     {
     public:
-        LinePreprocessorImpl(const std::shared_ptr<Common::LinearAllocator>& allocator,
-                             const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+        LinePreprocessorImpl(const std::shared_ptr<CompileContext>& context);
 
-        std::shared_ptr<DiagnosticSink> GetSink() const { return sink_; }
-        std::shared_ptr<Common::LinearAllocator> GetAllocator() const { return allocator_; }
+        DiagnosticSink& GetSink() const { return context_->sink; }
+        Common::LinearAllocator& GetAllocator() const { return context_->allocator; }
+        std::shared_ptr<CompileContext> GetContext() const { return context_; }
 
         std::vector<Token> ReadAllTokens();
 
@@ -203,8 +204,7 @@ namespace RR::Rfx
         void expectEndOfDirective(DirectiveContext& context);
 
     private:
-        std::shared_ptr<DiagnosticSink> sink_;
-        std::shared_ptr<Common::LinearAllocator> allocator_;
+        std::shared_ptr<CompileContext> context_;
 
         /// A stack of "active" input files
         std::shared_ptr<InputFile> currentInputFile_;
@@ -275,7 +275,7 @@ namespace RR::Rfx
         SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
 
         /// Get the diagnostic sink to use for messages related to this stream
-        std::shared_ptr<DiagnosticSink> GetSink() const
+        DiagnosticSink& GetSink() const
         {
             const auto preprocessor = preprocessor_.lock();
             ASSERT(preprocessor);
@@ -323,7 +323,7 @@ namespace RR::Rfx
             const auto sharedPreprocessor = preprocessor.lock();
             ASSERT(sharedPreprocessor);
 
-            lexer_ = std::make_unique<Lexer>(sourceView, sharedPreprocessor->GetAllocator(), GetSink());
+            lexer_ = std::make_unique<Lexer>(sourceView, sharedPreprocessor->GetContext());
             lookaheadToken_ = readTokenImpl();
         }
 
@@ -407,12 +407,10 @@ namespace RR::Rfx
         friend class LinePreprocessorImpl;
     };
 
-    LinePreprocessorImpl::LinePreprocessorImpl(const std::shared_ptr<Common::LinearAllocator>& allocator,
-                                               const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-        : sink_(diagnosticSink),
-          allocator_(allocator)
+    LinePreprocessorImpl::LinePreprocessorImpl(const std::shared_ptr<CompileContext>& context)
+        : context_(context)
     {
-        ASSERT(diagnosticSink);
+        ASSERT(context);
 
         endOfFileToken_.type = Token::Type::EndOfFile;
     }
@@ -459,12 +457,12 @@ namespace RR::Rfx
         const auto result = std::strtoul(token.stringSlice.Begin(), &end, radix);
 
         if (errno == ERANGE)
-            GetSink()->Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
+            GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
 
         if (end == token.stringSlice.End())
             return result;
 
-        GetSink()->Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+        GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
         return 0;
     }
 
@@ -577,7 +575,7 @@ namespace RR::Rfx
         {
             // Only report the first parse error within a directive
             if (!context.parseError)
-                GetSink()->Diagnose(peekToken(), diagnostic, expected, context.GetName());
+                GetSink().Diagnose(peekToken(), diagnostic, expected, context.GetName());
 
             context.parseError = true;
             return false;
@@ -594,7 +592,7 @@ namespace RR::Rfx
             // If we already saw a previous parse error, then don't
             // emit another one for the same directive.
             if (!context.parseError)
-                GetSink()->Diagnose(peekToken(), Diagnostics::unexpectedTokensAfterDirective, context.GetName());
+                GetSink().Diagnose(peekToken(), Diagnostics::unexpectedTokensAfterDirective, context.GetName());
 
             skipToEndOfLine();
         }
@@ -629,7 +627,7 @@ namespace RR::Rfx
         // Otherwise the directive name had better be an identifier
         if (directiveTokenType != Token::Type::Identifier)
         {
-            GetSink()->Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
+            GetSink().Diagnose(context.token, Diagnostics::expectedPreprocessorDirectiveName);
             skipToEndOfLine();
             return;
         }
@@ -639,7 +637,7 @@ namespace RR::Rfx
 
         if (context.GetName() != "line")
         {
-            GetSink()->Diagnose(context.token, Diagnostics::unknownPreprocessorDirective, context.GetName());
+            GetSink().Diagnose(context.token, Diagnostics::unknownPreprocessorDirective, context.GetName());
             skipToEndOfLine();
             return;
         }
@@ -712,9 +710,8 @@ namespace RR::Rfx
 
     LinePreprocessor::~LinePreprocessor() { }
 
-    LinePreprocessor::LinePreprocessor(const std::shared_ptr<Common::LinearAllocator>& allocator,
-                                       const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-        : impl_(std::make_unique<LinePreprocessorImpl>(allocator, diagnosticSink))
+    LinePreprocessor::LinePreprocessor(const std::shared_ptr<CompileContext>& context)
+        : impl_(std::make_unique<LinePreprocessorImpl>(context))
     {
     }
 

@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 
 // Undefining a macro that is not defined within C/C++ is defined as *not* an error or a warning.
 // On checking with DXC/FXC they also have this behavior (ie they don't output anything)

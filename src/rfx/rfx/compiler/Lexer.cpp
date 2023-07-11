@@ -1,7 +1,7 @@
 #include "Lexer.hpp"
 
-#include "compiler/DiagnosticCore.hpp"
-
+#include "rfx/compiler/DiagnosticCore.hpp"
+#include "compiler/CompileContext.hpp"
 #include "common/LinearAllocator.hpp"
 
 #include <iterator>
@@ -16,6 +16,31 @@ namespace RR
             inline bool isWhiteSpace(U8Glyph ch) { return (ch == ' ' || ch == '\t'); }
             inline bool isNewLineChar(U8Glyph ch) { return (ch == '\n' || ch == '\r'); }
             inline bool isEOF(U8Glyph ch) { return ch == Lexer::kEOF; }
+
+            UnownedStringSlice trimQuoutes(const UnownedStringSlice& tokenSlice, Token::Type tokenType)
+            {
+                char quoteChar = 0;
+                switch (tokenType)
+                {
+                    case Token::Type::StringLiteral: quoteChar = '\"'; break;
+                    case Token::Type::CharLiteral: quoteChar = '\''; break;
+                    default: return tokenSlice;
+                }
+                
+                auto begin = tokenSlice.Begin();
+                auto end = tokenSlice.End();
+
+                if (*begin == quoteChar)
+                    begin++;
+
+                if (begin >= end)
+                    return UnownedStringSlice(begin, end);
+
+                if (*(end - 1) == quoteChar)
+                    end--;
+
+                return UnownedStringSlice(begin, end);
+            }
 
             bool isNumberExponent(U8Glyph ch, uint32_t base)
             {
@@ -38,6 +63,31 @@ namespace RR
                     next = *(cursor + 1);
 
                 return isNewLineChar(next);
+            }
+
+            char* appendGlyph(U8Glyph cp, char* result)
+            {
+                if (cp <= 0xFF) // one octet
+                    *(result++) = static_cast<uint8_t>(cp);
+                else if (cp <= 0xFFFF)
+                { // two octets
+                    *(result++) = static_cast<uint8_t>(cp >> 8);
+                    *(result++) = static_cast<uint8_t>(cp & 0xFF);
+                }
+                else if (cp <= 0xFFFFFF)
+                { // three octets
+                    *(result++) = static_cast<uint8_t>(cp >> 16);
+                    *(result++) = static_cast<uint8_t>((cp >> 8) & 0xFF);
+                    *(result++) = static_cast<uint8_t>(cp & 0xFF);
+                }
+                else
+                { // four octets
+                    *(result++) = static_cast<uint8_t>(cp >> 24);
+                    *(result++) = static_cast<uint8_t>((cp >> 16) & 0xFF);
+                    *(result++) = static_cast<uint8_t>((cp >> 8) & 0xFF);
+                    *(result++) = static_cast<uint8_t>(cp & 0xFF);
+                }
+                return result;
             }
 
             char* scrubbingToken(const U8Char* srcBegin, const U8Char* srcEnd, U8Char* dstBegin, bool scrubbingEscapedCharacters)
@@ -72,7 +122,7 @@ namespace RR
 
                         if (scrubbingEscapedCharacters)
                         {
-                            const auto ch = *cursor++;
+                            const auto ch = *++cursor;
 
                             switch (ch)
                             {
@@ -97,7 +147,6 @@ namespace RR
                                 case '3': case '4': case '5':
                                 case '6': case '7': // clang-format on
                                 {
-                                    cursor--;
                                     int value = 0;
                                     for (int ii = 0; ii < 3; ++ii)
                                     {
@@ -113,45 +162,42 @@ namespace RR
                                     }
 
                                     // TODO: add support for appending an arbitrary code point?
-                                    *dst++ = (char)value;
-                                    cursor++;
+                                    *dst++ = (char)value;;
                                     continue;
                                 }
 
                                 // Hexadecimal escape: any number of characters
                                 case 'x':
                                 {
-                                    int value = 0;
+                                    U8Glyph value = 0;
                                     for (;;)
                                     {
-                                        char d = *cursor++;
-                                        int digitValue = 0;
+                                        char d = *++cursor;
+                                        U8Glyph digitValue = 0;
                                         if (('0' <= d) && (d <= '9'))
                                         {
                                             digitValue = d - '0';
                                         }
                                         else if (('a' <= d) && (d <= 'f'))
                                         {
-                                            digitValue = d - 'a';
+                                            digitValue = 10 + d - 'a';
                                         }
                                         else if (('A' <= d) && (d <= 'F'))
                                         {
-                                            digitValue = d - 'A';
+                                            digitValue = 10 + d - 'A';
                                         }
                                         else
-                                        {
-                                            cursor--;
                                             break;
-                                        }
 
                                         value = value * 16 + digitValue;
                                     }
 
-                                    // TODO: add support for appending an arbitrary code point?
-                                    *dst++ = (char)value;
-                                    cursor++;
+                                    dst = appendGlyph(value, dst);
                                     continue;
                                 }
+                                default:
+                                    // Not an escaping character, append it as is.
+                                    *dst++ = '\\';
                             }
                         }
                     }
@@ -169,7 +215,7 @@ namespace RR
                 if (Common::IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
                     return;
 
-                lexer->GetDiagnosticSink()->Diagnose(location, humaneSourceLocation, info, args...);
+                lexer->GetDiagnosticSink().Diagnose(location, humaneSourceLocation, info, args...);
             }
         }
 
@@ -205,14 +251,12 @@ namespace RR
         }
 
         Lexer::Lexer(const std::shared_ptr<SourceView>& sourceView,
-                     const std::shared_ptr<Common::LinearAllocator>& linearAllocator,
-                     const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : allocator_(linearAllocator),
-              sourceView_(sourceView),
-              sink_(diagnosticSink)
+                     const std::shared_ptr<CompileContext>& context)
+            : sourceView_(sourceView),
+              context_(context)
         {
             ASSERT(sourceView)
-            ASSERT(diagnosticSink)
+            ASSERT(context)
 
             auto content = sourceView->GetContent();
 
@@ -228,6 +272,9 @@ namespace RR
         }
 
         Lexer::~Lexer() { }
+
+        Common::LinearAllocator& Lexer::getAllocator() { return context_->allocator; }
+        DiagnosticSink& Lexer::GetDiagnosticSink() const { return context_->sink; }
 
         Token Lexer::ReadToken()
         {
@@ -256,7 +303,7 @@ namespace RR
                 // Allocate space that will always be more than enough for stripped contents
                 const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
 
-                const auto dstBegin = (char*)allocator_->Allocate(allocationSize);
+                const auto dstBegin = (char*)getAllocator().Allocate(allocationSize);
                 const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
                 tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
 
@@ -274,6 +321,10 @@ namespace RR
                     tokenflags_ = Token::Flags::AtStartOfLine | Token::Flags::AfterWhitespace;
                     break;
                 }
+                case Token::Type::StringLiteral:
+                case Token::Type::CharLiteral:
+                    tokenSlice = trimQuoutes(tokenSlice, tokenType);
+                    break;
                 case Token::Type::WhiteSpace:
                 case Token::Type::BlockComment:
                 case Token::Type::LineComment:

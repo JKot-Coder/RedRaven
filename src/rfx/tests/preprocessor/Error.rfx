@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 // #error support
 
 #define FIRST 0

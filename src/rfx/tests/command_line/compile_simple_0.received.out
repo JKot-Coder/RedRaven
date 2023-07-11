@@ -1,16 +1,8 @@
-exit_status:0
+exit_status:1
 output: [
-Assembly output:
-#line 1 "D:/Work/my/OpenDemo/src/rfx/tests/command_line/compile_simple.rfx"
-
-
+..\src\rfx\tests\command_line\compile_simple.rfx(4): error 20001: unexpected identifier, expected ':'
 
 void main()
-{
-}
-
-
-#pragma compile vs_5() main();
-
-Diagnostic output:
+     ^~~~
+Unexpected error: Unspecified failure
 ]

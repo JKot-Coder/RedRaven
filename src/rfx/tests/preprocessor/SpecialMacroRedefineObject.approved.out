@@ -1,11 +1,13 @@
-PreprocessorOutput:[
-	#line 8 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\SpecialMacroRedefineObject.rfx"
-	"Hello"
-	#line 12
-	__LINE__
+SourceOutput:[
+    #line 8 "../src/rfx/tests/preprocessor/SpecialMacroRedefineObject.rfx"
+    "Hello"
+    
+    
+    
+    __LINE__
 ]
 Diagnostic:[
-	..\src\rfx\tests\preprocessor\SpecialMacroRedefineObject.rfx(6): warning 15404: Redefinition of builtin macro '__LINE__'
-	#define __LINE__ "Hello"
-	        ^~~~~~~~
+    ../src/rfx/tests/preprocessor/SpecialMacroRedefineObject.rfx(6): warning 15404: Redefinition of builtin macro '__LINE__'
+    #define __LINE__ "Hello"
+            ^~~~~~~~
 ]

@@ -1,15 +1,17 @@
 #include "include/rfx.hpp"
 
-#include "compiler/DiagnosticSink.hpp"
-#include "compiler/DxcPreprocessor.hpp"
-#include "compiler/Lexer.hpp"
+#include "rfx/compiler/CompileContext.hpp"
+#include "rfx/compiler/DiagnosticSink.hpp"
+#include "rfx/compiler/DxcPreprocessor.hpp"
+#include "rfx/compiler/Lexer.hpp"
+#include "rfx/compiler/Preprocessor.hpp"
 
-#include "core/Blob.hpp"
-#include "core/CStringAllocator.hpp"
-#include "core/FileSystem.hpp"
-#include "core/IncludeSystem.hpp"
-#include "core/SourceLocation.hpp"
-#include "core/StringEscapeUtil.hpp"
+#include "rfx/core/Blob.hpp"
+#include "rfx/core/CStringAllocator.hpp"
+#include "rfx/core/FileSystem.hpp"
+#include "rfx/core/IncludeSystem.hpp"
+#include "rfx/core/SourceLocation.hpp"
+#include "rfx/core/StringEscapeUtil.hpp"
 
 #include "common/Result.hpp"
 
@@ -28,7 +30,7 @@
 #include <Windows.h>
 #endif
 
-#include "compiler/EffectParser.hpp"
+#include "rfx/compiler/EffectParser.hpp"
 
 #include "dxcapi.use.h"
 // #include <winrt/base.h>
@@ -74,11 +76,10 @@ namespace RR::Rfx
     class SourceWriter
     {
     public:
+        SourceWriter(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) { }
+
         void Emit(const Token& token)
         {
-            U8String escapedToken;
-            StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken); //???
-
             if (token.type == Token::Type::RBrace)
                 dedent();
 
@@ -95,16 +96,17 @@ namespace RR::Rfx
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
                     line_ = humaleLoc.line;
 
-                    if (!currentSourceFile_ || uniqueP != sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity())
+                    const auto sourceViewUniqueIdentity = sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity();
+                    if (!currentSourceFile_ || currentUniqueIndentity_ != sourceViewUniqueIdentity)
                     {
-                        uniqueP = sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity();
-                        auto uniquePaa = fs::path(uniqueP);
+                        currentUniqueIndentity_ = sourceViewUniqueIdentity;
+                        auto const path = onlyRelativePaths_ ? sourceView->GetSourceFile()->GetPathInfo().foundPath : sourceViewUniqueIdentity;
 
-                        U8String escapedToken2; // TODO  Fix this
-                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, uniquePaa.make_preferred().u8string(), escapedToken2); //??
+                        U8String escapedPath;
+                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, path, escapedPath);
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
-                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedToken2);
+                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedPath);
                     }
                     else
                     {
@@ -119,6 +121,17 @@ namespace RR::Rfx
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
 
                     //  line_ = token.humaneSourceLocation.line;
+
+                    constexpr int maxNewLinesInARow = 3;
+                    if (humaleLoc.line - line_ <= maxNewLinesInARow)
+                    {
+                        while (line_ < humaleLoc.line)
+                        {
+                            line_++;
+                            output_ += "\n";
+                        }
+                    }
+
                     if (humaleLoc.line != line_)
                     {
                         line_ = humaleLoc.line;
@@ -134,7 +147,25 @@ namespace RR::Rfx
                 output_ += " ";
             }
 
-            output_.append(token.stringSlice.Begin(), token.stringSlice.End());
+            switch (token.type)
+            {
+                case Token::Type::StringLiteral:
+                case Token::Type::CharLiteral:
+                {
+                    U8String escapedToken;
+                    StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, token.stringSlice, escapedToken);
+
+                    auto appendQuoted = [](char quotingChar, const U8String& token)
+                    { return quotingChar + token + quotingChar; };
+
+                    char quotingChar = token.type == Token::Type::StringLiteral ? '\"' : '\'';
+                    output_.append(appendQuoted(quotingChar, escapedToken));
+                    break;
+                }
+                default:
+                    output_.append(token.stringSlice.Begin(), token.stringSlice.End());
+                    break;
+            }
 
             if (token.type == Token::Type::LBrace)
                 intend();
@@ -176,34 +207,11 @@ namespace RR::Rfx
         uint32_t indentLevel_ = 0;
         U8String indentString_ = "";
         U8String output_;
-        U8String uniqueP;
+        U8String currentUniqueIndentity_;
         std::shared_ptr<SourceView> currentSourceView_;
         std::shared_ptr<SourceFile> currentSourceFile_;
+        bool onlyRelativePaths_;
     };
-
-    U8String writeTokens(const std::shared_ptr<Lexer>& lexer)
-    {
-        U8String result;
-
-        while (true)
-        {
-            const auto& token = lexer->ReadToken();
-
-            U8String escapedToken;
-            StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
-
-            result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
-                                  RR::Rfx::TokenTypeToString(token.type),
-                                  escapedToken,
-                                  token.humaneSourceLocation.line,
-                                  token.humaneSourceLocation.column);
-
-            if (token.type == Token::Type::EndOfFile)
-                break;
-        }
-
-        return result;
-    }
 
     class ComplileResult : public ICompileResult, RefObject
     {
@@ -288,6 +296,80 @@ namespace RR::Rfx
     dxc::DxcDllSupport Compiler::dxcDll;
     ICompiler* Compiler::instance_ = nullptr;
 
+    class LexerTokenReader
+    {
+    public:
+        LexerTokenReader(const std::shared_ptr<RR::Rfx::SourceFile>& sourceFile, const std::shared_ptr<RR::Rfx::CompileContext>& context)
+            : lexer_(SourceView::Create(sourceFile), context)
+        {
+        }
+
+        Token ReadToken() { return lexer_.ReadToken(); }
+
+        ComPtr<IBlob> ReadAllTokens()
+        {
+            U8String result;
+
+            for (;;)
+            {
+                const auto& token = ReadToken();
+
+                switch (token.type)
+                {
+                    default: break;
+                    case Token::Type::WhiteSpace:
+                    case Token::Type::NewLine:
+                        continue;
+                }
+
+                U8String tokenString;
+                UnownedStringSlice tokenStringSlice = token.stringSlice;
+
+                if (token.type == Token::Type::BlockComment)
+                {
+                    tokenString = token.stringSlice.AsString();
+
+                    U8String::size_type pos = 0;
+                    // Make consisten line breaks for multiline comments to pass tests
+                    while ((pos = tokenString.find("\r\n", pos)) != U8String::npos)
+                        tokenString.replace(pos, 2, "\n");
+
+                    tokenStringSlice = tokenString;
+                }
+
+                // TODO: really slow implementation
+                U8String escapedToken;
+                StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, tokenStringSlice, escapedToken);
+
+                result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
+                                      RR::Rfx::TokenTypeToString(token.type),
+                                      escapedToken,
+                                      token.humaneSourceLocation.line,
+                                      token.humaneSourceLocation.column);
+
+                if (token.type == Token::Type::EndOfFile)
+                    break;
+            }
+
+            return new Blob(result);
+        }
+
+    private:
+        ComPtr<IBlob> output_;
+        Lexer lexer_;
+    };
+
+    U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor, const std::shared_ptr<CompileContext>& context)
+    {
+        const auto& tokens = preprocessor->ReadAllTokens();
+        SourceWriter writer(context->onlyRelativePaths);
+
+        for (const auto& token : tokens)
+            writer.Emit(token);
+
+        return writer.GetOutput();
+    }
+
     RfxResult Compiler::Compile(const CompileRequestDescription& compileRequest, ICompileResult** outCompilerResult)
     {
         RfxResult result = RfxResult::Ok;
@@ -319,25 +401,49 @@ namespace RR::Rfx
             if (RR_FAILED(result = includeSystem->FindFile(compileRequest.inputFile, "", pathInfo)))
                 return result;
 
+            auto context = std::make_shared<CompileContext>(compileRequest.compilerOptions.onlyRelativePaths);
+
             std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-            if (RR_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
+            if (RR_FAILED(result = context->sourceManager.LoadFile(pathInfo, sourceFile)))
                 return result;
 
-            auto diagnosticSink = std::make_shared<DiagnosticSink>();
-
-            // auto bufferWriter = std::make_shared<BufferWriter>();
-            //  diagnosticSink->AddWriter(bufferWriter);
             ComPtr<IDxcResult> dxcResult;
+
+            auto bufferWriter = std::make_shared<BufferWriter>();
+            context->sink.AddWriter(bufferWriter);
 
             switch (compileRequest.outputStage)
             {
                 case CompileRequestDescription::OutputStage::Lexer:
+                {
+                    LexerTokenReader reader(sourceFile, context);
+                    const auto sourceBlob = reader.ReadAllTokens();
 
-                    break;
-
+                    // Todo optimize reduce copy
+                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                    compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                    compilerResult->PushOutput(CompileOutputType::Source, sourceBlob);
+                }
+                break;
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {
+                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, context);
+
+                    for (size_t index = 0; index < compileRequest.defineCount; index++)
+                    {
+                        ASSERT(compileRequest.defines + index);
+                        const auto& define = *(compileRequest.defines + index);
+                        preprocessor->DefineMacro(define);
+                    }
+                    preprocessor->PushInputFile(sourceFile);
+
+                    const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor, context)));
+                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                    compilerResult->PushOutput(CompileOutputType::Source, blob);
+                    compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+
+                    /*
                     DxcPreprocessor preprocessor;
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
@@ -368,14 +474,15 @@ namespace RR::Rfx
 
                         compilerResult->PushOutput(CompileOutputType::Assembly, output);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnostic);
-                    }
+                    } */
 
+                    /*
                     EffectParser parser;
 
                     if (RR_FAILED(rfxResult = parser.Parse(sourceFile, output, diagnostic)))
                         return rfxResult;
 
-                    /*
+
                         DxcBuffer source;
                     source.Ptr = sourceFile->GetContent().Begin();
                     source.Size = sourceFile->GetContentSize();

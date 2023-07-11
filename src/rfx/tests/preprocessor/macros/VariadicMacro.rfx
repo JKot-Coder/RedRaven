@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 //
 // First we text a variadic macro with the default variadic
 // parameter name (`__VA_ARGS__`) and other non-variadic parameter.

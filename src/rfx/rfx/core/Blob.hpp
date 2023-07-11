@@ -1,6 +1,6 @@
-#include "include/rfx.hpp"
+#include "rfx.hpp"
 
-#include "core/RefObject.hpp"
+#include "rfx/core/RefObject.hpp"
 
 #include <string>
 
@@ -26,7 +26,7 @@ namespace RR::Rfx
         uint32_t AddRef() override { return addReference(); }
         uint32_t Release() override { return releaseReference(); }
 
-        const void* GetBufferPointer() const override { return static_cast<const void*>(buffer_.data()); }
+        void const* GetBufferPointer() const override { return static_cast<void const*>(buffer_.data()); }
         size_t GetBufferSize() const override { return buffer_.size(); }
 
     private:

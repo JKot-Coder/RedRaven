@@ -61,7 +61,7 @@ namespace RR::AssetImporter
         auto result = processor.Process(asset, context, outputs);
         if (RR_FAILED(result))
         {
-            LOG_WARNING("Processing asset at path \"{0}\" failed with error: \"{1}\"", path.u8string(), Common::GetErrorMessage(result));
+            LOG_WARNING("Processing asset at path \"{0}\" failed with error: \"{1}\"", path.generic_u8string(), Common::GetErrorMessage(result));
         }
 
         return Common::RResult::Ok;

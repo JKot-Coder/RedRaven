@@ -1,0 +1,6 @@
+SourceOutput:[
+    #line 7 "../src/rfx/tests/preprocessor/Whitespaces.rfx"
+    BAR ! LINE
+]
+Diagnostic:[
+]

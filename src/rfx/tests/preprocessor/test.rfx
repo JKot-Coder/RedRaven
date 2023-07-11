@@ -1,6 +1,0 @@
-// -O PREPROCESSOR -O LEXER
-// -O LEXER
-
-#define FOO BAR /* */ qwe      		LINE
-
-FOO

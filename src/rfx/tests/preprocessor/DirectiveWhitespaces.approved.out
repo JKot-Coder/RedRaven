@@ -1,6 +1,6 @@
-PreprocessorOutput:[
-	#line 15 "D:\\Work\\my\\OpenDemo\\src\\rfx\\tests\\preprocessor\\DirectiveWhitespaces.rfx"
-	SUCCESS
+SourceOutput:[
+    #line 15 "../src/rfx/tests/preprocessor/DirectiveWhitespaces.rfx"
+    SUCCESS
 ]
 Diagnostic:[
 ]

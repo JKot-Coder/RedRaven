@@ -4,6 +4,7 @@ namespace RR
 {
     namespace Rfx
     {
+        struct CompileContext;
         class SourceFile;
         class DiagnosticSink;
         class IncludeSystem;
@@ -15,11 +16,12 @@ namespace RR
         public:
             Preprocessor() = delete;
             Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
-                         const std::shared_ptr<DiagnosticSink>& diagnosticSink);
+                         const std::shared_ptr<CompileContext>& context);
 
             ~Preprocessor();
 
             void PushInputFile(const std::shared_ptr<SourceFile>& sourceFile);
+            void DefineMacro(const U8String& macro);
             void DefineMacro(const U8String& key, const U8String& value);
 
             // read the entire input into tokens

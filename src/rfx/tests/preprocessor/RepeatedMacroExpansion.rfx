@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 
 // Test a bug where macro expansion isn't being
 // triggered for back-to-back uses of a function-like

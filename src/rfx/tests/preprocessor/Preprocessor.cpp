@@ -7,7 +7,7 @@ namespace RR::Rfx
     {
         TEST_CASE("PreprocessorTests", "[Preprocessor]")
         {
-            runTestsInDirectory("../src/rfx/tests/preprocessor", TestType::CommandLine);
+            runTestsInDirectory("../src/rfx/tests/preprocessor");
         }
     }
 }

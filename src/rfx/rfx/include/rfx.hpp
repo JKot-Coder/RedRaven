@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <type_traits>
 #include <utility>
+#include <string>
+#include <vector>
 
 #ifdef _MSC_VER
 #define RFX_STDCALL __stdcall
@@ -17,7 +19,11 @@
 #define RFX_DLL_EXPORT __attribute__((visibility("default")))
 #endif
 
+#ifdef RFX_DYNAMIC_EXPORT
 #define RFX_API RFX_DLL_EXPORT
+#else
+#define RFX_API
+#endif
 
 #ifdef __cplusplus
 #define RFX_EXTERN_C extern "C"
@@ -34,6 +40,43 @@ namespace RR
 
     namespace Rfx
     {
+        namespace Utils
+        {
+            template <typename T>
+            class CStringAllocator final
+            {
+            public:
+                ~CStringAllocator()
+                {
+                    for (const auto cstring : cstring_)
+                        delete[] cstring;
+                }
+
+                void Allocate(const std::vector<std::basic_string<T>>& strings)
+                {
+                    for (const auto& string : strings)
+                        Allocate(string);
+                }
+
+                T* Allocate(const std::basic_string<T>& string)
+                {
+                    const auto stringLength = string.length();
+
+                    auto cString = new T[stringLength + 1];
+                    string.copy(cString, stringLength);
+                    cString[stringLength] = '\0';
+
+                    cstring_.push_back(cString);
+                    return cString;
+                }
+
+                const std::vector<T*>& GetCStrings() const { return cstring_; }
+
+            private:
+                std::vector<T*> cstring_;
+            };
+        }
+
         using RfxResult = Common::RResult;
 
         enum class CompileTarget : uint32_t
@@ -51,18 +94,20 @@ namespace RR
                 Lexer,
                 Preprocessor,
                 Compiler,
+                Unknown
             };
 
-            OutputStage outputStage;
+            OutputStage outputStage = OutputStage::Unknown;
 
-            const char* inputFile;
-            const char** defines;
-            size_t defineCount;
+            const char* inputFile = nullptr;
+            const char** defines = nullptr;
+            size_t defineCount = 0;
 
             struct CompilerOptions
             {
-                bool assemblyOutput;
-                bool objectOutput;
+                bool assemblyOutput = false;
+                bool objectOutput = false;
+                bool onlyRelativePaths = false;
             } compilerOptions;
         };
 

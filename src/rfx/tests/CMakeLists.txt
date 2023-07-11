@@ -19,12 +19,16 @@ set(RFX_TESTS_LEXER_SRC
 source_group( "lexer" FILES ${RFX_TESTS_LEXER_SRC} )
 
 set(RFX_TESTS_COMPILE_SRC
-    "command_line/CommandLine.cpp"  
+    "command_line/CommandLine.cpp"
+    "command_line/compile_simple.rfx"
+    "command_line/preprocessor_defines.rfx"
+    "command_line/preprocessor_simple.rfx"
+    "command_line/version.rfx"
     "command_line/help.rfx")
 source_group( "commandLine" FILES ${RFX_TESTS_COMPILE_SRC} )
 
 set(RFX_TESTS_PREPROCESSOR_SRC
-    "preprocessor/_SpecialMacroComplex.rfx"
+    "preprocessor/SpecialMacroComplex.rfx"
     "preprocessor/bugs/Bug.rfx"
     "preprocessor/CommandLineDefines.rfx"
     "preprocessor/ConditionalDiagnostics.rfx"
@@ -76,11 +80,17 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     )
 source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
+set(RFX_TESTS_PARSER_SRC
+    "parser/Parser.cpp"
+    "parser/test.rfx")
+source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
+
 set(SRC
     ${RFX_TESTS_SRC}
     ${RFX_TESTS_LEXER_SRC}
     ${RFX_TESTS_COMPILE_SRC}
-    ${RFX_TESTS_PREPROCESSOR_SRC})
+    ${RFX_TESTS_PREPROCESSOR_SRC}
+    ${RFX_TESTS_PARSER_SRC})
 
 set(RFX_TESTS_LINK_LIBRARIES
     common
@@ -111,4 +121,4 @@ endif(MSVC)
 
 #=============================== Tests ================================#
 
-add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

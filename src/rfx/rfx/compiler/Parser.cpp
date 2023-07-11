@@ -1,10 +1,11 @@
 #include "Parser.hpp"
 
-#include "compiler/AST.hpp"
-#include "compiler/ASTBuilder.hpp"
-#include "compiler/DiagnosticCore.hpp"
-#include "compiler/JSONBuilder.hpp"
-#include "compiler/Lexer.hpp"
+#include "rfx/compiler/AST.hpp"
+#include "rfx/compiler/ASTBuilder.hpp"
+#include "rfx/compiler/CompileContext.hpp"
+#include "rfx/compiler/DiagnosticCore.hpp"
+#include "rfx/compiler/JSONBuilder.hpp"
+#include "rfx/compiler/Lexer.hpp"
 
 #include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
@@ -13,17 +14,6 @@ namespace RR::Rfx
 {
     using RResult = Common::RResult;
 
-    namespace
-    {
-        UnownedStringSlice unquotingToken(const Token& token)
-        {
-            if (token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral)
-                return UnownedStringSlice(token.stringSlice.Begin() + 1, token.stringSlice.End() - 1);
-
-            return token.stringSlice;
-        }
-    }
-
     /// An token reader that reads tokens directly using the `Lexer`
     struct LexerReader
     {
@@ -31,10 +21,9 @@ namespace RR::Rfx
         LexerReader() = delete;
 
         LexerReader(const std::shared_ptr<SourceView>& sourceView,
-                    const std::shared_ptr<Common::LinearAllocator>& linearAllocator,
-                    const std::shared_ptr<DiagnosticSink>& diagnosticSink)
+                    const std::shared_ptr<CompileContext>& context)
         {
-            lexer_ = std::make_unique<Lexer>(sourceView, linearAllocator, diagnosticSink);
+            lexer_ = std::make_unique<Lexer>(sourceView, context);
             lookaheadToken_ = readTokenImpl();
         }
 
@@ -86,18 +75,19 @@ namespace RR::Rfx
     public:
         ParserImpl() = delete;
         ParserImpl(const std::shared_ptr<SourceView>& sourceView,
-                   const std::shared_ptr<Common::LinearAllocator>& allocator,
-                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-            : sink_(diagnosticSink),
-              lexerReader_(sourceView, allocator, diagnosticSink),
-              builder_(diagnosticSink)
+                   const std::shared_ptr<CompileContext>& context)
+            : context_(context),
+              builder_(context),
+              lexerReader_(sourceView, context)
         {
-            ASSERT(diagnosticSink);
+            ASSERT(context);
         }
 
         RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
 
     private:
+        DiagnosticSink& getSink() const { return context_->sink; }
+
         Token peekToken() const { return lexerReader_.PeekToken(); }
         Token::Type peekTokenType() const { return lexerReader_.PeekTokenType(); }
         Token advance() { return lexerReader_.ReadToken(); }
@@ -132,7 +122,7 @@ namespace RR::Rfx
         };
 
     private:
-        std::shared_ptr<DiagnosticSink> sink_;
+        std::shared_ptr<CompileContext> context_;
         JSONBuilder builder_;
         LexerReader lexerReader_;
     };
@@ -267,14 +257,14 @@ namespace RR::Rfx
             case Token::Type::IntegerLiteral:
             case Token::Type::FloatingPointLiteral:
             {
-                const auto& token = advance();                
+                const auto& token = advance();
                 return builder_.AddValue(token);
             }
             case Token::Type::LBracket: return parseArray();
             case Token::Type::LBrace: return parseObject();
             default:
             {
-                sink_->Diagnose(peekToken(), Diagnostics::unexpectedToken, peekTokenType());
+                getSink().Diagnose(peekToken(), Diagnostics::unexpectedToken, peekTokenType());
                 return RResult::Fail;
             }
         }
@@ -292,13 +282,14 @@ namespace RR::Rfx
             }
 
         const U8String& tokensString = fmt::format("{}\n", fmt::join(tokens, " or "));
-        sink_->Diagnose(peekToken(), Diagnostics::unexpectedTokenExpectedTokenType, peekTokenType(), tokensString);
+        getSink().Diagnose(peekToken(), Diagnostics::unexpectedTokenExpectedTokenType, peekTokenType(), tokensString);
         return RResult::Fail;
     }
 
     RResult ParserImpl::Parse(const std::shared_ptr<ASTBuilder>& astBuilder)
     {
         ASSERT(astBuilder);
+        UNUSED(astBuilder);
         //   ASSERT(!astBuilder_);
 
         //  astBuilder_ = astBuilder;
@@ -311,9 +302,8 @@ namespace RR::Rfx
     Parser::~Parser() { }
 
     Parser::Parser(const std::shared_ptr<SourceView>& sourceView,
-                   const std::shared_ptr<Common::LinearAllocator>& allocator,
-                   const std::shared_ptr<DiagnosticSink>& diagnosticSink)
-        : impl_(std::make_unique<ParserImpl>(sourceView, allocator, diagnosticSink))
+                   const std::shared_ptr<CompileContext>& context)
+        : impl_(std::make_unique<ParserImpl>(sourceView, context))
     {
     }
 

@@ -1,7 +1,7 @@
 #include "DiagnosticSink.hpp"
 
-#include "compiler/Lexer.hpp"
-#include "compiler/Signal.hpp"
+#include "rfx/compiler/Lexer.hpp"
+#include "rfx/compiler/Signal.hpp"
 
 namespace RR
 {
@@ -140,18 +140,12 @@ namespace RR
         {
             switch (severity)
             {
-                case Severity::Note:
-                    return "note";
-                case Severity::Warning:
-                    return "warning";
-                case Severity::Error:
-                    return "error";
-                case Severity::Fatal:
-                    return "fatal error";
-                case Severity::Internal:
-                    return "internal error";
-                default:
-                    return "unknown error";
+                case Severity::Note: return "note";
+                case Severity::Warning: return "warning";
+                case Severity::Error: return "error";
+                case Severity::Fatal: return "fatal error";
+                case Severity::Internal: return "internal error";
+                default: return "unknown error";
             }
         }
 
@@ -163,22 +157,7 @@ namespace RR
             for (const auto& writer : writerList_)
                 writer->Write(formattedMessage);
 
-            Log::Print::Error(formattedMessage);
-            /*
-            else
-            {
-                outputBuffer.append(formattedMessage);
-            }
-            */
-
-            /*
-            if (m_parentSink)
-            {
-                m_parentSink->diagnoseImpl(info, formattedMessage);
-            }
-            */
-
-            //TODO replace
+            // TODO replace
             if (info.severity > Severity::Internal)
             {
                 // TODO: figure out a better policy for aborting compilation
@@ -222,9 +201,9 @@ namespace RR
                                                    includeInfo.humaneSourceLocation.line,
                                                    includeInfo.humaneSourceLocation.column);
                 }*/
-
+                const auto path = onlyRelativePaths_ ? sourceView->GetPathInfo().foundPath : sourceView->GetPathInfo().uniqueIdentity;
                 humaneLocString += fmt::format("{0}({1}): ",
-                                               sourceView->GetPathInfo().foundPath,
+                                               path,
                                                humaneLocation.line,
                                                humaneLocation.column);
             }

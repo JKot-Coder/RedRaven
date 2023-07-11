@@ -1,4 +1,4 @@
-// -O PREPROCESSOR
+// :PREPROCESSOR
 
 //__LINE__ and __FILE__ support
 

@@ -40,7 +40,7 @@ set( COMMON_SRC
     LinearAllocator.hpp
     LinearAllocator.inl
     Math.cpp
-    Math.hpp  
+    Math.hpp
     NonCopyableMovable.hpp
     OnScopeExit.hpp
     pch.hpp
@@ -63,11 +63,11 @@ set( COMMON_SRC
     ${DEBUG_SRC}
     ${IO_SRC}
 )
-        
-add_library(${PROJECT_NAME} ${COMMON_SRC})
+
+add_library(${PROJECT_NAME}  ${COMMON_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
-target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object)
+target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object stl)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)
 
 if(MSVC)
