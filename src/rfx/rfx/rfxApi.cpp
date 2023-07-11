@@ -102,11 +102,11 @@ namespace RR::Rfx
                         currentUniqueIndentity_ = sourceViewUniqueIdentity;
                         auto const path = onlyRelativePaths_ ? sourceView->GetSourceFile()->GetPathInfo().foundPath : sourceViewUniqueIdentity;
 
-                        U8String escapedToken2; // TODO  Fix this
-                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, path, escapedToken2); //??
+                        U8String escapedPath;
+                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, path, escapedPath);
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
-                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedToken2);
+                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedPath);
                     }
                     else
                     {
@@ -322,9 +322,24 @@ namespace RR::Rfx
                         continue;
                 }
 
+                U8String tokenString;
+                UnownedStringSlice tokenStringSlice = token.stringSlice;
+
+                if (token.type == Token::Type::BlockComment)
+                {
+                    tokenString = token.stringSlice.AsString();
+
+                    U8String::size_type pos = 0;
+                    // Make consisten line breaks for multiline comments to pass tests
+                    while ((pos = tokenString.find("\r\n", pos)) != U8String::npos)
+                        tokenString.replace(pos, 2, "\n");
+
+                    tokenStringSlice = tokenString;
+                }
+
                 // TODO: really slow implementation
                 U8String escapedToken;
-                StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, token.stringSlice, escapedToken);
+                StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, tokenStringSlice, escapedToken);
 
                 result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
                                       RR::Rfx::TokenTypeToString(token.type),
