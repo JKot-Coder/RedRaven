@@ -386,13 +386,14 @@ namespace RR::Rfx
             if (RR_FAILED(result = includeSystem->FindFile(compileRequest.inputFile, "", pathInfo)))
                 return result;
 
+            auto context = std::make_shared<CompileContext>(compileRequest.compilerOptions.onlyRelativePaths);
+
             std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-            if (RR_FAILED(result = includeSystem->LoadFile(pathInfo, sourceFile)))
+            if (RR_FAILED(result = context->sourceManager.LoadFile(pathInfo, sourceFile)))
                 return result;
 
             ComPtr<IDxcResult> dxcResult;
 
-            auto context = std::make_shared<CompileContext>(compileRequest.compilerOptions.onlyRelativePaths);
             auto bufferWriter = std::make_shared<BufferWriter>();
             context->sink.AddWriter(bufferWriter);
 

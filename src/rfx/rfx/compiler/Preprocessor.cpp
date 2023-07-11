@@ -2414,7 +2414,7 @@ namespace RR
 
             std::shared_ptr<SourceFile> includedFile;
 
-            if (RR_FAILED(includeSystem_->LoadFile(filePathInfo, includedFile)))
+            if (RR_FAILED(context_->sourceManager.LoadFile(filePathInfo, includedFile)))
             {
                 GetSink().Diagnose(pathToken, Diagnostics::includeFailed, path);
                 return;

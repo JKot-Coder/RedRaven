@@ -34,7 +34,7 @@ It can be useful to have a consistent short name for a facility, as used in the 
     {                                   \
         RR::Common::RResult _res = (x); \
         if (RR_SUCCEEDED(_res))         \
-            return nullptr;             \
+            return _res;                \
     } while (0)
 
 //! Helper macro that can be used to test the return value from a call, and will return in a void method/function

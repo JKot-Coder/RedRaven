@@ -34,7 +34,6 @@ namespace RR
                 }*/
 
             Common::RResult FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const;
-            Common::RResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile);
 
             std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const;
             /*
