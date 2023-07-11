@@ -1,0 +1,7 @@
+// :PREPROCESSOR
+
+// Teset correct handling whitespace in define
+#define FOO BAR /*
+    */   !   		LINE
+
+FOO

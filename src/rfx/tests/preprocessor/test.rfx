@@ -1,5 +1,0 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
-
-#define FOO BAR /* */ qwe      		LINE
-
-FOO
