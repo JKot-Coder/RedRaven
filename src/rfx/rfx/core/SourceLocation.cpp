@@ -11,8 +11,7 @@ namespace RR
             {
                 case Type::Normal: return uniqueIdentity;
                 case Type::FoundPath:
-                case Type::FromString:
-                    return foundPath;
+                case Type::FromString: return foundPath;
                 default: return "";
             }
         }
@@ -28,8 +27,7 @@ namespace RR
                 case Type::TokenPaste:
                 case Type::TypeParse:
                 case Type::Unknown:
-                case Type::CommandLine:
-                    return true;
+                case Type::CommandLine: return true;
                 case Type::Normal: return foundPath == rhs.foundPath && uniqueIdentity == rhs.uniqueIdentity;
                 case Type::FromString:
                 case Type::FoundPath:
