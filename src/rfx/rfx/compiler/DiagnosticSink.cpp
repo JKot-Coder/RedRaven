@@ -9,6 +9,21 @@ namespace RR
     {
         namespace
         {
+            /// Trims any horizontal whitespace from the start and end and returns as a substring
+            UnownedStringSlice trim(const UnownedStringSlice& stringSlice)
+            {
+                const U8Char* start = stringSlice.Begin();
+                const U8Char* end = stringSlice.End();
+
+                // Work with UTF8 as ANSI text. This shouldn't be a problem...
+                while (start < end && (*start == '\t' || *start == ' '))
+                    start++;
+                while (end > start && (*start == '\t' || *start == ' '))
+                    end--;
+
+                return UnownedStringSlice(start, end);
+            }
+
             U8String replaceTabWithSpaces(const UnownedStringSlice& slice, uint32_t tabSize)
             {
                 const U8Char* start = slice.Begin();
@@ -74,7 +89,7 @@ namespace RR
                 UnownedStringSlice sourceLineSlice = sourceView->ExtractLineContainingLocation(diagnostic.location);
 
                 // Trim any trailing white space
-                sourceLineSlice = UnownedStringSlice(sourceLineSlice.Begin(), sourceLineSlice.Trim().End());
+                sourceLineSlice = UnownedStringSlice(sourceLineSlice.Begin(), trim(sourceLineSlice).End());
 
                 // TODO(JS): The tab size should ideally be configurable from command line.
                 // For now just go with 4.

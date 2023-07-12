@@ -34,13 +34,11 @@ namespace RR
             {
                 return (*this) == UnownedStringSlice(str);
             }
+
             bool operator!=(char const* str) const
             {
                 return !(*this == str);
             }
-
-            /// Trims any horizontal whitespace from the start and end and returns as a substring
-            UnownedStringSlice Trim() const;
 
             void Reset()
             {

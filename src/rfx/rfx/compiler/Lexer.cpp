@@ -26,7 +26,7 @@ namespace RR
                     case Token::Type::CharLiteral: quoteChar = '\''; break;
                     default: return tokenSlice;
                 }
-                
+
                 auto begin = tokenSlice.Begin();
                 auto end = tokenSlice.End();
 
@@ -90,9 +90,10 @@ namespace RR
                 return result;
             }
 
-            char* scrubbingToken(const U8Char* srcBegin, const U8Char* srcEnd, U8Char* dstBegin, bool scrubbingEscapedCharacters)
+            char* scrubbingToken(const UnownedStringSlice& source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
             {
-                auto cursor = srcBegin;
+                auto srcEnd = source.End();
+                auto cursor = source.Begin();
                 auto dst = dstBegin;
 
                 while (cursor != srcEnd)
@@ -304,7 +305,7 @@ namespace RR
                 const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
 
                 const auto dstBegin = (char*)getAllocator().Allocate(allocationSize);
-                const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
+                const auto dstEnd = scrubbingToken(tokenSlice, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
                 tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
 
                 // Reset flags
@@ -736,7 +737,7 @@ namespace RR
                         return;
 
                     case '\r': case '\n':
-                        handleNewlineSequence(); 
+                        handleNewlineSequence();
                         continue;
 
                     case '*':
