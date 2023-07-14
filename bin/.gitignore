@@ -3,3 +3,6 @@
 *.exe
 *.dll
 !.gitignore
+!dxc.exe
+!dxil.dll
+!slangc.exe
