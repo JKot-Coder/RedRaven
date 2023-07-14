@@ -6,3 +6,5 @@
 !dxc.exe
 !dxil.dll
 !slangc.exe
+!dxcompiler.pdb
+!dxcompiler.dll
