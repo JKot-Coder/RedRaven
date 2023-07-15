@@ -23,9 +23,9 @@ namespace RR::Rfx::Tests
     namespace
     {
 #ifndef OS_WINDOWS
-        constexpr char* ExabutablePrefix = ".\";
+        constexpr char const* ExabutablePrefix = "./";
 #else
-        constexpr char* ExabutablePrefix = "";
+        constexpr char const* ExabutablePrefix = "";
 #endif
 
         enum class TestCommand

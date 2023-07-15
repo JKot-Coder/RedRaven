@@ -1,7 +1,5 @@
 #include "Parser.hpp"
 
-#include "rfx/compiler/AST.hpp"
-#include "rfx/compiler/ASTBuilder.hpp"
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticCore.hpp"
 #include "rfx/compiler/JSONBuilder.hpp"
@@ -83,7 +81,7 @@ namespace RR::Rfx
             ASSERT(context);
         }
 
-        RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
+        RResult Parse();
 
     private:
         DiagnosticSink& getSink() const { return context_->sink; }
@@ -286,15 +284,8 @@ namespace RR::Rfx
         return RResult::Fail;
     }
 
-    RResult ParserImpl::Parse(const std::shared_ptr<ASTBuilder>& astBuilder)
+    RResult ParserImpl::Parse()
     {
-        ASSERT(astBuilder);
-        UNUSED(astBuilder);
-        //   ASSERT(!astBuilder_);
-
-        //  astBuilder_ = astBuilder;
-        // ON_SCOPE_EXIT({ astBuilder_ = nullptr; });
-
         RR_RETURN_ON_FAIL(parseObject(true));
         return expect(Token::Type::EndOfFile);
     }
@@ -307,9 +298,9 @@ namespace RR::Rfx
     {
     }
 
-    RResult Parser::Parse(const std::shared_ptr<ASTBuilder>& astBuilder)
+    RResult Parser::Parse()
     {
         ASSERT(impl_)
-        return impl_->Parse(astBuilder);
+        return impl_->Parse();
     }
 }

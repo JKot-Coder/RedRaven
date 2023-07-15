@@ -12,20 +12,13 @@ namespace RR
                 {
                     switch (type)
                     {
-                        case SignalType::AssertFailure:
-                            return "assert failure";
-                        case SignalType::Unimplemented:
-                            return "unimplemented";
-                        case SignalType::Unreachable:
-                            return "hit unreachable code";
-                        case SignalType::Unexpected:
-                            return "unexpected";
-                        case SignalType::InvalidOperation:
-                            return "invalid operation";
-                        case SignalType::AbortCompilation:
-                            return "abort compilation";
-                        default:
-                            return "unhandled";
+                        case SignalType::AssertFailure: return "assert failure";
+                        case SignalType::Unimplemented: return "unimplemented";
+                        case SignalType::Unreachable: return "hit unreachable code";
+                        case SignalType::Unexpected: return "unexpected";
+                        case SignalType::InvalidOperation: return "invalid operation";
+                        case SignalType::AbortCompilation: return "abort compilation";
+                        default: return "unhandled";
                     }
                 }
             }
@@ -40,12 +33,9 @@ namespace RR
 
                 switch (type)
                 {
-                    case SignalType::InvalidOperation:
-                        throw InvalidOperationException(formatedMsg);
-                    case SignalType::AbortCompilation:
-                        throw AbortCompilationException();
-                    default:
-                        throw InternalError(formatedMsg);
+                    case SignalType::InvalidOperation: throw InvalidOperationException(formatedMsg);
+                    case SignalType::AbortCompilation: throw AbortCompilationException();
+                    default: throw InternalError(formatedMsg);
                 }
             }
         }

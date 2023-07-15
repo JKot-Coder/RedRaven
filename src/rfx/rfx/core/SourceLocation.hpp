@@ -133,16 +133,6 @@ namespace RR
             SourceFile(const PathInfo& pathInfo) : pathInfo_(pathInfo) {};
             ~SourceFile() = default;
 
-            /// Returns the line break offsets (in bytes from start of content)
-            /// Note that this is lazily evaluated - the line breaks are only calculated on the first request
-            const std::vector<size_t>& GetLineBreakOffsets();
-
-            /// Calculate the line based on the offset
-            uint32_t CalcLineIndexFromOffset(size_t offset);
-
-            /// Calculate the offset for a line
-            uint32_t CalcColumnIndex(uint32_t line, size_t offset);
-
             /// Get the content size
             size_t GetContentSize() const { return contentSize_; }
 
@@ -165,11 +155,6 @@ namespace RR
             U8String content_; ///< The actual contents of the file.
             size_t contentSize_; ///< The size of the actual contents
             PathInfo pathInfo_; ///< The path The logical file path to report for locations inside this span.
-
-            // In order to speed up lookup of line number information,
-            // we will cache the starting offset of each line break in
-            // the input file:
-            std::vector<size_t> lineBreakOffsets_;
         };
 
         enum class SourceLocationType

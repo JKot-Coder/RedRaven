@@ -100,69 +100,6 @@ namespace RR
             return true;
         }
 
-        const std::vector<size_t>& SourceFile::GetLineBreakOffsets()
-        {
-            // We now have a raw input file that we can search for line breaks.
-            // We obviously don't want to do a linear scan over and over, so we will
-            // cache an array of line break locations in the file.
-            if (lineBreakOffsets_.empty())
-            {
-                UnownedStringSlice content(GetContent()), line;
-                const U8Char* contentBegin = content.Begin();
-
-                while (extractLine(content, line))
-                {
-                    lineBreakOffsets_.push_back(std::distance(contentBegin, line.Begin()));
-                }
-                // Note that we do *not* treat the end of the file as a line
-                // break, because otherwise we would report errors like
-                // "end of file inside string literal" with a line number
-                // that points at a line that doesn't exist.
-            }
-
-            return lineBreakOffsets_;
-        }
-
-        uint32_t SourceFile::CalcLineIndexFromOffset(size_t offset)
-        {
-            ASSERT(offset <= GetContentSize());
-
-            // Make sure we have the line break offsets
-            const auto& lineBreakOffsets = GetLineBreakOffsets();
-
-            // At this point we can assume the `lineBreakOffsets` array has been filled in.
-            // We will use a binary search to find the line index that contains our
-            // chosen offset.
-            size_t lo = 0;
-            size_t hi = lineBreakOffsets.size();
-
-            while (lo + 1 < hi)
-            {
-                const size_t mid = (hi + lo) >> 1;
-                const size_t midOffset = lineBreakOffsets[mid];
-                if (midOffset <= size_t(offset))
-                {
-                    lo = mid;
-                }
-                else
-                {
-                    hi = mid;
-                }
-            }
-
-            return int(lo);
-        }
-
-        /// Calculate the offset for a line
-        uint32_t SourceFile::CalcColumnIndex(uint32_t line, size_t offset)
-        {
-            const auto& lineBreakOffsets = GetLineBreakOffsets();
-            ASSERT(line < lineBreakOffsets.size())
-            const auto lineBegin = content_.data() + lineBreakOffsets[line];
-
-            return uint32_t(utf8::distance(lineBegin, content_.data() + offset));
-        }
-
         const U8Char* SourceView::GetContentFrom(const SourceLocation& loc) const
         {
             ASSERT(loc.sourceView_ == shared_from_this());
@@ -174,47 +111,6 @@ namespace RR
         {
             ASSERT(offset <= GetContentSize());
             return SourceLocation(offset, shared_from_this());
-        }
-
-        HumaneSourceLocation SourceView::GetHumaneLocation(const SourceLocation& loc, SourceLocationType type)
-        {
-            ASSERT(loc.sourceView_ == shared_from_this());
-
-            (void)type;
-
-            const auto offset = loc.raw_;
-
-            // We need the line index from the original source file
-            const auto lineIndex = sourceFile_->CalcLineIndexFromOffset(offset);
-
-            // TODO: we should really translate the byte index in the line
-            // to deal with:
-            // - Tab characters, which should really adjust how we report
-            //   columns (although how are we supposed to know the setting
-            //   that an IDE expects us to use when reporting locations?)
-            const auto columnIndex = sourceFile_->CalcColumnIndex(lineIndex, offset);
-
-            HumaneSourceLocation humaneLoc;
-            humaneLoc.column = columnIndex + 1;
-            humaneLoc.line = lineIndex + 1;
-
-            /*
-                // Make up a default entry
-                StringSlicePool::Handle pathHandle = StringSlicePool::Handle(0);
-
-                // Only bother looking up the entry information if we want a 'Normal' lookup
-                const int entryIndex = (type == SourceLocType::Nominal) ? findEntryIndex(loc) : -1;
-                if (entryIndex >= 0)
-                {
-                    const Entry& entry = m_entries[entryIndex];
-                    // Adjust the line
-                    humaneLoc.line += entry.m_lineAdjust;
-                    // Get the pathHandle..
-                    pathHandle = entry.m_pathHandle;
-                }
-
-                humaneLoc.pathInfo = _getPathInfoFromHandle(pathHandle);*/
-            return humaneLoc;
         }
 
         UnownedStringSlice SourceView::ExtractLineContainingLocation(const SourceLocation& loc)

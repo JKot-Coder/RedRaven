@@ -25,7 +25,7 @@ namespace RR
             Parser(const std::shared_ptr<SourceView>& sourceView,
                    const std::shared_ptr<CompileContext>& context);
 
-            Common::RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
+            Common::RResult Parse();
 
         private:
             // TODO tempoprary shared. Is it possible not to use it?

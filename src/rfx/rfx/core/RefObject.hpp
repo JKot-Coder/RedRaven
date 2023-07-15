@@ -9,9 +9,9 @@ namespace RR::Rfx
     {
     public:
         RefObject() = default;
-        //RefObject(const RefObject&) = default;
+        RefObject(const RefObject&) {}
         virtual ~RefObject() { }
-      //  RefObject& operator=(const RefObject& rhs) = default;
+        RefObject& operator=(const RefObject&) { return *this; }
 
         uint32_t addReference() { return ++referenceCount_; }
         uint32_t decreaseReference() { return --referenceCount_; }
