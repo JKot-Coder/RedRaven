@@ -180,22 +180,14 @@ namespace RR
             }
         }
 
-        U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic /*, DiagnosticSink::Flags flags, StringBuilder& outBuilder*/)
+        U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic)
         {
             ASSERT(diagnostic.location.IsValid())
 
             U8String humaneLocString;
-            // if (flags & DiagnosticSink::Flag::HumaneLoc)
             {
-                HumaneSourceLocation humaneLocation;
-
+                HumaneSourceLocation humaneLocation = diagnostic.humaneSourceLocation;
                 const auto sourceView = diagnostic.location.GetSourceView();
-                if (sourceView)
-                {
-                    //    humaneLocation = sourceView->GetHumaneLocation(diagnostic.location);
-                }
-
-                humaneLocation = diagnostic.humaneSourceLocation;
 
                 /*
                     CLion fomat
@@ -203,7 +195,7 @@ namespace RR
                                                   sourceView->GetSourceFile()->GetFileName(),
                                                   humaneLocation.line,
                                                   humaneLocation.column);
-                                    */
+                */
                 /*
                 const auto includeStack = sourceView->GetIncludeStack().GetStack();
                 ASSERT(!includeStack.empty())
