@@ -3072,38 +3072,38 @@ namespace RR
                     std::shared_ptr<InputStream> stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
                     //  if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
                     /*
-                std::shared_ptr<InputStream> stream;
-                // When the macro is expanded, we must make sure that the flags of the first
-                // token from the expansion are equal to the flags of the token that initiates the macro.
-                if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
-                {
-                    TokenList tokenList;
-
-                    // Copy all tokens and modify flags of first token
-                    for (bool first = true; !tokenReader.IsAtEnd(); first = false)
+                    std::shared_ptr<InputStream> stream;
+                    // When the macro is expanded, we must make sure that the flags of the first
+                    // token from the expansion are equal to the flags of the token that initiates the macro.
+                    if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
                     {
-                        auto token = tokenReader.AdvanceToken();
+                        TokenList tokenList;
 
-                        // Reset flags for first token in macro expansion
-                        if (first)
-                            token.flags = op.flags;
+                        // Copy all tokens and modify flags of first token
+                        for (bool first = true; !tokenReader.IsAtEnd(); first = false)
+                        {
+                            auto token = tokenReader.AdvanceToken();
 
-                        tokenList.push_back(token);
+                            // Reset flags for first token in macro expansion
+                            if (first)
+                                token.flags = op.flags;
+
+                            tokenList.push_back(token);
+                        }
+
+                        // Every token list needs to be terminated with an EOF,
+                        // so we will construct one that matches the location
+                        // for the `token`.
+                        Token eofToken;
+                        eofToken.type = Token::Type::EndOfFile;
+                        tokenList.push_back(eofToken);
+
+                        stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
                     }
-
-                    // Every token list needs to be terminated with an EOF,
-                    // so we will construct one that matches the location
-                    // for the `token`.
-                    Token eofToken;
-                    eofToken.type = Token::Type::EndOfFile;
-                    tokenList.push_back(eofToken);
-
-                    stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
-                }
-                else
-                {
-                    stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
-                }*/
+                    else
+                    {
+                        stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
+                    }*/
 
                     // The only interesting addition to the unexpanded case is that we wrap
                     // the stream that "plays back" the argument tokens with a stream that
