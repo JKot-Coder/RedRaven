@@ -251,7 +251,7 @@ namespace RR
 
             SourceLocation(RawValue raw, const std::shared_ptr<SourceView>& sourceView) : raw_(raw), sourceView_(sourceView)
             {
-                ASSERT(sourceView_)
+                ASSERT(sourceView_);
             }
 
         private:
@@ -267,7 +267,7 @@ namespace RR
         {
         public:
             /// Get the source file holds the contents this view
-            std::shared_ptr<SourceFile> GetSourceFile() const { return sourceFile_; }
+            std::shared_ptr<SourceFile> GetSourceFile() const { return sourceFile_.lock(); }
 
             /// Get the associated 'content' (the source text)
             UnownedStringSlice GetContent() const { return content_; }
@@ -342,7 +342,7 @@ namespace RR
             {
                 ASSERT(sourceFile) //TODO validate file
 
-                content_ = sourceFile_->GetContent();
+                content_ = sourceFile->GetContent();
                 pathInfo_ = pathInfo;
                 initiatingSourceLocation_ = initiatingSourceLocation;
                 initiatingHumaneLocation_ = initiatingHumaneLocation;
@@ -355,7 +355,7 @@ namespace RR
 
                 //   includeStack_ = IncludeStack(sourceFile->GetPathInfo());
                 pathInfo_ = sourceFile->GetPathInfo();
-                content_ = sourceFile_->GetContent();
+                content_ = sourceFile->GetContent();
                 initiatingHumaneLocation_ = HumaneSourceLocation(1, 1);
             }
             /*
@@ -380,7 +380,7 @@ namespace RR
 
                 sourceFile_ = sourceView->GetSourceFile();
                 //       includeStack_ = IncludeStack::CreateSplitted(sourceView->GetIncludeStack(), ownPathInfo);
-                content_ = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceFile_->GetContent().End());
+                content_ = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceView->GetSourceFile()->GetContent().End());
                 initiatingHumaneLocation_ = splitHumanLocation;
                 pathInfo_ = ownPathInfo;
             }
@@ -395,7 +395,7 @@ namespace RR
                 content_ = UnownedStringSlice(begin, content_.End());
             }
 
-            std::shared_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
+            std::weak_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
             //IncludeStack includeStack_; ///< Path to this view. If empty the path is the path to the SourceView
             PathInfo pathInfo_;
             UnownedStringSlice content_;
