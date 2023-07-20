@@ -67,7 +67,7 @@ namespace RR::Rfx
 
             while (outSourceView->GetInitiatingSourceLocation().GetSourceView() && outSourceView->GetPathInfo().type != PathInfo::Type::Normal)
             {
-                outHumaneSourceLoc = outSourceView->GetInitiatingHumaneLocation();
+                outHumaneSourceLoc = outSourceView->GetInitiatingSourceLocation().humaneSourceLoc;
                 outSourceView = outSourceView->GetInitiatingSourceLocation().GetSourceView();
             }
         }

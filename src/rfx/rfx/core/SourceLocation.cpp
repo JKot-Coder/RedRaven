@@ -102,20 +102,14 @@ namespace RR
 
         const U8Char* SourceView::GetContentFrom(const SourceLocation& loc) const
         {
-            ASSERT(loc.sourceView_ == shared_from_this());
+            ASSERT(loc.GetSourceView() == shared_from_this());
 
-            return GetContent().Begin() + loc.raw_;
-        }
-
-        SourceLocation SourceView::GetSourceLocation(size_t offset)
-        {
-            ASSERT(offset <= GetContentSize());
-            return SourceLocation(offset, shared_from_this());
+            return GetContent().Begin() + loc.raw;
         }
 
         UnownedStringSlice SourceView::ExtractLineContainingLocation(const SourceLocation& loc)
         {
-            ASSERT(loc.sourceView_ == shared_from_this());
+            ASSERT(loc.GetSourceView() == shared_from_this());
 
             const U8Char* const contentStart = GetContent().Begin();
             const U8Char* const contentEnd = GetContent().End();

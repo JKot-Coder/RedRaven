@@ -508,7 +508,14 @@ namespace RR
             /// Peek the location of the next token in the input stream.
             SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
 
-            /// Get the diagnostic sink to use for messages related to this stream
+            SourceManager& GetSourceManager() const
+            {
+                const auto preprocessor = preprocessor_.lock();
+                ASSERT(preprocessor);
+
+                return preprocessor->GetSourceManager();
+            }
+
             DiagnosticSink& GetSink() const
             {
                 const auto preprocessor = preprocessor_.lock();
@@ -1361,8 +1368,8 @@ namespace RR
 
             // Note that we don't need to pass a special source loc to identify that these are defined on the command line
             // because the PathInfo on the SourceFile, is marked 'command line'.
-            auto keyView = SourceView::Create(keyFile);
-            auto valueView = SourceView::Create(valueFile);
+            auto keyView = GetSourceManager().CreateSourceView(keyFile);
+            auto valueView = GetSourceManager().CreateSourceView(valueFile);
 
             // Use existing `Lexer` to generate a token stream.
             Lexer keyLexer(keyView, context_);
@@ -2383,7 +2390,7 @@ namespace RR
 
             U8String path = getFileNameTokenValue(pathToken);
 
-            const auto& sourceLocation = directiveContext.token.sourceLocation;
+            auto sourceLocation = directiveContext.token.sourceLocation;
             const auto& includedFromPathInfo = sourceLocation.GetSourceView()->GetSourceFile();
 
             // Find the path relative to the foundPath
@@ -2422,7 +2429,8 @@ namespace RR
             }
 
             // This is a new parse (even if it's a pre-existing source file), so create a new
-            const auto& includedView = SourceView::CreateIncluded(includedFile, sourceLocation, directiveContext.token.humaneSourceLocation);
+            sourceLocation.humaneSourceLoc = directiveContext.token.humaneSourceLocation;
+            const auto& includedView = GetSourceManager().CreateIncluded(includedFile, sourceLocation);
 
             PushInputFile(std::make_shared<InputFile>(shared_from_this(), includedView));
         }
@@ -2467,14 +2475,16 @@ namespace RR
             expectEndOfDirective(directiveContext);
 
             const auto& nextToken = peekRawToken();
-            // Start new source view from end of new line sequence.
-            const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
 
-            HumaneSourceLocation humaneLocation(line, 1);
+            auto sourceLocation = nextToken.sourceLocation;
+
+            // Start new source view from end of new line sequence.
+            sourceLocation.raw = sourceLocation.raw + nextToken.stringSlice.GetLength();
+            sourceLocation.humaneSourceLoc = HumaneSourceLocation(line, 1);
 
             // Todo trash
             pathInfo = PathInfo::makeSplit(pathInfo.foundPath, pathInfo.uniqueIdentity);
-            const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
+            const auto& sourceView = GetSourceManager().CreateSplited(sourceLocation, pathInfo);
 
             // Forced closing of the current current stream and start a new one
             popInputFile(true);
@@ -2655,7 +2665,7 @@ namespace RR
 
         void Preprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
         {
-            const auto sourceView = RR::Rfx::SourceView::Create(sourceFile);
+            const auto sourceView = impl_->GetSourceManager().CreateSourceView(sourceFile);
             impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
         }
 
@@ -2924,7 +2934,7 @@ namespace RR
                         ASSERT(preprocessor);
 
                         const auto& sourceFile = preprocessor->GetSourceManager().CreateFileFromString(pathInfo, pastedContent.str());
-                        auto sourceView = SourceView::CreatePasted(sourceFile, initiatingMacroToken_.sourceLocation, initiatingMacroToken_.humaneSourceLocation);
+                        auto sourceView = preprocessor->GetSourceManager().CreatePastedSourceView(sourceFile, initiatingMacroToken_.sourceLocation);
 
                         Lexer lexer(sourceView, preprocessor->GetContext());
                         auto lexedTokens = lexer.LexAllSemanticTokens();
@@ -3020,9 +3030,8 @@ namespace RR
                     auto tokenBuffer = macro_->tokens.begin();
                     auto tokenReader = TokenReader(tokenBuffer + beginTokenIndex, tokenBuffer + endTokenIndex);
 
-                    auto sourceView = SourceView::CreatePasted(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                                                               initiatingMacroToken_.sourceLocation,
-                                                               initiatingMacroToken_.humaneSourceLocation);
+                    auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
+                                                                                initiatingMacroToken_.sourceLocation);
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
                     const auto& stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
@@ -3060,9 +3069,9 @@ namespace RR
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
 
-                    auto sourceView = SourceView::CreatePasted(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                                                               initiatingMacroToken_.sourceLocation,
-                                                               initiatingMacroToken_.humaneSourceLocation);
+                    auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
+                                                                                initiatingMacroToken_.sourceLocation);
+
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
 
@@ -3256,7 +3265,7 @@ namespace RR
             // top-level file instead of any nested macros being expanded.
             const auto initiatingLoc = initiatingMacroToken_.sourceLocation;
             const auto humaneInitiatingLoc = initiatingMacroToken_.humaneSourceLocation;
-            if (!initiatingLoc.IsValid())
+            if (!initiatingLoc.GetSourceView())
             {
                 // If we cannot find a valid source location for the initiating
                 // location, then we will not expand the macro.
@@ -3520,11 +3529,12 @@ namespace RR
 
         void MacroInvocation::updateSourceViewForTokens(TokenReader& tokenReader, const std::shared_ptr<SourceView>& sourceView, TokenList& outTokenList) const
         {
+            // TODO ???
             // Copy all tokens and modify flags of first token
             while (!tokenReader.IsAtEnd())
             {
                 auto token = tokenReader.AdvanceToken();
-                token.sourceLocation = sourceView->GetSourceLocation(0);
+                token.sourceLocation.sourceView = sourceView;
                 outTokenList.push_back(token);
             }
 

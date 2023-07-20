@@ -263,8 +263,9 @@ namespace RR
 
             if (sourceView_->GetPathInfo().type == PathInfo::Type::Split)
             {
-                linesCounter_ = sourceView_->GetInitiatingHumaneLocation().line;
-                columnCounter_ = sourceView_->GetInitiatingHumaneLocation().column;
+                const auto &sourceLoc = sourceView_->GetInitiatingSourceLocation().humaneSourceLoc;
+                linesCounter_ = sourceLoc.line;
+                columnCounter_ = sourceLoc.column;
             }
 
             begin_ = content.Begin();
@@ -1027,7 +1028,7 @@ namespace RR
 
         SourceLocation Lexer::getSourceLocation()
         {
-            return sourceView_->GetSourceLocation(std::distance(begin_, cursor_));
+            return sourceView_->GetSourceLocation(std::distance(begin_, cursor_), HumaneSourceLocation(linesCounter_.Value(), columnCounter_.Value()));
         }
 
         HumaneSourceLocation Lexer::getHumaneSourceLocation()

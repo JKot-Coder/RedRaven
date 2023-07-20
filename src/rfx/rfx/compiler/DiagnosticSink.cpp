@@ -82,9 +82,8 @@ namespace RR
 
             U8String sourceLocationNoteDiagnostic(const Diagnostic& diagnostic, size_t maxLineLength)
             {
-                ASSERT(diagnostic.location.IsValid())
-
                 const auto sourceView = diagnostic.location.GetSourceView();
+                ASSERT(sourceView);
 
                 UnownedStringSlice sourceLineSlice = sourceView->ExtractLineContainingLocation(diagnostic.location);
 
@@ -182,12 +181,11 @@ namespace RR
 
         U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic)
         {
-            ASSERT(diagnostic.location.IsValid())
-
             U8String humaneLocString;
             {
                 HumaneSourceLocation humaneLocation = diagnostic.humaneSourceLocation;
                 const auto sourceView = diagnostic.location.GetSourceView();
+                ASSERT(sourceView);
 
                 /*
                     CLion fomat

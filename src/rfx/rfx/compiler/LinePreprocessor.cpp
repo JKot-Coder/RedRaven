@@ -78,7 +78,7 @@ namespace RR::Rfx
 
                     // clang-format off
                     // Octal escape: up to 3 characterws
-                    case '0': case '1': case '2': case '3': 
+                    case '0': case '1': case '2': case '3':
                     case '4': case '5': case '6': case '7':
                     { // clang-format on
                         cursor--;
@@ -694,14 +694,14 @@ namespace RR::Rfx
         expectEndOfDirective(directiveContext);
 
         const auto& nextToken = peekToken();
+        auto sourceLocation = nextToken.sourceLocation;
         // Start new source view from end of new line sequence.
-        const auto sourceLocation = nextToken.sourceLocation + nextToken.stringSlice.GetLength();
-
-        HumaneSourceLocation humaneLocation(line, 1);
+        sourceLocation.raw += nextToken.stringSlice.GetLength();
+        sourceLocation.humaneSourceLoc = HumaneSourceLocation(line, 1);
 
         // Todo trash
         pathInfo = PathInfo::makeSplit(pathInfo.foundPath, pathInfo.uniqueIdentity);
-        const auto& sourceView = SourceView::CreateSplited(sourceLocation, humaneLocation, pathInfo);
+        const auto& sourceView = SourceView::CreateSplited(sourceLocation, pathInfo);
 
         // Forced closing of the current current stream and start a new one
         popInputFile(true);

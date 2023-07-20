@@ -234,29 +234,31 @@ namespace RR
             using RawValue = size_t;
 
             SourceLocation() = default;
-            SourceLocation(const SourceLocation& loc) : raw_(loc.raw_), sourceView_(loc.sourceView_) { }
+            SourceLocation(const SourceLocation& loc) : raw(loc.raw), sourceView(loc.sourceView) { }
 
-            inline bool operator==(const SourceLocation& rhs) const { return (raw_ == rhs.raw_) && (sourceView_ == rhs.sourceView_); }
-            inline bool operator!=(const SourceLocation& rhs) const { return (raw_ != rhs.raw_) && (sourceView_ != rhs.sourceView_); }
+            inline bool operator==(const SourceLocation& rhs) const { return (raw == rhs.raw) && (sourceView.lock() == rhs.sourceView.lock()); }
+            inline bool operator!=(const SourceLocation& rhs) const { return (raw != rhs.raw) && (sourceView.lock() != rhs.sourceView.lock()); }
 
             inline SourceLocation& operator=(const SourceLocation& rhs) = default;
-            inline SourceLocation operator+(int32_t offset) const { return SourceLocation(RawValue(int64_t(raw_) + offset), sourceView_); }
-            inline SourceLocation operator+(RawValue offset) const { return SourceLocation(raw_ + offset, sourceView_); }
+            //   inline SourceLocation operator+(int32_t offset) const { return SourceLocation(RawValue(int64_t(raw) + offset),  sourceView.lock()); }
+            //  inline SourceLocation operator+(RawValue offset) const { return SourceLocation(raw + offset, sourceView.lock()); }
 
-            inline std::shared_ptr<SourceView> GetSourceView() const { return sourceView_; }
-            inline bool IsValid() const { return sourceView_ != nullptr; }
+            inline std::shared_ptr<SourceView> GetSourceView() const { return sourceView.lock(); }
 
         private:
             friend SourceView;
 
-            SourceLocation(RawValue raw, const std::shared_ptr<SourceView>& sourceView) : raw_(raw), sourceView_(sourceView)
+            SourceLocation(RawValue raw, const HumaneSourceLocation& humaneSourceLocation, const std::shared_ptr<SourceView>& sourceView)
+                : raw(raw), humaneSourceLoc(humaneSourceLocation), sourceView(sourceView)
             {
-                ASSERT(sourceView_);
+                // Todo... This is sad, that we need sourceview;
+                // ASSERT(sourceView);
             }
 
-        private:
-            RawValue raw_ = 0;
-            std::shared_ptr<SourceView> sourceView_;
+        public:
+            RawValue raw = 0;
+            HumaneSourceLocation humaneSourceLoc;
+            std::weak_ptr<SourceView> sourceView;
         };
 
         /* A SourceView maps to a single span of SourceLocation range and is equivalent to a single include or more precisely use of a source file.
@@ -278,25 +280,38 @@ namespace RR
             /// overridden by m_viewPath TODO COMMENT
             // IncludeStack GetIncludeStack() const { return includeStack_; }
 
-            /// Get the size of the content
             size_t GetContentSize() const { return content_.GetLength(); }
 
-            SourceLocation GetSourceLocation(size_t offset);
+            SourceLocation GetSourceLocation(size_t offset, const HumaneSourceLocation& humaneSourceLoc)
+            {
+                ASSERT(offset <= GetContentSize());
+                return SourceLocation(offset, humaneSourceLoc, shared_from_this());
+            }
 
             /// Gets the pathInfo for this view. It may differ from the pathInfo of the source file if the sourceView was created by #line directive.
             PathInfo GetPathInfo() const { return pathInfo_; }
 
             /// Get the humane location
             /// Type determines if the location wanted is the original, or the 'normal' (which modifys behavior based on #line directives)
-            HumaneSourceLocation GetHumaneLocation(const SourceLocation& loc, SourceLocationType type = SourceLocationType::Nominal);
+            // HumaneSourceLocation GetHumaneLocation(const SourceLocation& loc, SourceLocationType type = SourceLocationType::Nominal)
 
-            SourceLocation GetInitiatingSourceLocation() const { return initiatingSourceLocation_; }
-            HumaneSourceLocation GetInitiatingHumaneLocation() const { return initiatingHumaneLocation_; }
+            SourceLocation GetInitiatingSourceLocation()
+            {
+                // Unfortuanally we can't initialize the source with weak_prt in the constructor,
+                // so here we do a lazy initialization here.
+                if (!initiatingSourceLocation_.GetSourceView())
+                    initiatingSourceLocation_.sourceView = shared_from_this();
+
+                return initiatingSourceLocation_;
+            }
 
             UnownedStringSlice ExtractLineContainingLocation(const SourceLocation& loc);
 
         public:
-            [[nodiscard]] static std::shared_ptr<SourceView> Create(const std::shared_ptr<SourceFile>& sourceFile)
+            friend std::shared_ptr<SourceView> std::make_shared<SourceView>();
+
+            [[nodiscard]]
+            static std::shared_ptr<SourceView> Create(const std::shared_ptr<SourceFile>& sourceFile)
             {
                 auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile));
                 sourceView->advanceBom();
@@ -304,59 +319,61 @@ namespace RR
                 return sourceView;
             }
 
-            [[nodiscard]] static std::shared_ptr<SourceView> CreatePasted(const std::shared_ptr<SourceFile>& sourceFile,
-                                                                          const SourceLocation& parentSourceLocation,
-                                                                          const HumaneSourceLocation& parentHumanLocation)
+            [[nodiscard]]
+            static std::shared_ptr<SourceView> CreatePasted(const std::shared_ptr<SourceFile>& sourceFile,
+                                                            const SourceLocation& parentSourceLocation)
             {
                 //  const auto includeStack = IncludeStack::CreateIncluded(parentView->GetIncludeStack(), sourceFile->GetPathInfo(), parentHumanLocation);
 
                 const auto& pathInfo = PathInfo::makeTokenPaste();
-                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, pathInfo, parentSourceLocation, parentHumanLocation));
+                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, pathInfo, parentSourceLocation));
                 sourceView->advanceBom();
 
                 return sourceView;
             }
 
-            [[nodiscard]] static std::shared_ptr<SourceView> CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile,
-                                                                            const SourceLocation& parentSourceLocation,
-                                                                            const HumaneSourceLocation& parentHumanLocation)
+            [[nodiscard]]
+            static std::shared_ptr<SourceView> CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile,
+                                                              const SourceLocation& parentSourceLocation)
             {
                 const auto& pathInfo = sourceFile->GetPathInfo();
-                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, pathInfo, parentSourceLocation, parentHumanLocation));
+                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, pathInfo, parentSourceLocation));
                 sourceView->advanceBom();
 
                 return sourceView;
             }
 
-            [[nodiscard]] static std::shared_ptr<SourceView> CreateSplited(const SourceLocation& splitLocation, const HumaneSourceLocation& splitHumanLocation, const PathInfo& ownPathInfo)
+            [[nodiscard]]
+            static std::shared_ptr<SourceView> CreateSplited(const SourceLocation& splitLocation, const PathInfo& ownPathInfo)
             {
-                return std::shared_ptr<SourceView>(new SourceView(splitLocation, splitHumanLocation, ownPathInfo));
+                return std::shared_ptr<SourceView>(new SourceView(splitLocation, ownPathInfo));
             }
 
         private:
             SourceView(const std::shared_ptr<SourceFile>& sourceFile,
                        const PathInfo& pathInfo,
-                       const SourceLocation& initiatingSourceLocation,
-                       const HumaneSourceLocation& initiatingHumaneLocation)
+                       const SourceLocation& initiatingSourceLocation)
                 : sourceFile_(sourceFile)
             {
-                ASSERT(sourceFile) //TODO validate file
+                ASSERT(sourceFile); // TODO validate file
+                ASSERT(initiatingSourceLocation.GetSourceView());
 
                 content_ = sourceFile->GetContent();
                 pathInfo_ = pathInfo;
                 initiatingSourceLocation_ = initiatingSourceLocation;
-                initiatingHumaneLocation_ = initiatingHumaneLocation;
             }
 
             SourceView(const std::shared_ptr<SourceFile>& sourceFile)
                 : sourceFile_(sourceFile)
             {
-                ASSERT(sourceFile) //TODO validate file
+                ASSERT(sourceFile); // TODO validate file
 
                 //   includeStack_ = IncludeStack(sourceFile->GetPathInfo());
                 pathInfo_ = sourceFile->GetPathInfo();
                 content_ = sourceFile->GetContent();
-                initiatingHumaneLocation_ = HumaneSourceLocation(1, 1);
+
+                // initializing with nullptr cause we can't get shared ptr in constructor
+                initiatingSourceLocation_ = SourceLocation(0, HumaneSourceLocation(1, 1), nullptr);
             }
             /*
             SourceView(const std::shared_ptr<SourceFile>& sourceFile, const std::shared_ptr<SourceView>& parentView, const HumaneSourceLocation& parentHumanLocation)
@@ -372,16 +389,16 @@ namespace RR
                // includeStack_ = IncludeStack(sourceFile->GetPathInfo());
             } */
 
-            SourceView(const SourceLocation& splitLocation, const HumaneSourceLocation& splitHumanLocation, const PathInfo& ownPathInfo)
+            SourceView(const SourceLocation& splitLocation, const PathInfo& ownPathInfo)
             {
-                ASSERT(splitLocation.IsValid())
-
-                const auto& sourceView = splitLocation.GetSourceView();
+                ASSERT(splitLocation.GetSourceView());
+                const auto sourceView = splitLocation.GetSourceView();
+                ASSERT(sourceView);
 
                 sourceFile_ = sourceView->GetSourceFile();
                 //       includeStack_ = IncludeStack::CreateSplitted(sourceView->GetIncludeStack(), ownPathInfo);
                 content_ = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceView->GetSourceFile()->GetContent().End());
-                initiatingHumaneLocation_ = splitHumanLocation;
+                initiatingSourceLocation_ = splitLocation;
                 pathInfo_ = ownPathInfo;
             }
 
@@ -396,11 +413,10 @@ namespace RR
             }
 
             std::weak_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
-            //IncludeStack includeStack_; ///< Path to this view. If empty the path is the path to the SourceView
+            // IncludeStack includeStack_; ///< Path to this view. If empty the path is the path to the SourceView
             PathInfo pathInfo_;
             UnownedStringSlice content_;
             SourceLocation initiatingSourceLocation_; ///< An optional source loc that defines where this view was initiated from. SourceLocation(0) if not defined.
-            HumaneSourceLocation initiatingHumaneLocation_;
         };
     }
 }
