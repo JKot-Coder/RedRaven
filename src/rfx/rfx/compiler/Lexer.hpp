@@ -158,7 +158,6 @@ namespace RR
             Token::Type scanToken();
             void advance();
             SourceLocation getSourceLocation();
-            HumaneSourceLocation getHumaneSourceLocation();
 
             void handleBlockComment();
             void handleEscapedNewline();

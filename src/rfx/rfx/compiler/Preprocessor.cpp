@@ -922,7 +922,6 @@ namespace RR
             {
                 U8String name;
                 SourceLocation sourceLocation;
-                HumaneSourceLocation humaneSourceLocation;
                 bool isVariadic = false;
             };
 
@@ -2193,7 +2192,6 @@ namespace RR
                         Token ellipsisToken;
                         MacroDefinition::Param param;
                         param.sourceLocation = paramNameToken.sourceLocation;
-                        param.humaneSourceLocation = paramNameToken.humaneSourceLocation;
 
                         if (peekRawTokenType() == Token::Type::Ellipsis)
                         {
@@ -2236,7 +2234,7 @@ namespace RR
                         const auto paramName = param.name;
                         if (mapParamNameToIndex.find(paramName) != mapParamNameToIndex.end())
                         {
-                            GetSink().Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
+                            GetSink().Diagnose(param.sourceLocation, Diagnostics::duplicateMacroParameterName, paramName);
                         }
                         else
                         {
@@ -2262,7 +2260,7 @@ namespace RR
                     if (!param.isVariadic)
                         continue;
 
-                    GetSink().Diagnose(param.sourceLocation, param.humaneSourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
+                    GetSink().Diagnose(param.sourceLocation, Diagnostics::variadicMacroParameterMustBeLast, param.name);
 
                     // As a precaution, we will unmark the variadic-ness of the parameter, so that
                     // logic downstream from this step doesn't have to deal with the possibility
@@ -2429,7 +2427,6 @@ namespace RR
             }
 
             // This is a new parse (even if it's a pre-existing source file), so create a new
-            sourceLocation.humaneSourceLoc = directiveContext.token.humaneSourceLocation;
             const auto& includedView = GetSourceManager().CreateIncluded(includedFile, sourceLocation);
 
             PushInputFile(std::make_shared<InputFile>(shared_from_this(), includedView));
@@ -2844,7 +2841,6 @@ namespace RR
                         // The more complicated case is a token paste (`##`).
                         auto tokenPasteTokenIndex = nextOp.index0;
                         const auto& tokenPasteLoc = macro_->tokens[tokenPasteTokenIndex].sourceLocation;
-                        const auto& tokenPasteHumaneLoc = macro_->tokens[tokenPasteTokenIndex].humaneSourceLocation;
 
                         // A `##` must always appear between two macro ops (whether literal tokens
                         // or macro parameters) and it is supposed to paste together the last
@@ -2962,7 +2958,7 @@ namespace RR
                         // The first two cases are both considered valid token pastes, while the latter should
                         // be diagnosed as a warning, even if it is clear how we can handle it.
                         if (lexedTokens.size() > 2)
-                            GetSink().Diagnose(tokenPasteLoc, tokenPasteHumaneLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
+                            GetSink().Diagnose(tokenPasteLoc, Diagnostics::invalidTokenPasteResult, pastedContent.str());
 
                         // No matter what sequence of tokens we got, we can create an input stream to represent
                         // them and push it as the representation of the `##` macro definition op.
@@ -3157,7 +3153,7 @@ namespace RR
 
                     // Once we've constructed the content of the stringized result, we need to push
                     // a new single-token stream that represents that content.
-                    pushSingleTokenStream(Token::Type::StringLiteral, loc, initiatingMacroToken_.humaneSourceLocation, string);
+                    pushSingleTokenStream(Token::Type::StringLiteral, loc, initiatingMacroToken_.sourceLocation.humaneSourceLoc, string);
                 }
                 break;
 
@@ -3173,10 +3169,8 @@ namespace RR
                     //
                     // The only key details here are that we specify the type of the token (`IntegerLiteral`)
                     // and its content (the value of `loc.line`).
-                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
-                                                  {
-                                                      std::ignore = loc;
-                                                      string += std::to_string(humaneLoc.line); });
+                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc)
+                                                  { string += std::to_string(loc.humaneSourceLoc.line); });
                 }
                 break;
 
@@ -3184,10 +3178,8 @@ namespace RR
                 {
                     // The `__FILE__` case is quite similar to `__LINE__`, except for the type of token it yields,
                     // and the way it computes the desired token content.
-                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc, const HumaneSourceLocation& humaneLoc)
-                                                  {
-                                                      std::ignore = humaneLoc;
-                                                      string = loc.GetSourceView()->GetPathInfo().foundPath; });
+                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc)
+                                                  { string = loc.GetSourceView()->GetPathInfo().foundPath; });
                 }
                 break;
 
@@ -3239,7 +3231,7 @@ namespace RR
             token.type = tokenType;
             token.stringSlice = UnownedStringSlice(allocated, allocated + content.length());
             token.sourceLocation = tokenLoc;
-            token.humaneSourceLocation = humaneSourceLocation;
+            token.sourceLocation.humaneSourceLoc = humaneSourceLocation;
 
             TokenList lexedTokens;
             lexedTokens.push_back(token);
@@ -3264,7 +3256,6 @@ namespace RR
             // the "initiating" source location, which should come from the
             // top-level file instead of any nested macros being expanded.
             const auto initiatingLoc = initiatingMacroToken_.sourceLocation;
-            const auto humaneInitiatingLoc = initiatingMacroToken_.humaneSourceLocation;
             if (!initiatingLoc.GetSourceView())
             {
                 // If we cannot find a valid source location for the initiating
@@ -3279,10 +3270,10 @@ namespace RR
             // of the token will be based on the source location (either to generate the
             // `__LINE__` or the `__FILE__` value).
             U8String content;
-            valueBuilder(content, initiatingLoc, humaneInitiatingLoc);
+            valueBuilder(content, initiatingLoc);
 
             // Next we constuct and push an input stream with exactly the token type and content we want.
-            pushSingleTokenStream(tokenType, initiatingLoc, humaneInitiatingLoc, content); // Todo Pasted inititing loc initiatingMacroToken_
+            pushSingleTokenStream(tokenType, initiatingLoc, initiatingLoc.humaneSourceLoc, content); // Todo Pasted inititing loc initiatingMacroToken_
         }
 
         // Check whether the current token on the given input stream should be

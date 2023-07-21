@@ -170,6 +170,10 @@ namespace RR
             HumaneSourceLocation(uint32_t line, uint32_t column)
                 : line(line), column(column) {};
 
+            inline bool operator==(const HumaneSourceLocation& rhs) const { return (line == rhs.line) && (column == rhs.column); }
+            inline bool operator!=(const HumaneSourceLocation& rhs) const { return (line != rhs.line) || (column != rhs.column); }
+            inline HumaneSourceLocation& operator=(const HumaneSourceLocation& rhs) = default;
+
             uint32_t line = 0;
             uint32_t column = 0;
         };
@@ -234,15 +238,12 @@ namespace RR
             using RawValue = size_t;
 
             SourceLocation() = default;
-            SourceLocation(const SourceLocation& loc) : raw(loc.raw), sourceView(loc.sourceView) { }
+            SourceLocation(const SourceLocation& loc) : raw(loc.raw), sourceView(loc.sourceView), humaneSourceLoc(loc.humaneSourceLoc) { }
 
-            inline bool operator==(const SourceLocation& rhs) const { return (raw == rhs.raw) && (sourceView.lock() == rhs.sourceView.lock()); }
-            inline bool operator!=(const SourceLocation& rhs) const { return (raw != rhs.raw) && (sourceView.lock() != rhs.sourceView.lock()); }
+            inline bool operator==(const SourceLocation& rhs) const { return (raw == rhs.raw) && (humaneSourceLoc == rhs.humaneSourceLoc) && (sourceView.lock() == rhs.sourceView.lock()); }
+            inline bool operator!=(const SourceLocation& rhs) const { return (raw != rhs.raw) || (humaneSourceLoc != rhs.humaneSourceLoc) || (sourceView.lock() != rhs.sourceView.lock()); }
 
             inline SourceLocation& operator=(const SourceLocation& rhs) = default;
-            //   inline SourceLocation operator+(int32_t offset) const { return SourceLocation(RawValue(int64_t(raw) + offset),  sourceView.lock()); }
-            //  inline SourceLocation operator+(RawValue offset) const { return SourceLocation(raw + offset, sourceView.lock()); }
-
             inline std::shared_ptr<SourceView> GetSourceView() const { return sourceView.lock(); }
 
         private:

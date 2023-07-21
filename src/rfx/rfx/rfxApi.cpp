@@ -65,7 +65,9 @@ namespace RR::Rfx
         {
             outSourceView = sourceView;
 
-            while (outSourceView->GetInitiatingSourceLocation().GetSourceView() && outSourceView->GetPathInfo().type != PathInfo::Type::Normal)
+            while (outSourceView->GetInitiatingSourceLocation().GetSourceView() &&
+                   outSourceView->GetPathInfo().type != PathInfo::Type::Normal &&
+                   outSourceView->GetPathInfo().type != PathInfo::Type::Split)
             {
                 outHumaneSourceLoc = outSourceView->GetInitiatingSourceLocation().humaneSourceLoc;
                 outSourceView = outSourceView->GetInitiatingSourceLocation().GetSourceView();
@@ -90,7 +92,7 @@ namespace RR::Rfx
 
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
-                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
+                    HumaneSourceLocation humaleLoc = token.sourceLocation.humaneSourceLoc;
                     std::shared_ptr<SourceView> sourceView;
 
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
@@ -115,7 +117,7 @@ namespace RR::Rfx
                 }
                 else
                 {
-                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
+                    HumaneSourceLocation humaleLoc = token.sourceLocation.humaneSourceLoc;
                     std::shared_ptr<SourceView> sourceView;
 
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
@@ -344,8 +346,8 @@ namespace RR::Rfx
                 result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
                                       RR::Rfx::TokenTypeToString(token.type),
                                       escapedToken,
-                                      token.humaneSourceLocation.line,
-                                      token.humaneSourceLocation.column);
+                                      token.sourceLocation.humaneSourceLoc.line,
+                                      token.sourceLocation.humaneSourceLoc.column);
 
                 if (token.type == Token::Type::EndOfFile)
                     break;

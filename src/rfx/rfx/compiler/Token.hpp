@@ -28,8 +28,8 @@ namespace RR
 
         public:
             Token() = default;
-            Token(Type inType, const UnownedStringSlice& stringSlice, const SourceLocation& SourceLocation, const HumaneSourceLocation& humaneSourceLocation, Flags flags = Flags::None)
-                : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(SourceLocation), humaneSourceLocation(humaneSourceLocation)
+            Token(Type inType, const UnownedStringSlice& stringSlice, const SourceLocation& sourceLocation, Flags flags = Flags::None)
+                : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(sourceLocation)
             {
             }
 
@@ -48,9 +48,7 @@ namespace RR
             Flags flags = Flags::None;
             UnownedStringSlice stringSlice;
             SourceLocation sourceLocation;
-            HumaneSourceLocation humaneSourceLocation;
         };
-
 
         template <typename T, typename = void>
         struct IsTokenStream : std::false_type

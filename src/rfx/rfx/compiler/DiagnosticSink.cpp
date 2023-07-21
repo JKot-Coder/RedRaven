@@ -183,7 +183,7 @@ namespace RR
         {
             U8String humaneLocString;
             {
-                HumaneSourceLocation humaneLocation = diagnostic.humaneSourceLocation;
+                HumaneSourceLocation humaneLocation = diagnostic.location.humaneSourceLoc;
                 const auto sourceView = diagnostic.location.GetSourceView();
                 ASSERT(sourceView);
 
