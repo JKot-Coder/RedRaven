@@ -23,13 +23,8 @@ namespace RR::Rfx
 
         auto context = std::make_shared<CompileContext>(false);
 
-        Parser parser(SourceView::Create(source), context);
+        Parser parser(SourceView::CreateFromSourceFile(source), context);
         RR_RETURN_ON_FAIL(parser.Parse());
-
-        auto stream = source->GetStream();
-
-        std::cout << "test"
-                  << "\n";
 
         return result;
     }

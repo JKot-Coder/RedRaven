@@ -149,7 +149,6 @@ namespace RR
                             utf8::append(value, result);
                             continue;
                         }
-
                             // TODO: Unicode escape sequences
                     }
                 }
@@ -300,11 +299,12 @@ namespace RR
 
         public:
             PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                             const std::shared_ptr<SourceManager>& sourceManager,
                              const std::shared_ptr<CompileContext>& context);
 
             DiagnosticSink& GetSink() const { return context_->sink; }
-            SourceManager& GetSourceManager() const { return context_->sourceManager; }
-            std::shared_ptr<IncludeSystem> GetIncludeSystem() const { return includeSystem_; }
+            SourceManager& GetSourceManager() const { return *sourceManager_; }
+            IncludeSystem GetIncludeSystem() const { return *includeSystem_; }
             std::shared_ptr<CompileContext> GetContext() const { return context_; }
             Common::LinearAllocator& GetAllocator() const { return context_->allocator; }
 
@@ -405,6 +405,7 @@ namespace RR
         private:
             std::shared_ptr<CompileContext> context_;
             std::shared_ptr<IncludeSystem> includeSystem_;
+            std::shared_ptr<SourceManager> sourceManager_;
 
             /// A stack of "active" input files
             std::shared_ptr<InputFile> currentInputFile_;
@@ -1273,9 +1274,11 @@ namespace RR
         };
 
         PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
+                                           const std::shared_ptr<SourceManager>& sourceManager,
                                            const std::shared_ptr<CompileContext>& context)
-            : context_(context),
-              includeSystem_(includeSystem)
+            : includeSystem_(includeSystem),
+              sourceManager_(sourceManager),
+              context_(context)
         {
             ASSERT(context);
             ASSERT(includeSystem);
@@ -2655,8 +2658,9 @@ namespace RR
         Preprocessor::~Preprocessor() { }
 
         Preprocessor::Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                                   const std::shared_ptr<SourceManager>& sourceManager,
                                    const std::shared_ptr<CompileContext>& context)
-            : impl_(std::make_unique<PreprocessorImpl>(includeSystem, context))
+            : impl_(std::make_unique<PreprocessorImpl>(includeSystem, sourceManager, context))
         {
         }
 

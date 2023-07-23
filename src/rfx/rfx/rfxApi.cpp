@@ -302,7 +302,7 @@ namespace RR::Rfx
     {
     public:
         LexerTokenReader(const std::shared_ptr<RR::Rfx::SourceFile>& sourceFile, const std::shared_ptr<RR::Rfx::CompileContext>& context)
-            : lexer_(SourceView::Create(sourceFile), context)
+            : lexer_(SourceView::CreateFromSourceFile(sourceFile), context)
         {
         }
 
@@ -404,15 +404,20 @@ namespace RR::Rfx
                 return result;
 
             auto context = std::make_shared<CompileContext>(compileRequest.compilerOptions.onlyRelativePaths);
-
-            std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-            if (RR_FAILED(result = context->sourceManager.LoadFile(pathInfo, sourceFile)))
-                return result;
-
-            ComPtr<IDxcResult> dxcResult;
+            auto sourceManager = std::make_shared<SourceManager>(context);
 
             auto bufferWriter = std::make_shared<BufferWriter>();
             context->sink.AddWriter(bufferWriter);
+
+            std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
+            if (RR_FAILED(result = sourceManager->LoadFile(pathInfo, sourceFile)))
+            {
+                const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                return result;
+            }
+
+            ComPtr<IDxcResult> dxcResult;
 
             switch (compileRequest.outputStage)
             {
@@ -430,7 +435,7 @@ namespace RR::Rfx
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {
-                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, context);
+                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, sourceManager, context);
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
@@ -639,7 +644,7 @@ namespace RR::Rfx
         catch (const utf8::exception& e)
         {
             LOG_ERROR("UTF8 exception: {}", e.what());
-            return RfxResult::CannotOpen;
+            return RfxResult::Abort;
         }
 
         return result;

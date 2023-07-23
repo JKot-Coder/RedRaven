@@ -4,6 +4,19 @@ namespace RR
 {
     namespace Rfx
     {
+        namespace
+        {
+            UnownedStringSlice advanceBom(const UnownedStringSlice& stringSlice)
+            {
+                auto begin = stringSlice.Begin();
+
+                if (utf8::starts_with_bom(begin))
+                    utf8::next(begin, stringSlice.End());
+
+                return UnownedStringSlice(begin, stringSlice.End());
+            }
+        }
+
         /* !!!!!!!!!!!!!!!!!!!!!!!!!! PathInfo !!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
         const U8String PathInfo::getMostUniqueIdentity() const
         {
@@ -39,10 +52,9 @@ namespace RR
             return false;
         }
 
-        void SourceFile::SetContent(const U8String&& content)
+        void SourceFile::SetContent(const UnownedStringSlice& content)
         {
-            contentSize_ = content.length();
-            content_ = content;
+            content_ = advanceBom(content);
         }
 
         bool extractLine(UnownedStringSlice& ioText, UnownedStringSlice& outLine)

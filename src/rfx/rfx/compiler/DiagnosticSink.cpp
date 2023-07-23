@@ -229,5 +229,16 @@ namespace RR
 
             return diagnosticString;
         }
+
+        U8String DiagnosticSink::formatDiagnosticWithoutSource(const Diagnostic& diagnostic)
+        {
+            U8String format = (diagnostic.errorID >= 0) ? "{0} {1}: {2}\n" : "{0}: {2}\n";
+
+            return fmt::format(format,
+                               GetSeverityName(diagnostic.severity),
+                               diagnostic.errorID,
+                               diagnostic.message);
+        }
+
     }
 }

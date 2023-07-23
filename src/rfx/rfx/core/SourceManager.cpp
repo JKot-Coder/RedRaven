@@ -1,7 +1,9 @@
 #include "SourceManager.hpp"
 
+#include "common/LinearAllocator.hpp"
 #include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
+#include "compiler/CompileContext.hpp"
 #include "core/SourceLocation.hpp"
 
 #include <filesystem>
@@ -20,41 +22,57 @@ namespace RR::Rfx
         return RResult::Fail; \
     }
 
-        RResult readFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile)
+        U8String getErrorMessage()
         {
-            ASSERT_ON_FALSE(pathInfo.hasUniqueIdentity());
-            const auto& path = fs::path(pathInfo.uniqueIdentity);
-
-            if (!fs::exists(path))
-                return RResult::NotFound;
-
-            std::ifstream stream(pathInfo.uniqueIdentity, std::ios::binary);
-
-            if (!stream)
-                return RResult::Fail;
-
-            ON_SCOPE_EXIT({ stream.close(); });
-
-            stream.seekg(0, stream.end);
-            uint64_t sizeInBytes = stream.tellg();
-            stream.seekg(0, stream.beg);
-
-            const uint64_t MaxFileSize = 0x40000000; // 1 Gib
-            if (sizeInBytes > MaxFileSize)
-                return RResult::Fail; // It's too large to fit in memory.
-
-            U8String content;
-            content.resize(sizeInBytes);
-            stream.read(&content[0], content.size());
-
-            if (!stream) // If not all read just return an error
-                return RResult::Fail;
-
-            outSourceFile = std::make_shared<SourceFile>(pathInfo);
-            outSourceFile->SetContent(std::move(content));
-
-            return RfxResult::Ok;
+            char errmsg[1024];
+            strerror_s(errmsg, 1024, errno);
+            return errmsg;
         }
+    }
+
+    SourceManager::SourceManager(const std::shared_ptr<CompileContext>& context)
+        : context_(context) { ASSERT(context); }
+
+    SourceManager::~SourceManager() { }
+
+    RResult SourceManager::readFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile)
+    {
+        ASSERT_ON_FALSE(pathInfo.hasUniqueIdentity());
+        const auto& path = fs::path(pathInfo.uniqueIdentity);
+
+        if (!fs::exists(path))
+            return RResult::NotFound;
+
+        std::ifstream stream(pathInfo.uniqueIdentity, std::ios::binary);
+
+        if (!stream)
+        {
+            context_->sink.Diagnose(Diagnostics::cannotOpenFile, pathInfo.uniqueIdentity, getErrorMessage());
+            return RResult::CannotOpen;
+        }
+
+        ON_SCOPE_EXIT({ stream.close(); });
+
+        stream.seekg(0, stream.end);
+        uint64_t sizeInBytes = ((uint64_t)stream.tellg());
+        stream.seekg(0, stream.beg);
+
+        const uint64_t MaxFileSize = 0x40000000; // 1 Gib
+        if (sizeInBytes > MaxFileSize)
+            return RResult::Fail; // It's too large to fit in memory.
+
+        const auto content = (char*)context_->allocator.Allocate(sizeInBytes + 1);
+        stream.read(content, sizeInBytes);
+
+        content[sizeInBytes] = '\0';
+
+        if (!stream) // If not all read just return an error
+            return RResult::Fail;
+
+        outSourceFile = std::make_shared<SourceFile>(pathInfo);
+        outSourceFile->SetContent(UnownedStringSlice(content, content + sizeInBytes));
+
+        return RfxResult::Ok;
     }
 
     RResult SourceManager::findSourceFileByUniqueIdentity(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const
@@ -81,8 +99,13 @@ namespace RR::Rfx
                pathInfo.type == PathInfo::Type::FromString ||
                pathInfo.type == PathInfo::Type::TokenPaste);
 
+        const auto contentSize = content.length();
+        const auto contentPtr = (char*)context_->allocator.Allocate(contentSize + 1);
+        std::memcpy(contentPtr, content.c_str(), contentSize);
+        contentPtr[contentSize] = '\0';
+
         const auto& sourceFile = std::make_shared<SourceFile>(pathInfo);
-        sourceFile->SetContent(std::move(content));
+        sourceFile->SetContent(UnownedStringSlice(contentPtr, contentPtr + contentSize));
         sourceFiles_.push_back(sourceFile);
 
         return sourceFile;

@@ -52,7 +52,7 @@ DIAGNOSTIC(-1, Note, includeOutput, "include $0")
 // 0xxxx -  Command line and interaction with host platform APIs.
 //
 
-DIAGNOSTIC(1, Error, cannotOpenFile, "cannot open file '$0'.")
+DIAGNOSTIC(1, Error, cannotOpenFile, "cannot open file '{0}' with error '{1}'.")
 DIAGNOSTIC(2, Error, cannotFindFile, "cannot find file '$0'.")
 DIAGNOSTIC(2, Error, unsupportedCompilerMode, "unsupported compiler mode.")
 DIAGNOSTIC(4, Error, cannotWriteOutputFile, "cannot write output file '$0'.")

@@ -6,6 +6,7 @@ namespace RR
     {
         struct CompileContext;
         class SourceFile;
+        class SourceManager;
         class DiagnosticSink;
         class IncludeSystem;
         struct Token;
@@ -16,6 +17,7 @@ namespace RR
         public:
             Preprocessor() = delete;
             Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                         const std::shared_ptr<SourceManager>& sourceManager,
                          const std::shared_ptr<CompileContext>& context);
 
             ~Preprocessor();

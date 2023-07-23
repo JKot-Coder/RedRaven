@@ -13,15 +13,20 @@ namespace RR::Rfx
 {
     using RResult = Common::RResult;
 
+    struct CompileContext;
+
     class SourceManager final
     {
     public:
+        SourceManager(const std::shared_ptr<CompileContext>& context);
+        ~SourceManager();
+
         std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content);
         RResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile);
 
         std::shared_ptr<SourceView> SourceManager::CreateSourceView(const std::shared_ptr<SourceFile>& sourceFile)
         {
-            const auto sourceView = SourceView::Create(sourceFile);
+            const auto sourceView = SourceView::CreateFromSourceFile(sourceFile);
             sourceViews_.push_back(sourceView);
 
             return sourceView;
@@ -53,6 +58,7 @@ namespace RR::Rfx
         }
 
     private:
+        RResult readFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& outSourceFile);
         RResult findSourceFileByUniqueIdentity(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const;
         void addSourceFile(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile);
 
@@ -60,5 +66,6 @@ namespace RR::Rfx
         std::vector<std::shared_ptr<SourceFile>> sourceFiles_;
         std::vector<std::shared_ptr<SourceView>> sourceViews_;
         std::unordered_map<U8String, std::shared_ptr<SourceFile>> sourceFileMap_;
+        std::shared_ptr<CompileContext> context_;
     };
 }

@@ -76,6 +76,22 @@ namespace RR
                 diagnoseImpl(info, formatDiagnostic(diagnostic));
             }
 
+            template <typename... Args>
+            inline void Diagnose(DiagnosticInfo const& info, Args const&... args)
+            {
+                Diagnostic diagnostic;
+                diagnostic.errorID = info.id;
+                diagnostic.message = fmt::format(info.messageFormat, args...);
+                diagnostic.location = {};
+                diagnostic.isTokenValid = false;
+                diagnostic.stringSlice = {};
+                diagnostic.severity = info.severity;
+
+                diagnoseImpl(info, formatDiagnosticWithoutSource(diagnostic));
+            }
+
+            void diagnoseRaw(Severity severity, char const* message);
+
             void AddWriter(const std::shared_ptr<IWriter>& writer)
             {
                 ASSERT(writer);
@@ -91,6 +107,7 @@ namespace RR
 
         private:
             U8String formatDiagnostic(const Diagnostic& diagnostic);
+            U8String formatDiagnosticWithoutSource(const Diagnostic& diagnostic);
 
             void diagnoseImpl(const DiagnosticInfo& info, const U8String& formattedMessage);
 
