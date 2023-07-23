@@ -701,7 +701,7 @@ namespace RR::Rfx
 
         // Todo trash
         pathInfo = PathInfo::makeSplit(pathInfo.foundPath, pathInfo.uniqueIdentity);
-        const auto& sourceView = SourceView::CreateSplited(sourceLocation, pathInfo);
+        const auto sourceView = SourceView::CreateSplited(sourceLocation, pathInfo);
 
         // Forced closing of the current current stream and start a new one
         popInputFile(true);

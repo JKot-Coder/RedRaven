@@ -30,8 +30,7 @@ namespace RR
             std::vector<Token> ReadAllTokens();
 
         private:
-            // TODO tempoprary shared. Is it possible not to use it?
-            std::shared_ptr<PreprocessorImpl> impl_;
+            std::unique_ptr<PreprocessorImpl> impl_;
         };
     }
 }

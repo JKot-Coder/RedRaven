@@ -28,7 +28,6 @@ namespace RR
             Common::RResult Parse();
 
         private:
-            // TODO tempoprary shared. Is it possible not to use it?
             std::unique_ptr<ParserImpl> impl_;
         };
     }

@@ -119,7 +119,7 @@ namespace RR
             return GetContent().Begin() + loc.raw;
         }
 
-        UnownedStringSlice SourceView::ExtractLineContainingLocation(const SourceLocation& loc)
+        UnownedStringSlice SourceView::ExtractLineContainingLocation(const SourceLocation& loc) const
         {
             ASSERT(loc.GetSourceView() == shared_from_this());
 

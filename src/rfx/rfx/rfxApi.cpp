@@ -61,7 +61,7 @@ namespace RR::Rfx
             return (*std::prev(includeStack.end())).pathInfo;
         }*/
 
-        void qweqwe(const std::shared_ptr<SourceView>& sourceView, std::shared_ptr<SourceView>& outSourceView, HumaneSourceLocation& outHumaneSourceLoc)
+        void qweqwe(const std::shared_ptr<const SourceView>& sourceView, std::shared_ptr<const SourceView>& outSourceView, HumaneSourceLocation& outHumaneSourceLoc)
         {
             outSourceView = sourceView;
 
@@ -93,9 +93,11 @@ namespace RR::Rfx
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
                     HumaneSourceLocation humaleLoc = token.sourceLocation.humaneSourceLoc;
-                    std::shared_ptr<SourceView> sourceView;
+                    std::shared_ptr<const SourceView> sourceView;
 
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                    ASSERT(sourceView);
+
                     line_ = humaleLoc.line;
 
                     const auto sourceViewUniqueIdentity = sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity();
@@ -118,9 +120,10 @@ namespace RR::Rfx
                 else
                 {
                     HumaneSourceLocation humaleLoc = token.sourceLocation.humaneSourceLoc;
-                    std::shared_ptr<SourceView> sourceView;
+                    std::shared_ptr<const SourceView> sourceView;
 
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                    ASSERT(sourceView);
 
                     //  line_ = token.humaneSourceLocation.line;
 

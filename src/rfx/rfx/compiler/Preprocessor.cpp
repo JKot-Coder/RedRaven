@@ -267,7 +267,7 @@ namespace RR
             bool haveDoneEndOfDirectiveChecks = false;
         };
 
-        class PreprocessorImpl final : public std::enable_shared_from_this<PreprocessorImpl>
+        class PreprocessorImpl final
         {
         public:
             typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
@@ -474,11 +474,8 @@ namespace RR
         struct InputStream
         {
         public:
-            InputStream(const std::weak_ptr<PreprocessorImpl> preprocessor)
-                : preprocessor_(preprocessor)
-            {
-                ASSERT(preprocessor.lock());
-            }
+            InputStream(const PreprocessorImpl& preprocessor)
+                : preprocessor_(&preprocessor) { }
 
             // Because different implementations of this abstract base class will
             // store differnet amounts of data, we need a virtual descritor to
@@ -509,31 +506,17 @@ namespace RR
             /// Peek the location of the next token in the input stream.
             SourceLocation PeekLoc() { return PeekToken().sourceLocation; }
 
-            SourceManager& GetSourceManager() const
-            {
-                const auto preprocessor = preprocessor_.lock();
-                ASSERT(preprocessor);
-
-                return preprocessor->GetSourceManager();
-            }
-
-            DiagnosticSink& GetSink() const
-            {
-                const auto preprocessor = preprocessor_.lock();
-                ASSERT(preprocessor);
-
-                return preprocessor->GetSink();
-            }
+            SourceManager& GetSourceManager() const { return preprocessor_->GetSourceManager(); }
+            DiagnosticSink& GetSink() const { return preprocessor_->GetSink(); }
 
             std::shared_ptr<InputStream> GetParent() const { return parent_; }
-
             void SetParent(const std::shared_ptr<InputStream>& parent) { parent_ = parent; }
 
             MacroInvocation* GetFirstBusyMacroInvocation() const { return firstBusyMacroInvocation_; }
 
         protected:
             /// The preprocessor that this input stream is being used by
-            std::weak_ptr<PreprocessorImpl> preprocessor_;
+            const PreprocessorImpl* preprocessor_;
 
             /// Parent stream in the stack of secondary input streams
             std::shared_ptr<InputStream> parent_;
@@ -727,7 +710,7 @@ namespace RR
         {
         public:
             /// Initialize an input stream with list of `tokens`
-            PretokenizedInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor, const TokenReader& tokens)
+            PretokenizedInputStream(const PreprocessorImpl& preprocessor, const TokenReader& tokens)
                 : InputStream(preprocessor), tokenReader_(tokens) { }
 
             // A pretokenized stream implements the key read/peek operations
@@ -736,7 +719,7 @@ namespace RR
             virtual Token PeekToken() override { return tokenReader_.PeekToken(); }
 
         protected:
-            PretokenizedInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor)
+            PretokenizedInputStream(const PreprocessorImpl& preprocessor)
                 : InputStream(preprocessor) {};
 
             /// Reader for pre-tokenized input
@@ -752,7 +735,7 @@ namespace RR
         /// A pre-tokenized input stream that will only be used once, and which therefore owns the memory for its tokens.
         struct SingleUseInputStream : PretokenizedInputStream
         {
-            SingleUseInputStream(const std::weak_ptr<PreprocessorImpl> preprocessor, const TokenList& lexedTokens)
+            SingleUseInputStream(const PreprocessorImpl& preprocessor, const TokenList& lexedTokens)
                 : PretokenizedInputStream(preprocessor), lexedTokens_(lexedTokens)
             {
                 tokenReader_ = TokenReader(lexedTokens_);
@@ -783,14 +766,10 @@ namespace RR
         public:
             LexerInputStream() = delete;
 
-            LexerInputStream(
-                const std::weak_ptr<PreprocessorImpl> preprocessor, const std::shared_ptr<SourceView>& sourceView)
-                : InputStream(preprocessor)
+            LexerInputStream(const PreprocessorImpl& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+                : InputStream(preprocessorImpl)
             {
-                const auto sharedPreprocessor = preprocessor.lock();
-                ASSERT(sharedPreprocessor);
-
-                lexer_ = std::make_unique<Lexer>(sourceView, sharedPreprocessor->GetContext());
+                lexer_ = std::make_unique<Lexer>(sourceView, preprocessorImpl.GetContext());
                 lookaheadToken_ = readTokenImpl();
             }
 
@@ -975,7 +954,7 @@ namespace RR
         public:
             /// Create a new expansion of `macro`
             MacroInvocation(
-                const std::shared_ptr<PreprocessorImpl>& preprocessor,
+                const PreprocessorImpl& preprocessor,
                 const std::shared_ptr<MacroDefinition>& macro,
                 const SourceLocation& macroInvocationLoc,
                 const Token& initiatingMacroToken);
@@ -1018,7 +997,7 @@ namespace RR
             /// Get a reader for the tokens that make up the macro argument at the given `paramIndex`
             TokenReader getArgTokens(uint32_t paramIndex);
 
-            void updateSourceViewForTokens(TokenReader& tokenReader, const std::shared_ptr<SourceView>& sourceView, TokenList& outTokenList) const;
+            void updateSourceViewForTokens(TokenReader& tokenReader, const std::shared_ptr<const SourceView>& sourceView, TokenList& outTokenList) const;
 
             /// Push a stream onto `currentOpStreams_` that consists of a single token
             void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, const HumaneSourceLocation& humaneSourceLocation, U8String const& content);
@@ -1029,7 +1008,7 @@ namespace RR
 
         private:
             /// The macro being expanded
-            std::shared_ptr<MacroDefinition> macro_ = nullptr;
+            std::shared_ptr<MacroDefinition> macro_;
 
             /// A single argument to the macro invocation
             ///
@@ -1085,9 +1064,8 @@ namespace RR
         {
         public:
             /// Construct an input stream that applies macro expansion to `base`
-            ExpansionInputStream(
-                const std::weak_ptr<PreprocessorImpl>& preprocessor,
-                const std::shared_ptr<InputStream>& base)
+            ExpansionInputStream(const PreprocessorImpl& preprocessor,
+                                 const std::shared_ptr<InputStream>& base)
                 : InputStream(preprocessor), base_(base)
             {
                 inputStreams_.Push(base);
@@ -1173,11 +1151,9 @@ namespace RR
         struct InputFile
         {
         public:
-            InputFile(const std::weak_ptr<PreprocessorImpl>& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
+            InputFile(const PreprocessorImpl& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)
             {
                 ASSERT(sourceView);
-                ASSERT(preprocessorImpl.lock());
-
                 lexerStream_ = std::make_shared<LexerInputStream>(preprocessorImpl, sourceView);
                 expansionInputStream_ = std::make_shared<ExpansionInputStream>(preprocessorImpl, lexerStream_);
             }
@@ -1740,9 +1716,6 @@ namespace RR
                     GetSink().Diagnose(opToken, Diagnostics::internalCompilerError);
                     return 0;
                     break;
-
-                case Token::Type::OpMul:
-                    return left * right;
                 case Token::Type::OpDiv:
                 {
                     if (right == 0)
@@ -1766,6 +1739,7 @@ namespace RR
                     return left % right;
                 }
                 // clang-format off
+                case Token::Type::OpMul:      return left *  right;
                 case Token::Type::OpAdd:      return left +  right;
                 case Token::Type::OpSub:      return left -  right;
                 case Token::Type::OpLsh:      return left << right;
@@ -2391,7 +2365,7 @@ namespace RR
 
             U8String path = getFileNameTokenValue(pathToken);
 
-            auto sourceLocation = directiveContext.token.sourceLocation;
+            const auto& sourceLocation = directiveContext.token.sourceLocation;
             const auto& includedFromPathInfo = sourceLocation.GetSourceView()->GetSourceFile();
 
             // Find the path relative to the foundPath
@@ -2430,9 +2404,9 @@ namespace RR
             }
 
             // This is a new parse (even if it's a pre-existing source file), so create a new
-            const auto& includedView = GetSourceManager().CreateIncluded(includedFile, sourceLocation);
+            const auto includedView = GetSourceManager().CreateIncluded(includedFile, sourceLocation);
 
-            PushInputFile(std::make_shared<InputFile>(shared_from_this(), includedView));
+            PushInputFile(std::make_shared<InputFile>(*this, includedView));
         }
 
         void PreprocessorImpl::handleLineDirective(DirectiveContext& directiveContext)
@@ -2484,11 +2458,11 @@ namespace RR
 
             // Todo trash
             pathInfo = PathInfo::makeSplit(pathInfo.foundPath, pathInfo.uniqueIdentity);
-            const auto& sourceView = GetSourceManager().CreateSplited(sourceLocation, pathInfo);
+            const auto sourceView = GetSourceManager().CreateSplited(sourceLocation, pathInfo);
 
             // Forced closing of the current current stream and start a new one
             popInputFile(true);
-            PushInputFile(std::make_shared<InputFile>(shared_from_this(), sourceView));
+            PushInputFile(std::make_shared<InputFile>(*this, sourceView));
         }
 
         // Handle a `#pragma` directive
@@ -2667,7 +2641,7 @@ namespace RR
         void Preprocessor::PushInputFile(const std::shared_ptr<SourceFile>& sourceFile)
         {
             const auto sourceView = impl_->GetSourceManager().CreateSourceView(sourceFile);
-            impl_->PushInputFile(std::make_shared<InputFile>(impl_, sourceView));
+            impl_->PushInputFile(std::make_shared<InputFile>(*impl_, sourceView));
         }
 
         void Preprocessor::DefineMacro(const U8String& macro)
@@ -2689,7 +2663,7 @@ namespace RR
         }
 
         MacroInvocation::MacroInvocation(
-            const std::shared_ptr<PreprocessorImpl>& preprocessor,
+            const PreprocessorImpl& preprocessor,
             const std::shared_ptr<MacroDefinition>& macro,
             const SourceLocation& macroInvocationLoc,
             const Token& initiatingMacroToken)
@@ -2698,7 +2672,6 @@ namespace RR
               macroInvocationLoc_(macroInvocationLoc),
               initiatingMacroToken_(initiatingMacroToken)
         {
-            ASSERT(preprocessor);
             ASSERT(macro);
             firstBusyMacroInvocation_ = this;
         }
@@ -2930,13 +2903,10 @@ namespace RR
                         // us to create a fresh source file to represent the paste result.
                         PathInfo pathInfo = PathInfo::makeTokenPaste();
 
-                        const auto preprocessor = preprocessor_.lock();
-                        ASSERT(preprocessor);
+                        const auto& sourceFile = preprocessor_->GetSourceManager().CreateFileFromString(pathInfo, pastedContent.str());
+                        auto sourceView = preprocessor_->GetSourceManager().CreatePastedSourceView(sourceFile, initiatingMacroToken_.sourceLocation);
 
-                        const auto& sourceFile = preprocessor->GetSourceManager().CreateFileFromString(pathInfo, pastedContent.str());
-                        auto sourceView = preprocessor->GetSourceManager().CreatePastedSourceView(sourceFile, initiatingMacroToken_.sourceLocation);
-
-                        Lexer lexer(sourceView, preprocessor->GetContext());
+                        Lexer lexer(sourceView, preprocessor_->GetContext());
                         auto lexedTokens = lexer.LexAllSemanticTokens();
 
                         // Resetting the AtStartOfLine flag for the first token,
@@ -2971,7 +2941,7 @@ namespace RR
                         // one we push for the pasted tokens, and as such the input state is capable of reading
                         // from both the input stream for the `##` through to the input for the right-hand-side
                         // op, which is consistent with `macroOpIndex_`.
-                        const auto& inputStream = std::make_shared<SingleUseInputStream>(preprocessor_, lexedTokens);
+                        const auto& inputStream = std::make_shared<SingleUseInputStream>(*preprocessor_, lexedTokens);
                         currentOpStreams_.Push(inputStream);
 
                         // There's one final detail to cover before we move on. *If* we used `token` as part
@@ -3034,9 +3004,9 @@ namespace RR
                                                                                 initiatingMacroToken_.sourceLocation);
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
-                    const auto& stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
+                    const auto& stream = std::make_shared<SingleUseInputStream>(*preprocessor_, tokenList);
 
-                    //   const auto& stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
+                    //   const auto& stream = std::make_shared<PretokenizedInputStream>(*preprocessor_, tokenReader);
                     currentOpStreams_.Push(stream);
                 }
                 break;
@@ -3057,7 +3027,7 @@ namespace RR
 
                     // Because expansion doesn't apply to this parameter reference, we can simply
                     // play back those tokens exactly as they appeared in the argument list.
-                    const auto& stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
+                    const auto& stream = std::make_shared<PretokenizedInputStream>(*preprocessor_, tokenReader);
                     currentOpStreams_.Push(stream);
                 }
                 break;
@@ -3078,7 +3048,7 @@ namespace RR
                     if (!tokenList.empty())
                         tokenList.front().flags = op.flags;
 
-                    std::shared_ptr<InputStream> stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
+                    std::shared_ptr<InputStream> stream = std::make_shared<SingleUseInputStream>(*preprocessor_, tokenList);
                     //  if (!tokenReader.IsAtEnd() && tokenReader.PeekToken().flags != op.flags)
                     /*
                     std::shared_ptr<InputStream> stream;
@@ -3107,17 +3077,17 @@ namespace RR
                         eofToken.type = Token::Type::EndOfFile;
                         tokenList.push_back(eofToken);
 
-                        stream = std::make_shared<SingleUseInputStream>(preprocessor_, tokenList);
+                        stream = std::make_shared<SingleUseInputStream>(*preprocessor_, tokenList);
                     }
                     else
                     {
-                        stream = std::make_shared<PretokenizedInputStream>(preprocessor_, tokenReader);
+                        stream = std::make_shared<PretokenizedInputStream>(*preprocessor_, tokenReader);
                     }*/
 
                     // The only interesting addition to the unexpanded case is that we wrap
                     // the stream that "plays back" the argument tokens with a stream that
                     // applies macro expansion to them.
-                    const auto& expansion = std::make_shared<ExpansionInputStream>(preprocessor_, stream);
+                    const auto& expansion = std::make_shared<ExpansionInputStream>(*preprocessor_, stream);
                     currentOpStreams_.Push(expansion);
                 }
                 break;
@@ -3224,10 +3194,7 @@ namespace RR
             // The goal here is to push a token stream that represents a single token
             // with exactly the given `content`, etc.
             // We are going to keep the content alive using the allocator to store token content.
-            const auto preprocessor = preprocessor_.lock();
-            ASSERT(preprocessor);
-
-            auto& allocator = preprocessor->GetAllocator();
+            auto& allocator = preprocessor_->GetAllocator();
             const auto allocated = (char*)allocator.Allocate(content.length());
             std::copy(content.begin(), content.end(), allocated);
 
@@ -3249,7 +3216,7 @@ namespace RR
             eofToken.flags = Token::Flags::AfterWhitespace | Token::Flags::AtStartOfLine;
             lexedTokens.push_back(eofToken);
 
-            const auto& inputStream = std::make_shared<SingleUseInputStream>(preprocessor_, lexedTokens);
+            const auto& inputStream = std::make_shared<SingleUseInputStream>(*preprocessor_, lexedTokens);
             currentOpStreams_.Push(inputStream);
         }
 
@@ -3260,15 +3227,6 @@ namespace RR
             // the "initiating" source location, which should come from the
             // top-level file instead of any nested macros being expanded.
             const auto initiatingLoc = initiatingMacroToken_.sourceLocation;
-            if (!initiatingLoc.GetSourceView())
-            {
-                // If we cannot find a valid source location for the initiating
-                // location, then we will not expand the macro.
-                //
-                // TODO: Maybe we should issue a diagnostic here?
-                ASSERT(false);
-                return;
-            }
 
             // The `valueBuilder` provided by the caller will determine what the content
             // of the token will be based on the source location (either to generate the
@@ -3285,9 +3243,6 @@ namespace RR
         // that macro.
         void ExpansionInputStream::maybeBeginMacroInvocation()
         {
-            auto preprocessor = preprocessor_.lock();
-            ASSERT(preprocessor);
-
             // We iterate because the first token in the expansion of one
             // macro may be another macro invocation.
             for (;;)
@@ -3307,7 +3262,7 @@ namespace RR
                 // If there isn't one this couldn't possibly be the start of a macro
                 // invocation.
                 const auto& name = token.GetContentString();
-                const auto& macro = preprocessor->LookupMacro(name);
+                const auto& macro = preprocessor_->LookupMacro(name);
 
                 if (!macro)
                     return;
@@ -3368,7 +3323,7 @@ namespace RR
                         // to be expanded.
 
                         /// Create a new expansion of `macro`
-                        const auto& invocation = std::make_shared<MacroInvocation>(preprocessor,
+                        const auto& invocation = std::make_shared<MacroInvocation>(*preprocessor_,
                                                                                    macro,
                                                                                    token.sourceLocation,
                                                                                    initiatingMacroToken_);
@@ -3420,11 +3375,11 @@ namespace RR
                             return;
                         }
 
-                        auto sink = preprocessor->GetSink();
+                        auto sink = preprocessor_->GetSink();
 
                         // If we saw an opening `(`, then we know we are starting some kind of
                         // macro invocation, although we don't yet know if it is well-formed.
-                        const auto& invocation = std::make_shared<MacroInvocation>(preprocessor,
+                        const auto& invocation = std::make_shared<MacroInvocation>(*preprocessor_,
                                                                                    macro,
                                                                                    token.sourceLocation,
                                                                                    initiatingMacroToken_);
@@ -3522,7 +3477,7 @@ namespace RR
             }
         }
 
-        void MacroInvocation::updateSourceViewForTokens(TokenReader& tokenReader, const std::shared_ptr<SourceView>& sourceView, TokenList& outTokenList) const
+        void MacroInvocation::updateSourceViewForTokens(TokenReader& tokenReader, const std::shared_ptr<const SourceView>& sourceView, TokenList& outTokenList) const
         {
             // TODO ???
             // Copy all tokens and modify flags of first token

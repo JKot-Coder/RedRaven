@@ -171,7 +171,6 @@ namespace RR
             for (const auto& writer : writerList_)
                 writer->Write(formattedMessage);
 
-            // TODO replace
             if (info.severity > Severity::Internal)
             {
                 // TODO: figure out a better policy for aborting compilation
