@@ -15,7 +15,7 @@ namespace RR::Rfx
 {
     using RR::Common::ComPtr;
 
-    RfxResult EffectParser::Parse(std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic)
+    RfxResult EffectParser::Parse(const std::shared_ptr<RR::Rfx::SourceFile>& source, ComPtr<IBlob>& output, ComPtr<IBlob>& diagnostic)
     {
         std::ignore = diagnostic;
         std::ignore = output;

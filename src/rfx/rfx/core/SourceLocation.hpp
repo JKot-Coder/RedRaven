@@ -306,7 +306,7 @@ namespace RR
                 ASSERT(sourceFile);
 
                 const auto& pathInfo = PathInfo::makeTokenPaste();
-                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, sourceFile->GetContent(), pathInfo, parentSourceLocation));
+                auto sourceView = std::shared_ptr<SourceView>(new SourceView(sourceFile, parentSourceLocation.GetSourceView()->GetContent(), pathInfo, parentSourceLocation));
                 sourceView->advanceBom();
 
                 return sourceView;

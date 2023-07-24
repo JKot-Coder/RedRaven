@@ -221,9 +221,27 @@ namespace RR
 
             // We don't don't output source line information if this is a 'note' as a note is extra information for one
             // of the other main severity types, and so the information should already be output on the initial line
-            // if (sourceView && sink->isFlagSet(DiagnosticSink::Flag::SourceLocationLine) && diagnostic.severity != Severity::Note)
+
+
+            if (diagnostic.severity != Severity::Note)
             {
-                diagnosticString += sourceLocationNoteDiagnostic(diagnostic, GetSourceLineMaxLength());
+                auto sourceView = diagnostic.location.GetSourceView();
+
+                Diagnostic diagnostic2 = diagnostic;
+
+
+                while (sourceView->GetInitiatingSourceLocation().GetSourceView() &&
+                       sourceView->GetPathInfo().type != PathInfo::Type::Normal &&
+                       sourceView->GetPathInfo().type != PathInfo::Type::Split)
+                {
+                    diagnosticString += sourceLocationNoteDiagnostic(diagnostic2, GetSourceLineMaxLength());
+
+                    diagnostic2.isTokenValid = false;
+                    diagnostic2.location = sourceView->GetInitiatingSourceLocation();
+                    sourceView = sourceView->GetInitiatingSourceLocation().GetSourceView();
+                }
+
+                 diagnosticString += sourceLocationNoteDiagnostic(diagnostic2, GetSourceLineMaxLength());
             }
 
             return diagnosticString;

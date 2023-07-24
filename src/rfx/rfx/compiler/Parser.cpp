@@ -68,7 +68,7 @@ namespace RR::Rfx
         Token lookaheadToken_;
     };
 
-    class ParserImpl
+    class ParserImpl final : Common::NonCopyable
     {
     public:
         ParserImpl() = delete;

@@ -102,7 +102,7 @@ namespace RR
             TokenList::const_iterator end_;
         };
 
-        class Lexer final
+        class Lexer final : Common::NonCopyable
         {
         public:
             static constexpr U8Glyph kEOF = 0xFFFFFF;

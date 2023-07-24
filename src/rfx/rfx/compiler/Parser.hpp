@@ -17,7 +17,7 @@ namespace RR
         struct CompileContext;
         struct Token;
 
-        class Parser
+        class Parser final : Common::NonCopyable
         {
         public:
             ~Parser();

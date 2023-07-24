@@ -30,15 +30,8 @@ namespace RR
                 return !(*this == other);
             }
 
-            bool operator==(char const* str) const
-            {
-                return (*this) == UnownedStringSlice(str);
-            }
-
-            bool operator!=(char const* str) const
-            {
-                return !(*this == str);
-            }
+            bool operator==(char const* str) const { return (*this) == UnownedStringSlice(str); }
+            bool operator!=(char const* str) const { return !(*this == str); }
 
             void Reset()
             {

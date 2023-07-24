@@ -254,7 +254,7 @@ namespace RR
             State state;
         };
 
-        struct DirectiveContext
+        struct DirectiveContext : Common::NonCopyable
         {
         public:
             // Get the name of the directive being parsed.
@@ -267,7 +267,7 @@ namespace RR
             bool haveDoneEndOfDirectiveChecks = false;
         };
 
-        class PreprocessorImpl final
+        class PreprocessorImpl final : Common::NonCopyable
         {
         public:
             typedef void (PreprocessorImpl::*HandleDirectiveFunc)(DirectiveContext& context);
@@ -471,7 +471,7 @@ namespace RR
         // streams.
 
         /// A logical stream of tokens.
-        struct InputStream
+        struct InputStream : Common::NonCopyable
         {
         public:
             InputStream(const PreprocessorImpl& preprocessor)
@@ -1148,7 +1148,7 @@ namespace RR
         // Input files are a bit like token streams, but they don't fit neatly into
         // the same abstraction due to all the special-case handling that directives
         // and conditionals require.
-        struct InputFile
+        struct InputFile : Common::NonCopyable
         {
         public:
             InputFile(const PreprocessorImpl& preprocessorImpl, const std::shared_ptr<SourceView>& sourceView)

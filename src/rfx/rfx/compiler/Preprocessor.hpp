@@ -12,7 +12,7 @@ namespace RR
         struct Token;
         class PreprocessorImpl;
 
-        class Preprocessor final
+        class Preprocessor final : Common::NonCopyable
         {
         public:
             Preprocessor() = delete;
