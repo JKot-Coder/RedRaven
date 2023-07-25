@@ -1,0 +1,10 @@
+// Lets check that we pick up the nominal line
+#line 10
+
+#define DO(x, z)
+
+#define SOMEMACRO DO(x)
+
+#define MACRO SOMEMACRO
+
+MACRO

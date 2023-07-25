@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rfx/core/SourceLocation.hpp"
+#include "rfx/core/UnownedStringSlice.hpp"
 
 namespace RR
 {

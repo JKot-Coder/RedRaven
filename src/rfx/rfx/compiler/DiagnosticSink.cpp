@@ -2,6 +2,7 @@
 
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/Signal.hpp"
+#include "rfx/core/SourceView.hpp"
 
 namespace RR
 {
@@ -222,13 +223,11 @@ namespace RR
             // We don't don't output source line information if this is a 'note' as a note is extra information for one
             // of the other main severity types, and so the information should already be output on the initial line
 
-
             if (diagnostic.severity != Severity::Note)
             {
                 auto sourceView = diagnostic.location.GetSourceView();
 
                 Diagnostic diagnostic2 = diagnostic;
-
 
                 while (sourceView->GetInitiatingSourceLocation().GetSourceView() &&
                        sourceView->GetPathInfo().type != PathInfo::Type::Normal &&
@@ -241,7 +240,7 @@ namespace RR
                     sourceView = sourceView->GetInitiatingSourceLocation().GetSourceView();
                 }
 
-                 diagnosticString += sourceLocationNoteDiagnostic(diagnostic2, GetSourceLineMaxLength());
+                diagnosticString += sourceLocationNoteDiagnostic(diagnostic2, GetSourceLineMaxLength());
             }
 
             return diagnosticString;

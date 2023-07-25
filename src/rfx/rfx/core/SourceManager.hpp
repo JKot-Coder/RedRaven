@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include "core/SourceLocation.hpp"
+#include "rfx/core/SourceView.hpp"
 
 namespace RR::Common
 {
@@ -32,18 +32,26 @@ namespace RR::Rfx
             return sourceView;
         }
 
-        std::shared_ptr<SourceView> SourceManager::CreatePastedSourceView(const std::shared_ptr<SourceFile>& sourceFile, const SourceLocation& parentSourceLocation)
+        std::shared_ptr<SourceView> SourceManager::CreatePastedSourceView(const std::shared_ptr<SourceFile>& sourceFile, const Token& initiatingToken)
         {
-            const auto sourceView = SourceView::CreatePasted(sourceFile, parentSourceLocation);
+            const auto sourceView = SourceView::CreatePasted(sourceFile, initiatingToken);
+            sourceViews_.push_back(sourceView);
+
+            return sourceView;
+        }
+
+        std::shared_ptr<SourceView> SourceManager::CreatePastedSourceView(const std::shared_ptr<const SourceView>& parentSourceView, const Token& initiatingToken)
+        {
+            const auto sourceView = SourceView::CreatePasted(parentSourceView, initiatingToken);
             sourceViews_.push_back(sourceView);
 
             return sourceView;
         }
 
         std::shared_ptr<SourceView> SourceManager::CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile,
-                                                                  const SourceLocation& parentSourceLocation)
+                                                                  const Token& initiatingToken)
         {
-            const auto sourceView = SourceView::CreateIncluded(sourceFile, parentSourceLocation);
+            const auto sourceView = SourceView::CreateIncluded(sourceFile, initiatingToken);
             sourceViews_.push_back(sourceView);
 
             return sourceView;

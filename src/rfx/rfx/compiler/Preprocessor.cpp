@@ -2404,7 +2404,7 @@ namespace RR
             }
 
             // This is a new parse (even if it's a pre-existing source file), so create a new
-            const auto includedView = GetSourceManager().CreateIncluded(includedFile, sourceLocation);
+            const auto includedView = GetSourceManager().CreateIncluded(includedFile, directiveContext.token);
 
             PushInputFile(std::make_shared<InputFile>(*this, includedView));
         }
@@ -2904,7 +2904,7 @@ namespace RR
                         PathInfo pathInfo = PathInfo::makeTokenPaste();
 
                         const auto& sourceFile = preprocessor_->GetSourceManager().CreateFileFromString(pathInfo, pastedContent.str());
-                        auto sourceView = preprocessor_->GetSourceManager().CreatePastedSourceView(sourceFile, initiatingMacroToken_.sourceLocation);
+                        auto sourceView = preprocessor_->GetSourceManager().CreatePastedSourceView(sourceFile, initiatingMacroToken_);
 
                         Lexer lexer(sourceView, preprocessor_->GetContext());
                         auto lexedTokens = lexer.LexAllSemanticTokens();
@@ -3000,8 +3000,8 @@ namespace RR
                     auto tokenBuffer = macro_->tokens.begin();
                     auto tokenReader = TokenReader(tokenBuffer + beginTokenIndex, tokenBuffer + endTokenIndex);
 
-                    auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                                                                                initiatingMacroToken_.sourceLocation);
+                    auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView(),
+                                                                                initiatingMacroToken_);
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
                     const auto& stream = std::make_shared<SingleUseInputStream>(*preprocessor_, tokenList);
@@ -3040,7 +3040,7 @@ namespace RR
                     auto tokenReader = getArgTokens(paramIndex);
 
                     auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                                                                                initiatingMacroToken_.sourceLocation);
+                                                                                initiatingMacroToken_);
 
                     TokenList tokenList;
                     updateSourceViewForTokens(tokenReader, sourceView, tokenList);
