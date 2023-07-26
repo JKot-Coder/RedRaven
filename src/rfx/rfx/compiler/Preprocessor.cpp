@@ -1371,6 +1371,7 @@ namespace RR
         }
 
         // Find the currently-defined macro of the given name, or return nullptr
+        // TODO: in cpp 20, String can be replaced with string_view.
         std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const U8String& name) const
         {
             const auto& search = macrosDefinitions_.find(name);
@@ -1387,12 +1388,12 @@ namespace RR
             const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
 
             if (errno == ERANGE)
-                GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int32_t");
+                GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.stringSlice, "int32_t");
 
             if (end == token.stringSlice.End())
                 return result;
 
-            GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+            GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.stringSlice, radix);
             return 0;
         }
 
@@ -1411,7 +1412,7 @@ namespace RR
             if (end == token.stringSlice.End())
                 return result;
 
-            GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+            GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.stringSlice, radix);
             return 0;
         }
 
@@ -1491,7 +1492,7 @@ namespace RR
             for (auto conditional = inputFile->GetInnerMostConditional(); conditional; conditional = conditional->parent)
             {
                 GetSink().Diagnose(eofToken, Diagnostics::endOfFileInPreprocessorConditional);
-                GetSink().Diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.GetContentString());
+                GetSink().Diagnose(conditional->ifToken, Diagnostics::seeDirective, conditional->ifToken.stringSlice);
             }
 
             // We will update the current file to the parent of whatever
@@ -1816,7 +1817,7 @@ namespace RR
                     Token leftParen = token;
                     PreprocessorExpressionValue value = parseAndEvaluateExpression(context);
                     if (!expect(context, Token::Type::RParent, Diagnostics::expectedTokenInPreprocessorExpression))
-                        GetSink().Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                        GetSink().Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.stringSlice);
 
                     return value;
                 }
@@ -1825,7 +1826,7 @@ namespace RR
 
                 case Token::Type::Identifier:
                 {
-                    if (token.GetContentString() == "defined")
+                    if (token.stringSlice == "defined")
                     {
                         // handle `defined(someName)`
 
@@ -1845,7 +1846,7 @@ namespace RR
                         {
                             if (!expectRaw(context, Token::Type::RParent, Diagnostics::expectedTokenInDefinedExpression))
                             {
-                                GetSink().Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.GetContentString());
+                                GetSink().Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.stringSlice);
                                 return 0;
                             }
                         }
@@ -1856,7 +1857,7 @@ namespace RR
                     // An identifier here means it was not defined as a macro (or
                     // it is defined, but as a function-like macro. These should
                     // just evaluate to zero (possibly with a warning)
-                    GetSink().Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.GetContentString());
+                    GetSink().Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.stringSlice);
                     return 0;
                 }
 
@@ -2491,7 +2492,7 @@ namespace RR
         {
             std::ignore = directiveContext;
 
-            GetSink().Diagnose(subDirectiveToken, Diagnostics::unknownPragmaDirectiveIgnored, subDirectiveToken.GetContentString());
+            GetSink().Diagnose(subDirectiveToken, Diagnostics::unknownPragmaDirectiveIgnored, subDirectiveToken.stringSlice);
             skipToEndOfLine();
 
             return;
@@ -3122,7 +3123,7 @@ namespace RR
                         // trying to stringize a literal like `"this"` because we need the resulting
                         // token to be `"\"this\""` which includes the quote characters in the string
                         // literal value.
-                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, token.GetContentString(), string);
+                        StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, token.stringSlice, string);
                     }
 
                     // Once we've constructed the content of the stringized result, we need to push

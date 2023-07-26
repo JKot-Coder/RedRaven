@@ -61,6 +61,7 @@ namespace RR::Rfx
         /// Type determines if the location wanted is the original, or the 'normal' (which modifys behavior based on #line directives)
         // HumaneSourceLocation GetHumaneLocation(const SourceLocation& loc, SourceLocationType type = SourceLocationType::Nominal)
 
+        Token GetInitiatingToken() const { return initiatingToken_; }
         SourceLocation GetInitiatingSourceLocation() const { return initiatingToken_.sourceLocation; }
         UnownedStringSlice ExtractLineContainingLocation(const SourceLocation& loc) const;
 

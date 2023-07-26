@@ -1,5 +1,6 @@
 #include "DiagnosticSink.hpp"
 
+#include "rfx/compiler/DiagnosticCore.hpp"
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/Signal.hpp"
 #include "rfx/core/SourceView.hpp"
@@ -182,6 +183,10 @@ namespace RR
         U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic)
         {
             U8String humaneLocString;
+
+            const bool includeSourceLocation = true;
+
+            if (includeSourceLocation)
             {
                 HumaneSourceLocation humaneLocation = diagnostic.location.humaneSourceLoc;
                 const auto sourceView = diagnostic.location.GetSourceView();
@@ -220,41 +225,22 @@ namespace RR
                                                                       diagnostic.errorID,
                                                                       diagnostic.message);
 
-            // We don't don't output source line information if this is a 'note' as a note is extra information for one
-            // of the other main severity types, and so the information should already be output on the initial line
-
-            if (diagnostic.severity != Severity::Note)
+            if (includeSourceLocation)
             {
                 auto sourceView = diagnostic.location.GetSourceView();
 
-                Diagnostic diagnostic2 = diagnostic;
+                diagnosticString += sourceLocationNoteDiagnostic(diagnostic, GetSourceLineMaxLength());
 
                 while (sourceView->GetInitiatingSourceLocation().GetSourceView() &&
                        sourceView->GetPathInfo().type != PathInfo::Type::Normal &&
                        sourceView->GetPathInfo().type != PathInfo::Type::Split)
                 {
-                    diagnosticString += sourceLocationNoteDiagnostic(diagnostic2, GetSourceLineMaxLength());
-
-                    diagnostic2.isTokenValid = false;
-                    diagnostic2.location = sourceView->GetInitiatingSourceLocation();
+                    diagnosticString += formatDiagnostic(sourceView->GetInitiatingToken(), Diagnostics::expandedFromMacro, sourceView->GetInitiatingToken().stringSlice);
                     sourceView = sourceView->GetInitiatingSourceLocation().GetSourceView();
                 }
-
-                diagnosticString += sourceLocationNoteDiagnostic(diagnostic2, GetSourceLineMaxLength());
             }
 
             return diagnosticString;
         }
-
-        U8String DiagnosticSink::formatDiagnosticWithoutSource(const Diagnostic& diagnostic)
-        {
-            U8String format = (diagnostic.errorID >= 0) ? "{0} {1}: {2}\n" : "{0}: {2}\n";
-
-            return fmt::format(format,
-                               GetSeverityName(diagnostic.severity),
-                               diagnostic.errorID,
-                               diagnostic.message);
-        }
-
     }
 }

@@ -48,6 +48,8 @@ DIAGNOSTIC(-1, Note, seeOtherDeclarationOf, "see other declaration of '$0'")
 DIAGNOSTIC(-1, Note, seePreviousDeclarationOf, "see previous declaration of '$0'")
 DIAGNOSTIC(-1, Note, includeOutput, "include $0")
 
+DIAGNOSTIC(-1, Note, expandedFromMacro, "expanded from macro '{0}'")
+
 //
 // 0xxxx -  Command line and interaction with host platform APIs.
 //

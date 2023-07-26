@@ -76,3 +76,14 @@ namespace std
         }
     };
 }
+
+template <>
+struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
+{
+    // parse is inherited from formatter<string_view>.
+    template <typename FormatContext>
+    auto format(RR::Rfx::UnownedStringSlice stringSlice, FormatContext& ctx)
+    {
+        return formatter<string_view>::format(string_view(stringSlice.Begin(), stringSlice.GetLength()), ctx);
+    }
+};

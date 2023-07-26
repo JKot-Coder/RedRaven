@@ -80,6 +80,8 @@ namespace RR
             template <typename... Args>
             inline void Diagnose(DiagnosticInfo const& info, Args const&... args)
             {
+                ASSERT(info.severity == Severity::Note)
+
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;
                 diagnostic.message = fmt::format(info.messageFormat, args...);
@@ -88,10 +90,8 @@ namespace RR
                 diagnostic.stringSlice = {};
                 diagnostic.severity = info.severity;
 
-                diagnoseImpl(info, formatDiagnosticWithoutSource(diagnostic));
+                diagnoseImpl(info, formatDiagnostic(diagnostic));
             }
-
-            void diagnoseRaw(Severity severity, char const* message);
 
             void AddWriter(const std::shared_ptr<IWriter>& writer)
             {
@@ -107,8 +107,21 @@ namespace RR
             inline uint32_t GetErrorCount() { return errorCount_; }
 
         private:
+            template <typename T, typename... Args>
+            inline U8String formatDiagnostic(const T& token, const DiagnosticInfo& info, Args&&... args)
+            {
+                Diagnostic diagnostic;
+                diagnostic.errorID = info.id;
+                diagnostic.message = fmt::format(info.messageFormat, args...);
+                diagnostic.location = token.sourceLocation;
+                diagnostic.isTokenValid = token.isValid();
+                diagnostic.stringSlice = token.stringSlice;
+                diagnostic.severity = info.severity;
+
+                return formatDiagnostic(diagnostic);
+            }
+
             U8String formatDiagnostic(const Diagnostic& diagnostic);
-            U8String formatDiagnosticWithoutSource(const Diagnostic& diagnostic);
 
             void diagnoseImpl(const DiagnosticInfo& info, const U8String& formattedMessage);
 
