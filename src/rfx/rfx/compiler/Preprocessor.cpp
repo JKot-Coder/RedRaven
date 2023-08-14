@@ -403,9 +403,9 @@ namespace RR
                                const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
 
         private:
-            std::shared_ptr<CompileContext> context_;
             std::shared_ptr<IncludeSystem> includeSystem_;
             std::shared_ptr<SourceManager> sourceManager_;
+            std::shared_ptr<CompileContext> context_;
 
             /// A stack of "active" input files
             std::shared_ptr<InputFile> currentInputFile_;
@@ -1258,6 +1258,7 @@ namespace RR
         {
             ASSERT(context);
             ASSERT(includeSystem);
+            ASSERT(sourceManager);
 
             // Add builtin macros
             {

@@ -138,7 +138,6 @@ namespace RR
 
             inline bool operator==(const HumaneSourceLocation& rhs) const { return (line == rhs.line) && (column == rhs.column); }
             inline bool operator!=(const HumaneSourceLocation& rhs) const { return (line != rhs.line) || (column != rhs.column); }
-            inline HumaneSourceLocation& operator=(const HumaneSourceLocation& rhs) = default;
 
             uint32_t line = 0;
             uint32_t column = 0;
@@ -204,7 +203,7 @@ namespace RR
             using RawValue = size_t;
 
             SourceLocation() = default;
-            SourceLocation(const SourceLocation& loc) : raw(loc.raw), sourceView(loc.sourceView), humaneSourceLoc(loc.humaneSourceLoc) { }
+            SourceLocation(const SourceLocation& loc) : raw(loc.raw), humaneSourceLoc(loc.humaneSourceLoc), sourceView(loc.sourceView) { }
 
             inline bool operator==(const SourceLocation& rhs) const { return (raw == rhs.raw) && (humaneSourceLoc == rhs.humaneSourceLoc) && (sourceView.lock() == rhs.sourceView.lock()); }
             inline bool operator!=(const SourceLocation& rhs) const { return (raw != rhs.raw) || (humaneSourceLoc != rhs.humaneSourceLoc) || (sourceView.lock() != rhs.sourceView.lock()); }

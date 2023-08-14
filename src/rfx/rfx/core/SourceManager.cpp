@@ -5,6 +5,7 @@
 #include "common/Result.hpp"
 #include "compiler/CompileContext.hpp"
 #include "core/SourceLocation.hpp"
+#include "common/ErrorNo.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -15,18 +16,11 @@ namespace RR::Rfx
     {
         namespace fs = std::filesystem;
 
-#define ASSERT_ON_FALSE(x)    \
-    if (!(x))                 \
-    {                         \
-        ASSERT(false);        \
-        return RResult::Fail; \
-    }
-
-        U8String getErrorMessage()
-        {
-            char errmsg[1024];
-            strerror_s(errmsg, 1024, errno);
-            return errmsg;
+#define ASSERT_ON_FALSE(x)        \
+        if (!(x))                 \
+        {                         \
+            ASSERT(false);        \
+            return RResult::Fail; \
         }
     }
 
@@ -47,7 +41,7 @@ namespace RR::Rfx
 
         if (!stream)
         {
-            context_->sink.Diagnose(Diagnostics::cannotOpenFile, pathInfo.uniqueIdentity, getErrorMessage());
+            context_->sink.Diagnose(Diagnostics::cannotOpenFile, pathInfo.uniqueIdentity, Common::GetErrorMessage());
             return RResult::CannotOpen;
         }
 

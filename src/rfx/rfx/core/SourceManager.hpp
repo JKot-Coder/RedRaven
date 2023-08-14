@@ -24,7 +24,7 @@ namespace RR::Rfx
         std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content);
         RResult LoadFile(const PathInfo& pathInfo, std::shared_ptr<SourceFile>& sourceFile);
 
-        std::shared_ptr<SourceView> SourceManager::CreateSourceView(const std::shared_ptr<SourceFile>& sourceFile)
+        std::shared_ptr<SourceView> CreateSourceView(const std::shared_ptr<SourceFile>& sourceFile)
         {
             const auto sourceView = SourceView::CreateFromSourceFile(sourceFile);
             sourceViews_.push_back(sourceView);
@@ -32,7 +32,7 @@ namespace RR::Rfx
             return sourceView;
         }
 
-        std::shared_ptr<SourceView> SourceManager::CreatePastedSourceView(const std::shared_ptr<SourceFile>& sourceFile, const Token& initiatingToken)
+        std::shared_ptr<SourceView> CreatePastedSourceView(const std::shared_ptr<SourceFile>& sourceFile, const Token& initiatingToken)
         {
             const auto sourceView = SourceView::CreatePasted(sourceFile, initiatingToken);
             sourceViews_.push_back(sourceView);
@@ -40,7 +40,7 @@ namespace RR::Rfx
             return sourceView;
         }
 
-        std::shared_ptr<SourceView> SourceManager::CreatePastedSourceView(const std::shared_ptr<const SourceView>& parentSourceView, const Token& initiatingToken)
+        std::shared_ptr<SourceView> CreatePastedSourceView(const std::shared_ptr<const SourceView>& parentSourceView, const Token& initiatingToken)
         {
             const auto sourceView = SourceView::CreatePasted(parentSourceView, initiatingToken);
             sourceViews_.push_back(sourceView);
@@ -48,7 +48,7 @@ namespace RR::Rfx
             return sourceView;
         }
 
-        std::shared_ptr<SourceView> SourceManager::CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile,
+        std::shared_ptr<SourceView> CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile,
                                                                   const Token& initiatingToken)
         {
             const auto sourceView = SourceView::CreateIncluded(sourceFile, initiatingToken);
@@ -57,7 +57,7 @@ namespace RR::Rfx
             return sourceView;
         }
 
-        std::shared_ptr<SourceView> SourceManager::CreateSplited(const SourceLocation& splitLocation, const PathInfo& ownPathInfo)
+        std::shared_ptr<SourceView> CreateSplited(const SourceLocation& splitLocation, const PathInfo& ownPathInfo)
         {
             const auto sourceView = SourceView::CreateSplited(splitLocation, ownPathInfo);
             sourceViews_.push_back(sourceView);

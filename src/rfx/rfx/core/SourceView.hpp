@@ -149,8 +149,8 @@ namespace RR::Rfx
 
         std::weak_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
         // IncludeStack includeStack_; ///< Path to this view. If empty the path is the path to the SourceView
-        PathInfo pathInfo_;
         UnownedStringSlice content_;
+        PathInfo pathInfo_;
         Token initiatingToken_; ///< An optional source loc that defines where this view was initiated from. SourceLocation(0) if not defined.
     };
 }
