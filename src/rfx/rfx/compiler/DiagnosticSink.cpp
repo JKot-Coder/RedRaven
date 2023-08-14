@@ -199,18 +199,7 @@ namespace RR
                                                   humaneLocation.line,
                                                   humaneLocation.column);
                 */
-                /*
-                const auto includeStack = sourceView->GetIncludeStack().GetStack();
-                ASSERT(!includeStack.empty())
 
-                for (auto it = includeStack.begin(); it != std::prev(includeStack.end()); ++it)
-                {
-                    const auto& includeInfo = *it;
-                    humaneLocString += fmt::format("In file included from {0}({1}):\n",
-                                                   includeInfo.pathInfo.foundPath,
-                                                   includeInfo.humaneSourceLocation.line,
-                                                   includeInfo.humaneSourceLocation.column);
-                }*/
                 const auto path = onlyRelativePaths_ ? sourceView->GetPathInfo().foundPath : sourceView->GetPathInfo().uniqueIdentity;
                 humaneLocString += fmt::format("{0}({1}): ",
                                                path,

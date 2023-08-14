@@ -42,10 +42,6 @@ namespace RR::Rfx
 
         const U8Char* GetContentFrom(const SourceLocation& loc) const;
 
-        /// Gets the pathInfo for this view. It may be different from the m_sourceFile's if the path has been
-        /// overridden by m_viewPath TODO COMMENT
-        // IncludeStack GetIncludeStack() const { return includeStack_; }
-
         size_t GetContentSize() const { return content_.GetLength(); }
 
         SourceLocation GetSourceLocation(size_t offset, const HumaneSourceLocation& humaneSourceLoc) const
@@ -148,7 +144,6 @@ namespace RR::Rfx
         }
 
         std::weak_ptr<SourceFile> sourceFile_; ///< The source file. Can hold the line breaks
-        // IncludeStack includeStack_; ///< Path to this view. If empty the path is the path to the SourceView
         UnownedStringSlice content_;
         PathInfo pathInfo_;
         Token initiatingToken_; ///< An optional source loc that defines where this view was initiated from. SourceLocation(0) if not defined.

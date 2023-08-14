@@ -142,62 +142,6 @@ namespace RR
             uint32_t line = 0;
             uint32_t column = 0;
         };
-        /*
-        struct IncludeStack
-        {
-        public:
-            struct IncludeInfo
-            {
-                PathInfo pathInfo;
-                HumaneSourceLocation humaneSourceLocation;
-            };
-
-            IncludeStack() = default;
-            IncludeStack(const PathInfo& pathInfo)
-            {
-                stack_.push_back({ pathInfo, HumaneSourceLocation() });
-            }
-
-            PathInfo GetOwnPathInfo() const
-            {
-                if (stack_.empty())
-                    return PathInfo::makeUnknown();
-
-                return stack_.back().pathInfo;
-            }
-
-            const std::vector<IncludeInfo>& GetStack() { return stack_; }
-
-            bool IsValid() const { return !stack_.empty(); }
-
-            static IncludeStack CreateIncluded(const IncludeStack& parentStack, const PathInfo& ownPathInfo, const HumaneSourceLocation& includeLocationInParent)
-            {
-                ASSERT(parentStack.IsValid())
-
-                IncludeStack includeStack(parentStack);
-                // Update parent include info with human source
-                includeStack.stack_.back().humaneSourceLocation = includeLocationInParent;
-                includeStack.stack_.push_back({ ownPathInfo, HumaneSourceLocation() });
-
-                return includeStack;
-            }
-
-            static IncludeStack CreateSplitted(const IncludeStack& parentStack, const PathInfo& ownPathInfo)
-            {
-                ASSERT(parentStack.IsValid())
-
-                IncludeStack includeStack(parentStack);
-                // Replace parent include
-                includeStack.stack_.pop_back();
-                includeStack.stack_.push_back({ ownPathInfo, HumaneSourceLocation() });
-
-                return includeStack;
-            }
-
-        private:
-            std::vector<IncludeInfo> stack_;
-        };
-        */
         struct SourceLocation
         {
             using RawValue = size_t;

@@ -41,26 +41,6 @@ namespace RR::Rfx
 
     namespace
     {
-
-        /*
-        PathInfo GetIncludePQPEP(const std::shared_ptr<SourceView>& sourceView)
-        {
-            const auto includeStack = sourceView->GetIncludeStack().GetStack();
-            ASSERT(!includeStack.empty())
-
-            for (auto it = includeStack.rbegin(); it != includeStack.rend(); ++it)
-            {
-                const auto& includeInfo = *it;
-                const auto pathInfoType = includeInfo.pathInfo.type;
-
-                if (pathInfoType == PathInfo::Type::Normal ||
-                    pathInfoType == PathInfo::Type::FoundPath)
-                    return includeInfo.pathInfo;
-            }
-
-            return (*std::prev(includeStack.end())).pathInfo;
-        }*/
-
         void qweqwe(const std::shared_ptr<const SourceView>& sourceView, std::shared_ptr<const SourceView>& outSourceView, HumaneSourceLocation& outHumaneSourceLoc)
         {
             outSourceView = sourceView;
