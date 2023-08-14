@@ -123,12 +123,6 @@ namespace RR
             U8String uniqueIdentity; ///< The unique identity of the file on the path found
         };
 
-        enum class SourceLocationType
-        {
-            Nominal, ///< The normal interpretation which takes into account #line directives
-            Actual, ///< Ignores #line directives - and is the location as seen in the actual file
-        };
-
         // A source location in a format a human might like to see
         struct HumaneSourceLocation
         {
@@ -142,6 +136,7 @@ namespace RR
             uint32_t line = 0;
             uint32_t column = 0;
         };
+
         struct SourceLocation
         {
             using RawValue = size_t;
@@ -153,7 +148,6 @@ namespace RR
             inline bool operator!=(const SourceLocation& rhs) const { return (raw != rhs.raw) || (humaneSourceLoc != rhs.humaneSourceLoc) || (sourceView.lock() != rhs.sourceView.lock()); }
 
             inline SourceLocation& operator=(const SourceLocation& rhs) = default;
-
             inline std::shared_ptr<const SourceView> GetSourceView() const { return sourceView.lock(); }
 
         private:
