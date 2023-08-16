@@ -168,12 +168,12 @@ namespace RR::Rfx
             }
             case JSONValue::Type::Invalid:
             {
-                getSink().Diagnose(parent, Diagnostics::undeclaredIdentifier, parentName.AsString());
+                getSink().Diagnose(parent, Diagnostics::undeclaredIdentifier, parentName);
                 return RResult::NotFound;
             }
             default:
             {
-                getSink().Diagnose(parent, Diagnostics::invalidParentType, parentName.AsString(), value.type);
+                getSink().Diagnose(parent, Diagnostics::invalidParentType, parentName, value.type);
                 return RResult::Fail;
             }
         }
@@ -189,7 +189,7 @@ namespace RR::Rfx
 
         if (currentContainer()->IsObjectValueExist(keyName))
         {
-            getSink().Diagnose(key, Diagnostics::duplicateKey, keyName.AsString());
+            getSink().Diagnose(key, Diagnostics::duplicateKey, keyName);
             return RResult::AlreadyExist;
         }
 
@@ -237,7 +237,7 @@ namespace RR::Rfx
             case Expect::Parent:
                 if (value.type != JSONValue::Type::Object)
                 {
-                    getSink().Diagnose(token, Diagnostics::invalidTypeForInheritance, key_.AsString(), value.type);
+                    getSink().Diagnose(token, Diagnostics::invalidTypeForInheritance, key_, value.type);
                     return RResult::Fail;
                 }
                 [[fallthrough]];

@@ -17,7 +17,7 @@ namespace RR::Rfx
                     case Rfx::CompileOutputType::Tokens: return "TokensOutput";
                     case Rfx::CompileOutputType::Source: return "SourceOutput";
                     case Rfx::CompileOutputType::Diagnostic: return "Diagnostic";
-                    default: ASSERT_MSG(false, "Unsupported CompileOutputType"); 
+                    default: ASSERT_MSG(false, "Unsupported CompileOutputType");
                 } // clang-format on
 
                 return "";
@@ -65,7 +65,8 @@ namespace RR::Rfx
             ASSERT(ofs.is_open())
 
             ofs << "exit_status:" << commandResult_.exitstatus << "\n";
-            ofs << "output:\n" << commandResult_.output;
+            ofs << "output:\n"
+                << commandResult_.output;
             ofs.close();
         }
     }

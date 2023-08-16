@@ -11,9 +11,9 @@ source_group( "" FILES ${SRC} )
 
 set(TESTS_SRC
     "Tests/CopyCommandList.cpp"
-    "Tests/CopyCommandList.hpp" 
-    "Tests/ComputeCommandList.hpp" 
-    "Tests/ComputeCommandList.cpp" 
+    "Tests/CopyCommandList.hpp"
+    "Tests/ComputeCommandList.hpp"
+    "Tests/ComputeCommandList.cpp"
 )
 source_group( "Tests" FILES ${TESTS_SRC} )
 
@@ -40,7 +40,7 @@ set(TESTS_LINK_LIBRARIES
     gapi
     gapi_dx12
     platform
-    Catch2::Catch2WithMain
+    Catch2::Catch2
     ApprovalTests
     DirectXTex
     )

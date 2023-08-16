@@ -6,16 +6,18 @@ namespace RR
     {
         struct CompileContext;
         class SourceFile;
+        class SourceManager;
         class DiagnosticSink;
         class IncludeSystem;
         struct Token;
         class PreprocessorImpl;
 
-        class Preprocessor final
+        class Preprocessor final : Common::NonCopyable
         {
         public:
             Preprocessor() = delete;
             Preprocessor(const std::shared_ptr<IncludeSystem>& includeSystem,
+                         const std::shared_ptr<SourceManager>& sourceManager,
                          const std::shared_ptr<CompileContext>& context);
 
             ~Preprocessor();
@@ -28,8 +30,7 @@ namespace RR
             std::vector<Token> ReadAllTokens();
 
         private:
-            // TODO tempoprary shared. Is it possible not to use it?
-            std::shared_ptr<PreprocessorImpl> impl_;
+            std::unique_ptr<PreprocessorImpl> impl_;
         };
     }
 }

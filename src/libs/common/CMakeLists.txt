@@ -54,6 +54,8 @@ set( COMMON_SRC
     Time.cpp
     Time.hpp
     VecMath.h
+    ErrorNo.cpp
+    ErrorNo.hpp
 )
 source_group( "" FILES ${COMMON_SRC} )
 

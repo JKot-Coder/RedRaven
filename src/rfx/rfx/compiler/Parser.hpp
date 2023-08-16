@@ -17,7 +17,7 @@ namespace RR
         struct CompileContext;
         struct Token;
 
-        class Parser
+        class Parser final : Common::NonCopyable
         {
         public:
             ~Parser();
@@ -25,10 +25,9 @@ namespace RR
             Parser(const std::shared_ptr<SourceView>& sourceView,
                    const std::shared_ptr<CompileContext>& context);
 
-            Common::RResult Parse(const std::shared_ptr<ASTBuilder>& astBuilder);
+            Common::RResult Parse();
 
         private:
-            // TODO tempoprary shared. Is it possible not to use it?
             std::unique_ptr<ParserImpl> impl_;
         };
     }

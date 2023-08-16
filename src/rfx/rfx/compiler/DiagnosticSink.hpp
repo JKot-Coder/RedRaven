@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rfx/core/SourceLocation.hpp"
+#include "rfx/core/UnownedStringSlice.hpp"
 
 namespace RR
 {
@@ -33,7 +34,6 @@ namespace RR
 
             U8String message;
             SourceLocation location;
-            HumaneSourceLocation humaneSourceLocation;
             int32_t errorID = -1;
             Severity severity;
             UnownedStringSlice stringSlice;
@@ -52,13 +52,12 @@ namespace RR
             DiagnosticSink(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) {};
 
             template <typename... Args>
-            inline void Diagnose(const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
+            inline void Diagnose(const SourceLocation& location, const DiagnosticInfo& info, Args&&... args)
             {
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;
                 diagnostic.message = fmt::format(info.messageFormat, args...);
                 diagnostic.location = location;
-                diagnostic.humaneSourceLocation = humaneSourceLocation;
                 diagnostic.severity = info.severity;
 
                 diagnoseImpl(info, formatDiagnostic(diagnostic));
@@ -71,9 +70,24 @@ namespace RR
                 diagnostic.errorID = info.id;
                 diagnostic.message = fmt::format(info.messageFormat, args...);
                 diagnostic.location = token.sourceLocation;
-                diagnostic.humaneSourceLocation = token.humaneSourceLocation;
                 diagnostic.isTokenValid = token.isValid();
                 diagnostic.stringSlice = token.stringSlice;
+                diagnostic.severity = info.severity;
+
+                diagnoseImpl(info, formatDiagnostic(diagnostic));
+            }
+
+            template <typename... Args>
+            inline void Diagnose(DiagnosticInfo const& info, Args const&... args)
+            {
+                ASSERT(info.severity == Severity::Note)
+
+                Diagnostic diagnostic;
+                diagnostic.errorID = info.id;
+                diagnostic.message = fmt::format(info.messageFormat, args...);
+                diagnostic.location = {};
+                diagnostic.isTokenValid = false;
+                diagnostic.stringSlice = {};
                 diagnostic.severity = info.severity;
 
                 diagnoseImpl(info, formatDiagnostic(diagnostic));
@@ -93,6 +107,20 @@ namespace RR
             inline uint32_t GetErrorCount() { return errorCount_; }
 
         private:
+            template <typename T, typename... Args>
+            inline U8String formatDiagnostic(const T& token, const DiagnosticInfo& info, Args&&... args)
+            {
+                Diagnostic diagnostic;
+                diagnostic.errorID = info.id;
+                diagnostic.message = fmt::format(info.messageFormat, args...);
+                diagnostic.location = token.sourceLocation;
+                diagnostic.isTokenValid = token.isValid();
+                diagnostic.stringSlice = token.stringSlice;
+                diagnostic.severity = info.severity;
+
+                return formatDiagnostic(diagnostic);
+            }
+
             U8String formatDiagnostic(const Diagnostic& diagnostic);
 
             void diagnoseImpl(const DiagnosticInfo& info, const U8String& formattedMessage);

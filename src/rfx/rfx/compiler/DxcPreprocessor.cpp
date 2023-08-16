@@ -3,6 +3,7 @@
 #include "rfx/core/Blob.hpp"
 #include "rfx/core/CStringAllocator.hpp"
 #include "rfx/core/SourceLocation.hpp"
+#include "rfx/core/SourceView.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>

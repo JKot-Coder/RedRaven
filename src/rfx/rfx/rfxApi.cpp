@@ -41,33 +41,15 @@ namespace RR::Rfx
 
     namespace
     {
-
-        /*
-        PathInfo GetIncludePQPEP(const std::shared_ptr<SourceView>& sourceView)
-        {
-            const auto includeStack = sourceView->GetIncludeStack().GetStack();
-            ASSERT(!includeStack.empty())
-
-            for (auto it = includeStack.rbegin(); it != includeStack.rend(); ++it)
-            {
-                const auto& includeInfo = *it;
-                const auto pathInfoType = includeInfo.pathInfo.type;
-
-                if (pathInfoType == PathInfo::Type::Normal ||
-                    pathInfoType == PathInfo::Type::FoundPath)
-                    return includeInfo.pathInfo;
-            }
-
-            return (*std::prev(includeStack.end())).pathInfo;
-        }*/
-
-        void qweqwe(const std::shared_ptr<SourceView>& sourceView, std::shared_ptr<SourceView>& outSourceView, HumaneSourceLocation& outHumaneSourceLoc)
+        void qweqwe(const std::shared_ptr<const SourceView>& sourceView, std::shared_ptr<const SourceView>& outSourceView, HumaneSourceLocation& outHumaneSourceLoc)
         {
             outSourceView = sourceView;
 
-            while (outSourceView->GetInitiatingSourceLocation().GetSourceView() && outSourceView->GetPathInfo().type != PathInfo::Type::Normal)
+            while (outSourceView->GetInitiatingSourceLocation().GetSourceView() &&
+                   outSourceView->GetPathInfo().type != PathInfo::Type::Normal &&
+                   outSourceView->GetPathInfo().type != PathInfo::Type::Split)
             {
-                outHumaneSourceLoc = outSourceView->GetInitiatingHumaneLocation();
+                outHumaneSourceLoc = outSourceView->GetInitiatingSourceLocation().humaneSourceLoc;
                 outSourceView = outSourceView->GetInitiatingSourceLocation().GetSourceView();
             }
         }
@@ -90,10 +72,12 @@ namespace RR::Rfx
 
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
-                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
-                    std::shared_ptr<SourceView> sourceView;
+                    HumaneSourceLocation humaleLoc = token.sourceLocation.humaneSourceLoc;
+                    std::shared_ptr<const SourceView> sourceView;
 
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                    ASSERT(sourceView);
+
                     line_ = humaleLoc.line;
 
                     const auto sourceViewUniqueIdentity = sourceView->GetSourceFile()->GetPathInfo().getMostUniqueIdentity();
@@ -115,10 +99,11 @@ namespace RR::Rfx
                 }
                 else
                 {
-                    HumaneSourceLocation humaleLoc = token.humaneSourceLocation;
-                    std::shared_ptr<SourceView> sourceView;
+                    HumaneSourceLocation humaleLoc = token.sourceLocation.humaneSourceLoc;
+                    std::shared_ptr<const SourceView> sourceView;
 
                     qweqwe(token.sourceLocation.GetSourceView(), sourceView, humaleLoc);
+                    ASSERT(sourceView);
 
                     //  line_ = token.humaneSourceLocation.line;
 
@@ -300,7 +285,7 @@ namespace RR::Rfx
     {
     public:
         LexerTokenReader(const std::shared_ptr<RR::Rfx::SourceFile>& sourceFile, const std::shared_ptr<RR::Rfx::CompileContext>& context)
-            : lexer_(SourceView::Create(sourceFile), context)
+            : lexer_(SourceView::CreateFromSourceFile(sourceFile), context)
         {
         }
 
@@ -344,8 +329,8 @@ namespace RR::Rfx
                 result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",
                                       RR::Rfx::TokenTypeToString(token.type),
                                       escapedToken,
-                                      token.humaneSourceLocation.line,
-                                      token.humaneSourceLocation.column);
+                                      token.sourceLocation.humaneSourceLoc.line,
+                                      token.sourceLocation.humaneSourceLoc.column);
 
                 if (token.type == Token::Type::EndOfFile)
                     break;
@@ -402,15 +387,20 @@ namespace RR::Rfx
                 return result;
 
             auto context = std::make_shared<CompileContext>(compileRequest.compilerOptions.onlyRelativePaths);
-
-            std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
-            if (RR_FAILED(result = context->sourceManager.LoadFile(pathInfo, sourceFile)))
-                return result;
-
-            ComPtr<IDxcResult> dxcResult;
+            auto sourceManager = std::make_shared<SourceManager>(context);
 
             auto bufferWriter = std::make_shared<BufferWriter>();
             context->sink.AddWriter(bufferWriter);
+
+            std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
+            if (RR_FAILED(result = sourceManager->LoadFile(pathInfo, sourceFile)))
+            {
+                const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                return result;
+            }
+
+            ComPtr<IDxcResult> dxcResult;
 
             switch (compileRequest.outputStage)
             {
@@ -428,7 +418,7 @@ namespace RR::Rfx
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
                 {
-                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, context);
+                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, sourceManager, context);
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
@@ -637,7 +627,7 @@ namespace RR::Rfx
         catch (const utf8::exception& e)
         {
             LOG_ERROR("UTF8 exception: {}", e.what());
-            return RfxResult::CannotOpen;
+            return RfxResult::Abort;
         }
 
         return result;

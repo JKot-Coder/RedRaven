@@ -30,17 +30,8 @@ namespace RR
                 return !(*this == other);
             }
 
-            bool operator==(char const* str) const
-            {
-                return (*this) == UnownedStringSlice(str);
-            }
-            bool operator!=(char const* str) const
-            {
-                return !(*this == str);
-            }
-
-            /// Trims any horizontal whitespace from the start and end and returns as a substring
-            UnownedStringSlice Trim() const;
+            bool operator==(char const* str) const { return (*this) == UnownedStringSlice(str); }
+            bool operator!=(char const* str) const { return !(*this == str); }
 
             void Reset()
             {
@@ -85,3 +76,14 @@ namespace std
         }
     };
 }
+
+template <>
+struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
+{
+    // parse is inherited from formatter<string_view>.
+    template <typename FormatContext>
+    auto format(RR::Rfx::UnownedStringSlice stringSlice, FormatContext& ctx)
+    {
+        return formatter<string_view>::format(string_view(stringSlice.Begin(), stringSlice.GetLength()), ctx);
+    }
+};

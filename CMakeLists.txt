@@ -69,7 +69,7 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GN
   set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
 endif()
 
-add_compile_options(${SANITIZE_FLAGS})
+add_compile_options(${COMPILE_SANITIZE_FLAGS})
 add_link_options(${LINK_SANITIZE_FLAGS})
 
 include_directories(src)
@@ -87,7 +87,7 @@ add_subdirectory(src/dependencies/imgui)
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v2.13.4
+  GIT_TAG        v2.13.10
 )
 FetchContent_MakeAvailable(Catch2)
 
@@ -194,7 +194,7 @@ set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward PROPERTY FOLDER "Dependencies")
 set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
-set_property(TARGET Catch2WithMain PROPERTY FOLDER "Dependencies")
+set_property(TARGET Catch2 PROPERTY FOLDER "Dependencies")
 set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui PROPERTY FOLDER "Dependencies")

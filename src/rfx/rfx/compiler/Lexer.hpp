@@ -102,7 +102,7 @@ namespace RR
             TokenList::const_iterator end_;
         };
 
-        class Lexer final
+        class Lexer final : Common::NonCopyable
         {
         public:
             static constexpr U8Glyph kEOF = 0xFFFFFF;
@@ -158,7 +158,6 @@ namespace RR
             Token::Type scanToken();
             void advance();
             SourceLocation getSourceLocation();
-            HumaneSourceLocation getHumaneSourceLocation();
 
             void handleBlockComment();
             void handleEscapedNewline();
