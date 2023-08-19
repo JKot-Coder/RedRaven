@@ -25,7 +25,7 @@ namespace RR
 
         template <typename T>
         inline constexpr T Sqr(T x) { return x * x; };
-        inline float FRandom() { return (float)rand() / RAND_MAX; };
+        inline float FRandom() { return (float)((double)rand() / RAND_MAX); };
 
         using std::log;
         using std::log2;
@@ -370,7 +370,7 @@ namespace RR
             }
 
             template <typename U>
-            Vector<SIZE, U> Cast() const 
+            Vector<SIZE, U> Cast() const
             {
                 return Vector<SIZE, U>(
                     static_cast<U>(x),
@@ -550,7 +550,7 @@ namespace RR
             Vector<SIZE - 1, T>& yz() const { return *((Vector<SIZE - 1, T>*)&y); }
 
             template <typename U>
-            Vector<SIZE, U> Cast() const 
+            Vector<SIZE, U> Cast() const
             {
                 return Vector<SIZE, U>(
                     static_cast<U>(x),

@@ -1,0 +1,16 @@
+// :PARSER
+
+BasicTypes:
+{
+  String: "test",
+  Number: 42,
+  Float: 0.25,
+  Null: null,
+  Boolean: true,
+  Array: [test, false, 55, 0.27, null, true],
+  Object: {
+    Boolean: false,
+    String: success
+  }
+}
+

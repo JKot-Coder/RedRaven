@@ -72,11 +72,13 @@ namespace RR::Rfx
     {
     public:
         ParserImpl() = delete;
-        ParserImpl(const std::shared_ptr<SourceView>& sourceView,
+        ParserImpl(const TokenSpan& tokenSpan,
+                   JSONValue& root,
                    const std::shared_ptr<CompileContext>& context)
             : context_(context),
-              builder_(context),
-              lexerReader_(sourceView, context)
+              builder_(root, context),
+              tokenSpan_(tokenSpan),
+              currentToken_(tokenSpan_.begin())
         {
             ASSERT(context);
         }
@@ -86,9 +88,18 @@ namespace RR::Rfx
     private:
         DiagnosticSink& getSink() const { return context_->sink; }
 
-        Token peekToken() const { return lexerReader_.PeekToken(); }
-        Token::Type peekTokenType() const { return lexerReader_.PeekTokenType(); }
-        Token advance() { return lexerReader_.ReadToken(); }
+        Token peekToken() const { return *currentToken_; }
+        Token::Type peekTokenType() const { return currentToken_->type; }
+        Token advance()
+        {
+            auto currentToken = *currentToken_;
+            auto currentIter = currentToken_;
+
+            if (++currentIter < tokenSpan_.end())
+                currentToken_ = currentIter;
+
+            return currentToken;
+        }
 
         void skipAllWhitespaces()
         {
@@ -97,12 +108,12 @@ namespace RR::Rfx
                 advance();
         }
 
-        bool advanceIf(std::initializer_list<Token::Type> tokens, Token& outToken);
-        bool inline advanceIf(Token::Type tokenType, Token& outToken) { return advanceIf({ tokenType }, outToken); }
-        bool inline advanceIf(Token::Type tokenType)
+        bool advanceIf(std::initializer_list<Token::Type> expected, Token& outToken);
+        bool inline advanceIf(Token::Type expected, Token& outToken) { return advanceIf({ expected }, outToken); }
+        bool inline advanceIf(Token::Type expected)
         {
             Token token;
-            return advanceIf(tokenType, token);
+            return advanceIf(expected, token);
         }
 
         RResult parseArray();
@@ -111,7 +122,7 @@ namespace RR::Rfx
         RResult parseValue();
         RResult parseStringValue();
 
-        RResult expect(std::initializer_list<Token::Type> tokens, Token& outToken);
+        RResult expect(std::initializer_list<Token::Type> expected, Token& outToken);
         RResult expect(Token::Type expected, Token& outToken) { return expect({ expected }, outToken); };
         RResult expect(Token::Type expected)
         {
@@ -122,15 +133,16 @@ namespace RR::Rfx
     private:
         std::shared_ptr<CompileContext> context_;
         JSONBuilder builder_;
-        LexerReader lexerReader_;
+        TokenSpan tokenSpan_;
+        TokenSpan::const_iterator currentToken_;
     };
 
-    bool ParserImpl::advanceIf(std::initializer_list<Token::Type> tokens, Token& outToken)
+    bool ParserImpl::advanceIf(std::initializer_list<Token::Type> expected, Token& outToken)
     {
         const auto lookAheadTokenType = peekTokenType();
 
-        for (const auto& token : tokens)
-            if (lookAheadTokenType == token)
+        for (const auto& expectedType : expected)
+            if (lookAheadTokenType == expectedType)
             {
                 outToken = advance();
                 return true;
@@ -199,6 +211,7 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
+    // Todo rename
     RResult ParserImpl::parseObject(bool renameMe)
     {
         if (!renameMe)
@@ -268,18 +281,18 @@ namespace RR::Rfx
         }
     }
 
-    RResult ParserImpl::expect(std::initializer_list<Token::Type> tokens, Token& out)
+    RResult ParserImpl::expect(std::initializer_list<Token::Type> expected, Token& out)
     {
         const auto lookAheadTokenType = peekTokenType();
 
-        for (const auto& token : tokens)
-            if (token == lookAheadTokenType)
+        for (const auto& expectedType : expected)
+            if (expectedType == lookAheadTokenType)
             {
                 out = advance();
                 return RResult::Ok;
             }
 
-        const U8String& tokensString = fmt::format("{}\n", fmt::join(tokens, " or "));
+        const U8String& tokensString = fmt::format("{}\n", fmt::join(expected, " or "));
         getSink().Diagnose(peekToken(), Diagnostics::unexpectedTokenExpectedTokenType, peekTokenType(), tokensString);
         return RResult::Fail;
     }
@@ -292,9 +305,10 @@ namespace RR::Rfx
 
     Parser::~Parser() { }
 
-    Parser::Parser(const std::shared_ptr<SourceView>& sourceView,
+    Parser::Parser(const TokenSpan& tokenSpan,
+                   JSONValue& root,
                    const std::shared_ptr<CompileContext>& context)
-        : impl_(std::make_unique<ParserImpl>(sourceView, context))
+        : impl_(std::make_unique<ParserImpl>(tokenSpan, root, context))
     {
     }
 

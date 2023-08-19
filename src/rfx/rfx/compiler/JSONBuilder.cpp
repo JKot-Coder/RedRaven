@@ -41,6 +41,12 @@ namespace RR::Rfx
         }
     }
 
+    JSONValue::~JSONValue()
+    {
+        if(isContainer())
+            container = nullptr;
+    }
+
     JSONValue JSONValue::MakeEmptyArray()
     {
         JSONValue value;
@@ -96,11 +102,13 @@ namespace RR::Rfx
         }
     }
 
-    JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
-                                                                               root_(JSONContainer::MakeObject()),
-                                                                               context_(context)
+    JSONBuilder::JSONBuilder(JSONValue& rootValue, const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
+                                                                                                     context_(context)
     {
-        stack_.emplace_back(root_);
+        rootValue.type = JSONValue::Type::Object;
+        rootValue.container = JSONContainer::MakeObject();
+        root_ = rootValue;
+        stack_.emplace_back(rootValue.container);
     }
 
     DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
@@ -116,13 +124,13 @@ namespace RR::Rfx
 
     void JSONBuilder::EndObject()
     {
-        ASSERT(currentContainer()->GetType() == JSONContainer::Type::Object);
+        ASSERT(currentContainer().GetType() == JSONContainer::Type::Object);
         ASSERT(expect_ == Expect::ObjectKey);
-        currentContainer()->InheriteFrom(parents_);
+        currentContainer().InheriteFrom(parents_);
         stack_.pop_back();
         key_.Reset();
         parents_.clear();
-        expect_ = currentContainer()->GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentContainer().GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
     RResult JSONBuilder::StartArray(const Token& token)
@@ -136,17 +144,17 @@ namespace RR::Rfx
 
     void JSONBuilder::EndArray()
     {
-        ASSERT(currentContainer()->GetType() == JSONContainer::Type::Array);
+        ASSERT(currentContainer().GetType() == JSONContainer::Type::Array);
         ASSERT(expect_ == Expect::ArrayValue);
         stack_.pop_back();
         key_.Reset();
 
-        expect_ = currentContainer()->GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentContainer().GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
     void JSONBuilder::BeginInrehitance()
     {
-        ASSERT(currentContainer()->GetType() == JSONContainer::Type::Object);
+        ASSERT(currentContainer().GetType() == JSONContainer::Type::Object);
         ASSERT(expect_ == Expect::ObjectValue);
         ASSERT(parents_.size() == 0);
         expect_ = Expect::Parent;
@@ -158,7 +166,7 @@ namespace RR::Rfx
         ASSERT(parent.type == Token::Type::StringLiteral || parent.type == Token::Type::Identifier);
         auto parentName = unquotingToken(parent);
 
-        auto value = root_->Find(parentName);
+        auto value = root_.container->Find(parentName);
         switch (value.type)
         {
             case JSONValue::Type::Object:
@@ -187,7 +195,7 @@ namespace RR::Rfx
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
         auto keyName = unquotingToken(key);
 
-        if (currentContainer()->IsObjectValueExist(keyName))
+        if (currentContainer().IsObjectValueExist(keyName))
         {
             getSink().Diagnose(key, Diagnostics::duplicateKey, keyName);
             return RResult::AlreadyExist;
@@ -233,7 +241,7 @@ namespace RR::Rfx
     {
         switch (expect_)
         {
-            case Expect::ArrayValue: currentContainer()->AddValue(value); return RResult::Ok;
+            case Expect::ArrayValue: currentContainer().AddValue(value); return RResult::Ok;
             case Expect::Parent:
                 if (value.type != JSONValue::Type::Object)
                 {
@@ -242,7 +250,7 @@ namespace RR::Rfx
                 }
                 [[fallthrough]];
             case Expect::ObjectValue:
-                currentContainer()->AddKeyValue(key_, value);
+                currentContainer().AddKeyValue(key_, value);
                 key_.Reset();
                 expect_ = Expect::ObjectKey;
                 return RResult::Ok;

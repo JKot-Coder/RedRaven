@@ -19,3 +19,13 @@
 #else
 #define INLINE
 #endif // ENABLE_INLINE
+
+#define ASAN_DEFAULT_OPTIONS             \
+    __attribute__((used))                \
+    __attribute__((no_sanitize_address)) \
+                                         \
+    extern "C" const char*               \
+    __asan_default_options()             \
+    {                                    \
+        return "detect_leaks=1";         \
+    }

@@ -5,6 +5,8 @@
 #include "rfx/compiler/DxcPreprocessor.hpp"
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/Preprocessor.hpp"
+#include "rfx/compiler/Parser.hpp"
+#include "rfx/compiler/JSONBuilder.hpp"
 
 #include "rfx/core/Blob.hpp"
 #include "rfx/core/CStringAllocator.hpp"
@@ -29,8 +31,6 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-
-#include "rfx/compiler/EffectParser.hpp"
 
 #include "dxcapi.use.h"
 // #include <winrt/base.h>
@@ -344,9 +344,8 @@ namespace RR::Rfx
         Lexer lexer_;
     };
 
-    U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor, const std::shared_ptr<CompileContext>& context)
+    U8String writeTokens(const TokenSpan& tokens, const std::shared_ptr<CompileContext>& context)
     {
-        const auto& tokens = preprocessor->ReadAllTokens();
         SourceWriter writer(context->onlyRelativePaths);
 
         for (const auto& token : tokens)
@@ -417,21 +416,40 @@ namespace RR::Rfx
                 break;
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
+                case CompileRequestDescription::OutputStage::Parser:
                 {
-                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, sourceManager, context);
+                    Preprocessor preprocessor(includeSystem, sourceManager, context);
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
                         ASSERT(compileRequest.defines + index);
                         const auto& define = *(compileRequest.defines + index);
-                        preprocessor->DefineMacro(define);
+                        preprocessor.DefineMacro(define);
                     }
-                    preprocessor->PushInputFile(sourceFile);
+                    preprocessor.PushInputFile(sourceFile);
+                    const auto& tokens = preprocessor.ReadAllTokens();
 
-                    const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor, context)));
-                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
-                    compilerResult->PushOutput(CompileOutputType::Source, blob);
-                    compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                    if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    {
+                        const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(tokens, context)));
+                        const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                        compilerResult->PushOutput(CompileOutputType::Source, blob);
+                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                        break;
+                    } else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
+                    {
+                        JSONValue root;
+                        Parser parser(tokens, root, context);
+                        RR_RETURN_ON_FAIL(parser.Parse());
+
+                        const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(tokens, context)));
+                        const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                        compilerResult->PushOutput(CompileOutputType::Source, blob);
+                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                        break;
+                    }
+
+
 
                     /*
                     DxcPreprocessor preprocessor;

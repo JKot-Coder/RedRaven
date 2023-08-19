@@ -18,14 +18,14 @@ set(RFX_TESTS_LEXER_SRC
     "lexer/StringLiteras.rfx")
 source_group( "lexer" FILES ${RFX_TESTS_LEXER_SRC} )
 
-set(RFX_TESTS_COMPILE_SRC
+set(RFX_TESTS_COMMAND_LINE_SRC
     "command_line/CommandLine.cpp"
     "command_line/compile_simple.rfx"
     "command_line/preprocessor_defines.rfx"
     "command_line/preprocessor_simple.rfx"
     "command_line/version.rfx"
     "command_line/help.rfx")
-source_group( "commandLine" FILES ${RFX_TESTS_COMPILE_SRC} )
+source_group( "commandLine" FILES ${RFX_TESTS_COMMAND_LINE_SRC} )
 
 set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/SpecialMacroComplex.rfx"
@@ -82,13 +82,13 @@ source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
 set(RFX_TESTS_PARSER_SRC
     "parser/Parser.cpp"
-    "parser/test.rfx")
+    "parser/Simple.rfx")
 source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
 
 set(SRC
     ${RFX_TESTS_SRC}
     ${RFX_TESTS_LEXER_SRC}
-    ${RFX_TESTS_COMPILE_SRC}
+    ${RFX_TESTS_COMMAND_LINE_SRC}
     ${RFX_TESTS_PREPROCESSOR_SRC}
     ${RFX_TESTS_PARSER_SRC})
 

@@ -100,6 +100,7 @@ FetchContent_Declare(
 # Tell the ApprovalTests CMake files that we want to use its copy of Catch2:
 set(APPROVAL_TESTS_BUILD_THIRD_PARTY_CATCH2 ON CACHE BOOL "")
 FetchContent_MakeAvailable(ApprovalTests)
+target_compile_options(ApprovalTests PRIVATE -Wno-deprecated-copy-with-dtor)
 
 #=================================== Glfw ====================================#
 FetchContent_Declare(

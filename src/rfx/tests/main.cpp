@@ -6,6 +6,8 @@
 #define APPROVALS_CATCH
 #include "ApprovalTests/ApprovalTests.hpp"
 
+ASAN_DEFAULT_OPTIONS
+
 namespace
 {
     int runApp(int argc, char** argv)

@@ -37,6 +37,15 @@ namespace RR
 
                 CountOf
             };
+            JSONValue() = default;
+            JSONValue(const JSONValue& other) { copy(other); }
+            JSONValue(JSONValue&& other) noexcept { swap(other); }
+            ~JSONValue();
+
+            JSONValue& operator=(const JSONValue& other) { return copy(other); }
+            JSONValue& operator=(JSONValue&& other) noexcept { return swap(other); }
+
+            bool isContainer() const { return type == Type::Object || type == Type::Array; }
 
             static JSONValue MakeBool(bool inValue)
             {
@@ -127,9 +136,33 @@ namespace RR
                 int64_t intValue;
                 UnownedStringSlice stringValue;
                 bool boolValue;
+                std::shared_ptr<JSONContainer> container = {};
+                std::array<uint8_t, 16> data;
             };
+            static_assert(sizeof(data) >= sizeof(UnownedStringSlice) &&
+                          sizeof(data) >= sizeof(std::shared_ptr<JSONContainer>));
 
-            std::shared_ptr<JSONContainer> container;
+        private:
+            JSONValue& copy(const JSONValue& other)
+            {
+                if (isContainer())
+                    container = nullptr;
+
+                if (other.isContainer())
+                    container = other.container;
+                else
+                    data = other.data;
+
+                type = other.type;
+                return *this;
+            }
+
+            JSONValue& swap(JSONValue& other)
+            {
+                std::swap(data, other.data);
+                std::swap(type, other.type);
+                return *this;
+            }
         };
 
         class JSONContainer
@@ -142,6 +175,7 @@ namespace RR
                 Array,
             };
 
+            JSONContainer(Type type) : type_(type) { }
             Type GetType() const { return type_; }
             void AddKeyValue(const UnownedStringSlice& stringSlice, const JSONValue& value);
             void AddValue(const JSONValue& value);
@@ -149,19 +183,14 @@ namespace RR
             bool IsObjectValueExist(const UnownedStringSlice& stringSlice);
 
             void InheriteFrom(const std::vector<std::shared_ptr<JSONContainer>>& parents);
-
             static std::shared_ptr<JSONContainer> MakeObject()
             {
-                auto value = std::make_shared<JSONContainer>();
-                value->type_ = Type::Object;
-                return value;
+                return std::make_shared<JSONContainer>(Type::Object);
             }
 
             static std::shared_ptr<JSONContainer> MakeArray()
             {
-                auto value = std::make_shared<JSONContainer>();
-                value->type_ = Type::Array;
-                return value;
+                return std::make_shared<JSONContainer>(Type::Array);
             }
 
         private:
@@ -183,13 +212,13 @@ namespace RR
             RResult AddKey(const Token& key);
             RResult AddValue(const Token& token);
             /// Get the root value. Will be set after valid construction
-            // const JSONValue& getRootValue() const { return m_rootValue; }
+            const JSONValue& GetRootValue() const { return root_; }
 
-            JSONBuilder(const std::shared_ptr<CompileContext>& context);
+            JSONBuilder(JSONValue& rootValue, const std::shared_ptr<CompileContext>& context);
 
         private:
             DiagnosticSink& getSink() const;
-            std::shared_ptr<JSONContainer> currentContainer() { return stack_.back(); }
+            JSONContainer& currentContainer() { return *stack_.back(); }
 
             int64_t tokenToInt(const Token& token, int radix);
             double tokenToFloat(const Token& token);
@@ -209,7 +238,7 @@ namespace RR
             UnownedStringSlice key_;
             std::vector<std::shared_ptr<JSONContainer>> parents_;
             std::vector<std::shared_ptr<JSONContainer>> stack_;
-            std::shared_ptr<JSONContainer> root_;
+            JSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };
 
