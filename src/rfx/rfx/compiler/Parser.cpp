@@ -73,17 +73,16 @@ namespace RR::Rfx
     public:
         ParserImpl() = delete;
         ParserImpl(const TokenSpan& tokenSpan,
-                   JSONValue& root,
                    const std::shared_ptr<CompileContext>& context)
             : context_(context),
-              builder_(root, context),
+              builder_(context),
               tokenSpan_(tokenSpan),
               currentToken_(tokenSpan_.begin())
         {
             ASSERT(context);
         }
 
-        RResult Parse();
+        RResult Parse(JSONValue& root);
 
     private:
         DiagnosticSink& getSink() const { return context_->sink; }
@@ -297,24 +296,26 @@ namespace RR::Rfx
         return RResult::Fail;
     }
 
-    RResult ParserImpl::Parse()
+    RResult ParserImpl::Parse(JSONValue& root)
     {
         RR_RETURN_ON_FAIL(parseObject(true));
-        return expect(Token::Type::EndOfFile);
+        RR_RETURN_ON_FAIL(expect(Token::Type::EndOfFile));
+
+        root = builder_.GetRootValue();
+        return RResult::Ok;
     }
 
     Parser::~Parser() { }
 
     Parser::Parser(const TokenSpan& tokenSpan,
-                   JSONValue& root,
                    const std::shared_ptr<CompileContext>& context)
-        : impl_(std::make_unique<ParserImpl>(tokenSpan, root, context))
+        : impl_(std::make_unique<ParserImpl>(tokenSpan, context))
     {
     }
 
-    RResult Parser::Parse()
+    RResult Parser::Parse(JSONValue& root)
     {
         ASSERT(impl_)
-        return impl_->Parse();
+        return impl_->Parse(root);
     }
 }

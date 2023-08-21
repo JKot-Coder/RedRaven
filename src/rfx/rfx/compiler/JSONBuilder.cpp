@@ -43,7 +43,7 @@ namespace RR::Rfx
 
     JSONValue::~JSONValue()
     {
-        if(isContainer())
+        if(IsObjectLike())
             container = nullptr;
     }
 
@@ -90,7 +90,7 @@ namespace RR::Rfx
         return objectValues_.find(key) != objectValues_.end();
     }
 
-    void JSONContainer::InheriteFrom(const std::vector<std::shared_ptr<JSONContainer>>& parents)
+    void JSONContainer::InheriteFrom(const std::vector<JSONContainer*>& parents)
     {
         ASSERT(type_ == Type::Object);
 
@@ -102,13 +102,11 @@ namespace RR::Rfx
         }
     }
 
-    JSONBuilder::JSONBuilder(JSONValue& rootValue, const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
-                                                                                                     context_(context)
+    JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
+                                                                               context_(context)
     {
-        rootValue.type = JSONValue::Type::Object;
-        rootValue.container = JSONContainer::MakeObject();
-        root_ = rootValue;
-        stack_.emplace_back(rootValue.container);
+        root_ = JSONValue::MakeEmptyObject();
+        stack_.emplace_back(root_.container.get());
     }
 
     DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
@@ -117,7 +115,7 @@ namespace RR::Rfx
     {
         const auto value = JSONValue::MakeEmptyObject();
         RR_RETURN_ON_FAIL(add(token, value));
-        stack_.emplace_back(value.container);
+        stack_.emplace_back(value.container.get());
         expect_ = Expect::ObjectKey;
         return RResult::Ok;
     }
@@ -137,7 +135,7 @@ namespace RR::Rfx
     {
         const auto value = JSONValue::MakeEmptyArray();
         RR_RETURN_ON_FAIL(add(token, value));
-        stack_.emplace_back(value.container);
+        stack_.emplace_back(value.container.get());
         expect_ = Expect::ArrayValue;
         return RResult::Ok;
     }
@@ -171,7 +169,7 @@ namespace RR::Rfx
         {
             case JSONValue::Type::Object:
             {
-                parents_.push_back(value.container);
+                parents_.push_back(value.container.get());
                 break;
             }
             case JSONValue::Type::Invalid:

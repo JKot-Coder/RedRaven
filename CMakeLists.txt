@@ -190,6 +190,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(magic_enum)
 
+#==================================== EASTL ==================================#
+FetchContent_Declare(
+  EASTL
+  GIT_REPOSITORY https://github.com/electronicarts/EASTL
+  GIT_TAG        3.21.12
+  GIT_SUBMODULES ""
+)
+FetchContent_MakeAvailable(EASTL)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")

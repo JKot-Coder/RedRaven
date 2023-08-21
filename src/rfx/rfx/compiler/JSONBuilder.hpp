@@ -33,9 +33,7 @@ namespace RR
                 String,
 
                 Array,
-                Object,
-
-                CountOf
+                Object
             };
             JSONValue() = default;
             JSONValue(const JSONValue& other) { copy(other); }
@@ -45,7 +43,7 @@ namespace RR
             JSONValue& operator=(const JSONValue& other) { return copy(other); }
             JSONValue& operator=(JSONValue&& other) noexcept { return swap(other); }
 
-            bool isContainer() const { return type == Type::Object || type == Type::Array; }
+            bool IsObjectLike() const { return type == Type::Object || type == Type::Array; }
 
             static JSONValue MakeBool(bool inValue)
             {
@@ -145,10 +143,10 @@ namespace RR
         private:
             JSONValue& copy(const JSONValue& other)
             {
-                if (isContainer())
+                if (IsObjectLike())
                     container = nullptr;
 
-                if (other.isContainer())
+                if (other.IsObjectLike())
                     container = other.container;
                 else
                     data = other.data;
@@ -182,7 +180,7 @@ namespace RR
             JSONValue Find(const UnownedStringSlice& name) const;
             bool IsObjectValueExist(const UnownedStringSlice& stringSlice);
 
-            void InheriteFrom(const std::vector<std::shared_ptr<JSONContainer>>& parents);
+            void InheriteFrom(const std::vector<JSONContainer*>& parents);
             static std::shared_ptr<JSONContainer> MakeObject()
             {
                 return std::make_shared<JSONContainer>(Type::Object);
@@ -214,7 +212,7 @@ namespace RR
             /// Get the root value. Will be set after valid construction
             const JSONValue& GetRootValue() const { return root_; }
 
-            JSONBuilder(JSONValue& rootValue, const std::shared_ptr<CompileContext>& context);
+            JSONBuilder(const std::shared_ptr<CompileContext>& context);
 
         private:
             DiagnosticSink& getSink() const;
@@ -236,8 +234,8 @@ namespace RR
 
             Expect expect_;
             UnownedStringSlice key_;
-            std::vector<std::shared_ptr<JSONContainer>> parents_;
-            std::vector<std::shared_ptr<JSONContainer>> stack_;
+            std::vector<JSONContainer*> parents_;
+            std::vector<JSONContainer*> stack_;
             JSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };

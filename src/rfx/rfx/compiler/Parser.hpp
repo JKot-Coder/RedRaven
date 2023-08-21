@@ -24,9 +24,9 @@ namespace RR
         public:
             ~Parser();
             Parser() = delete;
-            Parser(const TokenSpan& tokenSpan, JSONValue& root, const std::shared_ptr<CompileContext>& context);
+            Parser(const TokenSpan& tokenSpan, const std::shared_ptr<CompileContext>& context);
 
-            Common::RResult Parse();
+            Common::RResult Parse(JSONValue& root);
 
         private:
             std::unique_ptr<ParserImpl> impl_;

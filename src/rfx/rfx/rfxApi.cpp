@@ -165,7 +165,7 @@ namespace RR::Rfx
         inline void intend()
         {
             indentLevel_++;
-            updateIndentStiring();
+            updateIndentString();
         }
 
         inline void dedent()
@@ -176,10 +176,10 @@ namespace RR::Rfx
                 return;
 
             indentLevel_--;
-            updateIndentStiring();
+            updateIndentString();
         }
 
-        void updateIndentStiring()
+        void updateIndentString()
         {
             indentString_ = "";
 
@@ -197,6 +197,111 @@ namespace RR::Rfx
         std::shared_ptr<SourceFile> currentSourceFile_;
         bool onlyRelativePaths_;
     };
+
+
+   U8String writeTokens(const TokenSpan& tokens, const std::shared_ptr<CompileContext>& context)
+    {
+        SourceWriter writer(context->onlyRelativePaths);
+
+        for (const auto& token : tokens)
+            writer.Emit(token);
+
+        return writer.GetOutput();
+    }
+
+    class JSONWriter
+    {
+        U8String formatPlain(const JSONValue& value)
+        {
+            switch (value.type)
+            {
+                case JSONValue::Type::Bool: return value.boolValue ? "true" : "false"; break;
+                case JSONValue::Type::Float: return value.floatValue ? "true" : "false"; break;
+                case JSONValue::Type::Integer: return value.intValue ? "true" : "false"; break;
+                case JSONValue::Type::Null: return "null"; break;
+                case JSONValue::Type::String:
+                {
+                    U8String result;
+                    StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, result);
+                    return result;
+                }
+                default: ASSERT_MSG(false, "Unsupporte type");
+            }
+        }
+
+        void Write(const JSONValue& value)
+        {
+            U8String lineString = ""
+
+            std::stack<JSONValue> stack;
+
+            while(stack..valid)
+            {
+
+            }
+
+            switch(value.type)
+            {
+                case JSONValue::Type::Bool:
+                case JSONValue::Type::Float:
+                case JSONValue::Type::Integer:
+                case JSONValue::Type::Null:
+                case JSONValue::Type::String:
+                    formatPlain(value);
+
+                case JSONValue::Type::Array:
+                case JSONValue::Type::Object:
+                    stack.push(value);
+
+                default:
+                ASSERT_MSG(false, "Unown type");
+            }
+        }
+
+        U8String GetOutput()
+        {
+            return output_;
+        }
+
+    private:
+        inline void intend()
+        {
+            indentLevel_++;
+            updateIndentString();
+        }
+
+        inline void dedent()
+        {
+            ASSERT(indentLevel_ > 0);
+
+            if (indentLevel_ == 0)
+                return;
+
+            indentLevel_--;
+            updateIndentString();
+        }
+
+        void updateIndentString()
+        {
+            indentString_ = "";
+
+            for (uint32_t i = 0; i < indentLevel_; i++)
+                indentString_ += "    ";
+        }
+
+    private:
+        uint32_t indentLevel_ = 0;
+        U8String indentString_ = "";
+        U8String output_ = "";
+    }
+
+    U8String writeJSON(const JSONValue& root)
+    {
+        JSONWriter writer();
+
+        return writer.Write(root);
+    }
+
 
     class ComplileResult : public ICompileResult, RefObject
     {
@@ -344,15 +449,6 @@ namespace RR::Rfx
         Lexer lexer_;
     };
 
-    U8String writeTokens(const TokenSpan& tokens, const std::shared_ptr<CompileContext>& context)
-    {
-        SourceWriter writer(context->onlyRelativePaths);
-
-        for (const auto& token : tokens)
-            writer.Emit(token);
-
-        return writer.GetOutput();
-    }
 
     RfxResult Compiler::Compile(const CompileRequestDescription& compileRequest, ICompileResult** outCompilerResult)
     {
@@ -438,18 +534,16 @@ namespace RR::Rfx
                         break;
                     } else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
                     {
+                        Parser parser(tokens, context);
                         JSONValue root;
-                        Parser parser(tokens, root, context);
-                        RR_RETURN_ON_FAIL(parser.Parse());
+                        RR_RETURN_ON_FAIL(parser.Parse(root));
 
-                        const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(tokens, context)));
+                        const auto& blob = ComPtr<IBlob>(new Blob(writeJSON(root, context)));
                         const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
                         compilerResult->PushOutput(CompileOutputType::Source, blob);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
                     }
-
-
 
                     /*
                     DxcPreprocessor preprocessor;
