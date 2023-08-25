@@ -9,7 +9,7 @@ namespace RR::Rfx
     class StringBlob final : public IBlob, RefObject
     {
     public:
-        StringBlob();
+        StringBlob() = default;
         StringBlob(const std::string& data) : buffer_(data) { }
 
         uint32_t AddRef() override { return addReference(); }

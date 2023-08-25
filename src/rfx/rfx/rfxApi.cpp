@@ -57,10 +57,49 @@ namespace RR::Rfx
         }
     }
 
+    template <int IndentCount>
     class SourceWriter
     {
     public:
-        SourceWriter(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) { }
+        SourceWriter() : blob_(new StringBlob()) { }
+        virtual ~SourceWriter() { }
+        ComPtr<IBlob> GetBlob() { return blob_; }
+
+    protected:
+        inline void indent() { indentLevel_++; }
+        inline void dedent()
+        {
+            ASSERT(indentLevel_ > 0);
+
+            if (indentLevel_ == 0)
+                return;
+
+            indentLevel_--;
+        }
+
+        void writeIndent()
+        {
+            for (uint32_t i = 0; i < indentLevel_ * IndentCount; i++)
+                getOutputString().push_back(' ');
+        }
+
+        void push_back(U8Char ch) { getOutputString().push_back(ch); }
+        void append(const U8String& str) { getOutputString().append(str); }
+        void append(const char* str, size_t count) { getOutputString().append(str, count); }
+        template <class InputIterator>
+        void append (InputIterator first, InputIterator last) { getOutputString().append(first, last); }
+
+        std::string& getOutputString() { return blob_->GetString(); };
+
+    protected:
+        uint32_t indentLevel_ = 0;
+        ComPtr<StringBlob> blob_;
+    };
+
+    class TokenWriter final : public SourceWriter<4>
+    {
+    public:
+        TokenWriter(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) { }
 
         void Emit(const Token& token)
         {
@@ -69,8 +108,8 @@ namespace RR::Rfx
 
             if (Common::IsSet(token.flags, Token::Flags::AtStartOfLine))
             {
-                if (!output_.empty()) // Skip new line at the wery begining
-                    output_.push_back('\n');
+                if (!getOutputString().empty()) // Skip new line at the wery begining
+                    push_back('\n');
 
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
@@ -92,11 +131,13 @@ namespace RR::Rfx
                         StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, path, escapedPath);
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
-                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedPath);
+                        writeIndent();
+                        append(fmt::format("{}#line {} \"{}\"\n", line_, escapedPath));
                     }
                     else
                     {
-                        output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                        writeIndent();
+                        append(fmt::format("#line {}\n", line_));
                     }
                 }
                 else
@@ -115,23 +156,24 @@ namespace RR::Rfx
                         while (line_ < humaleLoc.line)
                         {
                             line_++;
-                            output_ += "\n";
+                            push_back('\n');
                         }
                     }
 
                     if (humaleLoc.line != line_)
                     {
                         line_ = humaleLoc.line;
-                        output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                        writeIndent();
+                        append(fmt::format("#line {}\n", line_));
                     }
                 }
 
                 line_++;
-                output_ += indentString_;
+                writeIndent();
             }
             else if (Common::IsSet(token.flags, Token::Flags::AfterWhitespace))
             {
-                output_ += " ";
+                push_back(' ');
             }
 
             switch (token.type)
@@ -146,109 +188,37 @@ namespace RR::Rfx
                     { return quotingChar + token + quotingChar; };
 
                     char quotingChar = token.type == Token::Type::StringLiteral ? '\"' : '\'';
-                    output_.append(appendQuoted(quotingChar, escapedToken));
+                    append(appendQuoted(quotingChar, escapedToken));
                     break;
                 }
                 default:
-                    output_.append(token.stringSlice.Begin(), token.stringSlice.End());
+                    append(token.stringSlice.Begin(), token.stringSlice.End());
                     break;
             }
 
             if (token.type == Token::Type::LBrace)
-                intend();
-        }
-
-        U8String GetOutput()
-        {
-            return output_;
-        }
-
-    private:
-        inline void intend()
-        {
-            indentLevel_++;
-            updateIndentString();
-        }
-
-        inline void dedent()
-        {
-            ASSERT(indentLevel_ > 0);
-
-            if (indentLevel_ == 0)
-                return;
-
-            indentLevel_--;
-            updateIndentString();
-        }
-
-        void updateIndentString()
-        {
-            indentString_ = "";
-
-            for (uint32_t i = 0; i < indentLevel_; i++)
-                indentString_ += "    ";
+                indent();
         }
 
     private:
         uint32_t line_ = 1;
-        uint32_t indentLevel_ = 0;
-        U8String indentString_ = "";
-        U8String output_;
         U8String currentUniqueIndentity_;
         std::shared_ptr<SourceView> currentSourceView_;
         std::shared_ptr<SourceFile> currentSourceFile_;
         bool onlyRelativePaths_;
     };
 
-    U8String writeTokens(const TokenSpan& tokens, const std::shared_ptr<CompileContext>& context)
+    ComPtr<IBlob> writeTokens(const TokenSpan& tokens, const std::shared_ptr<CompileContext>& context)
     {
-        SourceWriter writer(context->onlyRelativePaths);
+        TokenWriter writer(context->onlyRelativePaths);
 
         for (const auto& token : tokens)
             writer.Emit(token);
 
-        return writer.GetOutput();
+        return writer.GetBlob();
     }
 
-    template <int IndentCount>
-    class SourceWriter2
-    {
-    public:
-        SourceWriter2() : blob_(new StringBlob()) { }
-        virtual ~SourceWriter2() { }
-        ComPtr<IBlob> GetBlob() { return blob_; }
-
-    protected:
-        inline void indent() { indentLevel_++; }
-        inline void dedent()
-        {
-            ASSERT(indentLevel_ > 0);
-
-            if (indentLevel_ == 0)
-                return;
-
-            indentLevel_--;
-        }
-
-        void writeIndent()
-        {
-            for (uint32_t i = 0; i < indentLevel_ * IndentCount; i++)
-                getOutputString().push_back(' ');
-        }
-
-        void push_back(U8Char ch)
-        {
-            getOutputString().push_back(ch);
-        }
-
-        std::string& getOutputString() { return blob_->GetString(); };
-
-    protected:
-        uint32_t indentLevel_ = 0;
-        ComPtr<StringBlob> blob_;
-    };
-
-    class JSONWriter final : public SourceWriter2<2>
+    class JSONWriter final : public SourceWriter<2>
     {
     public:
         void Write(const JSONValue& value)
@@ -281,7 +251,7 @@ namespace RR::Rfx
                         if (!isArray)
                         {
                             StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, elem.first, getOutputString());
-                            getOutputString() += ": ";
+                            append(": ", 2);
                         }
                         Write(elem.second);
                         if (lastElemIter != iter)
@@ -298,23 +268,23 @@ namespace RR::Rfx
             }
         }
 
-        private:
-            void formatPlain(const JSONValue& value)
+    private:
+        void formatPlain(const JSONValue& value)
+        {
+            switch (value.type)
             {
-                switch (value.type)
+                case JSONValue::Type::Bool: append(value.boolValue ? "true" : "false"); break;
+                case JSONValue::Type::Float: append(fmt::format("{}", value.floatValue)); break;
+                case JSONValue::Type::Integer: append(fmt::format("{}", value.intValue)); break;
+                case JSONValue::Type::Null: append("null", 4); break;
+                case JSONValue::Type::String:
                 {
-                    case JSONValue::Type::Bool: getOutputString() += value.boolValue ? "true" : "false"; break;
-                    case JSONValue::Type::Float: getOutputString() += fmt::format("{}", value.floatValue); break;
-                    case JSONValue::Type::Integer: getOutputString() += fmt::format("{}", value.intValue); break;
-                    case JSONValue::Type::Null: getOutputString() += "null"; break;
-                    case JSONValue::Type::String:
-                    {
-                        StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, getOutputString());
-                        break;
-                    }
-                    default: ASSERT_MSG(false, "Unsupported type");
+                    StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, getOutputString());
+                    break;
                 }
+                default: ASSERT_MSG(false, "Unsupported type");
             }
+        }
     };
 
     ComPtr<IBlob> writeJSON(const JSONValue& root)
@@ -547,9 +517,8 @@ namespace RR::Rfx
 
                     if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
                     {
-                        const auto& blob = ComPtr<IBlob>(new BinaryBlob(writeTokens(tokens, context)));
                         const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
-                        compilerResult->PushOutput(CompileOutputType::Source, blob);
+                        compilerResult->PushOutput(CompileOutputType::Source, writeTokens(tokens, context));
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
                     }
