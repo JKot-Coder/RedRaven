@@ -57,6 +57,8 @@ namespace RR
             using Container = stl::vector_map<UnownedStringSlice, JSONValue, comporator>;
             using const_iterator = Container::const_iterator;
             using iterator = Container::iterator;
+            using reverse_iterator = Container::reverse_iterator;
+            using const_reverse_iterator = Container::const_reverse_iterator;
 
             enum class Type
             {
@@ -89,11 +91,19 @@ namespace RR
 
             iterator begin() noexcept { return IsObjectLike() ? container->begin() : iterator {}; }
             const_iterator begin() const noexcept { return cbegin(); }
-            const_iterator cbegin() const noexcept { return IsObjectLike() ? container->cbegin() : iterator {}; }
+            const_iterator cbegin() const noexcept { return IsObjectLike() ? container->cbegin() : const_iterator {}; }
 
             iterator end() noexcept { return IsObjectLike() ? container->end() : iterator {}; }
             const_iterator end() const noexcept { return cend(); }
-            const_iterator cend() const noexcept { return IsObjectLike() ? container->cend() : iterator {}; }
+            const_iterator cend() const noexcept { return IsObjectLike() ? container->cend() : const_iterator {}; }
+
+            reverse_iterator rbegin() noexcept { return IsObjectLike() ? container->rbegin() : reverse_iterator {}; }
+            const_reverse_iterator rbegin() const noexcept { return crbegin(); }
+            const_reverse_iterator crbegin() const noexcept { return IsObjectLike() ? container->crbegin() : const_reverse_iterator {}; }
+
+            reverse_iterator rend() noexcept { return IsObjectLike() ? container->rend() : reverse_iterator {}; }
+            const_reverse_iterator rend() const noexcept { return crend(); }
+            const_reverse_iterator crend() const noexcept { return IsObjectLike() ? container->crend() : const_reverse_iterator {}; }
 
             bool IsObjectLike() const { return type == Type::Object || type == Type::Array; }
             bool IsObject() const { return type == Type::Object; }

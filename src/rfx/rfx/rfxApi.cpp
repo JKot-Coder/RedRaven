@@ -210,7 +210,45 @@ namespace RR::Rfx
         return writer.GetOutput();
     }
 
-    class JSONWriter
+    template <int IndentCount>
+    class SourceWriter2
+    {
+    public:
+        SourceWriter2() : blob_(new StringBlob()) { }
+        virtual ~SourceWriter2() { }
+        ComPtr<IBlob> GetBlob() { return blob_; }
+
+    protected:
+        inline void indent() { indentLevel_++; }
+        inline void dedent()
+        {
+            ASSERT(indentLevel_ > 0);
+
+            if (indentLevel_ == 0)
+                return;
+
+            indentLevel_--;
+        }
+
+        void writeIndent()
+        {
+            for (uint32_t i = 0; i < indentLevel_ * IndentCount; i++)
+                getOutputString().push_back(' ');
+        }
+
+        void push_back(U8Char ch)
+        {
+            getOutputString().push_back(ch);
+        }
+
+        std::string& getOutputString() { return blob_->GetString(); };
+
+    protected:
+        uint32_t indentLevel_ = 0;
+        ComPtr<StringBlob> blob_;
+    };
+
+    class JSONWriter final : public SourceWriter2<2>
     {
     public:
         void Write(const JSONValue& value)
@@ -222,104 +260,68 @@ namespace RR::Rfx
                 case JSONValue::Type::Integer:
                 case JSONValue::Type::Null:
                 case JSONValue::Type::String:
-                    output_ += fmt::format("{}\n", formatPlain(value));
+                    formatPlain(value);
                     break;
-
                 case JSONValue::Type::Array:
-                {
-                    output_.append("[\n", 2);
-                    intend();
-                    for (const auto& elem : value)
-                    {
-                        output_ += indentString_;
-                        Write(elem.second);
-                    }
-                    dedent();
-                    output_.append("]\n", 2);
-                }
-                break;
                 case JSONValue::Type::Object:
                 {
-                    output_ += "{\n";
-                    intend();
-                    for (const auto& elem : value)
+                    const bool isArray = value.IsArray();
+                    const U8Char openBracket = isArray ? '[' : '{';
+                    const U8Char closeBracket = isArray ? ']' : '}';
+
+                    push_back(openBracket);
+                    push_back('\n');
+                    indent();
+
+                    const auto lastElemIter = std::prev(value.end());
+                    for (auto iter = value.begin(), end = value.end(); iter != end; ++iter)
                     {
-                        // TODO: Format;
-                        output_ += indentString_ + elem.first.AsString() + ": ";
+                        const auto& elem = *iter;
+                        writeIndent();
+                        if (!isArray)
+                        {
+                            StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, elem.first, getOutputString());
+                            getOutputString() += ": ";
+                        }
                         Write(elem.second);
+                        if (lastElemIter != iter)
+                            push_back(',');
+                        push_back('\n');
                     }
                     dedent();
-                    output_ += indentString_  + "}\n";
+                    writeIndent();
+                    push_back(closeBracket);
                 }
                 break;
-
                 default:
                     ASSERT_MSG(false, "Unknown type");
             }
         }
 
-        U8String GetOutput()
-        {
-            return output_;
-        }
-
-    private:
-        U8String formatPlain(const JSONValue& value)
-        {
-            switch (value.type)
+        private:
+            void formatPlain(const JSONValue& value)
             {
-                case JSONValue::Type::Bool: return value.boolValue ? "true" : "false"; break;
-                case JSONValue::Type::Float: return fmt::format("{}", value.floatValue); break;
-                case JSONValue::Type::Integer: return fmt::format("{}", value.intValue); break;
-                case JSONValue::Type::Null: return "null"; break;
-                case JSONValue::Type::String:
+                switch (value.type)
                 {
-                    U8String result;
-                    StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, result);
-                    return result;
+                    case JSONValue::Type::Bool: getOutputString() += value.boolValue ? "true" : "false"; break;
+                    case JSONValue::Type::Float: getOutputString() += fmt::format("{}", value.floatValue); break;
+                    case JSONValue::Type::Integer: getOutputString() += fmt::format("{}", value.intValue); break;
+                    case JSONValue::Type::Null: getOutputString() += "null"; break;
+                    case JSONValue::Type::String:
+                    {
+                        StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, getOutputString());
+                        break;
+                    }
+                    default: ASSERT_MSG(false, "Unsupported type");
                 }
-                default: ASSERT_MSG(false, "Unsupported type");
             }
-
-            return "";
-        }
-
-        inline void intend()
-        {
-            indentLevel_++;
-            updateIndentString();
-        }
-
-        inline void dedent()
-        {
-            ASSERT(indentLevel_ > 0);
-
-            if (indentLevel_ == 0)
-                return;
-
-            indentLevel_--;
-            updateIndentString();
-        }
-
-        void updateIndentString()
-        {
-            indentString_ = "";
-
-            for (uint32_t i = 0; i < indentLevel_; i++)
-                indentString_ += "  ";
-        }
-
-    private:
-        uint32_t indentLevel_ = 0;
-        U8String indentString_ = "";
-        U8String output_ = "";
     };
 
-    U8String writeJSON(const JSONValue& root)
+    ComPtr<IBlob> writeJSON(const JSONValue& root)
     {
         JSONWriter writer;
         writer.Write(root);
-        return writer.GetOutput();
+        return writer.GetBlob();
     }
 
     class ComplileResult : public ICompileResult, RefObject
@@ -460,7 +462,7 @@ namespace RR::Rfx
                     break;
             }
 
-            return new Blob(result);
+            return new BinaryBlob(result);
         }
 
     private:
@@ -508,7 +510,7 @@ namespace RR::Rfx
             std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
             if (RR_FAILED(result = sourceManager->LoadFile(pathInfo, sourceFile)))
             {
-                const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                 compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                 return result;
             }
@@ -523,7 +525,7 @@ namespace RR::Rfx
                     const auto sourceBlob = reader.ReadAllTokens();
 
                     // Todo optimize reduce copy
-                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                    const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                     compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                     compilerResult->PushOutput(CompileOutputType::Source, sourceBlob);
                 }
@@ -545,8 +547,8 @@ namespace RR::Rfx
 
                     if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
                     {
-                        const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(tokens, context)));
-                        const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                        const auto& blob = ComPtr<IBlob>(new BinaryBlob(writeTokens(tokens, context)));
+                        const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                         compilerResult->PushOutput(CompileOutputType::Source, blob);
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
@@ -557,9 +559,8 @@ namespace RR::Rfx
                         JSONValue root;
                         RR_RETURN_ON_FAIL(parser.Parse(root));
 
-                        const auto& blob = ComPtr<IBlob>(new Blob(writeJSON(root)));
-                        const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
-                        compilerResult->PushOutput(CompileOutputType::Source, blob);
+                        const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
+                        compilerResult->PushOutput(CompileOutputType::Source, writeJSON(root));
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
                     }
@@ -781,7 +782,7 @@ namespace RR::Rfx
         if (!message)
             return RfxResult::InvalidArgument;
 
-        auto blob = ComPtr<IBlob>(new Blob(GetErrorMessage(result)));
+        auto blob = ComPtr<IBlob>(new BinaryBlob(GetErrorMessage(result)));
         *message = blob.detach();
         return RfxResult::Ok;
     }

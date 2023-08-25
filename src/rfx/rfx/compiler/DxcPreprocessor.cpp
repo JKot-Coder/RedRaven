@@ -71,7 +71,7 @@ namespace RR
                 if (FAILED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlobUtf8.put()), nullptr)))
                     return RfxResult::InternalFail;
 
-                output = ComPtr<IBlob>(new Blob(dxcBlobUtf8->GetStringPointer()));
+                output = ComPtr<IBlob>(new BinaryBlob(dxcBlobUtf8->GetStringPointer()));
                 return RfxResult::Ok;
             };
 
