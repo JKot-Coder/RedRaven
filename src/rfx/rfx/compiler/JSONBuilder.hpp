@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rfx/core/UnownedStringSlice.hpp"
-#include <unordered_map>
+#include "stl/vector_map.hpp"
 
 namespace RR
 {
@@ -16,12 +16,48 @@ namespace RR
 
         struct CompileContext;
         struct SourceLocation;
-        class JSONContainer;
         class DiagnosticSink;
         struct Token;
 
         struct JSONValue
         {
+        private:
+            struct comporator
+            {
+                int compareStr(const UnownedStringSlice& a, const UnownedStringSlice& b) const
+                {
+                    for (auto aIt = a.Begin(), bIt = b.Begin();
+                         aIt != a.End() && bIt != b.End();
+                         ++aIt, ++bIt)
+                    {
+                        if (*aIt != *bIt)
+                            return (*aIt < *bIt) ? -1 : 1;
+                    }
+                    return 0;
+                }
+
+                int compare(const UnownedStringSlice& a, const UnownedStringSlice& b) const
+                {
+                    const auto aLen = a.GetLength();
+                    const auto bLen = b.GetLength();
+                    const int cmp = compareStr(a, b);
+
+                    return (cmp != 0 ? cmp : (aLen < bLen ? -1 : (aLen > bLen ? 1 : 0)));
+                }
+
+                bool operator()(const UnownedStringSlice& a, const UnownedStringSlice& b) const
+                {
+                    const bool isArrayKeys = (a.Begin() == a.End() && b.Begin() == b.End());
+                    return isArrayKeys ? a.Begin() < b.Begin() : compare(a, b) < 0;
+                }
+            };
+
+        public:
+            // Potentially there is the best container for both array and object values. See tsl::ordered_map
+            using Container = stl::vector_map<UnownedStringSlice, JSONValue, comporator>;
+            using const_iterator = Container::const_iterator;
+            using iterator = Container::iterator;
+
             enum class Type
             {
                 Invalid,
@@ -33,17 +69,35 @@ namespace RR
                 String,
 
                 Array,
-                Object
+                Object,
+
+                CountOf
             };
+
+        public:
             JSONValue() = default;
             JSONValue(const JSONValue& other) { copy(other); }
             JSONValue(JSONValue&& other) noexcept { swap(other); }
-            ~JSONValue();
+            ~JSONValue()
+            {
+                if (IsObjectLike())
+                    container = nullptr;
+            }
 
             JSONValue& operator=(const JSONValue& other) { return copy(other); }
             JSONValue& operator=(JSONValue&& other) noexcept { return swap(other); }
 
+            iterator begin() noexcept { return IsObjectLike() ? container->begin() : iterator {}; }
+            const_iterator begin() const noexcept { return cbegin(); }
+            const_iterator cbegin() const noexcept { return IsObjectLike() ? container->cbegin() : iterator {}; }
+
+            iterator end() noexcept { return IsObjectLike() ? container->end() : iterator {}; }
+            const_iterator end() const noexcept { return cend(); }
+            const_iterator cend() const noexcept { return IsObjectLike() ? container->cend() : iterator {}; }
+
             bool IsObjectLike() const { return type == Type::Object || type == Type::Array; }
+            bool IsObject() const { return type == Type::Object; }
+            bool IsArray() const { return type == Type::Array; }
 
             static JSONValue MakeBool(bool inValue)
             {
@@ -84,8 +138,21 @@ namespace RR
                 return value;
             }
 
-            static JSONValue MakeEmptyArray();
-            static JSONValue MakeEmptyObject();
+            static JSONValue JSONValue::MakeEmptyArray()
+            {
+                JSONValue value;
+                value.type = Type::Array;
+                value.container = std::make_shared<Container>();
+                return value;
+            }
+
+            static JSONValue JSONValue::MakeEmptyObject()
+            {
+                JSONValue value;
+                value.type = Type::Object;
+                value.container = std::make_shared<Container>();
+                return value;
+            }
 
             bool AsBool() const
             {
@@ -126,6 +193,58 @@ namespace RR
                 }
             }
 
+        public:
+            const JSONValue& Find(const UnownedStringSlice& key) const
+            {
+                if (IsObject())
+                {
+                    const auto iterator = container->find(key);
+                    if (iterator != container->end())
+                        return iterator->second;
+                }
+
+                return nullValue();
+            }
+
+            const bool Contains(const UnownedStringSlice& key) const
+            {
+                if (IsObject() && (container->find(key) != container->end()))
+                    return true;
+
+                return false;
+            }
+
+        private:
+            friend class JSONBuilder;
+
+            const JSONValue& append(const JSONValue& value) { return append(JSONValue(value)); }
+            const JSONValue& append(JSONValue&& value)
+            {
+                ASSERT_MSG(IsArray(), "Append requires ArrayValue");
+
+                if (!IsArray())
+                    return nullValue();
+
+                // Encode index to pointer
+                U8Char* ptr = (U8Char*)(container->size());
+                return container->emplace_back_unsorted(UnownedStringSlice(ptr, ptr), std::move(value)).second;
+            }
+
+            JSONValue& operator[](const UnownedStringSlice& key)
+            {
+                if (!IsObject())
+                    return nullValue();
+
+                return container->emplace(key, JSONValue {}).first->second;
+            }
+
+            JSONValue& nullValue() const
+            {
+                static JSONValue null = {};
+                return null;
+            }
+
+        public:
             Type type = Type::Invalid;
 
             union
@@ -134,11 +253,11 @@ namespace RR
                 int64_t intValue;
                 UnownedStringSlice stringValue;
                 bool boolValue;
-                std::shared_ptr<JSONContainer> container = {};
+                std::shared_ptr<Container> container {};
                 std::array<uint8_t, 16> data;
             };
             static_assert(sizeof(data) >= sizeof(UnownedStringSlice) &&
-                          sizeof(data) >= sizeof(std::shared_ptr<JSONContainer>));
+                          sizeof(data) >= sizeof(std::shared_ptr<void>));
 
         private:
             JSONValue& copy(const JSONValue& other)
@@ -163,40 +282,6 @@ namespace RR
             }
         };
 
-        class JSONContainer
-        {
-        public:
-            enum class Type
-            {
-                Invalid,
-                Object,
-                Array,
-            };
-
-            JSONContainer(Type type) : type_(type) { }
-            Type GetType() const { return type_; }
-            void AddKeyValue(const UnownedStringSlice& stringSlice, const JSONValue& value);
-            void AddValue(const JSONValue& value);
-            JSONValue Find(const UnownedStringSlice& name) const;
-            bool IsObjectValueExist(const UnownedStringSlice& stringSlice);
-
-            void InheriteFrom(const std::vector<JSONContainer*>& parents);
-            static std::shared_ptr<JSONContainer> MakeObject()
-            {
-                return std::make_shared<JSONContainer>(Type::Object);
-            }
-
-            static std::shared_ptr<JSONContainer> MakeArray()
-            {
-                return std::make_shared<JSONContainer>(Type::Array);
-            }
-
-        private:
-            Type type_ = Type::Invalid;
-            std::vector<JSONValue> arrayValues_;
-            std::unordered_map<UnownedStringSlice, JSONValue> objectValues_;
-        };
-
         class JSONBuilder
         {
         public:
@@ -216,12 +301,13 @@ namespace RR
 
         private:
             DiagnosticSink& getSink() const;
-            JSONContainer& currentContainer() { return *stack_.back(); }
+            JSONValue& currentValue() { return stack_.back(); }
 
             int64_t tokenToInt(const Token& token, int radix);
             double tokenToFloat(const Token& token);
 
-            RResult add(const Token& token, const JSONValue& value);
+            RResult add(const Token& token, const JSONValue& value) { return add(token, JSONValue(value)); }
+            RResult add(const Token& token, JSONValue&& value);
 
         private:
             enum class Expect : uint8_t
@@ -234,8 +320,8 @@ namespace RR
 
             Expect expect_;
             UnownedStringSlice key_;
-            std::vector<JSONContainer*> parents_;
-            std::vector<JSONContainer*> stack_;
+            std::vector<JSONValue::Container*> parents_;
+            std::vector<JSONValue> stack_;
             JSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };

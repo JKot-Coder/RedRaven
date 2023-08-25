@@ -41,32 +41,11 @@ namespace RR::Rfx
         }
     }
 
-    JSONValue::~JSONValue()
-    {
-        if(IsObjectLike())
-            container = nullptr;
-    }
-
-    JSONValue JSONValue::MakeEmptyArray()
-    {
-        JSONValue value;
-        value.type = Type::Array;
-        value.container = JSONContainer::MakeArray();
-        return value;
-    }
-
-    JSONValue JSONValue::MakeEmptyObject()
-    {
-        JSONValue value;
-        value.type = Type::Object;
-        value.container = JSONContainer::MakeObject();
-        return value;
-    }
-
+    /*
     void JSONContainer::AddValue(const JSONValue& value)
     {
         ASSERT(type_ == Type::Array);
-        arrayValues_.push_back(value);
+        values_.emplace_back (value);
     }
 
     void JSONContainer::AddKeyValue(const UnownedStringSlice& key, const JSONValue& value)
@@ -100,59 +79,69 @@ namespace RR::Rfx
             ASSERT(parent->type_ == Type::Object);
             objectValues_.insert(parent->objectValues_.begin(), parent->objectValues_.end());
         }
-    }
+    }*/
 
     JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
                                                                                context_(context)
     {
         root_ = JSONValue::MakeEmptyObject();
-        stack_.emplace_back(root_.container.get());
+        stack_.emplace_back(root_);
     }
 
     DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
 
     RResult JSONBuilder::StartObject(const Token& token)
     {
-        const auto value = JSONValue::MakeEmptyObject();
+        auto value = JSONValue::MakeEmptyObject();
         RR_RETURN_ON_FAIL(add(token, value));
-        stack_.emplace_back(value.container.get());
+        stack_.emplace_back(value);
         expect_ = Expect::ObjectKey;
         return RResult::Ok;
     }
 
     void JSONBuilder::EndObject()
     {
-        ASSERT(currentContainer().GetType() == JSONContainer::Type::Object);
+        ASSERT(currentValue().type == JSONValue::Type::Object);
         ASSERT(expect_ == Expect::ObjectKey);
-        currentContainer().InheriteFrom(parents_);
+
+        size_t size = currentValue().container->size();
+
+        for (const auto parent : parents_)
+            size += parent->size();
+
+        currentValue().container->reserve(size);
+
+        for (const auto parent : parents_)
+            currentValue().container->insert(parent->begin(), parent->end());
+
         stack_.pop_back();
         key_.Reset();
         parents_.clear();
-        expect_ = currentContainer().GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
     RResult JSONBuilder::StartArray(const Token& token)
     {
-        const auto value = JSONValue::MakeEmptyArray();
+        auto value = JSONValue::MakeEmptyArray();
         RR_RETURN_ON_FAIL(add(token, value));
-        stack_.emplace_back(value.container.get());
+        stack_.emplace_back(value);
         expect_ = Expect::ArrayValue;
         return RResult::Ok;
     }
 
     void JSONBuilder::EndArray()
     {
-        ASSERT(currentContainer().GetType() == JSONContainer::Type::Array);
+        ASSERT(currentValue().type == JSONValue::Type::Array);
         ASSERT(expect_ == Expect::ArrayValue);
         stack_.pop_back();
         key_.Reset();
 
-        expect_ = currentContainer().GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
     void JSONBuilder::BeginInrehitance()
     {
-        ASSERT(currentContainer().GetType() == JSONContainer::Type::Object);
+        ASSERT(currentValue().type == JSONValue::Type::Object);
         ASSERT(expect_ == Expect::ObjectValue);
         ASSERT(parents_.size() == 0);
         expect_ = Expect::Parent;
@@ -164,7 +153,7 @@ namespace RR::Rfx
         ASSERT(parent.type == Token::Type::StringLiteral || parent.type == Token::Type::Identifier);
         auto parentName = unquotingToken(parent);
 
-        auto value = root_.container->Find(parentName);
+        auto value = root_.Find(parentName);
         switch (value.type)
         {
             case JSONValue::Type::Object:
@@ -193,7 +182,7 @@ namespace RR::Rfx
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
         auto keyName = unquotingToken(key);
 
-        if (currentContainer().IsObjectValueExist(keyName))
+        if (currentValue().Contains(keyName))
         {
             getSink().Diagnose(key, Diagnostics::duplicateKey, keyName);
             return RResult::AlreadyExist;
@@ -235,11 +224,11 @@ namespace RR::Rfx
         }
     }
 
-    RResult JSONBuilder::add(const Token& token, const JSONValue& value)
+    RResult JSONBuilder::add(const Token& token, JSONValue&& value)
     {
         switch (expect_)
         {
-            case Expect::ArrayValue: currentContainer().AddValue(value); return RResult::Ok;
+            case Expect::ArrayValue: currentValue().append(std::move(value)); return RResult::Ok;
             case Expect::Parent:
                 if (value.type != JSONValue::Type::Object)
                 {
@@ -248,7 +237,7 @@ namespace RR::Rfx
                 }
                 [[fallthrough]];
             case Expect::ObjectValue:
-                currentContainer().AddKeyValue(key_, value);
+                currentValue()[key_] = value;
                 key_.Reset();
                 expect_ = Expect::ObjectKey;
                 return RResult::Ok;

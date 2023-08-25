@@ -20,12 +20,24 @@
 #define INLINE
 #endif // ENABLE_INLINE
 
-#define ASAN_DEFAULT_OPTIONS             \
-    __attribute__((used))                \
-    __attribute__((no_sanitize_address)) \
-                                         \
-    extern "C" const char*               \
-    __asan_default_options()             \
-    {                                    \
-        return "detect_leaks=1";         \
+#define UNUSED(x) ((void)(x))
+
+#ifdef _MSC_VER
+#define USED
+#define NO_SANITIZE_ADDRESS __declspec(no_sanitize_address)
+#else
+#define USED __attribute__((used))
+#define NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#endif
+
+// clang-format off
+#define ASAN_DEFAULT_OPTIONS     \
+    USED                         \
+    NO_SANITIZE_ADDRESS          \
+                                 \
+    extern "C" const char*       \
+    __asan_default_options()     \
+    {                            \
+        return "detect_leaks=1"; \
     }
+// clang-format on

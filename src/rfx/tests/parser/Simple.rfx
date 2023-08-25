@@ -1,7 +1,6 @@
 // :PARSER
 
-BasicTypes:
-{
+BasicTypes: {
   String: "test",
   Number: 42,
   Float: 0.25,
@@ -13,4 +12,3 @@ BasicTypes:
     String: success
   }
 }
-
