@@ -133,9 +133,8 @@ namespace RR::Common
             std::exchange(ptr_, {})->Release();
         }
 
-        template <typename U>
-        friend struct com_ptr;
-
+        template <typename>
+        friend class ComPtr;
         Type* ptr_ {};
     };
 
