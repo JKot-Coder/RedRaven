@@ -4,9 +4,13 @@ BasicTypes: {
   String: "test",
   Number: 42,
   Float: 0.25,
+  "Negative float": -0.35,
+  "Negavite int": -1,
+  "Positive float": +0.45,
+  "Positive int": +42,
   Null: null,
   Boolean: true,
-  Array: [test, false, 55, 0.27, null, true],
+  "Array": [test, "string", false, 55, 0.27, null, true],
   Object: {
     Boolean: false,
     String: success

@@ -15,6 +15,7 @@
 #include "rfx/core/SourceLocation.hpp"
 #include "rfx/core/StringEscapeUtil.hpp"
 
+#include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
 
 #if !defined(NDEBUG) && OS_WINDOWS
@@ -132,7 +133,7 @@ namespace RR::Rfx
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
                         writeIndent();
-                        append(fmt::format("{}#line {} \"{}\"\n", line_, escapedPath));
+                        append(fmt::format("#line {} \"{}\"\n", line_, escapedPath));
                     }
                     else
                     {
@@ -464,6 +465,8 @@ namespace RR::Rfx
         try
         {
             ComPtr<ComplileResult> compilerResult(new ComplileResult());
+            // Always put resutls
+            ON_SCOPE_EXIT({ *outCompilerResult = compilerResult.detach(); });
             PathInfo pathInfo;
 
             const auto& fileSystem = std::make_shared<OSFileSystem>();
@@ -526,11 +529,15 @@ namespace RR::Rfx
                     {
                         Parser parser(tokens, context);
                         JSONValue root;
+
+                        // Write diagnostic even on parsing error.
+                        ON_SCOPE_EXIT({
+                            const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
+                            compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                        });
                         RR_RETURN_ON_FAIL(parser.Parse(root));
 
-                        const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                         compilerResult->PushOutput(CompileOutputType::Source, writeJSON(root));
-                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
                     }
 
@@ -723,7 +730,6 @@ namespace RR::Rfx
                 // arguments.push_back(DXC_ARG_PACK_MATRIX_ROW_MAJOR); //-Zp
 ]
             }*/
-            *outCompilerResult = compilerResult.detach();
         }
         catch (const utf8::exception& e)
         {

@@ -322,10 +322,6 @@ namespace RR
                     tokenflags_ = Token::Flags::AtStartOfLine | Token::Flags::AfterWhitespace;
                     break;
                 }
-                case Token::Type::StringLiteral:
-                case Token::Type::CharLiteral:
-                    tokenSlice = trimQuoutes(tokenSlice, tokenType);
-                    break;
                 case Token::Type::WhiteSpace:
                 case Token::Type::BlockComment:
                 case Token::Type::LineComment:
@@ -337,6 +333,11 @@ namespace RR
                     tokenflags_ |= Token::Flags::AfterWhitespace;
                     break;
                 }
+                case Token::Type::StringLiteral:
+                case Token::Type::CharLiteral:
+                    tokenSlice = trimQuoutes(tokenSlice, tokenType);
+                    tokenflags_ = Token::Flags::None; // Same as default
+                break;
                 default:
                 {
                     // If we read some token other then the above cases, then we are

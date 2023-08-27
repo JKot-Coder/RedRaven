@@ -1,0 +1,26 @@
+SourceOutput:[
+    {
+      "BasicTypes": {
+        "Array": [
+          "test",
+          "string",
+          false,
+          55,
+          0.27,
+          null,
+          true
+        ],
+        "Boolean": true,
+        "Float": 0.25,
+        "Null": null,
+        "Number": 42,
+        "Object": {
+          "Boolean": false,
+          "String": "success"
+        },
+        "String": "test"
+      }
+    }
+]
+Diagnostic:[
+]

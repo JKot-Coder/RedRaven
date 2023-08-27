@@ -115,11 +115,15 @@ namespace RR::Rfx
             return advanceIf(expected, token);
         }
 
+        RResult tokenToInt(const Token& token, int radix, int64_t& outValue);
+        RResult tokenToFloat(const Token& token, double& outValue);
+
         RResult parseArray();
         RResult parseDeclaration();
         RResult parseObject(bool renameMe = false);
         RResult parseValue();
-        RResult parseStringValue();
+        RResult parseNumber(bool positive = true);
+        RResult parseString();
 
         RResult expect(std::initializer_list<Token::Type> expected, Token& outToken);
         RResult expect(Token::Type expected, Token& outToken) { return expect({ expected }, outToken); };
@@ -135,6 +139,52 @@ namespace RR::Rfx
         TokenSpan tokenSpan_;
         TokenSpan::const_iterator currentToken_;
     };
+
+    RResult ParserImpl::tokenToInt(const Token& token, int radix, int64_t& outValue)
+    {
+        ASSERT(token.type == Token::Type::IntegerLiteral);
+        errno = 0;
+
+        auto end = const_cast<U8Char*>(token.stringSlice.End());
+        outValue = std::strtol(token.stringSlice.Begin(), &end, radix);
+
+        if (errno == ERANGE)
+        {
+            getSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int64_t");
+            return RResult::Fail;
+        }
+
+        if (end != token.stringSlice.End())
+        {
+            getSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
+            return RResult::Fail;
+        }
+
+        return RResult::Ok;
+    }
+
+    RResult ParserImpl::tokenToFloat(const Token& token, double& outValue)
+    {
+        ASSERT(token.type == Token::Type::FloatingPointLiteral);
+        errno = 0;
+
+        auto end = const_cast<U8Char*>(token.stringSlice.End());
+        outValue = std::strtod(token.stringSlice.Begin(), &end);
+
+        if (errno == ERANGE)
+        {
+            getSink().Diagnose(token, Diagnostics::floatLiteralOutOfRange, token.GetContentString(), "double");
+            return RResult::Fail;
+        }
+
+        if (end != token.stringSlice.End())
+        {
+            getSink().Diagnose(token, Diagnostics::floatLiteralUnexpected, token.GetContentString());
+            return RResult::Fail;
+        }
+
+        return RResult::Ok;
+    }
 
     bool ParserImpl::advanceIf(std::initializer_list<Token::Type> expected, Token& outToken)
     {
@@ -153,7 +203,7 @@ namespace RR::Rfx
     RResult ParserImpl::parseArray()
     {
         RR_RETURN_ON_FAIL(expect(Token::Type::LBracket));
-        RR_RETURN_ON_FAIL(builder_.StartArray(peekToken()));
+        RR_RETURN_ON_FAIL(builder_.StartArray());
 
         while (true)
         {
@@ -188,7 +238,7 @@ namespace RR::Rfx
 
         if (peekTokenType() == Token::Type::OpLess)
         {
-            builder_.BeginInrehitance();
+            builder_.StartInrehitance();
             advance();
 
             while (true)
@@ -205,6 +255,8 @@ namespace RR::Rfx
 
                 break;
             }
+
+            builder_.EndInrehitance();
         }
 
         return RResult::Ok;
@@ -216,7 +268,7 @@ namespace RR::Rfx
         if (!renameMe)
         {
             RR_RETURN_ON_FAIL(expect(Token::Type::LBrace));
-            RR_RETURN_ON_FAIL(builder_.StartObject(peekToken()));
+            RR_RETURN_ON_FAIL(builder_.StartObject());
         }
 
         while (true)
@@ -257,6 +309,44 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
+    RResult ParserImpl::parseNumber(bool positive)
+    {
+        switch (peekTokenType())
+        {
+            case Token::Type::IntegerLiteral:
+            {
+                int64_t value;
+                RR_RETURN_ON_FAIL(tokenToInt(advance(), 0, value));
+                return builder_.AddValue(JSONValue::MakeInt(value * (positive ? 1 : -1)));
+            }
+            case Token::Type::FloatingPointLiteral:
+            {
+                double value;
+                RR_RETURN_ON_FAIL(tokenToFloat(advance(), value));
+                return builder_.AddValue(JSONValue::MakeFloat(value * (positive ? 1.0 : -1.0)));
+            }
+            default:
+            {
+                getSink().Diagnose(peekToken(), Diagnostics::unexpectedToken, peekTokenType());
+                return RResult::Fail;
+            }
+        }
+    }
+
+    RResult ParserImpl::parseString()
+    {
+        const UnownedStringSlice stringSlice = advance().stringSlice;
+
+        if (stringSlice == "null")
+            return builder_.AddValue(JSONValue::MakeNull());
+        else if (stringSlice == "true")
+            return builder_.AddValue(JSONValue::MakeBool(true));
+        else if (stringSlice == "false")
+            return builder_.AddValue(JSONValue::MakeBool(false));
+
+         return builder_.AddValue(JSONValue::MakeString(stringSlice));
+    }
+
     RResult ParserImpl::parseValue()
     {
         switch (peekTokenType())
@@ -264,12 +354,13 @@ namespace RR::Rfx
             case Token::Type::StringLiteral:
             case Token::Type::CharLiteral:
             case Token::Type::Identifier:
+                return parseString();
+            case Token::Type::OpAdd:
+            case Token::Type::OpSub:
+                return parseNumber(advance().type == Token::Type::OpAdd);
             case Token::Type::IntegerLiteral:
             case Token::Type::FloatingPointLiteral:
-            {
-                const auto& token = advance();
-                return builder_.AddValue(token);
-            }
+                return parseNumber();
             case Token::Type::LBracket: return parseArray();
             case Token::Type::LBrace: return parseObject();
             default:
@@ -291,7 +382,7 @@ namespace RR::Rfx
                 return RResult::Ok;
             }
 
-        const U8String& tokensString = fmt::format("{}\n", fmt::join(expected, " or "));
+        const U8String& tokensString = fmt::format("{}", fmt::join(expected, " or "));
         getSink().Diagnose(peekToken(), Diagnostics::unexpectedTokenExpectedTokenType, peekTokenType(), tokensString);
         return RResult::Fail;
     }

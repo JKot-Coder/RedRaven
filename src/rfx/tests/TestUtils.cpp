@@ -311,10 +311,12 @@ namespace RR::Rfx::Tests
                         Common::ComPtr<Rfx::ICompileResult> compileResult;
                         Common::ComPtr<Rfx::ICompiler> compiler;
                         REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
-                        REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
+                        const auto result = compiler->Compile(request, compileResult.put());
 
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
                         RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
+
+                        REQUIRE(RR_SUCCEEDED(result));
                         break;
                     }
 

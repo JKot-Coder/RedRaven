@@ -295,15 +295,16 @@ namespace RR
         class JSONBuilder
         {
         public:
-            RResult StartObject(const Token& token);
+            RResult StartObject();
             void EndObject();
-            RResult StartArray(const Token& token);
+            RResult StartArray();
             void EndArray();
-            void BeginInrehitance();
+            void StartInrehitance();
+            void EndInrehitance();
             RResult AddParent(const Token& parent);
 
             RResult AddKey(const Token& key);
-            RResult AddValue(const Token& token);
+            RResult AddValue(JSONValue&& value);
             /// Get the root value. Will be set after valid construction
             const JSONValue& GetRootValue() const { return root_; }
 
@@ -313,11 +314,8 @@ namespace RR
             DiagnosticSink& getSink() const;
             JSONValue& currentValue() { return stack_.back(); }
 
-            int64_t tokenToInt(const Token& token, int radix);
-            double tokenToFloat(const Token& token);
-
-            RResult add(const Token& token, const JSONValue& value) { return add(token, JSONValue(value)); }
-            RResult add(const Token& token, JSONValue&& value);
+            RResult add(const JSONValue& value) { return add(JSONValue(value)); }
+            RResult add(JSONValue&& value);
 
         private:
             enum class Expect : uint8_t
