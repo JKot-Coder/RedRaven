@@ -82,6 +82,7 @@ source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
 set(RFX_TESTS_PARSER_SRC
     "parser/Parser.cpp"
+    "parser/Inheritance.rfx"
     "parser/Simple.rfx")
 source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
 

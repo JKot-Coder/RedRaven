@@ -1,0 +1,26 @@
+SourceOutput:[
+    {
+      "Animal": {
+        "Type": "None",
+        "Weight": -1
+      },
+      "Cow": {
+        "Name": "Cow",
+        "Type": "Pray",
+        "Valid": true,
+        "Weight": 750
+      },
+      "Fox": {
+        "Name": "Fox",
+        "Type": "Predator",
+        "Valid": true,
+        "Weight": 7.5
+      },
+      "Object": {
+        "Name": "Unknown",
+        "Valid": true
+      }
+    }
+]
+Diagnostic:[
+]

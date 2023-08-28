@@ -12,12 +12,16 @@ SourceOutput:[
         ],
         "Boolean": true,
         "Float": 0.25,
+        "Negative float": -0.35,
+        "Negavite int": -1,
         "Null": null,
         "Number": 42,
         "Object": {
           "Boolean": false,
           "String": "success"
         },
+        "Positive float": 0.45,
+        "Positive int": 42,
         "String": "test"
       }
     }

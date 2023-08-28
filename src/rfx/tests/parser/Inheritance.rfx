@@ -1,0 +1,23 @@
+// :PARSER
+
+Object: {
+    Name: "Unknown",
+    Valid: true,
+},
+
+Animal: {
+    Weight: -1.0,
+    Type: None
+},
+
+Fox < Object, Animal: {
+    Name: "Fox",
+    Weight: 7.5,
+    Type: Predator,
+},
+
+Cow < Object, Animal: {
+    Name: "Cow",
+    Weight: 750,
+    Type: Pray,
+}
