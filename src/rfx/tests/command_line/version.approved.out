@@ -1,4 +1,3 @@
 exit_status:0
-output: [
+output:
 version: 1.0.0
-]

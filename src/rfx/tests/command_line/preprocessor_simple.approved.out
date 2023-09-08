@@ -1,25 +1,11 @@
 exit_status:0
-output: [
-Preprocessor output:
-#line 1 "D:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_simple.rfx"
-
-
-
-
-
-
-
-int foo() { return 0; }
-
-
-
-
-
-
-
-int bar() { return foo(); }
+output:
+Source output:
+    #line 8 "E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_simple.rfx"
+    int foo() { return 0; }
+    #line 16
+    int bar() { return foo(); }
 Diagnostic output:
-D:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_simple.rfx:3:2: warning: Hello world [-W#warnings]
-#warning Hello world
- ^
-]
+    E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_simple.rfx(3): warning 15901: #warning: Hello world
+    #warning Hello world
+     ^~~~~~~
