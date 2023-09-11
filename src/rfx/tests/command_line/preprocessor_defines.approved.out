@@ -1,18 +1,17 @@
 exit_status:0
-output: [
-Preprocessor output:
-#line 1 "D:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_defines.rfx"
-
-
-
-int foo() { return 0; }
-
-
-
-
-
-
-
-int bar() { return foo(); }
+output:
+Source output:
+    #line 4 "E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_defines.rfx"
+    int foo() { return 0; }
+    #line 12
+    int bar() { return foo(); }
 Diagnostic output:
-]
+    (1): warning 15205: undefined identifier 'BAR' in preprocessor expression will evaluate to zero
+    BAR
+    ^~~
+    E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_defines.rfx(9): note: expanded from macro 'FOO'
+    #if FOO!=BAR
+        ^~~
+    E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_defines.rfx(9): warning 15205: undefined identifier 'BAR' in preprocessor expression will evaluate to zero
+    #if FOO!=BAR
+             ^~~
