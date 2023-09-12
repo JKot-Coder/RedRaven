@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% -D TEST -D FOO=BAR %INPUT%
+// :RUN_RFXC -P %STD_OUTPUT% -D TEST -D FOO=BAR %INPUT% --Rl
 
 #ifdef TEST
 int foo() { return 0; }

@@ -1,4 +1,4 @@
-// :RUN_RFXC -P %STD_OUTPUT% %INPUT%
+// :RUN_RFXC -P %STD_OUTPUT% %INPUT% --Rl
 
 #warning Hello world
 

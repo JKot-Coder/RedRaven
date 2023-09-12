@@ -1,11 +1,11 @@
 exit_status:0
 output:
 Source output:
-    #line 8 "E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_simple.rfx"
+    #line 8 "../src/rfx/tests/command_line/preprocessor_simple.rfx"
     int foo() { return 0; }
     #line 16
     int bar() { return foo(); }
 Diagnostic output:
-    E:/Work/my/OpenDemo/src/rfx/tests/command_line/preprocessor_simple.rfx(3): warning 15901: #warning: Hello world
+    ../src/rfx/tests/command_line/preprocessor_simple.rfx(3): warning 15901: #warning: Hello world
     #warning Hello world
      ^~~~~~~
