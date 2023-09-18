@@ -247,12 +247,8 @@ namespace RR
 
                 switch (style)
                 {
-                    case StringEscapeUtil::Style::Cpp:
-                        return &cppHandler;
-
-                    case StringEscapeUtil::Style::JSON:
-                        return &jsonHandler;
-
+                    case StringEscapeUtil::Style::Cpp: return &cppHandler;
+                    case StringEscapeUtil::Style::JSON: return &jsonHandler;
                     default:
                         ASSERT_MSG(false, "Unexpected string escape style");
                         return nullptr;

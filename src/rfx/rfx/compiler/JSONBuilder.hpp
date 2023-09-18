@@ -2,6 +2,7 @@
 
 #include "rfx/core/UnownedStringSlice.hpp"
 #include "stl/vector_map.hpp"
+#include <stack>
 
 namespace RR
 {
@@ -172,7 +173,7 @@ namespace RR
                     case Type::Null: return false;
                     case Type::Integer: return intValue != 0;
                     case Type::Float: return floatValue != 0;
-                    case Type::Invalid: ASSERT_MSG(false, "Invalid value");
+                    case Type::Invalid: ASSERT_MSG(false, "Invalid value"); return false;
                     default: return false;
                 }
             };
@@ -185,7 +186,7 @@ namespace RR
                     case Type::Null: return 0;
                     case Type::Integer: return intValue;
                     case Type::Float: return int64_t(floatValue);
-                    case Type::Invalid: ASSERT_MSG(false, "Invalid value");
+                    case Type::Invalid: ASSERT_MSG(false, "Invalid value"); return 0;
                     default: return 0;
                 }
             }
@@ -198,7 +199,7 @@ namespace RR
                     case Type::Null: return 0.0;
                     case Type::Integer: return double(intValue);
                     case Type::Float: return floatValue;
-                    case Type::Invalid: ASSERT_MSG(false, "Invalid value");
+                    case Type::Invalid: ASSERT_MSG(false, "Invalid value"); return 0.0;
                     default: return 0.0;
                 }
             }
@@ -312,7 +313,7 @@ namespace RR
 
         private:
             DiagnosticSink& getSink() const;
-            JSONValue& currentValue() { return stack_.back(); }
+            JSONValue& currentValue() { return stack_.top(); }
 
             RResult add(const JSONValue& value) { return add(JSONValue(value)); }
             RResult add(JSONValue&& value);
@@ -328,8 +329,8 @@ namespace RR
 
             Expect expect_;
             UnownedStringSlice key_;
-            std::vector<JSONValue::Container*> parents_;
-            std::vector<JSONValue> stack_;
+            std::vector<std::pair<Token, JSONValue::Container*>> parents_;
+            std::stack<JSONValue> stack_;
             JSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };

@@ -34,7 +34,7 @@ namespace RR::Rfx
                                                                                context_(context)
     {
         root_ = JSONValue::MakeEmptyObject();
-        stack_.emplace_back(root_);
+        stack_.emplace(root_);
     }
 
     DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
@@ -43,7 +43,7 @@ namespace RR::Rfx
     {
         auto value = JSONValue::MakeEmptyObject();
         RR_RETURN_ON_FAIL(add(value));
-        stack_.emplace_back(value);
+        stack_.emplace(value);
         expect_ = Expect::ObjectKey;
         return RResult::Ok;
     }
@@ -56,14 +56,14 @@ namespace RR::Rfx
         size_t size = currentValue().container->size();
 
         for (const auto parent : parents_)
-            size += parent->size();
+            size += parent.second->size();
 
         currentValue().container->reserve(size);
 
         for (const auto parent : parents_)
-            currentValue().container->insert(parent->begin(), parent->end());
+            currentValue().container->insert(parent.second->begin(), parent.second->end());
 
-        stack_.pop_back();
+        stack_.pop();
         key_.Reset();
         parents_.clear();
         expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
@@ -72,9 +72,17 @@ namespace RR::Rfx
     RResult JSONBuilder::StartArray()
     {
         auto value = JSONValue::MakeEmptyArray();
+
+        if (!parents_.empty())
+        {
+            getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value.type);
+            return RResult::Fail;
+        }
+
         RR_RETURN_ON_FAIL(add(value));
-        stack_.emplace_back(value);
+        stack_.emplace(value);
         expect_ = Expect::ArrayValue;
+
         return RResult::Ok;
     }
 
@@ -82,7 +90,7 @@ namespace RR::Rfx
     {
         ASSERT(currentValue().type == JSONValue::Type::Array);
         ASSERT(expect_ == Expect::ArrayValue);
-        stack_.pop_back();
+        stack_.pop();
         key_.Reset();
 
         expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
@@ -115,7 +123,7 @@ namespace RR::Rfx
         {
             case JSONValue::Type::Object:
             {
-                parents_.push_back(value.container.get());
+                parents_.emplace_back(parent, value.container.get());
                 break;
             }
             case JSONValue::Type::Invalid:

@@ -20,7 +20,6 @@ source_group( "lexer" FILES ${RFX_TESTS_LEXER_SRC} )
 
 set(RFX_TESTS_COMMAND_LINE_SRC
     "command_line/CommandLine.cpp"
-    "command_line/compile_simple.rfx"
     "command_line/preprocessor_defines.rfx"
     "command_line/preprocessor_simple.rfx"
     "command_line/version.rfx"
@@ -83,6 +82,9 @@ source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 set(RFX_TESTS_PARSER_SRC
     "parser/Parser.cpp"
     "parser/Inheritance.rfx"
+    "parser/Inheritance-invalid_1.rfx"
+    "parser/Inheritance-invalid_2.rfx"
+    "parser/Inheritance-invalid_3.rfx"
     "parser/Simple.rfx")
 source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
 

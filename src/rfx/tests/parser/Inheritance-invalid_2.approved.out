@@ -1,0 +1,5 @@
+Diagnostic:[
+    ../src/rfx/tests/parser/Inheritance-invalid_2.rfx(8): error 20016: The value 'Foo' is of type type 'Array', but only objects can have parents.
+    Foo < Bar: [test, 1, false]
+          ^~~
+]

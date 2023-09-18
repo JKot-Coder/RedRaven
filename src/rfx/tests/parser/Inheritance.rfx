@@ -20,4 +20,11 @@ Cow < Object, Animal: {
     Name: "Cow",
     Weight: 750,
     Type: Pray,
+},
+
+Zoo < Object: {
+    Name: "Park",
+    Animals:[
+        {}, {}
+    ],
 }
