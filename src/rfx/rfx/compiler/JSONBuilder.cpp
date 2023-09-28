@@ -39,12 +39,22 @@ namespace RR::Rfx
 
     DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
 
+    RResult JSONBuilder::checkNoInheritanceAlloved(JSONValue::Type value_type)
+    {
+        if (parents_.empty())
+            return RResult::Ok;
+
+        getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value_type);
+        return RResult::Fail;
+    }
+
     RResult JSONBuilder::StartObject()
     {
         auto value = JSONValue::MakeEmptyObject();
         RR_RETURN_ON_FAIL(add(value));
-        stack_.emplace(value);
+        stack_.emplace(parents_, value);
         expect_ = Expect::ObjectKey;
+        parents_.clear();
         return RResult::Ok;
     }
 
@@ -53,14 +63,14 @@ namespace RR::Rfx
         ASSERT(currentValue().type == JSONValue::Type::Object);
         ASSERT(expect_ == Expect::ObjectKey);
 
-        size_t size = currentValue().container->size();
-
-        for (const auto parent : parents_)
+        // Inheritance
+        size_t size = 0;
+        for (const auto parent : currentContext().parents)
             size += parent.second->size();
 
         currentValue().container->reserve(size);
 
-        for (const auto parent : parents_)
+        for (const auto parent : currentContext().parents)
             currentValue().container->insert(parent.second->begin(), parent.second->end());
 
         stack_.pop();
@@ -73,12 +83,7 @@ namespace RR::Rfx
     {
         auto value = JSONValue::MakeEmptyArray();
 
-        if (!parents_.empty())
-        {
-            getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value.type);
-            return RResult::Fail;
-        }
-
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
         RR_RETURN_ON_FAIL(add(value));
         stack_.emplace(value);
         expect_ = Expect::ArrayValue;
@@ -98,18 +103,16 @@ namespace RR::Rfx
 
     void JSONBuilder::StartInrehitance()
     {
-        ASSERT(currentValue().type == JSONValue::Type::Object);
-        ASSERT(expect_ == Expect::ObjectValue);
+        ASSERT(expect_ == (currentValue().type == JSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue));
         ASSERT(parents_.size() == 0);
         expect_ = Expect::Parent;
     }
 
     void JSONBuilder::EndInrehitance()
     {
-        ASSERT(currentValue().type == JSONValue::Type::Object);
         ASSERT(expect_ == Expect::Parent);
         ASSERT(parents_.size() != 0);
-        expect_ = Expect::ObjectValue;
+        expect_ = currentValue().type == JSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue;
     }
 
     RResult JSONBuilder::AddParent(const Token& parent)
@@ -162,6 +165,7 @@ namespace RR::Rfx
     RResult JSONBuilder::AddValue(JSONValue&& value)
     {
         ASSERT(value.type != JSONValue::Type::Invalid);
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
         return add(value);
     }
 

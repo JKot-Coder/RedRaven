@@ -312,13 +312,19 @@ namespace RR
             JSONBuilder(const std::shared_ptr<CompileContext>& context);
 
         private:
+            struct Context;
+
+            RResult checkNoInheritanceAlloved(JSONValue::Type value_type);
+
             DiagnosticSink& getSink() const;
-            JSONValue& currentValue() { return stack_.top(); }
+            Context& currentContext() { return stack_.top(); }
+            JSONValue& currentValue() { return currentContext().value; }
 
             RResult add(const JSONValue& value) { return add(JSONValue(value)); }
             RResult add(JSONValue&& value);
 
         private:
+            using Parent = std::pair<Token, JSONValue::Container*>;
             enum class Expect : uint8_t
             {
                 ObjectKey,
@@ -327,10 +333,19 @@ namespace RR
                 Parent
             };
 
+            struct Context
+            {
+                Context(JSONValue value) : value(std::move(value)) {};
+                Context(std::vector<Parent> parents, JSONValue value) : parents(std::move(parents)), value(std::move(value)) { }
+
+                std::vector<Parent> parents;
+                JSONValue value;
+            };
+
             Expect expect_;
             UnownedStringSlice key_;
-            std::vector<std::pair<Token, JSONValue::Container*>> parents_;
-            std::stack<JSONValue> stack_;
+            std::stack<Context> stack_;
+            std::vector<Parent> parents_;
             JSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };

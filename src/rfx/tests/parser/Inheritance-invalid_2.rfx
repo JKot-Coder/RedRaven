@@ -5,4 +5,4 @@ Bar: {
     Valid: true,
 },
 
-Foo < Bar: [test, 1, false]
+Foo: <Bar> [test, 1, false]

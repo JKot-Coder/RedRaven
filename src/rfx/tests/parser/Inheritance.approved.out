@@ -4,6 +4,12 @@ SourceOutput:[
         "Type": "None",
         "Weight": -1
       },
+      "BlackCow": {
+        "Name": "BlackCow",
+        "Type": "Pray",
+        "Valid": true,
+        "Weight": 750
+      },
       "Cow": {
         "Name": "Cow",
         "Type": "Pray",
@@ -18,6 +24,24 @@ SourceOutput:[
       },
       "Object": {
         "Name": "Unknown",
+        "Valid": true
+      },
+      "Zoo": {
+        "Animals": [
+          {
+            "Name": "BlackCow",
+            "Type": "Pray",
+            "Valid": true,
+            "Weight": 750
+          },
+          {
+            "Name": "RedFox",
+            "Type": "Predator",
+            "Valid": true,
+            "Weight": 7.5
+          }
+        ],
+        "Name": "Park",
         "Valid": true
       }
     }

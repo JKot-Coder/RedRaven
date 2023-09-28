@@ -119,7 +119,7 @@ namespace RR::Rfx
         RResult tokenToFloat(const Token& token, double& outValue);
 
         RResult parseArray();
-        RResult parseDeclaration();
+        RResult parseParents();
         RResult parseObject(bool renameMe = false);
         RResult parseValue();
         RResult parseNumber(bool positive = true);
@@ -230,35 +230,29 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult ParserImpl::parseDeclaration()
+    RResult ParserImpl::parseParents()
     {
         Token token;
-        RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, token));
-        RR_RETURN_ON_FAIL(builder_.AddKey(token));
 
-        if (peekTokenType() == Token::Type::OpLess)
+        RR_RETURN_ON_FAIL(expect({ Token::Type::OpLess, Token::Type::StringLiteral }, token));
+        builder_.StartInrehitance();
+
+        while (true)
         {
-            builder_.StartInrehitance();
-            advance();
+            RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, token));
+            RR_RETURN_ON_FAIL(builder_.AddParent(token));
 
-            while (true)
+            if (peekTokenType() == Token::Type::Comma)
             {
-                RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, token));
-                RR_RETURN_ON_FAIL(builder_.AddParent(token));
-
-                if (peekTokenType() == Token::Type::Comma ||
-                    peekTokenType() == Token::Type::NewLine)
-                {
-                    advance();
-                    continue;
-                }
-
-                break;
+                advance();
+                continue;
             }
 
-            builder_.EndInrehitance();
+            break;
         }
 
+        RR_RETURN_ON_FAIL(expect({ Token::Type::OpGreater, Token::Type::StringLiteral }, token));
+        builder_.EndInrehitance();
         return RResult::Ok;
     }
 
@@ -279,7 +273,9 @@ namespace RR::Rfx
                 peekTokenType() == Token::Type::EndOfFile)
                 break;
 
-            RR_RETURN_ON_FAIL(parseDeclaration());
+            Token keyToken;
+            RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, keyToken));
+            RR_RETURN_ON_FAIL(builder_.AddKey(keyToken));
             RR_RETURN_ON_FAIL(expect(Token::Type::Colon));
 
             skipAllWhitespaces();
@@ -344,11 +340,14 @@ namespace RR::Rfx
         else if (stringSlice == "false")
             return builder_.AddValue(JSONValue::MakeBool(false));
 
-         return builder_.AddValue(JSONValue::MakeString(stringSlice));
+        return builder_.AddValue(JSONValue::MakeString(stringSlice));
     }
 
     RResult ParserImpl::parseValue()
     {
+        if (peekTokenType() == Token::Type::OpLess)
+            RR_RETURN_ON_FAIL(parseParents());
+
         switch (peekTokenType())
         {
             case Token::Type::StringLiteral:

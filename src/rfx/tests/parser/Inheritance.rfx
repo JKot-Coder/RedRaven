@@ -10,21 +10,23 @@ Animal: {
     Type: None
 },
 
-Fox < Object, Animal: {
+Fox: <Object, Animal> {
     Name: "Fox",
     Weight: 7.5,
     Type: Predator,
 },
 
-Cow < Object, Animal: {
+Cow: <Object, Animal> {
     Name: "Cow",
     Weight: 750,
     Type: Pray,
 },
 
-Zoo < Object: {
+BlackCow: <Cow> { Name: BlackCow },
+
+Zoo: <Object>{
     Name: "Park",
     Animals:[
-        {}, {}
+        <BlackCow> {}, <Fox> { Name: RedFox }
     ],
 }
