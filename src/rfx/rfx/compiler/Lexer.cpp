@@ -26,7 +26,7 @@ namespace RR
                     case Token::Type::CharLiteral: quoteChar = '\''; break;
                     default: return tokenSlice;
                 }
-                
+
                 auto begin = tokenSlice.Begin();
                 auto end = tokenSlice.End();
 
@@ -90,9 +90,10 @@ namespace RR
                 return result;
             }
 
-            char* scrubbingToken(const U8Char* srcBegin, const U8Char* srcEnd, U8Char* dstBegin, bool scrubbingEscapedCharacters)
+            char* scrubbingToken(const UnownedStringSlice& source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
             {
-                auto cursor = srcBegin;
+                auto srcEnd = source.End();
+                auto cursor = source.Begin();
                 auto dst = dstBegin;
 
                 while (cursor != srcEnd)
@@ -208,14 +209,14 @@ namespace RR
             }
 
             template <typename... Args>
-            inline void diagnose(Lexer* lexer, const SourceLocation& location, const HumaneSourceLocation& humaneSourceLocation, const DiagnosticInfo& info, Args&&... args)
+            inline void diagnose(Lexer* lexer, const SourceLocation& location, const DiagnosticInfo& info, Args&&... args)
             {
                 ASSERT(lexer);
 
                 if (Common::IsSet(lexer->GetLexerFlags(), Lexer::Flags::SuppressDiagnostics))
                     return;
 
-                lexer->GetDiagnosticSink().Diagnose(location, humaneSourceLocation, info, args...);
+                lexer->GetDiagnosticSink().Diagnose(location, info, args...);
             }
         }
 
@@ -262,8 +263,9 @@ namespace RR
 
             if (sourceView_->GetPathInfo().type == PathInfo::Type::Split)
             {
-                linesCounter_ = sourceView_->GetInitiatingHumaneLocation().line;
-                columnCounter_ = sourceView_->GetInitiatingHumaneLocation().column;
+                const auto humaneSourceLoc = sourceView_->GetInitiatingSourceLocation().humaneSourceLoc;
+                linesCounter_ = humaneSourceLoc.line;
+                columnCounter_ = humaneSourceLoc.column;
             }
 
             begin_ = content.Begin();
@@ -279,12 +281,11 @@ namespace RR
         Token Lexer::ReadToken()
         {
             const auto& sourceLocation = getSourceLocation();
-            const auto& humaneLocation = getHumaneSourceLocation();
 
             if (isReachEOF())
             {
                 const auto tokenSlice = UnownedStringSlice(nullptr, nullptr);
-                return Token(Token::Type::EndOfFile, tokenSlice, sourceLocation, humaneLocation);
+                return Token(Token::Type::EndOfFile, tokenSlice, sourceLocation);
             }
 
             const auto tokenBegin = cursor_;
@@ -304,7 +305,7 @@ namespace RR
                 const size_t allocationSize = std::distance(tokenBegin, tokenEnd);
 
                 const auto dstBegin = (char*)getAllocator().Allocate(allocationSize);
-                const auto dstEnd = scrubbingToken(tokenBegin, tokenEnd, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
+                const auto dstEnd = scrubbingToken(tokenSlice, dstBegin, Common::IsSet(tokenflags_, Token::Flags::EscapedCharacters));
                 tokenSlice = UnownedStringSlice(dstBegin, dstEnd);
 
                 // Reset flags
@@ -345,7 +346,7 @@ namespace RR
                 }
             }
 
-            return Token(tokenType, tokenSlice, sourceLocation, humaneLocation, tokenFlags);
+            return Token(tokenType, tokenSlice, sourceLocation, tokenFlags);
         }
 
         TokenList Lexer::LexAllSemanticTokens()
@@ -440,7 +441,6 @@ namespace RR
                 case '0':
                 {
                     const auto& loc = getSourceLocation();
-                    const auto& humaneLoc = getHumaneSourceLocation();
 
                     advance();
 
@@ -468,7 +468,7 @@ namespace RR
                         // clang-format off
                         case '0': case '1': case '2': case '3': case '4':
                         case '5': case '6': case '7': case '8': case '9': // clang-format on
-                            diagnose(this, loc, humaneLoc, LexerDiagnostics::octalLiteral);
+                            diagnose(this, loc, LexerDiagnostics::octalLiteral);
                             return lexNumber(8);
                     }
                 }
@@ -666,7 +666,6 @@ namespace RR
                 // unexpected/invalid character.
 
                 auto loc = getSourceLocation();
-                auto humaneLoc = getHumaneSourceLocation();
                 {
                     const auto ch = peek();
 
@@ -675,12 +674,12 @@ namespace RR
                         U8String charString;
                         utf8::append(ch, charString);
 
-                        diagnose(this, loc, humaneLoc, LexerDiagnostics::illegalCharacterPrint, charString);
+                        diagnose(this, loc, LexerDiagnostics::illegalCharacterPrint, charString);
                     }
                     else
                     {
                         // Fallback: print as hexadecimal
-                        diagnose(this, loc, humaneLoc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
+                        diagnose(this, loc, LexerDiagnostics::illegalCharacterHex, uint32_t(ch));
                     }
                 }
 
@@ -732,11 +731,11 @@ namespace RR
                 switch (peek())
                 { // clang-format off
                     case kEOF:
-                        diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
+                        diagnose(this, getSourceLocation(), LexerDiagnostics::endOfFileInBlockComment);
                         return;
 
                     case '\r': case '\n':
-                        handleNewlineSequence(); 
+                        handleNewlineSequence();
                         continue;
 
                     case '*':
@@ -847,7 +846,7 @@ namespace RR
                 {
                     U8String charString;
                     utf8::append(ch, charString);
-                    diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
+                    diagnose(this, getSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
                 }
 
                 advance();
@@ -938,12 +937,12 @@ namespace RR
                 switch (ch)
                 {
                     case kEOF:
-                        diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
+                        diagnose(this, getSourceLocation(), LexerDiagnostics::endOfFileInLiteral);
                         return;
 
                     case '\n':
                     case '\r':
-                        diagnose(this, getSourceLocation(), getHumaneSourceLocation(), LexerDiagnostics::newlineInLiteral);
+                        diagnose(this, getSourceLocation(), LexerDiagnostics::newlineInLiteral);
                         return;
 
                     case '\\': // Need to handle various escape sequence cases
@@ -1026,12 +1025,7 @@ namespace RR
 
         SourceLocation Lexer::getSourceLocation()
         {
-            return sourceView_->GetSourceLocation(std::distance(begin_, cursor_));
-        }
-
-        HumaneSourceLocation Lexer::getHumaneSourceLocation()
-        {
-            return HumaneSourceLocation(linesCounter_.Value(), columnCounter_.Value());
+            return sourceView_->GetSourceLocation(std::distance(begin_, cursor_), HumaneSourceLocation(linesCounter_.Value(), columnCounter_.Value()));
         }
     }
 }

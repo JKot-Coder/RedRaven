@@ -9,7 +9,7 @@ namespace RR::Rfx
     namespace Tests
     {
         TEST_CASE("LexerTests", "[Lexer]")
-        {            
+        {
             runTestsInDirectory("../src/rfx/tests/lexer");
         }
     }

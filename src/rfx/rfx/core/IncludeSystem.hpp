@@ -34,10 +34,7 @@ namespace RR
                 }*/
 
             Common::RResult FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const;
-
-            std::shared_ptr<SourceFile> CreateFileFromString(const PathInfo& pathInfo, const U8String& content) const;
             /*
-            SlangResult findAndLoadFile(const String& pathToInclude, const String& pathIncludedFrom, PathInfo& outPathInfo, ComPtr<ISlangBlob>& outBlob);
 
             SearchDirectoryList* getSearchDirectoryList() const { return m_searchDirectories; }
             ISlangFileSystemExt* getFileSystem() const { return m_fileSystemExt; }*/

@@ -95,7 +95,7 @@ set(SRC
 set(RFX_TESTS_LINK_LIBRARIES
     common
     rfx
-    Catch2::Catch2WithMain
+    Catch2::Catch2
     ApprovalTests
     cpp-command-output)
 

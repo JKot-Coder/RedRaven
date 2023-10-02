@@ -1,7 +1,9 @@
 #include "DiagnosticSink.hpp"
 
+#include "rfx/compiler/DiagnosticCore.hpp"
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/Signal.hpp"
+#include "rfx/core/SourceView.hpp"
 
 namespace RR
 {
@@ -9,6 +11,21 @@ namespace RR
     {
         namespace
         {
+            /// Trims any horizontal whitespace from the start and end and returns as a substring
+            UnownedStringSlice trim(const UnownedStringSlice& stringSlice)
+            {
+                const U8Char* start = stringSlice.Begin();
+                const U8Char* end = stringSlice.End();
+
+                // Work with UTF8 as ANSI text. This shouldn't be a problem...
+                while (start < end && (*start == '\t' || *start == ' '))
+                    start++;
+                while (end > start && (*start == '\t' || *start == ' '))
+                    end--;
+
+                return UnownedStringSlice(start, end);
+            }
+
             U8String replaceTabWithSpaces(const UnownedStringSlice& slice, uint32_t tabSize)
             {
                 const U8Char* start = slice.Begin();
@@ -67,14 +84,13 @@ namespace RR
 
             U8String sourceLocationNoteDiagnostic(const Diagnostic& diagnostic, size_t maxLineLength)
             {
-                ASSERT(diagnostic.location.IsValid())
-
                 const auto sourceView = diagnostic.location.GetSourceView();
+                ASSERT(sourceView);
 
                 UnownedStringSlice sourceLineSlice = sourceView->ExtractLineContainingLocation(diagnostic.location);
 
                 // Trim any trailing white space
-                sourceLineSlice = UnownedStringSlice(sourceLineSlice.Begin(), sourceLineSlice.Trim().End());
+                sourceLineSlice = UnownedStringSlice(sourceLineSlice.Begin(), trim(sourceLineSlice).End());
 
                 // TODO(JS): The tab size should ideally be configurable from command line.
                 // For now just go with 4.
@@ -157,7 +173,6 @@ namespace RR
             for (const auto& writer : writerList_)
                 writer->Write(formattedMessage);
 
-            // TODO replace
             if (info.severity > Severity::Internal)
             {
                 // TODO: figure out a better policy for aborting compilation
@@ -165,22 +180,17 @@ namespace RR
             }
         }
 
-        U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic /*, DiagnosticSink::Flags flags, StringBuilder& outBuilder*/)
+        U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic)
         {
-            ASSERT(diagnostic.location.IsValid())
-
             U8String humaneLocString;
-            // if (flags & DiagnosticSink::Flag::HumaneLoc)
+
+            const bool includeSourceLocation = true;
+
+            if (includeSourceLocation)
             {
-                HumaneSourceLocation humaneLocation;
-
+                HumaneSourceLocation humaneLocation = diagnostic.location.humaneSourceLoc;
                 const auto sourceView = diagnostic.location.GetSourceView();
-                if (sourceView)
-                {
-                    //    humaneLocation = sourceView->GetHumaneLocation(diagnostic.location);
-                }
-
-                humaneLocation = diagnostic.humaneSourceLocation;
+                ASSERT(sourceView);
 
                 /*
                     CLion fomat
@@ -188,19 +198,8 @@ namespace RR
                                                   sourceView->GetSourceFile()->GetFileName(),
                                                   humaneLocation.line,
                                                   humaneLocation.column);
-                                    */
-                /*
-                const auto includeStack = sourceView->GetIncludeStack().GetStack();
-                ASSERT(!includeStack.empty())
+                */
 
-                for (auto it = includeStack.begin(); it != std::prev(includeStack.end()); ++it)
-                {
-                    const auto& includeInfo = *it;
-                    humaneLocString += fmt::format("In file included from {0}({1}):\n",
-                                                   includeInfo.pathInfo.foundPath,
-                                                   includeInfo.humaneSourceLocation.line,
-                                                   includeInfo.humaneSourceLocation.column);
-                }*/
                 const auto path = onlyRelativePaths_ ? sourceView->GetPathInfo().foundPath : sourceView->GetPathInfo().uniqueIdentity;
                 humaneLocString += fmt::format("{0}({1}): ",
                                                path,
@@ -215,11 +214,19 @@ namespace RR
                                                                       diagnostic.errorID,
                                                                       diagnostic.message);
 
-            // We don't don't output source line information if this is a 'note' as a note is extra information for one
-            // of the other main severity types, and so the information should already be output on the initial line
-            // if (sourceView && sink->isFlagSet(DiagnosticSink::Flag::SourceLocationLine) && diagnostic.severity != Severity::Note)
+            if (includeSourceLocation)
             {
+                auto sourceView = diagnostic.location.GetSourceView();
+
                 diagnosticString += sourceLocationNoteDiagnostic(diagnostic, GetSourceLineMaxLength());
+
+                while (sourceView->GetInitiatingSourceLocation().GetSourceView() &&
+                       sourceView->GetPathInfo().type != PathInfo::Type::Normal &&
+                       sourceView->GetPathInfo().type != PathInfo::Type::Split)
+                {
+                    diagnosticString += formatDiagnostic(sourceView->GetInitiatingToken(), Diagnostics::expandedFromMacro, sourceView->GetInitiatingToken().stringSlice);
+                    sourceView = sourceView->GetInitiatingSourceLocation().GetSourceView();
+                }
             }
 
             return diagnosticString;

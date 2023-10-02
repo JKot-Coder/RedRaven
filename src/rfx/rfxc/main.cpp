@@ -61,6 +61,45 @@ namespace RR
         fs.close();
     }
 
+    void writeResultToOutputs(const Common::ComPtr<Rfx::ICompileResult>& compileResult,
+                              const stl::enum_array<U8String, RR::Rfx::CompileOutputType>& outputs)
+    {
+        if (!compileResult)
+            return;
+
+        const auto outputsCount = compileResult->GetOutputsCount();
+        for (size_t i = 0; i < outputsCount; i++)
+        {
+            Rfx::CompileOutputType outputType;
+            Common::ComPtr<Rfx::IBlob> output;
+
+            Rfx::RfxResult result;
+            if (RR_FAILED(result = compileResult->GetOutput(i, outputType, output.put())))
+            {
+                printErrorMessage(result);
+                continue;
+            }
+
+            switch (outputType)
+            {
+                case RR::Rfx::CompileOutputType::Diagnostic:
+                    writeOutput("%STD_OUTPUT%", outputType, output);
+                    break;
+                case RR::Rfx::CompileOutputType::Source:
+                case RR::Rfx::CompileOutputType::Assembly:
+                case RR::Rfx::CompileOutputType::Object:
+                    writeOutput(outputs[outputType], outputType, output);
+                    break;
+                case RR::Rfx::CompileOutputType::Tokens:
+                    writeOutput("%STD_OUTPUT%", outputType, output);
+                    break;
+                default:
+                    ASSERT_MSG(false, "Unknown output");
+                    break;
+            }
+        }
+    }
+
     int runApp(int argc, char** argv)
     {
         cxxopts::Options options("rfxc", "Shader compiler");
@@ -168,7 +207,7 @@ namespace RR
             Common::ComPtr<Rfx::ICompiler> compiler;
             if (RR_FAILED(result = Rfx::GetComplierInstance(compiler.put())))
             {
-                printErrorMessage("Unexpeted error");
+                printErrorMessage("Can't get compiler instance");
                 return 1;
             }
 
@@ -176,45 +215,16 @@ namespace RR
             {
                 switch (result)
                 {
-                    case Common::RResult::Ok: break;
-                    case Common::RResult::NotFound:
-                    case Common::RResult::CannotOpen:
-                        printErrorMessage("Cannot open file: {}", compileRequestDesc.inputFile);
-                        return 1;
-                    default: printErrorMessage(result); return 1;
+                    case Common::RResult::NotFound: printErrorMessage("File not found: {}", compileRequestDesc.inputFile); break;
+                    case Common::RResult::CannotOpen: printErrorMessage("Cannot open file: {}", compileRequestDesc.inputFile); break;
+                    default: printErrorMessage(result);
                 }
+
+                writeResultToOutputs(compileResult, outputs);
+                return 1;
             }
 
-            const auto outputsCount = compileResult->GetOutputsCount();
-            for (size_t i = 0; i < outputsCount; i++)
-            {
-                Rfx::CompileOutputType outputType;
-                Common::ComPtr<Rfx::IBlob> output;
-
-                if (RR_FAILED(result = compileResult->GetOutput(i, outputType, output.put())))
-                {
-                    printErrorMessage(result);
-                    return 1;
-                }
-
-                switch (outputType)
-                {
-                    case RR::Rfx::CompileOutputType::Diagnostic:
-                        writeOutput("%STD_OUTPUT%", outputType, output);
-                        break;
-                    case RR::Rfx::CompileOutputType::Source:
-                    case RR::Rfx::CompileOutputType::Assembly:
-                    case RR::Rfx::CompileOutputType::Object:
-                        writeOutput(outputs[outputType], outputType, output);
-                        break;
-                    case RR::Rfx::CompileOutputType::Tokens:
-                        writeOutput("%STD_OUTPUT%", outputType, output);
-                        break;
-                    default:
-                        ASSERT_MSG(false, "Unknown output");
-                        break;
-                }
-            }
+            writeResultToOutputs(compileResult, outputs);
         }
         catch (const cxxopts::OptionException& e)
         {

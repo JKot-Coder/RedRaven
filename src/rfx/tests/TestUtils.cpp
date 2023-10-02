@@ -22,6 +22,12 @@ namespace RR::Rfx::Tests
 {
     namespace
     {
+#ifndef OS_WINDOWS
+        constexpr char const* ExabutablePrefix = "./";
+#else
+        constexpr char const* ExabutablePrefix = "";
+#endif
+
         enum class TestCommand
         {
             RUN_RFXC,
@@ -162,7 +168,7 @@ namespace RR::Rfx::Tests
             {
                 switch (peek())
                 { // clang-format off
-                    case '\n': case '\r': 
+                    case '\n': case '\r':
                     case ' ': case '\t':
                     case '-': case kEOF:
                         break; // clang-format on
@@ -257,7 +263,7 @@ namespace RR::Rfx::Tests
                     case TestCommand::RUN_RFXC:
                     {
                         const auto arguments = std::regex_replace(command.second, std::regex("%INPUT%"), testFile.u8string());
-                        const auto& commandResult = raymii::Command::exec(fmt::format("./rfxc {} 2>&1", arguments));
+                        const auto& commandResult = raymii::Command::exec(fmt::format("{}rfxc {} 2>&1", ExabutablePrefix, arguments));
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
                         RfxApprover::verify(commandResult, ApprovalTests::Options().withNamer(namer));
                         break;

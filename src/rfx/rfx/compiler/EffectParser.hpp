@@ -15,6 +15,6 @@ namespace RR::Rfx
     class EffectParser
     {
     public:
-        RfxResult Parse(std::shared_ptr<RR::Rfx::SourceFile>& source, Common::ComPtr<IBlob>& output, Common::ComPtr<IBlob>& diagnostic);
+        RfxResult Parse(const std::shared_ptr<RR::Rfx::SourceFile>& source, Common::ComPtr<IBlob>& output, Common::ComPtr<IBlob>& diagnostic);
     };
 }
