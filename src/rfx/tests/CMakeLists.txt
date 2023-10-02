@@ -27,7 +27,6 @@ set(RFX_TESTS_COMMAND_LINE_SRC
 source_group( "commandLine" FILES ${RFX_TESTS_COMMAND_LINE_SRC} )
 
 set(RFX_TESTS_PREPROCESSOR_SRC
-    "preprocessor/SpecialMacroComplex.rfx"
     "preprocessor/bugs/Bug.rfx"
     "preprocessor/CommandLineDefines.rfx"
     "preprocessor/ConditionalDiagnostics.rfx"
@@ -51,6 +50,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/IncludeMultiple.rfx"
     "preprocessor/macros/MacroParensFromExpansion.rfx"
     "preprocessor/macros/VariadicMacro.rfx"
+    "preprocessor/NominalLineInDiagnostic.rfx"
     "preprocessor/PasteNonExpansion.rfx"
     "preprocessor/PoundPound_1.rfx"
     "preprocessor/PoundPound_2.rfx"
@@ -68,6 +68,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/PreprocStringify.rfx"
     "preprocessor/RecursiveMacro.rfx"
     "preprocessor/RepeatedMacroExpansion.rfx"
+    "preprocessor/SpecialMacroComplex.rfx"
     "preprocessor/SpecialMacroInclude.rfx"
     "preprocessor/SpecialMacroMultiLine.rfx"
     "preprocessor/SpecialMacroRedefineFunction.rfx"

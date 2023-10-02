@@ -997,7 +997,7 @@ namespace RR
             /// Get a reader for the tokens that make up the macro argument at the given `paramIndex`
             TokenReader getArgTokens(uint32_t paramIndex);
 
-            void updateSourceViewForTokens(TokenReader& tokenReader, const Token& initiatingToken, TokenList& outTokenList) const;
+            void initPastedSourceViewForTokens(TokenReader& tokenReader, const Token& initiatingToken, TokenList& outTokenList) const;
 
             /// Push a stream onto `currentOpStreams_` that consists of a single token
             void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, const HumaneSourceLocation& humaneSourceLocation, U8String const& content);
@@ -3003,7 +3003,7 @@ namespace RR
                     auto tokenReader = TokenReader(tokenBuffer + beginTokenIndex, tokenBuffer + endTokenIndex);
 
                     TokenList tokenList;
-                    updateSourceViewForTokens(tokenReader, initiatingMacroToken_, tokenList);
+                    initPastedSourceViewForTokens(tokenReader, initiatingMacroToken_, tokenList);
                     const auto& stream = std::make_shared<SingleUseInputStream>(*preprocessor_, tokenList);
 
                     //   const auto& stream = std::make_shared<PretokenizedInputStream>(*preprocessor_, tokenReader);
@@ -3039,11 +3039,11 @@ namespace RR
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
 
-                  //  auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
-                  //                                                              initiatingMacroToken_);
+                    //  auto sourceView = GetSourceManager().CreatePastedSourceView(initiatingMacroToken_.sourceLocation.GetSourceView()->GetSourceFile(),
+                    //                                                              initiatingMacroToken_);
 
                     TokenList tokenList;
-                    updateSourceViewForTokens(tokenReader, initiatingMacroToken_, tokenList);
+                    initPastedSourceViewForTokens(tokenReader, initiatingMacroToken_, tokenList);
 
                     if (!tokenList.empty())
                         tokenList.front().flags = op.flags;
@@ -3477,17 +3477,26 @@ namespace RR
             }
         }
 
-        void MacroInvocation::updateSourceViewForTokens(TokenReader& tokenReader, const Token& initiatingToken, TokenList& outTokenList) const
+        void MacroInvocation::initPastedSourceViewForTokens(TokenReader& tokenReader, const Token& initiatingToken, TokenList& outTokenList) const
         {
             // TODO ???
             // Copy all tokens and modify flags of first token
+            std::shared_ptr<const SourceView> baseSourceView;
+            std::shared_ptr<const SourceView> pastedSourceView;
+
             while (!tokenReader.IsAtEnd())
             {
                 auto token = tokenReader.AdvanceToken();
 
-                token.sourceLocation.sourceView = GetSourceManager().CreatePastedSourceView(
-                    token.sourceLocation.GetSourceView()->GetSourceFile(),
-                    initiatingToken);
+                if (token.sourceLocation.GetSourceView() != baseSourceView)
+                {
+                    baseSourceView = token.sourceLocation.GetSourceView();
+                    pastedSourceView = GetSourceManager().CreatePastedSourceView(
+                        baseSourceView,
+                        initiatingToken);
+                }
+
+                token.sourceLocation.sourceView = pastedSourceView;
                 outTokenList.push_back(token);
             }
 

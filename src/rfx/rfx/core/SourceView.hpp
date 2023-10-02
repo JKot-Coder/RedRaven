@@ -148,7 +148,7 @@ namespace RR::Rfx
             ASSERT(sourceView);
 
             const auto content = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceView->GetSourceFile()->GetContent().End());
-            const Token initiatingToken(Token::Type::Unknown, UnownedStringSlice(content.Begin(), content.Begin()), splitLocation);
+            const Token initiatingToken(Token::Type::Unknown, content, splitLocation);
 
             return MakeShared<SourceView>::Create(sourceView->GetSourceFile(), content, ownPathInfo, initiatingToken);
         }

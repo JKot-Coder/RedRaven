@@ -1,0 +1,12 @@
+SourceOutput:[
+    #line 17 "../src/rfx/tests/preprocessor/NominalLineInDiagnostic.rfx"
+    DO
+]
+Diagnostic:[
+    token paste(13): error 15501: wrong number of arguments to macro (expected 2, got 1)
+    #define SOMEMACRO DO(x)
+                        ^
+    ../src/rfx/tests/preprocessor/NominalLineInDiagnostic.rfx(17): note: expanded from macro 'MACRO'
+    MACRO
+    ^~~~~
+]

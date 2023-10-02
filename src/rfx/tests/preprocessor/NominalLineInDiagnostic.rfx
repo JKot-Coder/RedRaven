@@ -1,3 +1,5 @@
+// :PREPROCESSOR
+
 // Lets check that we pick up the nominal line
 #line 10
 
