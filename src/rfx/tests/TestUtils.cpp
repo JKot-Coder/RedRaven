@@ -33,6 +33,7 @@ namespace RR::Rfx::Tests
             RUN_RFXC,
             LEXER,
             PREPROCESSOR,
+            PARSER,
             Undefined
         };
 
@@ -281,7 +282,6 @@ namespace RR::Rfx::Tests
                         REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
 
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
-
                         RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
                         break;
                     }
@@ -296,6 +296,23 @@ namespace RR::Rfx::Tests
                         Common::ComPtr<Rfx::ICompiler> compiler;
                         REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
                         REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
+
+                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
+                        RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
+                        break;
+                    }
+                    case TestCommand::PARSER:
+                    {
+                        CompileRequestDescription request;
+                        request.outputStage = CompileRequestDescription::OutputStage::Parser;
+                        request.inputFile = cstringAllocator.Allocate(testFile.u8string());
+                        request.compilerOptions.onlyRelativePaths = true;
+
+                        Common::ComPtr<Rfx::ICompileResult> compileResult;
+                        Common::ComPtr<Rfx::ICompiler> compiler;
+                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
+                        const auto result = compiler->Compile(request, compileResult.put());
+                        std::ignore = result;
 
                         const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
                         RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));

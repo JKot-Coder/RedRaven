@@ -18,17 +18,15 @@ set(RFX_TESTS_LEXER_SRC
     "lexer/StringLiteras.rfx")
 source_group( "lexer" FILES ${RFX_TESTS_LEXER_SRC} )
 
-set(RFX_TESTS_COMPILE_SRC
+set(RFX_TESTS_COMMAND_LINE_SRC
     "command_line/CommandLine.cpp"
-    "command_line/compile_simple.rfx"
     "command_line/preprocessor_defines.rfx"
     "command_line/preprocessor_simple.rfx"
     "command_line/version.rfx"
     "command_line/help.rfx")
-source_group( "commandLine" FILES ${RFX_TESTS_COMPILE_SRC} )
+source_group( "commandLine" FILES ${RFX_TESTS_COMMAND_LINE_SRC} )
 
 set(RFX_TESTS_PREPROCESSOR_SRC
-    "preprocessor/SpecialMacroComplex.rfx"
     "preprocessor/bugs/Bug.rfx"
     "preprocessor/CommandLineDefines.rfx"
     "preprocessor/ConditionalDiagnostics.rfx"
@@ -52,6 +50,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/IncludeMultiple.rfx"
     "preprocessor/macros/MacroParensFromExpansion.rfx"
     "preprocessor/macros/VariadicMacro.rfx"
+    "preprocessor/NominalLineInDiagnostic.rfx"
     "preprocessor/PasteNonExpansion.rfx"
     "preprocessor/PoundPound_1.rfx"
     "preprocessor/PoundPound_2.rfx"
@@ -69,6 +68,7 @@ set(RFX_TESTS_PREPROCESSOR_SRC
     "preprocessor/PreprocStringify.rfx"
     "preprocessor/RecursiveMacro.rfx"
     "preprocessor/RepeatedMacroExpansion.rfx"
+    "preprocessor/SpecialMacroComplex.rfx"
     "preprocessor/SpecialMacroInclude.rfx"
     "preprocessor/SpecialMacroMultiLine.rfx"
     "preprocessor/SpecialMacroRedefineFunction.rfx"
@@ -82,13 +82,20 @@ source_group( "preprocessor" FILES ${RFX_TESTS_PREPROCESSOR_SRC} )
 
 set(RFX_TESTS_PARSER_SRC
     "parser/Parser.cpp"
-    "parser/test.rfx")
+    "parser/Inheritance.rfx"
+    "parser/Inheritance-invalid_1.rfx"
+    "parser/Inheritance-invalid_2.rfx"
+    "parser/Inheritance-invalid_3.rfx"
+    "parser/Inheritance-invalid_4.rfx"
+    "parser/Simple.rfx"
+    "parser/Duplicate.rfx"
+)
 source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
 
 set(SRC
     ${RFX_TESTS_SRC}
     ${RFX_TESTS_LEXER_SRC}
-    ${RFX_TESTS_COMPILE_SRC}
+    ${RFX_TESTS_COMMAND_LINE_SRC}
     ${RFX_TESTS_PREPROCESSOR_SRC}
     ${RFX_TESTS_PARSER_SRC})
 

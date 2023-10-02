@@ -3,7 +3,9 @@
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/DxcPreprocessor.hpp"
+#include "rfx/compiler/JSONBuilder.hpp"
 #include "rfx/compiler/Lexer.hpp"
+#include "rfx/compiler/Parser.hpp"
 #include "rfx/compiler/Preprocessor.hpp"
 
 #include "rfx/core/Blob.hpp"
@@ -13,6 +15,7 @@
 #include "rfx/core/SourceLocation.hpp"
 #include "rfx/core/StringEscapeUtil.hpp"
 
+#include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
 
 #if !defined(NDEBUG) && OS_WINDOWS
@@ -30,10 +33,10 @@
 #include <Windows.h>
 #endif
 
-#include "rfx/compiler/EffectParser.hpp"
-
 #include "dxcapi.use.h"
 // #include <winrt/base.h>
+
+#include <stack>
 
 namespace RR::Rfx
 {
@@ -55,10 +58,49 @@ namespace RR::Rfx
         }
     }
 
+    template <int IndentCount>
     class SourceWriter
     {
     public:
-        SourceWriter(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) { }
+        SourceWriter() : blob_(new StringBlob()) { }
+        virtual ~SourceWriter() { }
+        ComPtr<IBlob> GetBlob() { return blob_; }
+
+    protected:
+        inline void indent() { indentLevel_++; }
+        inline void dedent()
+        {
+            ASSERT(indentLevel_ > 0);
+
+            if (indentLevel_ == 0)
+                return;
+
+            indentLevel_--;
+        }
+
+        void writeIndent()
+        {
+            for (uint32_t i = 0; i < indentLevel_ * IndentCount; i++)
+                getOutputString().push_back(' ');
+        }
+
+        void push_back(U8Char ch) { getOutputString().push_back(ch); }
+        void append(const U8String& str) { getOutputString().append(str); }
+        void append(const char* str, size_t count) { getOutputString().append(str, count); }
+        template <class InputIterator>
+        void append (InputIterator first, InputIterator last) { getOutputString().append(first, last); }
+
+        std::string& getOutputString() { return blob_->GetString(); };
+
+    protected:
+        uint32_t indentLevel_ = 0;
+        ComPtr<StringBlob> blob_;
+    };
+
+    class TokenWriter final : public SourceWriter<4>
+    {
+    public:
+        TokenWriter(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) { }
 
         void Emit(const Token& token)
         {
@@ -67,8 +109,8 @@ namespace RR::Rfx
 
             if (Common::IsSet(token.flags, Token::Flags::AtStartOfLine))
             {
-                if (!output_.empty()) // Skip new line at the wery begining
-                    output_.push_back('\n');
+                if (!getOutputString().empty()) // Skip new line at the wery begining
+                    push_back('\n');
 
                 if (currentSourceFile_ != token.sourceLocation.GetSourceView()->GetSourceFile())
                 {
@@ -90,11 +132,13 @@ namespace RR::Rfx
                         StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, path, escapedPath);
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
-                        output_ += fmt::format("{}#line {} \"{}\"\n", indentString_, line_, escapedPath);
+                        writeIndent();
+                        append(fmt::format("#line {} \"{}\"\n", line_, escapedPath));
                     }
                     else
                     {
-                        output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                        writeIndent();
+                        append(fmt::format("#line {}\n", line_));
                     }
                 }
                 else
@@ -113,23 +157,24 @@ namespace RR::Rfx
                         while (line_ < humaleLoc.line)
                         {
                             line_++;
-                            output_ += "\n";
+                            push_back('\n');
                         }
                     }
 
                     if (humaleLoc.line != line_)
                     {
                         line_ = humaleLoc.line;
-                        output_ += fmt::format("{}#line {}\n", indentString_, line_);
+                        writeIndent();
+                        append(fmt::format("#line {}\n", line_));
                     }
                 }
 
                 line_++;
-                output_ += indentString_;
+                writeIndent();
             }
             else if (Common::IsSet(token.flags, Token::Flags::AfterWhitespace))
             {
-                output_ += " ";
+                push_back(' ');
             }
 
             switch (token.type)
@@ -144,59 +189,111 @@ namespace RR::Rfx
                     { return quotingChar + token + quotingChar; };
 
                     char quotingChar = token.type == Token::Type::StringLiteral ? '\"' : '\'';
-                    output_.append(appendQuoted(quotingChar, escapedToken));
+                    append(appendQuoted(quotingChar, escapedToken));
                     break;
                 }
                 default:
-                    output_.append(token.stringSlice.Begin(), token.stringSlice.End());
+                    append(token.stringSlice.Begin(), token.stringSlice.End());
                     break;
             }
 
             if (token.type == Token::Type::LBrace)
-                intend();
-        }
-
-        U8String GetOutput()
-        {
-            return output_;
-        }
-
-    private:
-        inline void intend()
-        {
-            indentLevel_++;
-            updateIndentStiring();
-        }
-
-        inline void dedent()
-        {
-            ASSERT(indentLevel_ > 0);
-
-            if (indentLevel_ == 0)
-                return;
-
-            indentLevel_--;
-            updateIndentStiring();
-        }
-
-        void updateIndentStiring()
-        {
-            indentString_ = "";
-
-            for (uint32_t i = 0; i < indentLevel_; i++)
-                indentString_ += "    ";
+                indent();
         }
 
     private:
         uint32_t line_ = 1;
-        uint32_t indentLevel_ = 0;
-        U8String indentString_ = "";
-        U8String output_;
         U8String currentUniqueIndentity_;
         std::shared_ptr<SourceView> currentSourceView_;
         std::shared_ptr<SourceFile> currentSourceFile_;
         bool onlyRelativePaths_;
     };
+
+    ComPtr<IBlob> writeTokens(const TokenSpan& tokens, const std::shared_ptr<CompileContext>& context)
+    {
+        TokenWriter writer(context->onlyRelativePaths);
+
+        for (const auto& token : tokens)
+            writer.Emit(token);
+
+        return writer.GetBlob();
+    }
+
+    class JSONWriter final : public SourceWriter<2>
+    {
+    public:
+        void Write(const JSONValue& value)
+        {
+            switch (value.type)
+            {
+                case JSONValue::Type::Bool:
+                case JSONValue::Type::Float:
+                case JSONValue::Type::Integer:
+                case JSONValue::Type::Null:
+                case JSONValue::Type::String:
+                    formatPlain(value);
+                    break;
+                case JSONValue::Type::Array:
+                case JSONValue::Type::Object:
+                {
+                    const bool isArray = value.IsArray();
+                    const U8Char openBracket = isArray ? '[' : '{';
+                    const U8Char closeBracket = isArray ? ']' : '}';
+
+                    push_back(openBracket);
+                    push_back('\n');
+                    indent();
+
+                    const auto lastElemIter = std::prev(value.end());
+                    for (auto iter = value.begin(), end = value.end(); iter != end; ++iter)
+                    {
+                        const auto& elem = *iter;
+                        writeIndent();
+                        if (!isArray)
+                        {
+                            StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, elem.first, getOutputString());
+                            append(": ", 2);
+                        }
+                        Write(elem.second);
+                        if (lastElemIter != iter)
+                            push_back(',');
+                        push_back('\n');
+                    }
+                    dedent();
+                    writeIndent();
+                    push_back(closeBracket);
+                }
+                break;
+                default:
+                    ASSERT_MSG(false, "Unknown type");
+            }
+        }
+
+    private:
+        void formatPlain(const JSONValue& value)
+        {
+            switch (value.type)
+            {
+                case JSONValue::Type::Bool: append(value.boolValue ? "true" : "false"); break;
+                case JSONValue::Type::Float: append(fmt::format("{}", value.floatValue)); break;
+                case JSONValue::Type::Integer: append(fmt::format("{}", value.intValue)); break;
+                case JSONValue::Type::Null: append("null", 4); break;
+                case JSONValue::Type::String:
+                {
+                    StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, getOutputString());
+                    break;
+                }
+                default: ASSERT_MSG(false, "Unsupported type");
+            }
+        }
+    };
+
+    ComPtr<IBlob> writeJSON(const JSONValue& root)
+    {
+        JSONWriter writer;
+        writer.Write(root);
+        return writer.GetBlob();
+    }
 
     class ComplileResult : public ICompileResult, RefObject
     {
@@ -336,24 +433,13 @@ namespace RR::Rfx
                     break;
             }
 
-            return new Blob(result);
+            return new BinaryBlob(result);
         }
 
     private:
         ComPtr<IBlob> output_;
         Lexer lexer_;
     };
-
-    U8String writeTokens(const std::shared_ptr<Preprocessor>& preprocessor, const std::shared_ptr<CompileContext>& context)
-    {
-        const auto& tokens = preprocessor->ReadAllTokens();
-        SourceWriter writer(context->onlyRelativePaths);
-
-        for (const auto& token : tokens)
-            writer.Emit(token);
-
-        return writer.GetOutput();
-    }
 
     RfxResult Compiler::Compile(const CompileRequestDescription& compileRequest, ICompileResult** outCompilerResult)
     {
@@ -379,6 +465,8 @@ namespace RR::Rfx
         try
         {
             ComPtr<ComplileResult> compilerResult(new ComplileResult());
+            // Always put resutls
+            ON_SCOPE_EXIT({ *outCompilerResult = compilerResult.detach(); });
             PathInfo pathInfo;
 
             const auto& fileSystem = std::make_shared<OSFileSystem>();
@@ -395,7 +483,7 @@ namespace RR::Rfx
             std::shared_ptr<RR::Rfx::SourceFile> sourceFile;
             if (RR_FAILED(result = sourceManager->LoadFile(pathInfo, sourceFile)))
             {
-                const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                 compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                 return result;
             }
@@ -410,28 +498,48 @@ namespace RR::Rfx
                     const auto sourceBlob = reader.ReadAllTokens();
 
                     // Todo optimize reduce copy
-                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
+                    const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                     compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                     compilerResult->PushOutput(CompileOutputType::Source, sourceBlob);
                 }
                 break;
                 case CompileRequestDescription::OutputStage::Compiler:
                 case CompileRequestDescription::OutputStage::Preprocessor:
+                case CompileRequestDescription::OutputStage::Parser:
                 {
-                    const auto& preprocessor = std::make_shared<Preprocessor>(includeSystem, sourceManager, context);
+                    Preprocessor preprocessor(includeSystem, sourceManager, context);
 
                     for (size_t index = 0; index < compileRequest.defineCount; index++)
                     {
                         ASSERT(compileRequest.defines + index);
                         const auto& define = *(compileRequest.defines + index);
-                        preprocessor->DefineMacro(define);
+                        preprocessor.DefineMacro(define);
                     }
-                    preprocessor->PushInputFile(sourceFile);
+                    preprocessor.PushInputFile(sourceFile);
+                    const auto& tokens = preprocessor.ReadAllTokens();
 
-                    const auto& blob = ComPtr<IBlob>(new Blob(writeTokens(preprocessor, context)));
-                    const auto diagnosticBlob = ComPtr<IBlob>(new Blob(bufferWriter->GetBuffer()));
-                    compilerResult->PushOutput(CompileOutputType::Source, blob);
-                    compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                    if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
+                    {
+                        const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
+                        compilerResult->PushOutput(CompileOutputType::Source, writeTokens(tokens, context));
+                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                        break;
+                    }
+                    else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
+                    {
+                        Parser parser(tokens, context);
+                        JSONValue root;
+
+                        // Write diagnostic even on parsing error.
+                        ON_SCOPE_EXIT({
+                            const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
+                            compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                        });
+                        RR_RETURN_ON_FAIL(parser.Parse(root));
+
+                        compilerResult->PushOutput(CompileOutputType::Source, writeJSON(root));
+                        break;
+                    }
 
                     /*
                     DxcPreprocessor preprocessor;
@@ -622,7 +730,6 @@ namespace RR::Rfx
                 // arguments.push_back(DXC_ARG_PACK_MATRIX_ROW_MAJOR); //-Zp
 ]
             }*/
-            *outCompilerResult = compilerResult.detach();
         }
         catch (const utf8::exception& e)
         {
@@ -650,7 +757,7 @@ namespace RR::Rfx
         if (!message)
             return RfxResult::InvalidArgument;
 
-        auto blob = ComPtr<IBlob>(new Blob(GetErrorMessage(result)));
+        auto blob = ComPtr<IBlob>(new BinaryBlob(GetErrorMessage(result)));
         *message = blob.detach();
         return RfxResult::Ok;
     }

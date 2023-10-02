@@ -93,6 +93,7 @@ namespace RR
             {
                 Lexer,
                 Preprocessor,
+                Parser,
                 Compiler,
                 Unknown
             };

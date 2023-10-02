@@ -1,0 +1,8 @@
+// :PARSER
+
+Bar: [test, 1, false],
+
+Foo: <Bar> {
+    Name: "Unknown",
+    Valid: true,
+}

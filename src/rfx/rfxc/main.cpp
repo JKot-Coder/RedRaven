@@ -127,8 +127,9 @@ namespace RR
             ("Rl", "Force the usage of only relative paths in the output and diagnostic messages"); // clang-format on
 
         options.add_options("Utility Options") // clang-format off
-            ("L", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file")
-            ("P", "Preprocessor output to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
+            ("L,Lex", "Lexer output to file (must be used alone)", cxxopts::value<std::string>(), "file")
+            ("P,Preprocess", "Preprocessor output to file (must be used alone)", cxxopts::value<std::string>(), "file")
+            ("R,Parse", "Parser output to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
 
         options.positional_help("<inputs>");
         cxxopts::ParseResult parseResult;
@@ -174,15 +175,20 @@ namespace RR
 
             compileRequestDesc.compilerOptions.onlyRelativePaths = parseResult.count("Rl");
 
-            if (parseResult.count("P"))
+            if (parseResult.count("Preprocess"))
             {
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Preprocessor;
-                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["P"].as<std::string>();
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["Preprocess"].as<std::string>();
             }
-            else if (parseResult.count("L"))
+            else if (parseResult.count("Lex"))
             {
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Lexer;
-                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["L"].as<std::string>();
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["Lex"].as<std::string>();
+            }
+            else if(parseResult.count("Parse"))
+            {
+                compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Parser;
+                outputs[RR::Rfx::CompileOutputType::Source] = parseResult["Parse"].as<std::string>();
             }
             else if (parseResult.count("Fc") || parseResult.count("Fo"))
             {
@@ -193,6 +199,11 @@ namespace RR
 
                 outputs[RR::Rfx::CompileOutputType::Assembly] = parseResult["Fc"].as<std::string>();
                 outputs[RR::Rfx::CompileOutputType::Object] = parseResult["Fo"].as<std::string>();
+            }
+            else
+            {
+                printErrorMessage("rfxc failed: Unknown compile option.");
+                return 1;
             }
 
             Rfx::Utils::CStringAllocator<char> cstingAllocator;

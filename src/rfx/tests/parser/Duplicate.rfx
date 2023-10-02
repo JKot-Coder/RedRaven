@@ -1,0 +1,14 @@
+// :PARSER
+
+Foo: {
+    Duplicate: "?"
+},
+
+Bar: <Foo> {
+    Duplicate: "no"
+},
+
+Test: {
+    Duplicate: false,
+    Duplicate: -1,
+}

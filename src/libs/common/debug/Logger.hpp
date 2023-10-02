@@ -36,9 +36,6 @@ namespace RR
 #define ASSERT_MSG(ignore, ...) ((void)0);
 #endif
 
-// todo: move it to somewhere else
-#define UNUSED(x) ((void)(x))
-
 #define LOG_INFO(...) \
     Log::Format::Info("INFO:\n  {0}({1}): {2}\n  {3}\n", __FILE__, __LINE__, __FUNCTION__, fmt::format(__VA_ARGS__))
 

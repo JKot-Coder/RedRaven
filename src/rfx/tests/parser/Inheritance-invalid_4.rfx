@@ -1,0 +1,4 @@
+// :PARSER
+
+Bar: { Name: "Bar" },
+Foo: <NotExisting> {}

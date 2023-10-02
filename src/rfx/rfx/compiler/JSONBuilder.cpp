@@ -8,17 +8,6 @@
 
 namespace RR::Rfx
 {
-    namespace
-    {
-        UnownedStringSlice unquotingToken(const Token& token)
-        {
-            if (token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral)
-                return UnownedStringSlice(token.stringSlice.Begin() + 1, token.stringSlice.End() - 1);
-
-            return token.stringSlice;
-        }
-    }
-
     U8String JSONValueTypeToString(JSONValue::Type type)
     {
         static_assert(int(JSONValue::Type::CountOf) == 8);
@@ -41,129 +30,103 @@ namespace RR::Rfx
         }
     }
 
-    JSONValue JSONValue::MakeEmptyArray()
-    {
-        JSONValue value;
-        value.type = Type::Array;
-        value.container = JSONContainer::MakeArray();
-        return value;
-    }
-
-    JSONValue JSONValue::MakeEmptyObject()
-    {
-        JSONValue value;
-        value.type = Type::Object;
-        value.container = JSONContainer::MakeObject();
-        return value;
-    }
-
-    void JSONContainer::AddValue(const JSONValue& value)
-    {
-        ASSERT(type_ == Type::Array);
-        arrayValues_.push_back(value);
-    }
-
-    void JSONContainer::AddKeyValue(const UnownedStringSlice& key, const JSONValue& value)
-    {
-        ASSERT(type_ == Type::Object);
-        const bool emplaced = objectValues_.emplace(key, value).second;
-        UNUSED(emplaced);
-        ASSERT(emplaced);
-    }
-
-    JSONValue JSONContainer::Find(const UnownedStringSlice& key) const
-    {
-        ASSERT(type_ == Type::Object);
-        auto result = objectValues_.find(key);
-        return result != objectValues_.end() ? result->second : JSONValue();
-    }
-
-    bool JSONContainer::IsObjectValueExist(const UnownedStringSlice& key)
-    {
-        ASSERT(type_ == Type::Object);
-        return objectValues_.find(key) != objectValues_.end();
-    }
-
-    void JSONContainer::InheriteFrom(const std::vector<std::shared_ptr<JSONContainer>>& parents)
-    {
-        ASSERT(type_ == Type::Object);
-
-        for (const auto& parent : parents)
-        {
-            ASSERT(parent);
-            ASSERT(parent->type_ == Type::Object);
-            objectValues_.insert(parent->objectValues_.begin(), parent->objectValues_.end());
-        }
-    }
-
     JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
-                                                                               root_(JSONContainer::MakeObject()),
                                                                                context_(context)
     {
-        stack_.emplace_back(root_);
+        root_ = JSONValue::MakeEmptyObject();
+        stack_.emplace(root_);
     }
 
     DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
 
-    RResult JSONBuilder::StartObject(const Token& token)
+    RResult JSONBuilder::checkNoInheritanceAlloved(JSONValue::Type value_type)
     {
-        const auto value = JSONValue::MakeEmptyObject();
-        RR_RETURN_ON_FAIL(add(token, value));
-        stack_.emplace_back(value.container);
+        if (parents_.empty())
+            return RResult::Ok;
+
+        getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value_type);
+        return RResult::Fail;
+    }
+
+    RResult JSONBuilder::StartObject()
+    {
+        auto value = JSONValue::MakeEmptyObject();
+        RR_RETURN_ON_FAIL(add(value));
+        stack_.emplace(parents_, value);
         expect_ = Expect::ObjectKey;
+        parents_.clear();
         return RResult::Ok;
     }
 
     void JSONBuilder::EndObject()
     {
-        ASSERT(currentContainer()->GetType() == JSONContainer::Type::Object);
+        ASSERT(currentValue().type == JSONValue::Type::Object);
         ASSERT(expect_ == Expect::ObjectKey);
-        currentContainer()->InheriteFrom(parents_);
-        stack_.pop_back();
+
+        // Inheritance
+        size_t size = 0;
+        for (const auto parent : currentContext().parents)
+            size += parent.second->size();
+
+        currentValue().container->reserve(size);
+
+        for (const auto parent : currentContext().parents)
+            currentValue().container->insert(parent.second->begin(), parent.second->end());
+
+        stack_.pop();
         key_.Reset();
         parents_.clear();
-        expect_ = currentContainer()->GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
-    RResult JSONBuilder::StartArray(const Token& token)
+    RResult JSONBuilder::StartArray()
     {
-        const auto value = JSONValue::MakeEmptyArray();
-        RR_RETURN_ON_FAIL(add(token, value));
-        stack_.emplace_back(value.container);
+        auto value = JSONValue::MakeEmptyArray();
+
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
+        RR_RETURN_ON_FAIL(add(value));
+        stack_.emplace(value);
         expect_ = Expect::ArrayValue;
+
         return RResult::Ok;
     }
 
     void JSONBuilder::EndArray()
     {
-        ASSERT(currentContainer()->GetType() == JSONContainer::Type::Array);
+        ASSERT(currentValue().type == JSONValue::Type::Array);
         ASSERT(expect_ == Expect::ArrayValue);
-        stack_.pop_back();
+        stack_.pop();
         key_.Reset();
 
-        expect_ = currentContainer()->GetType() == JSONContainer::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
-    void JSONBuilder::BeginInrehitance()
+    void JSONBuilder::StartInrehitance()
     {
-        ASSERT(currentContainer()->GetType() == JSONContainer::Type::Object);
-        ASSERT(expect_ == Expect::ObjectValue);
+        ASSERT(expect_ == (currentValue().type == JSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue));
         ASSERT(parents_.size() == 0);
         expect_ = Expect::Parent;
+    }
+
+    void JSONBuilder::EndInrehitance()
+    {
+        ASSERT(expect_ == Expect::Parent);
+        ASSERT(parents_.size() != 0);
+        expect_ = currentValue().type == JSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue;
     }
 
     RResult JSONBuilder::AddParent(const Token& parent)
     {
         ASSERT(expect_ == Expect::Parent);
         ASSERT(parent.type == Token::Type::StringLiteral || parent.type == Token::Type::Identifier);
-        auto parentName = unquotingToken(parent);
+        const auto parentName = parent.stringSlice;
 
-        auto value = root_->Find(parentName);
+        auto value = root_.Find(parentName);
         switch (value.type)
         {
             case JSONValue::Type::Object:
             {
-                parents_.push_back(value.container);
+                parents_.emplace_back(parent, value.container.get());
                 break;
             }
             case JSONValue::Type::Invalid:
@@ -185,9 +148,9 @@ namespace RR::Rfx
     {
         ASSERT(expect_ == Expect::ObjectKey);
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
-        auto keyName = unquotingToken(key);
+        const auto keyName = key.stringSlice;
 
-        if (currentContainer()->IsObjectValueExist(keyName))
+        if (currentValue().Contains(keyName))
         {
             getSink().Diagnose(key, Diagnostics::duplicateKey, keyName);
             return RResult::AlreadyExist;
@@ -199,92 +162,28 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult JSONBuilder::AddValue(const Token& token)
+    RResult JSONBuilder::AddValue(JSONValue&& value)
     {
-        switch (token.type)
-        {
-            case Token::Type::StringLiteral:
-            case Token::Type::CharLiteral:
-            case Token::Type::Identifier:
-            {
-                UnownedStringSlice stringSlice = unquotingToken(token);
-                if (stringSlice == "null")
-                    return add(token, JSONValue::MakeNull());
-                else if (stringSlice == "true")
-                    return add(token, JSONValue::MakeBool(true));
-                else if (stringSlice == "false")
-                    return add(token, JSONValue::MakeBool(false));
-
-                return add(token, JSONValue::MakeString(stringSlice));
-            }
-            case Token::Type::IntegerLiteral:
-                return add(token, JSONValue::MakeInt(tokenToInt(token, 0)));
-            case Token::Type::FloatingPointLiteral:
-                return add(token, JSONValue::MakeFloat(tokenToFloat(token)));
-            default:
-            {
-                getSink().Diagnose(token, Diagnostics::unexpectedToken, token.type);
-                return RResult::Fail;
-            }
-        }
+        ASSERT(value.type != JSONValue::Type::Invalid);
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
+        return add(value);
     }
 
-    RResult JSONBuilder::add(const Token& token, const JSONValue& value)
+    RResult JSONBuilder::add(JSONValue&& value)
     {
         switch (expect_)
         {
-            case Expect::ArrayValue: currentContainer()->AddValue(value); return RResult::Ok;
-            case Expect::Parent:
-                if (value.type != JSONValue::Type::Object)
-                {
-                    getSink().Diagnose(token, Diagnostics::invalidTypeForInheritance, key_, value.type);
-                    return RResult::Fail;
-                }
-                [[fallthrough]];
+            case Expect::ArrayValue: currentValue().append(std::move(value)); break;
             case Expect::ObjectValue:
-                currentContainer()->AddKeyValue(key_, value);
+                currentValue()[key_] = value;
                 key_.Reset();
                 expect_ = Expect::ObjectKey;
-                return RResult::Ok;
-            default: ASSERT_MSG(false, "Invalid current state"); return RResult::Fail;
+                break;
+            default:
+                ASSERT_MSG(false, "Invalid current state");
+                return RResult::Fail;
         }
-    }
 
-    int64_t JSONBuilder::tokenToInt(const Token& token, int radix)
-    {
-        ASSERT(token.type == Token::Type::IntegerLiteral);
-
-        errno = 0;
-
-        auto end = const_cast<U8Char*>(token.stringSlice.End());
-        const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
-
-        if (errno == ERANGE)
-            getSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "int64_t");
-
-        if (end == token.stringSlice.End())
-            return result;
-
-        getSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.GetContentString(), radix);
-        return 0;
-    }
-
-    double JSONBuilder::tokenToFloat(const Token& token)
-    {
-        ASSERT(token.type == Token::Type::FloatingPointLiteral);
-
-        errno = 0;
-
-        auto end = const_cast<U8Char*>(token.stringSlice.End());
-        const auto result = std::strtod(token.stringSlice.Begin(), &end);
-
-        if (errno == ERANGE)
-            getSink().Diagnose(token, Diagnostics::floatLiteralOutOfRange, token.GetContentString(), "double");
-
-        if (end == token.stringSlice.End())
-            return result;
-
-        getSink().Diagnose(token, Diagnostics::floatLiteralUnexpected, token.GetContentString());
-        return 0;
+        return RResult::Ok;
     }
 }

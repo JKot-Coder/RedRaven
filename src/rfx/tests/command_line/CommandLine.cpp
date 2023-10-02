@@ -7,7 +7,7 @@ namespace RR::Rfx
     {
         TEST_CASE("CommandLine", "[CommandLine]")
         {
-         //   runTestsInDirectory("../src/rfx/tests/command_line");
+            runTestsInDirectory("../src/rfx/tests/command_line");
         }
     }
 }

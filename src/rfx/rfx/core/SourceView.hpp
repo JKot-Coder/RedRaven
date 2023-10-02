@@ -28,9 +28,8 @@ namespace RR::Rfx
     };
 
     /* A SourceView maps to a single span of SourceLocation range and is equivalent to a single include or more precisely use of a source file.
-            It is distinct from a SourceFile - because a SourceFile may be included multiple times, with different interpretations (depending
-            on #defines for example).
-            */
+    It is distinct from a SourceFile - because a SourceFile may be included multiple times, with different interpretations (depending
+    on #defines for example). */
     class SourceView : public std::enable_shared_from_this<SourceView>, Common::NonCopyable
     {
     public:
@@ -149,7 +148,7 @@ namespace RR::Rfx
             ASSERT(sourceView);
 
             const auto content = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceView->GetSourceFile()->GetContent().End());
-            const Token initiatingToken(Token::Type::Unknown, UnownedStringSlice(content.Begin(), content.Begin()), splitLocation);
+            const Token initiatingToken(Token::Type::Unknown, content, splitLocation);
 
             return MakeShared<SourceView>::Create(sourceView->GetSourceFile(), content, ownPathInfo, initiatingToken);
         }

@@ -15,7 +15,7 @@
 namespace RR
 {
     using namespace Common;
-    
+
     namespace GAPI
     {
         enum class GpuResourceBindFlags : uint32_t
@@ -174,6 +174,7 @@ namespace RR
             Count
         };
 
+        // TODO: make non copyable use pass by value and move tehnique
         struct GpuResourceDescription
         {
         public:

@@ -1,5 +1,5 @@
 exit_status:0
-output: [
+output:
 Shader compiler
 Usage:
   rfxc [OPTION...] <inputs>
@@ -12,8 +12,11 @@ Usage:
       --Fc file  Output assembly code listing file
       --Fo file  Output object file
   -D arg         Define macro
+      --Rl       Force the usage of only relative paths in the output and 
+                 diagnostic messages
 
  Utility Options options:
-  -P file  Preprocess to file (must be used alone)
+  -L, --Lex file         Lexer output to file (must be used alone)
+  -P, --Preprocess file  Preprocessor output to file (must be used alone)
+  -R, --Parse file       Parser output to file (must be used alone)
 
-]

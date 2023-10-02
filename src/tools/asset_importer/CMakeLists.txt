@@ -17,7 +17,7 @@ set(SRC_PROCESSORS
     "processors/Bundle.cpp")
 source_group("Processors" FILES ${SRC_PROCESSORS})
 
-set(SRC 
+set(SRC
     ${SRC}
     ${SRC_PROCESSORS})
 

@@ -7,4 +7,4 @@ void main()
 
 #if RFX
 shader QEEQ_VS : vs_5() main();
-#endif 
+#endif
