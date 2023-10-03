@@ -1,4 +1,4 @@
-#include "JSONBuilder.hpp"
+#include "RSONBuilder.hpp"
 
 #include "DiagnosticCore.hpp"
 #include "common/Result.hpp"
@@ -8,21 +8,21 @@
 
 namespace RR::Rfx
 {
-    U8String JSONValueTypeToString(JSONValue::Type type)
+    U8String RSONValueTypeToString(RSONValue::Type type)
     {
-        static_assert(int(JSONValue::Type::CountOf) == 8);
+        static_assert(int(RSONValue::Type::CountOf) == 8);
         switch (type)
         {
-            case JSONValue::Type::Invalid: return "Invalid";
+            case RSONValue::Type::Invalid: return "Invalid";
 
-            case JSONValue::Type::Bool: return "Bool";
-            case JSONValue::Type::Float: return "Float";
-            case JSONValue::Type::Integer: return "Integer";
-            case JSONValue::Type::Null: return "Null";
-            case JSONValue::Type::String: return "String";
+            case RSONValue::Type::Bool: return "Bool";
+            case RSONValue::Type::Float: return "Float";
+            case RSONValue::Type::Integer: return "Integer";
+            case RSONValue::Type::Null: return "Null";
+            case RSONValue::Type::String: return "String";
 
-            case JSONValue::Type::Array: return "Array";
-            case JSONValue::Type::Object: return "Object";
+            case RSONValue::Type::Array: return "Array";
+            case RSONValue::Type::Object: return "Object";
 
             default:
                 ASSERT(!"unexpected");
@@ -30,16 +30,16 @@ namespace RR::Rfx
         }
     }
 
-    JSONBuilder::JSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
+    RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
                                                                                context_(context)
     {
-        root_ = JSONValue::MakeEmptyObject();
+        root_ = RSONValue::MakeEmptyObject();
         stack_.emplace(root_);
     }
 
-    DiagnosticSink& JSONBuilder::getSink() const { return context_->sink; }
+    DiagnosticSink& RSONBuilder::getSink() const { return context_->sink; }
 
-    RResult JSONBuilder::checkNoInheritanceAlloved(JSONValue::Type value_type)
+    RResult RSONBuilder::checkNoInheritanceAlloved(RSONValue::Type value_type)
     {
         if (parents_.empty())
             return RResult::Ok;
@@ -48,9 +48,9 @@ namespace RR::Rfx
         return RResult::Fail;
     }
 
-    RResult JSONBuilder::StartObject()
+    RResult RSONBuilder::StartObject()
     {
-        auto value = JSONValue::MakeEmptyObject();
+        auto value = RSONValue::MakeEmptyObject();
         RR_RETURN_ON_FAIL(add(value));
         stack_.emplace(parents_, value);
         expect_ = Expect::ObjectKey;
@@ -58,9 +58,9 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    void JSONBuilder::EndObject()
+    void RSONBuilder::EndObject()
     {
-        ASSERT(currentValue().type == JSONValue::Type::Object);
+        ASSERT(currentValue().type == RSONValue::Type::Object);
         ASSERT(expect_ == Expect::ObjectKey);
 
         // Inheritance
@@ -76,12 +76,12 @@ namespace RR::Rfx
         stack_.pop();
         key_.Reset();
         parents_.clear();
-        expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
-    RResult JSONBuilder::StartArray()
+    RResult RSONBuilder::StartArray()
     {
-        auto value = JSONValue::MakeEmptyArray();
+        auto value = RSONValue::MakeEmptyArray();
 
         RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
         RR_RETURN_ON_FAIL(add(value));
@@ -91,31 +91,31 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    void JSONBuilder::EndArray()
+    void RSONBuilder::EndArray()
     {
-        ASSERT(currentValue().type == JSONValue::Type::Array);
+        ASSERT(currentValue().type == RSONValue::Type::Array);
         ASSERT(expect_ == Expect::ArrayValue);
         stack_.pop();
         key_.Reset();
 
-        expect_ = currentValue().type == JSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
     }
 
-    void JSONBuilder::StartInrehitance()
+    void RSONBuilder::StartInrehitance()
     {
-        ASSERT(expect_ == (currentValue().type == JSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue));
+        ASSERT(expect_ == (currentValue().type == RSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue));
         ASSERT(parents_.size() == 0);
         expect_ = Expect::Parent;
     }
 
-    void JSONBuilder::EndInrehitance()
+    void RSONBuilder::EndInrehitance()
     {
         ASSERT(expect_ == Expect::Parent);
         ASSERT(parents_.size() != 0);
-        expect_ = currentValue().type == JSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue;
+        expect_ = currentValue().type == RSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue;
     }
 
-    RResult JSONBuilder::AddParent(const Token& parent)
+    RResult RSONBuilder::AddParent(const Token& parent)
     {
         ASSERT(expect_ == Expect::Parent);
         ASSERT(parent.type == Token::Type::StringLiteral || parent.type == Token::Type::Identifier);
@@ -124,12 +124,12 @@ namespace RR::Rfx
         auto value = root_.Find(parentName);
         switch (value.type)
         {
-            case JSONValue::Type::Object:
+            case RSONValue::Type::Object:
             {
                 parents_.emplace_back(parent, value.container.get());
                 break;
             }
-            case JSONValue::Type::Invalid:
+            case RSONValue::Type::Invalid:
             {
                 getSink().Diagnose(parent, Diagnostics::undeclaredIdentifier, parentName);
                 return RResult::NotFound;
@@ -144,7 +144,7 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult JSONBuilder::AddKey(const Token& key)
+    RResult RSONBuilder::AddKey(const Token& key)
     {
         ASSERT(expect_ == Expect::ObjectKey);
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
@@ -162,14 +162,14 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult JSONBuilder::AddValue(JSONValue&& value)
+    RResult RSONBuilder::AddValue(RSONValue&& value)
     {
-        ASSERT(value.type != JSONValue::Type::Invalid);
+        ASSERT(value.type != RSONValue::Type::Invalid);
         RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
         return add(value);
     }
 
-    RResult JSONBuilder::add(JSONValue&& value)
+    RResult RSONBuilder::add(RSONValue&& value)
     {
         switch (expect_)
         {

@@ -2,7 +2,7 @@
 
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticCore.hpp"
-#include "rfx/compiler/JSONBuilder.hpp"
+#include "rfx/compiler/RSONBuilder.hpp"
 #include "rfx/compiler/Lexer.hpp"
 
 #include "common/OnScopeExit.hpp"
@@ -82,7 +82,7 @@ namespace RR::Rfx
             ASSERT(context);
         }
 
-        RResult Parse(JSONValue& root);
+        RResult Parse(RSONValue& root);
 
     private:
         DiagnosticSink& getSink() const { return context_->sink; }
@@ -135,7 +135,7 @@ namespace RR::Rfx
 
     private:
         std::shared_ptr<CompileContext> context_;
-        JSONBuilder builder_;
+        RSONBuilder builder_;
         TokenSpan tokenSpan_;
         TokenSpan::const_iterator currentToken_;
     };
@@ -313,13 +313,13 @@ namespace RR::Rfx
             {
                 int64_t value;
                 RR_RETURN_ON_FAIL(tokenToInt(advance(), 0, value));
-                return builder_.AddValue(JSONValue::MakeInt(value * (positive ? 1 : -1)));
+                return builder_.AddValue(RSONValue::MakeInt(value * (positive ? 1 : -1)));
             }
             case Token::Type::FloatingPointLiteral:
             {
                 double value;
                 RR_RETURN_ON_FAIL(tokenToFloat(advance(), value));
-                return builder_.AddValue(JSONValue::MakeFloat(value * (positive ? 1.0 : -1.0)));
+                return builder_.AddValue(RSONValue::MakeFloat(value * (positive ? 1.0 : -1.0)));
             }
             default:
             {
@@ -334,13 +334,13 @@ namespace RR::Rfx
         const UnownedStringSlice stringSlice = advance().stringSlice;
 
         if (stringSlice == "null")
-            return builder_.AddValue(JSONValue::MakeNull());
+            return builder_.AddValue(RSONValue::MakeNull());
         else if (stringSlice == "true")
-            return builder_.AddValue(JSONValue::MakeBool(true));
+            return builder_.AddValue(RSONValue::MakeBool(true));
         else if (stringSlice == "false")
-            return builder_.AddValue(JSONValue::MakeBool(false));
+            return builder_.AddValue(RSONValue::MakeBool(false));
 
-        return builder_.AddValue(JSONValue::MakeString(stringSlice));
+        return builder_.AddValue(RSONValue::MakeString(stringSlice));
     }
 
     RResult ParserImpl::parseValue()
@@ -386,7 +386,7 @@ namespace RR::Rfx
         return RResult::Fail;
     }
 
-    RResult ParserImpl::Parse(JSONValue& root)
+    RResult ParserImpl::Parse(RSONValue& root)
     {
         RR_RETURN_ON_FAIL(parseObject(true));
         RR_RETURN_ON_FAIL(expect(Token::Type::EndOfFile));
@@ -403,7 +403,7 @@ namespace RR::Rfx
     {
     }
 
-    RResult Parser::Parse(JSONValue& root)
+    RResult Parser::Parse(RSONValue& root)
     {
         ASSERT(impl_)
         return impl_->Parse(root);

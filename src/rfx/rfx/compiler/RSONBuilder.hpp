@@ -20,7 +20,7 @@ namespace RR
         class DiagnosticSink;
         struct Token;
 
-        struct JSONValue
+        struct RSONValue
         {
         private:
             struct comporator
@@ -55,7 +55,7 @@ namespace RR
 
         public:
             // Potentially there is the best container for both array and object values. See tsl::ordered_map
-            using Container = stl::vector_map<UnownedStringSlice, JSONValue, comporator>;
+            using Container = stl::vector_map<UnownedStringSlice, RSONValue, comporator>;
             using const_iterator = Container::const_iterator;
             using iterator = Container::iterator;
             using reverse_iterator = Container::reverse_iterator;
@@ -78,17 +78,17 @@ namespace RR
             };
 
         public:
-            JSONValue() = default;
-            JSONValue(const JSONValue& other) { copy(other); }
-            JSONValue(JSONValue&& other) noexcept { swap(other); }
-            ~JSONValue()
+            RSONValue() = default;
+            RSONValue(const RSONValue& other) { copy(other); }
+            RSONValue(RSONValue&& other) noexcept { swap(other); }
+            ~RSONValue()
             {
                 if (IsObjectLike())
                     container = nullptr;
             }
 
-            JSONValue& operator=(const JSONValue& other) { return copy(other); }
-            JSONValue& operator=(JSONValue&& other) noexcept { return swap(other); }
+            RSONValue& operator=(const RSONValue& other) { return copy(other); }
+            RSONValue& operator=(RSONValue&& other) noexcept { return swap(other); }
 
             iterator begin() noexcept { return IsObjectLike() ? container->begin() : iterator {}; }
             const_iterator begin() const noexcept { return cbegin(); }
@@ -110,56 +110,56 @@ namespace RR
             bool IsObject() const { return type == Type::Object; }
             bool IsArray() const { return type == Type::Array; }
 
-            static JSONValue MakeBool(bool inValue)
+            static RSONValue MakeBool(bool inValue)
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::Bool;
                 value.boolValue = inValue;
                 return value;
             }
 
-            static JSONValue MakeFloat(double inValue)
+            static RSONValue MakeFloat(double inValue)
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::Float;
                 value.floatValue = inValue;
                 return value;
             }
 
-            static JSONValue MakeInt(int64_t inValue)
+            static RSONValue MakeInt(int64_t inValue)
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::Integer;
                 value.intValue = inValue;
                 return value;
             }
 
-            static JSONValue MakeNull()
+            static RSONValue MakeNull()
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::Null;
                 return value;
             }
 
-            static JSONValue MakeString(const UnownedStringSlice& inValue)
+            static RSONValue MakeString(const UnownedStringSlice& inValue)
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::String;
                 value.stringValue = inValue;
                 return value;
             }
 
-            static JSONValue JSONValue::MakeEmptyArray()
+            static RSONValue RSONValue::MakeEmptyArray()
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::Array;
                 value.container = std::make_shared<Container>();
                 return value;
             }
 
-            static JSONValue JSONValue::MakeEmptyObject()
+            static RSONValue RSONValue::MakeEmptyObject()
             {
-                JSONValue value;
+                RSONValue value;
                 value.type = Type::Object;
                 value.container = std::make_shared<Container>();
                 return value;
@@ -205,7 +205,7 @@ namespace RR
             }
 
         public:
-            const JSONValue& Find(const UnownedStringSlice& key) const
+            const RSONValue& Find(const UnownedStringSlice& key) const
             {
                 if (IsObject())
                 {
@@ -226,10 +226,10 @@ namespace RR
             }
 
         private:
-            friend class JSONBuilder;
+            friend class RSONBuilder;
 
-            const JSONValue& append(const JSONValue& value) { return append(JSONValue(value)); }
-            const JSONValue& append(JSONValue&& value)
+            const RSONValue& append(const RSONValue& value) { return append(RSONValue(value)); }
+            const RSONValue& append(RSONValue&& value)
             {
                 ASSERT_MSG(IsArray(), "Append requires ArrayValue");
 
@@ -241,17 +241,17 @@ namespace RR
                 return container->emplace_back_unsorted(UnownedStringSlice(ptr, ptr), std::move(value)).second;
             }
 
-            JSONValue& operator[](const UnownedStringSlice& key)
+            RSONValue& operator[](const UnownedStringSlice& key)
             {
                 if (!IsObject())
                     return nullValue();
 
-                return container->emplace(key, JSONValue {}).first->second;
+                return container->emplace(key, RSONValue {}).first->second;
             }
 
-            JSONValue& nullValue() const
+            RSONValue& nullValue() const
             {
-                static JSONValue null = {};
+                static RSONValue null = {};
                 return null;
             }
 
@@ -271,7 +271,7 @@ namespace RR
                           sizeof(data) >= sizeof(std::shared_ptr<void>));
 
         private:
-            JSONValue& copy(const JSONValue& other)
+            RSONValue& copy(const RSONValue& other)
             {
                 if (IsObjectLike())
                     container = nullptr;
@@ -285,7 +285,7 @@ namespace RR
                 return *this;
             }
 
-            JSONValue& swap(JSONValue& other)
+            RSONValue& swap(RSONValue& other)
             {
                 std::swap(data, other.data);
                 std::swap(type, other.type);
@@ -293,7 +293,7 @@ namespace RR
             }
         };
 
-        class JSONBuilder
+        class RSONBuilder
         {
         public:
             RResult StartObject();
@@ -305,26 +305,26 @@ namespace RR
             RResult AddParent(const Token& parent);
 
             RResult AddKey(const Token& key);
-            RResult AddValue(JSONValue&& value);
+            RResult AddValue(RSONValue&& value);
             /// Get the root value. Will be set after valid construction
-            const JSONValue& GetRootValue() const { return root_; }
+            const RSONValue& GetRootValue() const { return root_; }
 
-            JSONBuilder(const std::shared_ptr<CompileContext>& context);
+            RSONBuilder(const std::shared_ptr<CompileContext>& context);
 
         private:
             struct Context;
 
-            RResult checkNoInheritanceAlloved(JSONValue::Type value_type);
+            RResult checkNoInheritanceAlloved(RSONValue::Type value_type);
 
             DiagnosticSink& getSink() const;
             Context& currentContext() { return stack_.top(); }
-            JSONValue& currentValue() { return currentContext().value; }
+            RSONValue& currentValue() { return currentContext().value; }
 
-            RResult add(const JSONValue& value) { return add(JSONValue(value)); }
-            RResult add(JSONValue&& value);
+            RResult add(const RSONValue& value) { return add(RSONValue(value)); }
+            RResult add(RSONValue&& value);
 
         private:
-            using Parent = std::pair<Token, JSONValue::Container*>;
+            using Parent = std::pair<Token, RSONValue::Container*>;
             enum class Expect : uint8_t
             {
                 ObjectKey,
@@ -335,32 +335,32 @@ namespace RR
 
             struct Context
             {
-                Context(JSONValue value) : value(std::move(value)) {};
-                Context(std::vector<Parent> parents, JSONValue value) : parents(std::move(parents)), value(std::move(value)) { }
+                Context(RSONValue value) : value(std::move(value)) {};
+                Context(std::vector<Parent> parents, RSONValue value) : parents(std::move(parents)), value(std::move(value)) { }
 
                 std::vector<Parent> parents;
-                JSONValue value;
+                RSONValue value;
             };
 
             Expect expect_;
             UnownedStringSlice key_;
             std::stack<Context> stack_;
             std::vector<Parent> parents_;
-            JSONValue root_;
+            RSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };
 
-        U8String JSONValueTypeToString(JSONValue::Type type);
+        U8String RSONValueTypeToString(RSONValue::Type type);
     }
 }
 
 template <>
-struct fmt::formatter<RR::Rfx::JSONValue::Type> : formatter<string_view>
+struct fmt::formatter<RR::Rfx::RSONValue::Type> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::Rfx::JSONValue::Type type, FormatContext& ctx)
+    auto format(RR::Rfx::RSONValue::Type type, FormatContext& ctx)
     {
-        return formatter<string_view>::format(RR::Rfx::JSONValueTypeToString(type), ctx);
+        return formatter<string_view>::format(RR::Rfx::RSONValueTypeToString(type), ctx);
     }
 };

@@ -3,7 +3,7 @@
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/DxcPreprocessor.hpp"
-#include "rfx/compiler/JSONBuilder.hpp"
+#include "rfx/compiler/RSONBuilder.hpp"
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/Parser.hpp"
 #include "rfx/compiler/Preprocessor.hpp"
@@ -222,19 +222,19 @@ namespace RR::Rfx
     class JSONWriter final : public SourceWriter<2>
     {
     public:
-        void Write(const JSONValue& value)
+        void Write(const RSONValue& value)
         {
             switch (value.type)
             {
-                case JSONValue::Type::Bool:
-                case JSONValue::Type::Float:
-                case JSONValue::Type::Integer:
-                case JSONValue::Type::Null:
-                case JSONValue::Type::String:
+                case RSONValue::Type::Bool:
+                case RSONValue::Type::Float:
+                case RSONValue::Type::Integer:
+                case RSONValue::Type::Null:
+                case RSONValue::Type::String:
                     formatPlain(value);
                     break;
-                case JSONValue::Type::Array:
-                case JSONValue::Type::Object:
+                case RSONValue::Type::Array:
+                case RSONValue::Type::Object:
                 {
                     const bool isArray = value.IsArray();
                     const U8Char openBracket = isArray ? '[' : '{';
@@ -270,15 +270,15 @@ namespace RR::Rfx
         }
 
     private:
-        void formatPlain(const JSONValue& value)
+        void formatPlain(const RSONValue& value)
         {
             switch (value.type)
             {
-                case JSONValue::Type::Bool: append(value.boolValue ? "true" : "false"); break;
-                case JSONValue::Type::Float: append(fmt::format("{}", value.floatValue)); break;
-                case JSONValue::Type::Integer: append(fmt::format("{}", value.intValue)); break;
-                case JSONValue::Type::Null: append("null", 4); break;
-                case JSONValue::Type::String:
+                case RSONValue::Type::Bool: append(value.boolValue ? "true" : "false"); break;
+                case RSONValue::Type::Float: append(fmt::format("{}", value.floatValue)); break;
+                case RSONValue::Type::Integer: append(fmt::format("{}", value.intValue)); break;
+                case RSONValue::Type::Null: append("null", 4); break;
+                case RSONValue::Type::String:
                 {
                     StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, getOutputString());
                     break;
@@ -288,7 +288,7 @@ namespace RR::Rfx
         }
     };
 
-    ComPtr<IBlob> writeJSON(const JSONValue& root)
+    ComPtr<IBlob> writeJSON(const RSONValue& root)
     {
         JSONWriter writer;
         writer.Write(root);
@@ -528,7 +528,7 @@ namespace RR::Rfx
                     else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
                     {
                         Parser parser(tokens, context);
-                        JSONValue root;
+                        RSONValue root;
 
                         // Write diagnostic even on parsing error.
                         ON_SCOPE_EXIT({

@@ -17,7 +17,7 @@ namespace RR
         struct CompileContext;
         struct Token;
         struct TokenSpan;
-        struct JSONValue;
+        struct RSONValue;
 
         class Parser final : Common::NonCopyable
         {
@@ -26,7 +26,7 @@ namespace RR
             Parser() = delete;
             Parser(const TokenSpan& tokenSpan, const std::shared_ptr<CompileContext>& context);
 
-            Common::RResult Parse(JSONValue& root);
+            Common::RResult Parse(RSONValue& root);
 
         private:
             std::unique_ptr<ParserImpl> impl_;
