@@ -30,9 +30,8 @@ namespace RR
             void StartInrehitance();
             void EndInrehitance();
             RResult AddParent(const Token& parent);
-
-            RResult AddKey(const Token& key);
             RResult AddValue(RSONValue value);
+            RResult AddKeyValue(const Token & key,RSONValue value);
             /// Get the root value. Will be set after valid construction
             const RSONValue& GetRootValue() const { return root_; }
 
@@ -47,13 +46,10 @@ namespace RR
             Context& currentContext() { return stack_.top(); }
             RSONValue& currentValue() { return currentContext().value; }
 
-            RResult add(RSONValue value);
-
         private:
             using Parent = std::pair<Token, RSONValue::Container*>;
             enum class Expect : uint8_t
             {
-                ObjectKey,
                 ObjectValue,
                 ArrayValue,
                 Parent
@@ -69,7 +65,6 @@ namespace RR
             };
 
             Expect expect_;
-            UnownedStringSlice key_;
             std::stack<Context> stack_;
             std::vector<Parent> parents_;
             RSONValue root_;

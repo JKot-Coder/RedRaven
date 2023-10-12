@@ -8,7 +8,7 @@
 
 namespace RR::Rfx
 {
-    RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
+    RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectValue),
                                                                                context_(context)
     {
         root_ = RSONValue::MakeEmptyObject();
@@ -21,17 +21,17 @@ namespace RR::Rfx
     {
         if (parents_.empty())
             return RResult::Ok;
-
-        getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value_type);
+        std::ignore = value_type;
+// TODO?
+       // getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value_type);
         return RResult::Fail;
     }
 
     RResult RSONBuilder::StartObject()
     {
         auto value = RSONValue::MakeEmptyObject();
-        RR_RETURN_ON_FAIL(add(value));
         stack_.emplace(parents_, value);
-        expect_ = Expect::ObjectKey;
+        expect_ = Expect::ObjectValue;
         parents_.clear();
         return RResult::Ok;
     }
@@ -39,7 +39,7 @@ namespace RR::Rfx
     RSONValue RSONBuilder::EndObject()
     {
         ASSERT(currentValue().type == RSONValue::Type::Object);
-        ASSERT(expect_ == Expect::ObjectKey);
+        ASSERT(expect_ == Expect::ObjectValue);
 
         // Inheritance
         size_t size = 0;
@@ -53,9 +53,8 @@ namespace RR::Rfx
 
         RSONValue result = currentValue();
         stack_.pop();
-        key_.Reset();
         parents_.clear();
-        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectValue;
 
         return result;
     }
@@ -65,7 +64,6 @@ namespace RR::Rfx
         auto value = RSONValue::MakeEmptyArray();
 
         RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
-        RR_RETURN_ON_FAIL(add(value));
         stack_.emplace(value);
         expect_ = Expect::ArrayValue;
 
@@ -79,9 +77,8 @@ namespace RR::Rfx
 
         RSONValue result = currentValue();
         stack_.pop();
-        key_.Reset();
 
-        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectValue;
         return result;
     }
 
@@ -128,9 +125,9 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult RSONBuilder::AddKey(const Token& key)
+    RResult RSONBuilder::AddKeyValue(const Token& key, RSONValue value)
     {
-        ASSERT(expect_ == Expect::ObjectKey);
+        ASSERT(expect_ == Expect::ObjectValue);
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
         const auto keyName = key.stringSlice;
 
@@ -140,34 +137,19 @@ namespace RR::Rfx
             return RResult::AlreadyExist;
         }
 
-        expect_ = Expect::ObjectValue;
-        key_ = keyName;
+        currentValue().emplace(keyName, std::move(value));
+        //key_.Reset();
 
+      //  key_ = keyName;
         return RResult::Ok;
     }
 
     RResult RSONBuilder::AddValue(RSONValue value)
     {
         ASSERT(value.type != RSONValue::Type::Invalid);
+        ASSERT(expect_ == Expect::ArrayValue);
         RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
-        return add(std::move(value));
-    }
-
-    RResult RSONBuilder::add(RSONValue value)
-    {
-        switch (expect_)
-        {
-            case Expect::ArrayValue: currentValue().append(std::move(value)); break;
-            case Expect::ObjectValue:
-                currentValue().emplace(key_, std::move(value));
-                key_.Reset();
-                expect_ = Expect::ObjectKey;
-                break;
-            default:
-                ASSERT_MSG(false, "Invalid current state");
-                return RResult::Fail;
-        }
-
+        currentValue().append(std::move(value));
         return RResult::Ok;
     }
 }

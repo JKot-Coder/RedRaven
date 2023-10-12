@@ -121,7 +121,6 @@ namespace RR::Rfx
         RSONValue parseString2();
         RSONValue parseArray2();
 
-        RResult parseExpression();
         RSONValue parseAndEvaluateExpression();
         RSONValue parseAndEvaluateUnaryExpression();
 
@@ -298,7 +297,11 @@ namespace RR::Rfx
             if (peekTokenType() == Token::Type::RBracket)
                 break;
 
-            RR_RETURN_VALUE_ON_FAIL(parseExpression(), RSONValue {});
+            RSONValue value = parseAndEvaluateExpression();
+            if (value.type == RSONValue::Type::Invalid)
+                return value;
+
+            RR_RETURN_VALUE_ON_FAIL(builder_.AddValue(std::move(value)), RSONValue {});
 
             if (peekTokenType() == Token::Type::Comma ||
                 peekTokenType() == Token::Type::NewLine)
@@ -326,17 +329,6 @@ namespace RR::Rfx
             }
 
         return false;
-    }
-
-    RResult ParserImpl::parseExpression()
-    {
-        RSONValue value = parseAndEvaluateExpression();
-
-        if (value.type == RSONValue::Type::Invalid)
-            return RResult::Fail;
-
-        RR_RETURN_ON_FAIL(builder_.AddValue(std::move(value)));
-        return RResult::Ok;
     }
 
     /// Parse a complete (infix) preprocessor expression, and return its value
@@ -484,12 +476,15 @@ namespace RR::Rfx
 
             Token keyToken;
             RR_RETURN_VALUE_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, keyToken), RSONValue {});
-            RR_RETURN_VALUE_ON_FAIL(builder_.AddKey(keyToken), RSONValue {});
             RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::Colon), RSONValue {});
 
             skipAllWhitespaces();
 
-            RR_RETURN_VALUE_ON_FAIL(parseExpression(), RSONValue {});
+            RSONValue value = parseAndEvaluateExpression();
+            if(value.type == RSONValue::Type::Invalid)
+                return RSONValue {};
+
+            RR_RETURN_VALUE_ON_FAIL(builder_.AddKeyValue(keyToken, value), RSONValue {});
 
             if (peekTokenType() == Token::Type::Comma ||
                 peekTokenType() == Token::Type::NewLine)
@@ -533,12 +528,15 @@ namespace RR::Rfx
 
             Token keyToken;
             RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, keyToken));
-            RR_RETURN_ON_FAIL(builder_.AddKey(keyToken));
             RR_RETURN_ON_FAIL(expect(Token::Type::Colon));
 
             skipAllWhitespaces();
 
-            RR_RETURN_ON_FAIL(parseExpression());
+            RSONValue value = parseAndEvaluateExpression();
+            if(value.type == RSONValue::Type::Invalid)
+                return RResult::Fail;
+
+            RR_RETURN_ON_FAIL(builder_.AddKeyValue(keyToken, value));
 
             if (peekTokenType() == Token::Type::Comma ||
                 peekTokenType() == Token::Type::NewLine)
