@@ -34,6 +34,7 @@ namespace RR::Rfx::Tests
             LEXER,
             PREPROCESSOR,
             PARSER,
+            COMPILER,
             Undefined
         };
 
@@ -259,68 +260,36 @@ namespace RR::Rfx::Tests
             {
                 auto& command = testCommands[index];
 
+                if (command.first == TestCommand::RUN_RFXC)
+                {
+                    const auto arguments = std::regex_replace(command.second, std::regex("%INPUT%"), testFile.u8string());
+                    const auto& commandResult = raymii::Command::exec(fmt::format("{}rfxc {} 2>&1", ExabutablePrefix, arguments));
+                    const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
+                    RfxApprover::verify(commandResult, ApprovalTests::Options().withNamer(namer));
+                    continue;
+                }
+
+                CompileRequestDescription request;
+                request.inputFile = cstringAllocator.Allocate(testFile.u8string());
+                request.compilerOptions.onlyRelativePaths = true;
+
                 switch (command.first)
                 {
-                    case TestCommand::RUN_RFXC:
-                    {
-                        const auto arguments = std::regex_replace(command.second, std::regex("%INPUT%"), testFile.u8string());
-                        const auto& commandResult = raymii::Command::exec(fmt::format("{}rfxc {} 2>&1", ExabutablePrefix, arguments));
-                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
-                        RfxApprover::verify(commandResult, ApprovalTests::Options().withNamer(namer));
-                        break;
-                    }
-                    case TestCommand::LEXER:
-                    {
-                        CompileRequestDescription request;
-                        request.outputStage = CompileRequestDescription::OutputStage::Lexer;
-                        request.inputFile = cstringAllocator.Allocate(testFile.u8string());
-                        request.compilerOptions.onlyRelativePaths = true;
-
-                        Common::ComPtr<Rfx::ICompileResult> compileResult;
-                        Common::ComPtr<Rfx::ICompiler> compiler;
-                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
-                        REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
-
-                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
-                        RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
-                        break;
-                    }
-                    case TestCommand::PREPROCESSOR:
-                    {
-                        CompileRequestDescription request;
-                        request.outputStage = CompileRequestDescription::OutputStage::Preprocessor;
-                        request.inputFile = cstringAllocator.Allocate(testFile.u8string());
-                        request.compilerOptions.onlyRelativePaths = true;
-
-                        Common::ComPtr<Rfx::ICompileResult> compileResult;
-                        Common::ComPtr<Rfx::ICompiler> compiler;
-                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
-                        REQUIRE(RR_SUCCEEDED(compiler->Compile(request, compileResult.put())));
-
-                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
-                        RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
-                        break;
-                    }
-                    case TestCommand::PARSER:
-                    {
-                        CompileRequestDescription request;
-                        request.outputStage = CompileRequestDescription::OutputStage::Parser;
-                        request.inputFile = cstringAllocator.Allocate(testFile.u8string());
-                        request.compilerOptions.onlyRelativePaths = true;
-
-                        Common::ComPtr<Rfx::ICompileResult> compileResult;
-                        Common::ComPtr<Rfx::ICompiler> compiler;
-                        REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
-                        const auto result = compiler->Compile(request, compileResult.put());
-                        std::ignore = result;
-
-                        const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
-                        RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
-                        break;
-                    }
-
+                    case TestCommand::LEXER: request.outputStage = CompileRequestDescription::OutputStage::Lexer; break;
+                    case TestCommand::PREPROCESSOR: request.outputStage = CompileRequestDescription::OutputStage::Preprocessor; break;
+                    case TestCommand::PARSER: request.outputStage = CompileRequestDescription::OutputStage::Parser; break;
+                    case TestCommand::COMPILER: request.outputStage = CompileRequestDescription::OutputStage::Compiler; break;
                     default: REQUIRE(false);
                 }
+
+                Common::ComPtr<Rfx::ICompileResult> compileResult;
+                Common::ComPtr<Rfx::ICompiler> compiler;
+                REQUIRE(RR_SUCCEEDED(Rfx::GetComplierInstance(compiler.put())));
+                // TODO: Output result to approver
+                std::ignore = compiler->Compile(request, compileResult.put());
+
+                const auto namer = getNamerForTest(testFile, testDirectory, index, testCommands.size());
+                RfxApprover::verify(compileResult, ApprovalTests::Options().withNamer(namer));
             }
         }
     }

@@ -2,8 +2,8 @@
 
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticCore.hpp"
-#include "rfx/compiler/RSONBuilder.hpp"
 #include "rfx/compiler/Lexer.hpp"
+#include "rfx/compiler/RSONBuilder.hpp"
 
 #include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
@@ -117,10 +117,18 @@ namespace RR::Rfx
 
         RResult tokenToInt(const Token& token, int radix, int64_t& outValue);
         RResult tokenToFloat(const Token& token, double& outValue);
+        RSONValue parseNumber2();
+        RSONValue parseString2();
+        RSONValue parseArray2();
+
+        RResult parseExpression();
+        RSONValue parseAndEvaluateExpression();
+        RSONValue parseAndEvaluateUnaryExpression();
 
         RResult parseArray();
         RResult parseParents();
         RResult parseObject(bool renameMe = false);
+        RSONValue parseObject2(bool renameMe = false);
         RResult parseValue();
         RResult parseNumber(bool positive = true);
         RResult parseString();
@@ -139,6 +147,55 @@ namespace RR::Rfx
         TokenSpan tokenSpan_;
         TokenSpan::const_iterator currentToken_;
     };
+
+    namespace
+    {
+        enum class UnaryOps
+        {
+            Sub,
+            Add,
+            Not,
+            BitNot
+        };
+
+        RSONValue applyUnaryOp(UnaryOps op, const RSONValue& value)
+        {
+            switch (value.type)
+            {
+                case RSONValue::Type::Bool:
+                    switch (op)
+                    {
+                        case UnaryOps::Sub: return {};
+                        case UnaryOps::Add: return {};
+                        case UnaryOps::Not: return RSONValue::MakeBool(!value.AsBool());
+                        case UnaryOps::BitNot: return {};
+                    }
+                    break;
+                case RSONValue::Type::Integer:
+                    switch (op)
+                    {
+                        case UnaryOps::Add: return value;
+                        case UnaryOps::Sub: return RSONValue::MakeInt(-value.AsInteger());
+                        case UnaryOps::Not: return {};
+                        case UnaryOps::BitNot: return RSONValue::MakeInt(~value.AsInteger());
+                    }
+                    break;
+                case RSONValue::Type::Float:
+                    switch (op)
+                    {
+                        case UnaryOps::Add: return value;
+                        case UnaryOps::Sub: return RSONValue::MakeFloat(-value.AsFloat());
+                        case UnaryOps::Not: return {};
+                        case UnaryOps::BitNot: return {};
+                    }
+                    break;
+                default: return {};
+            }
+
+            ASSERT_MSG(false, "Unknown unaryOp");
+            return {};
+        }
+    }
 
     RResult ParserImpl::tokenToInt(const Token& token, int radix, int64_t& outValue)
     {
@@ -186,6 +243,77 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
+    RSONValue ParserImpl::parseNumber2()
+    {
+        Token token = advance();
+        switch (token.type)
+        {
+            case Token::Type::IntegerLiteral:
+            {
+                int64_t value;
+                if (tokenToInt(token, 0, value) != RResult::Ok)
+                    return {};
+
+                return RSONValue::MakeInt(value);
+            }
+            case Token::Type::FloatingPointLiteral:
+            {
+                double value;
+                if (tokenToFloat(token, value) != RResult::Ok)
+                    return {};
+
+                return RSONValue::MakeFloat(value);
+            }
+            default:
+            {
+                getSink().Diagnose(token, Diagnostics::unexpectedToken, token.type);
+                return {};
+            }
+        }
+    }
+
+    RSONValue ParserImpl::parseString2()
+    {
+        const UnownedStringSlice stringSlice = advance().stringSlice;
+
+        if (stringSlice == "null")
+            return RSONValue::MakeNull();
+        else if (stringSlice == "true")
+            return RSONValue::MakeBool(true);
+        else if (stringSlice == "false")
+            return RSONValue::MakeBool(false);
+
+        return RSONValue::MakeString(stringSlice);
+    }
+
+    RSONValue ParserImpl::parseArray2()
+    {
+        ASSERT(advance().type == Token::Type::LBracket);
+        RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});
+
+        while (true)
+        {
+            skipAllWhitespaces();
+
+            if (peekTokenType() == Token::Type::RBracket)
+                break;
+
+            RR_RETURN_VALUE_ON_FAIL(parseExpression(), RSONValue {});
+
+            if (peekTokenType() == Token::Type::Comma ||
+                peekTokenType() == Token::Type::NewLine)
+            {
+                advance();
+                continue;
+            }
+
+            break;
+        }
+
+        RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBracket), RSONValue {});
+        return builder_.EndArray();
+    }
+
     bool ParserImpl::advanceIf(std::initializer_list<Token::Type> expected, Token& outToken)
     {
         const auto lookAheadTokenType = peekTokenType();
@@ -198,6 +326,87 @@ namespace RR::Rfx
             }
 
         return false;
+    }
+
+    RResult ParserImpl::parseExpression()
+    {
+        RSONValue value = parseAndEvaluateExpression();
+
+        if (value.type == RSONValue::Type::Invalid)
+            return RResult::Fail;
+
+        RR_RETURN_ON_FAIL(builder_.AddValue(std::move(value)));
+        return RResult::Ok;
+    }
+
+    /// Parse a complete (infix) preprocessor expression, and return its value
+    RSONValue ParserImpl::parseAndEvaluateExpression()
+    {
+        // First read in the left-hand side (or the whole expression in the unary case)
+        const auto value = parseAndEvaluateUnaryExpression();
+
+        // Try to read in trailing infix operators with correct precedence
+        return value;
+        // parseAndEvaluateInfixExpressionWithPrecedence(context, value, 0);
+    }
+
+    // Parse a unary (prefix) expression inside of a preprocessor directive.
+    RSONValue ParserImpl::parseAndEvaluateUnaryExpression()
+    {
+        switch (peekTokenType())
+        {
+            case Token::Type::EndOfFile:
+            case Token::Type::NewLine:
+                //    GetSink().Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
+                return {};
+            default: break;
+        }
+
+        switch (peekTokenType())
+        {
+            // handle prefix unary ops
+            case Token::Type::OpAdd: advance(); return applyUnaryOp(UnaryOps::Add, parseAndEvaluateUnaryExpression());
+            case Token::Type::OpSub: advance(); return applyUnaryOp(UnaryOps::Sub, parseAndEvaluateUnaryExpression());
+            case Token::Type::OpNot: advance(); return applyUnaryOp(UnaryOps::Not, parseAndEvaluateUnaryExpression());
+            case Token::Type::OpBitNot: advance(); return applyUnaryOp(UnaryOps::BitNot, parseAndEvaluateUnaryExpression());
+
+            // handle parenthized sub-expression
+            case Token::Type::LParent:
+            {
+                Token leftParen = advance();
+                const auto value = parseAndEvaluateExpression();
+
+                if (RR_FAILED(expect(Token::Type::RParent)))
+                {
+                    getSink().Diagnose(leftParen, Diagnostics::seeOpeningToken, leftParen.stringSlice);
+                    return {};
+                }
+
+                return value;
+            }
+            case Token::Type::IntegerLiteral:
+            case Token::Type::FloatingPointLiteral:
+                return parseNumber2();
+                /* case Token::Type::Identifier:
+                {
+                    // An identifier here means it was not defined as a macro (or
+                    // it is defined, but as a function-like macro. These should
+                    // just evaluate to zero (possibly with a warning)
+                    getSink().Diagnose(token, Diagnostics::undefinedIdentifierInPreprocessorExpression, token.stringSlice);
+                    return {};
+                }*/
+
+            case Token::Type::StringLiteral:
+            case Token::Type::CharLiteral:
+            case Token::Type::Identifier:
+                return parseString2();
+                // case Token::Type::OpAdd:
+            case Token::Type::LBracket: return parseArray2();
+            case Token::Type::LBrace: return parseObject2();
+            default:
+                getSink().Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
+                return {};
+        }
     }
 
     RResult ParserImpl::parseArray()
@@ -256,6 +465,55 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
+     // Todo rename
+    RSONValue ParserImpl::parseObject2(bool renameMe)
+    {
+        if (!renameMe)
+        {
+            ASSERT(RR_SUCCEEDED(expect(Token::Type::LBrace)));
+            RR_RETURN_VALUE_ON_FAIL(builder_.StartObject(), RSONValue {});
+        }
+
+        while (true)
+        {
+            skipAllWhitespaces();
+
+            if (peekTokenType() == Token::Type::RBrace ||
+                peekTokenType() == Token::Type::EndOfFile)
+                break;
+
+            Token keyToken;
+            RR_RETURN_VALUE_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, keyToken), RSONValue {});
+            RR_RETURN_VALUE_ON_FAIL(builder_.AddKey(keyToken), RSONValue {});
+            RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::Colon), RSONValue {});
+
+            skipAllWhitespaces();
+
+            RR_RETURN_VALUE_ON_FAIL(parseExpression(), RSONValue {});
+
+            if (peekTokenType() == Token::Type::Comma ||
+                peekTokenType() == Token::Type::NewLine)
+            {
+                advance();
+                continue;
+            }
+
+            break;
+        }
+
+        if (!renameMe)
+        {
+            RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBrace), RSONValue {});
+            return builder_.EndObject();
+        }
+        else
+        {
+            RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::EndOfFile), RSONValue {});
+        }
+
+        return RSONValue {};
+    }
+
     // Todo rename
     RResult ParserImpl::parseObject(bool renameMe)
     {
@@ -280,7 +538,7 @@ namespace RR::Rfx
 
             skipAllWhitespaces();
 
-            RR_RETURN_ON_FAIL(parseValue());
+            RR_RETURN_ON_FAIL(parseExpression());
 
             if (peekTokenType() == Token::Type::Comma ||
                 peekTokenType() == Token::Type::NewLine)

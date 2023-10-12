@@ -8,28 +8,6 @@
 
 namespace RR::Rfx
 {
-    U8String RSONValueTypeToString(RSONValue::Type type)
-    {
-        static_assert(int(RSONValue::Type::CountOf) == 8);
-        switch (type)
-        {
-            case RSONValue::Type::Invalid: return "Invalid";
-
-            case RSONValue::Type::Bool: return "Bool";
-            case RSONValue::Type::Float: return "Float";
-            case RSONValue::Type::Integer: return "Integer";
-            case RSONValue::Type::Null: return "Null";
-            case RSONValue::Type::String: return "String";
-
-            case RSONValue::Type::Array: return "Array";
-            case RSONValue::Type::Object: return "Object";
-
-            default:
-                ASSERT(!"unexpected");
-                return "<uknown>";
-        }
-    }
-
     RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectKey),
                                                                                context_(context)
     {
@@ -58,7 +36,7 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    void RSONBuilder::EndObject()
+    RSONValue RSONBuilder::EndObject()
     {
         ASSERT(currentValue().type == RSONValue::Type::Object);
         ASSERT(expect_ == Expect::ObjectKey);
@@ -73,10 +51,13 @@ namespace RR::Rfx
         for (const auto parent : currentContext().parents)
             currentValue().container->insert(parent.second->begin(), parent.second->end());
 
+        RSONValue result = currentValue();
         stack_.pop();
         key_.Reset();
         parents_.clear();
         expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+
+        return result;
     }
 
     RResult RSONBuilder::StartArray()
@@ -91,14 +72,17 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    void RSONBuilder::EndArray()
+    RSONValue RSONBuilder::EndArray()
     {
         ASSERT(currentValue().type == RSONValue::Type::Array);
         ASSERT(expect_ == Expect::ArrayValue);
+
+        RSONValue result = currentValue();
         stack_.pop();
         key_.Reset();
 
         expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectKey;
+        return result;
     }
 
     void RSONBuilder::StartInrehitance()
@@ -162,20 +146,20 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult RSONBuilder::AddValue(RSONValue&& value)
+    RResult RSONBuilder::AddValue(RSONValue value)
     {
         ASSERT(value.type != RSONValue::Type::Invalid);
         RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
-        return add(value);
+        return add(std::move(value));
     }
 
-    RResult RSONBuilder::add(RSONValue&& value)
+    RResult RSONBuilder::add(RSONValue value)
     {
         switch (expect_)
         {
             case Expect::ArrayValue: currentValue().append(std::move(value)); break;
             case Expect::ObjectValue:
-                currentValue()[key_] = value;
+                currentValue().emplace(key_, std::move(value));
                 key_.Reset();
                 expect_ = Expect::ObjectKey;
                 break;

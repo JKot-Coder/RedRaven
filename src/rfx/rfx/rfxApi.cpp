@@ -3,10 +3,11 @@
 #include "rfx/compiler/CompileContext.hpp"
 #include "rfx/compiler/DiagnosticSink.hpp"
 #include "rfx/compiler/DxcPreprocessor.hpp"
-#include "rfx/compiler/RSONBuilder.hpp"
+#include "rfx/compiler/EffectCompiler.hpp"
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/Parser.hpp"
 #include "rfx/compiler/Preprocessor.hpp"
+#include "rfx/compiler/RSONBuilder.hpp"
 
 #include "rfx/core/Blob.hpp"
 #include "rfx/core/CStringAllocator.hpp"
@@ -88,7 +89,7 @@ namespace RR::Rfx
         void append(const U8String& str) { getOutputString().append(str); }
         void append(const char* str, size_t count) { getOutputString().append(str, count); }
         template <class InputIterator>
-        void append (InputIterator first, InputIterator last) { getOutputString().append(first, last); }
+        void append(InputIterator first, InputIterator last) { getOutputString().append(first, last); }
 
         std::string& getOutputString() { return blob_->GetString(); };
 
@@ -525,7 +526,8 @@ namespace RR::Rfx
                         compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
                     }
-                    else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
+                    else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser ||
+                             compileRequest.outputStage == CompileRequestDescription::OutputStage::Compiler)
                     {
                         Parser parser(tokens, context);
                         RSONValue root;
@@ -537,7 +539,14 @@ namespace RR::Rfx
                         });
                         RR_RETURN_ON_FAIL(parser.Parse(root));
 
-                        compilerResult->PushOutput(CompileOutputType::Source, writeJSON(root));
+                        if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
+                        {
+                            compilerResult->PushOutput(CompileOutputType::Source, writeJSON(root));
+                            break;
+                        }
+
+                        // EffectCompiler(root);
+
                         break;
                     }
 

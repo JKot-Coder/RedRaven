@@ -22,7 +22,8 @@ It can be useful to have a consistent short name for a facility, as used in the 
 /* !!!!!!!!!!!!!!!!!!!!! Macros to help checking RResult !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 //! Helper macro, that makes it easy to add result checking to calls in functions/methods that themselves return Result.
 #define RR_RETURN_ON_FAIL(x)            \
-    do {                                \
+    do                                  \
+    {                                   \
         RR::Common::RResult _res = (x); \
         if (RR_FAILED(_res))            \
             return _res;                \
@@ -38,32 +39,40 @@ It can be useful to have a consistent short name for a facility, as used in the 
     } while (0)
 
 //! Helper macro that can be used to test the return value from a call, and will return in a void method/function
-#define RR_RETURN_VOID_ON_FAIL(x)       \
-    do {                                \
-        RR::Common::RResult _res = (x); \
-        if (RR_FAILED(_res))            \
-            return;                     \
+#define RR_RETURN_VOID_ON_FAIL(x) \
+    do                            \
+    {                             \
+        if (RR_FAILED((x)))       \
+            return;               \
     } while (0)
 
 //! Helper macro that will return false on failure.
-#define RR_RETURN_FALSE_ON_FAIL(x)      \
-    do {                                \
-        RR::Common::RResult _res = (x); \
-        if (RR_FAILED(_res))            \
-            return false;               \
+#define RR_RETURN_FALSE_ON_FAIL(x) \
+    do                             \
+    {                              \
+        if (RR_FAILED((x)))        \
+            return false;          \
     } while (0)
 
 //! Helper macro that will return nullptr on failure.
-#define RR_RETURN_NULL_ON_FAIL(x)       \
-    do {                                \
-        RR::Common::RResult _res = (x); \
-        if (RR_FAILED(_res))            \
-            return nullptr;             \
+#define RR_RETURN_NULL_ON_FAIL(x) \
+    do                            \
+    {                             \
+        if (RR_FAILED((x)))       \
+            return nullptr;       \
     } while (0)
+
+//! Helper macro that will return a specific value on failure.
+#define RR_RETURN_VALUE_ON_FAIL(x, y) \
+    {                                 \
+        if (RR_FAILED((x)))           \
+            return (y);               \
+    }
 
 //! Helper macro that will assert if the return code from a call is failure, also returns the failure.
 #define RR_ASSERT_ON_FAIL(x)            \
-    do {                                \
+    do                                  \
+    {                                   \
         RR::Common::RResult _res = (x); \
         if (RR_FAILED(_res))            \
         {                               \
@@ -74,7 +83,8 @@ It can be useful to have a consistent short name for a facility, as used in the 
 
 //! Helper macro that will assert if the result from a call is a failure, also returns.
 #define RR_ASSERT_VOID_ON_FAIL(x)       \
-    do {                                \
+    do                                  \
+    {                                   \
         RR::Common::RResult _res = (x); \
         if (RR_FAILED(_res))            \
         {                               \

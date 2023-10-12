@@ -1,0 +1,28 @@
+// :COMPILE
+
+/*
+RS_Z_TEST_NO_WRITE: {
+	Cu
+}
+
+#define RED (1 << 0)
+#define GREEN (1 << 1)
+#define BLUE (1 << 2)
+
+
+CullMode = RED == 1 ? "QE" : "QE";
+ColorWriteMask0 = RED | GREEN | BLUE;
+
+
+
+technique: {
+	passes: [
+		{
+			RenderState <RS_Z_TEST_NO_WRITE> {
+				CullMode = NONE;
+				// Disable sun reflection mask in alpha channel for transparent objects
+				ColorWriteMask0 = RED | GREEN | BLUE;
+			};
+		}
+	]
+}*/
