@@ -30,8 +30,8 @@ namespace RR
             void StartInrehitance();
             void EndInrehitance();
             RResult AddParent(const Token& parent);
-            RResult AddValue(RSONValue value);
-            RResult AddKeyValue(const Token & key,RSONValue value);
+            RResult AddValue(const Token& valuet, RSONValue value);
+            RResult AddKeyValue(const Token& key, RSONValue value);
             /// Get the root value. Will be set after valid construction
             const RSONValue& GetRootValue() const { return root_; }
 
@@ -40,7 +40,7 @@ namespace RR
         private:
             struct Context;
 
-            RResult checkNoInheritanceAlloved(RSONValue::Type value_type);
+            RResult checkNoInheritanceAlloved(const Token& token, RSONValue::Type value_type);
 
             DiagnosticSink& getSink() const;
             Context& currentContext() { return stack_.top(); }

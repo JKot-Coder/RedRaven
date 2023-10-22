@@ -117,20 +117,18 @@ namespace RR::Rfx
 
         RResult tokenToInt(const Token& token, int radix, int64_t& outValue);
         RResult tokenToFloat(const Token& token, double& outValue);
-        RSONValue parseNumber2();
-        RSONValue parseString2();
-        RSONValue parseArray2();
 
         RSONValue parseAndEvaluateExpression();
         RSONValue parseAndEvaluateUnaryExpression();
 
-        RResult parseArray();
+        RSONValue parseArray();
+        RResult tryParseParents();
         RResult parseParents();
-        RResult parseObject(bool renameMe = false);
-        RSONValue parseObject2(bool renameMe = false);
-        RResult parseValue();
-        RResult parseNumber(bool positive = true);
-        RResult parseString();
+        RSONValue parseObject();
+        RSONValue parseRoot();
+        RResult parseObjectBody();
+        RSONValue parseNumber();
+        RSONValue parseString();
 
         RResult expect(std::initializer_list<Token::Type> expected, Token& outToken);
         RResult expect(Token::Type expected, Token& outToken) { return expect({ expected }, outToken); };
@@ -242,81 +240,6 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RSONValue ParserImpl::parseNumber2()
-    {
-        Token token = advance();
-        switch (token.type)
-        {
-            case Token::Type::IntegerLiteral:
-            {
-                int64_t value;
-                if (tokenToInt(token, 0, value) != RResult::Ok)
-                    return {};
-
-                return RSONValue::MakeInt(value);
-            }
-            case Token::Type::FloatingPointLiteral:
-            {
-                double value;
-                if (tokenToFloat(token, value) != RResult::Ok)
-                    return {};
-
-                return RSONValue::MakeFloat(value);
-            }
-            default:
-            {
-                getSink().Diagnose(token, Diagnostics::unexpectedToken, token.type);
-                return {};
-            }
-        }
-    }
-
-    RSONValue ParserImpl::parseString2()
-    {
-        const UnownedStringSlice stringSlice = advance().stringSlice;
-
-        if (stringSlice == "null")
-            return RSONValue::MakeNull();
-        else if (stringSlice == "true")
-            return RSONValue::MakeBool(true);
-        else if (stringSlice == "false")
-            return RSONValue::MakeBool(false);
-
-        return RSONValue::MakeString(stringSlice);
-    }
-
-    RSONValue ParserImpl::parseArray2()
-    {
-        ASSERT(advance().type == Token::Type::LBracket);
-        RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});
-
-        while (true)
-        {
-            skipAllWhitespaces();
-
-            if (peekTokenType() == Token::Type::RBracket)
-                break;
-
-            RSONValue value = parseAndEvaluateExpression();
-            if (value.type == RSONValue::Type::Invalid)
-                return value;
-
-            RR_RETURN_VALUE_ON_FAIL(builder_.AddValue(std::move(value)), RSONValue {});
-
-            if (peekTokenType() == Token::Type::Comma ||
-                peekTokenType() == Token::Type::NewLine)
-            {
-                advance();
-                continue;
-            }
-
-            break;
-        }
-
-        RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBracket), RSONValue {});
-        return builder_.EndArray();
-    }
-
     bool ParserImpl::advanceIf(std::initializer_list<Token::Type> expected, Token& outToken)
     {
         const auto lookAheadTokenType = peekTokenType();
@@ -334,6 +257,8 @@ namespace RR::Rfx
     /// Parse a complete (infix) preprocessor expression, and return its value
     RSONValue ParserImpl::parseAndEvaluateExpression()
     {
+        RR_RETURN_VALUE_ON_FAIL(tryParseParents(), RSONValue {});
+
         // First read in the left-hand side (or the whole expression in the unary case)
         const auto value = parseAndEvaluateUnaryExpression();
 
@@ -378,7 +303,7 @@ namespace RR::Rfx
             }
             case Token::Type::IntegerLiteral:
             case Token::Type::FloatingPointLiteral:
-                return parseNumber2();
+                return parseNumber();
                 /* case Token::Type::Identifier:
                 {
                     // An identifier here means it was not defined as a macro (or
@@ -391,16 +316,50 @@ namespace RR::Rfx
             case Token::Type::StringLiteral:
             case Token::Type::CharLiteral:
             case Token::Type::Identifier:
-                return parseString2();
+                return parseString();
                 // case Token::Type::OpAdd:
-            case Token::Type::LBracket: return parseArray2();
-            case Token::Type::LBrace: return parseObject2();
+            case Token::Type::LBracket: return parseArray();
+            case Token::Type::LBrace: return parseObject();
             default:
                 getSink().Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
                 return {};
         }
     }
 
+    RSONValue ParserImpl::parseArray()
+    {
+        ASSERT(advance().type == Token::Type::LBracket);
+        RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});
+
+        while (true)
+        {
+            skipAllWhitespaces();
+
+            if (peekTokenType() == Token::Type::RBracket)
+                break;
+
+            auto qwe = peekToken();
+
+            RSONValue value = parseAndEvaluateExpression();
+            if (value.type == RSONValue::Type::Invalid)
+                return value;
+
+            RR_RETURN_VALUE_ON_FAIL(builder_.AddValue(qwe, std::move(value)), RSONValue {});
+
+            if (peekTokenType() == Token::Type::Comma ||
+                peekTokenType() == Token::Type::NewLine)
+            {
+                advance();
+                continue;
+            }
+
+            break;
+        }
+
+        RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBracket), RSONValue {});
+        return builder_.EndArray();
+    }
+    /*
     RResult ParserImpl::parseArray()
     {
         RR_RETURN_ON_FAIL(expect(Token::Type::LBracket));
@@ -428,6 +387,35 @@ namespace RR::Rfx
         RR_RETURN_ON_FAIL(expect(Token::Type::RBracket));
         builder_.EndArray();
 
+        return RResult::Ok;
+    }*/
+
+    RResult ParserImpl::tryParseParents()
+    {
+        Token token;
+
+        if (peekTokenType() != Token::Type::OpLess)
+            return RResult::Ok;
+
+        advance();
+        builder_.StartInrehitance();
+
+        while (true)
+        {
+            RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, token));
+            RR_RETURN_ON_FAIL(builder_.AddParent(token));
+
+            if (peekTokenType() == Token::Type::Comma)
+            {
+                advance();
+                continue;
+            }
+
+            break;
+        }
+
+        RR_RETURN_ON_FAIL(expect(Token::Type::OpGreater, token));
+        builder_.EndInrehitance();
         return RResult::Ok;
     }
 
@@ -457,15 +445,26 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-     // Todo rename
-    RSONValue ParserImpl::parseObject2(bool renameMe)
+    RSONValue ParserImpl::parseObject()
     {
-        if (!renameMe)
-        {
-            ASSERT(RR_SUCCEEDED(expect(Token::Type::LBrace)));
-            RR_RETURN_VALUE_ON_FAIL(builder_.StartObject(), RSONValue {});
-        }
+        ASSERT(RR_SUCCEEDED(expect(Token::Type::LBrace)));
+        RR_RETURN_VALUE_ON_FAIL(builder_.StartObject(), RSONValue {});
 
+        RR_RETURN_VALUE_ON_FAIL(parseObjectBody(), RSONValue {});
+
+        RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBrace), RSONValue {});
+        return builder_.EndObject();
+    }
+
+    RSONValue ParserImpl::parseRoot()
+    {
+        RR_RETURN_VALUE_ON_FAIL(parseObjectBody(), RSONValue {});
+        RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::EndOfFile), RSONValue {});
+        return builder_.GetRootValue();
+    }
+
+    RResult ParserImpl::parseObjectBody()
+    {
         while (true)
         {
             skipAllWhitespaces();
@@ -475,16 +474,16 @@ namespace RR::Rfx
                 break;
 
             Token keyToken;
-            RR_RETURN_VALUE_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, keyToken), RSONValue {});
-            RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::Colon), RSONValue {});
+            RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral }, keyToken));
+            RR_RETURN_ON_FAIL(expect(Token::Type::Colon));
 
             skipAllWhitespaces();
 
             RSONValue value = parseAndEvaluateExpression();
-            if(value.type == RSONValue::Type::Invalid)
-                return RSONValue {};
+            if (value.type == RSONValue::Type::Invalid)
+                return RResult::Fail;
 
-            RR_RETURN_VALUE_ON_FAIL(builder_.AddKeyValue(keyToken, value), RSONValue {});
+            RR_RETURN_ON_FAIL(builder_.AddKeyValue(keyToken, value));
 
             if (peekTokenType() == Token::Type::Comma ||
                 peekTokenType() == Token::Type::NewLine)
@@ -495,20 +494,10 @@ namespace RR::Rfx
 
             break;
         }
-
-        if (!renameMe)
-        {
-            RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBrace), RSONValue {});
-            return builder_.EndObject();
-        }
-        else
-        {
-            RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::EndOfFile), RSONValue {});
-        }
-
-        return RSONValue {};
+        return RResult::Ok;
     }
 
+    /*
     // Todo rename
     RResult ParserImpl::parseObject(bool renameMe)
     {
@@ -559,8 +548,37 @@ namespace RR::Rfx
         }
 
         return RResult::Ok;
-    }
+    }*/
 
+    RSONValue ParserImpl::parseNumber()
+    {
+        Token token = advance();
+        switch (token.type)
+        {
+            case Token::Type::IntegerLiteral:
+            {
+                int64_t value;
+                if (tokenToInt(token, 0, value) != RResult::Ok)
+                    return {};
+
+                return RSONValue::MakeInt(value);
+            }
+            case Token::Type::FloatingPointLiteral:
+            {
+                double value;
+                if (tokenToFloat(token, value) != RResult::Ok)
+                    return {};
+
+                return RSONValue::MakeFloat(value);
+            }
+            default:
+            {
+                getSink().Diagnose(token, Diagnostics::unexpectedToken, token.type);
+                return {};
+            }
+        }
+    }
+    /*
     RResult ParserImpl::parseNumber(bool positive)
     {
         switch (peekTokenType())
@@ -569,13 +587,13 @@ namespace RR::Rfx
             {
                 int64_t value;
                 RR_RETURN_ON_FAIL(tokenToInt(advance(), 0, value));
-                return builder_.AddValue(RSONValue::MakeInt(value * (positive ? 1 : -1)));
+                return builder_.AddValue({} ,RSONValue::MakeInt(value * (positive ? 1 : -1)));
             }
             case Token::Type::FloatingPointLiteral:
             {
                 double value;
                 RR_RETURN_ON_FAIL(tokenToFloat(advance(), value));
-                return builder_.AddValue(RSONValue::MakeFloat(value * (positive ? 1.0 : -1.0)));
+                return builder_.AddValue({}, RSONValue::MakeFloat(value * (positive ? 1.0 : -1.0)));
             }
             default:
             {
@@ -583,22 +601,38 @@ namespace RR::Rfx
                 return RResult::Fail;
             }
         }
+    }*/
+
+    RSONValue ParserImpl::parseString()
+    {
+        const UnownedStringSlice stringSlice = advance().stringSlice;
+
+        if (stringSlice == "null")
+            return RSONValue::MakeNull();
+        else if (stringSlice == "true")
+            return RSONValue::MakeBool(true);
+        else if (stringSlice == "false")
+            return RSONValue::MakeBool(false);
+
+        return RSONValue::MakeString(stringSlice);
     }
 
+    /*
     RResult ParserImpl::parseString()
     {
         const UnownedStringSlice stringSlice = advance().stringSlice;
 
         if (stringSlice == "null")
-            return builder_.AddValue(RSONValue::MakeNull());
+            return builder_.AddValue({}, RSONValue::MakeNull());
         else if (stringSlice == "true")
-            return builder_.AddValue(RSONValue::MakeBool(true));
+            return builder_.AddValue({}, RSONValue::MakeBool(true));
         else if (stringSlice == "false")
-            return builder_.AddValue(RSONValue::MakeBool(false));
+            return builder_.AddValue({}, RSONValue::MakeBool(false));
 
-        return builder_.AddValue(RSONValue::MakeString(stringSlice));
-    }
+        return builder_.AddValue({}, RSONValue::MakeString(stringSlice));
+    }*/
 
+    /*
     RResult ParserImpl::parseValue()
     {
         if (peekTokenType() == Token::Type::OpLess)
@@ -624,7 +658,7 @@ namespace RR::Rfx
                 return RResult::Fail;
             }
         }
-    }
+    }*/
 
     RResult ParserImpl::expect(std::initializer_list<Token::Type> expected, Token& out)
     {
@@ -644,10 +678,12 @@ namespace RR::Rfx
 
     RResult ParserImpl::Parse(RSONValue& root)
     {
-        RR_RETURN_ON_FAIL(parseObject(true));
-        RR_RETURN_ON_FAIL(expect(Token::Type::EndOfFile));
+        root = parseRoot();
 
-        root = builder_.GetRootValue();
+        if (root.type == RSONValue::Type::Invalid)
+            return RResult::Fail;
+
+        RR_RETURN_ON_FAIL(expect(Token::Type::EndOfFile));
         return RResult::Ok;
     }
 

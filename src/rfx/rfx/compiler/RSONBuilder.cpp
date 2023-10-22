@@ -17,13 +17,13 @@ namespace RR::Rfx
 
     DiagnosticSink& RSONBuilder::getSink() const { return context_->sink; }
 
-    RResult RSONBuilder::checkNoInheritanceAlloved(RSONValue::Type value_type)
+    RResult RSONBuilder::checkNoInheritanceAlloved(const Token& token, RSONValue::Type value_type)
     {
         if (parents_.empty())
             return RResult::Ok;
         std::ignore = value_type;
-// TODO?
-       // getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, key_, value_type);
+
+        getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, token.stringSlice, value_type);
         return RResult::Fail;
     }
 
@@ -63,8 +63,10 @@ namespace RR::Rfx
     {
         auto value = RSONValue::MakeEmptyArray();
 
-        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved({}, value.type));
+
         stack_.emplace(value);
+        parents_.clear();
         expect_ = Expect::ArrayValue;
 
         return RResult::Ok;
@@ -129,6 +131,7 @@ namespace RR::Rfx
     {
         ASSERT(expect_ == Expect::ObjectValue);
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(key, value.type));
         const auto keyName = key.stringSlice;
 
         if (currentValue().Contains(keyName))
@@ -138,17 +141,14 @@ namespace RR::Rfx
         }
 
         currentValue().emplace(keyName, std::move(value));
-        //key_.Reset();
-
-      //  key_ = keyName;
         return RResult::Ok;
     }
 
-    RResult RSONBuilder::AddValue(RSONValue value)
+    RResult RSONBuilder::AddValue(const Token& valuet, RSONValue value)
     {
         ASSERT(value.type != RSONValue::Type::Invalid);
         ASSERT(expect_ == Expect::ArrayValue);
-        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(value.type));
+        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(valuet, value.type));
         currentValue().append(std::move(value));
         return RResult::Ok;
     }
