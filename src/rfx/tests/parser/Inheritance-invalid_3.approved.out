@@ -1,5 +1,5 @@
 Diagnostic:[
-    ../src/rfx/tests/parser/Inheritance-invalid_3.rfx(8): error 20016: The value 'Foo' is of type type 'Bool', but only objects can have parents.
-    Foo: <Bar> false
-          ^~~
+    ../src/rfx/tests/parser/Inheritance-invalid_3.rfx(3): error 20015: The value to inherit must be an array or an indetifier, but it's Object.
+    Foo: { << {} }
+           ^~
 ]

@@ -8,8 +8,7 @@
 
 namespace RR::Rfx
 {
-    RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : expect_(Expect::ObjectValue),
-                                                                               context_(context)
+    RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : context_(context)
     {
         root_ = RSONValue::MakeEmptyObject();
         stack_.emplace(root_);
@@ -17,111 +16,95 @@ namespace RR::Rfx
 
     DiagnosticSink& RSONBuilder::getSink() const { return context_->sink; }
 
-    RResult RSONBuilder::checkNoInheritanceAlloved(const Token& token, RSONValue::Type value_type)
-    {
-        if (parents_.empty())
-            return RResult::Ok;
-        std::ignore = value_type;
-
-        getSink().Diagnose(parents_.front().first, Diagnostics::invalidTypeForInheritance, token.stringSlice, value_type);
-        return RResult::Fail;
-    }
-
     RResult RSONBuilder::StartObject()
     {
-        auto value = RSONValue::MakeEmptyObject();
-        stack_.emplace(parents_, value);
-        expect_ = Expect::ObjectValue;
-        parents_.clear();
+        stack_.emplace(RSONValue::MakeEmptyObject());
         return RResult::Ok;
     }
 
     RSONValue RSONBuilder::EndObject()
     {
         ASSERT(currentValue().type == RSONValue::Type::Object);
-        ASSERT(expect_ == Expect::ObjectValue);
 
         // Inheritance
         size_t size = 0;
         for (const auto parent : currentContext().parents)
-            size += parent.second->size();
+            size += parent->size();
 
         currentValue().container->reserve(size);
 
         for (const auto parent : currentContext().parents)
-            currentValue().container->insert(parent.second->begin(), parent.second->end());
+            currentValue().container->insert(parent->begin(), parent->end());
 
         RSONValue result = currentValue();
         stack_.pop();
-        parents_.clear();
-        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectValue;
 
         return result;
     }
 
     RResult RSONBuilder::StartArray()
     {
-        auto value = RSONValue::MakeEmptyArray();
-
-        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved({}, value.type));
-
-        stack_.emplace(value);
-        parents_.clear();
-        expect_ = Expect::ArrayValue;
-
+        stack_.emplace(RSONValue::MakeEmptyArray());
         return RResult::Ok;
     }
 
     RSONValue RSONBuilder::EndArray()
     {
         ASSERT(currentValue().type == RSONValue::Type::Array);
-        ASSERT(expect_ == Expect::ArrayValue);
 
         RSONValue result = currentValue();
         stack_.pop();
 
-        expect_ = currentValue().type == RSONValue::Type::Array ? Expect::ArrayValue : Expect::ObjectValue;
         return result;
     }
 
-    void RSONBuilder::StartInrehitance()
+    RResult RSONBuilder::Inheritance(const Token& initiatingToken, const RSONValue& parents)
     {
-        ASSERT(expect_ == (currentValue().type == RSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue));
-        ASSERT(parents_.size() == 0);
-        expect_ = Expect::Parent;
-    }
+        ASSERT(currentValue().type == RSONValue::Type::Object);
 
-    void RSONBuilder::EndInrehitance()
-    {
-        ASSERT(expect_ == Expect::Parent);
-        ASSERT(parents_.size() != 0);
-        expect_ = currentValue().type == RSONValue::Type::Object ? Expect::ObjectValue : Expect::ArrayValue;
-    }
-
-    RResult RSONBuilder::AddParent(const Token& parent)
-    {
-        ASSERT(expect_ == Expect::Parent);
-        ASSERT(parent.type == Token::Type::StringLiteral || parent.type == Token::Type::Identifier);
-        const auto parentName = parent.stringSlice;
-
-        auto value = root_.Find(parentName);
-        switch (value.type)
+        const auto inherite = [this, &initiatingToken](const UnownedStringSlice& name)
         {
-            case RSONValue::Type::Object:
+            auto value = root_.Find(name);
+
+            switch (value.type)
             {
-                parents_.emplace_back(parent, value.container.get());
-                break;
+                case RSONValue::Type::Object:
+                {
+                    currentContext().parents.emplace_back(value.container.get());
+                    break;
+                }
+                case RSONValue::Type::Invalid:
+                {
+                    getSink().Diagnose(initiatingToken, Diagnostics::undeclaredIdentifier, name);
+                    return RResult::NotFound;
+                }
+                default:
+                {
+                    getSink().Diagnose(initiatingToken, Diagnostics::invalidParentType, name, value.type);
+                    return RResult::Fail;
+                }
             }
-            case RSONValue::Type::Invalid:
+            return RResult::Ok;
+        };
+
+        if (parents.type == RSONValue::Type::String)
+            return inherite(parents.stringValue);
+
+        if (!parents.IsArray())
+        {
+            getSink().Diagnose(initiatingToken, Diagnostics::invalidParentsValue, RSONValueTypeToString(parents.type));
+            return RResult::Fail;
+        }
+
+        for (auto parent : parents)
+        {
+            if (parent.second.type != RSONValue::Type::String)
             {
-                getSink().Diagnose(parent, Diagnostics::undeclaredIdentifier, parentName);
-                return RResult::NotFound;
-            }
-            default:
-            {
-                getSink().Diagnose(parent, Diagnostics::invalidParentType, parentName, value.type);
+                getSink().Diagnose(initiatingToken, Diagnostics::invalidParentIndetifier, RSONValueTypeToString(parent.second.type));
                 return RResult::Fail;
             }
+
+            RR_RETURN_ON_FAIL(inherite(parent.second.stringValue));
         }
 
         return RResult::Ok;
@@ -129,9 +112,8 @@ namespace RR::Rfx
 
     RResult RSONBuilder::AddKeyValue(const Token& key, RSONValue value)
     {
-        ASSERT(expect_ == Expect::ObjectValue);
+        ASSERT(currentValue().type == RSONValue::Type::Object);
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
-        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(key, value.type));
         const auto keyName = key.stringSlice;
 
         if (currentValue().Contains(keyName))
@@ -144,11 +126,10 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    RResult RSONBuilder::AddValue(const Token& valuet, RSONValue value)
+    RResult RSONBuilder::AddValue(RSONValue value)
     {
         ASSERT(value.type != RSONValue::Type::Invalid);
-        ASSERT(expect_ == Expect::ArrayValue);
-        RR_RETURN_ON_FAIL(checkNoInheritanceAlloved(valuet, value.type));
+        ASSERT(currentValue().type == RSONValue::Type::Array);
         currentValue().append(std::move(value));
         return RResult::Ok;
     }

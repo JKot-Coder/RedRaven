@@ -2,7 +2,8 @@
 
 Bar: [test, 1, false],
 
-Foo: <Bar> {
+Foo: {
+    << Bar
     Name: "Unknown",
     Valid: true,
 }

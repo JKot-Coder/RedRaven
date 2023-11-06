@@ -27,10 +27,8 @@ namespace RR
             RSONValue EndObject();
             RResult StartArray();
             RSONValue EndArray();
-            void StartInrehitance();
-            void EndInrehitance();
-            RResult AddParent(const Token& parent);
-            RResult AddValue(const Token& valuet, RSONValue value);
+            RResult Inheritance(const Token& initiatingToken, const RSONValue& parents);
+            RResult AddValue(RSONValue value);
             RResult AddKeyValue(const Token& key, RSONValue value);
             /// Get the root value. Will be set after valid construction
             const RSONValue& GetRootValue() const { return root_; }
@@ -40,33 +38,21 @@ namespace RR
         private:
             struct Context;
 
-            RResult checkNoInheritanceAlloved(const Token& token, RSONValue::Type value_type);
-
             DiagnosticSink& getSink() const;
             Context& currentContext() { return stack_.top(); }
             RSONValue& currentValue() { return currentContext().value; }
 
         private:
-            using Parent = std::pair<Token, RSONValue::Container*>;
-            enum class Expect : uint8_t
-            {
-                ObjectValue,
-                ArrayValue,
-                Parent
-            };
+            using Parent = RSONValue::Container*;
 
             struct Context
             {
                 Context(RSONValue value) : value(std::move(value)) {};
-                Context(std::vector<Parent> parents, RSONValue value) : parents(std::move(parents)), value(std::move(value)) { }
-
                 std::vector<Parent> parents;
                 RSONValue value;
             };
 
-            Expect expect_;
             std::stack<Context> stack_;
-            std::vector<Parent> parents_;
             RSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };

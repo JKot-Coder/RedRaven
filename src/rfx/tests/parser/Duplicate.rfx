@@ -4,7 +4,8 @@ Foo: {
     Duplicate: "?"
 },
 
-Bar: <Foo> {
+Bar: {
+    << Foo,
     Duplicate: "no"
 },
 

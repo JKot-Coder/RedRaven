@@ -1,5 +1,5 @@
 Diagnostic:[
-    ../src/rfx/tests/parser/Duplicate.rfx(13): error 20014: Duplication of the key 'Duplicate'
+    ../src/rfx/tests/parser/Duplicate.rfx(14): error 20014: Duplication of the key 'Duplicate'
         Duplicate: -1,
         ^~~~~~~~~
 ]

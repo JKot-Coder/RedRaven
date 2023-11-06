@@ -1,8 +1,4 @@
 // :PARSER
 
-Bar: {
-    Name: "Unknown",
-    Valid: true,
-},
-
-Foo: <Bar> [test, 1, false]
+// invalidParentIndetifier
+Foo: { << [{}] }

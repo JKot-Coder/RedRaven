@@ -1,5 +1,5 @@
 Diagnostic:[
-    ../src/rfx/tests/parser/Inheritance-invalid_1.rfx(5): error 20015: The parent 'Bar' is of type 'Array', but only objects can be used as parents.
-    Foo: <Bar> {
-          ^~~
+    ../src/rfx/tests/parser/Inheritance-invalid_1.rfx(6): error 20017: The parent 'Bar' is of type 'Array', but only objects can be used as parents.
+        << Bar
+        ^~
 ]

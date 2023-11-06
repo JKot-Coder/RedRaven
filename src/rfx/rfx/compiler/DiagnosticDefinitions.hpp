@@ -217,9 +217,10 @@ DIAGNOSTIC(20012, Error, invalidSPIRVVersion, "Expecting SPIR-V version as eithe
 DIAGNOSTIC(20013, Error, invalidCUDASMVersion, "Expecting CUDA SM version as either 'major.minor', or quoted if has patch (eg for '7.0' or \"7.0\"')")
 
 DIAGNOSTIC(20014, Error, duplicateKey, "Duplication of the key '{0}'")
-DIAGNOSTIC(20015, Error, invalidParentType, "The parent '{0}' is of type '{1}', but only objects can be used as parents.")
-DIAGNOSTIC(20016, Error, invalidTypeForInheritance, "The value '{0}' is of type type '{1}', but only objects can have parents.")
-DIAGNOSTIC(20017, Error, undeclaredIdentifier, "Undeclared indetifier: '{0}'")
+DIAGNOSTIC(20015, Error, invalidParentsValue, "The value to inherit must be an array or an indetifier, but it's {0}.")
+DIAGNOSTIC(20016, Error, invalidParentIndetifier, "The {0} is not supported as a parent indetifier.")
+DIAGNOSTIC(20017, Error, invalidParentType, "The parent '{0}' is of type '{1}', but only objects can be used as parents.")
+DIAGNOSTIC(20018, Error, undeclaredIdentifier, "Undeclared indetifier: '{0}'")
     // 99999 - Internal compiler errors, and not-yet-classified diagnostics.
 
 DIAGNOSTIC(99999, Internal, unimplemented, "unimplemented feature in Slang compiler: $0")
@@ -228,5 +229,8 @@ DIAGNOSTIC(99999, Internal, internalCompilerError, "Slang internal compiler erro
 DIAGNOSTIC(99999, Error, compilationAborted, "Slang compilation aborted due to internal error")
 DIAGNOSTIC(99999, Error, compilationAbortedDueToException, "Slang compilation aborted due to an exception of $0: $1")
 DIAGNOSTIC(99999, Internal, serialDebugVerificationFailed, "Verification of serial debug information failed.")
+
+DIAGNOSTIC(12345, Error, custom, "TODO Custom error: {0} : {1}")
+
 
 #undef DIAGNOSTIC
