@@ -136,7 +136,7 @@ namespace RR::Platform::Input
         CapsLock = 1 << 4,
         NumLock = 1 << 5,
     };
-    ENUM_CLASS_OPERATORS(ModifierFlag)
+    ENUM_CLASS_BITWISE_OPS(ModifierFlag)
 
     enum class MouseButton : uint32_t
     {

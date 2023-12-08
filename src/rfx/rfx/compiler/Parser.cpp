@@ -12,6 +12,101 @@ namespace RR::Rfx
 {
     using RResult = Common::RResult;
 
+    namespace
+    {
+        enum class Precedence : int32_t
+        {
+            Invalid = -1,
+            Null = 0,
+            TernaryConditional,
+            LogicalOr,
+            LogicalAnd,
+            BitOr,
+            BitXor,
+            BitAnd,
+            EqualityComparison,
+            RelationalComparison,
+            BitShift,
+            Additive,
+            Multiplicative,
+            Prefix,
+            Postfix,
+        };
+
+        Precedence getInfixOpPrecedence(const Token& opToken)
+        {
+            switch (opToken.type)
+            {
+                case Token::Type::QuestionMark: return Precedence::TernaryConditional;
+                case Token::Type::OpOr: return Precedence::LogicalOr;
+                case Token::Type::OpAnd: return Precedence::LogicalAnd;
+                case Token::Type::OpBitOr: return Precedence::BitOr;
+                case Token::Type::OpBitXor: return Precedence::BitXor;
+                case Token::Type::OpBitAnd: return Precedence::BitAnd;
+                case Token::Type::OpEql:
+                case Token::Type::OpNeq: return Precedence::EqualityComparison;
+                case Token::Type::OpGreater:
+                case Token::Type::OpGeq:
+                case Token::Type::OpLeq:
+                case Token::Type::OpLess: return Precedence::RelationalComparison;
+                case Token::Type::OpRsh:
+                case Token::Type::OpLsh: return Precedence::BitShift;
+                case Token::Type::OpAdd:
+                case Token::Type::OpSub: return Precedence::Additive;
+                case Token::Type::OpMul:
+                case Token::Type::OpDiv:
+                case Token::Type::OpMod: return Precedence::Multiplicative;
+                default: return Precedence::Invalid;
+            }
+        }
+
+        enum class UnaryOps
+        {
+            Sub,
+            Add,
+            Not,
+            BitNot
+        };
+
+        RSONValue applyUnaryOp(UnaryOps op, const RSONValue& value)
+        {
+            switch (value.type)
+            {
+                case RSONValue::Type::Bool:
+                    switch (op)
+                    {
+                        case UnaryOps::Sub: return {};
+                        case UnaryOps::Add: return {};
+                        case UnaryOps::Not: return RSONValue::MakeBool(!value.AsBool());
+                        case UnaryOps::BitNot: return {};
+                    }
+                    break;
+                case RSONValue::Type::Integer:
+                    switch (op)
+                    {
+                        case UnaryOps::Add: return value;
+                        case UnaryOps::Sub: return RSONValue::MakeInt(-value.AsInteger());
+                        case UnaryOps::Not: return {};
+                        case UnaryOps::BitNot: return RSONValue::MakeInt(~value.AsInteger());
+                    }
+                    break;
+                case RSONValue::Type::Float:
+                    switch (op)
+                    {
+                        case UnaryOps::Add: return value;
+                        case UnaryOps::Sub: return RSONValue::MakeFloat(-value.AsFloat());
+                        case UnaryOps::Not: return {};
+                        case UnaryOps::BitNot: return {};
+                    }
+                    break;
+                default: return {};
+            }
+
+            ASSERT_MSG(false, "Unknown unaryOp");
+            return {};
+        }
+    }
+
     /// An token reader that reads tokens directly using the `Lexer`
     struct LexerReader
     {
@@ -120,6 +215,8 @@ namespace RR::Rfx
 
         RSONValue parseAndEvaluateExpression();
         RSONValue parseAndEvaluateUnaryExpression();
+        RSONValue parseAndEvaluateInfixExpressionWithPrecedence(RSONValue left, Precedence precedence);
+        RSONValue evaluateInfixOp(const Token& opToken, const RSONValue& left, const RSONValue& right);
 
         RSONValue parseArray();
         RSONValue parseObject();
@@ -142,55 +239,6 @@ namespace RR::Rfx
         TokenSpan tokenSpan_;
         TokenSpan::const_iterator currentToken_;
     };
-
-    namespace
-    {
-        enum class UnaryOps
-        {
-            Sub,
-            Add,
-            Not,
-            BitNot
-        };
-
-        RSONValue applyUnaryOp(UnaryOps op, const RSONValue& value)
-        {
-            switch (value.type)
-            {
-                case RSONValue::Type::Bool:
-                    switch (op)
-                    {
-                        case UnaryOps::Sub: return {};
-                        case UnaryOps::Add: return {};
-                        case UnaryOps::Not: return RSONValue::MakeBool(!value.AsBool());
-                        case UnaryOps::BitNot: return {};
-                    }
-                    break;
-                case RSONValue::Type::Integer:
-                    switch (op)
-                    {
-                        case UnaryOps::Add: return value;
-                        case UnaryOps::Sub: return RSONValue::MakeInt(-value.AsInteger());
-                        case UnaryOps::Not: return {};
-                        case UnaryOps::BitNot: return RSONValue::MakeInt(~value.AsInteger());
-                    }
-                    break;
-                case RSONValue::Type::Float:
-                    switch (op)
-                    {
-                        case UnaryOps::Add: return value;
-                        case UnaryOps::Sub: return RSONValue::MakeFloat(-value.AsFloat());
-                        case UnaryOps::Not: return {};
-                        case UnaryOps::BitNot: return {};
-                    }
-                    break;
-                default: return {};
-            }
-
-            ASSERT_MSG(false, "Unknown unaryOp");
-            return {};
-        }
-    }
 
     RResult ParserImpl::tokenToInt(const Token& token, int radix, int64_t& outValue)
     {
@@ -259,8 +307,7 @@ namespace RR::Rfx
         const auto value = parseAndEvaluateUnaryExpression();
 
         // Try to read in trailing infix operators with correct precedence
-        return value;
-        // parseAndEvaluateInfixExpressionWithPrecedence(context, value, 0);
+        return parseAndEvaluateInfixExpressionWithPrecedence(value, Precedence::Null);
     }
 
     // Parse a unary (prefix) expression inside of a preprocessor directive.
@@ -313,7 +360,6 @@ namespace RR::Rfx
             case Token::Type::CharLiteral:
             case Token::Type::Identifier:
                 return parseString();
-                // case Token::Type::OpAdd:
             case Token::Type::LBracket: return parseArray();
             case Token::Type::LBrace: return parseObject();
             default:
@@ -321,6 +367,185 @@ namespace RR::Rfx
                 getSink().Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
                 return {};
         }
+    }
+
+    // Parse the rest of an infix preprocessor expression with
+    // precedence greater than or equal to the given `precedence` argument.
+    // The value of the left-hand-side expression is provided as
+    // an argument.
+    // This is used to form a simple recursive-descent expression parser.
+    RSONValue ParserImpl::parseAndEvaluateInfixExpressionWithPrecedence(RSONValue left, Precedence precedence)
+    {
+        for (;;)
+        {
+            // Look at the next token, and see if it is an operator of
+            // high enough precedence to be included in our expression
+            const auto& opToken = peekToken();
+            const auto opPrecedence = getInfixOpPrecedence(opToken);
+
+            // If it isn't an operator of high enough precedence, we are done.
+            if (opPrecedence < precedence)
+                break;
+
+            // Otherwise we need to consume the operator token.
+            advance();
+
+            // Next we parse a right-hand-side expression by starting with
+            // a unary expression and absorbing and many infix operators
+            // as possible with strictly higher precedence than the operator
+            // we found above.
+            auto right = parseAndEvaluateUnaryExpression();
+            for (;;)
+            {
+                // Look for an operator token
+                Token rightOpToken = peekToken();
+                const auto rightOpPrecedence = getInfixOpPrecedence(rightOpToken);
+
+                // If no operator was found, or the operator wasn't high
+                // enough precedence to fold into the right-hand-side,
+                // exit this loop.
+                if (rightOpPrecedence <= opPrecedence)
+                    break;
+
+                // Now invoke the parser recursively, passing in our
+                // existing right-hand side to form an even larger one.
+                right = parseAndEvaluateInfixExpressionWithPrecedence(right, rightOpPrecedence);
+            }
+
+            // Now combine the left- and right-hand sides using
+            // the operator we found above.
+            left = evaluateInfixOp(opToken, left, right);
+        }
+        return left;
+    }
+    /*
+    bool isCompareOperation(const Token& opToken)
+    {
+        return (opToken.type == Token::Type::OpLess) ||
+               (opToken.type == Token::Type::OpGreater) ||
+               (opToken.type == Token::Type::OpLeq) ||
+               (opToken.type == Token::Type::OpGeq) ||
+               (opToken.type == Token::Type::OpEql) ||
+               (opToken.type == Token::Type::OpNeq);
+    }*/
+
+    template <typename T>
+    RSONValue compareOps(const Token& opToken, T left, T right)
+    {
+        switch (opToken.type)
+        {
+            case Token::Type::OpLess: return RSONValue::MakeBool(left < right);
+            case Token::Type::OpGreater: return RSONValue::MakeBool(left > right);
+            case Token::Type::OpLeq: return RSONValue::MakeBool(left <= right);
+            case Token::Type::OpGeq: return RSONValue::MakeBool(left >= right);
+            case Token::Type::OpEql: return RSONValue::MakeBool(left == right);
+            case Token::Type::OpNeq: return RSONValue::MakeBool(left != right);
+        }
+
+        return {};
+    }
+
+    template <typename Ret, typename LV, typename RV>
+    RSONValue arithmeticOps(const Token& opToken, LV left, RV right)
+    {
+        static_assert(std::is_same<double, Ret>() || std::is_same<int64_t, Ret>(), "return type should be double or int64");
+
+        Ret result = 0;
+        switch (opToken.type)
+        {
+            case Token::Type::OpMul: result = left * right; break;
+            case Token::Type::OpAdd: result = left + right; break;
+            case Token::Type::OpSub: result = left - right; break;
+            case Token::Type::OpDiv:
+            {
+                if (right == RV(0))
+                {
+                    //  if (!context.parseError)
+                    //      GetSink().Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+
+                    return {};
+                }
+                result = left / right;
+                break;
+            }
+            case Token::Type::OpMod:
+            {
+                if (std::is_same<double, Ret>())
+                    return {};
+
+                if (right == RV(0))
+                {
+                    //  if (!context.parseError)
+                    //      GetSink().Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+
+                    return {};
+                }
+                result = Ret(int64_t(left) % int64_t(right));
+                break;
+            }
+            default: return {};
+        }
+
+        return std::is_same<double, Ret>() ? RSONValue::MakeFloat(double(result)) : RSONValue::MakeInt(int64_t(result));
+    }
+
+    // Evaluate one infix operation in a preprocessor
+    // conditional
+    RSONValue ParserImpl::evaluateInfixOp(const Token& opToken, const RSONValue& left, const RSONValue& right)
+    {
+        if (opToken.type == Token::Type::QuestionMark)
+        {
+            //  if (!context.parseError)
+            //      GetSink().Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+            return {};
+        }
+
+        if (left.type == RSONValue::Type::Integer || right.type == RSONValue::Type::Integer)
+        {
+            switch (opToken.type)
+            {
+                case Token::Type::OpLsh: return RSONValue::MakeInt(left.AsInteger() << right.AsInteger());
+                case Token::Type::OpRsh: return RSONValue::MakeInt(left.AsInteger() >> right.AsInteger());
+                case Token::Type::OpBitAnd: return RSONValue::MakeInt(left.AsInteger() & right.AsInteger());
+                case Token::Type::OpBitOr: return RSONValue::MakeInt(left.AsInteger() | right.AsInteger());
+                case Token::Type::OpBitXor: return RSONValue::MakeInt(left.AsInteger() ^ right.AsInteger());
+            }
+        }
+
+        if (left.type == RSONValue::Type::Bool || right.type == RSONValue::Type::Bool)
+        {
+            switch (opToken.type)
+            {
+                case Token::Type::OpAnd: return RSONValue::MakeBool(left.AsBool() && right.AsBool());
+                case Token::Type::OpOr: return RSONValue::MakeBool(left.AsBool() || right.AsBool());
+            }
+        }
+
+        if ((left.type == RSONValue::Type::Integer || left.type == RSONValue::Type::Float) &&
+            (right.type == RSONValue::Type::Integer || right.type == RSONValue::Type::Float))
+        {
+            const RSONValue::Type return_type = (left.type == RSONValue::Type::Integer && right.type == RSONValue::Type::Integer)
+                                                    ? RSONValue::Type::Integer
+                                                    : RSONValue::Type::Float;
+
+            switch (return_type)
+            {
+                case RSONValue::Type::Float:
+                {
+                    auto result = compareOps<double>(opToken, left.AsFloat(), right.AsFloat());
+                    return result.IsValid() ? result : arithmeticOps<double>(opToken, left.AsFloat(), right.AsFloat());
+                }
+                case RSONValue::Type::Integer:
+                {
+                    auto result = compareOps<int64_t>(opToken, left.AsInteger(), right.AsInteger());
+                    return result.IsValid() ? result : arithmeticOps<int64_t>(opToken, left.AsInteger(), right.AsInteger());
+                }
+            }
+        }
+        //  if (!context.parseError)
+        //      GetSink().Diagnose(opToken, Diagnostics::divideByZeroInPreprocessorExpression);
+
+        return {};
     }
 
     RSONValue ParserImpl::parseArray()

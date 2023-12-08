@@ -1,21 +1,30 @@
 #pragma once
 
-#define ENUM_CLASS_OPERATORS(EnumType)      \
-    ENUM_CLASS_BINARY_OPERATOR(EnumType, &) \
-    ENUM_CLASS_BINARY_OPERATOR(EnumType, |) \
+#define ENUM_CLASS_BITWISE_OPS(EnumType)     \
+    ENUM_CLASS_BITWISE_OPERATOR(EnumType, &) \
+    ENUM_CLASS_BITWISE_OPERATOR(EnumType, |) \
     ENUM_CLASS_UNARY_OPERATOR(EnumType, ~)
 
-#define ENUM_CLASS_FRIEND_OPERATORS(EnumType)      \
-    ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, &) \
-    ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, |) \
+#define ENUM_CLASS_FRIEND_BITWISE_OPS(EnumType)     \
+    ENUM_CLASS_FRIEND_BITWISE_OPERATOR(EnumType, &) \
+    ENUM_CLASS_FRIEND_BITWISE_OPERATOR(EnumType, |) \
     ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, ~)
 
-#define ENUM_CLASS_BINARY_OPERATOR(EnumType, Op) ENUM_CLASS_BINARY_OPERATOR_IMPL(EnumType, Op,)
-#define ENUM_CLASS_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op,)
-#define ENUM_CLASS_FRIEND_BINARY_OPERATOR(EnumType, Op) ENUM_CLASS_BINARY_OPERATOR_IMPL(EnumType, Op, friend)
+#define ENUM_CLASS_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op, )
+#define ENUM_CLASS_BITWISE_OPERATOR(EnumType, Op) ENUM_CLASS_BITWISE_OPERATOR_IMPL(EnumType, Op, )
+#define ENUM_CLASS_FRIEND_BITWISE_OPERATOR(EnumType, Op) ENUM_CLASS_BITWISE_OPERATOR_IMPL(EnumType, Op, friend)
 #define ENUM_CLASS_FRIEND_UNARY_OPERATOR(EnumType, Op) ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op, friend)
 
-#define ENUM_CLASS_BINARY_OPERATOR_IMPL(EnumType, Op, Friend)                                                     \
+#define ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op, Friend)                                              \
+    constexpr Friend inline EnumType operator Op(EnumType val)                                            \
+    {                                                                                                     \
+        using UnderlyingType = std::underlying_type<EnumType>::type;                                      \
+        static_assert(std::is_enum<EnumType>::value, "EnumType shoud be be an enum.");                    \
+        static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected."); \
+        return static_cast<EnumType>(Op static_cast<UnderlyingType>(val));                                \
+    }
+
+#define ENUM_CLASS_BITWISE_OPERATOR_IMPL(EnumType, Op, Friend)                                                    \
     constexpr Friend inline EnumType operator Op(EnumType lhs, EnumType rhs)                                      \
     {                                                                                                             \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                              \
@@ -27,15 +36,6 @@
     {                                                                                                             \
         using UnderlyingType = std::underlying_type<EnumType>::type;                                              \
         return lhs = static_cast<EnumType>(static_cast<UnderlyingType>(lhs) Op static_cast<UnderlyingType>(rhs)); \
-    }
-
-#define ENUM_CLASS_UNARY_OPERATOR_IMPL(EnumType, Op, Friend)                                              \
-    constexpr Friend inline EnumType operator Op(EnumType val)                                            \
-    {                                                                                                     \
-        using UnderlyingType = std::underlying_type<EnumType>::type;                                      \
-        static_assert(std::is_enum<EnumType>::value, "EnumType shoud be be an enum.");                    \
-        static_assert(std::is_unsigned<UnderlyingType>::value, "Unsigned underlying type are expected."); \
-        return static_cast<EnumType>(Op static_cast<UnderlyingType>(val));                                \
     }
 
 namespace RR

@@ -23,7 +23,7 @@ namespace RR::Rfx
             EscapedNewLines = 1 << 2,
             EscapedCharacters = 1 << 3,
         };
-        ENUM_CLASS_FRIEND_OPERATORS(Flags)
+        ENUM_CLASS_FRIEND_BITWISE_OPS(Flags)
 
     public:
         Token() = default;

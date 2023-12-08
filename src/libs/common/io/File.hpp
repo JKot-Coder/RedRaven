@@ -12,7 +12,7 @@ namespace RR::Common
     namespace IO
     {
         enum class FileAccessMode : uint32_t;
-        ENUM_CLASS_OPERATORS(FileAccessMode);
+        ENUM_CLASS_BITWISE_OPS(FileAccessMode);
 
         enum class FileAccessMode : uint32_t
         {

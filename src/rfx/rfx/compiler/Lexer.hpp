@@ -26,7 +26,7 @@ namespace RR
                 None = 0 << 0,
                 SuppressDiagnostics = 1 << 0,
             };
-            ENUM_CLASS_FRIEND_OPERATORS(Flags)
+            ENUM_CLASS_FRIEND_BITWISE_OPS(Flags)
 
         public:
             Lexer(const std::shared_ptr<SourceView>& sourceView, const std::shared_ptr<CompileContext>& context);

@@ -92,6 +92,7 @@ namespace RR::Rfx
         const_reverse_iterator rend() const noexcept { return crend(); }
         const_reverse_iterator crend() const noexcept { return IsObjectLike() ? container->crend() : const_reverse_iterator {}; }
 
+        bool IsValid() const { return type != Type::Invalid; }
         bool IsObjectLike() const { return type == Type::Object || type == Type::Array; }
         bool IsObject() const { return type == Type::Object; }
         bool IsArray() const { return type == Type::Array; }

@@ -100,7 +100,7 @@ namespace RR
                 Write = 2,
                 ReadWrite = Read | Write,
             }; // 2 bits
-            ENUM_CLASS_FRIEND_OPERATORS(DepthAccess);
+            ENUM_CLASS_FRIEND_BITWISE_OPS(DepthAccess);
 
             enum class ComparisonFunc : uint8_t
             {

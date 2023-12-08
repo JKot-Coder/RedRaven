@@ -26,7 +26,7 @@ namespace RR
             RenderTarget = 1 << 2,
             DepthStencil = 1 << 3,
         };
-        ENUM_CLASS_OPERATORS(GpuResourceBindFlags)
+        ENUM_CLASS_BITWISE_OPS(GpuResourceBindFlags)
 
         enum class GpuResourceFormat : uint32_t
         {
@@ -154,7 +154,7 @@ namespace RR
             StructuredBuffer = 1 << 1,
             IndexBuffer = 1 << 2,
         };
-        ENUM_CLASS_OPERATORS(BufferFlags)
+        ENUM_CLASS_BITWISE_OPS(BufferFlags)
 
         enum class GpuResourceUsage : uint32_t
         {
