@@ -8,19 +8,25 @@ namespace RR
         {
         public:
             UnownedStringSlice() = default;
-
-            UnownedStringSlice(const U8String& string)
-                : begin_(string.c_str()), end_(string.c_str() + string.length())
-            {
-            }
-
-            UnownedStringSlice(const U8Char* begin, const U8Char* end)
-                : begin_(begin), end_(end)
-            {
-            }
+            UnownedStringSlice(const U8String& string) : begin_(string.c_str()), end_(string.c_str() + string.length()) { }
+            UnownedStringSlice(const U8Char* begin, const U8Char* end) : begin_(begin), end_(end) { }
+            UnownedStringSlice(const U8Char* begin, size_t len) : begin_(begin), end_(begin + len) { }
 
             const U8Char* Begin() const { return begin_; }
             const U8Char* End() const { return end_; }
+            // Return a head of the slice - everything up to the index
+            UnownedStringSlice Head(size_t idx) const
+            {
+                ASSERT(idx >= 0 && idx <= GetLength());
+                return UnownedStringSlice(begin_, idx);
+            }
+            // Return a tail of the slice - everything from the index to the end of the slice
+            UnownedStringSlice Tail(size_t idx) const
+            {
+                ASSERT(idx >= 0 && idx <= GetLength());
+                return UnownedStringSlice(begin_ + idx, end_);
+            }
+
             size_t GetLength() const { return std::distance(begin_, end_); }
             U8String AsString() const { return U8String(begin_, end_); }
 
@@ -32,6 +38,23 @@ namespace RR
 
             bool operator==(char const* str) const { return (*this) == UnownedStringSlice(str); }
             bool operator!=(char const* str) const { return !(*this == str); }
+
+            bool StartsWith(UnownedStringSlice const& other) const
+            {
+                const auto thisSize = GetLength();
+                const auto otherSize = other.GetLength();
+
+                if (otherSize > thisSize)
+                    return false;
+
+                return Head(otherSize) == other;
+            }
+
+            bool StartsWith(char const* string) const
+            {
+                ASSERT(string != nullptr);
+                return StartsWith(UnownedStringSlice(string));
+            }
 
             void Reset()
             {

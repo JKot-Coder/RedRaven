@@ -1800,8 +1800,7 @@ namespace RR
                 case Token::Type::NewLine:
                     GetSink().Diagnose(peekToken(), Diagnostics::syntaxErrorInPreprocessorExpression);
                     return 0;
-                default:
-                    break;
+                default: break;
             }
 
             auto token = advanceToken();

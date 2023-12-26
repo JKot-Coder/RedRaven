@@ -13,16 +13,13 @@ namespace RR
             auto otherSize = other.GetLength();
 
             if (thisSize != otherSize)
-            {
                 return false;
-            }
 
             const U8Char* const thisChars = Begin();
             const U8Char* const otherChars = other.Begin();
             if (thisChars == otherChars || thisSize == 0)
-            {
                 return true;
-            }
+
             ASSERT(thisChars && otherChars);
             return memcmp(thisChars, otherChars, thisSize) == 0;
         }

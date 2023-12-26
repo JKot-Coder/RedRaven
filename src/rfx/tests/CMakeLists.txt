@@ -89,6 +89,7 @@ set(RFX_TESTS_PARSER_SRC
     "parser/Inheritance-invalid_4.rfx"
     "parser/Simple.rfx"
     "parser/Duplicate.rfx"
+    "parser/Expressions.rfx"
 )
 source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
 

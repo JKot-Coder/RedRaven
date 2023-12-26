@@ -7,29 +7,29 @@ Object: {
 
 Animal: {
     Weight: -1.0,
-    Type: None
+    Type: "None"
 },
 
 Fox: {
     << [Object, Animal],
     Name: "Fox",
     Weight: 7.5,
-    Type: Predator,
+    Type: "Predator",
 },
 
 Cow: {
     << [Object, Animal],
     Name: "Cow",
     Weight: 750,
-    Type: Pray,
+    Type: "Pray",
 },
 
-BlackCow: { << Cow, Name: BlackCow },
+BlackCow: { << Cow, Name: "BlackCow" },
 
 Zoo: {
     << Object,
     Name: "Park",
     Animals:[
-        { << BlackCow }, { << Fox, Name: RedFox }
+        { << BlackCow }, { << Fox, Name: "RedFox" }
     ],
 }

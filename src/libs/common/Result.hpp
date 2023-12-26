@@ -144,6 +144,7 @@ namespace RR::Common
         AlreadyExist = RR_MAKE_ERROR(RR_FACILITY_CORE, 6), // Indicates a file/resource already exist
         InternalFail = RR_MAKE_ERROR(RR_FACILITY_CORE, 7), //! An unhandled internal failure (typically from unhandled exception)
         NotAvailable = RR_MAKE_ERROR(RR_FACILITY_CORE, 8), //! Could not complete because some underlying feature (hardware or software) was not available
+        ArithmeticOverflow = RR_MAKE_ERROR(RR_FACILITY_CORE, 9), //! Arithmetic result exceeded range.
     };
 
     U8String GetErrorMessage(RResult result);

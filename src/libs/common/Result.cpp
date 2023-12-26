@@ -24,6 +24,7 @@ namespace RR::Common
             case RResult::AlreadyExist: return u8"File/resource already exists";
             case RResult::InternalFail: return u8"An unhandled internal failure";
             case RResult::NotAvailable: return u8"Could not complete because some underlying feature (hardware or software) was not available";
+            case RResult::ArithmeticOverflow: return u8"Arithmetic result exceeded range";
         }
 
         return fmt::sprintf("Unknown error. Code: 0x%08X", static_cast<typename std::underlying_type<RResult>::type>(result));

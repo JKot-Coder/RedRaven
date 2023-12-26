@@ -25,7 +25,8 @@ set(RFX_CORE_SRC
     "core/StringEscapeUtil.cpp"
     "core/StringEscapeUtil.hpp"
     "core/UnownedStringSlice.cpp"
-    "core/UnownedStringSlice.hpp")
+    "core/UnownedStringSlice.hpp"
+    "core/StringUtils.hpp")
 source_group( "core" FILES ${RFX_CORE_SRC} )
 
 set(RFX_COMPILER_SRC

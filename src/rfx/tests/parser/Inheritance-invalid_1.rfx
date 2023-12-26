@@ -1,6 +1,6 @@
 // :PARSER
 
-Bar: [test, 1, false],
+Bar: ["test", 1, false],
 
 Foo: {
     << Bar

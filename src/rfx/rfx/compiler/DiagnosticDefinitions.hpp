@@ -1,5 +1,5 @@
 //
-//TODO remove Slange
+// TODO remove Slange
 // TODO change format
 // TODO remove unused
 //
@@ -192,36 +192,25 @@ DIAGNOSTIC(15999, Error, integerLiteralInvalidBase, "integer literal '{0}' has a
 DIAGNOSTIC(15999, Error, integerLiteralOutOfRange, "integer literal '{0}' too large for type '{1}'")
 DIAGNOSTIC(15999, Error, floatLiteralUnexpected, "float literal '{0}' unexpected parsing error")
 DIAGNOSTIC(15999, Error, floatLiteralOutOfRange, "float literal '{0}' too large for type '{1}'")
+
 //
 // 2xxxx - Parsing
 //
-
 DIAGNOSTIC(20003, Error, unexpectedToken, "unexpected {0}")
 DIAGNOSTIC(20001, Error, unexpectedTokenExpectedTokenType, "unexpected {0}, expected {1}")
 DIAGNOSTIC(20001, Error, unexpectedTokenExpectedTokenName, "unexpected {0}, expected '{1}'")
-
-DIAGNOSTIC(0, Error, tokenNameExpectedButEOF, "\"$0\" expected but end of file encountered.")
-DIAGNOSTIC(0, Error, tokenTypeExpectedButEOF, "$0 expected but end of file encountered.")
-DIAGNOSTIC(20001, Error, tokenNameExpected, "\"$0\" expected")
-DIAGNOSTIC(20001, Error, tokenNameExpectedButEOF2, "\"$0\" expected but end of file encountered.")
-DIAGNOSTIC(20001, Error, tokenTypeExpected, "$0 expected")
-DIAGNOSTIC(20001, Error, tokenTypeExpectedButEOF2, "$0 expected but end of file encountered.")
-DIAGNOSTIC(20001, Error, typeNameExpectedBut, "unexpected $0, expected type name")
-DIAGNOSTIC(20001, Error, typeNameExpectedButEOF, "type name expected but end of file encountered.")
-DIAGNOSTIC(20001, Error, unexpectedEOF, " Unexpected end of file.")
 DIAGNOSTIC(20002, Error, syntaxError, "syntax error.")
-DIAGNOSTIC(20004, Error, unexpectedTokenExpectedComponentDefinition, "unexpected token '$0', only component definitions are allowed in a shader scope.")
-DIAGNOSTIC(20008, Error, invalidOperator, "invalid operator '$0'.")
-DIAGNOSTIC(20011, Error, unexpectedColon, "unexpected ':'.")
-DIAGNOSTIC(20012, Error, invalidSPIRVVersion, "Expecting SPIR-V version as either 'major.minor', or quoted if has patch (eg for SPIR-V 1.2, '1.2' or \"1.2\"')")
-DIAGNOSTIC(20013, Error, invalidCUDASMVersion, "Expecting CUDA SM version as either 'major.minor', or quoted if has patch (eg for '7.0' or \"7.0\"')")
 
 DIAGNOSTIC(20014, Error, duplicateKey, "Duplication of the key '{0}'")
 DIAGNOSTIC(20015, Error, invalidParentsValue, "The value to inherit must be an array or an indetifier, but it's {0}.")
 DIAGNOSTIC(20016, Error, invalidParentIndetifier, "The {0} is not supported as a parent indetifier.")
 DIAGNOSTIC(20017, Error, invalidParentType, "The parent '{0}' is of type '{1}', but only objects can be used as parents.")
 DIAGNOSTIC(20018, Error, undeclaredIdentifier, "Undeclared indetifier: '{0}'")
-    // 99999 - Internal compiler errors, and not-yet-classified diagnostics.
+
+// 99999 - Internal compiler errors, and not-yet-classified diagnostics.
+DIAGNOSTIC(20020, Error, divideByZero, "division by zero")
+DIAGNOSTIC(20021, Error, inflixOnlyValidForType, "inflix operator {0} can only be applied to {1}")
+DIAGNOSTIC(20021, Error, wrongTypeForUnary, "unary operator {0} can not be applied to {1}")
 
 DIAGNOSTIC(99999, Internal, unimplemented, "unimplemented feature in Slang compiler: $0")
 DIAGNOSTIC(99999, Internal, unexpected, "unexpected condition encountered in Slang compiler: {0}")
@@ -231,6 +220,5 @@ DIAGNOSTIC(99999, Error, compilationAbortedDueToException, "Slang compilation ab
 DIAGNOSTIC(99999, Internal, serialDebugVerificationFailed, "Verification of serial debug information failed.")
 
 DIAGNOSTIC(12345, Error, custom, "TODO Custom error: {0} : {1}")
-
 
 #undef DIAGNOSTIC

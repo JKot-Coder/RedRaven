@@ -1,0 +1,20 @@
+// :PARSER
+
+Inflix: {
+    EvalInt: [ 2 + 2 * 3, 2 * (1 + 6), (2 * 4 - 1) / 2, (5 + 2) % 2 ],
+    EvalFloat: [ 0.5 * 2.0 - 1.0, (5.0 + 2.0) / 2.0 ],
+    Compare: [ 0 < 1, 0 != 1, 0 <= -1, 0.0 == 0, 0 >= -1.0 ],
+    Bitwise: [ 2 << 1, 2 >> 1, 0xF & 0xE, 0x10 | 0x04, 0xF1 ^ 0xF0 ],
+    Boolean: [ true && false, true || false, (false || true) && (true && true) ],
+},
+
+Unary: {
+    Bool: [!false, !true],
+    Int: [-1, +2, ~0xFFFFFFFFFFFFFFEE],
+    Float: [-1.0, +2.0]
+},
+
+Ternary: {
+    Test: [ 2.0 * 8.0 > 14.0 ? false ? "no" : "sucess" : "unexpected" ],
+    Object: [ ((0xFF & 0x10) > 0) ? { result: "sucess" } : "unexpected" ]
+}
