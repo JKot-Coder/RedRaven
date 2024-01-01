@@ -27,8 +27,8 @@ namespace RR
                     default: return tokenSlice;
                 }
 
-                auto begin = tokenSlice.Begin();
-                auto end = tokenSlice.End();
+                auto begin = tokenSlice.begin();
+                auto end = tokenSlice.end();
 
                 if (*begin == quoteChar)
                     begin++;
@@ -92,8 +92,8 @@ namespace RR
 
             char* scrubbingToken(const UnownedStringSlice& source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
             {
-                auto srcEnd = source.End();
-                auto cursor = source.Begin();
+                auto srcEnd = source.end();
+                auto cursor = source.begin();
                 auto dst = dstBegin;
 
                 while (cursor != srcEnd)
@@ -268,9 +268,9 @@ namespace RR
                 columnCounter_ = humaneSourceLoc.column;
             }
 
-            begin_ = content.Begin();
+            begin_ = content.begin();
             cursor_ = begin_;
-            end_ = content.End();
+            end_ = content.end();
         }
 
         Lexer::~Lexer() { }

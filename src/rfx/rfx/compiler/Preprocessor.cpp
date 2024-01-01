@@ -28,7 +28,7 @@ namespace RR
                 // A file name usually doesn't process escape sequences
                 // (this is import on Windows, where `\\` is a valid
                 // path separator character).
-                return U8String(content.Begin(), content.End());
+                return U8String(content.begin(), content.end());
             }
 
             U8String getStringLiteralTokenValue(const Token& token)
@@ -37,8 +37,8 @@ namespace RR
 
                 const UnownedStringSlice content = token.stringSlice;
 
-                auto cursor = utf8::iterator<const char*>(content.Begin(), content.Begin(), content.End());
-                auto end = utf8::iterator<const char*>(content.End(), content.Begin(), content.End());
+                auto cursor = utf8::iterator<const char*>(content.begin(), content.begin(), content.end());
+                auto end = utf8::iterator<const char*>(content.end(), content.begin(), content.end());
 
                 auto quote = *cursor++;
                 ASSERT(quote == '\'' || quote == '"');
@@ -1385,13 +1385,13 @@ namespace RR
 
             errno = 0;
 
-            auto end = const_cast<U8Char*>(token.stringSlice.End());
-            const auto result = std::strtol(token.stringSlice.Begin(), &end, radix);
+            auto end = const_cast<U8Char*>(token.stringSlice.end());
+            const auto result = std::strtol(token.stringSlice.begin(), &end, radix);
 
             if (errno == ERANGE)
                 GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.stringSlice, "int32_t");
 
-            if (end == token.stringSlice.End())
+            if (end == token.stringSlice.end())
                 return result;
 
             GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.stringSlice, radix);
@@ -1404,13 +1404,13 @@ namespace RR
 
             errno = 0;
 
-            auto end = const_cast<U8Char*>(token.stringSlice.End());
-            const auto result = std::strtoul(token.stringSlice.Begin(), &end, radix);
+            auto end = const_cast<U8Char*>(token.stringSlice.end());
+            const auto result = std::strtoul(token.stringSlice.begin(), &end, radix);
 
             if (errno == ERANGE)
                 GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
 
-            if (end == token.stringSlice.End())
+            if (end == token.stringSlice.end())
                 return result;
 
             GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.stringSlice, radix);
@@ -2315,11 +2315,11 @@ namespace RR
 
             // This is a hacky shoddy way to get an unprocessed message string, with proper handling of a few whitespace characters, etc.
             // But it should work fine, because the tokens in the directive must be from the same memory slice.
-            const auto begin = peekRawToken().stringSlice.Begin();
-            auto end = peekRawToken().stringSlice.End();
+            const auto begin = peekRawToken().stringSlice.begin();
+            auto end = peekRawToken().stringSlice.end();
 
             while (!isEndOfLine())
-                end = advanceRawToken().stringSlice.End();
+                end = advanceRawToken().stringSlice.end();
 
             return { begin, end };
         }

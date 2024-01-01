@@ -362,8 +362,8 @@ namespace RR::Rfx
         ASSERT(token.type == Token::Type::FloatingPointLiteral);
         errno = 0;
 
-        auto end = const_cast<U8Char*>(token.stringSlice.End());
-        outValue = std::strtod(token.stringSlice.Begin(), &end);
+        auto end = const_cast<U8Char*>(token.stringSlice.end());
+        outValue = std::strtod(token.stringSlice.begin(), &end);
 
         if (errno == ERANGE)
         {
@@ -371,7 +371,7 @@ namespace RR::Rfx
             return RResult::Fail;
         }
 
-        if (end != token.stringSlice.End())
+        if (end != token.stringSlice.end())
         {
             getSink().Diagnose(token, Diagnostics::floatLiteralUnexpected, token.GetContentString());
             return RResult::Fail;

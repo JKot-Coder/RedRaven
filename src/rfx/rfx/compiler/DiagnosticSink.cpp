@@ -14,8 +14,8 @@ namespace RR
             /// Trims any horizontal whitespace from the start and end and returns as a substring
             UnownedStringSlice trim(const UnownedStringSlice& stringSlice)
             {
-                const U8Char* start = stringSlice.Begin();
-                const U8Char* end = stringSlice.End();
+                const U8Char* start = stringSlice.begin();
+                const U8Char* end = stringSlice.end();
 
                 // Work with UTF8 as ANSI text. This shouldn't be a problem...
                 while (start < end && (*start == '\t' || *start == ' '))
@@ -28,8 +28,8 @@ namespace RR
 
             U8String replaceTabWithSpaces(const UnownedStringSlice& slice, uint32_t tabSize)
             {
-                const U8Char* start = slice.Begin();
-                const U8Char* const end = slice.End();
+                const U8Char* start = slice.begin();
+                const U8Char* const end = slice.end();
                 U8String out;
 
                 for (const U8Char* cur = start; cur < end;)
@@ -90,13 +90,13 @@ namespace RR
                 UnownedStringSlice sourceLineSlice = sourceView->ExtractLineContainingLocation(diagnostic.location);
 
                 // Trim any trailing white space
-                sourceLineSlice = UnownedStringSlice(sourceLineSlice.Begin(), trim(sourceLineSlice).End());
+                sourceLineSlice = UnownedStringSlice(sourceLineSlice.begin(), trim(sourceLineSlice).end());
 
                 // TODO(JS): The tab size should ideally be configurable from command line.
                 // For now just go with 4.
                 const uint32_t tabSize = 4;
 
-                U8String lineToLocation = U8String(sourceLineSlice.Begin(), sourceView->GetContentFrom(diagnostic.location));
+                U8String lineToLocation = U8String(sourceLineSlice.begin(), sourceView->GetContentFrom(diagnostic.location));
                 lineToLocation = replaceTabWithSpaces(lineToLocation, tabSize);
                 size_t caretOffset = utf8::distance(lineToLocation.begin(), lineToLocation.end());
 

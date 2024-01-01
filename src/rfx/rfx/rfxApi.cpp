@@ -194,7 +194,7 @@ namespace RR::Rfx
                     break;
                 }
                 default:
-                    append(token.stringSlice.Begin(), token.stringSlice.End());
+                    append(token.stringSlice.begin(), token.stringSlice.end());
                     break;
             }
 
@@ -597,7 +597,7 @@ namespace RR::Rfx
 
 
                         DxcBuffer source;
-                    source.Ptr = sourceFile->GetContent().Begin();
+                    source.Ptr = sourceFile->GetContent().begin();
                     source.Size = sourceFile->GetContentSize();
                     source.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
 

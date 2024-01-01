@@ -37,7 +37,7 @@ namespace RR::Rfx
             if (stringSlice.GetLength() == 0)
                 return "";
 
-            return U8String(stringSlice.Begin(), stringSlice.End());
+            return U8String(stringSlice.begin(), stringSlice.end());
         }
 
         inline bool isValid() const { return type != Type::Unknown; }

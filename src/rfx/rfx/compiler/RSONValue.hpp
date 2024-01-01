@@ -12,8 +12,8 @@ namespace RR::Rfx
         {
             int compareStr(const UnownedStringSlice& a, const UnownedStringSlice& b) const
             {
-                for (auto aIt = a.Begin(), bIt = b.Begin();
-                     aIt != a.End() && bIt != b.End();
+                for (auto aIt = a.begin(), bIt = b.begin();
+                     aIt != a.end() && bIt != b.end();
                      ++aIt, ++bIt)
                 {
                     if (*aIt != *bIt)
@@ -33,8 +33,8 @@ namespace RR::Rfx
 
             bool operator()(const UnownedStringSlice& a, const UnownedStringSlice& b) const
             {
-                const bool isArrayKeys = (a.Begin() == a.End() && b.Begin() == b.End());
-                return isArrayKeys ? a.Begin() < b.Begin() : compare(a, b) < 0;
+                const bool isArrayKeys = (a.begin() == a.end() && b.begin() == b.end());
+                return isArrayKeys ? a.begin() < b.begin() : compare(a, b) < 0;
             }
         };
 

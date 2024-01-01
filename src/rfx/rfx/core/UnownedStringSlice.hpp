@@ -12,8 +12,8 @@ namespace RR
             UnownedStringSlice(const U8Char* begin, const U8Char* end) : begin_(begin), end_(end) { }
             UnownedStringSlice(const U8Char* begin, size_t len) : begin_(begin), end_(begin + len) { }
 
-            const U8Char* Begin() const { return begin_; }
-            const U8Char* End() const { return end_; }
+            const U8Char* begin() const { return begin_; }
+            const U8Char* end() const { return end_; }
             // Return a head of the slice - everything up to the index
             UnownedStringSlice Head(size_t idx) const
             {
@@ -78,7 +78,7 @@ namespace std
     {
         bool operator()(const UnownedStringSlice& lhs, const UnownedStringSlice& rhs) const
         {
-            return std::equal(lhs.Begin(), lhs.End(), rhs.Begin(), rhs.End());
+            return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
         }
     };
 
@@ -88,8 +88,8 @@ namespace std
         std::size_t operator()(const UnownedStringSlice& slice) const noexcept
         {
             std::size_t hash = 0;
-            const RR::U8Char* ptr = slice.Begin();
-            const RR::U8Char* end = slice.End();
+            const RR::U8Char* ptr = slice.begin();
+            const RR::U8Char* end = slice.end();
             while (ptr < end)
             {
                 hash = static_cast<std::size_t>(*ptr) + (hash << 6) + (hash << 16) - hash;
@@ -107,6 +107,6 @@ struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
     template <typename FormatContext>
     auto format(RR::Rfx::UnownedStringSlice stringSlice, FormatContext& ctx)
     {
-        return formatter<string_view>::format(string_view(stringSlice.Begin(), stringSlice.GetLength()), ctx);
+        return formatter<string_view>::format(string_view(stringSlice.begin(), stringSlice.GetLength()), ctx);
     }
 };

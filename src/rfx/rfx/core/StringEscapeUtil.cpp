@@ -57,7 +57,7 @@ namespace RR
                {
                    const auto length = ioSlice.GetLength();
                    ASSERT(length > 0);
-                   const auto cur = ioSlice.Begin();
+                   const auto cur = ioSlice.begin();
 
                    uint32_t codePoint = 0;
                    unsigned int leading = cur[0];
@@ -73,7 +73,7 @@ namespace RR
                    if (size_t(count) > length)
                    {
                        ASSERT(!"Can't decode");
-                       ioSlice = UnownedStringSlice(ioSlice.End(), ioSlice.End());
+                       ioSlice = UnownedStringSlice(ioSlice.end(), ioSlice.end());
                        return ~uint32_t(0);
                    }
 
@@ -84,7 +84,7 @@ namespace RR
                        codePoint += (cur[i] & 0x3F);
                    }
 
-                   ioSlice = UnownedStringSlice(cur + count, ioSlice.End());
+                   ioSlice = UnownedStringSlice(cur + count, ioSlice.end());
                    return codePoint;
                }*/
             void appendHex16(uint32_t value, U8String& out)
@@ -167,9 +167,9 @@ namespace RR
 
             void CppStringEscapeHandler::AppendEscaped(const UnownedStringSlice& slice, U8String& out) const
             {
-                const char* start = slice.Begin();
+                const char* start = slice.begin();
                 const char* cur = start;
-                const char* const end = slice.End();
+                const char* const end = slice.end();
 
                 for (; cur < end;)
                 {
@@ -217,9 +217,9 @@ namespace RR
 
             void JSONStringEscapeHandler::AppendEscaped(const UnownedStringSlice& slice, U8String& out) const
             {
-                const auto start = slice.Begin();
+                const auto start = slice.begin();
                 auto cur = start;
-                const auto end = slice.End();
+                const auto end = slice.end();
 
                 for (; cur < end;)
                 {

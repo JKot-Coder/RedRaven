@@ -73,12 +73,12 @@ namespace RR::Rfx
     private:
         void advanceBom()
         {
-            auto begin = content_.Begin();
+            auto begin = content_.begin();
 
             if (utf8::starts_with_bom(begin))
-                utf8::next(begin, content_.End());
+                utf8::next(begin, content_.end());
 
-            content_ = UnownedStringSlice(begin, content_.End());
+            content_ = UnownedStringSlice(begin, content_.end());
         }
 
         template <typename T>
@@ -147,7 +147,7 @@ namespace RR::Rfx
             const auto sourceView = splitLocation.GetSourceView();
             ASSERT(sourceView);
 
-            const auto content = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceView->GetSourceFile()->GetContent().End());
+            const auto content = UnownedStringSlice(sourceView->GetContentFrom(splitLocation), sourceView->GetSourceFile()->GetContent().end());
             const Token initiatingToken(Token::Type::Unknown, content, splitLocation);
 
             return MakeShared<SourceView>::Create(sourceView->GetSourceFile(), content, ownPathInfo, initiatingToken);

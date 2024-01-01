@@ -8,12 +8,12 @@ namespace RR
         {
             UnownedStringSlice advanceBom(const UnownedStringSlice& stringSlice)
             {
-                auto begin = stringSlice.Begin();
+                auto begin = stringSlice.begin();
 
                 if (utf8::starts_with_bom(begin))
-                    utf8::next(begin, stringSlice.End());
+                    utf8::next(begin, stringSlice.end());
 
-                return UnownedStringSlice(begin, stringSlice.End());
+                return UnownedStringSlice(begin, stringSlice.end());
             }
         }
 
@@ -58,8 +58,8 @@ namespace RR
 
         bool extractLine(UnownedStringSlice& ioText, UnownedStringSlice& outLine)
         {
-            U8Char const* const begin = ioText.Begin();
-            U8Char const* const end = ioText.End();
+            U8Char const* const begin = ioText.begin();
+            U8Char const* const end = ioText.end();
 
             if (begin == nullptr)
             {
@@ -115,15 +115,15 @@ namespace RR
         {
             ASSERT(loc.GetSourceView() == shared_from_this());
 
-            return GetContent().Begin() + loc.raw;
+            return GetContent().begin() + loc.raw;
         }
 
         UnownedStringSlice SourceView::ExtractLineContainingLocation(const SourceLocation& loc) const
         {
             ASSERT(loc.GetSourceView() == shared_from_this());
 
-            const U8Char* const contentStart = GetContent().Begin();
-            const U8Char* const contentEnd = GetContent().End();
+            const U8Char* const contentStart = GetContent().begin();
+            const U8Char* const contentEnd = GetContent().end();
             const U8Char* pos = GetContentFrom(loc);
 
             // If we start with a newline character, we assume that we need a line before.

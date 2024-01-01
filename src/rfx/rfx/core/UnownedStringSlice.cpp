@@ -15,8 +15,8 @@ namespace RR
             if (thisSize != otherSize)
                 return false;
 
-            const U8Char* const thisChars = Begin();
-            const U8Char* const otherChars = other.Begin();
+            const U8Char* const thisChars = begin();
+            const U8Char* const otherChars = other.begin();
             if (thisChars == otherChars || thisSize == 0)
                 return true;
 
