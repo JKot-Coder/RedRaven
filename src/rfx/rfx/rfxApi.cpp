@@ -529,15 +529,17 @@ namespace RR::Rfx
                     else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser ||
                              compileRequest.outputStage == CompileRequestDescription::OutputStage::Compiler)
                     {
-                        Parser parser(tokens, context);
                         RSONValue root;
 
-                        // Write diagnostic even on parsing error.
-                        ON_SCOPE_EXIT({
-                            const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
-                            compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
-                        });
-                        RR_RETURN_ON_FAIL(parser.Parse(root));
+                        {
+                            Parser parser(tokens, context);
+                            // Write diagnostic even on parsing error.
+                            ON_SCOPE_EXIT({
+                                const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
+                                compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                            });
+                            RR_RETURN_ON_FAIL(parser.Parse(root));
+                        }
 
                         if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser)
                         {
@@ -545,7 +547,11 @@ namespace RR::Rfx
                             break;
                         }
 
-                        // EffectCompiler(root);
+                        if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Compiler)
+                        {
+                            EffectCompiler compiler(context);
+                            compiler.Compile(root);
+                        }
 
                         break;
                     }

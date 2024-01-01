@@ -17,7 +17,7 @@ namespace RR::Rfx
     void EffectCompiler::Compile(const RSONValue& rson)
     {
         std::ignore = rson;
-        //rson["technique"]
+       // rson["Effect"]
     }
 
 }

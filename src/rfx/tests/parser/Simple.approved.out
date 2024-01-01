@@ -1,3 +1,5 @@
+Diagnostic:[
+]
 SourceOutput:[
     {
       "BasicTypes": {
@@ -25,6 +27,4 @@ SourceOutput:[
         "String": "test"
       }
     }
-]
-Diagnostic:[
 ]
