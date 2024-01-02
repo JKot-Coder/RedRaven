@@ -39,7 +39,7 @@ namespace RR
             struct Context;
 
             DiagnosticSink& getSink() const;
-            Context& currentContext() { return stack_.top(); }
+            Context& currentContext() { return stack_.back(); }
             RSONValue& currentValue() { return currentContext().value; }
 
         private:
@@ -52,7 +52,7 @@ namespace RR
                 RSONValue value;
             };
 
-            std::stack<Context> stack_;
+            std::vector<Context> stack_;
             RSONValue root_;
             std::shared_ptr<CompileContext> context_;
         };

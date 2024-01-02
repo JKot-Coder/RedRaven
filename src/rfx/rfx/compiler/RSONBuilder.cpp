@@ -11,14 +11,14 @@ namespace RR::Rfx
     RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : context_(context)
     {
         root_ = RSONValue::MakeEmptyObject();
-        stack_.emplace(root_);
+        stack_.emplace_back(root_);
     }
 
     DiagnosticSink& RSONBuilder::getSink() const { return context_->sink; }
 
     RResult RSONBuilder::StartObject()
     {
-        stack_.emplace(RSONValue::MakeEmptyObject());
+        stack_.emplace_back(RSONValue::MakeEmptyObject());
         return RResult::Ok;
     }
 
@@ -37,14 +37,14 @@ namespace RR::Rfx
             currentValue().container->insert(parent->begin(), parent->end());
 
         RSONValue result = currentValue();
-        stack_.pop();
+        stack_.pop_back();
 
         return result;
     }
 
     RResult RSONBuilder::StartArray()
     {
-        stack_.emplace(RSONValue::MakeEmptyArray());
+        stack_.emplace_back(RSONValue::MakeEmptyArray());
         return RResult::Ok;
     }
 
@@ -53,7 +53,7 @@ namespace RR::Rfx
         ASSERT(currentValue().type == RSONValue::Type::Array);
 
         RSONValue result = currentValue();
-        stack_.pop();
+        stack_.pop_back();
 
         return result;
     }
@@ -62,25 +62,36 @@ namespace RR::Rfx
     {
         ASSERT(currentValue().type == RSONValue::Type::Object);
 
-        const auto inherite = [this, &initiatingToken](const UnownedStringSlice& name)
+        const auto inherite = [this, &initiatingToken](const StringSplit<UnownedStringSlice>& nameSplit)
         {
-            auto value = root_.Find(name);
+            RSONValue parent = RSONValue {};
 
-            switch (value.type)
+            for (auto it = stack_.rbegin() + 1; it != stack_.rend(); it++)
+            {
+                const RSONValue& value = it->value.Find(nameSplit);
+
+                if (value.type != RSONValue::Type::Invalid)
+                {
+                    parent = value;
+                    break;
+                }
+            }
+
+            switch (parent.type)
             {
                 case RSONValue::Type::Object:
                 {
-                    currentContext().parents.emplace_back(value.container.get());
+                    currentContext().parents.emplace_back(parent.container.get());
                     break;
                 }
                 case RSONValue::Type::Invalid:
                 {
-                    getSink().Diagnose(initiatingToken, Diagnostics::undeclaredIdentifier, name);
+                    getSink().Diagnose(initiatingToken, Diagnostics::undeclaredIdentifier, nameSplit);
                     return RResult::NotFound;
                 }
                 default:
                 {
-                    getSink().Diagnose(initiatingToken, Diagnostics::invalidParentType, name, value.type);
+                    getSink().Diagnose(initiatingToken, Diagnostics::invalidParentType, nameSplit, parent.type);
                     return RResult::Fail;
                 }
             }
