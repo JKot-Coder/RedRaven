@@ -55,7 +55,7 @@ namespace RR
             // Returns ~uint32_t(0) if can't decode
             /*   uint32_t getUnicodePointFromUTF8(UnownedStringSlice& ioSlice)
                {
-                   const auto length = ioSlice.GetLength();
+                   const auto length = ioSlice.length();
                    ASSERT(length > 0);
                    const auto cur = ioSlice.begin();
 

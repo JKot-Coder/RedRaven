@@ -2454,7 +2454,7 @@ namespace RR
             auto sourceLocation = nextToken.sourceLocation;
 
             // Start new source view from end of new line sequence.
-            sourceLocation.raw = sourceLocation.raw + nextToken.stringSlice.GetLength();
+            sourceLocation.raw = sourceLocation.raw + nextToken.stringSlice.length();
             sourceLocation.humaneSourceLoc = HumaneSourceLocation(line, 1);
 
             // Todo trash

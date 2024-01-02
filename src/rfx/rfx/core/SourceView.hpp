@@ -15,7 +15,7 @@ namespace RR::Rfx
         ~SourceFile() = default;
 
         UnownedStringSlice GetContent() const { return content_; }
-        size_t GetContentSize() const { return content_.GetLength(); }
+        size_t GetContentSize() const { return content_.length(); }
         const PathInfo& GetPathInfo() const { return pathInfo_; }
         void SetContent(const UnownedStringSlice& content);
 
@@ -41,7 +41,7 @@ namespace RR::Rfx
 
         const U8Char* GetContentFrom(const SourceLocation& loc) const;
 
-        size_t GetContentSize() const { return content_.GetLength(); }
+        size_t GetContentSize() const { return content_.length(); }
 
         SourceLocation GetSourceLocation(size_t offset, const HumaneSourceLocation& humaneSourceLoc) const
         {

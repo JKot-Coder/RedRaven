@@ -113,7 +113,7 @@ namespace RR
 
                     if (diagnostic.isTokenValid)
                     {
-                        const auto length = diagnostic.stringSlice.GetLength();
+                        const auto length = diagnostic.stringSlice.length();
 
                         if (length > 1)
                             caretLine.append(length - 1, '~');

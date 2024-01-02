@@ -34,7 +34,7 @@ namespace RR::Rfx
 
         U8String GetContentString() const
         {
-            if (stringSlice.GetLength() == 0)
+            if (stringSlice.length() == 0)
                 return "";
 
             return U8String(stringSlice.begin(), stringSlice.end());

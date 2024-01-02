@@ -15,7 +15,7 @@ namespace RR::Rfx
             auto end = const_cast<U8Char*>(slice.end());
             errno = 0;
 
-            if (slice.StartsWith("0x"))
+            if (slice.isStartsWith("0x"))
                 outValue = static_cast<int64_t>(std::strtoull(slice.begin(), &end, 16));
             else
                 outValue = std::strtoll(slice.begin(), &end, 0);

@@ -9,8 +9,8 @@ namespace RR
             // Note that memcmp is undefined when passed in null ptrs, so if we want to handle
             // we need to cover that case.
             // Can only be nullptr if size is 0.
-            auto thisSize = GetLength();
-            auto otherSize = other.GetLength();
+            auto thisSize = length();
+            auto otherSize = other.length();
 
             if (thisSize != otherSize)
                 return false;

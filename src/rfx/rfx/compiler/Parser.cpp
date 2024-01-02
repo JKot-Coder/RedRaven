@@ -739,8 +739,8 @@ namespace RR::Rfx
             auto combineRef = [&combinedRefSlice, &refSlice](const Token& token)
             {
                 // Advance stiringSlice if possible
-                if (refSlice.end() + token.stringSlice.GetLength() == token.stringSlice.end())
-                    refSlice = UnownedStringSlice(refSlice.begin(), refSlice.end() + token.stringSlice.GetLength());
+                if (refSlice.end() + token.stringSlice.length() == token.stringSlice.end())
+                    refSlice = UnownedStringSlice(refSlice.begin(), refSlice.end() + token.stringSlice.length());
                 else
                 {
                     // Construct if not possible

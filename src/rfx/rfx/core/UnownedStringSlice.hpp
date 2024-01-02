@@ -15,19 +15,19 @@ namespace RR
             const U8Char* begin() const { return begin_; }
             const U8Char* end() const { return end_; }
             // Return a head of the slice - everything up to the index
-            UnownedStringSlice Head(size_t idx) const
+            UnownedStringSlice head(size_t idx) const
             {
-                ASSERT(idx >= 0 && idx <= GetLength());
+                ASSERT(idx >= 0 && idx <= length());
                 return UnownedStringSlice(begin_, idx);
             }
             // Return a tail of the slice - everything from the index to the end of the slice
-            UnownedStringSlice Tail(size_t idx) const
+            UnownedStringSlice tail(size_t idx) const
             {
-                ASSERT(idx >= 0 && idx <= GetLength());
+                ASSERT(idx >= 0 && idx <= length());
                 return UnownedStringSlice(begin_ + idx, end_);
             }
 
-            size_t GetLength() const { return std::distance(begin_, end_); }
+            size_t length() const { return std::distance(begin_, end_); }
             U8String AsString() const { return U8String(begin_, end_); }
 
             bool operator==(UnownedStringSlice const& other) const;
@@ -39,24 +39,24 @@ namespace RR
             bool operator==(char const* str) const { return (*this) == UnownedStringSlice(str); }
             bool operator!=(char const* str) const { return !(*this == str); }
 
-            bool StartsWith(UnownedStringSlice const& other) const
+            bool isStartsWith(UnownedStringSlice const& other) const
             {
-                const auto thisSize = GetLength();
-                const auto otherSize = other.GetLength();
+                const auto thisSize = length();
+                const auto otherSize = other.length();
 
                 if (otherSize > thisSize)
                     return false;
 
-                return Head(otherSize) == other;
+                return head(otherSize) == other;
             }
 
-            bool StartsWith(char const* string) const
+            bool isStartsWith(char const* string) const
             {
                 ASSERT(string != nullptr);
-                return StartsWith(UnownedStringSlice(string));
+                return isStartsWith(UnownedStringSlice(string));
             }
 
-            void Reset()
+            void reset()
             {
                 begin_ = nullptr;
                 end_ = nullptr;
@@ -97,7 +97,7 @@ namespace RR
 
             bool operator!=(const StringSplitIterator<Delimiter>& other) const { return !(*this == other); }
 
-            UnownedStringSlice GetSlice() const { return UnownedStringSlice(begin_, end_); }
+            UnownedStringSlice slice() const { return UnownedStringSlice(begin_, end_); }
 
         private:
             const U8Char* begin_;
@@ -122,9 +122,11 @@ namespace RR
             StringSplit(T stringView) : stringView_(stringView) { }
 
             iterator begin() { return iterator(stringView_.begin(), stringView_.end()); }
-            const_iterator begin() const { const_iterator(stringView_.begin(), stringView_.end()); }
+            const_iterator begin() const { return const_iterator(stringView_.begin(), stringView_.end()); }
             iterator end() { return iterator(stringView_.end(), stringView_.end()); }
             const_iterator end() const { return const_iterator(stringView_.end(), stringView_.end()); }
+
+            size_t length() const { return stringView_.length(); }
 
         private:
             T stringView_;
@@ -170,6 +172,17 @@ struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
     template <typename FormatContext>
     auto format(RR::Rfx::UnownedStringSlice stringSlice, FormatContext& ctx)
     {
-        return formatter<string_view>::format(string_view(stringSlice.begin(), stringSlice.GetLength()), ctx);
+        return formatter<string_view>::format(string_view(stringSlice.begin(), stringSlice.length()), ctx);
+    }
+};
+
+template <typename T>
+struct fmt::formatter<RR::Rfx::StringSplit<T>> : formatter<string_view>
+{
+    // parse is inherited from formatter<string_view>.
+    template <typename FormatContext>
+    auto format(RR::Rfx::StringSplit<T> stringSplit, FormatContext& ctx)
+    {
+        return formatter<string_view>::format(string_view(stringSplit.begin().slice().begin(), stringSplit.length()), ctx);
     }
 };

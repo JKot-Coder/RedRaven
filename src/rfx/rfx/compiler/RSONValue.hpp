@@ -24,8 +24,8 @@ namespace RR::Rfx
 
             int compare(const UnownedStringSlice& a, const UnownedStringSlice& b) const
             {
-                const auto aLen = a.GetLength();
-                const auto bLen = b.GetLength();
+                const auto aLen = a.length();
+                const auto bLen = b.length();
                 const int cmp = compareStr(a, b);
 
                 return (cmp != 0 ? cmp : (aLen < bLen ? -1 : (aLen > bLen ? 1 : 0)));
@@ -201,15 +201,16 @@ namespace RR::Rfx
         }
 
     public:
-        const RSONValue& Find(const UnownedStringSlice& key) const
+        template<typename T>
+        const RSONValue& Find(const StringSplit<T>& stringSplit) const
         {
             RSONValue const* current = this;
 
-            for (const auto& split : StringSplit(key))
+            for (const auto& split : stringSplit)
             {
                 if (current->IsObject())
                 {
-                    const auto iterator = current->container->find(split.GetSlice());
+                    const auto iterator = current->container->find(split.slice());
                     if (iterator != current->container->end())
                     {
                         current = &iterator->second;
@@ -221,6 +222,12 @@ namespace RR::Rfx
             }
 
             return *current;
+        }
+
+
+        const RSONValue& Find(const UnownedStringSlice& key) const
+        {
+            return Find(StringSplit(key));
         }
 
         const bool Contains(const UnownedStringSlice& key) const
