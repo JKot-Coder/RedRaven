@@ -7,7 +7,6 @@
 #include "rfx/compiler/Lexer.hpp"
 #include "rfx/compiler/RSONBuilder.hpp"
 
-#include "common/EnumClassOperators.hpp"
 #include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
 
@@ -268,6 +267,7 @@ namespace RR::Rfx
 
     private:
         DiagnosticSink& getSink() const { return context_->sink; }
+        Common::LinearAllocator& getAllocator() const { return context_->allocator; }
 
         Token peekToken() const { return *currentToken_; }
         Token::Type peekTokenType() const { return currentToken_->type; }
@@ -321,15 +321,6 @@ namespace RR::Rfx
         };
 
     private:
-        enum class Flags : uint16_t
-        {
-            None = 0,
-            ParentExpressionParse = 1 << 0,
-        };
-        ENUM_CLASS_FRIEND_BITWISE_OPS(Flags)
-
-    private:
-        Flags flags_;
         std::shared_ptr<CompileContext> context_;
         RSONBuilder builder_;
         TokenSpan tokenSpan_;
@@ -681,25 +672,13 @@ namespace RR::Rfx
 
             skipAllWhitespaces();
 
-            if (keyToken.type == Token::Type::OpLsh)
-            {
-                flags_ = Flags::ParentExpressionParse;
-                RSONValue value = parseAndEvaluateExpression();
-                if (value.type == RSONValue::Type::Invalid)
-                    return RResult::Fail;
+            RSONValue value = parseAndEvaluateExpression();
+            if (value.type == RSONValue::Type::Invalid)
+                return RResult::Fail;
 
-                flags_ = Flags::None;
-                RR_RETURN_ON_FAIL(builder_.Inheritance(keyToken, value));
-            }
-            else
-            {
-
-                RSONValue value = parseAndEvaluateExpression();
-                if (value.type == RSONValue::Type::Invalid)
-                    return RResult::Fail;
-
-                RR_RETURN_ON_FAIL(builder_.AddKeyValue(keyToken, value));
-            }
+            RR_RETURN_ON_FAIL((keyToken.type == Token::Type::OpLsh)
+                                  ? builder_.Inheritance(keyToken, value)
+                                  : builder_.AddKeyValue(keyToken, value));
 
             if (peekTokenType() == Token::Type::Comma ||
                 peekTokenType() == Token::Type::NewLine)
@@ -745,7 +724,7 @@ namespace RR::Rfx
     RSONValue ParserImpl::parseIdentifier()
     {
         Token identifier = advance();
-        const UnownedStringSlice stringSlice = identifier.stringSlice;
+        UnownedStringSlice stringSlice = identifier.stringSlice;
 
         if (stringSlice == "null")
             return RSONValue::MakeNull();
@@ -754,13 +733,47 @@ namespace RR::Rfx
         else if (stringSlice == "false")
             return RSONValue::MakeBool(false);
 
-        if (!RR::Common::IsSet(flags_, Flags::ParentExpressionParse))
         {
-            getSink().Diagnose(identifier, Diagnostics::undeclaredIdentifier, stringSlice);
-            return RSONValue {};
+            UnownedStringSlice refSlice = stringSlice;
+            std::string combinedRefSlice;
+            auto combineRef = [&combinedRefSlice, &refSlice](const Token& token)
+            {
+                // Advance stiringSlice if possible
+                if (refSlice.end() + token.stringSlice.GetLength() == token.stringSlice.end())
+                    refSlice = UnownedStringSlice(refSlice.begin(), refSlice.end() + token.stringSlice.GetLength());
+                else
+                {
+                    // Construct if not possible
+                    if (combinedRefSlice.empty())
+                        combinedRefSlice.append(refSlice.begin(), refSlice.end());
+
+                    combinedRefSlice.append(token.stringSlice.begin(), token.stringSlice.end());
+                }
+            };
+
+            while (peekTokenType() == Token::Type::Dot)
+            {
+                combineRef(advance());
+
+                RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::Identifier, identifier), RSONValue {});
+                combineRef(identifier);
+            }
+
+            if (!combinedRefSlice.empty())
+            {
+                const auto size = combinedRefSlice.length();
+                const auto buf = (U8Char*)getAllocator().Allocate(size);
+                refSlice = UnownedStringSlice(buf, buf + size);
+            }
+
+            if (!builder_.GetRootValue().Find(refSlice).IsValid())
+            {
+                getSink().Diagnose(identifier, Diagnostics::undeclaredIdentifier, refSlice);
+                return RSONValue {};
+            }
+
+            return RSONValue::MakeReference(refSlice);
         }
-        else
-            return RSONValue::MakeString(stringSlice);
     }
 
     RResult ParserImpl::expect(std::initializer_list<Token::Type> expected, Token& out)

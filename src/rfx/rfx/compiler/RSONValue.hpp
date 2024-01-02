@@ -56,6 +56,7 @@ namespace RR::Rfx
             Integer,
             Null,
             String,
+            Reference,
 
             Array,
             Object,
@@ -136,7 +137,15 @@ namespace RR::Rfx
             return value;
         }
 
-        static RSONValue RSONValue::MakeEmptyArray()
+        static RSONValue MakeReference(const UnownedStringSlice& inValue)
+        {
+            RSONValue value;
+            value.type = Type::Reference;
+            value.referenceValue = inValue;
+            return value;
+        }
+
+        static RSONValue MakeEmptyArray()
         {
             RSONValue value;
             value.type = Type::Array;
@@ -144,7 +153,7 @@ namespace RR::Rfx
             return value;
         }
 
-        static RSONValue RSONValue::MakeEmptyObject()
+        static RSONValue MakeEmptyObject()
         {
             RSONValue value;
             value.type = Type::Object;
@@ -194,14 +203,24 @@ namespace RR::Rfx
     public:
         const RSONValue& Find(const UnownedStringSlice& key) const
         {
-            if (IsObject())
+            RSONValue const* current = this;
+
+            for (const auto& split : StringSplit(key))
             {
-                const auto iterator = container->find(key);
-                if (iterator != container->end())
-                    return iterator->second;
+                if (current->IsObject())
+                {
+                    const auto iterator = current->container->find(split.GetSlice());
+                    if (iterator != current->container->end())
+                    {
+                        current = &iterator->second;
+                        continue;
+                    }
+                }
+
+                return nullValue();
             }
 
-            return nullValue();
+            return *current;
         }
 
         const bool Contains(const UnownedStringSlice& key) const
@@ -257,6 +276,7 @@ namespace RR::Rfx
             double floatValue;
             int64_t intValue;
             UnownedStringSlice stringValue;
+            UnownedStringSlice referenceValue;
             bool boolValue;
             std::shared_ptr<Container> container {};
             std::array<uint8_t, 16> data;

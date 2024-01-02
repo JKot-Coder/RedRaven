@@ -66,6 +66,69 @@ namespace RR
             const U8Char* begin_;
             const U8Char* end_;
         };
+
+        template <U8Char Delimiter>
+        struct StringSplitIterator
+        {
+            StringSplitIterator(const U8Char* parentBegin, const U8Char* parentEnd) : begin_(parentBegin),
+                                                                                      parentEnd_(parentEnd)
+            {
+                ASSERT(parentBegin && parentEnd);
+                ASSERT(parentBegin <= parentEnd);
+                end_ = std::find(begin_, parentEnd_, Delimiter);
+            }
+
+            StringSplitIterator& operator*() { return *this; }
+            const StringSplitIterator& operator*() const { return this; }
+
+            StringSplitIterator<Delimiter>& operator++()
+            {
+                begin_ = end_ + (end_ < parentEnd_);
+                end_ = std::find(begin_, parentEnd_, Delimiter);
+                return *this;
+            }
+
+            bool operator==(const StringSplitIterator<Delimiter>& other) const
+            {
+                return begin_ == other.begin_ &&
+                       end_ == other.end_ &&
+                       parentEnd_ == other.parentEnd_;
+            }
+
+            bool operator!=(const StringSplitIterator<Delimiter>& other) const { return !(*this == other); }
+
+            UnownedStringSlice GetSlice() const { return UnownedStringSlice(begin_, end_); }
+
+        private:
+            const U8Char* begin_;
+            const U8Char* end_;
+            const U8Char* parentEnd_;
+        };
+
+        template <typename T>
+        struct IsStringView
+        {
+            using TWithoutConst = std::remove_const_t<T>;
+            static constexpr bool value = std::is_same_v<decltype(std::declval<TWithoutConst>().begin()), U8Char*> &&
+                                          std::is_same_v<decltype(std::declval<TWithoutConst>().end()), U8Char*>;
+        };
+
+        template <typename T>
+        struct StringSplit
+        {
+            typedef StringSplitIterator<'.'> iterator;
+            typedef const StringSplitIterator<'.'> const_iterator;
+
+            StringSplit(T stringView) : stringView_(stringView) { }
+
+            iterator begin() { return iterator(stringView_.begin(), stringView_.end()); }
+            const_iterator begin() const { const_iterator(stringView_.begin(), stringView_.end()); }
+            iterator end() { return iterator(stringView_.end(), stringView_.end()); }
+            const_iterator end() const { return const_iterator(stringView_.end(), stringView_.end()); }
+
+        private:
+            T stringView_;
+        };
     }
 }
 

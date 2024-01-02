@@ -23,6 +23,8 @@ namespace RR
         class RSONBuilder
         {
         public:
+            RSONBuilder(const std::shared_ptr<CompileContext>& context);
+
             RResult StartObject();
             RSONValue EndObject();
             RResult StartArray();
@@ -32,8 +34,6 @@ namespace RR
             RResult AddKeyValue(const Token& key, RSONValue value);
             /// Get the root value. Will be set after valid construction
             const RSONValue& GetRootValue() const { return root_; }
-
-            RSONBuilder(const std::shared_ptr<CompileContext>& context);
 
         private:
             struct Context;

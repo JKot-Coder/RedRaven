@@ -87,8 +87,8 @@ namespace RR::Rfx
             return RResult::Ok;
         };
 
-        if (parents.type == RSONValue::Type::String)
-            return inherite(parents.stringValue);
+        if (parents.type == RSONValue::Type::Reference)
+            return inherite(parents.referenceValue);
 
         if (!parents.IsArray())
         {
@@ -98,13 +98,13 @@ namespace RR::Rfx
 
         for (auto parent : parents)
         {
-            if (parent.second.type != RSONValue::Type::String)
+            if (parent.second.type != RSONValue::Type::Reference)
             {
                 getSink().Diagnose(initiatingToken, Diagnostics::invalidParentIndetifier, RSONValueTypeToString(parent.second.type));
                 return RResult::Fail;
             }
 
-            RR_RETURN_ON_FAIL(inherite(parent.second.stringValue));
+            RR_RETURN_ON_FAIL(inherite(parent.second.referenceValue));
         }
 
         return RResult::Ok;

@@ -4,7 +4,7 @@ namespace RR::Rfx
 {
     U8String RSONValueTypeToString(RSONValue::Type type)
     {
-        static_assert(int(RSONValue::Type::CountOf) == 8);
+        static_assert(int(RSONValue::Type::CountOf) == 9);
         switch (type)
         {
             case RSONValue::Type::Invalid: return "Invalid";
@@ -14,6 +14,7 @@ namespace RR::Rfx
             case RSONValue::Type::Integer: return "Integer";
             case RSONValue::Type::Null: return "Null";
             case RSONValue::Type::String: return "String";
+            case RSONValue::Type::Reference: return "Reference";
 
             case RSONValue::Type::Array: return "Array";
             case RSONValue::Type::Object: return "Object";
