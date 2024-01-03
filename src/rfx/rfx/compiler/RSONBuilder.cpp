@@ -142,7 +142,7 @@ namespace RR::Rfx
     {
         ASSERT(value.type == RSONValue::Type::Reference);
 
-        const auto split = StringSplit(value.referenceValue.path);
+        const auto split = StringSplit<UnownedStringSlice, '.'>(value.referenceValue.path);
 
         for (auto it = stack_.rbegin() + 1; it != stack_.rend(); it++)
         {

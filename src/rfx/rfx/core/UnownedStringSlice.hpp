@@ -108,16 +108,16 @@ namespace RR
         template <typename T>
         struct IsStringView
         {
-            using TWithoutConst = std::remove_const_t<T>;
-            static constexpr bool value = std::is_same_v<decltype(std::declval<TWithoutConst>().begin()), U8Char*> &&
-                                          std::is_same_v<decltype(std::declval<TWithoutConst>().end()), U8Char*>;
+            static constexpr bool value = std::is_same_v<decltype(std::declval<T>().begin()), U8Char const*> &&
+                                          std::is_same_v<decltype(std::declval<T>().end()), U8Char const*>;
         };
 
-        template <typename T>
+        template <typename T, U8Char Delimiter>
         struct StringSplit
         {
-            typedef StringSplitIterator<'.'> iterator;
-            typedef const StringSplitIterator<'.'> const_iterator;
+            typedef StringSplitIterator<Delimiter> iterator;
+            typedef const StringSplitIterator<Delimiter> const_iterator;
+            static_assert(IsStringView<T>::value, "Incorrect sting view");
 
             StringSplit(T stringView) : stringView_(stringView) { }
 
@@ -176,12 +176,12 @@ struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
     }
 };
 
-template <typename T>
-struct fmt::formatter<RR::Rfx::StringSplit<T>> : formatter<string_view>
+template <typename T, RR::U8Char Delimiter>
+struct fmt::formatter<RR::Rfx::StringSplit<T, Delimiter>> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::Rfx::StringSplit<T> stringSplit, FormatContext& ctx)
+    auto format(RR::Rfx::StringSplit<T, Delimiter> stringSplit, FormatContext& ctx)
     {
         return formatter<string_view>::format(string_view(stringSplit.begin().slice().begin(), stringSplit.length()), ctx);
     }

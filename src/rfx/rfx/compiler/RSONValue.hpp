@@ -202,8 +202,8 @@ namespace RR::Rfx
         }
 
     public:
-        template <typename T>
-        const RSONValue& Find(const StringSplit<T>& stringSplit) const
+        template <typename T, U8Char Delimiter>
+        const RSONValue& Find(const StringSplit<T, Delimiter>& stringSplit) const
         {
             RSONValue const* current = this;
 
@@ -227,7 +227,7 @@ namespace RR::Rfx
 
         const RSONValue& Find(const UnownedStringSlice& key) const
         {
-            return Find(StringSplit(key));
+            return Find(StringSplit<UnownedStringSlice, '.'>(key));
         }
 
         const bool Contains(const UnownedStringSlice& key) const

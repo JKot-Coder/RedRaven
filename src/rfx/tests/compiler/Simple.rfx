@@ -33,7 +33,7 @@ global: {
 	th_z_press:{
 		passes: [
 			{
-				RenderState{
+				RenderState: {
 					<< Z_TEST_NO_WRITE,
 					CullMode = "none",
 					ColorWriteMask0 = RED | GREEN | BLUE
@@ -47,7 +47,7 @@ simple: {
 	color_tehnique:{
 		passes: [
 			{
-				RenderState{
+				RenderState: {
 					<< Z_TEST_NO_WRITE,
 					CullMode = "none",
 					ColorWriteMask0 = RED | GREEN | BLUE
@@ -58,7 +58,6 @@ simple: {
 },
 
 Effect: {
-	Name: "SimpleOne",
 	Tehniques: {
 		ZPass: global.color_tehnique,
 		Color: simple.th_z,
