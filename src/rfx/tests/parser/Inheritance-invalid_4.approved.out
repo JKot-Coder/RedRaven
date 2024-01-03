@@ -1,5 +1,5 @@
 Diagnostic:[
     ../src/rfx/tests/parser/Inheritance-invalid_4.rfx(4): error 20018: Undeclared indetifier: 'NotExisting'
     Foo: { << NotExisting }
-           ^~
+              ^~~~~~~~~~~
 ]

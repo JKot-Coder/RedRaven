@@ -766,13 +766,13 @@ namespace RR::Rfx
                 refSlice = UnownedStringSlice(buf, buf + size);
             }
 
-            if (!builder_.GetRootValue().Find(refSlice).IsValid())
+            auto refValue = RSONValue::MakeReference(refSlice);
+            if (builder_.ResolveReference(refValue) != RResult::Ok)
             {
                 getSink().Diagnose(identifier, Diagnostics::undeclaredIdentifier, refSlice);
                 return RSONValue {};
             }
-
-            return RSONValue::MakeReference(refSlice);
+            return refValue;
         }
     }
 

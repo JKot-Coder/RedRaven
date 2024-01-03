@@ -34,6 +34,7 @@ namespace RR
             RResult AddKeyValue(const Token& key, RSONValue value);
             /// Get the root value. Will be set after valid construction
             const RSONValue& GetRootValue() const { return root_; }
+            RResult ResolveReference(RSONValue& value);
 
         private:
             struct Context;

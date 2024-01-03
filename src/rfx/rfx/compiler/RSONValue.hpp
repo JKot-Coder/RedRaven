@@ -141,7 +141,8 @@ namespace RR::Rfx
         {
             RSONValue value;
             value.type = Type::Reference;
-            value.referenceValue = inValue;
+            value.referenceValue.path = inValue;
+            value.referenceValue.reference = nullptr;
             return value;
         }
 
@@ -201,7 +202,7 @@ namespace RR::Rfx
         }
 
     public:
-        template<typename T>
+        template <typename T>
         const RSONValue& Find(const StringSplit<T>& stringSplit) const
         {
             RSONValue const* current = this;
@@ -223,7 +224,6 @@ namespace RR::Rfx
 
             return *current;
         }
-
 
         const RSONValue& Find(const UnownedStringSlice& key) const
         {
@@ -278,18 +278,25 @@ namespace RR::Rfx
     public:
         Type type = Type::Invalid;
 
+        struct ReferenceValue
+        {
+            UnownedStringSlice path;
+            RSONValue const* reference;
+        };
+
         union
         {
             double floatValue;
             int64_t intValue;
+            ReferenceValue referenceValue;
             UnownedStringSlice stringValue;
-            UnownedStringSlice referenceValue;
             bool boolValue;
             std::shared_ptr<Container> container {};
-            std::array<uint8_t, 16> data;
+            std::array<uint8_t, 24> data;
         };
-        static_assert(sizeof(data) >= sizeof(UnownedStringSlice) &&
-                      sizeof(data) >= sizeof(std::shared_ptr<void>));
+
+        static_assert(sizeof(data) == sizeof(ReferenceValue) &&
+                      sizeof(data) >= sizeof(std::shared_ptr<Container>));
 
     private:
         RSONValue& copy(const RSONValue& other)

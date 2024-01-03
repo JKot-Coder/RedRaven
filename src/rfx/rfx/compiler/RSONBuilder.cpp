@@ -62,20 +62,11 @@ namespace RR::Rfx
     {
         ASSERT(currentValue().type == RSONValue::Type::Object);
 
-        const auto inherite = [this, &initiatingToken](const StringSplit<UnownedStringSlice>& nameSplit)
+        const auto inherite = [this, &initiatingToken](const RSONValue& refValue)
         {
-            RSONValue parent = RSONValue {};
-
-            for (auto it = stack_.rbegin() + 1; it != stack_.rend(); it++)
-            {
-                const RSONValue& value = it->value.Find(nameSplit);
-
-                if (value.type != RSONValue::Type::Invalid)
-                {
-                    parent = value;
-                    break;
-                }
-            }
+            ASSERT(refValue.type == RSONValue::Type::Reference);
+            ASSERT(refValue.referenceValue.reference);
+            const auto& parent = *refValue.referenceValue.reference;
 
             switch (parent.type)
             {
@@ -86,12 +77,13 @@ namespace RR::Rfx
                 }
                 case RSONValue::Type::Invalid:
                 {
-                    getSink().Diagnose(initiatingToken, Diagnostics::undeclaredIdentifier, nameSplit);
+                    ASSERT_MSG(false, "Unreacheable");
+                    getSink().Diagnose(initiatingToken, Diagnostics::undeclaredIdentifier, refValue.referenceValue.path);
                     return RResult::NotFound;
                 }
                 default:
                 {
-                    getSink().Diagnose(initiatingToken, Diagnostics::invalidParentType, nameSplit, parent.type);
+                    getSink().Diagnose(initiatingToken, Diagnostics::invalidParentType, refValue.referenceValue.path, parent.type);
                     return RResult::Fail;
                 }
             }
@@ -99,7 +91,7 @@ namespace RR::Rfx
         };
 
         if (parents.type == RSONValue::Type::Reference)
-            return inherite(parents.referenceValue);
+            return inherite(parents);
 
         if (!parents.IsArray())
         {
@@ -115,7 +107,7 @@ namespace RR::Rfx
                 return RResult::Fail;
             }
 
-            RR_RETURN_ON_FAIL(inherite(parent.second.referenceValue));
+            RR_RETURN_ON_FAIL(inherite(parent.second));
         }
 
         return RResult::Ok;
@@ -141,7 +133,28 @@ namespace RR::Rfx
     {
         ASSERT(value.type != RSONValue::Type::Invalid);
         ASSERT(currentValue().type == RSONValue::Type::Array);
+
         currentValue().append(std::move(value));
         return RResult::Ok;
+    }
+
+    RResult RSONBuilder::ResolveReference(RSONValue& value)
+    {
+        ASSERT(value.type == RSONValue::Type::Reference);
+
+        const auto split = StringSplit(value.referenceValue.path);
+
+        for (auto it = stack_.rbegin() + 1; it != stack_.rend(); it++)
+        {
+            const RSONValue& refVal = it->value.Find(split);
+
+            if (refVal.type != RSONValue::Type::Invalid)
+            {
+                value.referenceValue.reference = &refVal;
+                return RResult::Ok;
+            }
+        }
+
+        return RResult::NotFound;
     }
 }
