@@ -32,6 +32,7 @@ namespace RR
             RResult Inheritance(const Token& initiatingToken, const RSONValue& parents);
             RResult AddValue(RSONValue value);
             RResult AddKeyValue(const Token& key, RSONValue value);
+            void PushNamespace(const UnownedStringSlice& nameSpace);
             /// Get the root value. Will be set after valid construction
             const RSONValue& GetRootValue() const { return root_; }
             RResult ResolveReference(RSONValue& value);
@@ -48,11 +49,13 @@ namespace RR
 
             struct Context
             {
-                Context(RSONValue value) : value(std::move(value)) {};
+                Context(RSONValue value, const UnownedStringSlice& cnameSpace) : value(std::move(value)), nameSpace(cnameSpace) {};
                 std::vector<Parent> parents;
                 RSONValue value;
+                UnownedStringSlice nameSpace;
             };
 
+            UnownedStringSlice currentNameSpace_;
             std::vector<Context> stack_;
             RSONValue root_;
             std::shared_ptr<CompileContext> context_;

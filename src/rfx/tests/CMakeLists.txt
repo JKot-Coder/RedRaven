@@ -90,6 +90,7 @@ set(RFX_TESTS_PARSER_SRC
     "parser/Simple.rfx"
     "parser/Duplicate.rfx"
     "parser/Expressions.rfx"
+    "parser/References.rfx"
 )
 source_group( "parser" FILES ${RFX_TESTS_PARSER_SRC} )
 

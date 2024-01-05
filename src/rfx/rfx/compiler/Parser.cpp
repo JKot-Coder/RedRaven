@@ -672,6 +672,8 @@ namespace RR::Rfx
 
             skipAllWhitespaces();
 
+            builder_.PushNamespace(keyToken.stringSlice);
+
             RSONValue value = parseAndEvaluateExpression();
             if (value.type == RSONValue::Type::Invalid)
                 return RResult::Fail;
@@ -763,6 +765,7 @@ namespace RR::Rfx
             {
                 const auto size = combinedRefSlice.length();
                 const auto buf = (U8Char*)getAllocator().Allocate(size);
+                std::copy(combinedRefSlice.begin(), combinedRefSlice.end(), buf);
                 refSlice = UnownedStringSlice(buf, buf + size);
             }
 

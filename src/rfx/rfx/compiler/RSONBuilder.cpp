@@ -11,14 +11,14 @@ namespace RR::Rfx
     RSONBuilder::RSONBuilder(const std::shared_ptr<CompileContext>& context) : context_(context)
     {
         root_ = RSONValue::MakeEmptyObject();
-        stack_.emplace_back(root_);
+        stack_.emplace_back(root_, UnownedStringSlice {});
     }
 
     DiagnosticSink& RSONBuilder::getSink() const { return context_->sink; }
 
     RResult RSONBuilder::StartObject()
     {
-        stack_.emplace_back(RSONValue::MakeEmptyObject());
+        stack_.emplace_back(RSONValue::MakeEmptyObject(), currentNameSpace_);
         return RResult::Ok;
     }
 
@@ -44,7 +44,7 @@ namespace RR::Rfx
 
     RResult RSONBuilder::StartArray()
     {
-        stack_.emplace_back(RSONValue::MakeEmptyArray());
+        stack_.emplace_back(RSONValue::MakeEmptyArray(), currentNameSpace_);
         return RResult::Ok;
     }
 
@@ -138,19 +138,45 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
+    void RSONBuilder::PushNamespace(const UnownedStringSlice& nameSpace)
+    {
+        ASSERT(!nameSpace.empty());
+        currentNameSpace_ = nameSpace;
+    }
+
     RResult RSONBuilder::ResolveReference(RSONValue& value)
     {
         ASSERT(value.type == RSONValue::Type::Reference);
 
         const auto split = StringSplit<UnownedStringSlice, '.'>(value.referenceValue.path);
 
-        for (auto it = stack_.rbegin() + 1; it != stack_.rend(); it++)
+        for (auto i = stack_.rbegin(); i != stack_.rend(); i++)
         {
-            const RSONValue& refVal = it->value.Find(split);
+            const RSONValue& refVal = i->value.Find(split);
 
             if (refVal.type != RSONValue::Type::Invalid)
             {
+                U8String reverseAbsolutePath = "";
+
+                // Traverce to root appending namespaces to get absolute path
+                for (auto j = i; j != stack_.rend() - 1; j++)
+                {
+                    reverseAbsolutePath.push_back('.');
+                    reverseAbsolutePath.append(j->nameSpace.rbegin(), j->nameSpace.rend());
+                }
+
                 value.referenceValue.reference = &refVal;
+
+                if (!reverseAbsolutePath.empty())
+                {
+                    size_t absolutePathLen = reverseAbsolutePath.length() + value.referenceValue.path.length();
+                    auto buf = (U8Char*)context_->allocator.Allocate(absolutePathLen);
+                    std::copy(reverseAbsolutePath.rbegin(), reverseAbsolutePath.rend(), buf);
+                    std::copy(value.referenceValue.path.begin(), value.referenceValue.path.end(), buf + reverseAbsolutePath.length());
+
+                    value.referenceValue.path = UnownedStringSlice(buf, absolutePathLen);
+                }
+
                 return RResult::Ok;
             }
         }

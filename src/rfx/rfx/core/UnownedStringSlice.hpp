@@ -7,13 +7,21 @@ namespace RR
         struct UnownedStringSlice
         {
         public:
+            typedef U8Char* iterator;
+            typedef const U8Char* const_iterator;
+            typedef std::reverse_iterator<iterator> reverse_iterator;
+            typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
             UnownedStringSlice() = default;
             UnownedStringSlice(const U8String& string) : begin_(string.c_str()), end_(string.c_str() + string.length()) { }
-            UnownedStringSlice(const U8Char* begin, const U8Char* end) : begin_(begin), end_(end) { }
-            UnownedStringSlice(const U8Char* begin, size_t len) : begin_(begin), end_(begin + len) { }
+            UnownedStringSlice(const_iterator begin, const_iterator end) : begin_(begin), end_(end) { }
+            UnownedStringSlice(const_iterator begin, size_t len) : begin_(begin), end_(begin + len) { }
 
-            const U8Char* begin() const { return begin_; }
-            const U8Char* end() const { return end_; }
+            const_iterator begin() const { return begin_; }
+            const_iterator end() const { return end_; }
+            const_reverse_iterator rbegin() const { return const_reverse_iterator(end_); }
+            const_reverse_iterator rend() const { return const_reverse_iterator(begin_); }
+
             // Return a head of the slice - everything up to the index
             UnownedStringSlice head(size_t idx) const
             {
@@ -27,8 +35,9 @@ namespace RR
                 return UnownedStringSlice(begin_ + idx, end_);
             }
 
+            bool empty() const { return length() == 0; }
             size_t length() const { return std::distance(begin_, end_); }
-            U8String AsString() const { return U8String(begin_, end_); }
+            U8String asString() const { return U8String(begin_, end_); }
 
             bool operator==(UnownedStringSlice const& other) const;
             bool operator!=(UnownedStringSlice const& other) const
@@ -50,7 +59,7 @@ namespace RR
                 return head(otherSize) == other;
             }
 
-            bool isStartsWith(char const* string) const
+            bool isStartsWith(U8Char const* string) const
             {
                 ASSERT(string != nullptr);
                 return isStartsWith(UnownedStringSlice(string));
@@ -63,8 +72,8 @@ namespace RR
             }
 
         private:
-            const U8Char* begin_;
-            const U8Char* end_;
+            const_iterator begin_;
+            const_iterator end_;
         };
 
         template <U8Char Delimiter>

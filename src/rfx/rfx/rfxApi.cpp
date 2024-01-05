@@ -232,6 +232,7 @@ namespace RR::Rfx
                 case RSONValue::Type::Integer:
                 case RSONValue::Type::Null:
                 case RSONValue::Type::String:
+                case RSONValue::Type::Reference:
                     formatPlain(value);
                     break;
                 case RSONValue::Type::Array:
@@ -280,8 +281,9 @@ namespace RR::Rfx
                 case RSONValue::Type::Integer: append(fmt::format("{}", value.intValue)); break;
                 case RSONValue::Type::Null: append("null", 4); break;
                 case RSONValue::Type::String:
+                case RSONValue::Type::Reference:
                 {
-                    StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, value.stringValue, getOutputString());
+                    StringEscapeUtil::AppendQuoted(StringEscapeUtil::Style::JSON, (value.type == RSONValue::Type::String) ? value.stringValue : value.referenceValue.path, getOutputString());
                     break;
                 }
                 default: ASSERT_MSG(false, "Unsupported type");
@@ -410,7 +412,7 @@ namespace RR::Rfx
 
                 if (token.type == Token::Type::BlockComment)
                 {
-                    tokenString = token.stringSlice.AsString();
+                    tokenString = token.stringSlice.asString();
 
                     U8String::size_type pos = 0;
                     // Make consisten line breaks for multiline comments to pass tests
