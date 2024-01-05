@@ -2,7 +2,7 @@
 
 #define FOO first
 
-absolute: { test: true },
+absolute: { test: true }
 
 global:{
 	first:{something: "interesting"},

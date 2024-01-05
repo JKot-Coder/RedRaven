@@ -5,6 +5,17 @@ SourceOutput:[
       "absolute": {
         "test": true
       },
+      "array": [
+        false,
+        {
+          "first": {
+            "bar": "hey"
+          },
+          "second": {
+            "reference": "array.1.first.bar"
+          }
+        }
+      ],
       "global": {
         "first": {
           "something": "interesting"

@@ -193,62 +193,6 @@ namespace RR::Rfx
         }
     }
 
-    /// An token reader that reads tokens directly using the `Lexer`
-    struct LexerReader
-    {
-    public:
-        LexerReader() = delete;
-
-        LexerReader(const std::shared_ptr<SourceView>& sourceView,
-                    const std::shared_ptr<CompileContext>& context)
-        {
-            lexer_ = std::make_unique<Lexer>(sourceView, context);
-            lookaheadToken_ = readTokenImpl();
-        }
-
-        Lexer& GetLexer() const { return *lexer_; }
-
-        // A common thread to many of the input stream implementations is to
-        // use a single token of lookahead in order to suppor the `peekToken()`
-        // operation with both simplicity and efficiency.
-        Token ReadToken()
-        {
-            auto result = lookaheadToken_;
-            lookaheadToken_ = readTokenImpl();
-            return result;
-        }
-
-        Token PeekToken() const { return lookaheadToken_; }
-        Token::Type PeekTokenType() const { return lookaheadToken_.type; }
-
-    private:
-        /// Read a token from the lexer, bypassing lookahead
-        Token readTokenImpl()
-        {
-            for (;;)
-            {
-                Token token = lexer_->ReadToken();
-                switch (token.type)
-                {
-                    case Token::Type::WhiteSpace:
-                    case Token::Type::BlockComment:
-                    case Token::Type::LineComment:
-                    case Token::Type::InvalidCharacter:
-                        continue;
-
-                    default: return Token(token);
-                }
-            }
-        }
-
-    private:
-        /// The lexer state that will provide input
-        std::unique_ptr<Lexer> lexer_;
-
-        /// One token of lookahead
-        Token lookaheadToken_;
-    };
-
     class ParserImpl final : Common::NonCopyable
     {
     public:
@@ -282,13 +226,6 @@ namespace RR::Rfx
             return currentToken;
         }
 
-        void skipAllWhitespaces()
-        {
-            // All other whitespaces skipped by reader
-            while (peekTokenType() == Token::Type::NewLine)
-                advance();
-        }
-
         bool advanceIf(std::initializer_list<Token::Type> expected, Token& outToken);
         bool inline advanceIf(Token::Type expected, Token& outToken) { return advanceIf({ expected }, outToken); }
         bool inline advanceIf(Token::Type expected)
@@ -312,7 +249,7 @@ namespace RR::Rfx
         RSONValue parseNumber();
         RSONValue parseIdentifier();
 
-        template<typename T>
+        template <typename T>
         UnownedStringSlice allocateString(T begin, T end)
         {
             size_t size = std::distance(begin, end);
@@ -640,8 +577,6 @@ namespace RR::Rfx
 
         while (true)
         {
-            skipAllWhitespaces();
-
             if (peekTokenType() == Token::Type::RBracket)
                 break;
 
@@ -655,10 +590,15 @@ namespace RR::Rfx
 
             RR_RETURN_VALUE_ON_FAIL(builder_.AddValue(std::move(value)), RSONValue {});
 
-            if (peekTokenType() == Token::Type::Comma ||
-                peekTokenType() == Token::Type::NewLine)
+            if (peekTokenType() == Token::Type::Comma)
             {
                 advance();
+                index++;
+                continue;
+            }
+
+            if (Common::IsSet(peekToken().flags, Token::Flags::AtStartOfLine))
+            {
                 index++;
                 continue;
             }
@@ -688,12 +628,8 @@ namespace RR::Rfx
 
     RResult ParserImpl::parseObjectBody()
     {
-        skipAllWhitespaces();
-
         while (true)
         {
-            skipAllWhitespaces();
-
             if (peekTokenType() == Token::Type::RBrace ||
                 peekTokenType() == Token::Type::EndOfFile)
                 break;
@@ -703,8 +639,6 @@ namespace RR::Rfx
             RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral, Token::Type::OpLsh }, keyToken));
             if (keyToken.type != Token::Type::OpLsh)
                 RR_RETURN_ON_FAIL(expect(Token::Type::Colon));
-
-            skipAllWhitespaces();
 
             builder_.PushNamespace(keyToken.stringSlice);
 
@@ -716,12 +650,14 @@ namespace RR::Rfx
                                   ? builder_.Inheritance(keyToken, value)
                                   : builder_.AddKeyValue(keyToken, value));
 
-            if (peekTokenType() == Token::Type::Comma ||
-                peekTokenType() == Token::Type::NewLine)
+            if (peekTokenType() == Token::Type::Comma)
             {
                 advance();
                 continue;
             }
+
+            if (Common::IsSet(peekToken().flags, Token::Flags::AtStartOfLine))
+                continue;
 
             break;
         }
