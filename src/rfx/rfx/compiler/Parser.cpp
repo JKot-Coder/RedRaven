@@ -312,6 +312,15 @@ namespace RR::Rfx
         RSONValue parseNumber();
         RSONValue parseIdentifier();
 
+        template<typename T>
+        UnownedStringSlice allocateString(T begin, T end)
+        {
+            size_t size = std::distance(begin, end);
+            const auto buf = (U8Char*)getAllocator().Allocate(size);
+            std::copy(begin, end, buf);
+            return UnownedStringSlice(buf, buf + size);
+        }
+
         RResult expect(std::initializer_list<Token::Type> expected, Token& outToken);
         RResult expect(Token::Type expected, Token& outToken) { return expect({ expected }, outToken); };
         RResult expect(Token::Type expected)
@@ -603,11 +612,31 @@ namespace RR::Rfx
             default: return {};
         }
     }
+    namespace
+    {
+        template <uint32_t base>
+        static uint32_t uintToReversedString(uint32_t num, U8Char* buffer)
+        {
+            uint32_t index = 0;
+
+            do
+            {
+                char rem = char(num % base);
+                buffer[index++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+                num = num / base;
+            } while (num != 0);
+
+            return index;
+        }
+    }
 
     RSONValue ParserImpl::parseArray()
     {
         ASSERT(advance().type == Token::Type::LBracket);
         RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});
+
+        uint32_t index = 0;
+        U8Char buffer[12];
 
         while (true)
         {
@@ -615,6 +644,10 @@ namespace RR::Rfx
 
             if (peekTokenType() == Token::Type::RBracket)
                 break;
+
+            const auto end = &buffer[0] + uintToReversedString<10>(index, &buffer[0]);
+            const auto keyStringSlice = allocateString(std::reverse_iterator<U8Char*>(end), std::reverse_iterator<U8Char*>(&buffer[0]));
+            builder_.PushNamespace(keyStringSlice);
 
             RSONValue value = parseAndEvaluateExpression();
             if (value.type == RSONValue::Type::Invalid)
@@ -626,6 +659,7 @@ namespace RR::Rfx
                 peekTokenType() == Token::Type::NewLine)
             {
                 advance();
+                index++;
                 continue;
             }
 
@@ -737,8 +771,8 @@ namespace RR::Rfx
 
         {
             UnownedStringSlice refSlice = stringSlice;
-            std::string combinedRefSlice;
-            auto combineRef = [&combinedRefSlice, &refSlice](const Token& token)
+            std::string combinedRef;
+            auto combineRef = [&combinedRef, &refSlice](const Token& token)
             {
                 // Advance stiringSlice if possible
                 if (refSlice.end() + token.stringSlice.length() == token.stringSlice.end())
@@ -746,10 +780,10 @@ namespace RR::Rfx
                 else
                 {
                     // Construct if not possible
-                    if (combinedRefSlice.empty())
-                        combinedRefSlice.append(refSlice.begin(), refSlice.end());
+                    if (combinedRef.empty())
+                        combinedRef.append(refSlice.begin(), refSlice.end());
 
-                    combinedRefSlice.append(token.stringSlice.begin(), token.stringSlice.end());
+                    combinedRef.append(token.stringSlice.begin(), token.stringSlice.end());
                 }
             };
 
@@ -761,13 +795,8 @@ namespace RR::Rfx
                 combineRef(identifier);
             }
 
-            if (!combinedRefSlice.empty())
-            {
-                const auto size = combinedRefSlice.length();
-                const auto buf = (U8Char*)getAllocator().Allocate(size);
-                std::copy(combinedRefSlice.begin(), combinedRefSlice.end(), buf);
-                refSlice = UnownedStringSlice(buf, buf + size);
-            }
+            if (!combinedRef.empty())
+                refSlice = allocateString(combinedRef.begin(), combinedRef.end());
 
             auto refValue = RSONValue::MakeReference(refSlice);
             if (builder_.ResolveReference(refValue) != RResult::Ok)
