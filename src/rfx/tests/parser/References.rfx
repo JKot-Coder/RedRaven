@@ -1,0 +1,18 @@
+// :PARSER
+
+#define FOO first
+
+absolute: { test: true },
+
+global:{
+	first:{something: "interesting"},
+	second:{
+		relative_ref: first,
+		absolute_ref: absolute.test,
+	},
+},
+
+array:[false, { first:{ bar: "hey"}, second:{ reference: first.bar } }],
+
+reference: global.second,
+tricky_ref: global.FOO.something,

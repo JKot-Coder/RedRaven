@@ -1,0 +1,20 @@
+Diagnostic:[
+]
+SourceOutput:[
+    {
+      "absolute": {
+        "test": true
+      },
+      "global": {
+        "first": {
+          "something": "interesting"
+        },
+        "second": {
+          "absolute_ref": "absolute.test",
+          "relative_ref": "global.first"
+        }
+      },
+      "reference": "global.second",
+      "tricky_ref": "global.first.something"
+    }
+]
