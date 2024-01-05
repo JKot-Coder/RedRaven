@@ -118,18 +118,18 @@ namespace RR
                 }
 
                 /// True if quoting is needed
-                // virtual bool isQuotingNeeded(const UnownedStringSlice& slice) = 0;
+                // virtual bool isQuotingNeeded(UnownedStringSlice slice) = 0;
                 /// True if any escaping is needed. If not slice can be used (assuming appropriate quoting) as is
-                // virtual bool isEscapingNeeded(const UnownedStringSlice& slice) = 0;
+                // virtual bool isEscapingNeeded(UnownedStringSlice slice) = 0;
                 /// True if we need to unescape
-                // virtual bool isUnescapingNeeeded(const UnownedStringSlice& slice) = 0;
+                // virtual bool isUnescapingNeeeded(UnownedStringSlice slice) = 0;
 
                 /// Takes slice and adds any appropriate escaping (for example C++/C type escaping for special characters like '\', '"' and if not ascii will write out as hex sequence)
                 /// Does not append quotes
-                virtual void AppendEscaped(const UnownedStringSlice& slice, U8String& out) const = 0;
+                virtual void AppendEscaped(UnownedStringSlice slice, U8String& out) const = 0;
                 /// Given a slice append it unescaped
                 /// Does not consume surrounding quotes
-                // virtual void AppendUnescaped(const UnownedStringSlice& slice, U8String& out) const = 0;
+                // virtual void AppendUnescaped(UnownedStringSlice slice, U8String& out) const = 0;
 
                 /// Lex quoted text.
                 /// The first character of cursor should be the quoteCharacter.
@@ -150,22 +150,22 @@ namespace RR
             public:
                 typedef StringEscapeHandler Super;
 
-                /* virtual bool isQuotingNeeded(const UnownedStringSlice& slice) override
+                /* virtual bool isQuotingNeeded(UnownedStringSlice slice) override
                 {
                     SLANG_UNUSED(slice);
                     return true;
                 }*/
 
-                //  virtual bool isEscapingNeeded(const UnownedStringSlice& slice) override;
-                //   virtual bool isUnescapingNeeeded(const UnownedStringSlice& slice) override;
-                virtual void AppendEscaped(const UnownedStringSlice& slice, U8String& out) const override;
-                // virtual void AppendUnescaped(const UnownedStringSlice& slice, U8String& out) const override;
+                //  virtual bool isEscapingNeeded(UnownedStringSlice slice) override;
+                //   virtual bool isUnescapingNeeeded(UnownedStringSlice slice) override;
+                virtual void AppendEscaped(UnownedStringSlice slice, U8String& out) const override;
+                // virtual void AppendUnescaped(UnownedStringSlice slice, U8String& out) const override;
                 //  virtual RfxResult lexQuoted(const char* cursor, const char** outCursor) override;
 
                 CppStringEscapeHandler() : Super('"') { }
             };
 
-            void CppStringEscapeHandler::AppendEscaped(const UnownedStringSlice& slice, U8String& out) const
+            void CppStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, U8String& out) const
             {
                 const char* start = slice.begin();
                 const char* cur = start;
@@ -201,21 +201,21 @@ namespace RR
             public:
                 typedef StringEscapeHandler Super;
 
-                /* virtual bool isQuotingNeeded(const UnownedStringSlice& slice) override
+                /* virtual bool isQuotingNeeded(UnownedStringSlice slice) override
                 {
                     SLANG_UNUSED(slice);
                     return true;
                 }*/
-                //  virtual bool isEscapingNeeded(const UnownedStringSlice& slice) override;
-                // virtual bool isUnescapingNeeeded(const UnownedStringSlice& slice) override;
-                virtual void AppendEscaped(const UnownedStringSlice& slice, U8String& out) const override;
-                // virtual RfxResult appendUnescaped(const UnownedStringSlice& slice, StringBuilder& out) override;
+                //  virtual bool isEscapingNeeded(UnownedStringSlice slice) override;
+                // virtual bool isUnescapingNeeeded(UnownedStringSlice slice) override;
+                virtual void AppendEscaped(UnownedStringSlice slice, U8String& out) const override;
+                // virtual RfxResult appendUnescaped(UnownedStringSlice slice, StringBuilder& out) override;
                 // virtual RfxResult lexQuoted(const char* cursor, const char** outCursor) override;
 
                 JSONStringEscapeHandler() : Super('"') { }
             };
 
-            void JSONStringEscapeHandler::AppendEscaped(const UnownedStringSlice& slice, U8String& out) const
+            void JSONStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, U8String& out) const
             {
                 const auto start = slice.begin();
                 auto cur = start;
@@ -258,7 +258,7 @@ namespace RR
 
         /// Takes slice and adds any appropriate escaping (for example C++/C type escaping for special characters like '\', '"' and if not ascii will write out as hex sequence)
         /// Does not append quotes
-        void StringEscapeUtil::AppendEscaped(Style style, const UnownedStringSlice& slice, U8String& out)
+        void StringEscapeUtil::AppendEscaped(Style style, UnownedStringSlice slice, U8String& out)
         {
             const auto handler = getHandler(style);
             handler->AppendEscaped(slice, out);
@@ -267,19 +267,19 @@ namespace RR
         /*
         /// Given a slice append it unescaped
         /// Does not consume surrounding quotes
-        RfxResult StringEscapeUtil::AppendUnescaped(Style style, const UnownedStringSlice& slice, std::stringstream& out);
+        RfxResult StringEscapeUtil::AppendUnescaped(Style style, UnownedStringSlice slice, std::stringstream& out);
 
         /// If quoting is needed appends to out quoted
-        RfxResult StringEscapeUtil::AppendMaybeQuoted(Style style, const UnownedStringSlice& slice, std::stringstream& out);
+        RfxResult StringEscapeUtil::AppendMaybeQuoted(Style style, UnownedStringSlice slice, std::stringstream& out);
 
         /// If the slice appears to be quoted for the style, unquote it, else just append to out
-        RfxResult StringEscapeUtil::AppendMaybeUnquoted(Style style, const UnownedStringSlice& slice, std::stringstream& out);
+        RfxResult StringEscapeUtil::AppendMaybeUnquoted(Style style, UnownedStringSlice slice, std::stringstream& out);
 
         /// Appends to out slice without quotes
-        RfxResult StringEscapeUtil::AppendUnquoted(Style style, const UnownedStringSlice& slice, std::stringstream& out);
+        RfxResult StringEscapeUtil::AppendUnquoted(Style style, UnownedStringSlice slice, std::stringstream& out);
         */
         /// Append with quotes (even if not needed)
-        void StringEscapeUtil::AppendQuoted(Style style, const UnownedStringSlice& slice, U8String& out)
+        void StringEscapeUtil::AppendQuoted(Style style, UnownedStringSlice slice, U8String& out)
         {
             const auto handler = getHandler(style);
             out.push_back(handler->GetQuoteChar());
@@ -293,9 +293,9 @@ namespace RR
 
         /// True if requires 'shell-like' unescape. With shell-like, quoting does *not* have to start at the start of the slice.
         /// and there may be multiple quoted section
-        RfxResult StringEscapeUtil::IsUnescapeShellLikeNeeded(Style style, const UnownedStringSlice& slice);
+        RfxResult StringEscapeUtil::IsUnescapeShellLikeNeeded(Style style, UnownedStringSlice slice);
 
         /// Shells can have multiple quoted sections. This function makes a string with out quoting
-        RfxResult StringEscapeUtil::UnescapeShellLike(Style style, const UnownedStringSlice& slice, std::stringstream& out);*/
+        RfxResult StringEscapeUtil::UnescapeShellLike(Style style, UnownedStringSlice slice, std::stringstream& out);*/
     }
 }

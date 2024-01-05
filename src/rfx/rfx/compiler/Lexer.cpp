@@ -17,7 +17,7 @@ namespace RR
             inline bool isNewLineChar(U8Glyph ch) { return (ch == '\n' || ch == '\r'); }
             inline bool isEOF(U8Glyph ch) { return ch == Lexer::kEOF; }
 
-            UnownedStringSlice trimQuoutes(const UnownedStringSlice& tokenSlice, Token::Type tokenType)
+            UnownedStringSlice trimQuoutes(UnownedStringSlice tokenSlice, Token::Type tokenType)
             {
                 char quoteChar = 0;
                 switch (tokenType)
@@ -90,7 +90,7 @@ namespace RR
                 return result;
             }
 
-            char* scrubbingToken(const UnownedStringSlice& source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
+            char* scrubbingToken(UnownedStringSlice source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
             {
                 auto srcEnd = source.end();
                 auto cursor = source.begin();

@@ -17,7 +17,7 @@ namespace RR::Rfx
         UnownedStringSlice GetContent() const { return content_; }
         size_t GetContentSize() const { return content_.length(); }
         const PathInfo& GetPathInfo() const { return pathInfo_; }
-        void SetContent(const UnownedStringSlice& content);
+        void SetContent(UnownedStringSlice content);
 
         /// Calculate a display path -> can canonicalize if necessary
         U8String CalcVerbosePath() const;
@@ -62,7 +62,7 @@ namespace RR::Rfx
 
     protected:
         SourceView(const std::shared_ptr<SourceFile>& sourceFile,
-                   const UnownedStringSlice& content,
+                   UnownedStringSlice content,
                    const PathInfo& pathInfo,
                    const Token& initiatingToken)
             : sourceFile_(sourceFile), content_(content), pathInfo_(pathInfo), initiatingToken_(initiatingToken)

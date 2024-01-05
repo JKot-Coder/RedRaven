@@ -10,7 +10,7 @@ namespace RR::Rfx
 
     struct StringUtils
     {
-        static RResult StringToInt64(const UnownedStringSlice& slice, int64_t& outValue)
+        static RResult StringToInt64(UnownedStringSlice slice, int64_t& outValue)
         {
             auto end = const_cast<U8Char*>(slice.end());
             errno = 0;

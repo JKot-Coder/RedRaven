@@ -6,7 +6,7 @@ namespace RR
     {
         namespace
         {
-            UnownedStringSlice advanceBom(const UnownedStringSlice& stringSlice)
+            UnownedStringSlice advanceBom(UnownedStringSlice stringSlice)
             {
                 auto begin = stringSlice.begin();
 
@@ -51,7 +51,7 @@ namespace RR
             return false;
         }
 
-        void SourceFile::SetContent(const UnownedStringSlice& content)
+        void SourceFile::SetContent(UnownedStringSlice content)
         {
             content_ = advanceBom(content);
         }

@@ -129,19 +129,19 @@ namespace RR::Rfx
             return value;
         }
 
-        static RSONValue MakeString(const UnownedStringSlice& inValue)
+        static RSONValue MakeString(UnownedStringSlice inValue)
         {
             RSONValue value;
             value.type = Type::String;
-            value.stringValue = inValue;
+            value.stringValue = std::move(inValue);
             return value;
         }
 
-        static RSONValue MakeReference(const UnownedStringSlice& inValue)
+        static RSONValue MakeReference(UnownedStringSlice inValue)
         {
             RSONValue value;
             value.type = Type::Reference;
-            value.referenceValue.path = inValue;
+            value.referenceValue.path = std::move(inValue);
             value.referenceValue.reference = nullptr;
             return value;
         }
@@ -225,12 +225,12 @@ namespace RR::Rfx
             return *current;
         }
 
-        const RSONValue& Find(const UnownedStringSlice& key) const
+        const RSONValue& Find(UnownedStringSlice key) const
         {
             return Find(StringSplit<UnownedStringSlice, '.'>(key));
         }
 
-        const bool Contains(const UnownedStringSlice& key) const
+        const bool Contains(UnownedStringSlice key) const
         {
             if (IsObject() && (container->find(key) != container->end()))
                 return true;
@@ -261,7 +261,7 @@ namespace RR::Rfx
             return container->insert(std::move(value));
         }
 
-        RSONValue& operator[](const UnownedStringSlice& key)
+        RSONValue& operator[](UnownedStringSlice key)
         {
             if (!IsObject())
                 return nullValue();

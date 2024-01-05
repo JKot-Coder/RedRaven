@@ -12,7 +12,7 @@ namespace RR
         namespace
         {
             /// Trims any horizontal whitespace from the start and end and returns as a substring
-            UnownedStringSlice trim(const UnownedStringSlice& stringSlice)
+            UnownedStringSlice trim(UnownedStringSlice stringSlice)
             {
                 const U8Char* start = stringSlice.begin();
                 const U8Char* end = stringSlice.end();
@@ -26,7 +26,7 @@ namespace RR
                 return UnownedStringSlice(start, end);
             }
 
-            U8String replaceTabWithSpaces(const UnownedStringSlice& slice, uint32_t tabSize)
+            U8String replaceTabWithSpaces(UnownedStringSlice slice, uint32_t tabSize)
             {
                 const U8Char* start = slice.begin();
                 const U8Char* const end = slice.end();

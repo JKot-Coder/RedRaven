@@ -138,10 +138,10 @@ namespace RR::Rfx
         return RResult::Ok;
     }
 
-    void RSONBuilder::PushNamespace(const UnownedStringSlice& nameSpace)
+    void RSONBuilder::PushNamespace(UnownedStringSlice nameSpace)
     {
         ASSERT(!nameSpace.empty());
-        currentNameSpace_ = nameSpace;
+        currentNameSpace_ = std::move(nameSpace);
     }
 
     RResult RSONBuilder::ResolveReference(RSONValue& value)

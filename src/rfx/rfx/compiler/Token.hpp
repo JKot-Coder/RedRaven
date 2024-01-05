@@ -27,7 +27,7 @@ namespace RR::Rfx
 
     public:
         Token() = default;
-        Token(Type inType, const UnownedStringSlice& stringSlice, const SourceLocation& sourceLocation, Flags flags = Flags::None)
+        Token(Type inType, UnownedStringSlice stringSlice, const SourceLocation& sourceLocation, Flags flags = Flags::None)
             : type(inType), flags(flags), stringSlice(stringSlice), sourceLocation(sourceLocation)
         {
         }

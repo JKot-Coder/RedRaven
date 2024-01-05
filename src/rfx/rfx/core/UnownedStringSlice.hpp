@@ -150,7 +150,7 @@ namespace std
     template <>
     struct equal_to<UnownedStringSlice>
     {
-        bool operator()(const UnownedStringSlice& lhs, const UnownedStringSlice& rhs) const
+        bool operator()(const UnownedStringSlice& lhs, UnownedStringSlice rhs) const
         {
             return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
         }
@@ -159,7 +159,7 @@ namespace std
     template <>
     struct hash<UnownedStringSlice>
     {
-        std::size_t operator()(const UnownedStringSlice& slice) const noexcept
+        std::size_t operator()(UnownedStringSlice slice) const noexcept
         {
             std::size_t hash = 0;
             const RR::U8Char* ptr = slice.begin();
