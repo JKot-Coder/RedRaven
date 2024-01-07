@@ -26,6 +26,11 @@ source_group( "Debug" FILES ${DEBUG_SRC} )
 set(IO_SRC)
 add_subdirectory(io) # IO_SRC
 
+set( HASH_SRC
+	hash/Murmur.hpp
+)
+source_group( "Hash" FILES ${HASH_SRC} )
+
 set( COMMON_SRC
     Check.cpp
     ComPtr.hpp
@@ -63,6 +68,7 @@ set( COMMON_SRC
     ${COMMON_SRC}
     ${THREADING_SRC}
     ${DEBUG_SRC}
+    ${HASH_SRC}
     ${IO_SRC}
 )
 
