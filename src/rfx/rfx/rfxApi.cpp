@@ -238,7 +238,7 @@ namespace RR::Rfx
                 case RSONValue::Type::Array:
                 case RSONValue::Type::Object:
                 {
-                    const bool isArray = value.IsArray();
+                    const bool isArray = value.isArray();
                     const U8Char openBracket = isArray ? '[' : '{';
                     const U8Char closeBracket = isArray ? ']' : '}';
 
