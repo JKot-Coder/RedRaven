@@ -206,6 +206,7 @@ DIAGNOSTIC(20015, Error, invalidParentsValue, "The value to inherit must be an a
 DIAGNOSTIC(20016, Error, invalidParentIndetifier, "The {0} is not supported as a parent indetifier.")
 DIAGNOSTIC(20017, Error, invalidParentType, "The parent '{0}' is of type '{1}', but only objects can be used as parents.")
 DIAGNOSTIC(20018, Error, undeclaredIdentifier, "Undeclared indetifier: '{0}'")
+DIAGNOSTIC(20019, Error, invalidTernaryOperatorCondition, "The condition in the ternary operator must be of type 'bool', but the actual type is '{0}'.")
 
 // 99999 - Internal compiler errors, and not-yet-classified diagnostics.
 DIAGNOSTIC(20020, Error, divideByZero, "division by zero")

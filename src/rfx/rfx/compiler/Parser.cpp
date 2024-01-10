@@ -83,21 +83,21 @@ namespace RR::Rfx
             {
                 case RSONValue::Type::Bool:
                     if (opToken.type == Token::Type::OpNot)
-                        return RSONValue::MakeBool(!value.AsBool());
+                        return RSONValue::MakeBool(!value.getBool());
                     break;
                 case RSONValue::Type::Integer:
                     switch (opToken.type)
                     {
                         case Token::Type::OpAdd: return value;
-                        case Token::Type::OpSub: return RSONValue::MakeInt(-value.AsInteger());
-                        case Token::Type::OpBitNot: return RSONValue::MakeInt(~value.AsInteger());
+                        case Token::Type::OpSub: return RSONValue::MakeInt(-value.getInteger());
+                        case Token::Type::OpBitNot: return RSONValue::MakeInt(~value.getInteger());
                     }
                     break;
                 case RSONValue::Type::Float:
                     switch (opToken.type)
                     {
                         case Token::Type::OpAdd: return value;
-                        case Token::Type::OpSub: return RSONValue::MakeFloat(-value.AsFloat());
+                        case Token::Type::OpSub: return RSONValue::MakeFloat(-value.getFloat());
                     }
                     break;
             }
@@ -299,8 +299,8 @@ namespace RR::Rfx
         ASSERT(token.type == Token::Type::FloatingPointLiteral);
         errno = 0;
 
-        auto end = const_cast<U8Char*>(token.stringSlice.end());
-        outValue = std::strtod(token.stringSlice.begin(), &end);
+        U8Char* end;
+        outValue = std::strtod(&*token.stringSlice.begin(), &end);
 
         if (errno == ERANGE)
         {
@@ -308,7 +308,7 @@ namespace RR::Rfx
             return RResult::Fail;
         }
 
-        if (end != token.stringSlice.end())
+        if (end != &*token.stringSlice.end())
         {
             getSink().Diagnose(token, Diagnostics::floatLiteralUnexpected, token.GetContentString());
             return RResult::Fail;
@@ -337,7 +337,7 @@ namespace RR::Rfx
         // First read in the left-hand side (or the whole expression in the unary case)
         const auto value = parseAndEvaluateUnaryExpression();
 
-        if (!value.IsValid())
+        if (!value.isValid())
             return value;
 
         // Try to read in trailing infix operators with correct precedence
@@ -407,7 +407,7 @@ namespace RR::Rfx
     {
         for (;;)
         {
-            if (!left.IsValid())
+            if (!left.isValid())
                 return left;
 
             // Look at the next token, and see if it is an operator of
@@ -429,8 +429,14 @@ namespace RR::Rfx
                 auto trueValue = parseAndEvaluateExpression(opPrecedence);
                 RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::Colon), RSONValue {});
                 auto falseValue = parseAndEvaluateExpression(opPrecedence);
-                // Todo validate
-                left = left.AsBool() ? trueValue : falseValue;
+
+                if (!left.isBool())
+                {
+                    getSink().Diagnose(opToken, Diagnostics::invalidTernaryOperatorCondition, trueValue.type);
+                    return {};
+                }
+
+                left = left.getBool() ? trueValue : falseValue;
                 continue;
             }
 
@@ -481,11 +487,11 @@ namespace RR::Rfx
 
                 switch (opToken.type)
                 {
-                    case Token::Type::OpLsh: return RSONValue::MakeInt(left.AsInteger() << right.AsInteger());
-                    case Token::Type::OpRsh: return RSONValue::MakeInt(left.AsInteger() >> right.AsInteger());
-                    case Token::Type::OpBitAnd: return RSONValue::MakeInt(left.AsInteger() & right.AsInteger());
-                    case Token::Type::OpBitOr: return RSONValue::MakeInt(left.AsInteger() | right.AsInteger());
-                    case Token::Type::OpBitXor: return RSONValue::MakeInt(left.AsInteger() ^ right.AsInteger());
+                    case Token::Type::OpLsh: return RSONValue::MakeInt(left.getInteger() << right.getInteger());
+                    case Token::Type::OpRsh: return RSONValue::MakeInt(left.getInteger() >> right.getInteger());
+                    case Token::Type::OpBitAnd: return RSONValue::MakeInt(left.getInteger() & right.getInteger());
+                    case Token::Type::OpBitOr: return RSONValue::MakeInt(left.getInteger() | right.getInteger());
+                    case Token::Type::OpBitXor: return RSONValue::MakeInt(left.getInteger() ^ right.getInteger());
                 }
 
                 ASSERT_MSG(false, "Unreachable");
@@ -513,14 +519,14 @@ namespace RR::Rfx
                     case RSONValue::Type::Float:
                     {
                         return (opType == OperationType::Compare)
-                                   ? compareOps<double>(opToken, left.AsFloat(), right.AsFloat())
-                                   : arithmeticOps<double>(getSink(), opToken, left.AsFloat(), right.AsFloat());
+                                   ? compareOps<double>(opToken, left.asFloat(), right.asFloat())
+                                   : arithmeticOps<double>(getSink(), opToken, left.asFloat(), right.asFloat());
                     }
                     case RSONValue::Type::Integer:
                     {
                         return (opType == OperationType::Compare)
-                                   ? compareOps<int64_t>(opToken, left.AsInteger(), right.AsInteger())
-                                   : arithmeticOps<int64_t>(getSink(), opToken, left.AsInteger(), right.AsInteger());
+                                   ? compareOps<int64_t>(opToken, left.asInteger(), right.asInteger())
+                                   : arithmeticOps<int64_t>(getSink(), opToken, left.asInteger(), right.asInteger());
                     }
                 }
 
@@ -538,8 +544,8 @@ namespace RR::Rfx
 
                 switch (opToken.type)
                 {
-                    case Token::Type::OpAnd: return RSONValue::MakeBool(left.AsBool() && right.AsBool());
-                    case Token::Type::OpOr: return RSONValue::MakeBool(left.AsBool() || right.AsBool());
+                    case Token::Type::OpAnd: return RSONValue::MakeBool(left.getBool() && right.getBool());
+                    case Token::Type::OpOr: return RSONValue::MakeBool(left.getBool() || right.getBool());
                 }
 
                 ASSERT_MSG(false, "Unreachable");
