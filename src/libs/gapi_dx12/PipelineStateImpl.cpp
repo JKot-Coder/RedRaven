@@ -503,7 +503,7 @@ namespace RR
                 psoDesc.DS = getShaderByteCode(ds);
                 psoDesc.HS = getShaderByteCode(hs);
                 psoDesc.GS = getShaderByteCode(gs);
-                psoDesc.PS = getShaderByteCode(ps);      
+                psoDesc.PS = getShaderByteCode(ps);
                 ID3D12RootSignature* pRootSignature;*/
 
 
