@@ -70,33 +70,39 @@ namespace RR::Rfx
         RSONValue(RSONValue&& other) noexcept { swap(other); }
         ~RSONValue()
         {
-            if (IsObjectLike())
+            if (isObjectLike())
                 container = nullptr;
         }
 
         RSONValue& operator=(const RSONValue& other) { return copy(other); }
         RSONValue& operator=(RSONValue&& other) noexcept { return swap(other); }
 
-        iterator begin() noexcept { return IsObjectLike() ? container->begin() : iterator {}; }
+        iterator begin() noexcept { return isObjectLike() ? container->begin() : iterator {}; }
         const_iterator begin() const noexcept { return cbegin(); }
-        const_iterator cbegin() const noexcept { return IsObjectLike() ? container->cbegin() : const_iterator {}; }
+        const_iterator cbegin() const noexcept { return isObjectLike() ? container->cbegin() : const_iterator {}; }
 
-        iterator end() noexcept { return IsObjectLike() ? container->end() : iterator {}; }
+        iterator end() noexcept { return isObjectLike() ? container->end() : iterator {}; }
         const_iterator end() const noexcept { return cend(); }
-        const_iterator cend() const noexcept { return IsObjectLike() ? container->cend() : const_iterator {}; }
+        const_iterator cend() const noexcept { return isObjectLike() ? container->cend() : const_iterator {}; }
 
-        reverse_iterator rbegin() noexcept { return IsObjectLike() ? container->rbegin() : reverse_iterator {}; }
+        reverse_iterator rbegin() noexcept { return isObjectLike() ? container->rbegin() : reverse_iterator {}; }
         const_reverse_iterator rbegin() const noexcept { return crbegin(); }
-        const_reverse_iterator crbegin() const noexcept { return IsObjectLike() ? container->crbegin() : const_reverse_iterator {}; }
+        const_reverse_iterator crbegin() const noexcept { return isObjectLike() ? container->crbegin() : const_reverse_iterator {}; }
 
-        reverse_iterator rend() noexcept { return IsObjectLike() ? container->rend() : reverse_iterator {}; }
+        reverse_iterator rend() noexcept { return isObjectLike() ? container->rend() : reverse_iterator {}; }
         const_reverse_iterator rend() const noexcept { return crend(); }
-        const_reverse_iterator crend() const noexcept { return IsObjectLike() ? container->crend() : const_reverse_iterator {}; }
+        const_reverse_iterator crend() const noexcept { return isObjectLike() ? container->crend() : const_reverse_iterator {}; }
 
-        bool IsValid() const { return type != Type::Invalid; }
-        bool IsObjectLike() const { return type == Type::Object || type == Type::Array; }
-        bool IsObject() const { return type == Type::Object; }
-        bool IsArray() const { return type == Type::Array; }
+        /// Number of values in array or object
+        size_t size() const { return isObjectLike() ? container->size() : 0; }
+        bool empty() const { return size() == 0; }
+
+        bool isValid() const { return type != Type::Invalid; }
+        bool isNull() const { return type == Type::Null; }
+        bool isBool() const { return type == Type::Bool; }
+        bool isObjectLike() const { return type == Type::Object || type == Type::Array; }
+        bool isObject() const { return type == Type::Object; }
+        bool isArray() const { return type == Type::Array; }
 
         static RSONValue MakeBool(bool inValue)
         {
@@ -162,7 +168,7 @@ namespace RR::Rfx
             return value;
         }
 
-        bool AsBool() const
+        bool asBool() const
         {
             switch (type)
             {
@@ -174,8 +180,14 @@ namespace RR::Rfx
                 default: return false;
             }
         };
+        bool getBool() const
+        {
+            ASSERT(type == Type::Bool);
+            return boolValue;
+        }
+        bool getBool(bool default) const { return (type == Type::Bool) ? boolValue : default; }
 
-        int64_t AsInteger() const
+        int64_t asInteger() const
         {
             switch (type)
             {
@@ -187,8 +199,14 @@ namespace RR::Rfx
                 default: return 0;
             }
         }
+        int64_t getInteger() const
+        {
+            ASSERT(type == Type::Integer);
+            return intValue;
+        }
+        int64_t getInteger(int64_t default) const { return (type == Type::Integer) ? intValue : default; }
 
-        double AsFloat() const
+        double asFloat() const
         {
             switch (type)
             {
@@ -200,16 +218,43 @@ namespace RR::Rfx
                 default: return 0.0;
             }
         }
+        double getFloat() const
+        {
+            ASSERT(type == Type::Float);
+            return floatValue;
+        }
+        double getFloat(double default) const { return (type == Type::Float) ? floatValue : default; }
+
+        U8String asString() const
+        {
+            switch (type)
+            {
+                case Type::Bool: return boolValue ? "true" : "false";
+                case Type::Null: return "null";
+                case Type::Integer: return std::to_string(intValue);
+                case Type::Float: return std::to_string(floatValue);
+                case Type::String: return stringValue.asString();
+                case Type::Reference: return referenceValue.path.asString();
+                case Type::Invalid: ASSERT_MSG(false, "Invalid value"); return "";
+                default: return "";
+            }
+        }
+        U8String getString() const
+        {
+            ASSERT(type == Type::String);
+            return stringValue.asString();
+        }
+        U8String getString(U8String default) const { return (type == Type::String) ? stringValue.asString() : default; }
 
     public:
         template <typename T, U8Char Delimiter>
-        const RSONValue& Find(const StringSplit<T, Delimiter>& stringSplit) const
+        const RSONValue& find(const StringSplit<T, Delimiter>& stringSplit) const
         {
             RSONValue const* current = this;
 
             for (const auto& split : stringSplit)
             {
-                if (current->IsObject())
+                if (current->isObject())
                 {
                     const auto iterator = current->container->find(split.slice());
                     if (iterator != current->container->end())
@@ -225,17 +270,25 @@ namespace RR::Rfx
             return *current;
         }
 
-        const RSONValue& Find(UnownedStringSlice key) const
+        const RSONValue& find(UnownedStringSlice key) const
         {
-            return Find(StringSplit<UnownedStringSlice, '.'>(key));
+            return find(StringSplit<UnownedStringSlice, '.'>(key));
         }
 
-        const bool Contains(UnownedStringSlice key) const
+        const bool contains(UnownedStringSlice key) const
         {
-            if (IsObject() && (container->find(key) != container->end()))
+            if (isObject() && (container->find(key) != container->end()))
                 return true;
 
             return false;
+        }
+
+        const RSONValue& operator[](UnownedStringSlice key) const
+        {
+            if (!isObject())
+                return nullValue();
+
+            return container->emplace(std::move(key), RSONValue {}).first->second;
         }
 
     private:
@@ -244,9 +297,9 @@ namespace RR::Rfx
         const RSONValue& append(const RSONValue& value) { return append(RSONValue(value)); }
         const RSONValue& append(RSONValue&& value)
         {
-            ASSERT_MSG(IsArray(), "Append requires ArrayValue");
+            ASSERT_MSG(isArray(), "Append requires ArrayValue");
 
-            if (!IsArray())
+            if (!isArray())
                 return nullValue();
 
             // Encode index to pointer
@@ -259,14 +312,6 @@ namespace RR::Rfx
         {
             Container::value_type value(std::forward<Args>(args)...);
             return container->insert(std::move(value));
-        }
-
-        RSONValue& operator[](UnownedStringSlice key)
-        {
-            if (!IsObject())
-                return nullValue();
-
-            return container->emplace(key, RSONValue {}).first->second;
         }
 
         RSONValue& nullValue() const
@@ -301,10 +346,10 @@ namespace RR::Rfx
     private:
         RSONValue& copy(const RSONValue& other)
         {
-            if (IsObjectLike())
+            if (isObjectLike())
                 container = nullptr;
 
-            if (other.IsObjectLike())
+            if (other.isObjectLike())
                 container = other.container;
             else
                 data = other.data;

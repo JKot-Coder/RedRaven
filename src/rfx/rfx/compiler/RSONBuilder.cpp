@@ -93,7 +93,7 @@ namespace RR::Rfx
         if (parents.type == RSONValue::Type::Reference)
             return inherite(parents);
 
-        if (!parents.IsArray())
+        if (!parents.isArray())
         {
             getSink().Diagnose(initiatingToken, Diagnostics::invalidParentsValue, RSONValueTypeToString(parents.type));
             return RResult::Fail;
@@ -119,7 +119,7 @@ namespace RR::Rfx
         ASSERT(key.type == Token::Type::StringLiteral || key.type == Token::Type::Identifier);
         const auto keyName = key.stringSlice;
 
-        if (currentValue().Contains(keyName))
+        if (currentValue().contains(keyName))
         {
             getSink().Diagnose(key, Diagnostics::duplicateKey, keyName);
             return RResult::AlreadyExist;
@@ -152,7 +152,7 @@ namespace RR::Rfx
 
         for (auto i = stack_.rbegin(); i != stack_.rend(); i++)
         {
-            const RSONValue& refVal = i->value.Find(split);
+            const RSONValue& refVal = i->value.find(split);
 
             if (refVal.type != RSONValue::Type::Invalid)
             {
