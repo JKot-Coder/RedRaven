@@ -1,5 +1,3 @@
-Diagnostic:[
-]
 SourceOutput:[
     {
       "absolute": {
@@ -28,4 +26,6 @@ SourceOutput:[
       "reference": "global.second",
       "tricky_ref": "global.first.something"
     }
+]
+Diagnostic:[
 ]

@@ -1,5 +1,3 @@
-Diagnostic:[
-]
 SourceOutput:[
     {
       "Animal": {
@@ -49,4 +47,6 @@ SourceOutput:[
         "Valid": true
       }
     }
+]
+Diagnostic:[
 ]

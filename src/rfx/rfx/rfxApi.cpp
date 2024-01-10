@@ -518,14 +518,19 @@ namespace RR::Rfx
                         const auto& define = *(compileRequest.defines + index);
                         preprocessor.DefineMacro(define);
                     }
+
+                    // Write diagnostic no matter what
+                    ON_SCOPE_EXIT({
+                        const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
+                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
+                    });
+
                     preprocessor.PushInputFile(sourceFile);
                     const auto& tokens = preprocessor.ReadAllTokens();
 
                     if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Preprocessor)
                     {
-                        const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
                         compilerResult->PushOutput(CompileOutputType::Source, writeTokens(tokens, context));
-                        compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
                         break;
                     }
                     else if (compileRequest.outputStage == CompileRequestDescription::OutputStage::Parser ||
@@ -535,11 +540,7 @@ namespace RR::Rfx
 
                         {
                             Parser parser(tokens, context);
-                            // Write diagnostic even on parsing error.
-                            ON_SCOPE_EXIT({
-                                const auto diagnosticBlob = ComPtr<IBlob>(new BinaryBlob(bufferWriter->GetBuffer()));
-                                compilerResult->PushOutput(CompileOutputType::Diagnostic, diagnosticBlob);
-                            });
+
                             RR_RETURN_ON_FAIL(parser.Parse(root));
                         }
 
