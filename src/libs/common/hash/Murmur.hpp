@@ -3,7 +3,8 @@
 #include <stdint.h>
 
 //-----------------------------------------------------------------------------
-// MurmurHash3 by Austin Appleby
+// MurmurHash3 was written by Austin Appleby, and is placed in the public
+// domain. The author hereby disclaims copyright to this source code.
 
 namespace RR::Common::Hash
 {
@@ -31,73 +32,62 @@ namespace RR::Common::Hash
         template <uint8_t HashBits>
         using HashType = typename HashOptions<HashBits>::HashType;
 
+        namespace details
+        {
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline
-
-        template <uint8_t HashBits>
-        inline FORCE_INLINE HashType<HashBits> rotl(HashType<HashBits> x, uint8_t r);
-
-        template <>
-        inline FORCE_INLINE HashType<32> rotl<32>(HashType<32> x, uint8_t r)
-        {
-            return _rotl(x, r);
-        }
-
-        template <>
-        inline FORCE_INLINE HashType<64> rotl<64>(HashType<64> x, uint8_t r)
-        {
-            return _rotl64(x, r);
-        }
-
 #else // defined(_MSC_VER)
 #define FORCE_INLINE __attribute__((always_inline))
-
-        template <uint8_t HashBits>
-        inline FORCE_INLINE HashType<HashBits> rotl(HashType<HashBits> x, uint8_t r)
-        {
-            asm("roll %1,%0"
-                : "+r"(x)
-                : "c"(r));
-            return x;
-        }
 #endif // !defined(_MSC_VER)
 
-        //-----------------------------------------------------------------------------
-        // Block read - if your platform needs to do endian-swapping or can only
-        // handle aligned reads, do the conversion here
+            template <uint8_t HashBits>
+            constexpr inline FORCE_INLINE HashType<HashBits> rotl(HashType<HashBits> x, uint8_t r)
+            {
+                // Hopefully our compiler is smart enough to optimize for rotl, we can't use _rotl instic
+                // or asm("roll %1,%0": "+r"(x): "c"(r)) because we want to get our hash in compile time.
+                // TODO: this can be replaced by std::rotr in cpp20
+                return (x << (r % std::numeric_limits<HashType<HashBits>>::digits)) |
+                       (x >> (std::numeric_limits<HashType<HashBits>>::digits - (r % std::numeric_limits<HashType<HashBits>>::digits)));
+            }
 
-        template <uint8_t HashBits>
-        FORCE_INLINE HashType<HashBits> getblock(const HashType<HashBits>* p, int i)
-        {
+            //-----------------------------------------------------------------------------
+            // Block read - if your platform needs to do endian-swapping or can only
+            // handle aligned reads, do the conversion here
+
+            template <uint8_t HashBits>
+            constexpr inline FORCE_INLINE HashType<HashBits> getblock(const HashType<HashBits>* p, int i)
+            {
 #if true
-            return p[i];
+                // TODO. We cant read block like this while compile time, replace it
+                return p[i];
 #else
-            static_assert(false, "Implement endian-swapping");
-            return 0;
+                static_assert(false, "TODO implement endian-swapping");
+                return 0;
 #endif
+            }
+
+            //-----------------------------------------------------------------------------
+            // Finalization mix - force all bits of a hash block to avalanche
+
+            template <uint8_t HashBits>
+            constexpr inline FORCE_INLINE HashType<HashBits> fmix(HashType<HashBits> h)
+            {
+                h ^= h >> HashOptions<HashBits>::mixShifts[0];
+                h *= HashOptions<HashBits>::mixMuls[0];
+                h ^= h >> HashOptions<HashBits>::mixShifts[1];
+                h *= HashOptions<HashBits>::mixMuls[1];
+                h ^= h >> HashOptions<HashBits>::mixShifts[2];
+
+                return h;
+            }
         }
 
         //-----------------------------------------------------------------------------
-        // Finalization mix - force all bits of a hash block to avalanche
-
         template <uint8_t HashBits>
-        FORCE_INLINE HashType<HashBits> fmix(HashType<HashBits> h)
-        {
-            h ^= h >> HashOptions<HashBits>::mixShifts[0];
-            h *= HashOptions<HashBits>::mixMuls[0];
-            h ^= h >> HashOptions<HashBits>::mixShifts[1];
-            h *= HashOptions<HashBits>::mixMuls[1];
-            h ^= h >> HashOptions<HashBits>::mixShifts[2];
-
-            return h;
-        }
-
-        //-----------------------------------------------------------------------------
-        template <uint8_t HashBits>
-        HashType<HashBits> hash(const void* key, int len, uint32_t seed);
+        constexpr HashType<HashBits> Hash(const char* const key, size_t len, uint32_t seed = 0);
 
         template <>
-        constexpr HashType<32> hash<32>(const void* key, int len, uint32_t seed)
+        constexpr HashType<32> Hash<32>(const char* const key, size_t len, uint32_t seed)
         {
             const uint8_t* data = (const uint8_t*)key;
             const int nblocks = len / 4;
@@ -152,8 +142,12 @@ namespace RR::Common::Hash
 
             return h1;
         }
+        //-----------------------------------------------------------------------------
+        template <uint8_t HashBits>
+        constexpr HashType<HashBits> Hash(const std::string_view string, uint32_t seed = 0)
+        {
+            std::ignore = seed;
+            return Hash<HashBits>(string.data(), string.length(), 0);
+        }
     };
 }
-//-----------------------------------------------------------------------------
-// template <uint8_t HashBits>
-// HashType<HashBits>::HashType MurmurHash3(const void* key, int len, uint32_t seed);
