@@ -87,6 +87,12 @@ namespace RR
                 const auto sourceView = diagnostic.location.GetSourceView();
                 ASSERT(sourceView);
 
+                auto diagnosticLocation = sourceView->GetContentFrom(diagnostic.location);
+
+                const bool diagnosicEOF = diagnosticLocation == sourceView->GetContent().end();
+                if (diagnosicEOF)
+                    --diagnosticLocation;
+
                 UnownedStringSlice sourceLineSlice = sourceView->ExtractLineContainingLocation(diagnostic.location);
 
                 // Trim any trailing white space
@@ -96,9 +102,10 @@ namespace RR
                 // For now just go with 4.
                 const uint32_t tabSize = 4;
 
-                U8String lineToLocation = U8String(sourceLineSlice.begin(), sourceView->GetContentFrom(diagnostic.location));
+                U8String lineToLocation = U8String(sourceLineSlice.begin(), diagnosticLocation);
                 lineToLocation = replaceTabWithSpaces(lineToLocation, tabSize);
                 size_t caretOffset = utf8::distance(lineToLocation.begin(), lineToLocation.end());
+                caretOffset += diagnosicEOF ? 1 : 0;
 
                 auto sourceLine = replaceTabWithSpaces(sourceLineSlice, tabSize);
                 U8String caretLine;
@@ -184,7 +191,7 @@ namespace RR
         {
             U8String humaneLocString;
 
-            const bool includeSourceLocation = true;
+            const bool includeSourceLocation = diagnostic.location.GetSourceView() != nullptr;
 
             if (includeSourceLocation)
             {
