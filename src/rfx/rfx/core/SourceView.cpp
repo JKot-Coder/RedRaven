@@ -9,11 +9,12 @@ namespace RR
             UnownedStringSlice advanceBom(UnownedStringSlice stringSlice)
             {
                 auto begin = stringSlice.begin();
+                const auto end = stringSlice.end();
 
                 if (utf8::starts_with_bom(begin))
-                    utf8::next(begin, stringSlice.end());
+                    utf8::next(begin, end);
 
-                return UnownedStringSlice(begin, stringSlice.end());
+                return UnownedStringSlice(begin, end);
             }
         }
 
@@ -58,18 +59,19 @@ namespace RR
 
         bool extractLine(UnownedStringSlice& ioText, UnownedStringSlice& outLine)
         {
-            U8Char const* const begin = ioText.begin();
-            U8Char const* const end = ioText.end();
+            const auto begin = ioText.begin();
+            const auto end = ioText.end();
 
-            if (begin == nullptr)
+            if (&*begin == nullptr)
             {
-                outLine = UnownedStringSlice(nullptr, nullptr);
+                outLine = UnownedStringSlice {};
                 return false;
             }
 
-            U8Char const* cursor = begin;
+            auto cursor = begin;
             while (cursor < end)
             {
+                const auto prev = cursor;
                 const auto ch = utf8::next(cursor, end);
 
                 switch (ch)
@@ -78,7 +80,7 @@ namespace RR
                     case '\n':
                     {
                         // Remember the end of the line
-                        const U8Char* const lineEnd = cursor - 1;
+                        const auto lineEnd = prev;
 
                         // When we see a line-break character we need
                         // to record the line break, but we also need
@@ -102,7 +104,7 @@ namespace RR
             }
 
             // There is nothing remaining
-            ioText = UnownedStringSlice(nullptr, nullptr);
+            ioText = UnownedStringSlice {};
 
             // Could be empty, or the remaining line (without line end terminators of)
             ASSERT(begin <= cursor);
@@ -111,7 +113,7 @@ namespace RR
             return true;
         }
 
-        const U8Char* SourceView::GetContentFrom(const SourceLocation& loc) const
+        const UnownedStringSlice::const_iterator SourceView::GetContentFrom(const SourceLocation& loc) const
         {
             ASSERT(loc.GetSourceView() == shared_from_this());
 
@@ -122,9 +124,12 @@ namespace RR
         {
             ASSERT(loc.GetSourceView() == shared_from_this());
 
-            const U8Char* const contentStart = GetContent().begin();
-            const U8Char* const contentEnd = GetContent().end();
-            const U8Char* pos = GetContentFrom(loc);
+            const auto contentStart = GetContent().begin();
+            const auto contentEnd = GetContent().end();
+            auto pos = GetContentFrom(loc);
+
+            if (pos == contentEnd)
+                --pos;
 
             // If we start with a newline character, we assume that we need a line before.
             for (; pos > contentStart; --pos)
@@ -139,7 +144,7 @@ namespace RR
             }
 
             // We want to determine the start of the line, and the end of the line
-            const U8Char* start = pos;
+            auto start = pos;
             for (; start > contentStart; --start)
             {
                 // Work with UTF8 as ANSI text. This shouldn't be a problem...
@@ -152,7 +157,7 @@ namespace RR
                 }
             }
 
-            const U8Char* end = pos;
+            auto end = pos;
             for (; end < contentEnd; ++end)
             {
                 const auto ch = *end;

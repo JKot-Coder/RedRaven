@@ -11,8 +11,8 @@ Diagnostic:[
     #elif // directive after else 
      ^~~~
     ../src/rfx/tests/preprocessor/ConditionalDiagnostics.rfx(11): error 15000: end of file encountered during preprocessor conditional
-    
-    ^
+    Skip this
+               ^
     ../src/rfx/tests/preprocessor/ConditionalDiagnostics.rfx(9): note: see 'ifdef' directive
     #ifdef UNDEFINED
      ^~~~~

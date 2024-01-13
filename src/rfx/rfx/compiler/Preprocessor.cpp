@@ -37,8 +37,8 @@ namespace RR
 
                 const UnownedStringSlice content = token.stringSlice;
 
-                auto cursor = utf8::iterator<const char*>(content.begin(), content.begin(), content.end());
-                auto end = utf8::iterator<const char*>(content.end(), content.begin(), content.end());
+                auto cursor = utf8::iterator<const char*>(&*content.begin(), &*content.begin(), &*content.end());
+                auto end = utf8::iterator<const char*>(&*content.end(), &*content.begin(), &*content.end());
 
                 auto quote = *cursor++;
                 ASSERT(quote == '\'' || quote == '"');
@@ -1385,13 +1385,13 @@ namespace RR
 
             errno = 0;
 
-            auto end = const_cast<U8Char*>(token.stringSlice.end());
-            const auto result = std::strtol(token.stringSlice.begin(), &end, radix);
+            U8Char* end;
+            const auto result = std::strtol(token.stringSlice.data(), &end, radix);
 
             if (errno == ERANGE)
                 GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.stringSlice, "int32_t");
 
-            if (end == token.stringSlice.end())
+            if (end == token.stringSlice.data() + token.stringSlice.size())
                 return result;
 
             GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.stringSlice, radix);
@@ -1404,13 +1404,13 @@ namespace RR
 
             errno = 0;
 
-            auto end = const_cast<U8Char*>(token.stringSlice.end());
-            const auto result = std::strtoul(token.stringSlice.begin(), &end, radix);
+            U8Char* end;
+            const auto result = std::strtoul(token.stringSlice.data(), &end, radix);
 
             if (errno == ERANGE)
                 GetSink().Diagnose(token, Diagnostics::integerLiteralOutOfRange, token.GetContentString(), "uint32_t");
 
-            if (end == token.stringSlice.end())
+            if (end == token.stringSlice.data() + token.stringSlice.size())
                 return result;
 
             GetSink().Diagnose(token, Diagnostics::integerLiteralInvalidBase, token.stringSlice, radix);

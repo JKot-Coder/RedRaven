@@ -10,20 +10,22 @@ namespace RR::Rfx
 
     struct StringUtils
     {
-        static RResult StringToInt64(UnownedStringSlice slice, int64_t& outValue)
+        // Todo better implemenation
+        static RResult StringToInt64(UnownedStringSlice string, int64_t& outValue) { return StringToInt64(string.asString(), outValue); }
+        static RResult StringToInt64(U8String string, int64_t& outValue)
         {
-            auto end = const_cast<U8Char*>(slice.end());
+            char* end;
             errno = 0;
 
-            if (slice.isStartsWith("0x"))
-                outValue = static_cast<int64_t>(std::strtoull(slice.begin(), &end, 16));
+            if (string.rfind("0x", 0) == 0)
+                outValue = static_cast<int64_t>(std::strtoull(string.c_str(), &end, 16));
             else
-                outValue = std::strtoll(slice.begin(), &end, 0);
+                outValue = std::strtoll(string.c_str(), &end, 0);
 
             if (errno == ERANGE)
                 return RResult::ArithmeticOverflow;
 
-            if (end != slice.end())
+            if (end != string.data() + string.size())
                 return RResult::InvalidArgument;
 
             return RResult::Ok;

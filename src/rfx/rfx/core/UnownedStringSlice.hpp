@@ -118,26 +118,18 @@ namespace RR
             const U8Char* parentEnd_;
         };
 
-        template <typename T>
-        struct IsStringView
-        {
-            static constexpr bool value = std::is_same_v<decltype(std::declval<T>().begin()), U8Char const*> &&
-                                          std::is_same_v<decltype(std::declval<T>().end()), U8Char const*>;
-        };
-
         template <typename T, U8Char Delimiter>
         struct StringSplit
         {
             typedef StringSplitIterator<Delimiter> iterator;
             typedef const StringSplitIterator<Delimiter> const_iterator;
-            static_assert(IsStringView<T>::value, "Incorrect sting view");
 
             StringSplit(T stringView) : stringView_(stringView) { }
 
-            iterator begin() { return iterator(stringView_.begin(), stringView_.end()); }
-            const_iterator begin() const { return const_iterator(stringView_.begin(), stringView_.end()); }
-            iterator end() { return iterator(stringView_.end(), stringView_.end()); }
-            const_iterator end() const { return const_iterator(stringView_.end(), stringView_.end()); }
+            iterator begin() { return iterator(&*stringView_.begin(), &*stringView_.end()); }
+            const_iterator begin() const { return const_iterator(&*stringView_.begin(), &*stringView_.end()); }
+            iterator end() { return iterator(&*stringView_.end(), &*stringView_.end()); }
+            const_iterator end() const { return const_iterator(&*stringView_.end(), &*stringView_.end()); }
 
             size_t length() const { return stringView_.length(); }
 
@@ -145,37 +137,6 @@ namespace RR
             T stringView_;
         };
     }
-}
-
-namespace std
-{
-    using RR::Rfx::UnownedStringSlice;
-
-    template <>
-    struct equal_to<UnownedStringSlice>
-    {
-        bool operator()(const UnownedStringSlice& lhs, UnownedStringSlice rhs) const
-        {
-            return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
-        }
-    };
-
-    template <>
-    struct hash<UnownedStringSlice>
-    {
-        std::size_t operator()(UnownedStringSlice slice) const noexcept
-        {
-            std::size_t hash = 0;
-            const RR::U8Char* ptr = slice.begin();
-            const RR::U8Char* end = slice.end();
-            while (ptr < end)
-            {
-                hash = static_cast<std::size_t>(*ptr) + (hash << 6) + (hash << 16) - hash;
-                ptr++;
-            }
-            return hash;
-        }
-    };
 }
 
 template <>

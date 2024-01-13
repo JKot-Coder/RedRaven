@@ -167,9 +167,9 @@ namespace RR
 
             void CppStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, U8String& out) const
             {
-                const char* start = slice.begin();
-                const char* cur = start;
-                const char* const end = slice.end();
+                const auto start = slice.begin();
+                auto cur = start;
+                const auto end = slice.end();
 
                 for (; cur < end;)
                 {

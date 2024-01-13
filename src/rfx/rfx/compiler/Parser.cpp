@@ -300,7 +300,7 @@ namespace RR::Rfx
         errno = 0;
 
         U8Char* end;
-        outValue = std::strtod(&*token.stringSlice.begin(), &end);
+        outValue = std::strtod(token.stringSlice.data(), &end);
 
         if (errno == ERANGE)
         {

@@ -14,8 +14,8 @@ namespace RR
             /// Trims any horizontal whitespace from the start and end and returns as a substring
             UnownedStringSlice trim(UnownedStringSlice stringSlice)
             {
-                const U8Char* start = stringSlice.begin();
-                const U8Char* end = stringSlice.end();
+                auto start = stringSlice.begin();
+                auto end = stringSlice.end();
 
                 // Work with UTF8 as ANSI text. This shouldn't be a problem...
                 while (start < end && (*start == '\t' || *start == ' '))
@@ -26,13 +26,14 @@ namespace RR
                 return UnownedStringSlice(start, end);
             }
 
-            U8String replaceTabWithSpaces(UnownedStringSlice slice, uint32_t tabSize)
+            template <typename T>
+            U8String replaceTabWithSpaces(T string, uint32_t tabSize)
             {
-                const U8Char* start = slice.begin();
-                const U8Char* const end = slice.end();
+                auto start = string.begin();
+                const auto end = string.end();
                 U8String out;
 
-                for (const U8Char* cur = start; cur < end;)
+                for (auto cur = start; cur < end;)
                 {
                     const auto ch = utf8::next(cur, end);
 

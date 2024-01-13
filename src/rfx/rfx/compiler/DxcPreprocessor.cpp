@@ -56,7 +56,7 @@ namespace RR
             arguments.push_back(cstring);
 
             DxcBuffer dxcSource;
-            dxcSource.Ptr = source->GetContent().begin();
+            dxcSource.Ptr = source->GetContent().data();
             dxcSource.Size = source->GetContentSize();
             dxcSource.Encoding = DXC_CP_ACP; // Assume BOM says UTF8 or UTF16 or this is ANSI text.
 

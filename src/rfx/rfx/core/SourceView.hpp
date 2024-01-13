@@ -39,7 +39,7 @@ namespace RR::Rfx
         /// Get the associated 'content' (the source text)
         UnownedStringSlice GetContent() const { return content_; }
 
-        const U8Char* GetContentFrom(const SourceLocation& loc) const;
+        const UnownedStringSlice::const_iterator GetContentFrom(const SourceLocation& loc) const;
 
         size_t GetContentSize() const { return content_.length(); }
 
@@ -74,11 +74,12 @@ namespace RR::Rfx
         void advanceBom()
         {
             auto begin = content_.begin();
+            const auto end = content_.end();
 
             if (utf8::starts_with_bom(begin))
-                utf8::next(begin, content_.end());
+                utf8::next(begin, end);
 
-            content_ = UnownedStringSlice(begin, content_.end());
+            content_ = UnownedStringSlice(begin, end);
         }
 
         template <typename T>
