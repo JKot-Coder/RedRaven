@@ -18,6 +18,8 @@ namespace RR
             UnownedStringSlice(const_iterator begin, const_iterator end) : begin_(begin), end_(end) { }
             UnownedStringSlice(const_iterator begin, size_t len) : begin_(begin), end_(begin + len) { }
 
+            const_iterator data() const { return begin_; }
+
             const_iterator begin() const { return begin_; }
             const_iterator end() const { return end_; }
             const_reverse_iterator rbegin() const { return const_reverse_iterator(end_); }
@@ -37,6 +39,7 @@ namespace RR
             }
 
             bool empty() const { return length() == 0; }
+            size_t size() const { return std::distance(begin_, end_); }
             size_t length() const { return std::distance(begin_, end_); }
             U8String asString() const { return U8String(begin_, end_); }
 
