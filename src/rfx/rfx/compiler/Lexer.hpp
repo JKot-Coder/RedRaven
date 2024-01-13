@@ -90,10 +90,11 @@ namespace RR
         private:
             std::shared_ptr<SourceView> sourceView_;
             std::shared_ptr<CompileContext> context_;
+            using const_iterator = UnownedStringSlice::const_iterator;
 
-            const char* cursor_;
-            const char* begin_;
-            const char* end_;
+            const_iterator cursor_;
+            const_iterator begin_;
+            const_iterator end_;
             Counter linesCounter_ = 1;
             Counter columnCounter_ = 1;
             Token::Flags tokenflags_ = Token::Flags::AtStartOfLine;

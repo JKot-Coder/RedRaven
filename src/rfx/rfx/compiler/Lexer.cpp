@@ -52,7 +52,8 @@ namespace RR
                 } // clang-format on
             }
 
-            bool checkForEscapedNewline(const U8Char* cursor, const U8Char* end)
+            template<typename iterator>
+            bool checkForEscapedNewline(iterator cursor, iterator end)
             {
                 ASSERT(*cursor == '\\')
 
@@ -90,7 +91,7 @@ namespace RR
                 return result;
             }
 
-            char* scrubbingToken(UnownedStringSlice source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
+            U8Char* scrubbingToken(UnownedStringSlice source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
             {
                 auto srcEnd = source.end();
                 auto cursor = source.begin();
@@ -284,7 +285,7 @@ namespace RR
 
             if (isReachEOF())
             {
-                const auto tokenSlice = UnownedStringSlice(nullptr, nullptr);
+                const auto tokenSlice = UnownedStringSlice {};
                 return Token(Token::Type::EndOfFile, tokenSlice, sourceLocation);
             }
 
