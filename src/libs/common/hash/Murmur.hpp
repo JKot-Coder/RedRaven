@@ -55,7 +55,7 @@ namespace RR::Common::Hash
             // handle aligned reads, do the conversion here
 
             template <uint8_t HashBits>
-            constexpr inline FORCE_INLINE HashType<HashBits> getblock(const HashType<HashBits>* p, int i)
+            constexpr inline FORCE_INLINE HashType<HashBits> getblock(const HashType<HashBits>* p, ptrdiff_t i)
             {
 #if true
                 // TODO. We cant read block like this while compile time, replace it
@@ -89,8 +89,10 @@ namespace RR::Common::Hash
         template <>
         constexpr HashType<32> Hash<32>(const char* const key, size_t len, uint32_t seed)
         {
+            using namespace details;
+
             const uint8_t* data = (const uint8_t*)key;
-            const int nblocks = len / 4;
+            const size_t nblocks = len / 4;
 
             uint32_t h1 = seed;
 
@@ -102,7 +104,7 @@ namespace RR::Common::Hash
 
             const uint32_t* blocks = (const uint32_t*)(data + nblocks * 4);
 
-            for (int i = -nblocks; i; i++)
+            for (ptrdiff_t i = -ptrdiff_t(nblocks); i; i++)
             {
                 uint32_t k1 = getblock<32>(blocks, i);
 
