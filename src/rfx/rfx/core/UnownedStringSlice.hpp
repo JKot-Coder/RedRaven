@@ -13,6 +13,7 @@ namespace RR
             typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
             UnownedStringSlice() = default;
+            UnownedStringSlice(const U8Char* string) : begin_(string), end_(string + strlen(string)) { }
             UnownedStringSlice(const U8String& string) : begin_(string.c_str()), end_(string.c_str() + string.length()) { }
             UnownedStringSlice(const_iterator begin, const_iterator end) : begin_(begin), end_(end) { }
             UnownedStringSlice(const_iterator begin, size_t len) : begin_(begin), end_(begin + len) { }
