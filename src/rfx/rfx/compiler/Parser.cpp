@@ -575,7 +575,9 @@ namespace RR::Rfx
 
     RSONValue ParserImpl::parseArray()
     {
-        ASSERT(advance().type == Token::Type::LBracket);
+        ASSERT(peekType() == Token::Type::LBracket);
+        advance();
+
         RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});
 
         uint32_t index = 0;
@@ -618,7 +620,7 @@ namespace RR::Rfx
 
     RSONValue ParserImpl::parseObject()
     {
-        ASSERT(RR_SUCCEEDED(expect(Token::Type::LBrace)));
+        RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::LBrace), RSONValue {});
         RR_RETURN_VALUE_ON_FAIL(builder_.StartObject(), RSONValue {});
         RR_RETURN_VALUE_ON_FAIL(parseObjectBody(), RSONValue {});
         RR_RETURN_VALUE_ON_FAIL(expect(Token::Type::RBrace), RSONValue {});

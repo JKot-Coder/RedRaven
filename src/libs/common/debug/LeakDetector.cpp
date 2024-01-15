@@ -59,7 +59,7 @@ namespace RR
                 ASSERT(oldSnapshot->inited_);
                 ASSERT(newSnapshot->inited_);
 
-#if RELEASE
+#if !DEBUG
                 std::ignore = oldSnapshot;
                 std::ignore = newSnapshot;
 #endif
@@ -83,7 +83,7 @@ namespace RR
                 ASSERT(snapshot);
                 ASSERT(snapshot->inited_);
 
-#if RELEASE
+#if !DEBUG
                 std::ignore = snapshot;
 #endif
 
