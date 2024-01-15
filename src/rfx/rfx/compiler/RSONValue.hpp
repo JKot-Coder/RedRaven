@@ -246,6 +246,13 @@ namespace RR::Rfx
         }
         U8String getString(U8String default) const { return (type == Type::String) ? stringValue.asString() : default; }
 
+        template <typename EnumType>
+        EnumType getEnum(EnumType defaultValue)
+        {
+            static_assert(std::is_enum_v<EnumType>, "Epected enum type");
+            return static_cast<EnumType>(getInteger(static_cast<int64_t>(defaultValue)));
+        }
+
     public:
         template <typename T, U8Char Delimiter>
         const RSONValue& find(const StringSplit<T, Delimiter>& stringSplit) const
