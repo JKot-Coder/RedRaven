@@ -208,6 +208,12 @@ DIAGNOSTIC(20017, Error, invalidParentType, "The parent '{0}' is of type '{1}', 
 DIAGNOSTIC(20018, Error, undeclaredIdentifier, "Undeclared indetifier: '{0}'")
 DIAGNOSTIC(20019, Error, invalidTernaryOperatorCondition, "The condition in the ternary operator must be of type 'bool', but the actual type is '{0}'.")
 
+//
+// 3xxxx - Compiling
+//
+DIAGNOSTIC(30003, Error, unknownKeyValue, "Unknown key:{0}, value:{1}")
+DIAGNOSTIC(30003, Error, unknownKey, "Unknown key:{0}")
+
 // 99999 - Internal compiler errors, and not-yet-classified diagnostics.
 DIAGNOSTIC(20020, Error, divideByZero, "division by zero")
 DIAGNOSTIC(20021, Error, inflixOnlyValidForType, "inflix operator {0} can only be applied to {1}")

@@ -575,7 +575,7 @@ namespace RR::Rfx
 
     RSONValue ParserImpl::parseArray()
     {
-        ASSERT(peekType() == Token::Type::LBracket);
+        ASSERT(peekTokenType() == Token::Type::LBracket);
         advance();
 
         RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});

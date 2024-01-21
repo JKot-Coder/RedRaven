@@ -80,7 +80,7 @@ namespace RR
             template <typename... Args>
             inline void Diagnose(DiagnosticInfo const& info, Args const&... args)
             {
-                ASSERT(info.severity == Severity::Note || info.id == 12345) // Ignore cutom error.
+                ASSERT(info.severity == Severity::Note || info.id == 12345 || info.id > 30000) // Ignore cutom error & compile errors
 
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;

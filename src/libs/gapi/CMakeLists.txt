@@ -3,7 +3,6 @@ project (gapi)
 set(SRC
     Buffer.cpp
     Buffer.hpp
-    Framebuffer.hpp
     CommandList.cpp
     CommandList.hpp
     CommandList.inl
@@ -13,12 +12,14 @@ set(SRC
     FencedPool.hpp
     ForwardDeclarations.hpp
     Frame.hpp
+    Framebuffer.hpp
     GpuResource.cpp
     GpuResource.hpp
     GpuResourceViews.cpp
     GpuResourceViews.hpp
     Limits.hpp
     Object.hpp
+    PipelineState.hpp
     Resource.hpp
     SwapChain.cpp
     SwapChain.hpp

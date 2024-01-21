@@ -103,6 +103,7 @@ namespace RR::Rfx
         bool isObjectLike() const { return type == Type::Object || type == Type::Array; }
         bool isObject() const { return type == Type::Object; }
         bool isArray() const { return type == Type::Array; }
+        bool isReference() const { return type == Type::Reference; }
 
         static RSONValue MakeBool(bool inValue)
         {
@@ -245,6 +246,13 @@ namespace RR::Rfx
             return stringValue.asString();
         }
         U8String getString(U8String default) const { return (type == Type::String) ? stringValue.asString() : default; }
+        const RSONValue& getReferenced() const
+        {
+            if (type != Type::Reference || !referenceValue.reference)
+                return nullValue();
+
+            return *referenceValue.reference;
+        }
 
         template <typename EnumType>
         EnumType getEnum(EnumType defaultValue)

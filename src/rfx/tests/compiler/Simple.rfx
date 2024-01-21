@@ -5,9 +5,6 @@ RS_Z_TEST_NO_WRITE: {
 	Cu
 }
 
-#define RED (1 << 0)
-#define GREEN (1 << 1)
-#define BLUE (1 << 2)
 
 
 CullMode = RED == 1 ? "QE" : "QE";
@@ -29,14 +26,19 @@ technique: {
 
 effect */
 
+
+#define RED (1 << 0)
+#define GREEN (1 << 1)
+#define BLUE (1 << 2)
+
 global: {
-	th_z_press:{
-		passes: [
+	th_z_press: {
+		Passes: [
 			{
 				RenderState: {
-					<< Z_TEST_NO_WRITE,
-					CullMode = "none",
-					ColorWriteMask0 = RED | GREEN | BLUE
+					//<< Z_TEST_NO_WRITE,
+					CullMode: "None",
+					BlendStates: [ {WriteMask: RED | GREEN | BLUE } ]
 				}
 			},
 		]
@@ -44,13 +46,13 @@ global: {
 },
 
 simple: {
-	color_tehnique:{
-		passes: [
+	color_tehnique: {
+		Passes: [
 			{
 				RenderState: {
-					<< Z_TEST_NO_WRITE,
-					CullMode = "none",
-					ColorWriteMask0 = RED | GREEN | BLUE
+				//	<< Z_TEST_NO_WRITE,
+					CullMode: "None",
+					BlendStates: [ {WriteMask: RED | GREEN | BLUE } ]
 				}
 			},
 		]
@@ -59,8 +61,8 @@ simple: {
 
 Effect: {
 	Tehniques: {
-		ZPass: global.color_tehnique,
-		Color: simple.th_z,
-		Default: []
+		ZPass: global.th_z_press,
+		Color: simple.color_tehnique,
+		Default: simple.color_tehnique,
 	}
 }

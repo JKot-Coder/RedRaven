@@ -68,7 +68,7 @@ set(RFX_SRC
 add_subdirectory(dxc)
 
 set(RFX_LINK_LIBRARIES
-    common dxclib yaml-cpp)
+    common dxclib yaml-cpp gapi)
 
 option(BUILD_RFX_SHARED "Build rfx as a shared library" ON)
 
