@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <fmt/core.h>
+#include <fmt/printf.h>
 
 //using namespace RR::Common;
 using namespace RR::Common::Debug;

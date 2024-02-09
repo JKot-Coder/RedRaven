@@ -1,12 +1,5 @@
 #pragma once
 
-#pragma warning(push)
-#pragma warning(disable : 26451)
-#pragma warning(disable : 26812)
-#include "dependencies/fmt/include/fmt/format.h"
-#include "dependencies/fmt/include/fmt/printf.h"
-#pragma warning(pop)
-
 #include "dependencies/utfcpp/source/utf8.h"
 #include <string>
 

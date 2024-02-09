@@ -92,7 +92,6 @@ include_directories(src)
 
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
-add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/backward-cpp)
 add_subdirectory(src/dependencies/imgui)
@@ -237,6 +236,15 @@ FetchContent_Declare(
   GIT_SUBMODULES ""
 )
 FetchContent_MakeAvailable(EABase)
+
+#=================================== Fmt =====================================#
+FetchContent_Declare(
+  FMT
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  GIT_TAG        10.2.1
+  GIT_SUBMODULES ""
+)
+FetchContent_MakeAvailable(FMT)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
