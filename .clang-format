@@ -9,5 +9,6 @@ NamespaceIndentation: All
 IndentCaseLabels: true
 AllowShortCaseLabelsOnASingleLine: true
 BreakAfterAttributes: Leave
-
+ColumnLimit: 135
+SortIncludes: true
 ...
