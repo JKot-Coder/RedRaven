@@ -246,6 +246,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(FMT)
 
+#================================== Flecs ====================================#
+FetchContent_Declare(
+  flecs
+  GIT_REPOSITORY https://github.com/SanderMertens/flecs
+  GIT_TAG        v3.2.11
+  GIT_SUBMODULES ""
+)
+FetchContent_MakeAvailable(flecs)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
@@ -260,5 +269,6 @@ set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
 set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
+set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)
