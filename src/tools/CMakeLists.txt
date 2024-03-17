@@ -1,2 +1,3 @@
 add_subdirectory(editor)
 add_subdirectory(asset_importer)
+add_subdirectory(asset_server)
