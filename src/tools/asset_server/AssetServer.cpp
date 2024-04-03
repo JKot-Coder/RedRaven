@@ -1,70 +1,54 @@
-#include "AssetImporter.hpp"
+#include "AssetServer.hpp"
+#include "efsw\efsw.hpp"
 
-#include "Processor.hpp"
-
-#include "common/Result.hpp"
-
-namespace RR::AssetImporter
+namespace RR
 {
-    void AssetImporter::Register(Processor& processor)
+    class AssetServerImpl final : public efsw::FileWatchListener
     {
-        for (const auto& extension : processor.GetListOfExtensions())
-        {
-            if (processors_.find(extension) != processors_.end())
-                LOG_FATAL("Extension already registered");
+    public:
 
-            processors_.emplace(extension, &processor);
+        AssetServerImpl() { fileWatcher = std::make_unique<efsw::FileWatcher>();
+        }
+
+        void Run()
+        {
+            Log::Format::Info("Start asset server...\n");
+
+            fileWatcher->addWatch(".", this, false);
+
+            fileWatcher->watch();
+        }
+
+        void AssetServerImpl::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename,
+                                               efsw::Action action, std::string oldFilename) override;
+
+    private:
+        std::unique_ptr<efsw::FileWatcher> fileWatcher;
+    };
+
+    void AssetServerImpl::handleFileAction(efsw::WatchID, const std::string& dir, const std::string& filename,
+                                           efsw::Action action, std::string oldFilename)
+    {
+        std::string qwe = u8"Новый текстовый документ.txt";
+
+        switch (action)
+        {
+            case efsw::Actions::Add: Log::Format::Info("DIR (\"{}\") FILE (\"{}\") has event Added \n", dir, filename); break;
+            case efsw::Actions::Delete: Log::Format::Info("DIR (\"{}\") FILE (\"{}\") has event Delete \n", dir, filename); break;
+            case efsw::Actions::Modified: Log::Format::Info("DIR (\"{}\") FILE (\"{}\")has event Modified  \n", dir, filename); break;
+            case efsw::Actions::Moved:
+                Log::Format::Info("DIR (\"{}\") FILE (\"{}\") has event Moved from ({}) \n", dir, filename, oldFilename);
+                break;
+            default: ASSERT(false);
         }
     }
 
-    void AssetImporter::importAsset(const std::filesystem::path& path)
+    AssetServer::AssetServer() { impl = std::make_unique<AssetServerImpl>(); }
+    AssetServer::~AssetServer() { }
+
+    void AssetServer::Run()
     {
-        auto metaPath = path;
-        metaPath.append(".meta");
-
-        if (!std::filesystem::exists(metaPath))
-        {
-        }
+        ASSERT(impl);
+        impl->Run();
     }
-
-    void AssetImporter::BuildBundle(const std::filesystem::path& path)
-    {
-        std::ignore = path;
-        const auto bundleProcessor = processors_["bundle"];
-
-        Asset asset { path };
-
-        ProcessorContext context {};
-        std::vector<ProcessorOutput> outputs;
-
-        std::ignore = bundleProcessor->Process(asset, context, outputs);
-    }
-
-    Common::RResult AssetImporter::ProcessAsset(const std::filesystem::path& path)
-    {
-        const auto extension = path.extension().u8string();
-        const auto processorIt = processors_.find(extension);
-
-        if (processorIt == processors_.end())
-        {
-            LOG_WARNING("No processor found for file extension \"{0}\"", extension);
-            return Common::RResult::NotImplemented;
-        }
-
-        ASSERT(processorIt->second);
-        const auto& processor = *(processorIt->second);
-
-        Asset asset { path };
-        ProcessorContext context {};
-        std::vector<ProcessorOutput> outputs;
-
-        auto result = processor.Process(asset, context, outputs);
-        if (RR_FAILED(result))
-        {
-            LOG_WARNING("Processing asset at path \"{0}\" failed with error: \"{1}\"", path.generic_u8string(), Common::GetErrorMessage(result));
-        }
-
-        return Common::RResult::Ok;
-    }
-
 }

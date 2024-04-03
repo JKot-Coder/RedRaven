@@ -1,30 +1,17 @@
-#pragma once 
+#pragma once
 
-#include "common/Singleton.hpp"
-#include <unordered_map>
-#include <filesystem>
-
-namespace RR::Common
+namespace RR
 {
-    enum class RResult : int32_t;
-}
+    class AssetServerImpl;
 
-namespace RR::AssetImporter
-{
-    class Processor;
-    
-    class AssetImporter : public Common::Singleton<AssetImporter>
+    class AssetServer final
     {
-        public:
-            void Register(Processor& Processorimporter);
-            void BuildBundle(const std::filesystem::path& path);
-            
-            Common::RResult ProcessAsset(const std::filesystem::path& path);
+    public:
+        AssetServer();
+        ~AssetServer();
+        void Run();
 
-        private:
-            void importAsset(const std::filesystem::path& path);
-
-        private:
-            std::unordered_map<U8String, Processor*> processors_;
+    private:
+        std::unique_ptr<AssetServerImpl> impl;
     };
 }

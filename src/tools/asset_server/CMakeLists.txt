@@ -1,38 +1,27 @@
 project(asset_server)
 
 set(SRC
-    "main.cpp"
-    "Meta.hpp"
-    "Meta.cpp"
-    "Processor.hpp"
     "AssetServer.hpp"
-    "AssetServer.cpp")
+    "AssetServer.cpp"
+    "main.cpp")
 source_group("" FILES ${SRC})
 
 
-set(SRC_PROCESSORS
-    "processors/Effect.hpp"
-    "processors/Effect.cpp"
-    "processors/Bundle.hpp"
-    "processors/Bundle.cpp")
-source_group("Processors" FILES ${SRC_PROCESSORS})
-
 set(SRC
-    ${SRC}
-    ${SRC_PROCESSORS})
+    ${SRC})
 
 set(LIBRARIES
     common
     cxxopts
     yaml-cpp
     stduuid
-    rfx)
+    efsw)
 
 #=============================== Target ===============================#
 
-add_executable(${PROJECT_NAME} WIN32 ${SRC})
+add_library(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/..")
 
 if(MSVC)
 	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
@@ -40,3 +29,5 @@ if(MSVC)
 else(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
 endif(MSVC)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")
