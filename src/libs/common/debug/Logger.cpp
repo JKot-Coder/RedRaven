@@ -12,6 +12,11 @@
 
 namespace RR
 {
+    struct InitConsole
+    {
+        InitConsole() { std::setlocale(LC_ALL, ""); }
+    } initConsole;
+
     namespace Common
     {
         namespace Debug
