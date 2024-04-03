@@ -237,23 +237,31 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(EABase)
 
-#=================================== Fmt =====================================#
+#==================================== Fmt ====================================#
 FetchContent_Declare(
   FMT
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   GIT_TAG        10.2.1
-  GIT_SUBMODULES ""
 )
 FetchContent_MakeAvailable(FMT)
 
-#================================== Flecs ====================================#
+#=================================== Flecs ===================================#
 FetchContent_Declare(
   flecs
   GIT_REPOSITORY https://github.com/SanderMertens/flecs
   GIT_TAG        v3.2.11
-  GIT_SUBMODULES ""
 )
 FetchContent_MakeAvailable(flecs)
+
+#==================================== efsw ===================================#
+FetchContent_Declare(
+  efsw
+  GIT_REPOSITORY https://github.com/SpartanJ/efsw
+  GIT_TAG        1.3.1
+)
+FetchContent_MakeAvailable(efsw)
+set(BuildTests OFF CACHE BOOL "" FORCE)
+
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
@@ -270,5 +278,6 @@ set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
 set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
 set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
+set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)
