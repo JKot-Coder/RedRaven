@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dependencies/utfcpp/source/utf8.h"
+#include "utf8.h"
 #include <string>
 
 namespace RR

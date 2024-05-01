@@ -5,7 +5,7 @@
 #include "common/Config.hpp"
 
 #ifdef __cplusplus
-#include "common/Debug/Logger.hpp"
+#include "common/debug/Logger.hpp"
 #include "common/NonCopyableMovable.hpp"
 #include "common/String.hpp"
 #include <array>
