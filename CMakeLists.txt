@@ -78,9 +78,11 @@ endif ()
 
 add_definitions(${PLATFORM_DEFINITIONS})
 
-set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+  set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>" -static-libsan)
+  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>" -static-libsan)
+else()
+  set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
 endif()
 
 add_compile_options(${COMPILE_SANITIZE_FLAGS})
@@ -243,6 +245,7 @@ FetchContent_Declare(
   GIT_TAG        10.2.1
 )
 FetchContent_MakeAvailable(FMT)
+target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 
 #=================================== Flecs ===================================#
 FetchContent_Declare(

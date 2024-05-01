@@ -19,7 +19,7 @@ namespace RR
             fileWatcher->watch();
         }
 
-        void AssetServerImpl::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename,
+        void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename,
                                                efsw::Action action, std::string oldFilename) override;
 
     private:
@@ -29,7 +29,6 @@ namespace RR
     void AssetServerImpl::handleFileAction(efsw::WatchID, const std::string& dir, const std::string& filename,
                                            efsw::Action action, std::string oldFilename)
     {
-        std::string qwe = u8"Новый текстовый документ.txt";
 
         switch (action)
         {
