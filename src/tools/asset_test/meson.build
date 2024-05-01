@@ -1,0 +1,1 @@
+executable('asset_test', 'main.cpp', install : true)
