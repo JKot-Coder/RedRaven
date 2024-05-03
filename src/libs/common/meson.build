@@ -48,19 +48,17 @@ common_deps = [
     fmt_dep,
 ]
 
-common_inc = include_directories('..')
-
 common_lib = static_library(
     'common',
     common_src,
     install: true,
-    include_directories: common_inc,
+    include_directories: include_directories('..'),
     dependencies: common_deps,
     cpp_pch: ['pch\pch.hpp', 'pch\pch.cpp'],
 )
 
 common_dep = declare_dependency(
-    include_directories: common_inc,
+    include_directories: include_directories('..'),
     dependencies: common_deps,
     link_with: common_lib,
 )
