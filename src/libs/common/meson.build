@@ -1,4 +1,4 @@
-src = files(
+common_src = files(
     'Check.cpp',
     'ComPtr.hpp',
     'Config.hpp',
@@ -29,7 +29,7 @@ src = files(
     'VecMath.h',
 )
 
-src += files(
+common_src += files(
     'debug/Debug.cpp',
     'debug/Debug.hpp',
     'debug/DebugStream.cpp',
@@ -52,9 +52,15 @@ common_inc = include_directories('..')
 
 common_lib = static_library(
     'common',
-    src,
+    common_src,
     install: true,
     include_directories: common_inc,
     dependencies: common_deps,
     cpp_pch: ['pch\pch.hpp', 'pch\pch.cpp'],
+)
+
+common_dep = declare_dependency(
+    include_directories: common_inc,
+    dependencies: common_deps,
+    link_with: common_lib,
 )

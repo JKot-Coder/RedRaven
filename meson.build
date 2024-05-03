@@ -4,8 +4,16 @@ if get_option('buildtype').startswith('debug')
   add_project_arguments('-DDEBUG', language : 'cpp')
 endif
 
+if not meson.get_compiler('cpp').get_id().startswith('msvc')
+  add_project_arguments('-fms-extensions', language: 'cpp')
+  add_project_arguments('-fms-compatibility', language: 'cpp')
+  add_project_arguments('-Wno-language-extension-token', language: 'cpp')
+  add_project_arguments('-Wno-nested-anon-types', language: 'cpp')  
+endif
+
 if target_machine.system().startswith('windows')
   add_project_arguments('-DOS_WINDOWS', language : 'cpp')
+  add_project_arguments('-DNOMINMAX', language : 'cpp')
 endif
 
 if get_option('b_sanitize').startswith('address') and meson.get_compiler('cpp').get_id().startswith('clang')
