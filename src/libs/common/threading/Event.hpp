@@ -14,7 +14,7 @@ namespace RR
             class Event final : private NonCopyable, NonMovable
             {
             public:
-                Event(bool manualReset = true, bool initialState = false) : manualReset_(manualReset), state_(initialState) { }
+                Event(bool manualReset = true, bool initialState = false) : state_(initialState), manualReset_(manualReset) { }
                 ~Event() = default;
 
                 inline void Reset()

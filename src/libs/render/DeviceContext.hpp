@@ -56,7 +56,6 @@ namespace RR
             static constexpr int GpuFramesBuffered = 3;
 
             bool inited_ = false;
-            uint32_t frameIndex_ = 0;
 
             std::shared_ptr<GAPI::Fence> fence_;
             std::unique_ptr<Submission> submission_;

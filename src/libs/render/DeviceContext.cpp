@@ -43,7 +43,7 @@ namespace RR
             submission_->Start(device);
 
             // Init Device
-            submission_->ExecuteAwait([&description](GAPI::Device& device)
+            submission_->ExecuteAwait([](GAPI::Device& device)
                                       {
                                           if (!GAPI::DX12::InitDevice(device))
                                               LOG_FATAL("Can't init device");
@@ -84,7 +84,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([commandQueue](GAPI::Device& device)
+            submission_->ExecuteAwait([commandQueue](GAPI::Device&)
                                       { commandQueue->WaitForGpu(); });
         }
 
@@ -137,7 +137,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([&swapchain, &description](GAPI::Device& device)
+            submission_->ExecuteAwait([&swapchain, &description](GAPI::Device&)
                                       { swapchain->Reset(description); });
         }
 

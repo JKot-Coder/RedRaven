@@ -121,6 +121,7 @@ namespace RR
         template <>
         inline void Submission::doTask(const Task::Terminate& task)
         {
+            std::ignore = task;
             device_.reset();
             Log::Print::Info("Device terminated.\n");
         }
@@ -169,7 +170,7 @@ namespace RR
             //  Task::Callback task;
             // task.function = function;
 
-            putTask(std::move(Task::Callback { function }));
+            putTask(Task::Callback { function });
         }
 
         void Submission::ExecuteAwait(const CallbackFunction&& function)

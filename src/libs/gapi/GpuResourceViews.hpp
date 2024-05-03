@@ -97,8 +97,8 @@ namespace RR
             GpuResourceView(ViewType viewType, const std::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& description)
                 : Resource<IGpuResourceView, false>(Object::Type::GpuResourceView),
                   viewType_(viewType),
-                  gpuResource_(gpuResource),
-                  description_(description)
+                  description_(description),
+                  gpuResource_(gpuResource)
             {
                 ASSERT(!gpuResource_.expired())
             }

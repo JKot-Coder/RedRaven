@@ -45,6 +45,8 @@ namespace RR::GAPI
 
     ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
+        std::ignore = mipCount; // TODO Why?
+
         const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (srvs_.find(viewDesc) == srvs_.end())
