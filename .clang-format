@@ -5,10 +5,10 @@ AlignOperands: 'true'
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakConstructorInitializers: BeforeColon
+AlwaysBreakTemplateDeclarations: No 
 NamespaceIndentation: All
 IndentCaseLabels: true
 AllowShortCaseLabelsOnASingleLine: true
 BreakAfterAttributes: Leave
-ColumnLimit: 135
 SortIncludes: true
 ...
