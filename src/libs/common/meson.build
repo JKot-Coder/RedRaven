@@ -40,6 +40,16 @@ common_src += files(
     'debug/Logger.hpp',
 )
 
+common_src += files(
+	'threading/AccessGuard.hpp',
+	'threading/BufferedChannel.hpp',
+    'threading/Thread.hpp',
+    'threading/Event.hpp',
+    'threading/Mutex.hpp',
+    'threading/ConditionVariable.hpp',
+    'threading/SpinLock.hpp',
+)
+
 utfcpp_dep = dependency('utfcpp', fallback: ['utfcpp', 'utfcpp_dep'])
 fmt_dep = dependency('fmt', fallback: ['fmt', 'fmt_dep'])
 

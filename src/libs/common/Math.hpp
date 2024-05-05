@@ -876,7 +876,7 @@ namespace RR
 
             FloatFormat Length() const { return sqrtf(LengthSqr()); }
 
-            template <typename = std::enable_if_t<std::is_floating_point<T>::value>>
+            template <bool isFloatPoint = std::is_floating_point<T>::value, typename = std::enable_if_t<isFloatPoint>>
             Vector<SIZE, T> Normal() const
             {
                 FloatFormat s = Length();
