@@ -18,13 +18,13 @@ namespace RR
         class FenceImpl;
         class ResourceImpl;
 
-        class InitialDataUploder final : public Singleton<InitialDataUploder>
+        class InitialDataUploder final : public Common::Singleton<InitialDataUploder>
         {
         public:
             InitialDataUploder();
             void Init();
             void Terminate();
-            void DefferedUpload(const ResourceImpl& resource, const std::shared_ptr<IDataBuffer>& initialData);
+            void DefferedUpload(const ResourceImpl& resource, const std::shared_ptr<Common::IDataBuffer>& initialData);
             void FlushAndWaitFor(CommandQueueImpl& commandQueue);
 
         private:
@@ -41,7 +41,7 @@ namespace RR
             std::unique_ptr<CommandListImpl> commandList_;
             size_t pendingDefferedUploads;
 
-            Threading::SpinLock spinlock_;
+            Common::Threading::SpinLock spinlock_;
         };
     }
 }

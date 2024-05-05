@@ -1,7 +1,7 @@
 #pragma once
 
 // Force common pch first.
-#include "common/pch.hpp"
+#include "common/pch/pch.hpp"
 
 #include "gapi_dx12/Config.hpp"
 

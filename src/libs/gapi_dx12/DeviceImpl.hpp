@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gapi/Device.hpp"
+#include <thread>
 
 namespace RR
 {

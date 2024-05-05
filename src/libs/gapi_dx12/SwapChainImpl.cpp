@@ -54,7 +54,7 @@ namespace RR
                     nullptr,
                     swapChain1.put()));
 
-                if (!swapChain1.try_as(D3DSwapChain_))
+                if (FAILED(swapChain1.template try_as(D3DSwapChain_)))
                     LOG_FATAL("Failed to cast swapchain");
                 // TODO DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
                 D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);
@@ -94,6 +94,8 @@ namespace RR
                     targetSwapChainDesc.Height,
                     targetSwapChainDesc.Format,
                     targetSwapChainDesc.Flags);
+
+                ASSERT(SUCCEEDED(hr)); // TODO
 
                 // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
                 //   if (voidU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))

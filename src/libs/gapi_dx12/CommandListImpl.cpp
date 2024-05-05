@@ -336,19 +336,19 @@ namespace RR::GAPI::DX12
     {
         ASSERT(resource);
         ASSERT(resourceData);
-        const bool readback = false;
+        // const bool readback = false;
         // Todo add copy checks and move up to rendercontext;
 
-        const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
-        ASSERT(resourceImpl);
+        // const auto resourceImpl = resource->GetPrivateImpl<ResourceImpl>();
+        // ASSERT(resourceImpl);
 
-        const auto d3dResource = resourceImpl->GetD3DObject();
-        ASSERT(d3dResource);
+        // const auto d3dResource = resourceImpl->GetD3DObject();
+        // ASSERT(d3dResource);
 
-        const auto isTextureResource = resource->GetDescription().IsTexture();
+        // const auto isTextureResource = resource->GetDescription().IsTexture();
 
-        const auto& device = DeviceContext::GetDevice();
-        auto desc = d3dResource->GetDesc();
+        //const auto& device = DeviceContext::GetDevice();
+        //auto desc = d3dResource->GetDesc();
 
         //  static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
         /* ASSERT(

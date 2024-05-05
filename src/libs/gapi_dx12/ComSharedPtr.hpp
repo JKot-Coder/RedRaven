@@ -1,9 +1,9 @@
 #pragma once
 
-#include <winrt/base.h>
+#include "common\ComPtr.hpp"
 
 namespace RR
 {
     template <typename T>
-    using ComSharedPtr = winrt::com_ptr<T>;
+    using ComSharedPtr = Common::ComPtr<T>;
 }

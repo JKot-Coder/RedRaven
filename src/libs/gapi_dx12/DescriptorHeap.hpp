@@ -87,7 +87,7 @@ namespace RR
 
                     bool operator!=(const Descriptor& desc) const { return !(*this == desc); }
 
-                    Descriptor& Descriptor::operator=(Descriptor&& other) noexcept
+                    Descriptor& operator=(Descriptor&& other) noexcept
                     {
                         release();
                         swap(other);
@@ -119,7 +119,7 @@ namespace RR
                         ASSERT(heap_)
                     }
 
-                    void Descriptor::swap(Descriptor& other) noexcept
+                    void swap(Descriptor& other) noexcept
                     {
                         static_assert(sizeof(Descriptor) == 48);
 
@@ -156,7 +156,7 @@ namespace RR
 
                     Chunk(uint32_t offset) : Offset(offset)
                     {
-                        for (int i = 0; i < SIZE; i++)
+                        for (uint32_t i = 0; i < SIZE; i++)
                             indices_[i] = i;
                     }
 

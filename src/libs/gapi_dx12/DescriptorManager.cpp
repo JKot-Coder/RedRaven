@@ -27,6 +27,7 @@ namespace RR
                         case GpuResourceDimension::Texture3D: ASSERT(isTextureArray == false); return D3D12_RTV_DIMENSION_TEXTURE3D;
                         case GpuResourceDimension::Texture2DMS: return (isTextureArray) ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DMS;
                         case GpuResourceDimension::TextureCube: return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+                        default: break;
                     }
 
                     ASSERT_MSG(false, "Wrong resource dimension");
@@ -42,6 +43,7 @@ namespace RR
                         case GpuResourceDimension::Texture2D: return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DARRAY : D3D12_DSV_DIMENSION_TEXTURE2D;
                         case GpuResourceDimension::Texture2DMS: return (isTextureArray) ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DMS;
                         case GpuResourceDimension::TextureCube: return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+                        default: break;
                     }
 
                     ASSERT_MSG(false, "Wrong resource dimension");
@@ -57,6 +59,7 @@ namespace RR
                         case GpuResourceDimension::Texture1D: return (isTextureArray) ? D3D12_UAV_DIMENSION_TEXTURE1DARRAY : D3D12_UAV_DIMENSION_TEXTURE1D;
                         case GpuResourceDimension::Texture2D: return (isTextureArray) ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D;
                         case GpuResourceDimension::TextureCube: return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+                        default: break;
                     }
 
                     ASSERT_MSG(false, "Wrong resource dimension");
@@ -69,12 +72,14 @@ namespace RR
                 template <>
                 void initDsvRtvUavBufferDesc(D3D12_DEPTH_STENCIL_VIEW_DESC& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
                 {
+                    UNUSED(description, gpuResDesc, viewDesc);
                     LOG_FATAL("Unsupported resource view type");
                 }
 
                 template <>
                 void initDsvRtvUavBufferDesc(D3D12_RENDER_TARGET_VIEW_DESC& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
                 {
+                    UNUSED(description, gpuResDesc, viewDesc);
                     LOG_FATAL("Unsupported resource view type");
                 }
 

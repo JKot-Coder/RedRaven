@@ -149,38 +149,38 @@ namespace RR
 
         namespace
         {
-            D3D12_BLEND getD3D12BlendFunc(BlendDesc::BlendFunc func)
+            D3D12_BLEND getD3D12BlendFunc(BlendFunc func)
             {
                 switch (func)
                 {
-                    case BlendDesc::BlendFunc::Zero: return D3D12_BLEND_ZERO;
-                    case BlendDesc::BlendFunc::One: return D3D12_BLEND_ONE;
-                    case BlendDesc::BlendFunc::SrcColor: return D3D12_BLEND_SRC_COLOR;
-                    case BlendDesc::BlendFunc::OneMinusSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
-                    case BlendDesc::BlendFunc::DstColor: return D3D12_BLEND_DEST_COLOR;
-                    case BlendDesc::BlendFunc::OneMinusDstColor: return D3D12_BLEND_INV_DEST_COLOR;
-                    case BlendDesc::BlendFunc::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
-                    case BlendDesc::BlendFunc::OneMinusSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
-                    case BlendDesc::BlendFunc::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
-                    case BlendDesc::BlendFunc::OneMinusDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
-                    case BlendDesc::BlendFunc::SrcAlphaSaturate: return D3D12_BLEND_SRC_ALPHA_SAT;
-                    case BlendDesc::BlendFunc::Src1Color: return D3D12_BLEND_INV_SRC1_COLOR;
-                    case BlendDesc::BlendFunc::OneMinusSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
-                    case BlendDesc::BlendFunc::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
-                    case BlendDesc::BlendFunc::OneMinusSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
+                    case BlendFunc::Zero: return D3D12_BLEND_ZERO;
+                    case BlendFunc::One: return D3D12_BLEND_ONE;
+                    case BlendFunc::SrcColor: return D3D12_BLEND_SRC_COLOR;
+                    case BlendFunc::OneMinusSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
+                    case BlendFunc::DstColor: return D3D12_BLEND_DEST_COLOR;
+                    case BlendFunc::OneMinusDstColor: return D3D12_BLEND_INV_DEST_COLOR;
+                    case BlendFunc::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
+                    case BlendFunc::OneMinusSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
+                    case BlendFunc::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
+                    case BlendFunc::OneMinusDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
+                    case BlendFunc::SrcAlphaSaturate: return D3D12_BLEND_SRC_ALPHA_SAT;
+                    case BlendFunc::Src1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+                    case BlendFunc::OneMinusSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+                    case BlendFunc::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
+                    case BlendFunc::OneMinusSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
                     default: ASSERT_MSG(false, "Unknown blend func"); return (D3D12_BLEND)0;
                 }
             }
 
-            D3D12_BLEND_OP getD3D12BlendOp(BlendDesc::BlendOp blendOp)
+            D3D12_BLEND_OP getD3D12BlendOp(BlendOp blendOp)
             {
                 switch (blendOp)
                 {
-                    case BlendDesc::BlendOp::Add: return D3D12_BLEND_OP_ADD;
-                    case BlendDesc::BlendOp::Subtract: return D3D12_BLEND_OP_SUBTRACT;
-                    case BlendDesc::BlendOp::ReverseSubtract: return D3D12_BLEND_OP_REV_SUBTRACT;
-                    case BlendDesc::BlendOp::Min: return D3D12_BLEND_OP_MIN;
-                    case BlendDesc::BlendOp::Max: return D3D12_BLEND_OP_MAX;
+                    case BlendOp::Add: return D3D12_BLEND_OP_ADD;
+                    case BlendOp::Subtract: return D3D12_BLEND_OP_SUBTRACT;
+                    case BlendOp::ReverseSubtract: return D3D12_BLEND_OP_REV_SUBTRACT;
+                    case BlendOp::Min: return D3D12_BLEND_OP_MIN;
+                    case BlendOp::Max: return D3D12_BLEND_OP_MAX;
                     default: ASSERT_MSG(false, "Unknown blend op"); return (D3D12_BLEND_OP)0;
                 }
             }
@@ -346,10 +346,10 @@ namespace RR
                     d3dRtDesc.SrcBlendAlpha = getD3D12BlendFunc(rtDesc.srcAlphaFunc);
                     d3dRtDesc.DestBlendAlpha = getD3D12BlendFunc(rtDesc.dstAlphaFunc);
 
-                    d3dRtDesc.RenderTargetWriteMask = rtDesc.writeMask.writeRed ? D3D12_COLOR_WRITE_ENABLE_RED : 0;
-                    d3dRtDesc.RenderTargetWriteMask |= rtDesc.writeMask.writeGreen ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0;
-                    d3dRtDesc.RenderTargetWriteMask |= rtDesc.writeMask.writeBlue ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0;
-                    d3dRtDesc.RenderTargetWriteMask |= rtDesc.writeMask.writeAlpha ? D3D12_COLOR_WRITE_ENABLE_ALPHA : 0;
+                    d3dRtDesc.RenderTargetWriteMask = IsSet(rtDesc.writeMask, WriteMask::Red) ? D3D12_COLOR_WRITE_ENABLE_RED : 0;
+                    d3dRtDesc.RenderTargetWriteMask |= IsSet(rtDesc.writeMask, WriteMask::Green) ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0;
+                    d3dRtDesc.RenderTargetWriteMask |= IsSet(rtDesc.writeMask, WriteMask::Blue) ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0;
+                    d3dRtDesc.RenderTargetWriteMask |= IsSet(rtDesc.writeMask, WriteMask::Alpha) ? D3D12_COLOR_WRITE_ENABLE_ALPHA : 0;
                 }
             }
 
@@ -381,8 +381,6 @@ namespace RR
                                      std::vector<D3D12_INPUT_ELEMENT_DESC>& d3dElementDescs,
                                      std::vector<U8String>& semanticNames)
             {
-                uint32_t elements = 0;
-
                 for (uint32_t streamIndex = 0; inputLayout.inputStreams.size(); ++streamIndex)
                 {
                     const auto& streamLayout = inputLayout.inputStreams[streamIndex];
@@ -458,9 +456,6 @@ namespace RR
             d3d12psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 
             /*
-
-            /*
-
             D3D12_GRAPHICS_PIPELINE_STATE_DESC
             D3DCall(DeviceContext::GetDevice()->CreateGraphicsPipelineState(
                 getHeapProperties(resourceDesc.usage),

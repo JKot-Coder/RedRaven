@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gapi/Limits.hpp"
 #include "common/EnumClassOperators.hpp"
 
 namespace RR::GAPI
@@ -69,9 +70,6 @@ namespace RR::GAPI
         WriteMask writeMask : 4;
     }; // 4 bytes
 
-    // TODO
-    constexpr int MAX_RENDER_TARGETS_COUNT = 8;
-
     struct RasterizerDesc
     {
         FillMode fillMode : 1;
@@ -81,12 +79,15 @@ namespace RR::GAPI
         bool multisampleEnabled : 1;
         bool linesAAEnabled : 1;
         bool conservativeRasterEnabled : 1;
-        bool independentBlendEnabled : 1;
-        bool alphaToCoverageEnabled : 1;
         float slopeScaledDepthBias;
         float depthBias;
         uint32_t forcedSampleCount;
+    };
+    
+    struct BlendDesc
+    {
+        bool independentBlendEnabled : 1;
+        bool alphaToCoverageEnabled : 1;
         std::array<RTBlendStateDesc, MAX_RENDER_TARGETS_COUNT> rtBlend;
     };
-
 }
