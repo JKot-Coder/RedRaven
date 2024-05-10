@@ -45,10 +45,15 @@ if dx11_dep.found()
   dependencies += dx11_dep
 endif
 dx12_dep = cpp.find_library('d3d12', required: get_option('dx12'))
-# MinGW does not work. See https://github.com/ocornut/imgui/pull/4604
-if dx12_dep.found() and cpp.get_argument_syntax() == 'msvc'
+if dx12_dep.found()
   sources += 'backends/imgui_impl_dx12.cpp'
   dependencies += dx12_dep
+endif
+if dx12_dep.found()
+  dxgi_dep = cpp.find_library('dxgi', required: get_option('dx12'))
+  if dxgi_dep.found()
+    dependencies += dxgi_dep
+  endif
 endif
 metal_dep = dependency('appleframeworks', modules: ['Foundation', 'AppKit', 'GameController', 'Metal'], required: get_option('metal'))
 if metal_dep.found()
