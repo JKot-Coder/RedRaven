@@ -1,3 +1,4 @@
+subdir('third_party/d3d12_memory_allocator')
 
 gapi_dx12_src = files(
     'ComSharedPtr.hpp',
@@ -56,18 +57,23 @@ gapi_dx12_src += files(
     'D3DUtils/DXGIFormatsUtils.hpp',
 )
 
+cpp = meson.get_compiler('cpp')
+d3d12_dep = cpp.find_library('d3d12', required: true)
+dxgi_dep = cpp.find_library('dxgi', required: true)
+dxguid_dep = cpp.find_library('dxguid', required: true)
+
 gapi_dx12_lib = static_library(
     'gapi_dx12',
     gapi_dx12_src,
     install: true,
     include_directories: include_directories('..'),
-    dependencies: [common_dep, gapi_dep],
+    dependencies: [common_dep, gapi_dep, d3d12_dep, d3d12_memory_allocator_dep, dxgi_dep, dxguid_dep],
     cpp_pch: ['pch\pch.hpp', 'pch\pch.cpp'],
 )
 
 gapi_dx12_dep = declare_dependency(
     include_directories: include_directories('..'),
-    dependencies: [common_dep, gapi_dep],
+    dependencies: [common_dep, gapi_dep, d3d12_dep, d3d12_memory_allocator_dep, dxgi_dep, dxguid_dep],
     link_with: gapi_dx12_lib,
 )
 
