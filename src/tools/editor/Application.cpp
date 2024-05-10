@@ -145,7 +145,6 @@ namespace RR
             for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
                 if (g_mainRenderTargetResource[i])
                 {
-                    g_mainRenderTargetResource[i]->Release();
                     g_mainRenderTargetResource[i] = nullptr;
                     g_frameBuffers[i] = nullptr;
                 }

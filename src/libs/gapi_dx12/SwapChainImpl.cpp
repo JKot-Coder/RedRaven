@@ -75,14 +75,13 @@ namespace RR
                     LOG_FATAL("SwapChains incompatible");
 
                 DeviceContext().GetGraphicsCommandQueue()->WaitForGpu();
-
-                // Clear api references
                 for (const auto& backBuffer : backBuffers)
                 {
                     if (!backBuffer)
                         continue;
 
-                    backBuffer->SetPrivateImpl(nullptr);
+                    // Need to release d3d resource immediatly before ResizeBufferCall
+                    backBuffer->GetPrivateImpl()->DestroyImmediatly();
                 }
 
                 Log::Print::Info("W:%d,H:%d\n", targetSwapChainDesc.Width,
@@ -94,6 +93,11 @@ namespace RR
                     targetSwapChainDesc.Height,
                     targetSwapChainDesc.Format,
                     targetSwapChainDesc.Flags);
+
+                if(FAILED(hr))
+                {
+                    LOG_FATAL("Can't resize swapchain buffers. Error: {}", D3DUtils::HResultToString(hr));
+                }
 
                 ASSERT(SUCCEEDED(hr)); // TODO
 

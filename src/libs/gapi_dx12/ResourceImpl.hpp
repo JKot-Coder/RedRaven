@@ -17,6 +17,7 @@ namespace RR
             ResourceImpl() = default;
             ~ResourceImpl();
 
+            void DestroyImmediatly() override;
             void Init(const std::shared_ptr<GpuResource>& resource);
             void Init(const GpuResourceDescription& resourceDesc, const U8String& name);
             void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name);

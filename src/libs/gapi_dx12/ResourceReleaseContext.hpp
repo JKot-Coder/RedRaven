@@ -43,6 +43,9 @@ namespace RR
                 template <class T>
                 void static DeferredD3DResourceRelease(ComSharedPtr<T>& resource, D3D12MA::Allocation* allocation = nullptr)
                 {
+                    if (!resource && !allocation)
+                        return;
+
                     auto& instance = Instance();
                     if (!instance.IsInited())
                     {
