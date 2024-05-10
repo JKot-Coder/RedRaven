@@ -3,10 +3,10 @@
 //#include <Windows.h>
 
 #include "imgui_impl/ImguiPlatformImpl.hpp"
-#include "imgui_impl/ImguiRenderImpl.hpp"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <imgui.h>
+#include <imgui_impl_dx12.h>
 #include <tchar.h>
 
 #include "gapi/CommandList.hpp"
@@ -60,7 +60,7 @@ namespace RR
 
         // Data
         static int const NUM_FRAMES_IN_FLIGHT = 3;
-        static UINT g_frameIndex = 0;
+        //static UINT g_frameIndex = 0;
         static bool g_done = false;
         static uint32_t swindex = 0;
         static int const NUM_BACK_BUFFERS = 3;
@@ -133,7 +133,7 @@ namespace RR
                 pBackBuffer = std::any_cast<ID3D12Resource*>(g_pSwapChain->GetBackBufferTexture(i)->GetRawHandle());
                 g_mainRenderTargetResource[i] = pBackBuffer;
 
-                GAPI::FramebufferDescription desc = GAPI::FramebufferDescription::Make().BindColorTarget(0, g_pSwapChain->GetBackBufferTexture(i)->GetRTV());
+                GAPI::FramebufferDesc desc = GAPI::FramebufferDesc::Make().BindColorTarget(0, g_pSwapChain->GetBackBufferTexture(i)->GetRTV());
                 g_frameBuffers[i] = deviceContext.CreateFramebuffer(desc);
             }
         }
@@ -237,7 +237,11 @@ namespace RR
         imguiPlatformInput.Init(window, true);
 
         auto& deviceContext = Render::DeviceContext::Instance();
-        ImGui_ImplDX12_Init(deviceContext, NUM_FRAMES_IN_FLIGHT,
+        ID3D12Device* rawDevice;
+        deviceContext.ExecuteAwait([&rawDevice](RR::GAPI::Device& device)
+                                   { rawDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
+
+        ImGui_ImplDX12_Init(rawDevice, NUM_FRAMES_IN_FLIGHT,
                             DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
                             g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
                             g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
@@ -343,7 +347,8 @@ namespace RR
                     g_CommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
                     g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
 
-                    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_CommandList);
+                    auto ctx = std::any_cast<ID3D12GraphicsCommandList4*>(g_CommandList->GetNativeHandle());
+                    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), ctx);
 
                     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
                     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -366,7 +371,7 @@ namespace RR
             deviceContext.Present(g_pSwapChain);
 
             deviceContext.MoveToNextFrame(g_CommandQueue);
-            //   deviceContext.WaitForGpu(g_CommandQueue);
+            deviceContext.WaitForGpu(g_CommandQueue);
 
             float current_time = (float)toolkit.GetTime();
             dt = (current_time - last_time);
