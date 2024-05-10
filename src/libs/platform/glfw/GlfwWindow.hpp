@@ -33,7 +33,7 @@ namespace RR
             void SetWindowAttribute(Window::Attribute attribute, int32_t value) override;
 
             void SetClipboardText(const U8String& text) const override;
-            U8String GetClipboardText() const override;
+            const char* GetClipboardText() const override;
 
             void ShowCursor(bool value) override;
             void SetCursor(const std::shared_ptr<Cursor>& cursor) const override;

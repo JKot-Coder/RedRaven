@@ -483,7 +483,7 @@ namespace RR
         std::ignore = user_data;
 
         const auto& bd = GetBackendData();
-        return bd.MainWindow->GetClipboardText().c_str();
+        return bd.MainWindow->GetClipboardText();
     }
 
     void Platform_SetClipboardText(void* user_data, const char* text)
