@@ -17,11 +17,15 @@ if target_machine.system().startswith('windows')
   add_project_arguments('-DNOMINMAX', language : 'cpp')
   add_project_arguments('-DUNICODE', language : 'cpp')
 endif
+#get_option('b_sanitize').startswith('address') and meson.get_compiler('cpp').get_id().startswith('clang')
 
-if get_option('b_sanitize').startswith('address') and meson.get_compiler('cpp').get_id().startswith('clang')
-  #fix meson
-  add_global_link_arguments(['-fsanitize=address'], language: 'cpp')
-  add_global_link_arguments(['-fsanitize=address'], language: 'c')
+if get_option('buildtype').startswith('debug') 
+  add_project_arguments(['-fsanitize=address'], language: 'cpp')
+  add_project_arguments(['-fsanitize=address'], language: 'c')
+  add_project_link_arguments(['-fsanitize=address'], language: 'cpp')
+  add_project_link_arguments(['-fsanitize=address'], language: 'c')
+  add_project_arguments(['-fno-omit-frame-pointer'], language: 'cpp')
+  add_project_arguments(['-fno-omit-frame-pointer'], language: 'c')
 endif
 
 subdir('src')
