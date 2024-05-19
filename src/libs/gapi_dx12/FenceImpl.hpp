@@ -19,8 +19,7 @@ namespace RR
             void Signal(const std::shared_ptr<CommandQueue>& queue) override;
             void Signal(CommandQueueImpl& queue);
 
-            // TODO infinity
-            void SyncCPU(std::optional<uint64_t> value, uint32_t timeout = 0xFFFFFF) const override;
+            void SyncCPU(std::optional<uint64_t> value, uint32_t timeout = INFINITY_WAIT) const override;
             void SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;
 
             uint64_t GetGpuValue() const override
