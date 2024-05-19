@@ -205,7 +205,7 @@ namespace RR
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
             }
-            /* 
+            /*
             void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
             {
                 ASSERT_IS_CREATION_THREAD;
@@ -223,7 +223,7 @@ namespace RR
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
                 commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
-                
+
             }*/
 
             void DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
