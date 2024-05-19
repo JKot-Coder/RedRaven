@@ -14,8 +14,6 @@
 
 #include "render/Submission.hpp"
 
-#include "common/threading/Event.hpp"
-
 namespace RR
 {
     namespace Render
