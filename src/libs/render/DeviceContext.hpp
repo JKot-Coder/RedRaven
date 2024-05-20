@@ -2,10 +2,12 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/GpuResource.hpp"
+#include "gapi/Limits.hpp"
 
-// TODO remove
-#include "common/Singleton.hpp"
 #include "render/Submission.hpp"
+
+#include "common/Singleton.hpp"
+#include "common/threading/Event.hpp"
 
 namespace RR
 {
@@ -17,7 +19,7 @@ namespace RR
         class DeviceContext final : public Singleton<DeviceContext>
         {
         public:
-            DeviceContext();
+            DeviceContext(int gpuFramesBuffered, int submitFramesBuffered);
             ~DeviceContext();
 
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
@@ -45,18 +47,22 @@ namespace RR
             std::shared_ptr<GAPI::Framebuffer> CreateFramebuffer(const GAPI::FramebufferDesc& desc) const;
             std::shared_ptr<GAPI::GraphicsCommandList> CreateGraphicsCommandList(const U8String& name) const;
             std::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const std::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
-            std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
+            std::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const std::shared_ptr<GAPI::GpuResource>& resource,
+                                                                               const GAPI::GpuResourceViewDescription& desc) const;
             std::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name = "") const;
-            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const U8String& name = "") const;
+            std::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const std::shared_ptr<GAPI::SwapChain>& swapchain,
+                                                                     uint32_t backBufferIndex,
+                                                                     const GAPI::GpuResourceDescription& desc,
+                                                                     const U8String& name = "") const;
             std::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, IDataBuffer::SharedPtr initialData = nullptr, const U8String& name = "") const;
             std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
 
         private:
-            // TODO sync with GPU_MAX
-            static constexpr int GpuFramesBuffered = 3;
-
+            int gpuFramesBuffered_ = 1;
+            int submitFramesBuffered_ = 1;
             bool inited_ = false;
 
+            std::array<Common::Threading::Event, GAPI::MAX_GPU_FRAMES_BUFFERED> moveToNextFrameEvents_{{{false, true}, {false, true}, {false, true}}};
             std::shared_ptr<GAPI::Fence> fence_;
             std::unique_ptr<Submission> submission_;
         };

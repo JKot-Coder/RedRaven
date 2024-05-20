@@ -12,13 +12,18 @@
 
 #include "gapi_dx12/Device.hpp"
 
+#include "common/Math.hpp"
 #include "render/Submission.hpp"
 
-        DeviceContext::DeviceContext()
 namespace RR {
     namespace Render {
+        DeviceContext::DeviceContext(int gpuFramesBuffered, int submitFramesBuffered)
             : submission_(new Submission())
         {
+            ASSERT(gpuFramesBuffered >= 1 && gpuFramesBuffered <= GAPI::MAX_GPU_FRAMES_BUFFERED);
+            ASSERT(submitFramesBuffered >= 1 && submitFramesBuffered <= GAPI::MAX_GPU_FRAMES_BUFFERED);
+            gpuFramesBuffered_ = Clamp(gpuFramesBuffered, 1, GAPI::MAX_GPU_FRAMES_BUFFERED);
+            submitFramesBuffered_ = Clamp(submitFramesBuffered, 1, GAPI::MAX_GPU_FRAMES_BUFFERED);
         }
 
         DeviceContext::~DeviceContext() { }
@@ -33,7 +38,7 @@ namespace RR {
             debugMode = GAPI::Device::DebugMode::Debug;
 #endif
 
-            GAPI::Device::Description description(GpuFramesBuffered, debugMode);
+            GAPI::Device::Description description(debugMode);
 
             const auto& device = GAPI::Device::Create(description, "Primary");
             submission_->Start(device);
@@ -53,7 +58,7 @@ namespace RR {
         {
             ASSERT(inited_);
 
-            //Release resources before termination;
+            // Release resources before termination;
             fence_.reset();
 
             submission_->Terminate();
@@ -85,31 +90,38 @@ namespace RR {
         {
             ASSERT(inited_);
 
+            static uint32_t frameComletedIndex = 0;
             static uint32_t submissionFrame = 0;
+            // Wait main thread for submission thread.
+            moveToNextFrameEvents_[frameComletedIndex].Wait();
 
-            // TODO this is not valid. We should sync all command list with primary command list.
-            submission_->ExecuteAsync([fence = fence_, commandQueue](GAPI::Device& device)
-                                      {
-                                          submissionFrame++;
+            submissionFrame++;
 
-                                          // Schedule a Signal command in the queue.
-                                          fence->Signal(commandQueue);
+            frameComletedIndex = (++frameComletedIndex % (submitFramesBuffered_ + 1));
+            auto& moveToNextFrameEvent = moveToNextFrameEvents_[frameComletedIndex];
 
-                                          if (fence->GetCpuValue() >= GpuFramesBuffered)
-                                          {
-                                              uint64_t syncFenceValue = fence->GetCpuValue() - GpuFramesBuffered;
+            // TODO this is not valid. We should sync all command queue with graphics command queue.
+            submission_->ExecuteAsync([fence = fence_,
+                                       gpuFramesBuffered = gpuFramesBuffered_,
+                                       commandQueue,
+                                       &moveToNextFrameEvent,
+                                       submissionFrame = submissionFrame](GAPI::Device& device) {
+                // Schedule a Signal command in the queue.
+                fence->Signal(commandQueue);
+                if (fence->GetCpuValue() >= gpuFramesBuffered) {
+                    uint64_t syncFenceValue = fence->GetCpuValue() - gpuFramesBuffered;
 
-                                              // We shoud had at least one completed frame in ringbuffer.
-                                              syncFenceValue++;
+                    // We shoud had at least one completed frame in ringbuffer.
+                    syncFenceValue++;
 
-                                              // Throttle cpu if gpu behind
-                                              fence->SyncCPU(syncFenceValue, GAPI::INFINITY_WAIT);
-                                          }
+                    // Wait GPU util frames on fly would be less then GpuFramesBuffered
+                    fence->SyncCPU(syncFenceValue);
+                }
 
-                                          device.MoveToNextFrame(submissionFrame);
-                                      });
-
-            // Todo throttle main thread?
+                device.MoveToNextFrame(submissionFrame);
+                // Notify main thread about next frame
+                moveToNextFrameEvent.Notify();
+            });
         }
 
         void DeviceContext::ExecuteAsync(const Submission::CallbackFunction&& function)
