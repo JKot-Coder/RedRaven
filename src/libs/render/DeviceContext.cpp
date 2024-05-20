@@ -17,20 +17,17 @@
 
 namespace RR {
     namespace Render {
-        DeviceContext::DeviceContext(int gpuFramesBuffered, int submitFramesBuffered)
-            : submission_(new Submission())
-        {
-            ASSERT(gpuFramesBuffered >= 1 && gpuFramesBuffered <= GAPI::MAX_GPU_FRAMES_BUFFERED);
-            ASSERT(submitFramesBuffered >= 1 && submitFramesBuffered <= GAPI::MAX_GPU_FRAMES_BUFFERED);
-            gpuFramesBuffered_ = Clamp(gpuFramesBuffered, 1, GAPI::MAX_GPU_FRAMES_BUFFERED);
-            submitFramesBuffered_ = Clamp(submitFramesBuffered, 1, GAPI::MAX_GPU_FRAMES_BUFFERED);
-        }
-
+        DeviceContext::DeviceContext() : submission_(new Submission()) { }
         DeviceContext::~DeviceContext() { }
 
-        void DeviceContext::Init()
+        void DeviceContext::Init(uint32_t gpuFramesBuffered, uint32_t submitFramesBuffered)
         {
             ASSERT(!inited_);
+
+            ASSERT(gpuFramesBuffered >= 1 && gpuFramesBuffered <= GAPI::MAX_GPU_FRAMES_BUFFERED);
+            ASSERT(submitFramesBuffered >= 1 && submitFramesBuffered <= GAPI::MAX_GPU_FRAMES_BUFFERED);
+            gpuFramesBuffered_ = Clamp(gpuFramesBuffered, (uint32_t)1, GAPI::MAX_GPU_FRAMES_BUFFERED);
+            submitFramesBuffered_ = Clamp(submitFramesBuffered, (uint32_t)1, GAPI::MAX_GPU_FRAMES_BUFFERED);
 
             auto debugMode = GAPI::Device::DebugMode::Retail;
 #ifdef DEBUG

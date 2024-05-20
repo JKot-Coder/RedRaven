@@ -77,7 +77,7 @@ namespace RR
         bool CreateDeviceD3D(const Platform::Window::SharedPtr& window)
         {
             auto& deviceContext = Render::DeviceContext::Instance();
-            deviceContext.Init();
+            deviceContext.Init(1, 1);
             deviceContext.ExecuteAwait([](GAPI::Device& device)
                                        { g_pd3dDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
 

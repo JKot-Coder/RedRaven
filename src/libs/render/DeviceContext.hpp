@@ -19,12 +19,12 @@ namespace RR
         class DeviceContext final : public Singleton<DeviceContext>
         {
         public:
-            DeviceContext(int gpuFramesBuffered, int submitFramesBuffered);
+            DeviceContext();
             ~DeviceContext();
 
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            void Init();
+            void Init(uint32_t gpuFramesBuffered, uint32_t submitFramesBuffered);
             void Terminate();
 
             void Submit(const std::shared_ptr<GAPI::CommandQueue>& commandQueue, const std::shared_ptr<GAPI::CommandList>& CommandList);
@@ -58,8 +58,8 @@ namespace RR
             std::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const std::shared_ptr<GAPI::GpuResource>& resource, const GAPI::GpuResourceViewDescription& desc) const;
 
         private:
-            int gpuFramesBuffered_ = 1;
-            int submitFramesBuffered_ = 1;
+            uint32_t gpuFramesBuffered_ = 1;
+            uint32_t submitFramesBuffered_ = 1;
             bool inited_ = false;
 
             std::array<Common::Threading::Event, GAPI::MAX_GPU_FRAMES_BUFFERED> moveToNextFrameEvents_{{{false, true}, {false, true}, {false, true}}};
