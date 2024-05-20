@@ -3,9 +3,8 @@ BasedOnStyle: WebKit
 AlignAfterOpenBracket: Align
 AlignOperands: 'true'
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Allman
 BreakConstructorInitializers: BeforeColon
-AlwaysBreakTemplateDeclarations: No 
+AlwaysBreakTemplateDeclarations: No
 NamespaceIndentation: All
 IndentCaseLabels: true
 AllowShortCaseLabelsOnASingleLine: true
