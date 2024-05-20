@@ -12,7 +12,7 @@
 
 #include "gapi_dx12/Device.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 #include "render/Submission.hpp"
 
 namespace RR

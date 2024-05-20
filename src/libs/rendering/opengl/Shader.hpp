@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "rendering/Shader.hpp"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/GpuResource.hpp"

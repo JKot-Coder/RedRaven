@@ -3,7 +3,7 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/Texture.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 namespace RR
 {

@@ -1,5 +1,5 @@
 #ifdef ENABLE_ASSERTS
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 #include "gapi/Texture.hpp"
 #endif
 

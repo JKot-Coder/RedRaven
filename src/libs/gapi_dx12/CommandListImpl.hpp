@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "gapi/CommandList.hpp"
 
@@ -42,7 +42,7 @@ namespace RR
                                         const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) override;
             void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) override;
-            void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<IDataBuffer>& resourceData);
+            void UpdateGpuResource(const std::shared_ptr<GpuResource>& resource, const std::shared_ptr<Common::IDataBuffer>& resourceData);
 
             // ---------------------------------------------------------------------------------------------
             // Compute command list

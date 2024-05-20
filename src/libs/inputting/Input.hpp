@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "windowing/InputtingWindow.hpp"
 

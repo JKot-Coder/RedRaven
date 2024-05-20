@@ -2,7 +2,7 @@
 
 #include "rendering/Material.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 namespace OpenDemo
 {

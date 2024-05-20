@@ -1,6 +1,6 @@
 #include "RenderPasses.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "resource_manager/ResourceManager.hpp"
 

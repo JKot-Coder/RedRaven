@@ -14,7 +14,7 @@ namespace RR
         {
             ResourceReleaseContext::~ResourceReleaseContext()
             {
-                Threading::ReadWriteGuard lock(spinlock_);
+                Common::Threading::ReadWriteGuard lock(spinlock_);
                 ASSERT_MSG(!inited_, "Resource release context is alive, did you call Terminate()?");
                 ASSERT(queue_.size() == 0);
             }
@@ -59,13 +59,13 @@ namespace RR
                 if (!resource)
                     return;
 
-                Threading::ReadWriteGuard lock(spinlock_);
+                Common::Threading::ReadWriteGuard lock(spinlock_);
                 queue_.push({fence_->GetCpuValue(), resource, allocation});
             }
 
             void ResourceReleaseContext::executeDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)
             {
-                Threading::ReadWriteGuard lock(spinlock_);
+                Common::Threading::ReadWriteGuard lock(spinlock_);
 
                 ASSERT(inited_);
                 ASSERT(queue);

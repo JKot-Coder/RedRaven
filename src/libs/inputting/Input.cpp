@@ -1,6 +1,6 @@
 #include "Input.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "windowing/Window.hpp"
 

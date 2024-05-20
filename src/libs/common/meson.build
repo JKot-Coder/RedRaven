@@ -12,9 +12,6 @@ common_src = files(
     'Exception.hpp',
     'LinearAllocator.cpp',
     'LinearAllocator.hpp',
-    'Math.cpp',
-    'Math.hpp',
-    'Math.hpp',
     'NonCopyableMovable.hpp',
     'OnScopeExit.hpp',
     'Result.cpp',
@@ -26,7 +23,6 @@ common_src = files(
     'String.hpp',
     'Time.cpp',
     'Time.hpp',
-    'VecMath.h',
 )
 
 common_src += files(

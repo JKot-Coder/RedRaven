@@ -4,7 +4,7 @@
 
 #include "render/DeviceContext.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 #include "common/OnScopeExit.hpp"
 
 namespace RR::GAPI

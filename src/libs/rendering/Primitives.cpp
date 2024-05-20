@@ -1,6 +1,6 @@
 #include "Primitives.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "rendering/Mesh.hpp"
 #include "rendering/Render.hpp"

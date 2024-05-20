@@ -1,4 +1,4 @@
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 namespace RR
 {
@@ -79,14 +79,14 @@ namespace RR
                 totalCapasity += page->GetSize();
 
             Free();
-            addNewPage(Common::RoundUpToPowerOfTwo(totalCapasity));
+            addNewPage(RoundUpToPowerOfTwo(totalCapasity));
         }
 
         INLINE void LinearAllocator::addNewPage(size_t size)
         {
             ASSERT(size)
             ASSERT(size <= MAX_PAGE_SIZE)
-            ASSERT(Common::IsPowerOfTwo(size))
+            ASSERT(IsPowerOfTwo(size))
 
             pages_.push_back(std::make_unique<Page>(size));
         }

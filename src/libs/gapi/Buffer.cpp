@@ -4,7 +4,7 @@
 
 #include "render/DeviceContext.hpp"
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 namespace RR
 {

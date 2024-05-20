@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "common/Math.hpp"
+#include "math/Math.hpp"
 
 #include "rendering/Texture.hpp"
 
