@@ -46,7 +46,7 @@ namespace RR
 
         protected:
             template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
-            Resource(Type type, const U8String& name) : name_(name), Object(type) { }
+            Resource(Type type, const U8String& name) : Object(type), name_(name) { }
 
             template <bool isNamed = IsNamed, typename = std::enable_if_t<!isNamed>>
             Resource(Type type) : Object(type) { }

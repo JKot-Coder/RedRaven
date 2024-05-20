@@ -30,7 +30,7 @@ namespace RR
             using SharedConstPtr = std::shared_ptr<const Fence>;
 
             inline void Signal(const std::shared_ptr<CommandQueue>& queue) { return GetPrivateImpl()->Signal(queue); }
-            inline void SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const { return GetPrivateImpl()->SyncCPU(value, timeout); }
+            inline void SyncCPU(std::optional<uint64_t> value, uint32_t timeout = GAPI::INFINITY_WAIT) const { return GetPrivateImpl()->SyncCPU(value, timeout); }
             inline void SyncGPU(const std::shared_ptr<CommandQueue>& queue) const { return GetPrivateImpl()->SyncGPU(queue); }
 
             inline uint64_t GetGpuValue() const { return GetPrivateImpl()->GetGpuValue(); }

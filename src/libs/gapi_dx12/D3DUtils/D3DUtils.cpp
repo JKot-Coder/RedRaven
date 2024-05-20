@@ -27,7 +27,7 @@ namespace RR::GAPI::DX12::D3DUtils
 #ifdef UNICODE
             size_t const nLen = wcslen(pszMsg);
 #else
-            size_t const nLen = strlen(m_pszMsg);
+            size_t const nLen = strlen(pszMsg);
 #endif
             if (nLen > 1 && pszMsg[nLen - 1] == '\n')
             {

@@ -13,6 +13,7 @@ namespace RR
             template <class CharT, class TraitsT = std::char_traits<CharT>>
             class DebugStream : public std::basic_ostream<CharT, TraitsT>
             {
+                using Base = std::basic_ostream<CharT, TraitsT>;
             public:
                 DebugStream();
                 ~DebugStream();

@@ -19,13 +19,15 @@ namespace RR
             class DebugStringBuffer : public std::basic_streambuf<CharT, TraitsT>
             {
             private:
+                using Base = std::basic_streambuf<CharT, TraitsT>;
+
                 inline std::streamsize xsputn(const CharT* s, std::streamsize n) override
                 {
                     OutputDebugString(s);
                     return n;
                 }
 
-                inline int_type overflow(int_type c) override
+                inline typename Base::int_type overflow(typename Base::int_type c) override
                 {
                     if (TraitsT::eq_int_type(c, TraitsT::eof()))
                         return TraitsT::not_eof(c);
@@ -59,7 +61,7 @@ namespace RR
             template <class CharT, class TraitsT>
             DebugStream<CharT, TraitsT>::~DebugStream()
             {
-                delete rdbuf();
+                delete Base::rdbuf();
             }
         }
     }

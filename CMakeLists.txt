@@ -78,9 +78,11 @@ endif ()
 
 add_definitions(${PLATFORM_DEFINITIONS})
 
-set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+  set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>" -static-libsan)
+  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>" -static-libsan)
+else()
+  set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
 endif()
 
 add_compile_options(${COMPILE_SANITIZE_FLAGS})
@@ -92,9 +94,7 @@ include_directories(src)
 
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
-add_subdirectory(src/dependencies/fmt)
 add_subdirectory(src/dependencies/utfcpp)
-add_subdirectory(src/dependencies/backward-cpp)
 add_subdirectory(src/dependencies/imgui)
 
 #=================================== Catch2 ==================================#
@@ -238,11 +238,36 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(EABase)
 
+#==================================== Fmt ====================================#
+FetchContent_Declare(
+  FMT
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  GIT_TAG        10.2.1
+)
+FetchContent_MakeAvailable(FMT)
+target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
+
+#=================================== Flecs ===================================#
+FetchContent_Declare(
+  flecs
+  GIT_REPOSITORY https://github.com/SanderMertens/flecs
+  GIT_TAG        v3.2.11
+)
+FetchContent_MakeAvailable(flecs)
+
+#==================================== efsw ===================================#
+FetchContent_Declare(
+  efsw
+  GIT_REPOSITORY https://github.com/SpartanJ/efsw
+  GIT_TAG        1.3.1
+)
+FetchContent_MakeAvailable(efsw)
+set(BuildTests OFF CACHE BOOL "" FORCE)
+
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
-set_property(TARGET backward PROPERTY FOLDER "Dependencies")
-set_property(TARGET backward_object PROPERTY FOLDER "Dependencies")
 set_property(TARGET Catch2 PROPERTY FOLDER "Dependencies")
 set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
 set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
@@ -252,5 +277,7 @@ set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
 set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
+set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
+set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)

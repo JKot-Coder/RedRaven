@@ -54,7 +54,7 @@ namespace RR
                     nullptr,
                     swapChain1.put()));
 
-                if (!swapChain1.try_as(D3DSwapChain_))
+                if (FAILED(swapChain1.template try_as(D3DSwapChain_)))
                     LOG_FATAL("Failed to cast swapchain");
                 // TODO DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
                 D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);
@@ -75,18 +75,14 @@ namespace RR
                     LOG_FATAL("SwapChains incompatible");
 
                 DeviceContext().GetGraphicsCommandQueue()->WaitForGpu();
-
-                // Clear api references
                 for (const auto& backBuffer : backBuffers)
                 {
                     if (!backBuffer)
                         continue;
 
-                    backBuffer->SetPrivateImpl(nullptr);
+                    // Need to release d3d resource immediatly before ResizeBufferCall
+                    backBuffer->GetPrivateImpl()->DestroyImmediatly();
                 }
-
-                Log::Print::Info("W:%d,H:%d\n", targetSwapChainDesc.Width,
-                                 targetSwapChainDesc.Height);
 
                 HRESULT hr = D3DSwapChain_->ResizeBuffers(
                     targetSwapChainDesc.BufferCount,
@@ -94,6 +90,13 @@ namespace RR
                     targetSwapChainDesc.Height,
                     targetSwapChainDesc.Format,
                     targetSwapChainDesc.Flags);
+
+                if(FAILED(hr))
+                {
+                    LOG_FATAL("Can't resize swapchain buffers. Error: {}", D3DUtils::HResultToString(hr));
+                }
+
+                ASSERT(SUCCEEDED(hr)); // TODO
 
                 // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
                 //   if (voidU::Failure(dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER)))

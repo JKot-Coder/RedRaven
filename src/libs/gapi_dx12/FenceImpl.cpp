@@ -29,7 +29,7 @@ namespace RR
                 D3DCall(device->CreateFence(cpuValue_, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(D3DFence_.put())));
                 D3DUtils::SetAPIName(D3DFence_.get(), name);
 
-                event_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+                event_ = CreateEvent(nullptr, false, false, nullptr);
                 ASSERT(event_);
             }
 
@@ -64,7 +64,7 @@ namespace RR
                 if (gpuVal < syncVal)
                 {
                     D3DCall(D3DFence_->SetEventOnCompletion(syncVal, event_));
-                    D3DCall(WaitForSingleObject(event_, timeout == INFINITY_WAIT ? INFINITY : timeout));
+                    D3DCall(WaitForSingleObject(event_, timeout == INFINITY_WAIT ? INFINITE : timeout));
                 }
             }
 

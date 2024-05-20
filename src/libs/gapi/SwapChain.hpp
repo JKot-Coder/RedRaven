@@ -49,7 +49,6 @@ namespace RR
             virtual std::any GetWaitableObject() const = 0;
 
             virtual void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
-
             virtual void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 

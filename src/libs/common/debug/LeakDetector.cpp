@@ -24,6 +24,7 @@ namespace RR
                 int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
                 flag |= _CRTDBG_LEAK_CHECK_DF;
                 flag |= _CRTDBG_ALLOC_MEM_DF;
+                std::ignore = flag;
                 _CrtSetDbgFlag(flag);
                 _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
                 _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);

@@ -79,7 +79,7 @@ namespace RR::Platform
         virtual void SetWindowAttribute(Window::Attribute attribute, int32_t value) = 0;
 
         virtual void SetClipboardText(const U8String& text) const = 0;
-        virtual U8String GetClipboardText() const = 0;
+        virtual const char* GetClipboardText() const = 0;
 
         virtual void ShowCursor(bool value) = 0;
         virtual void SetCursor(const std::shared_ptr<Cursor>& cursor) const = 0;

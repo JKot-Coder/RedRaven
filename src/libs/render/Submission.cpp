@@ -19,7 +19,7 @@
 #pragma warning(disable : 4267)
 #pragma warning(disable : 4996)
 #pragma warning(disable : 26495)
-#include "dependencies/backward-cpp/backward.hpp"
+//#include "dependencies/backward-cpp/backward.hpp"
 #pragma warning(pop)
 #define NOMINMAX
 
@@ -121,6 +121,7 @@ namespace RR
         template <>
         inline void Submission::doTask(const Task::Terminate& task)
         {
+            std::ignore = task;
             device_.reset();
             Log::Print::Info("Device terminated.\n");
         }
@@ -169,7 +170,7 @@ namespace RR
             //  Task::Callback task;
             // task.function = function;
 
-            putTask(std::move(Task::Callback { function }));
+            putTask(Task::Callback { function });
         }
 
         void Submission::ExecuteAwait(const CallbackFunction&& function)

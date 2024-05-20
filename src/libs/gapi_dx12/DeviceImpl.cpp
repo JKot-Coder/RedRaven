@@ -98,7 +98,7 @@ namespace RR
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
 
-                ASSERT(description.gpuFramesBuffered <= MAX_BACK_BUFFER_COUNT);
+                ASSERT(description.gpuFramesBuffered <= MAX_GPU_FRAMES_BUFFERED);
 
                 description_ = description;
 
@@ -117,7 +117,7 @@ namespace RR
                 D3D12MA::Allocator* allocator;
                 D3D12MA::CreateAllocator(&allocatorDesc, &allocator);
 
-                auto& graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
+                auto graphicsCommandQueue = std::make_shared<CommandQueueImpl>(CommandQueueType::Graphics);
                 graphicsCommandQueue->Init("Primary");
 
                 ResourceReleaseContext::Instance().Init();
@@ -205,7 +205,7 @@ namespace RR
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
             }
-            /* 
+            /*
             void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
             {
                 ASSERT_IS_CREATION_THREAD;
@@ -223,7 +223,7 @@ namespace RR
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
                 commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
-                
+
             }*/
 
             void DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
@@ -232,8 +232,8 @@ namespace RR
                 ASSERT_IS_DEVICE_INITED;
                 ASSERT(swapChain);
 
-                HRESULT hr;
-                /*  if (m_options & c_AllowTearing)
+                /* HRESULT hr;
+                 if (m_options & c_AllowTearing)
                 {
                     // Recommended to always use tearing if supported when using a sync interval of 0.
                     // Note this will fail if in true 'fullscreen' mode.
@@ -250,7 +250,7 @@ namespace RR
                 // The first argument instructs DXGI to block until VSync, putting the application
                 // to sleep until the next VSync. This ensures we don't waste any cycles rendering
                 // frames that will never be displayed to the screen.
-                DXGI_PRESENT_PARAMETERS parameters = {};
+                // DXGI_PRESENT_PARAMETERS parameters = {};
 
                 ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
                 auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());

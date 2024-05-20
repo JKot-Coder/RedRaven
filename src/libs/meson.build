@@ -1,0 +1,5 @@
+subdir('common')
+subdir('platform')
+subdir('gapi')
+subdir('gapi_dx12')
+subdir('render')

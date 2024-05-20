@@ -14,7 +14,7 @@ namespace
 }
 
 #if defined(OS_WINDOWS) && defined(UNICODE)
-#include <WCHAR.h>
+#include <wchar.h>
 #include <Windows.h>
 #include <shellapi.h>
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow)

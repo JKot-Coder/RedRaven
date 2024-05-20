@@ -80,6 +80,8 @@ namespace RR::GAPI::DX12
             &allocation,
             IID_PPV_ARGS(d3dresource.put()));
 
+        ASSERT(SUCCEEDED(hr));
+
         ResourceImpl intermediateResource;
         intermediateResource.Init(d3dresource, allocation, "(initial data)");
 

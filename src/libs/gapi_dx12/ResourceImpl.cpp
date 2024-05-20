@@ -11,6 +11,8 @@
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
+#include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
+
 namespace RR
 {
     namespace GAPI::DX12
@@ -91,6 +93,15 @@ namespace RR
         ResourceImpl::~ResourceImpl()
         {
             ResourceReleaseContext::DeferredD3DResourceRelease(D3DResource_, allocation_);
+        }
+
+        void ResourceImpl::DestroyImmediatly()
+        {
+            D3DResource_ = nullptr;
+            if (allocation_)
+                allocation_->Release();
+
+            allocation_ = nullptr;
         }
 
         void ResourceImpl::Init(const std::shared_ptr<GpuResource>& resource)

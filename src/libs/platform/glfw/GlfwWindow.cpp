@@ -526,7 +526,7 @@ namespace RR::Platform
         }
     }
 
-    U8String GlfwWindowImpl::GetClipboardText() const
+    const char* GlfwWindowImpl::GetClipboardText() const
     {
         ASSERT(window_);
 

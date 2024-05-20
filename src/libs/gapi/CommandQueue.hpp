@@ -45,7 +45,7 @@ namespace RR
             inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
             inline void Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
 
-            inline const CommandQueueType GetCommandQueueType() const { return type_; }
+            inline CommandQueueType GetCommandQueueType() const { return type_; }
 
         private:
             static SharedPtr Create(CommandQueueType type, const U8String& name)

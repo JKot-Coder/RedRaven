@@ -21,7 +21,7 @@ namespace RR
             class FenceImpl;
             class CommandQueueImpl;
 
-            class ResourceReleaseContext final : public Singleton<ResourceReleaseContext>
+            class ResourceReleaseContext final : public Common::Singleton<ResourceReleaseContext>
             {
             public:
                 struct ResourceRelease
@@ -43,6 +43,9 @@ namespace RR
                 template <class T>
                 void static DeferredD3DResourceRelease(ComSharedPtr<T>& resource, D3D12MA::Allocation* allocation = nullptr)
                 {
+                    if (!resource && !allocation)
+                        return;
+
                     auto& instance = Instance();
                     if (!instance.IsInited())
                     {
@@ -51,7 +54,7 @@ namespace RR
                         return;
                     }
 
-                    instance.deferredD3DResourceRelease(resource.as<IUnknown>(), allocation);
+                    instance.deferredD3DResourceRelease(resource.template as<IUnknown>(), allocation);
                     resource = nullptr;
                 }
 
@@ -68,7 +71,7 @@ namespace RR
                 bool inited_ = false;
                 std::unique_ptr<FenceImpl> fence_;
                 std::queue<ResourceRelease> queue_;
-                Threading::SpinLock spinlock_;
+                Common::Threading::SpinLock spinlock_;
             };
         }
     }
