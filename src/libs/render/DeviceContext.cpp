@@ -14,11 +14,9 @@
 
 #include "render/Submission.hpp"
 
-namespace RR
-{
-    namespace Render
-    {
         DeviceContext::DeviceContext()
+namespace RR {
+    namespace Render {
             : submission_(new Submission())
         {
         }
@@ -41,11 +39,10 @@ namespace RR
             submission_->Start(device);
 
             // Init Device
-            submission_->ExecuteAwait([](GAPI::Device& device)
-                                      {
-                                          if (!GAPI::DX12::InitDevice(device))
-                                              LOG_FATAL("Can't init device");
-                                      });
+            submission_->ExecuteAwait([](GAPI::Device& device) {
+                if (!GAPI::DX12::InitDevice(device))
+                    LOG_FATAL("Can't init device");
+            });
 
             inited_ = true;
 
@@ -74,16 +71,14 @@ namespace RR
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAsync([swapChain](GAPI::Device& device)
-                                      { device.Present(swapChain); });
+            submission_->ExecuteAsync([swapChain](GAPI::Device& device) { device.Present(swapChain); });
         }
 
         void DeviceContext::WaitForGpu(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([commandQueue](GAPI::Device&)
-                                      { commandQueue->WaitForGpu(); });
+            submission_->ExecuteAwait([commandQueue](GAPI::Device&) { commandQueue->WaitForGpu(); });
         }
 
         void DeviceContext::MoveToNextFrame(const std::shared_ptr<GAPI::CommandQueue>& commandQueue)
@@ -135,8 +130,7 @@ namespace RR
         {
             ASSERT(inited_);
 
-            submission_->ExecuteAwait([&swapchain, &description](GAPI::Device&)
-                                      { swapchain->Reset(description); });
+            submission_->ExecuteAwait([&swapchain, &description](GAPI::Device&) { swapchain->Reset(description); });
         }
 
         GAPI::CopyCommandList::SharedPtr DeviceContext::CreateCopyCommandList(const U8String& name) const
