@@ -98,7 +98,7 @@ namespace RR
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
 
-                ASSERT(description.gpuFramesBuffered <= MAX_BACK_BUFFER_COUNT);
+                ASSERT(description.gpuFramesBuffered <= MAX_GPU_FRAMES_BUFFERED);
 
                 description_ = description;
 
