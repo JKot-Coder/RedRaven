@@ -47,8 +47,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCm
     const auto exitCode = runApp(argc, argv);
 
     for (int i = 0; i < argc; ++i)
-        delete[](argv[i]);
-    delete[](argv);
+        delete[] (argv[i]);
+    delete[] (argv);
 
     return exitCode;
 }

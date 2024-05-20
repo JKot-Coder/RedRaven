@@ -62,8 +62,7 @@ namespace RR::Rfx
     {
         ASSERT(currentValue().type == RSONValue::Type::Object);
 
-        const auto inherite = [this, &initiatingToken](const RSONValue& refValue)
-        {
+        const auto inherite = [this, &initiatingToken](const RSONValue& refValue) {
             ASSERT(refValue.type == RSONValue::Type::Reference);
             ASSERT(refValue.referenceValue.reference);
             const auto& parent = *refValue.referenceValue.reference;

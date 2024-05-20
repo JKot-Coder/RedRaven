@@ -21,11 +21,11 @@ set(DEMO_LINK_LIBRARIES
 if (WIN32)
     set(DEMO_LINK_LIBRARIES ${DEMO_LINK_LIBRARIES} gapi_dx12)
 endif()
-        
+
 set(DEMO_DEFINITIONS
         ${DEMO_PLATFORM_DEFINITIONS}
         ${DEMO_BUILD_DEFINITIONS})
-       
+
 set(DEMO_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/src/libs
         ${PROJECT_SOURCE_DIR}

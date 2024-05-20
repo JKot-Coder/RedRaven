@@ -94,7 +94,7 @@ namespace RR::GAPI::DX12::D3DUtils
 
             if (GpuResourceFormatInfo::IsDepth(resourceDesc.texture.format) && IsAny(resourceDesc.bindFlags, GpuResourceBindFlags::ShaderResource | GpuResourceBindFlags::UnorderedAccess))
                 format = GetDxgiTypelessFormat(resourceDesc.texture.format);
-            
+
             ASSERT(format != DXGI_FORMAT_UNKNOWN);
         }
 
@@ -147,7 +147,7 @@ namespace RR::GAPI::DX12::D3DUtils
         output.Height = description.height;
         output.Format = GetDxgiResourceFormat(description.gpuResourceFormat);
         output.Stereo = (description.isStereo) ? TRUE : FALSE;
-        output.SampleDesc = { 1, 0 };
+        output.SampleDesc = {1, 0};
         output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         output.BufferCount = description.bufferCount;
         output.Scaling = DXGI_SCALING_STRETCH;

@@ -32,7 +32,7 @@ namespace RR::AssetImporter
         std::ignore = path;
         const auto bundleProcessor = processors_["bundle"];
 
-        Asset asset { path };
+        Asset asset {path};
 
         ProcessorContext context {};
         std::vector<ProcessorOutput> outputs;
@@ -54,7 +54,7 @@ namespace RR::AssetImporter
         ASSERT(processorIt->second);
         const auto& processor = *(processorIt->second);
 
-        Asset asset { path };
+        Asset asset {path};
         ProcessorContext context {};
         std::vector<ProcessorOutput> outputs;
 

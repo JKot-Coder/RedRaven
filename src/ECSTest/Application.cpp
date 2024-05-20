@@ -34,7 +34,6 @@ namespace RR
 
         void Application::terminate()
         {
-
         }
     }
 }

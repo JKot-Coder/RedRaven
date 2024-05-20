@@ -51,7 +51,7 @@ namespace RR
 
                 for (auto it = equalRange.first; it != equalRange.second; it++)
                 {
-                    //it.second->();
+                    // it.second->();
                 }
             }
 

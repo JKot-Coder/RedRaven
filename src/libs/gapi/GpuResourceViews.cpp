@@ -39,14 +39,14 @@ namespace RR
         }
 
         GpuResourceViewDescription::GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
-            : texture({ mipLevel, mipsCount, firstArraySlice, arraySlicesCount }),
+            : texture({mipLevel, mipsCount, firstArraySlice, arraySlicesCount}),
               format(format)
         {
             ASSERT(format != GpuResourceFormat::Unknown);
         }
 
         GpuResourceViewDescription::GpuResourceViewDescription(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
-            : buffer({ firstElement, elementsCount }),
+            : buffer({firstElement, elementsCount}),
               format(format)
         {
             ASSERT(format != GpuResourceFormat::Unknown);

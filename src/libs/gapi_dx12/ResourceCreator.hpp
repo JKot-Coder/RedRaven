@@ -11,8 +11,7 @@ namespace RR
                 D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
                 D3D12_MEMORY_POOL_UNKNOWN,
                 0,
-                0
-            };
+                0};
 
             static constexpr D3D12_HEAP_PROPERTIES UploadHeapProps = {
                 D3D12_HEAP_TYPE_UPLOAD,
@@ -27,8 +26,7 @@ namespace RR
                 D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
                 D3D12_MEMORY_POOL_UNKNOWN,
                 0,
-                0
-            };
+                0};
 
             namespace ResourceCreator
             {

@@ -49,7 +49,7 @@ namespace RR::Rfx
         }
 
         std::shared_ptr<SourceView> CreateIncluded(const std::shared_ptr<SourceFile>& sourceFile,
-                                                                  const Token& initiatingToken)
+                                                   const Token& initiatingToken)
         {
             const auto sourceView = SourceView::CreateIncluded(sourceFile, initiatingToken);
             sourceViews_.push_back(sourceView);

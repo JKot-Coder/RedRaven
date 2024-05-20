@@ -4,7 +4,7 @@ namespace RR
 {
     namespace Common
     {
-        //#define CACHE_LINE_ALIGN
+        // #define CACHE_LINE_ALIGN
 
         class LinearAllocator : private NonCopyable
         {

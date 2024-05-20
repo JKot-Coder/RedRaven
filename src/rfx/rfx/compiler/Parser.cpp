@@ -227,7 +227,7 @@ namespace RR::Rfx
         }
 
         bool advanceIf(std::initializer_list<Token::Type> expected, Token& outToken);
-        bool inline advanceIf(Token::Type expected, Token& outToken) { return advanceIf({ expected }, outToken); }
+        bool inline advanceIf(Token::Type expected, Token& outToken) { return advanceIf({expected}, outToken); }
         bool inline advanceIf(Token::Type expected)
         {
             Token token;
@@ -259,7 +259,7 @@ namespace RR::Rfx
         }
 
         RResult expect(std::initializer_list<Token::Type> expected, Token& outToken);
-        RResult expect(Token::Type expected, Token& outToken) { return expect({ expected }, outToken); };
+        RResult expect(Token::Type expected, Token& outToken) { return expect({expected}, outToken); };
         RResult expect(Token::Type expected)
         {
             Token token;
@@ -644,7 +644,7 @@ namespace RR::Rfx
 
             Token keyToken;
 
-            RR_RETURN_ON_FAIL(expect({ Token::Type::Identifier, Token::Type::StringLiteral, Token::Type::OpLsh }, keyToken));
+            RR_RETURN_ON_FAIL(expect({Token::Type::Identifier, Token::Type::StringLiteral, Token::Type::OpLsh}, keyToken));
             if (keyToken.type != Token::Type::OpLsh)
                 RR_RETURN_ON_FAIL(expect(Token::Type::Colon));
 
@@ -716,8 +716,7 @@ namespace RR::Rfx
         {
             UnownedStringSlice refSlice = stringSlice;
             std::string combinedRef;
-            auto combineRef = [&combinedRef, &refSlice](const Token& token)
-            {
+            auto combineRef = [&combinedRef, &refSlice](const Token& token) {
                 // Advance stiringSlice if possible
                 if (refSlice.end() + token.stringSlice.length() == token.stringSlice.end())
                     refSlice = UnownedStringSlice(refSlice.begin(), refSlice.end() + token.stringSlice.length());

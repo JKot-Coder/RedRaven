@@ -64,8 +64,7 @@ namespace RR
                 std::array<ID3D12CommandList*, 2> commandLists;
                 size_t numCommandLists = 0;
 
-                auto pushCommandList = [&commandLists, &numCommandLists](const CommandListImpl& commandList)
-                {
+                auto pushCommandList = [&commandLists, &numCommandLists](const CommandListImpl& commandList) {
                     const auto& d3dCommandList = commandList.GetD3DObject();
                     ASSERT(d3dCommandList);
 

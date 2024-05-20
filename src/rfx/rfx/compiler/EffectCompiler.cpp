@@ -73,14 +73,12 @@ namespace RR::Rfx
         GAPI::RasterizerDesc rasterizerDesc;
         RR_RETURN_ON_FAIL(parseRenderState(renderState, rasterizerDesc));
 
-
         return RResult::Ok;
     }
 
     RResult EffectCompiler::parseRasterizerDesc(UnownedStringSlice key, RSONValue value, GAPI::RasterizerDesc& rasterizerDesk) const
     {
-        const auto getFillMode = [&rasterizerDesk, key, this](UnownedStringSlice value)
-        {
+        const auto getFillMode = [&rasterizerDesk, key, this](UnownedStringSlice value) {
             switch (Hash(value))
             {
                 case "Solid"_h: rasterizerDesk.fillMode = GAPI::FillMode::Solid; break;
@@ -90,8 +88,7 @@ namespace RR::Rfx
             return RResult::Ok;
         };
 
-        const auto getCullMode = [&rasterizerDesk, key, this](UnownedStringSlice value)
-        {
+        const auto getCullMode = [&rasterizerDesk, key, this](UnownedStringSlice value) {
             switch (Hash(value))
             {
                 case "None"_h: rasterizerDesk.cullMode = GAPI::CullMode::None; break;
@@ -123,7 +120,6 @@ namespace RR::Rfx
 
                     for (const auto& keyValue : blendState.second)
                         RR_RETURN_ON_FAIL(parseBlendStateDesc(keyValue.first, keyValue.second, blendDesk));
-
                 }
             }
             break;

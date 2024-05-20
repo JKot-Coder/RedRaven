@@ -60,7 +60,7 @@ namespace RR
                     return;
 
                 Threading::ReadWriteGuard lock(spinlock_);
-                queue_.push({ fence_->GetCpuValue(), resource, allocation });
+                queue_.push({fence_->GetCpuValue(), resource, allocation});
             }
 
             void ResourceReleaseContext::executeDeferredDeletions(const std::shared_ptr<CommandQueueImpl>& queue)

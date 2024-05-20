@@ -1,8 +1,8 @@
 #include "Application.hpp"
 
 #include "gapi/CommandQueue.hpp"
-#include "render/DeviceContext.hpp"
 #include "platform/Toolkit.hpp"
+#include "render/DeviceContext.hpp"
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
@@ -40,8 +40,8 @@ namespace RR
                     config.showDurations = Catch::ShowDurations::Always;
                     config.useColour = Catch::UseColour::No;
                     config.outputFilename = "%debug";
-             //       config.testsOrTags.push_back("[CopyCommandList]");
-               //     config.testsOrTags.push_back("[ComputeCommandList]");
+                    //       config.testsOrTags.push_back("[CopyCommandList]");
+                    //     config.testsOrTags.push_back("[ComputeCommandList]");
                     session.useConfigData(config);
                 }
 
@@ -69,8 +69,8 @@ namespace RR
             auto& deviceContext = Render::DeviceContext::Instance();
             deviceContext.Init();
             /*
-            TODO 
-            
+            TODO
+
             if (!deviceContext.Init())
             {
                 ASSERT_MSG(false, "Error initialize render context");

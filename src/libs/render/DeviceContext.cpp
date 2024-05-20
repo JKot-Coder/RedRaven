@@ -15,8 +15,10 @@
 #include "common/Math.hpp"
 #include "render/Submission.hpp"
 
-namespace RR {
-    namespace Render {
+namespace RR
+{
+    namespace Render
+    {
         DeviceContext::DeviceContext() : submission_(new Submission()) { }
         DeviceContext::~DeviceContext() { }
 
@@ -105,7 +107,8 @@ namespace RR {
                                        submissionFrame = submissionFrame](GAPI::Device& device) {
                 // Schedule a Signal command in the queue.
                 fence->Signal(commandQueue);
-                if (fence->GetCpuValue() >= gpuFramesBuffered) {
+                if (fence->GetCpuValue() >= gpuFramesBuffered)
+                {
                     uint64_t syncFenceValue = fence->GetCpuValue() - gpuFramesBuffered;
 
                     // We shoud had at least one completed frame in ringbuffer.

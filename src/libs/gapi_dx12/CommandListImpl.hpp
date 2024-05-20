@@ -85,7 +85,7 @@ namespace RR
                 D3D12_COMMAND_LIST_TYPE type_;
                 std::unique_ptr<FenceImpl> fence_;
                 std::queue<AllocatorFecnceValuePair> allocators_;
-                //uint32_t ringBufferIndex_ = 0;
+                // uint32_t ringBufferIndex_ = 0;
             };
 
         private:

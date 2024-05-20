@@ -1,8 +1,8 @@
 #include "Lexer.hpp"
 
-#include "rfx/compiler/DiagnosticCore.hpp"
-#include "compiler/CompileContext.hpp"
 #include "common/LinearAllocator.hpp"
+#include "compiler/CompileContext.hpp"
+#include "rfx/compiler/DiagnosticCore.hpp"
 
 #include <iterator>
 #include <unordered_map>
@@ -52,7 +52,7 @@ namespace RR
                 } // clang-format on
             }
 
-            template<typename iterator>
+            template <typename iterator>
             bool checkForEscapedNewline(iterator cursor, iterator end)
             {
                 ASSERT(*cursor == '\\')
@@ -128,7 +128,7 @@ namespace RR
 
                             switch (ch)
                             {
-                                // clang-format off
+                                    // clang-format off
                                 // Simple characters that just needed to be escaped
                                 case '\'': case '\"':
                                 case '\\': case '?':
@@ -164,7 +164,8 @@ namespace RR
                                     }
 
                                     // TODO: add support for appending an arbitrary code point?
-                                    *dst++ = (char)value;;
+                                    *dst++ = (char)value;
+                                    ;
                                     continue;
                                 }
 
@@ -338,7 +339,7 @@ namespace RR
                 case Token::Type::CharLiteral:
                     tokenSlice = trimQuoutes(tokenSlice, tokenType);
                     tokenflags_ = Token::Flags::None; // Same as default
-                break;
+                    break;
                 default:
                 {
                     // If we read some token other then the above cases, then we are
@@ -406,7 +407,7 @@ namespace RR
 
                     switch (peek())
                     {
-                        // clang-format off
+                            // clang-format off
                         case '0': case '1': case '2': case '3': case '4':
                         case '5': case '6': case '7': case '8': case '9': // clang-format on
                             lexNumberAfterDecimalPoint(10);
@@ -435,7 +436,7 @@ namespace RR
                     }
                 }
 
-                // clang-format off
+                    // clang-format off
                 case '1': case '2': case '3': case '4': case '5':
                 case '6': case '7': case '8': case '9': // clang-format on
                     return lexNumber(10);
@@ -467,7 +468,7 @@ namespace RR
                             advance();
                             return lexNumber(2);
 
-                        // clang-format off
+                            // clang-format off
                         case '0': case '1': case '2': case '3': case '4':
                         case '5': case '6': case '7': case '8': case '9': // clang-format on
                             diagnose(this, loc, LexerDiagnostics::octalLiteral);
@@ -475,7 +476,7 @@ namespace RR
                     }
                 }
 
-                // clang-format off
+                    // clang-format off
                 case 'a': case 'b': case 'c': case 'd': case 'e':
                 case 'f': case 'g': case 'h': case 'i': case 'j':
                 case 'k': case 'l': case 'm': case 'n': case 'o':
@@ -643,7 +644,7 @@ namespace RR
                     }
                     return Token::Type::Colon;
                 }
-                // clang-format off
+                    // clang-format off
                 case ';': advance(); return Token::Type::Semicolon;
                 case ',': advance(); return Token::Type::Comma;
 
@@ -953,14 +954,14 @@ namespace RR
                         tokenflags_ |= Token::Flags::EscapedCharacters;
                         switch (peek())
                         {
-                            // clang-format off
+                                // clang-format off
                             case '\'': case '\"': case '\\': case '?':
                             case 'a':  case 'b':  case 'f':  case 'n':
                             case 'r':  case 't':  case 'v': // clang-format on
                                 advance();
                                 break;
 
-                            // clang-format off
+                                // clang-format off
                             case '0': case '1': case '2': case '3':
                             case '4': case '5': case '6': case '7': // clang-format on
                                 // octal escape: up to 3 characters

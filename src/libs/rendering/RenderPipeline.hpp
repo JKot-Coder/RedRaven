@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "rendering/RenderPasses.hpp"
+// #include "rendering/RenderPasses.hpp"
 #include "windowing/Windowing.hpp"
 
 namespace OpenDemo

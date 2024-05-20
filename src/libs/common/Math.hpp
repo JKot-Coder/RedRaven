@@ -174,7 +174,7 @@ namespace RR
                 return *this;
             };
 
-            template <AngleUnitType T, typename =  std::enable_if_t<UT != T, void>>
+            template <AngleUnitType T, typename = std::enable_if_t<UT != T, void>>
             constexpr AngleUnit(AngleUnit<T> d) : value_(cast<T, UT>(d.Value())) { }
 
             template <AngleUnitType T, std::enable_if_t<UT != T, void>>
@@ -1030,7 +1030,7 @@ namespace RR
 
             Vector<3, FloatFormat> operator*(const Vector<3, FloatFormat>& v) const
             {
-                //return v + xyz.cross(xyz.cross(v) + v * w) * 2.0f;
+                // return v + xyz.cross(xyz.cross(v) + v * w) * 2.0f;
                 return (*this * Quaternion(v.x, v.y, v.z, 0) * Inverse()).xyz();
             }
 
@@ -1184,12 +1184,12 @@ namespace RR
                 e13 = (t + b) / (b - t);
                 switch (range)
                 {
-                case PROJ_NEG_POS:
-                    e23 = (zfar + znear) / (znear - zfar);
-                    break;
-                case PROJ_ZERO_POS:
-                    e23 = znear / (znear - zfar);
-                    break;
+                    case PROJ_NEG_POS:
+                        e23 = (zfar + znear) / (znear - zfar);
+                        break;
+                    case PROJ_ZERO_POS:
+                        e23 = znear / (znear - zfar);
+                        break;
                 }
             }
 
@@ -1211,14 +1211,14 @@ namespace RR
                 e32 = -1.0f;
                 switch (range)
                 {
-                case PROJ_NEG_POS:
-                    e22 = (znear + zfar) / (znear - zfar);
-                    e23 = 2.0f * zfar * znear / (znear - zfar);
-                    break;
-                case PROJ_ZERO_POS:
-                    e22 = zfar / (znear - zfar);
-                    e23 = znear * e22;
-                    break;
+                    case PROJ_NEG_POS:
+                        e22 = (znear + zfar) / (znear - zfar);
+                        e23 = 2.0f * zfar * znear / (znear - zfar);
+                        break;
+                    case PROJ_ZERO_POS:
+                        e22 = zfar / (znear - zfar);
+                        e23 = znear * e22;
+                        break;
                 }
             }
 

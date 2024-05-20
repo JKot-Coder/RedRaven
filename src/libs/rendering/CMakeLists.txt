@@ -87,7 +87,7 @@ set(OPEN_DEMO_SRC_MODULE_RENDER
         RenderPipeline.hpp
         BlendingDescription.hpp
         DepthDescription.hpp)
-        
+
 set(OPEN_DEMO_INCLUDE_DIRS ".." ${OPEN_DEMO_INCLUDE_DIRS_MODULE_RENDER_GAPI})
 
 set(OPEN_DEMO_SRC

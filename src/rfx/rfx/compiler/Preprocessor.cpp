@@ -88,9 +88,9 @@ namespace RR
                         case 'r': utf8::append('\r', result); continue;
                         case 't': utf8::append('\t', result); continue;
                         case 'v': utf8::append('\v', result); continue;
-                        // clang-format on
+                            // clang-format on
 
-                        // clang-format off
+                            // clang-format off
                         // Octal escape: up to 3 characterws
                         case '0': case '1': case '2': case '3': case '4':
                         case '5': case '6': case '7':
@@ -172,7 +172,7 @@ namespace RR
                         // cause us to stop parsing an expression
                         return -1;
 
-                    // clang-format off
+                        // clang-format off
                     case Token::Type::OpMul:     return 10;
                     case Token::Type::OpDiv:     return 10;
                     case Token::Type::OpMod:     return 10;
@@ -427,7 +427,7 @@ namespace RR
                 auto search = directiveMap.find(name);
 
                 if (search == directiveMap.end())
-                    return { Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective };
+                    return {Directive::Flags::None, &PreprocessorImpl::handleInvalidDirective};
 
                 return search->second;
             }
@@ -438,7 +438,7 @@ namespace RR
                 auto search = paragmaDirectiveMap.find(name);
 
                 if (search == paragmaDirectiveMap.end())
-                    return { &PreprocessorImpl::handleUnknownPragmaDirective };
+                    return {&PreprocessorImpl::handleUnknownPragmaDirective};
 
                 return search->second;
             }
@@ -1230,23 +1230,23 @@ namespace RR
         }
 
         const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
-            { "if", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective } },
-            { "ifdef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective } },
-            { "ifndef", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfndefDirective } },
-            { "else", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElseDirective } },
-            { "elif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElifDirective } },
-            { "endif", { Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleEndIfDirective } },
-            { "include", { Directive::Flags::None, &PreprocessorImpl::handleIncludeDirective } },
-            { "define", { Directive::Flags::None, &PreprocessorImpl::handleDefineDirective } },
-            { "undef", { Directive::Flags::None, &PreprocessorImpl::handleUndefDirective } },
-            { "warning", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective } },
-            { "error", { Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleErrorDirective } },
-            { "line", { Directive::Flags::None, &PreprocessorImpl::handleLineDirective } },
-            { "pragma", { Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective } },
+            {"if", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective}},
+            {"ifdef", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective}},
+            {"ifndef", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfndefDirective}},
+            {"else", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElseDirective}},
+            {"elif", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleElifDirective}},
+            {"endif", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleEndIfDirective}},
+            {"include", {Directive::Flags::None, &PreprocessorImpl::handleIncludeDirective}},
+            {"define", {Directive::Flags::None, &PreprocessorImpl::handleDefineDirective}},
+            {"undef", {Directive::Flags::None, &PreprocessorImpl::handleUndefDirective}},
+            {"warning", {Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleWarningDirective}},
+            {"error", {Directive::Flags::DontConsumeDirectiveAutomatically, &PreprocessorImpl::handleErrorDirective}},
+            {"line", {Directive::Flags::None, &PreprocessorImpl::handleLineDirective}},
+            {"pragma", {Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective}},
         };
 
         const std::unordered_map<U8String, PreprocessorImpl::PragmaDirective> PreprocessorImpl::paragmaDirectiveMap = {
-            { "once", { &PreprocessorImpl::handlePragmaOnceDirective } },
+            {"once", {&PreprocessorImpl::handlePragmaOnceDirective}},
         };
 
         PreprocessorImpl::PreprocessorImpl(const std::shared_ptr<IncludeSystem>& includeSystem,
@@ -1262,8 +1262,8 @@ namespace RR
 
             // Add builtin macros
             {
-                const char* const builtinNames[] = { "__FILE__", "__LINE__" };
-                const MacroDefinition::Opcode builtinOpcodes[] = { MacroDefinition::Opcode::BuiltinFile, MacroDefinition::Opcode::BuiltinLine };
+                const char* const builtinNames[] = {"__FILE__", "__LINE__"};
+                const MacroDefinition::Opcode builtinOpcodes[] = {MacroDefinition::Opcode::BuiltinFile, MacroDefinition::Opcode::BuiltinLine};
 
                 for (int i = 0; size_t(i) < std::size(builtinNames); i++)
                 {
@@ -1740,7 +1740,7 @@ namespace RR
                     }
                     return left % right;
                 }
-                // clang-format off
+                    // clang-format off
                 case Token::Type::OpMul:      return left *  right;
                 case Token::Type::OpAdd:      return left +  right;
                 case Token::Type::OpSub:      return left -  right;
@@ -2321,7 +2321,7 @@ namespace RR
             while (!isEndOfLine())
                 end = advanceRawToken().stringSlice.end();
 
-            return { begin, end };
+            return {begin, end};
         }
 
         // Handle a `#warning` directive
@@ -3142,8 +3142,7 @@ namespace RR
                     //
                     // The only key details here are that we specify the type of the token (`IntegerLiteral`)
                     // and its content (the value of `loc.line`).
-                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc)
-                                                  { string += std::to_string(loc.humaneSourceLoc.line); });
+                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc) { string += std::to_string(loc.humaneSourceLoc.line); });
                 }
                 break;
 
@@ -3151,8 +3150,7 @@ namespace RR
                 {
                     // The `__FILE__` case is quite similar to `__LINE__`, except for the type of token it yields,
                     // and the way it computes the desired token content.
-                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc)
-                                                  { string = loc.GetSourceView()->GetPathInfo().foundPath; });
+                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc) { string = loc.GetSourceView()->GetPathInfo().foundPath; });
                 }
                 break;
 

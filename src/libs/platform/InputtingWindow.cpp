@@ -64,12 +64,12 @@ namespace OpenDemo
             { SDL_SCANCODE_LCTRL, Inputting::ikCtrl },
             { SDL_SCANCODE_LSHIFT, Inputting::ikShift },
             { SDL_SCANCODE_LALT, Inputting::ikAlt }, /**< alt, option */
-            //            { SDL_SCANCODE_LGUI,      Inputting::ikUnknown }, /**< windows, command (apple), meta */
-            //            { SDL_SCANCODE_RCTRL,     Inputting::ikUnknown },
-            //            { SDL_SCANCODE_RSHIFT,    Inputting::ikUnknown },
-            //            { SDL_SCANCODE_RALT,      Inputting::ikUnknown }, /**< alt gr, option */
-            //            { SDL_SCANCODE_RGUI,      Inputting::ikUnknown }, /**< windows, command (apple), meta */
-      /* };*/
+        //            { SDL_SCANCODE_LGUI,      Inputting::ikUnknown }, /**< windows, command (apple), meta */
+        //            { SDL_SCANCODE_RCTRL,     Inputting::ikUnknown },
+        //            { SDL_SCANCODE_RSHIFT,    Inputting::ikUnknown },
+        //            { SDL_SCANCODE_RALT,      Inputting::ikUnknown }, /**< alt gr, option */
+        //            { SDL_SCANCODE_RGUI,      Inputting::ikUnknown }, /**< windows, command (apple), meta */
+        /* };*/
 
         InputtingWindow::InputtingWindow()
         {

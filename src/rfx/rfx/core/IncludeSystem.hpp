@@ -17,7 +17,7 @@ namespace RR
         class IRfxFileSystem;
         class SourceFile;
 
-        /* A helper class that builds basic include handling on top of searchDirectories/fileSystemExt */ //TODO
+        /* A helper class that builds basic include handling on top of searchDirectories/fileSystemExt */ // TODO
         class IncludeSystem final
         {
         public:

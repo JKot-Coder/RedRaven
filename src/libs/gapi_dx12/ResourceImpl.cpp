@@ -216,7 +216,7 @@ namespace RR
             std::vector<UINT64> rowSizeInBytesVector(numSubresources);
             device->GetCopyableFootprints(&d3d12Desc, 0, numSubresources, 0, layouts.data(), numRowsVector.data(), rowSizeInBytesVector.data(), nullptr);
 
-            GpuResourceFootprint footprint = { std::vector<GpuResourceFootprint::SubresourceFootprint>(numSubresources), intermediateSize };
+            GpuResourceFootprint footprint = {std::vector<GpuResourceFootprint::SubresourceFootprint>(numSubresources), intermediateSize};
             for (uint32_t index = 0; index < numSubresources; index++)
             {
                 const auto& layout = layouts[index];

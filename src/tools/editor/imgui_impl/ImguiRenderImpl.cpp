@@ -196,10 +196,10 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, const RR::GAP
         float T = draw_data->DisplayPos.y;
         float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
         float mvp[4][4] = {
-            { 2.0f / (R - L), 0.0f, 0.0f, 0.0f },
-            { 0.0f, 2.0f / (T - B), 0.0f, 0.0f },
-            { 0.0f, 0.0f, 0.5f, 0.0f },
-            { (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f },
+            {2.0f / (R - L), 0.0f, 0.0f, 0.0f},
+            {0.0f, 2.0f / (T - B), 0.0f, 0.0f},
+            {0.0f, 0.0f, 0.5f, 0.0f},
+            {(R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f},
         };
         memcpy(&vertex_constant_buffer.mvp, mvp, sizeof(mvp));
     }
@@ -223,8 +223,6 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, const RR::GAP
     vbv.SizeInBytes = fr->VertexBufferSize * stride;
     vbv.StrideInBytes = stride;
     ctx->IASetVertexBuffers(0, 1, &vbv);
-   
-
 
     commandListO->SetIndexBuffer(fr->IndexBufferO);
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -233,7 +231,7 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, const RR::GAP
     ctx->SetGraphicsRoot32BitConstants(0, 16, &vertex_constant_buffer, 0);
 
     // Setup blend factor
-    const float blend_factor[4] = { 0.f, 0.f, 0.f, 0.f };
+    const float blend_factor[4] = {0.f, 0.f, 0.f, 0.f};
     ctx->OMSetBlendFactor(blend_factor);
 }
 
@@ -336,7 +334,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, const RR::GAPI::Graphi
                     continue;
 
                 // Apply Scissor/clipping rectangle, Bind texture, Draw
-                const D3D12_RECT r = { (LONG)clip_min.x, (LONG)clip_min.y, (LONG)clip_max.x, (LONG)clip_max.y };
+                const D3D12_RECT r = {(LONG)clip_min.x, (LONG)clip_min.y, (LONG)clip_max.x, (LONG)clip_max.y};
                 D3D12_GPU_DESCRIPTOR_HANDLE texture_handle = {};
                 texture_handle.ptr = (UINT64)pcmd->GetTexID();
                 ctx->SetGraphicsRootDescriptorTable(1, texture_handle);
@@ -473,7 +471,7 @@ bool ImGui_ImplDX12_CreateDeviceObjects()
             // (1) the current OS is Windows 7, and
             // (2) there exists a version of d3d12.dll for Windows 7 (D3D12On7) in one of the following directories.
             // See https://github.com/ocornut/imgui/pull/3696 for details.
-            const char* localD3d12Paths[] = { ".\\d3d12.dll", ".\\d3d12on7\\d3d12.dll", ".\\12on7\\d3d12.dll" }; // A. current directory, B. used by some games, C. used in Microsoft D3D12On7 sample
+            const char* localD3d12Paths[] = {".\\d3d12.dll", ".\\d3d12on7\\d3d12.dll", ".\\12on7\\d3d12.dll"}; // A. current directory, B. used by some games, C. used in Microsoft D3D12On7 sample
             for (int i = 0; i < IM_ARRAYSIZE(localD3d12Paths); i++)
                 if ((d3d12_dll = ::LoadLibraryA(localD3d12Paths[i])) != NULL)
                     break;
@@ -550,15 +548,15 @@ bool ImGui_ImplDX12_CreateDeviceObjects()
 
         if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), NULL, NULL, NULL, "main", "vs_5_0", 0, 0, &vertexShaderBlob, NULL)))
             return false; // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        psoDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
+        psoDesc.VS = {vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize()};
 
         // Create the input layout
         static D3D12_INPUT_ELEMENT_DESC local_layout[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (UINT)IM_OFFSETOF(ImDrawVert, uv), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (UINT)IM_OFFSETOF(ImDrawVert, uv), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         };
-        psoDesc.InputLayout = { local_layout, 3 };
+        psoDesc.InputLayout = {local_layout, 3};
     }
 
     // Create the pixel shader
@@ -584,7 +582,7 @@ bool ImGui_ImplDX12_CreateDeviceObjects()
             vertexShaderBlob->Release();
             return false; // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
         }
-        psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
+        psoDesc.PS = {pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize()};
     }
 
     // Create the blending setup
@@ -675,8 +673,7 @@ bool ImGui_ImplDX12_Init(RR::Render::DeviceContext& deviceContext, int num_frame
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         ImGui_ImplDX12_InitPlatformInterface();
 
-    deviceContext.ExecuteAwait([&bd](RR::GAPI::Device& device)
-                               { bd->pd3dDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
+    deviceContext.ExecuteAwait([&bd](RR::GAPI::Device& device) { bd->pd3dDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
 
     bd->deviceContext = &deviceContext;
     bd->RTVFormat = rtv_format;

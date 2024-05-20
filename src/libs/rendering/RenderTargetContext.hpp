@@ -52,7 +52,7 @@ namespace OpenDemo
 
             virtual inline void Resize(int width_, int height_)
             {
-                //TODO asserts and checks for updated value
+                // TODO asserts and checks for updated value
                 _width = width_;
                 _height = height_;
 

@@ -60,7 +60,7 @@ namespace RR
             uint32_t submitFramesBuffered_ = 1;
             bool inited_ = false;
 
-            std::array<Common::Threading::Event, GAPI::MAX_GPU_FRAMES_BUFFERED> moveToNextFrameEvents_{{{false, true}, {false, true}, {false, true}}};
+            std::array<Common::Threading::Event, GAPI::MAX_GPU_FRAMES_BUFFERED> moveToNextFrameEvents_ {{{false, true}, {false, true}, {false, true}}};
             std::shared_ptr<GAPI::Fence> fence_;
             std::unique_ptr<Submission> submission_;
         };

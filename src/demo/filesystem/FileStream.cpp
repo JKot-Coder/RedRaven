@@ -28,24 +28,24 @@ namespace RR
 
             switch (openMode)
             {
-            case Mode::READ:
-            {
-                _fileStream.open(_fileName, std::ios::in | std::ios::binary);
-            }
-            break;
-            case Mode::WRITE:
-            {
-                _fileStream.open(_fileName, std::ios::in | std::ios::out | std::ios::binary);
-            }
-            break;
-            case Mode::APPEND:
-            {
-                _fileStream.open(_fileName, std::ios::in | std::ios::out | std::ios::binary);
-                _fileStream.seekg(0, std::ios::end);
-            }
-            break;
-            default:
-                throw Common::Exception("Wrong file mode");
+                case Mode::READ:
+                {
+                    _fileStream.open(_fileName, std::ios::in | std::ios::binary);
+                }
+                break;
+                case Mode::WRITE:
+                {
+                    _fileStream.open(_fileName, std::ios::in | std::ios::out | std::ios::binary);
+                }
+                break;
+                case Mode::APPEND:
+                {
+                    _fileStream.open(_fileName, std::ios::in | std::ios::out | std::ios::binary);
+                    _fileStream.seekg(0, std::ios::end);
+                }
+                break;
+                default:
+                    throw Common::Exception("Wrong file mode");
             }
 
             if (_fileStream.fail())

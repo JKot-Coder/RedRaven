@@ -54,15 +54,15 @@ namespace OpenDemo
             {
                 switch (blendingMode)
                 {
-                case BlendingMode::ADDITIVE:
-                    colorSrc = BlendingParameters::ONE;
-                    colorDest = BlendingParameters::ONE;
-                    colorOperation = BlendingOperation::ADD;
+                    case BlendingMode::ADDITIVE:
+                        colorSrc = BlendingParameters::ONE;
+                        colorDest = BlendingParameters::ONE;
+                        colorOperation = BlendingOperation::ADD;
 
-                    alphaSrc = BlendingParameters::ZERO;
-                    alphaDest = BlendingParameters::ONE;
-                    alphaOperation = BlendingOperation::ADD;
-                    break;
+                        alphaSrc = BlendingParameters::ZERO;
+                        alphaDest = BlendingParameters::ONE;
+                        alphaOperation = BlendingOperation::ADD;
+                        break;
                 }
             }
 

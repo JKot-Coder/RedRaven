@@ -6,9 +6,7 @@ namespace RR
     class AssetServerImpl final : public efsw::FileWatchListener
     {
     public:
-
-        AssetServerImpl() { fileWatcher = std::make_unique<efsw::FileWatcher>();
-        }
+        AssetServerImpl() { fileWatcher = std::make_unique<efsw::FileWatcher>(); }
 
         void Run()
         {
@@ -20,7 +18,7 @@ namespace RR
         }
 
         void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename,
-                                               efsw::Action action, std::string oldFilename) override;
+                              efsw::Action action, std::string oldFilename) override;
 
     private:
         std::unique_ptr<efsw::FileWatcher> fileWatcher;

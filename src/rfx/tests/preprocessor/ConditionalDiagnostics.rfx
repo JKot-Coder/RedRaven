@@ -3,8 +3,8 @@
 
 #else // directive without '#if'
 
-#elif // directive after else 
+#elif // directive after else
 
-// Testing EOF while conditional processing 
+// Testing EOF while conditional processing
 #ifdef UNDEFINED
 Skip this

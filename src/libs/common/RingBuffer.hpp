@@ -14,7 +14,7 @@ namespace RR::Common
         typedef typename std::array<T, SIZE>::size_type size_type;
 
         template <typename... Args>
-        RingBuffer(Args&&... args) : buffer_ { { std::forward<Args>(args)... } } {};
+        RingBuffer(Args&&... args) : buffer_ {{std::forward<Args>(args)...}} {};
 
         const T& Peek() const { return buffer_[currentIndex_]; }
         T& Peek() { return buffer_[currentIndex_]; }

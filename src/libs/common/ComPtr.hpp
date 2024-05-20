@@ -44,7 +44,7 @@ namespace RR::Common
         using type = impl::abi_t<T>;
 
         ComPtr(std::nullptr_t = nullptr) noexcept { }
-        ComPtr(void* ptr, impl::take_ownership_from_abi_t) noexcept : ptr_(static_cast<type*>(ptr)) { add_ref();}
+        ComPtr(void* ptr, impl::take_ownership_from_abi_t) noexcept : ptr_(static_cast<type*>(ptr)) { add_ref(); }
         ComPtr(ComPtr const& other) noexcept : ptr_(other.ptr_) { add_ref(); }
         template <typename U> ComPtr(ComPtr<U> const& other) noexcept : ptr_(other.ptr_) { add_ref(); }
         template <typename U> ComPtr(ComPtr<U>&& other) noexcept : ptr_(std::exchange(other.ptr_, {})) { }
@@ -138,7 +138,7 @@ namespace RR::Common
         {
             if (!ptr_)
                 return;
-            
+
             const_cast<std::remove_const_t<type>*>(ptr_)->AddRef();
         }
 

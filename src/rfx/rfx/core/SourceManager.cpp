@@ -1,11 +1,11 @@
 #include "SourceManager.hpp"
 
+#include "common/ErrorNo.hpp"
 #include "common/LinearAllocator.hpp"
 #include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
 #include "compiler/CompileContext.hpp"
 #include "core/SourceLocation.hpp"
-#include "common/ErrorNo.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -16,12 +16,12 @@ namespace RR::Rfx
     {
         namespace fs = std::filesystem;
 
-#define ASSERT_ON_FALSE(x)        \
-        if (!(x))                 \
-        {                         \
-            ASSERT(false);        \
-            return RResult::Fail; \
-        }
+#define ASSERT_ON_FALSE(x)    \
+    if (!(x))                 \
+    {                         \
+        ASSERT(false);        \
+        return RResult::Fail; \
+    }
     }
 
     SourceManager::SourceManager(const std::shared_ptr<CompileContext>& context)

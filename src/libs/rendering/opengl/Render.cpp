@@ -34,34 +34,33 @@ namespace OpenDemo
             const auto gluErrorU8String = [](GLenum errorCode) -> const char* {
                 switch (errorCode)
                 {
-                default:
-                    return "unknown error code";
-                case GL_NO_ERROR:
-                    return "no error";
-                case GL_INVALID_ENUM:
-                    return "invalid enumerant";
-                case GL_INVALID_VALUE:
-                    return "invalid value";
-                case GL_INVALID_OPERATION:
-                    return "invalid operation";
-                case GL_STACK_OVERFLOW:
-                    return "stack overflow";
-                case GL_STACK_UNDERFLOW:
-                    return "stack underflow";
-                    //            case GL_TABLE_TOO_LARGE:
-                    //                return "table too large";
-                case GL_OUT_OF_MEMORY:
-                    return "out of memory";
-                case GL_INVALID_FRAMEBUFFER_OPERATION:
-                    return "invalid framebuffer operation";
+                    default:
+                        return "unknown error code";
+                    case GL_NO_ERROR:
+                        return "no error";
+                    case GL_INVALID_ENUM:
+                        return "invalid enumerant";
+                    case GL_INVALID_VALUE:
+                        return "invalid value";
+                    case GL_INVALID_OPERATION:
+                        return "invalid operation";
+                    case GL_STACK_OVERFLOW:
+                        return "stack overflow";
+                    case GL_STACK_UNDERFLOW:
+                        return "stack underflow";
+                        //            case GL_TABLE_TOO_LARGE:
+                        //                return "table too large";
+                    case GL_OUT_OF_MEMORY:
+                        return "out of memory";
+                    case GL_INVALID_FRAMEBUFFER_OPERATION:
+                        return "invalid framebuffer operation";
                 }
             };
 
             GLuint GetOpenGLDepthTestFunction(DepthTestFunction depthTestFunction)
             {
                 static const GLuint depthTestFunctions[DEPTH_TEST_FUNC_MAX] = {
-                    GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
-                };
+                    GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
                 return depthTestFunctions[depthTestFunction];
             }
@@ -108,7 +107,7 @@ namespace OpenDemo
 
             void Render::SwapBuffers() const
             {
-                //TODO remove
+                // TODO remove
                 GLenum error;
                 while ((error = glGetError()) != GL_NO_ERROR)
                 {
@@ -122,7 +121,7 @@ namespace OpenDemo
             {
                 glClearColor(color[0], color[1], color[2], color[3]);
                 glClearDepth(depth);
-                //glClearBuffer
+                // glClearBuffer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             }
 
@@ -249,9 +248,9 @@ namespace OpenDemo
                     return;
                 }
 
-                (void)description; //TODO: Replace to true realization of this method
+                (void)description; // TODO: Replace to true realization of this method
                 glEnable(GL_BLEND);
-                glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); //TODO: find a better place for it
+                glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // TODO: find a better place for it
                 glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
                 glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
             }

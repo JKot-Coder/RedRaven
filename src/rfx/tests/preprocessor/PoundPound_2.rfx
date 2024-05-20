@@ -4,6 +4,6 @@
 #define B b
 #define OBJ A ## B
 
-// Should output AB 
+// Should output AB
 
 OBJ

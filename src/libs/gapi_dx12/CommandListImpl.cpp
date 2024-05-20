@@ -347,8 +347,8 @@ namespace RR::GAPI::DX12
 
         // const auto isTextureResource = resource->GetDescription().IsTexture();
 
-        //const auto& device = DeviceContext::GetDevice();
-        //auto desc = d3dResource->GetDesc();
+        // const auto& device = DeviceContext::GetDevice();
+        // auto desc = d3dResource->GetDesc();
 
         //  static_assert(static_cast<int>(MemoryAllocationType::Count) == 3);
         /* ASSERT(

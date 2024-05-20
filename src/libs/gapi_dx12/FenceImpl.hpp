@@ -6,7 +6,7 @@ namespace RR
 {
     namespace GAPI::DX12
     {
-    	class CommandQueueImpl;
+        class CommandQueueImpl;
 
         class FenceImpl final : public IFence
         {

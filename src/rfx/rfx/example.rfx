@@ -3,21 +3,21 @@
 selection bool isForestPass = false : [true, false];
 
 tehnique Blabla
-{	
+{
 	pass ?????????
 	{
-		RenderState RenderState : RS_Z_TEST_DISABLE = 
+		RenderState RenderState : RS_Z_TEST_DISABLE =
 		{
 			FillMode = Solid;
-			CullMode = Front;			
+			CullMode = Front;
 			AntialiasedLineEnable = false;
 			ConservativeRasterizationEnable = true;
 			SlopeScaledDepthBias  = 0.0f;
 			DepthBias = 1;
 
-			RenderTarget[0] = 
+			RenderTarget[0] =
 			{
-				Format = RGB8;	
+				Format = RGB8;
 				BlendEnable = true;
 				SrcBlend = srcAlpha;
 				DestBlend = INV_SRC_ALPHA;
@@ -32,7 +32,7 @@ tehnique Blabla
 
 		    DepthAccess = Read;
             DepthFunc = LessEqual;
-			
+
 			StencilEnable = True;
 			StencilRef = 0xFF;
 			StencilReadMask  = 0xFF;
@@ -56,6 +56,6 @@ tehnique Blabla
 
    			MultisampleEnable = ? true
 			ForcedSampleCount = 3;
-		} 
+		}
 	}
 }

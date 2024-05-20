@@ -38,7 +38,7 @@ namespace RR::AssetImporter::Processors
 
     std::vector<U8String> Effect::GetListOfExtensions() const
     {
-        return { ".rfx" };
+        return {".rfx"};
     }
 
     Common::RResult Effect::Process(const Asset& asset, const ProcessorContext& context, std::vector<ProcessorOutput>& outputs) const

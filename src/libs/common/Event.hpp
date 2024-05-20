@@ -37,8 +37,7 @@ namespace RR
                 {
                     Delegate delegate;
                     delegate.target_ = nullptr;
-                    delegate.callback_ = +[](void*, Args&&... args) -> ReturnType
-                    {
+                    delegate.callback_ = +[](void*, Args&&... args) -> ReturnType {
                         return Callback(std::forward<Args>(args)...);
                     };
 
@@ -50,8 +49,7 @@ namespace RR
                 {
                     Delegate delegate;
                     delegate.target_ = static_cast<void*>(target);
-                    delegate.callback_ = +[](void* target, Args&&... args) -> ReturnType
-                    {
+                    delegate.callback_ = +[](void* target, Args&&... args) -> ReturnType {
                         return (static_cast<Class*>(target)->*Callback)(std::forward<Args>(args)...);
                     };
 

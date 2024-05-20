@@ -1,6 +1,6 @@
 #include "Application.hpp"
 
-//#include <Windows.h>
+// #include <Windows.h>
 
 #include "imgui_impl/ImguiPlatformImpl.hpp"
 #include "imgui_impl/ImguiRenderImpl.hpp"
@@ -31,8 +31,7 @@ namespace RR
             }
             CD3DX12_CLEAR_VALUE(
                 DXGI_FORMAT format,
-                const FLOAT color[4])
-            noexcept
+                const FLOAT color[4]) noexcept
             {
                 Format = format;
                 memcpy(Color, color, sizeof(Color));
@@ -40,8 +39,7 @@ namespace RR
             CD3DX12_CLEAR_VALUE(
                 DXGI_FORMAT format,
                 FLOAT depth,
-                UINT8 stencil)
-            noexcept
+                UINT8 stencil) noexcept
             {
                 Format = format;
                 memset(&Color, 0, sizeof(Color));
@@ -78,8 +76,7 @@ namespace RR
         {
             auto& deviceContext = Render::DeviceContext::Instance();
             deviceContext.Init();
-            deviceContext.ExecuteAwait([](GAPI::Device& device)
-                                       { g_pd3dDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
+            deviceContext.ExecuteAwait([](GAPI::Device& device) { g_pd3dDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
 
             {
                 D3D12_DESCRIPTOR_HEAP_DESC desc = {};
@@ -187,7 +184,7 @@ namespace RR
         platformToolkit.Init();
 
         Platform::Window::Description windowDesc;
-        windowDesc.size = { 800, 600 };
+        windowDesc.size = {800, 600};
         windowDesc.title = "Demo";
 
         // Create window with graphics context
@@ -211,19 +208,19 @@ namespace RR
         ImGuiIO& io = ImGui::GetIO();
         (void)io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+        // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
         //   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
 
         io.ConfigDockingTransparentPayload = true;
-        //io.ConfigViewportsNoAutoMerge = true;
-        //io.ConfigViewportsNoTaskBarIcon = true;
+        // io.ConfigViewportsNoAutoMerge = true;
+        // io.ConfigViewportsNoTaskBarIcon = true;
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
-        //ImGui::StyleColorsClassic();
+        // ImGui::StyleColorsClassic();
 
         // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
         ImGuiStyle& style = ImGui::GetStyle();
@@ -250,13 +247,13 @@ namespace RR
         // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
         // - Read 'docs/FONTS.md' for more instructions and details.
         // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-        //io.Fonts->AddFontDefault();
-        //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-        //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-        //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-        //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-        //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-        //IM_ASSERT(font != nullptr);
+        // io.Fonts->AddFontDefault();
+        // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
+        // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
+        // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+        // io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+        // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+        // IM_ASSERT(font != nullptr);
 
         // Our state
         bool show_demo_window = true;
@@ -272,8 +269,7 @@ namespace RR
             Platform::Toolkit::Instance().PoolEvents();
 
             deviceContext.ExecuteAsync(
-                [&](GAPI::Device& device)
-                {
+                [&](GAPI::Device& device) {
                     std::ignore = device;
 
                     // Start the Dear ImGui frame
@@ -324,8 +320,7 @@ namespace RR
             UINT backBufferIdx = swindex; //           g_pSwapChain->GetCurrentBackBufferIndex();
 
             deviceContext.ExecuteAsync(
-                [backBufferIdx, clear_color](GAPI::Device& device)
-                {
+                [backBufferIdx, clear_color](GAPI::Device& device) {
                     std::ignore = device;
 
                     D3D12_RESOURCE_BARRIER barrier = {};

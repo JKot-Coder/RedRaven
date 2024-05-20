@@ -56,21 +56,21 @@ namespace RR
             if (_down[key] == value)
                 return;
 
-            //TOdo fix this
+            // TOdo fix this
             if (value)
                 switch (key)
                 {
-                case ikMouseL:
-                    //                   mouse.start.L = mouse.pos;
-                    break;
-                case ikMouseR:
-                    //                  mouse.start.R = mouse.pos;
-                    break;
-                case ikMouseM:
-                    //                mouse.start.M = mouse.pos;
-                    break;
-                default:
-                    break;
+                    case ikMouseL:
+                        //                   mouse.start.L = mouse.pos;
+                        break;
+                    case ikMouseR:
+                        //                  mouse.start.R = mouse.pos;
+                        break;
+                    case ikMouseM:
+                        //                mouse.start.M = mouse.pos;
+                        break;
+                    default:
+                        break;
                 }
 
             _down[key] = value;
@@ -86,13 +86,13 @@ namespace RR
             (void)pos;
             switch (key)
             {
-            case ikMouseL:
-            case ikMouseR:
-            case ikMouseM:
-                //     mouse.pos = pos;
-                return;
-            default:
-                return;
+                case ikMouseL:
+                case ikMouseR:
+                case ikMouseM:
+                    //     mouse.pos = pos;
+                    return;
+                default:
+                    return;
             }
         }
 

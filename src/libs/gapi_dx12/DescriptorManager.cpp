@@ -91,7 +91,7 @@ namespace RR
 
                     /*if (gpuResDesc.texture.format != GpuResourceFormat::Unknown)
                     {
-                       
+
                         description.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
                     }*/
                     description.Format = D3DUtils::GetDxgiResourceFormat(viewDesc.format);
@@ -142,7 +142,7 @@ namespace RR
                             break;
                         case GpuResourceDimension::Texture2DMS:
                             LOG_FATAL("Unsupported resource view type");
-                            //ASSERT(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value)
+                            // ASSERT(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value)
                             break;
                         default:
                             LOG_FATAL("Unsupported resource view type");

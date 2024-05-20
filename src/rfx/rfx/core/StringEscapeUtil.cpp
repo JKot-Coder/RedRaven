@@ -19,7 +19,7 @@ namespace RR
             {
                 switch (c)
                 {
-                    // clang-format off
+                        // clang-format off
                     case '\b': return 'b';
                     case '\f': return 'f';
                     case '\n': return 'n';
@@ -38,7 +38,7 @@ namespace RR
             {
                 switch (c)
                 {
-                    // clang-format off
+                        // clang-format off
                     case '\b': return 'b';
                     case '\f': return 'f';
                     case '\n': return 'n';

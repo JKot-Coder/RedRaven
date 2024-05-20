@@ -30,7 +30,7 @@ namespace OpenDemo
             virtual void Init(const std::vector<Vertex>& vertices, const std::vector<int32_t>& indexes) = 0;
 
             virtual void Bind() const = 0;
-            virtual void Draw() const = 0; //TODO: remove
+            virtual void Draw() const = 0; // TODO: remove
         };
     }
 }

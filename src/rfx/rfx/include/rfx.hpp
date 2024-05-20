@@ -2,9 +2,9 @@
 
 #include <cassert>
 #include <stdint.h>
+#include <string>
 #include <type_traits>
 #include <utility>
-#include <string>
 #include <vector>
 
 #ifdef _MSC_VER

@@ -91,7 +91,7 @@ namespace RR
                     targetSwapChainDesc.Format,
                     targetSwapChainDesc.Flags);
 
-                if(FAILED(hr))
+                if (FAILED(hr))
                 {
                     LOG_FATAL("Can't resize swapchain buffers. Error: {}", D3DUtils::HResultToString(hr));
                 }

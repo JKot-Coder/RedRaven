@@ -14,6 +14,7 @@ namespace RR
             class DebugStream : public std::basic_ostream<CharT, TraitsT>
             {
                 using Base = std::basic_ostream<CharT, TraitsT>;
+
             public:
                 DebugStream();
                 ~DebugStream();

@@ -7,7 +7,7 @@
 namespace RR::Platform
 {
     using namespace RR::Common;
-    
+
     struct Cursor;
 
     namespace Input
@@ -45,7 +45,7 @@ namespace RR::Platform
         struct Description
         {
             U8String title = "";
-            Vector2i size = { 0, 0 };
+            Vector2i size = {0, 0};
 
             bool autoIconify = true;
             bool centerCursor = true;

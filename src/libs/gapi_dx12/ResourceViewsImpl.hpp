@@ -6,7 +6,7 @@ namespace RR
 {
     namespace GAPI
     {
-        //class RenderTargetView;
+        // class RenderTargetView;
 
         namespace DX12
         { /*

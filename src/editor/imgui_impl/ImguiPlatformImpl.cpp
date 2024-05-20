@@ -224,7 +224,7 @@ namespace RR
             if (ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData)
             {
                 bool ignoreEvent = (ImGui::GetFrameCount() <= vd->IgnoreWindowPosEventFrame + 1);
-                //data->IgnoreWindowPosEventFrame = -1;
+                // data->IgnoreWindowPosEventFrame = -1;
                 if (ignoreEvent)
                     return;
             }
@@ -240,7 +240,7 @@ namespace RR
             if (ImGuiViewportData* vd = (ImGuiViewportData*)viewport->PlatformUserData)
             {
                 bool ignore_event = (ImGui::GetFrameCount() <= vd->IgnoreWindowSizeEventFrame + 1);
-                //data->IgnoreWindowSizeEventFrame = -1;
+                // data->IgnoreWindowSizeEventFrame = -1;
                 if (ignore_event)
                     return;
             }

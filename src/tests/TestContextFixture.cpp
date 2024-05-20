@@ -112,7 +112,7 @@ namespace RR
 
                 const auto& subresourceFootprints = resource->GetSubresourceFootprints();
 
-                std::array<uint8_t, 10> testBufferData = { 0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42 };
+                std::array<uint8_t, 10> testBufferData = {0xDE, 0xAD, 0xBE, 0xEF, 0x04, 0x08, 0x15, 0x16, 0x23, 0x42};
 
                 for (uint32_t index = 0; index < subresourceFootprints.size(); index++)
                 {

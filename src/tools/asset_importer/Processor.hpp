@@ -19,7 +19,6 @@ namespace RR
 
         class ProcessorContext
         {
-
         };
 
         struct ProcessorOutput
@@ -37,7 +36,7 @@ namespace RR
         {
         public:
             virtual std::vector<U8String> GetListOfExtensions() const = 0;
-            //virtual Common::RResult CollectDependencies
+            // virtual Common::RResult CollectDependencies
             virtual Common::RResult Process(const Asset& asset, const ProcessorContext& context, std::vector<ProcessorOutput>& outputs) const = 0;
         };
 

@@ -13,7 +13,7 @@ set(IMGUI_IMPL_SRC
     "imgui_impl/ImguiRenderImpl.hpp")
 source_group("ImguiImpl" FILES ${IMGUI_IMPL_SRC})
 
-set(SRC 
+set(SRC
     ${SRC}
     ${IMGUI_IMPL_SRC})
 
@@ -26,7 +26,7 @@ set(LIBRARIES
 if (WIN32)
     set(EDITOR_LINK_LIBRARIES ${EDITOR_LINK_LIBRARIES} gapi_dx12)
 endif()
-        
+
 #=============================== Target ===============================#
 
 add_executable(${PROJECT_NAME} WIN32 ${SRC})

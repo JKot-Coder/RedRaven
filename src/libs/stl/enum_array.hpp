@@ -5,5 +5,5 @@
 namespace RR::stl
 {
     template <typename V, typename E>
-	using enum_array = magic_enum::containers::array<E, V>;
+    using enum_array = magic_enum::containers::array<E, V>;
 }

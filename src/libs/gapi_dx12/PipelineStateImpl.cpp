@@ -424,7 +424,6 @@ namespace RR
                 psoDesc.PS = getShaderByteCode(ps);
                 ID3D12RootSignature* pRootSignature;*/
 
-
             InputLayout inputLayout;
 
             std::vector<D3D12_INPUT_ELEMENT_DESC> d3dElementDescs(8);

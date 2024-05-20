@@ -4,7 +4,7 @@ render_src = files(
     'Submission.hpp',
     'Submission.cpp',
 )
- 
+
 render_lib = static_library(
     'render',
     render_src,

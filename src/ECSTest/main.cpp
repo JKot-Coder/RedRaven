@@ -4,9 +4,9 @@
 
 #include "fmt/core.h"
 
-//#define free a
+// #define free a
 #ifdef free
-///#error "WTF"
+/// #error "WTF"
 #endif //  free
 
 namespace

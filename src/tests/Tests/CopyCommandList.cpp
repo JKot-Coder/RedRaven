@@ -115,10 +115,10 @@ namespace RR
                     struct TestStuct
                     {
                         char c3[10] = "Test data";
-                        uint8_t p1[2] = { 0, 0 };
+                        uint8_t p1[2] = {0, 0};
                         uint32_t a1 = 0xDEADBEEF;
                         bool b2 = true;
-                        uint8_t p2[3] = { 0, 0, 0 };
+                        uint8_t p2[3] = {0, 0, 0};
                     };
                     static_assert(sizeof(TestStuct) == 20);
 
@@ -180,7 +180,7 @@ namespace RR
             auto copyQueue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Copy, "CopyQueue");
             REQUIRE(copyQueue != nullptr);
 
-            std::array<GAPI::GpuResourceFormat, 2> formatsToTest = { GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float };
+            std::array<GAPI::GpuResourceFormat, 2> formatsToTest = {GAPI::GpuResourceFormat::RGBA8Uint, GAPI::GpuResourceFormat::RGBA32Float};
             for (const auto format : formatsToTest)
             {
                 const auto formatName = GAPI::GpuResourceFormatInfo::ToString(format);
@@ -189,15 +189,13 @@ namespace RR
                     GAPI::GpuResourceDimension::Texture1D,
                     GAPI::GpuResourceDimension::Texture2D,
                     GAPI::GpuResourceDimension::Texture3D,
-                    GAPI::GpuResourceDimension::TextureCube
-                };
+                    GAPI::GpuResourceDimension::TextureCube};
 
                 const std::array<U8String, 4> dimensionTitles = {
                     "Texture1D",
                     "Texture2D",
                     "Texture3D",
-                    "TextureCube"
-                };
+                    "TextureCube"};
 
                 for (int idx = 0; idx < dimensions.size(); idx++)
                 {

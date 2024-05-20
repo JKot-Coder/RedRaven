@@ -32,7 +32,7 @@ namespace RR
                     if (TraitsT::eq_int_type(c, TraitsT::eof()))
                         return TraitsT::not_eof(c);
 
-                    CharT str[] = { TraitsT::to_char_type(c), '\0' };
+                    CharT str[] = {TraitsT::to_char_type(c), '\0'};
                     OutputDebugString(&str[0]);
                     return c;
                 }

@@ -116,9 +116,9 @@ namespace RR
             {
                 switch (multisampleType)
                 {
-                    case MultisampleType::None: return { 1, 0 };
-                    case MultisampleType::MSAA_2: return { 2, 0 };
-                    default: ASSERT_MSG(false, "Unknown multisample type"); return { 0, 0 };
+                    case MultisampleType::None: return {1, 0};
+                    case MultisampleType::MSAA_2: return {2, 0};
+                    default: ASSERT_MSG(false, "Unknown multisample type"); return {0, 0};
                 }
             }
 

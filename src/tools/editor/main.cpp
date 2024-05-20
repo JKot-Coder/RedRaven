@@ -14,9 +14,9 @@ namespace
 }
 
 #if defined(OS_WINDOWS) && defined(UNICODE)
-#include <wchar.h>
 #include <Windows.h>
 #include <shellapi.h>
+#include <wchar.h>
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow)
 {
     std::ignore = hInst;
@@ -47,8 +47,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCm
     const auto exitCode = runApp(argc, argv);
 
     for (int i = 0; i < argc; ++i)
-        delete[](argv[i]);
-    delete[](argv);
+        delete[] (argv[i]);
+    delete[] (argv);
 
     return exitCode;
 }

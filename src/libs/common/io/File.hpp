@@ -31,7 +31,7 @@ namespace RR::Common
         {
         public:
             ~File();
-        
+
             RResult Open(const fs::path& path, FileAccessMode accessMode);
             void Close();
 

@@ -17,13 +17,13 @@ namespace RR
             namespace D3DUtils
             {
 
-#define D3DCall(exp)                                                                                              \
-    {                                                                                                             \
-        const HRESULT result = exp;                                                                               \
-        if (FAILED(result))                                                                                       \
-        {                                                                                                         \
-            LOG_FATAL(#exp " Error: {}", D3DUtils::HResultToString(result));                                      \
-        }                                                                                                         \
+#define D3DCall(exp)                                                         \
+    {                                                                        \
+        const HRESULT result = exp;                                          \
+        if (FAILED(result))                                                  \
+        {                                                                    \
+            LOG_FATAL(#exp " Error: {}", D3DUtils::HResultToString(result)); \
+        }                                                                    \
     }
 
                 template <typename T>

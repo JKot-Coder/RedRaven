@@ -17,6 +17,7 @@ namespace RR::AssetImporter::Processors
 
         std::vector<U8String> GetListOfExtensions() const override;
         RR::Common::RResult Process(const Asset& asset, const ProcessorContext& context, std::vector<ProcessorOutput>& outputs) const override;
+
     private:
         RR::Common::ComPtr<RR::Rfx::ICompiler> compiler_;
     };

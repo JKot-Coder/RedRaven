@@ -17,16 +17,16 @@ namespace RR::Common::Hash
         struct HashOptions<32>
         {
             typedef uint32_t HashType;
-            static constexpr HashType mixMuls[2] = { 0x85ebca6b, 0xc2b2ae35 };
-            static constexpr HashType mixShifts[3] = { 16, 13, 16 };
+            static constexpr HashType mixMuls[2] = {0x85ebca6b, 0xc2b2ae35};
+            static constexpr HashType mixShifts[3] = {16, 13, 16};
         };
 
         template <>
         struct HashOptions<64>
         {
             typedef uint64_t HashType;
-            static constexpr HashType mixMuls[2] = { 0xff51afd7ed558ccd, 0xc4ceb9fe1a85ec53 };
-            static constexpr HashType mixShifts[3] = { 33, 33, 33 };
+            static constexpr HashType mixMuls[2] = {0xff51afd7ed558ccd, 0xc4ceb9fe1a85ec53};
+            static constexpr HashType mixShifts[3] = {33, 33, 33};
         };
 
         template <uint8_t HashBits>

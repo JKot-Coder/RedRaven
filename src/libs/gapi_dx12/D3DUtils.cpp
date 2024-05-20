@@ -98,21 +98,21 @@ namespace OpenDemo
                     D3D12_RESOURCE_DESC desc;
                     switch (resourceDesc.GetDimension())
                     {
-                    case GpuResourceDimension::Texture1D:
-                        desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.GetWidth(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount());
-                        break;
-                    case GpuResourceDimension::Texture2D:
-                    case GpuResourceDimension::Texture2DMS:
-                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount(), resourceDesc.GetSampleCount());
-                        break;
-                    case GpuResourceDimension::Texture3D:
-                        desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetDepth(), resourceDesc.GetMipCount());
-                        break;
-                    case GpuResourceDimension::TextureCube:
-                        desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize() * 6, resourceDesc.GetMipCount());
-                        break;
-                    default:
-                        LOG_FATAL("Unsupported texture dimension");
+                        case GpuResourceDimension::Texture1D:
+                            desc = CD3DX12_RESOURCE_DESC::Tex1D(format, resourceDesc.GetWidth(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount());
+                            break;
+                        case GpuResourceDimension::Texture2D:
+                        case GpuResourceDimension::Texture2DMS:
+                            desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize(), resourceDesc.GetMipCount(), resourceDesc.GetSampleCount());
+                            break;
+                        case GpuResourceDimension::Texture3D:
+                            desc = CD3DX12_RESOURCE_DESC::Tex3D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetDepth(), resourceDesc.GetMipCount());
+                            break;
+                        case GpuResourceDimension::TextureCube:
+                            desc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDesc.GetWidth(), resourceDesc.GetHeight(), resourceDesc.GetArraySize() * 6, resourceDesc.GetMipCount());
+                            break;
+                        default:
+                            LOG_FATAL("Unsupported texture dimension");
                     }
 
                     desc.Flags = GetResourceFlags(resourceDesc.GetBindFlags());
@@ -153,7 +153,7 @@ namespace OpenDemo
                     output.Height = description.height;
                     output.Format = GetDxgiResourceFormat(description.gpuResourceFormat);
                     output.Stereo = (description.isStereo) ? TRUE : FALSE;
-                    output.SampleDesc = { 1, 0 };
+                    output.SampleDesc = {1, 0};
                     output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
                     output.BufferCount = description.bufferCount;
                     output.Scaling = DXGI_SCALING_STRETCH;

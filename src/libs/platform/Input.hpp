@@ -118,7 +118,7 @@ namespace RR::Platform::Input
 
         Count,
     };
-    
+
     enum class KeyAction : uint32_t
     {
         Press,

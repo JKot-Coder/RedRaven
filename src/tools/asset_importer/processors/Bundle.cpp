@@ -11,10 +11,10 @@ namespace RR::AssetImporter::Processors
 
     std::vector<U8String> Bundle::GetListOfExtensions() const
     {
-        return { ".bundle" };
+        return {".bundle"};
     }
 
-    RR::Common::RResult Bundle::Process(const Asset& asset, const ProcessorContext& context, std::vector<ProcessorOutput>& outputs)const
+    RR::Common::RResult Bundle::Process(const Asset& asset, const ProcessorContext& context, std::vector<ProcessorOutput>& outputs) const
     {
         std::ignore = asset;
         std::ignore = context;
@@ -29,9 +29,9 @@ namespace RR::AssetImporter::Processors
                 return RR::Common::RResult::Fail;
 
             auto bundleYaml = yaml["bundle"];
-          //  bundle.name = bundleYaml["name"].as<std::string>();
-         //   bundle.include_mask = bundleYaml["include_mask"].as<std::string>();
-         //   bundle.exclude_mask = bundleYaml["exclude_mask"].as<std::string>();
+            //  bundle.name = bundleYaml["name"].as<std::string>();
+            //   bundle.include_mask = bundleYaml["include_mask"].as<std::string>();
+            //   bundle.exclude_mask = bundleYaml["exclude_mask"].as<std::string>();
         }
         catch (std::exception& e)
         {

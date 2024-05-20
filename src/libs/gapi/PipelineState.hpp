@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gapi/Limits.hpp"
 #include "common/EnumClassOperators.hpp"
+#include "gapi/Limits.hpp"
 
 namespace RR::GAPI
 {
@@ -83,7 +83,7 @@ namespace RR::GAPI
         float depthBias;
         uint32_t forcedSampleCount;
     };
-    
+
     struct BlendDesc
     {
         bool independentBlendEnabled : 1;

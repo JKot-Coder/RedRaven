@@ -1,6 +1,5 @@
 #include "CompileRequest.hpp"
 
-
 #include "rfx.hpp"
 
 namespace

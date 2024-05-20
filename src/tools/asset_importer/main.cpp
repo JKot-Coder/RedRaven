@@ -1,5 +1,5 @@
-#include "cxxopts.hpp"
 #include "AssetImporter.hpp"
+#include "cxxopts.hpp"
 
 namespace RR::AssetImporter
 {
@@ -20,30 +20,30 @@ namespace RR::AssetImporter
 
         options.add_options("Common") // clang-format off
             ("h,help", "Display available options")
-            ("version", "Display version information")          
+            ("version", "Display version information")
             ("inputs", "Inputs", cxxopts::value<std::vector<std::string>>(inputDirectories));
 
       /*      ("d,debug", "Enable debugging") // a bool parameter
             ("i,integer", "Int param", cxxopts::value<int>())
             ("f,file", "File name", cxxopts::value<std::string>())
             ("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))*/
-            // clang-format on
-            /*
-                    options.add_options("Compilation") // clang-format off
-                        ("Fc", "Output assembly code listing file", cxxopts::value<std::string>(), "file")
-                        ("Fo", "Output object file", cxxopts::value<std::string>(), "file")
-                        ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
+        // clang-format on
+        /*
+                options.add_options("Compilation") // clang-format off
+                    ("Fc", "Output assembly code listing file", cxxopts::value<std::string>(), "file")
+                    ("Fo", "Output object file", cxxopts::value<std::string>(), "file")
+                    ("D", "Define macro", cxxopts::value<std::vector<std::string>>(definitions)); // clang-format on
 
-                    options.add_options("Utility Options") // clang-format off
-                        ("P", "Preprocess to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
-            */
+                options.add_options("Utility Options") // clang-format off
+                    ("P", "Preprocess to file (must be used alone)", cxxopts::value<std::string>(), "file"); // clang-format on
+        */
 
-            options.positional_help("<inputs>");
+        options.positional_help("<inputs>");
         cxxopts::ParseResult parseResult;
 
         try
         {
-            std::vector<std::string> pos_names = { "inputs" };
+            std::vector<std::string> pos_names = {"inputs"};
             options.parse_positional(pos_names.begin(), pos_names.end());
 
             parseResult = options.parse(argc, argv);
@@ -53,16 +53,16 @@ namespace RR::AssetImporter
             printErrorMessage("unknown options: {}", e.what());
             return 1;
         }
-        
+
         AssetImporter::Instance().ProcessAsset("test.rfx");
-       // AssetImporter importer;
-        //importer
+        // AssetImporter importer;
+        // importer
 
         try
         {
             if (parseResult.count("help"))
             {
-                std::cout << options.help({ "", "Common" }) << std::endl;
+                std::cout << options.help({"", "Common"}) << std::endl;
                 return 0;
             }
 
@@ -78,9 +78,8 @@ namespace RR::AssetImporter
                 return 1;
             }
 
-            for(auto input : inputDirectories)
+            for (auto input : inputDirectories)
             {
-                
             }
         }
         catch (const cxxopts::OptionException& e)

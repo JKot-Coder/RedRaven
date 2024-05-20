@@ -35,7 +35,7 @@ namespace RR
             description_ = description;
             for (auto& backBuffer : backBuffers_)
             {
-                //TODO assert
+                // TODO assert
                 backBuffer = nullptr;
             }
         }
@@ -56,7 +56,7 @@ namespace RR
                 std::static_pointer_cast<SwapChain>(shared_from_this()),
                 index,
                 desc,
-                fmt::sprintf("%s BackBufferTexture:%d", GetName(), index)); //TODO move it
+                fmt::sprintf("%s BackBufferTexture:%d", GetName(), index)); // TODO move it
 
             return backBuffers_[index];
         }

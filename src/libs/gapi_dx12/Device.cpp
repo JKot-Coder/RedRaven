@@ -13,10 +13,10 @@ namespace RR
             bool InitDevice(Device& device)
             {
                 auto deviceImpl = std::make_unique<DeviceImpl>();
-                 
+
                 if (!deviceImpl->Init(device.GetDescription()))
                     return false;
-                  
+
                 device.SetPrivateImpl(deviceImpl.release());
                 return true;
             }

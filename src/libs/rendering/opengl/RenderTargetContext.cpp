@@ -22,7 +22,7 @@ namespace OpenDemo
             }
 
             void RenderTargetContext::SetColorTarget(Rendering::RenderTargetIndex index,
-                const RenderTarget::RenderTargetDescription& renderTargetDescription)
+                                                     const RenderTarget::RenderTargetDescription& renderTargetDescription)
             {
                 Rendering::RenderTargetContext::SetColorTarget(index, renderTargetDescription);
 
@@ -36,7 +36,7 @@ namespace OpenDemo
                 }
             }
 
-            //TODO remove duplicated code
+            // TODO remove duplicated code
             void RenderTargetContext::SetDepthStencilTarget(const RenderTarget::RenderTargetDescription& renderTargetDescription)
             {
                 Rendering::RenderTargetContext::SetDepthStencilTarget(renderTargetDescription);
@@ -54,7 +54,7 @@ namespace OpenDemo
             void RenderTargetContext::Bind()
             {
                 glBindFramebuffer(GL_FRAMEBUFFER, _id);
-                GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 }; //TODO FIX IT IMMEDIATELY
+                GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0}; // TODO FIX IT IMMEDIATELY
                 glDrawBuffers(1, DrawBuffers);
             }
         }

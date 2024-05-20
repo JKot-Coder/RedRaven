@@ -186,8 +186,7 @@ namespace RR::Rfx
                     U8String escapedToken;
                     StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, token.stringSlice, escapedToken);
 
-                    auto appendQuoted = [](char quotingChar, const U8String& token)
-                    { return quotingChar + token + quotingChar; };
+                    auto appendQuoted = [](char quotingChar, const U8String& token) { return quotingChar + token + quotingChar; };
 
                     char quotingChar = token.type == Token::Type::StringLiteral ? '\"' : '\'';
                     append(appendQuoted(quotingChar, escapedToken));
@@ -306,7 +305,7 @@ namespace RR::Rfx
 
         void PushOutput(CompileOutputType type, const ComPtr<IBlob>& blob)
         {
-            outputs_.push_back({ type, blob });
+            outputs_.push_back({type, blob});
         }
 
         RfxResult GetOutput(size_t index, CompileOutputType& outputType, IBlob** output) override

@@ -17,7 +17,7 @@ namespace OpenDemo
 
         enum class RenderPassType
         {
-            //OPAQUE,
+            // OPAQUE,
             POST_PROCESS
         };
 

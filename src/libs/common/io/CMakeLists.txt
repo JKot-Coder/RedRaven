@@ -6,7 +6,7 @@ set( IO_SRC
     PARENT_SCOPE
 )
 
-set( IO_POSIX_SRC 
+set( IO_POSIX_SRC
     io/platform/posix/File.cpp)
 
 if ( UNIX OR APPLE )

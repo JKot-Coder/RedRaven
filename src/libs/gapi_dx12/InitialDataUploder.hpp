@@ -32,7 +32,7 @@ namespace RR
 
         private:
             static constexpr size_t UploadBatchSize = 16;
-        
+
         private:
             bool inited_ = false;
 

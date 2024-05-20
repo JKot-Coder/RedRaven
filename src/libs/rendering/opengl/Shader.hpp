@@ -28,7 +28,7 @@ namespace OpenDemo
 
                 virtual void SetParam(Uniform::Type uType, const Vector4& value, int count = 1) const override;
                 virtual void SetParam(Uniform::Type uType, const Matrix4& value, int count = 1) const override;
-                //virtual void SetParam(Uniform::Type uType, const Common::Basis& value, int count = 1) const override;
+                // virtual void SetParam(Uniform::Type uType, const Common::Basis& value, int count = 1) const override;
 
             private:
                 GLuint _id;

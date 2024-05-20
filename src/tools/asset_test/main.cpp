@@ -1,5 +1,5 @@
-#include "common/debug/LeakDetector.hpp"
 #include "Application.hpp"
+#include "common/debug/LeakDetector.hpp"
 #include "fmt/core.h"
 
 namespace

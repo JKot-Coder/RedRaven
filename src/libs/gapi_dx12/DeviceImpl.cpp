@@ -262,7 +262,7 @@ namespace RR
 
                     LOG_FATAL("Device Lost on Present. Error: {}", D3DUtils::HResultToString(result));
                     // Todo error check
-                    //handleDeviceLost();
+                    // handleDeviceLost();
                     ASSERT(false);
                 }
                 else
@@ -272,7 +272,7 @@ namespace RR
                         LOG_FATAL("Dxgi is not current");
 
                         // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
-                        //ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
+                        // ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
                     }
                 }
             }
@@ -368,8 +368,7 @@ namespace RR
                 };
 
                 D3D12_FEATURE_DATA_FEATURE_LEVELS featLevels = {
-                    _countof(s_featureLevels), s_featureLevels, D3D_FEATURE_LEVEL_11_0
-                };
+                    _countof(s_featureLevels), s_featureLevels, D3D_FEATURE_LEVEL_11_0};
 
                 if (SUCCEEDED(d3dDevice_->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featLevels, sizeof(featLevels))))
                 {

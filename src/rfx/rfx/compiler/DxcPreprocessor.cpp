@@ -10,7 +10,7 @@
 #endif
 
 #include "dxcapi.use.h"
-//#include <winrt/base.h>
+// #include <winrt/base.h>
 
 #include "common/Result.hpp"
 
@@ -64,8 +64,7 @@ namespace RR
             if (FAILED(dxcCompiler->Compile(&dxcSource, arguments.data(), uint32_t(arguments.size()), dxcIncludeHandler.get(), IID_PPV_ARGS(dxcResult.put()))))
                 return RfxResult::InternalFail;
 
-            auto convertBlob = [dxcResult](DXC_OUT_KIND from, ComPtr<IBlob>& output)
-            {
+            auto convertBlob = [dxcResult](DXC_OUT_KIND from, ComPtr<IBlob>& output) {
                 ComPtr<IDxcBlobUtf8> dxcBlobUtf8;
 
                 if (FAILED(dxcResult->GetOutput(from, IID_PPV_ARGS(dxcBlobUtf8.put()), nullptr)))

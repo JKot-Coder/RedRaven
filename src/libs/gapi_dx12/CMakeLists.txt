@@ -46,7 +46,7 @@ set(SRC
     Config.hpp
     DescriptorHeap.cpp
     DescriptorHeap.hpp
-    DescriptorManager.cpp 
+    DescriptorManager.cpp
     DescriptorManager.hpp
     Device.cpp
     Device.hpp
@@ -66,9 +66,9 @@ set(SRC
     ${SRC}
     ${IMPL_SRC}
     ${MS_SRC}
-    ${D3D_UTILS_SRC} 
+    ${D3D_UTILS_SRC}
     ${D3D12_MEMORY_ALLOCATOR_SRC})
-        
+
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_link_libraries(${PROJECT_NAME} common gapi d3d12.lib dxgi.lib dxguid.lib WindowsApp.lib)

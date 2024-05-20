@@ -261,7 +261,7 @@ namespace RR
         while (!_quit)
         {
             platform.PoolEvents();
-            //Platform::WindowSystem::PoolEvents();
+            // Platform::WindowSystem::PoolEvents();
 
             // deviceContext.Submit(commandQueue, commandList);
 
@@ -269,7 +269,7 @@ namespace RR
             //    renderPipeline->Draw();
 
             //   _scene->Update();
-            //device->Present();
+            // device->Present();
             //    render->SwapBuffers();
             //  input->Update();
 
@@ -280,12 +280,11 @@ namespace RR
             std::shared_ptr<GAPI::CpuResourceData> readbackData1;
 
             deviceContext.ExecuteAsync(
-                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData, &readbackData1](GAPI::Device& device)
-                {
+                [swapChain = swapChain_, index2 = swindex, commandList, texture, testTexture, cpuData, readbackData, &readbackData1](GAPI::Device& device) {
                     std::ignore = device;
 
                     auto swapChainTexture = swapChain->GetBackBufferTexture(index2);
-                    //Log::Print::Info("Texture %s\n", texture->GetName());
+                    // Log::Print::Info("Texture %s\n", texture->GetName());
 
                     {
                         const auto sourceData = "1234567890";

@@ -66,7 +66,7 @@ namespace OpenDemo
 
         void RenderPassOpaque::Draw()
         {
-            //Vector3 lightDirection = Vector3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
+            // Vector3 lightDirection = Vector3( std::rand() /static_cast <float>(RAND_MAX) * PI * 2.0,  std::rand() /static_cast <float>(RAND_MAX) *PI* 2.0);
             Vector3 lightDirection = RandomRay();
 
             _renderContext->SetLightDirection(lightDirection);
@@ -75,7 +75,7 @@ namespace OpenDemo
 
             _render->ClearDepthStencil(true);
             _render->Clear(Vector4(0.0, 0.0, 0.0, 0), 1.0);
-            //render->Clear(Vector4(0.25, 0.25, 0.25, 0), 1.0);
+            // render->Clear(Vector4(0.25, 0.25, 0.25, 0), 1.0);
 
             const auto& renderQuery = _renderContext->GetRenderQuery();
             for (const auto& item : renderQuery)

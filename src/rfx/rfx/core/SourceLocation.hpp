@@ -69,23 +69,23 @@ namespace RR
             static PathInfo makeSplit(const U8String& foundPathIn, const U8String& uniqueIdentity)
             {
                 ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0)
-                return PathInfo { Type::Split, foundPathIn, uniqueIdentity };
+                return PathInfo {Type::Split, foundPathIn, uniqueIdentity};
             }
 
-            static PathInfo makeUnknown() { return PathInfo { Type::Unknown, U8String(), U8String() }; }
-            static PathInfo makeTokenPaste() { return PathInfo { Type::TokenPaste, "token paste", U8String() }; }
+            static PathInfo makeUnknown() { return PathInfo {Type::Unknown, U8String(), U8String()}; }
+            static PathInfo makeTokenPaste() { return PathInfo {Type::TokenPaste, "token paste", U8String()}; }
             static PathInfo makeNormal(const U8String& foundPathIn, const U8String& uniqueIdentity)
             {
                 ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0)
-                return PathInfo { Type::Normal, foundPathIn, uniqueIdentity };
+                return PathInfo {Type::Normal, foundPathIn, uniqueIdentity};
             }
             static PathInfo makePath(const U8String& pathIn)
             {
                 ASSERT(pathIn.length() > 0)
-                return PathInfo { Type::FoundPath, pathIn, U8String() };
+                return PathInfo {Type::FoundPath, pathIn, U8String()};
             }
-            static PathInfo makeCommandLine() { return PathInfo { Type::CommandLine, "command line", U8String() }; }
-            static PathInfo makeFromString(const U8String& userPath) { return PathInfo { Type::FromString, userPath, U8String() }; }
+            static PathInfo makeCommandLine() { return PathInfo {Type::CommandLine, "command line", U8String()}; }
+            static PathInfo makeFromString(const U8String& userPath) { return PathInfo {Type::FromString, userPath, U8String()}; }
 
             Type type = Type::Unknown; ///< The type of path
             U8String foundPath; ///< The path where the file was found (might contain relative elements)

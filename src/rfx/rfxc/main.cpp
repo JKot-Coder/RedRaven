@@ -136,7 +136,7 @@ namespace RR
 
         try
         {
-            std::vector<std::string> pos_names = { "inputs" };
+            std::vector<std::string> pos_names = {"inputs"};
             options.parse_positional(pos_names.begin(), pos_names.end());
 
             parseResult = options.parse(argc, argv);
@@ -151,7 +151,7 @@ namespace RR
         {
             if (parseResult.count("help"))
             {
-                std::cout << options.help({ "", "Common", "Compilation", "Utility Options" }) << std::endl;
+                std::cout << options.help({"", "Common", "Compilation", "Utility Options"}) << std::endl;
                 return 0;
             }
 
@@ -185,7 +185,7 @@ namespace RR
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Lexer;
                 outputs[RR::Rfx::CompileOutputType::Source] = parseResult["Lex"].as<std::string>();
             }
-            else if(parseResult.count("Parse"))
+            else if (parseResult.count("Parse"))
             {
                 compileRequestDesc.outputStage = Rfx::CompileRequestDescription::OutputStage::Parser;
                 outputs[RR::Rfx::CompileOutputType::Source] = parseResult["Parse"].as<std::string>();

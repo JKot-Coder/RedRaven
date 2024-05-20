@@ -19,7 +19,7 @@
 #pragma warning(disable : 4267)
 #pragma warning(disable : 4996)
 #pragma warning(disable : 26495)
-//#include "dependencies/backward-cpp/backward.hpp"
+// #include "dependencies/backward-cpp/backward.hpp"
 #pragma warning(pop)
 #define NOMINMAX
 
@@ -92,8 +92,7 @@ namespace RR
 #if ENABLE_SUBMISSION_THREAD
             ASSERT(!submissionThread_.IsJoinable());
 
-            submissionThread_ = Threading::Thread("Submission Thread", [this]
-                                                  { this->threadFunc(); });
+            submissionThread_ = Threading::Thread("Submission Thread", [this] { this->threadFunc(); });
 #endif
         }
 
@@ -170,7 +169,7 @@ namespace RR
             //  Task::Callback task;
             // task.function = function;
 
-            putTask(Task::Callback { function });
+            putTask(Task::Callback {function});
         }
 
         void Submission::ExecuteAwait(const CallbackFunction&& function)
@@ -184,8 +183,7 @@ namespace RR
 
             if (!isSubmissionThread())
             {
-                task.function = [&condition, &function, &mutex](GAPI::Device& device)
-                {
+                task.function = [&condition, &function, &mutex](GAPI::Device& device) {
                     Threading::UniqueLock<Threading::Mutex> lock(mutex);
                     function(device);
                     condition.notify_one();
@@ -215,7 +213,7 @@ namespace RR
             submissionThread_.Join();
 #endif
 
-            //Reset channel to allow reuse submission after terminate
+            // Reset channel to allow reuse submission after terminate
             inputTaskChannel_ = std::make_unique<BufferedChannel>();
         }
 
@@ -245,16 +243,13 @@ namespace RR
 
                 std::visit(
                     overloaded {
-                        [this](const Task::Submit& task)
-                        { return doTask(task); },
-                        [this](const Task::Callback& task)
-                        { return doTask(task); },
-                        [this](const Task::Terminate& task)
-                        { return doTask(task); },
+                        [this](const Task::Submit& task) { return doTask(task); },
+                        [this](const Task::Callback& task) { return doTask(task); },
+                        [this](const Task::Terminate& task) { return doTask(task); },
                     },
                     inputTask.taskVariant);
 
-                //std::this_thread::sleep_for(50ms);
+                // std::this_thread::sleep_for(50ms);
             }
         }
 #endif

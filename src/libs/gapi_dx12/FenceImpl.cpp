@@ -49,7 +49,7 @@ namespace RR
 
                 cpuValue_++;
 
-                //Todo reverse dependecies;
+                // Todo reverse dependecies;
                 queue.Signal(*this, cpuValue_);
             }
 
