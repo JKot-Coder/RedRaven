@@ -22,8 +22,6 @@ namespace RR
             DeviceContext();
             ~DeviceContext();
 
-            static constexpr uint32_t MaxPossible = 0xFFFFFF;
-
             void Init(uint32_t gpuFramesBuffered, uint32_t submitFramesBuffered);
             void Terminate();
 
