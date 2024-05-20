@@ -150,7 +150,7 @@ namespace RR::GAPI::DX12::D3DUtils
         output.SampleDesc = {1, 0};
         output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         output.BufferCount = description.bufferCount;
-        output.Scaling = DXGI_SCALING_STRETCH;
+        output.Scaling = DXGI_SCALING_NONE;
         output.SwapEffect = swapEffect;
         output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
         output.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;

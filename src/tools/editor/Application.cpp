@@ -2,7 +2,6 @@
 
 // #include <Windows.h>
 
-#include "imgui_impl/ImguiPlatformImpl.hpp"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <imgui.h>
@@ -158,7 +157,7 @@ namespace RR
         g_done = true;
     }
 
-    void ResizeCallback(const Platform::Window&, const Vector2i& size)
+    void Application::resizeCallback(const Platform::Window&, const Vector2i& size)
     {
         WaitForLastSubmittedFrame();
         CleanupRenderTarget();
@@ -173,6 +172,8 @@ namespace RR
         swindex = 0;
 
         CreateRenderTarget();
+
+        draw(deviceContext, 0.00001f);
     }
 
     int Application::Run()
@@ -191,7 +192,7 @@ namespace RR
         if (!window)
             return 1;
 
-        window->OnResize.Subscribe<ResizeCallback>();
+        window->OnResize.Subscribe<Application, &Application::resizeCallback>(this);
         window->OnClose.Subscribe<CloseCallback>();
 
         // Initialize Direct3D
@@ -205,7 +206,7 @@ namespace RR
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        (void)io;
+
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
@@ -229,7 +230,6 @@ namespace RR
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        ImguiPlatfomImpl imguiPlatformInput;
         // Setup Platform/Renderer backends
         imguiPlatformInput.Init(window, true);
 
@@ -257,11 +257,6 @@ namespace RR
         // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
         // IM_ASSERT(font != nullptr);
 
-        // Our state
-        bool show_demo_window = true;
-        bool show_another_window = false;
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
         // Main loop
         const auto& toolkit = Platform::Toolkit::Instance();
         float dt = 1.0f / 60.0f;
@@ -270,100 +265,7 @@ namespace RR
         {
             Platform::Toolkit::Instance().PoolEvents();
 
-            deviceContext.ExecuteAsync(
-                [&](GAPI::Device& device) {
-                    std::ignore = device;
-
-                    // Start the Dear ImGui frame
-                    ImGui_ImplDX12_NewFrame();
-                    imguiPlatformInput.NewFrame(dt);
-
-                    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-                    if (show_demo_window)
-                        ImGui::ShowDemoWindow(&show_demo_window);
-
-                    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-                    {
-                        static float f = 0.0f;
-                        static int counter = 0;
-
-                        ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-                        ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
-                        ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-                        ImGui::Checkbox("Another Window", &show_another_window);
-
-                        ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-                        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-                        if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-                            counter++;
-                        ImGui::SameLine();
-                        ImGui::Text("counter = %d", counter);
-
-                        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-                        ImGui::End();
-                    }
-
-                    // 3. Show another simple window.
-                    if (show_another_window)
-                    {
-                        ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-                        ImGui::Text("Hello from another window!");
-                        if (ImGui::Button("Close Me"))
-                            show_another_window = false;
-                        ImGui::End();
-                    }
-
-                    // Rendering
-                    ImGui::Render();
-                });
-
-            UINT backBufferIdx = swindex; //           g_pSwapChain->GetCurrentBackBufferIndex();
-
-            deviceContext.ExecuteAsync(
-                [backBufferIdx, clear_color](GAPI::Device& device) {
-                    std::ignore = device;
-
-                    D3D12_RESOURCE_BARRIER barrier = {};
-                    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-                    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-                    barrier.Transition.pResource = g_mainRenderTargetResource[backBufferIdx];
-                    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-                    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-                    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-                    // Render Dear ImGui graphics
-
-                    g_CommandList->ClearRenderTargetView(g_frameBuffers[backBufferIdx]->GetDescription().renderTargetViews[0], Vector4(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w));
-
-                    g_pd3dCommandList->ResourceBarrier(1, &barrier);
-                    g_CommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
-                    g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
-
-                    auto ctx = std::any_cast<ID3D12GraphicsCommandList4*>(g_CommandList->GetNativeHandle());
-                    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), ctx);
-
-                    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-                    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-
-                    g_pd3dCommandList->ResourceBarrier(1, &barrier);
-                    g_CommandList->Close();
-                });
-
-            swindex = (++swindex % NUM_BACK_BUFFERS);
-
-            deviceContext.Submit(g_CommandQueue, g_CommandList);
-
-            // Update and Render additional Platform Windows
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-            {
-                // ImGui::UpdatePlatformWindows();
-                //   ImGui::RenderPlatformWindowsDefault(nullptr, (void*)g_pd3dCommandList);
-            }
-
-            deviceContext.Present(g_pSwapChain);
-            deviceContext.MoveToNextFrame(g_CommandQueue);
+            draw(deviceContext, dt);
 
             float current_time = (float)toolkit.GetTime();
             dt = (current_time - last_time);
@@ -386,6 +288,107 @@ namespace RR
         window = nullptr;
 
         return 0;
+    }
+
+    void Application::draw(Render::DeviceContext& deviceContext, float dt)
+    {
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+        deviceContext.ExecuteAsync(
+            [&, this](GAPI::Device& device) {
+                std::ignore = device;
+
+                // Start the Dear ImGui frame
+                ImGui_ImplDX12_NewFrame();
+                imguiPlatformInput.NewFrame(dt);
+
+                // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+                if (show_demo_window)
+                    ImGui::ShowDemoWindow(&show_demo_window);
+
+                // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+                {
+                    static float f = 0.0f;
+                    static int counter = 0;
+
+                    ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+
+                    ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
+                    ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
+                    ImGui::Checkbox("Another Window", &show_another_window);
+
+                    ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+                    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+                    if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
+                        counter++;
+                    ImGui::SameLine();
+                    ImGui::Text("counter = %d", counter);
+
+                    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                    ImGui::End();
+                }
+
+                // 3. Show another simple window.
+                if (show_another_window)
+                {
+                    ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+                    ImGui::Text("Hello from another window!");
+                    if (ImGui::Button("Close Me"))
+                        show_another_window = false;
+                    ImGui::End();
+                }
+
+                // Rendering
+                ImGui::Render();
+            });
+
+        UINT backBufferIdx = swindex; //           g_pSwapChain->GetCurrentBackBufferIndex();
+
+        deviceContext.ExecuteAsync(
+            [backBufferIdx, clear_color](GAPI::Device& device) {
+                std::ignore = device;
+
+                D3D12_RESOURCE_BARRIER barrier = {};
+                barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                barrier.Transition.pResource = g_mainRenderTargetResource[backBufferIdx];
+                barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+                // Render Dear ImGui graphics
+
+                g_CommandList->ClearRenderTargetView(g_frameBuffers[backBufferIdx]->GetDescription().renderTargetViews[0], Vector4(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w));
+
+                g_pd3dCommandList->ResourceBarrier(1, &barrier);
+                g_CommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
+                g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+
+                auto ctx = std::any_cast<ID3D12GraphicsCommandList4*>(g_CommandList->GetNativeHandle());
+                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), ctx);
+
+                barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+
+                g_pd3dCommandList->ResourceBarrier(1, &barrier);
+                g_CommandList->Close();
+            });
+
+        swindex = (++swindex % NUM_BACK_BUFFERS);
+
+        deviceContext.Submit(g_CommandQueue, g_CommandList);
+
+        ImGuiIO& io = ImGui::GetIO();
+        // Update and Render additional Platform Windows
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            // ImGui::UpdatePlatformWindows();
+            //   ImGui::RenderPlatformWindowsDefault(nullptr, (void*)g_pd3dCommandList);
+        }
+
+        deviceContext.Present(g_pSwapChain);
+        deviceContext.MoveToNextFrame(g_CommandQueue);
     }
 
     void Application::init()
