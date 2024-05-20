@@ -1,4 +1,4 @@
-#include "Math.hpp"
+#include "VectorMath.hpp"
 
 namespace RR
 {
@@ -19,5 +19,4 @@ namespace RR
         pi = pi.ToDegree();
         c = pi.ToDegree();
     }
-
 }

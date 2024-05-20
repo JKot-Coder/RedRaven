@@ -1,3 +1,4 @@
+subdir('math')
 subdir('common')
 subdir('platform')
 subdir('gapi')

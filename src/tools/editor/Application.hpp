@@ -1,7 +1,7 @@
 #pragma once
 
 #include "imgui_impl/ImguiPlatformImpl.hpp"
-#include "math/Math.hpp"
+#include "math/ForwardDeclarations.hpp"
 
 namespace RR
 {

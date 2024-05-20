@@ -12,6 +12,8 @@
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 
+#include "math/VectorMath.hpp"
+
 namespace RR::GAPI::DX12
 {
     namespace

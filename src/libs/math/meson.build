@@ -1,6 +1,7 @@
 math_src = files(
     'Math.cpp',
     'Math.hpp',
+    'VectorMath.hpp',
     'VecMath.h',
 )
 

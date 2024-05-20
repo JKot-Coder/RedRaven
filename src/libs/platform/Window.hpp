@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Event.hpp"
-#include "math/Math.hpp"
+#include "math/VectorMath.hpp"
 #include <any>
 
 namespace RR::Platform

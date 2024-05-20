@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/Window.hpp"
+#include "math/ForwardDeclarations.hpp"
 
 struct GLFWwindow;
 
