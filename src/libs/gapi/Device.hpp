@@ -26,15 +26,9 @@ namespace RR
             {
             public:
                 Description() = default;
-
-                Description(uint32_t gpuFramesBuffered, DebugMode debugMode)
-                    : gpuFramesBuffered(gpuFramesBuffered),
-                      debugMode(debugMode)
-                {
-                }
+                Description(DebugMode debugMode) : debugMode(debugMode) { }
 
             public:
-                uint32_t gpuFramesBuffered = 0;
                 DebugMode debugMode = DebugMode::Retail;
             };
 
