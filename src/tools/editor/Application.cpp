@@ -369,9 +369,7 @@ namespace RR
             }
 
             deviceContext.Present(g_pSwapChain);
-
             deviceContext.MoveToNextFrame(g_CommandQueue);
-            deviceContext.WaitForGpu(g_CommandQueue);
 
             float current_time = (float)toolkit.GetTime();
             dt = (current_time - last_time);
