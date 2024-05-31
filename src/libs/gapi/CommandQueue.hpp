@@ -30,6 +30,8 @@ namespace RR
 
             // TODO temporary
             virtual std::any GetNativeHandle() const = 0;
+            virtual void Signal(const std::shared_ptr<Fence>& fence) = 0;
+            virtual void Signal(const std::shared_ptr<Fence>& fence, uint64_t value) = 0;
             virtual void Submit(const std::shared_ptr<CommandList>& commandList) = 0;
             virtual void WaitForGpu() = 0;
         };
@@ -43,6 +45,8 @@ namespace RR
             CommandQueue() = delete;
 
             inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
+            inline void Signal(const std::shared_ptr<Fence>& fence) { return GetPrivateImpl()->Signal(fence); }
+            inline void Signal(const std::shared_ptr<Fence>& fence, uint64_t value) { return GetPrivateImpl()->Signal(fence, value); }
             inline void Submit(const std::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
 
             inline CommandQueueType GetCommandQueueType() const { return type_; }

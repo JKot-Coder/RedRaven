@@ -26,10 +26,12 @@ namespace RR
             void Submit(const std::shared_ptr<CommandList>& commandList) override;
             void Submit(CommandListImpl& commandList, bool waitForPendingUploads);
 
-            // Todo private?
-            void Signal(const FenceImpl& fence, uint64_t value);
-            void Wait(const FenceImpl& fence, uint64_t value);
+            void Signal(const std::shared_ptr<Fence>& fence) override;
+            void Signal(const std::shared_ptr<Fence>& fence, uint64_t value) override;
+            void Signal(FenceImpl& fence);
+            void Signal(FenceImpl& fence, uint64_t value);
 
+            void Wait(const FenceImpl& fence, uint64_t value);
             void WaitForGpu() override;
 
             const ComSharedPtr<ID3D12CommandQueue>& GetD3DObject() const { return D3DCommandQueue_; }

@@ -47,7 +47,7 @@ namespace RR
             ComSharedPtr<IDXGIFactory2> dxgiFactory_;
             ComSharedPtr<IDXGIAdapter1> dxgiAdapter_;
             ComSharedPtr<ID3D12Device> d3dDevice_;
-            std::shared_ptr<FenceImpl> gpuWaitFence_;
+            std::unique_ptr<FenceImpl> gpuWaitFence_;
         };
     }
 }

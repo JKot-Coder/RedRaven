@@ -16,11 +16,8 @@ namespace RR
 
             void Init(const U8String& name);
 
-            void Signal(const std::shared_ptr<CommandQueue>& queue) override;
-            void Signal(CommandQueueImpl& queue);
-
-            void SyncCPU(std::optional<uint64_t> value, uint32_t timeout = INFINITY_WAIT) const override;
-            void SyncGPU(const std::shared_ptr<CommandQueue>& queue) const override;
+            uint64_t Increment();
+            void Wait(std::optional<uint64_t> value, uint32_t timeout = INFINITY_WAIT) const override;
 
             uint64_t GetGpuValue() const override
             {

@@ -88,7 +88,27 @@ namespace RR
                 Submit(*commandListImpl, true);
             }
 
-            void CommandQueueImpl::Signal(const FenceImpl& fence, uint64_t value)
+            void CommandQueueImpl::Signal(const std::shared_ptr<Fence>& fence)
+            {
+                ASSERT(fence);
+                ASSERT(fence->GetPrivateImpl<FenceImpl>());
+                Signal(*fence->GetPrivateImpl<FenceImpl>());
+            }
+
+            void CommandQueueImpl::Signal(const std::shared_ptr<Fence>& fence, uint64_t value)
+            {
+                ASSERT(fence);
+                ASSERT(fence->GetPrivateImpl<FenceImpl>());
+                Signal(*fence->GetPrivateImpl<FenceImpl>(), value);
+            }
+
+            void CommandQueueImpl::Signal(FenceImpl& fence)
+            {
+                ASSERT(D3DCommandQueue_);
+                D3DCall(D3DCommandQueue_->Signal(fence.GetD3DObject().get(), fence.Increment()));
+            }
+
+            void CommandQueueImpl::Signal(FenceImpl& fence, uint64_t value)
             {
                 ASSERT(D3DCommandQueue_);
                 D3DCall(D3DCommandQueue_->Signal(fence.GetD3DObject().get(), value));
@@ -103,8 +123,8 @@ namespace RR
             void CommandQueueImpl::WaitForGpu()
             {
                 ASSERT(fence_);
-                fence_->Signal(*this);
-                fence_->SyncCPU(std::nullopt);
+                Signal(*fence_.get());
+                fence_->Wait(std::nullopt);
             }
         };
     }

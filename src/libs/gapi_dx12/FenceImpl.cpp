@@ -33,27 +33,16 @@ namespace RR
                 ASSERT(event_);
             }
 
-            void FenceImpl::Signal(const std::shared_ptr<CommandQueue>& queue)
-            {
-                ASSERT(queue);
-
-                const auto queueImpl = queue->GetPrivateImpl<CommandQueueImpl>();
-                ASSERT(queueImpl);
-
-                Signal(*queueImpl);
-            }
-
-            void FenceImpl::Signal(CommandQueueImpl& queue)
+            uint64_t FenceImpl::Increment()
             {
                 ASSERT(D3DFence_);
 
                 cpuValue_++;
 
-                // Todo reverse dependecies;
-                queue.Signal(*this, cpuValue_);
+                return cpuValue_;
             }
 
-            void FenceImpl::SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const
+            void FenceImpl::Wait(std::optional<uint64_t> value, uint32_t timeout) const
             {
                 ASSERT(D3DFence_);
 
@@ -66,16 +55,6 @@ namespace RR
                     D3DCall(D3DFence_->SetEventOnCompletion(syncVal, event_));
                     D3DCall(WaitForSingleObject(event_, timeout == INFINITY_WAIT ? INFINITE : timeout));
                 }
-            }
-
-            void FenceImpl::SyncGPU(const std::shared_ptr<CommandQueue>& queue) const
-            {
-                ASSERT(D3DFence_);
-                ASSERT(queue);
-                ASSERT(dynamic_cast<CommandQueueImpl*>(queue->GetPrivateImpl()));
-
-                const auto& queueImpl = static_cast<CommandQueueImpl*>(queue->GetPrivateImpl());
-                queueImpl->Wait(*this, cpuValue_);
             }
         }
     }

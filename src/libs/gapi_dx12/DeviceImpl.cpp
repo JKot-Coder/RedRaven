@@ -134,9 +134,10 @@ namespace RR
             void DeviceImpl::waitForGpu()
             {
                 ASSERT_IS_DEVICE_INITED;
+                ASSERT(gpuWaitFence_);
 
-                gpuWaitFence_->Signal(*DeviceContext::GetGraphicsCommandQueue().get());
-                gpuWaitFence_->SyncCPU(std::nullopt);
+                DeviceContext::GetGraphicsCommandQueue()->Signal(*gpuWaitFence_);
+                gpuWaitFence_->Wait(std::nullopt);
                 ResourceReleaseContext::ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 

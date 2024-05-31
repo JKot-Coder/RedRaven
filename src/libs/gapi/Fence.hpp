@@ -14,10 +14,7 @@ namespace RR
         public:
             virtual ~IFence() = default;
 
-            virtual void Signal(const std::shared_ptr<CommandQueue>& queue) = 0;
-
-            virtual void SyncCPU(std::optional<uint64_t> value, uint32_t timeout) const = 0;
-            virtual void SyncGPU(const std::shared_ptr<CommandQueue>& queue) const = 0;
+            virtual void Wait(std::optional<uint64_t> value, uint32_t timeout) const = 0;
 
             virtual uint64_t GetGpuValue() const = 0;
             virtual uint64_t GetCpuValue() const = 0;
@@ -29,9 +26,7 @@ namespace RR
             using SharedPtr = std::shared_ptr<Fence>;
             using SharedConstPtr = std::shared_ptr<const Fence>;
 
-            inline void Signal(const std::shared_ptr<CommandQueue>& queue) { return GetPrivateImpl()->Signal(queue); }
-            inline void SyncCPU(std::optional<uint64_t> value, uint32_t timeout = GAPI::INFINITY_WAIT) const { return GetPrivateImpl()->SyncCPU(value, timeout); }
-            inline void SyncGPU(const std::shared_ptr<CommandQueue>& queue) const { return GetPrivateImpl()->SyncGPU(queue); }
+            inline void Wait(std::optional<uint64_t> value, uint32_t timeout = GAPI::INFINITY_WAIT) const { return GetPrivateImpl()->Wait(value, timeout); }
 
             inline uint64_t GetGpuValue() const { return GetPrivateImpl()->GetGpuValue(); }
             inline uint64_t GetCpuValue() const { return GetPrivateImpl()->GetCpuValue(); }

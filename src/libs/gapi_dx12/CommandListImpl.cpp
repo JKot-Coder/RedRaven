@@ -5,6 +5,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/Texture.hpp"
 
+#include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/FramebufferImpl.hpp"
@@ -104,7 +105,8 @@ namespace RR::GAPI::DX12
 
     void CommandListImpl::CommandAllocatorsPool::ResetAfterSubmit(CommandQueueImpl& commandQueue)
     {
-        return fence_->Signal(commandQueue);
+        ASSERT(fence_);
+        return commandQueue.Signal(*fence_);
     }
 
     CommandListImpl::CommandListImpl(const CommandListType commandListType)

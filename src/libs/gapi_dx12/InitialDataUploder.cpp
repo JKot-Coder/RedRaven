@@ -134,9 +134,10 @@ namespace RR::GAPI::DX12
         if (!pendingDefferedUploads)
             return;
 
+        ASSERT(fence_);
         commandList_->Close();
         commandQueue_->Submit(*commandList_.get(), false);
-        fence_->Signal(*commandQueue_.get());
+        commandQueue_->Signal(*fence_.get());
 
         pendingDefferedUploads = 0;
     }

@@ -106,7 +106,7 @@ namespace RR
                                        &moveToNextFrameEvent,
                                        submissionFrame = submissionFrame](GAPI::Device& device) {
                 // Schedule a Signal command in the queue.
-                fence->Signal(commandQueue);
+                commandQueue->Signal(fence);
                 if (fence->GetCpuValue() >= gpuFramesBuffered)
                 {
                     uint64_t syncFenceValue = fence->GetCpuValue() - gpuFramesBuffered;
@@ -115,7 +115,7 @@ namespace RR
                     syncFenceValue++;
 
                     // Wait GPU util frames on fly would be less then GpuFramesBuffered
-                    fence->SyncCPU(syncFenceValue);
+                    fence->Wait(syncFenceValue);
                 }
 
                 device.MoveToNextFrame(submissionFrame);
