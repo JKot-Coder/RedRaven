@@ -13,6 +13,7 @@
 #include "gapi/Framebuffer.hpp"
 #include "gapi/Texture.hpp"
 #include "render/DeviceContext.hpp"
+#include "math/Math.hpp"
 
 #include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
@@ -265,7 +266,7 @@ namespace RR
         {
             Platform::Toolkit::Instance().PoolEvents();
 
-            draw(deviceContext, dt);
+            draw(deviceContext, Max(dt, 0.00001f));
 
             float current_time = (float)toolkit.GetTime();
             dt = (current_time - last_time);
@@ -295,7 +296,7 @@ namespace RR
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         deviceContext.ExecuteAsync(
-            [&, this](GAPI::Device& device) {
+            [clear_color, dt, this](GAPI::Device& device) {
                 std::ignore = device;
 
                 // Start the Dear ImGui frame
