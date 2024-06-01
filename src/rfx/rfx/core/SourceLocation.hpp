@@ -68,7 +68,7 @@ namespace RR
             // So simplify construction. In normal usage it's safer to use make methods over constructing directly.
             static PathInfo makeSplit(const U8String& foundPathIn, const U8String& uniqueIdentity)
             {
-                ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0)
+                ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0);
                 return PathInfo {Type::Split, foundPathIn, uniqueIdentity};
             }
 
@@ -76,12 +76,12 @@ namespace RR
             static PathInfo makeTokenPaste() { return PathInfo {Type::TokenPaste, "token paste", U8String()}; }
             static PathInfo makeNormal(const U8String& foundPathIn, const U8String& uniqueIdentity)
             {
-                ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0)
+                ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0);
                 return PathInfo {Type::Normal, foundPathIn, uniqueIdentity};
             }
             static PathInfo makePath(const U8String& pathIn)
             {
-                ASSERT(pathIn.length() > 0)
+                ASSERT(pathIn.length() > 0);
                 return PathInfo {Type::FoundPath, pathIn, U8String()};
             }
             static PathInfo makeCommandLine() { return PathInfo {Type::CommandLine, "command line", U8String()}; }

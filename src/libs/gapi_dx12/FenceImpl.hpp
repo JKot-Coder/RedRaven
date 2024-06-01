@@ -21,7 +21,7 @@ namespace RR
 
             uint64_t GetGpuValue() const override
             {
-                ASSERT(D3DFence_)
+                ASSERT(D3DFence_);
                 return D3DFence_->GetCompletedValue();
             }
             uint64_t GetCpuValue() const override { return cpuValue_; }

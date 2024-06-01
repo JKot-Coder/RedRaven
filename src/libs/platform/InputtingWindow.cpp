@@ -89,7 +89,7 @@ namespace OpenDemo
         /*
         void InputtingWindow::SubscribeOnKeyboardEvents(Inputting::IKeyboardListener* listener)
         {
-            ASSERT(listener)
+            ASSERT(listener);
 
             for (auto& item : _keyboardListeners)
             {
@@ -102,7 +102,7 @@ namespace OpenDemo
 
         void InputtingWindow::UnSubscribeOnKeyboardEvents(const Inputting::IKeyboardListener* listener)
         {
-            ASSERT(listener)
+            ASSERT(listener);
 
             for (auto it = _keyboardListeners.begin(); it != _keyboardListeners.end();)
             {
@@ -116,7 +116,7 @@ namespace OpenDemo
         }
         void InputtingWindow::SubscribeOnMouseEvents(Inputting::IMouseListener* listener)
         {
-            ASSERT(listener)
+            ASSERT(listener);
 
             for (auto& item : _mouseListeners)
             {
@@ -129,7 +129,7 @@ namespace OpenDemo
 
         void InputtingWindow::UnSubscribeOnMouseEvents(const Inputting::IMouseListener* listener)
         {
-            ASSERT(listener)
+            ASSERT(listener);
 
             for (auto it = _mouseListeners.begin(); it != _mouseListeners.end();)
             {

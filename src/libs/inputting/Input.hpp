@@ -109,7 +109,7 @@ namespace RR
 
             inline bool IsDown(InputKey inputKey) const
             {
-                ASSERT(inputKey >= 0 && inputKey < ikMAX)
+                ASSERT(inputKey >= 0 && inputKey < ikMAX);
 
                 return _down[inputKey];
             }

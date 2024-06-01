@@ -137,7 +137,7 @@ namespace RR
         // Shared vectors functions
         T& operator[](int index) const
         {
-            ASSERT(index >= 0 && index < SIZE)
+            ASSERT(index >= 0 && index < SIZE);
             return ((T*)this)[index];
         }
 
@@ -341,7 +341,7 @@ namespace RR
         // Shared vectors functions
         T& operator[](int index) const
         {
-            ASSERT(index >= 0 && index < SIZE)
+            ASSERT(index >= 0 && index < SIZE);
             return ((T*)this)[index];
         }
 
@@ -527,7 +527,7 @@ namespace RR
         // Shared vectors functions
         T& operator[](int index) const
         {
-            ASSERT(index >= 0 && index < SIZE)
+            ASSERT(index >= 0 && index < SIZE);
             return ((T*)this)[index];
         }
 

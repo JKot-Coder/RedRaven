@@ -76,9 +76,9 @@ namespace RR
 
         Submission::~Submission()
         {
-            ASSERT(!device_)
+            ASSERT(!device_);
 #if ENABLE_SUBMISSION_THREAD
-            ASSERT(!submissionThread_.IsJoinable())
+            ASSERT(!submissionThread_.IsJoinable());
 #endif
         }
 
@@ -129,7 +129,7 @@ namespace RR
         void Submission::putTask(T&& taskVariant)
         {
 #if ENABLE_SUBMISSION_THREAD
-            ASSERT(submissionThread_.IsJoinable())
+            ASSERT(submissionThread_.IsJoinable());
 
             Task task;
             task.taskVariant = std::move(taskVariant);
@@ -209,7 +209,7 @@ namespace RR
             inputTaskChannel_->Close();
 
 #if ENABLE_SUBMISSION_THREAD
-            ASSERT(submissionThread_.IsJoinable())
+            ASSERT(submissionThread_.IsJoinable());
             submissionThread_.Join();
 #endif
 
@@ -239,7 +239,7 @@ namespace RR
 
                 const auto& inputTask = inputTaskOptional.value();
 
-                ASSERT(device_)
+                ASSERT(device_);
 
                 std::visit(
                     overloaded {

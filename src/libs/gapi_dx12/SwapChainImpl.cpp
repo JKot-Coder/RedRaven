@@ -35,9 +35,9 @@ namespace RR
             {
                 UNUSED(device); // Not used
                 UNUSED(name); // Swapchain don't have name
-                ASSERT(device)
-                ASSERT(dxgiFactory)
-                ASSERT(commandQueue)
+                ASSERT(device);
+                ASSERT(dxgiFactory);
+                ASSERT(commandQueue);
                 ASSERT(CheckSwapchainDescription(description));
 
                 // TODO move here?
@@ -61,8 +61,8 @@ namespace RR
 
             void SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
             {
-                ASSERT(D3DSwapChain_)
-                ASSERT(CheckSwapchainDescription(description))
+                ASSERT(D3DSwapChain_);
+                ASSERT(CheckSwapchainDescription(description));
 
                 DXGI_SWAP_CHAIN_DESC1 currentSwapChainDesc;
                 D3DCall(D3DSwapChain_->GetDesc1(&currentSwapChainDesc));

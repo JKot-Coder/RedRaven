@@ -32,7 +32,7 @@ namespace RR
                     if (allocated_ >= numDescriptors_)
                         LOG_FATAL("Not enough memory in descriptorHeap: {}", name_);
 
-                    ASSERT(!freeChunks_.empty())
+                    ASSERT(!freeChunks_.empty());
 
                     Chunk* currentChunk = freeChunks_.front();
 
@@ -97,13 +97,13 @@ namespace RR
 
                     CD3DX12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const
                     {
-                        ASSERT(heap_)
+                        ASSERT(heap_);
                         return cpuHandle_;
                     }
 
                     CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const
                     {
-                        ASSERT(heap_)
+                        ASSERT(heap_);
                         return gpuHandle_;
                     }
 
@@ -116,7 +116,7 @@ namespace RR
                           cpuHandle_(cpuHandle),
                           gpuHandle_(gpuHandle)
                     {
-                        ASSERT(heap_)
+                        ASSERT(heap_);
                     }
 
                     void swap(Descriptor& other) noexcept
@@ -162,14 +162,14 @@ namespace RR
 
                     inline uint32_t Allocate()
                     {
-                        ASSERT(cursor_ < SIZE)
+                        ASSERT(cursor_ < SIZE);
                         return static_cast<uint32_t>(indices_[cursor_++]);
                     }
 
                     inline void Free(uint32_t index)
                     {
-                        ASSERT(index < Chunk::SIZE)
-                        ASSERT(index >= Offset && index < Offset + Chunk::SIZE)
+                        ASSERT(index < Chunk::SIZE);
+                        ASSERT(index >= Offset && index < Offset + Chunk::SIZE);
                         const uint8_t indexInChunk = static_cast<uint8_t>(index - Offset);
 
                         indices_[--cursor_] = indexInChunk;
@@ -187,13 +187,13 @@ namespace RR
 
                 CD3DX12_CPU_DESCRIPTOR_HANDLE getCpuHandle(uint32_t index) const
                 {
-                    ASSERT(d3d12Heap_)
+                    ASSERT(d3d12Heap_);
                     return CD3DX12_CPU_DESCRIPTOR_HANDLE(d3d12Heap_->GetCPUDescriptorHandleForHeapStart(), index, descriptorSize_);
                 }
 
                 CD3DX12_GPU_DESCRIPTOR_HANDLE getGpuHandle(uint32_t index) const
                 {
-                    ASSERT(d3d12Heap_)
+                    ASSERT(d3d12Heap_);
                     return CD3DX12_GPU_DESCRIPTOR_HANDLE(d3d12Heap_->GetGPUDescriptorHandleForHeapStart(), index, descriptorSize_);
                 }
 

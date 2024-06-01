@@ -11,7 +11,7 @@ namespace RR
                                                      size_t)
 #endif
         {
-            ASSERT(size)
+            ASSERT(size);
 
             if (GetRemained() < size)
                 return nullptr;
@@ -48,8 +48,8 @@ namespace RR
 
         INLINE void* LinearAllocator::Allocate(const std::size_t size)
         {
-            ASSERT(size)
-            ASSERT(size <= MAX_PAGE_SIZE)
+            ASSERT(size);
+            ASSERT(size <= MAX_PAGE_SIZE);
 
             for (;;)
             {
@@ -84,9 +84,9 @@ namespace RR
 
         INLINE void LinearAllocator::addNewPage(size_t size)
         {
-            ASSERT(size)
-            ASSERT(size <= MAX_PAGE_SIZE)
-            ASSERT(IsPowerOfTwo(size))
+            ASSERT(size);
+            ASSERT(size <= MAX_PAGE_SIZE);
+            ASSERT(IsPowerOfTwo(size));
 
             pages_.push_back(std::make_unique<Page>(size));
         }

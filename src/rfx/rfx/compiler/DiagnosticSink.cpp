@@ -73,7 +73,7 @@ namespace RR
                 auto tail = utf8::iterator<U8String::const_iterator>(string.end(), string.begin(), string.end());
 
                 size_t length = utf8::distance(string.begin(), string.end());
-                ASSERT(length > maxLength)
+                ASSERT(length > maxLength);
 
                 size_t reduceLength = length - maxLength;
 
@@ -131,7 +131,7 @@ namespace RR
                     {
                         const U8String ellipsis = "...";
                         const U8String spaces = "   ";
-                        ASSERT(ellipsis.length() == spaces.length())
+                        ASSERT(ellipsis.length() == spaces.length());
                         const auto ellipsisLen = ellipsis.length();
 
                         // We use the caretLine length if we have a token, because it will have underscores such that it's end is the end of

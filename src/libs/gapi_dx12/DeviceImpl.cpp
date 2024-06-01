@@ -209,7 +209,7 @@ namespace RR
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
-                ASSERT(commandList)
+                ASSERT(commandList);
 
                 Log::Print::Info("submit\n");
                 const auto& commandQueue = getCommandQueue(CommandQueueType::Graphics);
@@ -218,7 +218,7 @@ namespace RR
                 const auto commandListImpl = reinterpret_cast<const CommandListImpl*>(commandList->GetPrivateImpl());
 
                 const auto D3DCommandList = commandListImpl->GetD3DObject();
-                ASSERT(D3DCommandList)
+                ASSERT(D3DCommandList);
 
                 ID3D12CommandList* ppCommandLists[] = { D3DCommandList.get() };
                 commandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
@@ -280,7 +280,7 @@ namespace RR
 
             bool DeviceImpl::createDevice()
             {
-                ASSERT_IS_CREATION_THREAD
+                ASSERT_IS_CREATION_THREAD;
 
                 UINT dxgiFactoryFlags = 0;
 

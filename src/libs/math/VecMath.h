@@ -29,7 +29,7 @@ namespace RR
 
         inline float& operator[](int index) const
         {
-            ASSERT(index >= 0 && index <= 1)
+            ASSERT(index >= 0 && index <= 1);
             return ((float*)this)[index];
         }
 
@@ -183,7 +183,7 @@ namespace RR
 
         inline float& operator[](int index) const
         {
-            ASSERT(index >= 0 && index <= 2)
+            ASSERT(index >= 0 && index <= 2);
             return ((float*)this)[index];
         }
 

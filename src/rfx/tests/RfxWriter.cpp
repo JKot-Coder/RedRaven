@@ -42,7 +42,7 @@ namespace RR::Rfx
         void RfxWriter::write(std::string path) const
         {
             std::ofstream ofs(path);
-            ASSERT(ofs.is_open())
+            ASSERT(ofs.is_open());
 
             const auto& compileResult = compileResult_;
 
@@ -62,7 +62,7 @@ namespace RR::Rfx
         void RfxWriter2::write(std::string path) const
         {
             std::ofstream ofs(path);
-            ASSERT(ofs.is_open())
+            ASSERT(ofs.is_open());
 
             ofs << "exit_status:" << commandResult_.exitstatus << "\n";
             ofs << "output:\n"

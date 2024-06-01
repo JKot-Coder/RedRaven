@@ -130,7 +130,7 @@ namespace RR::Rfx::Tests
 
         void CommandTestParser::skipBlockComment()
         {
-            ASSERT(peek() == '*')
+            ASSERT(peek() == '*');
 
             for (;;)
             {

@@ -151,7 +151,7 @@ namespace RR::GAPI::DX12
 
     void CommandListImpl::CopyGpuResource(const ResourceImpl& source, const ResourceImpl& dest)
     {
-        ASSERT(D3DCommandList_)
+        ASSERT(D3DCommandList_);
 
         // Todo add copy checks and move up to rendercontext;
 
@@ -199,7 +199,7 @@ namespace RR::GAPI::DX12
                 destHeapType == D3D12_HEAP_TYPE_READBACK)
                 copyDirection = CopyDirection::Reaback;
 
-            ASSERT(copyDirection != CopyDirection::Unknown)
+            ASSERT(copyDirection != CopyDirection::Unknown);
             if (copyDirection == CopyDirection::Unknown)
                 return;
 

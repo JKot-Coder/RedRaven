@@ -55,7 +55,7 @@ namespace RR
             template <typename iterator>
             bool checkForEscapedNewline(iterator cursor, iterator end)
             {
-                ASSERT(*cursor == '\\')
+                ASSERT(*cursor == '\\');
 
                 U8Glyph next = 0;
 
@@ -258,8 +258,8 @@ namespace RR
             : sourceView_(sourceView),
               context_(context)
         {
-            ASSERT(sourceView)
-            ASSERT(context)
+            ASSERT(sourceView);
+            ASSERT(context);
 
             auto content = sourceView->GetContent();
 
@@ -381,7 +381,7 @@ namespace RR
 
         Token::Type Lexer::scanToken()
         {
-            ASSERT(!isReachEOF())
+            ASSERT(!isReachEOF());
 
             switch (peek())
             {
@@ -701,7 +701,7 @@ namespace RR
 
         void Lexer::handleWhiteSpace()
         {
-            ASSERT(isWhiteSpace(peek()))
+            ASSERT(isWhiteSpace(peek()));
 
             for (;;)
             {
@@ -714,7 +714,7 @@ namespace RR
 
         void Lexer::handleLineComment()
         {
-            ASSERT(peek() == '/')
+            ASSERT(peek() == '/');
 
             for (;;)
             {
@@ -727,7 +727,7 @@ namespace RR
 
         void Lexer::handleBlockComment()
         {
-            ASSERT(peek() == '*')
+            ASSERT(peek() == '*');
 
             for (;;)
             {
@@ -756,7 +756,7 @@ namespace RR
 
         void Lexer::handleNewlineSequence()
         {
-            ASSERT(isNewLineChar(*cursor_))
+            ASSERT(isNewLineChar(*cursor_));
 
             const auto first = peek();
 

@@ -788,7 +788,7 @@ namespace RR::Rfx
 
     RResult Parser::Parse(RSONValue& root)
     {
-        ASSERT(impl_)
+        ASSERT(impl_);
         return impl_->Parse(root);
     }
 }

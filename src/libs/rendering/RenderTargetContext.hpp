@@ -19,7 +19,7 @@ namespace OpenDemo
         public:
             virtual inline void SetDepthStencilTarget(const RenderTarget::RenderTargetDescription& renderTargetDescription)
             {
-                ASSERT(renderTargetDescription.isDepthTarget)
+                ASSERT(renderTargetDescription.isDepthTarget);
 
                 if (_width == -1 && _height == -1)
                 {
@@ -27,8 +27,8 @@ namespace OpenDemo
                     _height = renderTargetDescription.texture->GetHeight();
                 }
 
-                ASSERT(renderTargetDescription.texture->GetHeight() == _height)
-                ASSERT(renderTargetDescription.texture->GetWidth() == _width)
+                ASSERT(renderTargetDescription.texture->GetHeight() == _height);
+                ASSERT(renderTargetDescription.texture->GetWidth() == _width);
 
                 _depthStencil = renderTargetDescription;
             }
@@ -41,8 +41,8 @@ namespace OpenDemo
                     _height = renderTargetDescription.texture->GetHeight();
                 }
 
-                ASSERT(renderTargetDescription.texture->GetHeight() == _height)
-                ASSERT(renderTargetDescription.texture->GetWidth() == _width)
+                ASSERT(renderTargetDescription.texture->GetHeight() == _height);
+                ASSERT(renderTargetDescription.texture->GetWidth() == _width);
 
                 _colorTargets[index] = renderTargetDescription;
             }

@@ -89,7 +89,7 @@ namespace RR::GAPI
         void updateMultisampleAndResolution(const GpuResourceView::SharedPtr rv)
         {
             const auto& resourceDesc = getResourceDescription(rv);
-            ASSERT(resourceDesc.dimension != GpuResourceDimension::Buffer)
+            ASSERT(resourceDesc.dimension != GpuResourceDimension::Buffer);
 
             const auto mipLevel = rv->GetDescription().texture.mipLevel;
             const auto targetWidth = resourceDesc.GetWidth(mipLevel);

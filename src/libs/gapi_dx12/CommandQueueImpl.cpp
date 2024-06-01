@@ -38,7 +38,7 @@ namespace RR
 
             void CommandQueueImpl::Init(const U8String& name)
             {
-                ASSERT(!D3DCommandQueue_)
+                ASSERT(!D3DCommandQueue_);
 
                 const auto& device = DeviceContext::GetDevice();
 

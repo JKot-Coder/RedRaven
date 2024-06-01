@@ -177,7 +177,7 @@ namespace RR
 
         GAPI::CommandQueue::SharedPtr DeviceContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const
         {
-            ASSERT(inited_)
+            ASSERT(inited_);
 
             auto resource = GAPI::CommandQueue::Create(type, name);
             submission_->GetIMultiThreadDevice().lock()->InitCommandQueue(*resource.get());

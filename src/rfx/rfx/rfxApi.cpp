@@ -759,7 +759,7 @@ namespace RR::Rfx
 
     RFX_API RfxResult GetComplierInstance(ICompiler** compiler)
     {
-        ASSERT(compiler)
+        ASSERT(compiler);
 
         *compiler = Compiler::GetInstance();
         if (!*compiler)

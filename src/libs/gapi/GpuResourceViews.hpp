@@ -100,7 +100,7 @@ namespace RR
                   description_(description),
                   gpuResource_(gpuResource)
             {
-                ASSERT(!gpuResource_.expired())
+                ASSERT(!gpuResource_.expired());
             }
 
         private:
