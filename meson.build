@@ -4,6 +4,10 @@ if get_option('buildtype').startswith('debug')
   add_project_arguments('-DDEBUG', language : 'cpp')
 endif
 
+if get_option('buildtype').startswith('release')
+  add_project_arguments('-DRELEASE', language : 'cpp')
+endif
+
 if not meson.get_compiler('cpp').get_id().startswith('msvc')
   add_project_arguments('-fms-extensions', language: 'cpp')
   add_project_arguments('-fms-compatibility', language: 'cpp')
