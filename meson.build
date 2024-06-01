@@ -1,4 +1,4 @@
-project('RedRaven', 'cpp', default_options : ['werror=true', 'warning_level=3', 'cpp_std=c++17', 'flecs:build_example=disabled'])
+project('RedRaven', 'cpp', default_options : ['werror=true', 'warning_level=3', 'cpp_std=c++17'])
 
 if get_option('buildtype').startswith('debug')
   add_project_arguments('-DDEBUG', language : 'cpp')
