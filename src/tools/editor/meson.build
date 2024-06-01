@@ -1,3 +1,5 @@
+subdir('editor_ecs')
+
 editor_src = files(
     'Application.cpp',
     'Application.hpp',
