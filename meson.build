@@ -8,7 +8,7 @@ if not meson.get_compiler('cpp').get_id().startswith('msvc')
   add_project_arguments('-fms-extensions', language: 'cpp')
   add_project_arguments('-fms-compatibility', language: 'cpp')
   add_project_arguments('-Wno-language-extension-token', language: 'cpp')
-  add_project_arguments('-Wno-nested-anon-types', language: 'cpp') 
+  add_project_arguments('-Wno-nested-anon-types', language: 'cpp')
   add_project_arguments('-Wno-unused-function', language: 'cpp')
 endif
 
@@ -19,7 +19,7 @@ if target_machine.system().startswith('windows')
 endif
 #get_option('b_sanitize').startswith('address') and meson.get_compiler('cpp').get_id().startswith('clang')
 
-if get_option('buildtype').startswith('debug') 
+if get_option('buildtype').startswith('debug')
   add_project_arguments(['-fsanitize=address'], language: 'cpp')
   add_project_arguments(['-fsanitize=address'], language: 'c')
   add_project_link_arguments(['-fsanitize=address'], language: 'cpp')
