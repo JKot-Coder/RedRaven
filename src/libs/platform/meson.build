@@ -13,7 +13,7 @@ platform_src += files(
     'glfw/GlfwToolkit.hpp',
 )
 
-glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'])
+glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'], default_options : ['install=true'])
 
 platform_lib = static_library(
     'platform',

@@ -17,3 +17,5 @@ option('win', type : 'feature', value : 'auto')
 
 # frameworks (renderer + platform)
 option('allegro5', type : 'feature', value : 'auto')
+
+option('install', type : 'boolean', value : false, description : 'Install IMGUI?')

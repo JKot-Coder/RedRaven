@@ -13,7 +13,7 @@ editor_src += files(
 #     'imgui_impl/ImguiRenderImpl.hpp',
 )
 
-imgui_dep = dependency('imgui', fallback: ['imgui', 'imgui_dep'])
+imgui_dep = dependency('imgui', fallback: ['imgui', 'imgui_dep'], default_options : ['install=true'])
 
 executable('editor',
   editor_src,
