@@ -219,6 +219,7 @@ namespace RR::GAPI::DX12
             ASSERT(gpuResourceDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER);
             ASSERT(cpuResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER);
             ASSERT(cpuResourceDesc.Width == itermediateSize);
+            UNUSED(cpuResourceDesc);
 
             for (uint32_t index = 0; index < numSubresources; index++)
             {
@@ -340,6 +341,9 @@ namespace RR::GAPI::DX12
     {
         ASSERT(resource);
         ASSERT(resourceData);
+        UNUSED(resource);
+        UNUSED(resourceData);
+
         // const bool readback = false;
         // Todo add copy checks and move up to rendercontext;
 

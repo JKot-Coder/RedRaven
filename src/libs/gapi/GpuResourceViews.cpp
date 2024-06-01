@@ -29,12 +29,16 @@ namespace RR
 
             void check(const GpuResourceViewDescription& desc, const std::weak_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
             {
-                ASSERT(!gpuResource.expired());
-                const auto sharedGpuResource = gpuResource.lock();
-                const auto& resourceDescription = sharedGpuResource->GetDescription();
+                #if ENABLE_ASSERTS
+                    ASSERT(!gpuResource.expired());
+                    const auto sharedGpuResource = gpuResource.lock();
+                    const auto& resourceDescription = sharedGpuResource->GetDescription();
 
-                ASSERT(isCompatable(desc, resourceDescription));
-                ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
+                    ASSERT(isCompatable(desc, resourceDescription));
+                    ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
+                #else
+                    UNUSED(desc, gpuResource, requiredBindFlags);
+                #endif
             }
         }
 

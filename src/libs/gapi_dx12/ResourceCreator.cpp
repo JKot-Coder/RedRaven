@@ -53,6 +53,7 @@ namespace RR::GAPI::DX12
         if (resource.GetCommandQueueType() == CommandQueueType::Graphics)
         {
             static bool alreadyInited = false;
+            UNUSED(alreadyInited);
             ASSERT(!alreadyInited); // Only one graphics command queue are alloved.
             alreadyInited = true;
 

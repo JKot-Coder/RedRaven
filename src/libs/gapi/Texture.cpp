@@ -16,6 +16,7 @@ namespace RR::GAPI
             if (viewFormat == GpuResourceFormat::Unknown)
             {
                 const bool isDepthStencil = GpuResourceFormatInfo::IsDepth(resourceFormat) && GpuResourceFormatInfo::IsStencil(resourceFormat);
+                UNUSED(isDepthStencil);
                 ASSERT(!isDepthStencil);
 
                 return resourceFormat;

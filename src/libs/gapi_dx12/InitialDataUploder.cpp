@@ -72,15 +72,13 @@ namespace RR::GAPI::DX12
 
         ComSharedPtr<ID3D12Resource> d3dresource;
         D3D12MA::Allocation* allocation;
-        HRESULT hr = DeviceContext::GetAllocator()->CreateResource(
+        D3DCall(DeviceContext::GetAllocator()->CreateResource(
             &allocationDesc,
             &intermediateResourceDesc,
             defaultState,
             NULL,
             &allocation,
-            IID_PPV_ARGS(d3dresource.put()));
-
-        ASSERT(SUCCEEDED(hr));
+            IID_PPV_ARGS(d3dresource.put())));
 
         ResourceImpl intermediateResource;
         intermediateResource.Init(d3dresource, allocation, "(initial data)");

@@ -37,6 +37,7 @@ namespace RR
                 const auto gpuFenceValue = fence_->GetGpuValue();
                 while (!queue_.empty())
                 {
+                    UNUSED(gpuFenceValue);
                     ASSERT(queue_.front().cpuFrameIndex >= gpuFenceValue);
 
                     auto& allocation = queue_.front().allocation;

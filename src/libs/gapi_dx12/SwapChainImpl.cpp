@@ -33,13 +33,12 @@ namespace RR
 
             void SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
             {
+                UNUSED(device); // Not used
+                UNUSED(name); // Swapchain don't have name
                 ASSERT(device)
                 ASSERT(dxgiFactory)
                 ASSERT(commandQueue)
                 ASSERT(CheckSwapchainDescription(description));
-
-                // Swapchain don't have name
-                std::ignore = name;
 
                 // TODO move here?
                 const auto& targetSwapChainDesc = D3DUtils::GetDxgiSwapChainDesc1(description, DXGI_SWAP_EFFECT_FLIP_DISCARD);
