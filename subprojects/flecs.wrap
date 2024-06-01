@@ -1,0 +1,8 @@
+[wrap-file]
+directory = flecs-4.0.0-beta
+source_url = https://github.com/SanderMertens/flecs/archive/refs/tags/v4.0.0-beta.tar.gz
+source_filename = flecs-4.0.0-beta.tar.gz
+source_hash = f4711c2fd2e80cf09c3240d12aaf7953cfea6431b333d9f5d4f151545e8d18dd
+
+[provide]
+flecs = flecs_dep
