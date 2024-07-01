@@ -74,8 +74,8 @@ set( COMMON_SRC
 add_library(${PROJECT_NAME}  ${COMMON_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
-target_link_libraries(${PROJECT_NAME} fmt utf8cpp backward_object stl)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.hpp)
+target_link_libraries(${PROJECT_NAME} fmt::fmt utf8cpp stl)
 
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
