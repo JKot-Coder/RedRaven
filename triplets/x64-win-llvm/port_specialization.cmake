@@ -1,0 +1,7 @@
+if(PORT MATCHES "^(imgui)$")
+    message(STATUS "Falling back to cl!")
+    unset(VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
+    unset(VCPKG_PLATFORM_TOOLSET)
+    unset(VCPKG_VS_CMAKE_GENERATOR)
+    set(ENV{PATH} "${LLVM_PATH_BACKUP}")
+endif()
