@@ -19,7 +19,10 @@ set(CMAKE_CXX_EXTENSIONS ON)
 # ms-extensions
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
   add_compile_options(-fms-extensions)
+  add_compile_options(-fms-compatibility)
   add_compile_options(-Wno-language-extension-token)
+  add_compile_options(-Wno-nested-anon-types)
+  add_compile_options(-Wno-unused-function)
 endif()
 
 # Force MSVC to enable c++17
