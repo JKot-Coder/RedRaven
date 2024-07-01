@@ -4,8 +4,13 @@ editor_ecs_src = files(
 
 flecs_dep = dependency('flecs', fallback: ['flecs', 'flecs_dep'], default_options: ['build_example=disabled'])
 
-shared_library('editor_ecs',
+editor_ecs_lib = shared_library('editor_ecs',
   editor_ecs_src,
-  dependencies: [flecs_dep],
+  dependencies: [],
   install : true
  )
+
+editor_ecs_dep = declare_dependency(
+    dependencies: [],
+    link_with: editor_ecs_lib,
+)
