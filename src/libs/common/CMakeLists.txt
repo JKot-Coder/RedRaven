@@ -46,8 +46,6 @@ set( COMMON_SRC
     LinearAllocator.cpp
     LinearAllocator.hpp
     LinearAllocator.inl
-    Math.cpp
-    Math.hpp
     NonCopyableMovable.hpp
     OnScopeExit.hpp
     pch/pch.hpp
@@ -60,7 +58,6 @@ set( COMMON_SRC
     String.hpp
     Time.cpp
     Time.hpp
-    VecMath.h
     ErrorNo.cpp
     ErrorNo.hpp
 )
