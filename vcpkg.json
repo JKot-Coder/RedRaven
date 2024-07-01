@@ -1,0 +1,37 @@
+{
+  "dependencies": [
+    "cxxopts",
+    "fmt",
+    "glfw3",
+    "eastl",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "dx12-binding"
+      ]
+    }
+  ],
+  "overrides": [
+    {
+      "name": "fmt",
+      "version": "10.2.1"
+    },
+    {
+      "name": "glfw3",
+      "version": "3.3.7"
+    },
+    {
+      "name": "cxxopts",
+      "version": "3.0.0"
+    },
+    {
+      "name": "imgui",
+      "version": "1.89.9"
+    },
+    {
+      "name": "eastl",
+      "version": "3.21.12"
+    }
+  ]
+}
