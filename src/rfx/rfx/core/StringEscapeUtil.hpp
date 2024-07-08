@@ -22,7 +22,7 @@ namespace RR
 
             /// Takes slice and adds any appropriate escaping (for example C++/C type escaping for special characters like '\', '"' and if not ascii will write out as hex sequence)
             /// Does not append quotes
-            static void AppendEscaped(Style style, UnownedStringSlice slice, U8String& out);
+            static void AppendEscaped(Style style, UnownedStringSlice slice, std::string& out);
             /*
             /// Given a slice append it unescaped
             /// Does not consume surrounding quotes
@@ -38,7 +38,7 @@ namespace RR
             static RfxResult AppendUnquoted(Style style, UnownedStringSlice slice, std::stringstream& out);
             */
             /// Append with quotes (even if not needed)
-            static void AppendQuoted(Style style, UnownedStringSlice slice, U8String& out);
+            static void AppendQuoted(Style style, UnownedStringSlice slice, std::string& out);
             /*
             /// True is slice is quoted
             static bool IsQuoted(Style style, UnownedStringSlice& slice);

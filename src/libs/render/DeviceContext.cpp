@@ -145,7 +145,7 @@ namespace RR
             submission_->ExecuteAwait([&swapchain, &description](GAPI::Device&) { swapchain->Reset(description); });
         }
 
-        GAPI::CopyCommandList::SharedPtr DeviceContext::CreateCopyCommandList(const U8String& name) const
+        GAPI::CopyCommandList::SharedPtr DeviceContext::CreateCopyCommandList(const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -155,7 +155,7 @@ namespace RR
             return resource;
         }
 
-        GAPI::ComputeCommandList::SharedPtr DeviceContext::CreateComputeCommandList(const U8String& name) const
+        GAPI::ComputeCommandList::SharedPtr DeviceContext::CreateComputeCommandList(const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -165,7 +165,7 @@ namespace RR
             return resource;
         }
 
-        GAPI::GraphicsCommandList::SharedPtr DeviceContext::CreateGraphicsCommandList(const U8String& name) const
+        GAPI::GraphicsCommandList::SharedPtr DeviceContext::CreateGraphicsCommandList(const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -175,7 +175,7 @@ namespace RR
             return resource;
         }
 
-        GAPI::CommandQueue::SharedPtr DeviceContext::CreteCommandQueue(GAPI::CommandQueueType type, const U8String& name) const
+        GAPI::CommandQueue::SharedPtr DeviceContext::CreteCommandQueue(GAPI::CommandQueueType type, const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -195,7 +195,7 @@ namespace RR
             return resource;
         }
 
-        GAPI::Fence::SharedPtr DeviceContext::CreateFence(const U8String& name) const
+        GAPI::Fence::SharedPtr DeviceContext::CreateFence(const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -214,7 +214,7 @@ namespace RR
         GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(
             const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,
-            const U8String& name) const
+            const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -227,7 +227,7 @@ namespace RR
         GAPI::Texture::SharedPtr DeviceContext::CreateTexture(
             const GAPI::GpuResourceDescription& desc,
             IDataBuffer::SharedPtr initialData,
-            const U8String& name) const
+            const std::string& name) const
         {
             ASSERT(inited_);
 
@@ -241,7 +241,7 @@ namespace RR
             const std::shared_ptr<GAPI::SwapChain>& swapchain,
             uint32_t backBufferIndex,
             const GAPI::GpuResourceDescription& desc,
-            const U8String& name) const
+            const std::string& name) const
         {
             ASSERT(inited_);
             ASSERT(swapchain);
@@ -303,7 +303,7 @@ namespace RR
             return resource;
         }
 
-        GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const U8String& name) const
+        GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const std::string& name) const
         {
             ASSERT(inited_);
 

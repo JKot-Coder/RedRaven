@@ -147,5 +147,5 @@ namespace RR::Common
         ArithmeticOverflow = RR_MAKE_ERROR(RR_FACILITY_CORE, 9), //! Arithmetic result exceeded range.
     };
 
-    U8String GetErrorMessage(RResult result);
+    std::string GetErrorMessage(RResult result);
 }

@@ -35,7 +35,7 @@ namespace RR
         class Processor
         {
         public:
-            virtual std::vector<U8String> GetListOfExtensions() const = 0;
+            virtual std::vector<std::string> GetListOfExtensions() const = 0;
             // virtual Common::RResult CollectDependencies
             virtual Common::RResult Process(const Asset& asset, const ProcessorContext& context, std::vector<ProcessorOutput>& outputs) const = 0;
         };

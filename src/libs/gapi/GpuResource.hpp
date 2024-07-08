@@ -138,7 +138,7 @@ namespace RR
             uint32_t GetCompressionBlockWidth(GpuResourceFormat format);
             uint32_t GetCompressionBlockHeight(GpuResourceFormat format);
 
-            U8String ToString(GpuResourceFormat format);
+            std::string ToString(GpuResourceFormat format);
         };
 
         enum class MultisampleType : uint32_t
@@ -499,7 +499,7 @@ namespace RR
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
-            GpuResource(GpuResourceDescription description, IDataBuffer::SharedPtr initialData, const U8String& name)
+            GpuResource(GpuResourceDescription description, IDataBuffer::SharedPtr initialData, const std::string& name)
                 : Resource(Object::Type::GpuResource, name),
                   description_(description),
                   initialData_(initialData) {};

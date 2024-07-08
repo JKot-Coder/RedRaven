@@ -32,12 +32,12 @@ namespace RR
             inline uint64_t GetCpuValue() const { return GetPrivateImpl()->GetCpuValue(); }
 
         private:
-            static SharedPtr Create(const U8String& name)
+            static SharedPtr Create(const std::string& name)
             {
                 return SharedPtr(new Fence(name));
             }
 
-            Fence(const U8String& name)
+            Fence(const std::string& name)
                 : Resource(Object::Type::Fence, name)
             {
             }

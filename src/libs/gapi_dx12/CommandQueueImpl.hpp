@@ -22,7 +22,7 @@ namespace RR
 
             void ImmediateD3DObjectRelease();
 
-            void Init(const U8String& name);
+            void Init(const std::string& name);
             void Submit(const std::shared_ptr<CommandList>& commandList) override;
             void Submit(CommandListImpl& commandList, bool waitForPendingUploads);
 

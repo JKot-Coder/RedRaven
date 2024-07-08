@@ -155,7 +155,7 @@ namespace RR::Rfx
 
             if (refVal.type != RSONValue::Type::Invalid)
             {
-                U8String reverseAbsolutePath = "";
+                std::string reverseAbsolutePath = "";
 
                 // Traverce to root appending namespaces to get absolute path
                 for (auto j = i; j != stack_.rend() - 1; j++)
@@ -169,7 +169,7 @@ namespace RR::Rfx
                 if (!reverseAbsolutePath.empty())
                 {
                     size_t absolutePathLen = reverseAbsolutePath.length() + value.referenceValue.path.length();
-                    auto buf = (U8Char*)context_->allocator.Allocate(absolutePathLen);
+                    auto buf = (char*)context_->allocator.Allocate(absolutePathLen);
                     std::copy(reverseAbsolutePath.rbegin(), reverseAbsolutePath.rend(), buf);
                     std::copy(value.referenceValue.path.begin(), value.referenceValue.path.end(), buf + reverseAbsolutePath.length());
 

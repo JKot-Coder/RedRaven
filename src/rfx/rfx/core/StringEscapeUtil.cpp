@@ -15,7 +15,7 @@ namespace RR
                 return (v <= 9) ? char(v + '0') : char(v - 10 + 'A');
             }
 
-            char getCppEscapedChar(U8Glyph c)
+            char getCppEscapedChar(char32_t c)
             {
                 switch (c)
                 {
@@ -34,7 +34,7 @@ namespace RR
                 }
             }
 
-            char getJSONEscapedChar(U8Glyph c)
+            char getJSONEscapedChar(char32_t c)
             {
                 switch (c)
                 {
@@ -87,7 +87,7 @@ namespace RR
                    ioSlice = UnownedStringSlice(cur + count, ioSlice.end());
                    return codePoint;
                }*/
-            void appendHex16(uint32_t value, U8String& out)
+            void appendHex16(uint32_t value, std::string& out)
             {
                 // Let's go with hex
                 char buf[] = "\\u0000";
@@ -100,7 +100,7 @@ namespace RR
                 out.append(buf, 6);
             }
 
-            void appendHex8(uint32_t value, U8String& out)
+            void appendHex8(uint32_t value, std::string& out)
             {
                 // Let's go with hex
                 char buf[5] = "\\0x0";
@@ -126,10 +126,10 @@ namespace RR
 
                 /// Takes slice and adds any appropriate escaping (for example C++/C type escaping for special characters like '\', '"' and if not ascii will write out as hex sequence)
                 /// Does not append quotes
-                virtual void AppendEscaped(UnownedStringSlice slice, U8String& out) const = 0;
+                virtual void AppendEscaped(UnownedStringSlice slice, std::string& out) const = 0;
                 /// Given a slice append it unescaped
                 /// Does not consume surrounding quotes
-                // virtual void AppendUnescaped(UnownedStringSlice slice, U8String& out) const = 0;
+                // virtual void AppendUnescaped(UnownedStringSlice slice, std::string& out) const = 0;
 
                 /// Lex quoted text.
                 /// The first character of cursor should be the quoteCharacter.
@@ -158,14 +158,14 @@ namespace RR
 
                 //  virtual bool isEscapingNeeded(UnownedStringSlice slice) override;
                 //   virtual bool isUnescapingNeeeded(UnownedStringSlice slice) override;
-                virtual void AppendEscaped(UnownedStringSlice slice, U8String& out) const override;
-                // virtual void AppendUnescaped(UnownedStringSlice slice, U8String& out) const override;
+                virtual void AppendEscaped(UnownedStringSlice slice, std::string& out) const override;
+                // virtual void AppendUnescaped(UnownedStringSlice slice, std::string& out) const override;
                 //  virtual RfxResult lexQuoted(const char* cursor, const char** outCursor) override;
 
                 CppStringEscapeHandler() : Super('"') { }
             };
 
-            void CppStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, U8String& out) const
+            void CppStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, std::string& out) const
             {
                 const auto start = slice.begin();
                 auto cur = start;
@@ -190,7 +190,7 @@ namespace RR
                         appendHex16(uint32_t(ch), out);
                     }
                     else
-                        utf8::append(static_cast<U8Glyph>(ch), out);
+                        utf8::append(static_cast<char32_t>(ch), out);
                 }
             }
 
@@ -208,14 +208,14 @@ namespace RR
                 }*/
                 //  virtual bool isEscapingNeeded(UnownedStringSlice slice) override;
                 // virtual bool isUnescapingNeeeded(UnownedStringSlice slice) override;
-                virtual void AppendEscaped(UnownedStringSlice slice, U8String& out) const override;
+                virtual void AppendEscaped(UnownedStringSlice slice, std::string& out) const override;
                 // virtual RfxResult appendUnescaped(UnownedStringSlice slice, StringBuilder& out) override;
                 // virtual RfxResult lexQuoted(const char* cursor, const char** outCursor) override;
 
                 JSONStringEscapeHandler() : Super('"') { }
             };
 
-            void JSONStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, U8String& out) const
+            void JSONStringEscapeHandler::AppendEscaped(UnownedStringSlice slice, std::string& out) const
             {
                 const auto start = slice.begin();
                 auto cur = start;
@@ -236,7 +236,7 @@ namespace RR
                         appendHex16(uint32_t(ch), out);
                     }
                     else
-                        utf8::append(static_cast<U8Glyph>(ch), out);
+                        utf8::append(static_cast<char32_t>(ch), out);
                 }
             }
 
@@ -258,7 +258,7 @@ namespace RR
 
         /// Takes slice and adds any appropriate escaping (for example C++/C type escaping for special characters like '\', '"' and if not ascii will write out as hex sequence)
         /// Does not append quotes
-        void StringEscapeUtil::AppendEscaped(Style style, UnownedStringSlice slice, U8String& out)
+        void StringEscapeUtil::AppendEscaped(Style style, UnownedStringSlice slice, std::string& out)
         {
             const auto handler = getHandler(style);
             handler->AppendEscaped(slice, out);
@@ -279,7 +279,7 @@ namespace RR
         RfxResult StringEscapeUtil::AppendUnquoted(Style style, UnownedStringSlice slice, std::stringstream& out);
         */
         /// Append with quotes (even if not needed)
-        void StringEscapeUtil::AppendQuoted(Style style, UnownedStringSlice slice, U8String& out)
+        void StringEscapeUtil::AppendQuoted(Style style, UnownedStringSlice slice, std::string& out)
         {
             const auto handler = getHandler(style);
             out.push_back(handler->GetQuoteChar());

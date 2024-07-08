@@ -2,7 +2,7 @@
 
 namespace RR::Common
 {
-    U8String GetErrorMessage(RResult result)
+    std::string GetErrorMessage(RResult result)
     {
         switch (result)
         {

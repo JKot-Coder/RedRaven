@@ -29,7 +29,7 @@ namespace RR::Rfx
 
                 ofs << outputName << ":[\n";
 
-                U8String line;
+                std::string line;
                 std::istringstream logStream((char*)output->GetBufferPointer());
 
                 while (std::getline(logStream, line, '\n'))

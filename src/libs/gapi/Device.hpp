@@ -94,12 +94,12 @@ namespace RR
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
         private:
-            static SharedPtr Create(const Description& description, const U8String& name)
+            static SharedPtr Create(const Description& description, const std::string& name)
             {
                 return std::shared_ptr<Device>(new Device(description, name));
             }
 
-            Device(const Description& description, const U8String& name)
+            Device(const Description& description, const std::string& name)
                 : Resource(Object::Type::Device, name),
                   description_(description)
             {

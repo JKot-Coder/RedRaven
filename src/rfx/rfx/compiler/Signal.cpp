@@ -8,7 +8,7 @@ namespace RR
     {
         namespace
         {
-            U8String getSignalTypeAsText(SignalType type)
+            std::string getSignalTypeAsText(SignalType type)
             {
                 switch (type)
                 {
@@ -25,7 +25,7 @@ namespace RR
 
         // One point of having as a single function is a choke point both for handling (allowing different
         // handling scenarios) as well as a choke point to set a breakpoint to catch 'signal' types
-        void handleSignal(SignalType type, const U8String& message)
+        void handleSignal(SignalType type, const std::string& message)
         {
             const auto& formatedMsg = fmt::format("{0}: {1}", getSignalTypeAsText(type), message);
 

@@ -85,8 +85,8 @@ namespace RR::Rfx
                 getOutputString().push_back(' ');
         }
 
-        void push_back(U8Char ch) { getOutputString().push_back(ch); }
-        void append(const U8String& str) { getOutputString().append(str); }
+        void push_back(char ch) { getOutputString().push_back(ch); }
+        void append(const std::string& str) { getOutputString().append(str); }
         void append(const char* str, size_t count) { getOutputString().append(str, count); }
         template <class InputIterator>
         void append(InputIterator first, InputIterator last) { getOutputString().append(first, last); }
@@ -129,7 +129,7 @@ namespace RR::Rfx
                         currentUniqueIndentity_ = sourceViewUniqueIdentity;
                         auto const path = onlyRelativePaths_ ? sourceView->GetSourceFile()->GetPathInfo().foundPath : sourceViewUniqueIdentity;
 
-                        U8String escapedPath;
+                        std::string escapedPath;
                         StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, path, escapedPath);
 
                         currentSourceFile_ = token.sourceLocation.GetSourceView()->GetSourceFile();
@@ -183,10 +183,10 @@ namespace RR::Rfx
                 case Token::Type::StringLiteral:
                 case Token::Type::CharLiteral:
                 {
-                    U8String escapedToken;
+                    std::string escapedToken;
                     StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::Cpp, token.stringSlice, escapedToken);
 
-                    auto appendQuoted = [](char quotingChar, const U8String& token) { return quotingChar + token + quotingChar; };
+                    auto appendQuoted = [](char quotingChar, const std::string& token) { return quotingChar + token + quotingChar; };
 
                     char quotingChar = token.type == Token::Type::StringLiteral ? '\"' : '\'';
                     append(appendQuoted(quotingChar, escapedToken));
@@ -203,7 +203,7 @@ namespace RR::Rfx
 
     private:
         uint32_t line_ = 1;
-        U8String currentUniqueIndentity_;
+        std::string currentUniqueIndentity_;
         std::shared_ptr<SourceView> currentSourceView_;
         std::shared_ptr<SourceFile> currentSourceFile_;
         bool onlyRelativePaths_;
@@ -238,8 +238,8 @@ namespace RR::Rfx
                 case RSONValue::Type::Object:
                 {
                     const bool isArray = value.isArray();
-                    const U8Char openBracket = isArray ? '[' : '{';
-                    const U8Char closeBracket = isArray ? ']' : '}';
+                    const char openBracket = isArray ? '[' : '{';
+                    const char closeBracket = isArray ? ']' : '}';
 
                     push_back(openBracket);
                     push_back('\n');
@@ -392,7 +392,7 @@ namespace RR::Rfx
 
         ComPtr<IBlob> ReadAllTokens()
         {
-            U8String result;
+            std::string result;
 
             for (;;)
             {
@@ -406,23 +406,23 @@ namespace RR::Rfx
                         continue;
                 }
 
-                U8String tokenString;
+                std::string tokenString;
                 UnownedStringSlice tokenStringSlice = token.stringSlice;
 
                 if (token.type == Token::Type::BlockComment)
                 {
                     tokenString = token.stringSlice.asString();
 
-                    U8String::size_type pos = 0;
+                    std::string::size_type pos = 0;
                     // Make consisten line breaks for multiline comments to pass tests
-                    while ((pos = tokenString.find("\r\n", pos)) != U8String::npos)
+                    while ((pos = tokenString.find("\r\n", pos)) != std::string::npos)
                         tokenString.replace(pos, 2, "\n");
 
                     tokenStringSlice = tokenString;
                 }
 
                 // TODO: really slow implementation
-                U8String escapedToken;
+                std::string escapedToken;
                 StringEscapeUtil::AppendEscaped(StringEscapeUtil::Style::JSON, tokenStringSlice, escapedToken);
 
                 result += fmt::format("{{\"Type\":\"{0}\", \"Content\":\"{1}\", \"Line\":{2}, \"Column\":{3}}},\n",

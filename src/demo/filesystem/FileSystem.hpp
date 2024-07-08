@@ -35,7 +35,7 @@ namespace RR
                 return instance;
             }
 
-            std::shared_ptr<Common::Stream> Open(const U8String& fileName, Mode RW = Mode::READ) const;
+            std::shared_ptr<Common::Stream> Open(const std::string& fileName, Mode RW = Mode::READ) const;
 
         private:
             static std::unique_ptr<FileSystem> instance;

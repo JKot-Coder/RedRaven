@@ -36,7 +36,7 @@ namespace RR::AssetImporter::Processors
             LOG_FATAL("Could not get rfx compiler instance");
     }
 
-    std::vector<U8String> Effect::GetListOfExtensions() const
+    std::vector<std::string> Effect::GetListOfExtensions() const
     {
         return {".rfx"};
     }

@@ -9,7 +9,7 @@ namespace RR
         class Exception : public std::exception
         {
         public:
-            Exception::Exception(const U8String& msg)
+            Exception::Exception(const std::string& msg)
                 : _message(msg)
             {
             }
@@ -19,7 +19,7 @@ namespace RR
             }
 
         private:
-            U8String _message;
+            std::string _message;
         };
     }
 }

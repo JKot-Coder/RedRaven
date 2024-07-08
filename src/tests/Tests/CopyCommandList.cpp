@@ -191,7 +191,7 @@ namespace RR
                     GAPI::GpuResourceDimension::Texture3D,
                     GAPI::GpuResourceDimension::TextureCube};
 
-                const std::array<U8String, 4> dimensionTitles = {
+                const std::array<std::string, 4> dimensionTitles = {
                     "Texture1D",
                     "Texture2D",
                     "Texture3D",

@@ -32,7 +32,7 @@ namespace RR
 #endif
             }
 
-            void Logger::Log(Level level, const U8String& msg)
+            void Logger::Log(Level level, const std::string& msg)
             {
                 std::ignore = level; // TODO
 

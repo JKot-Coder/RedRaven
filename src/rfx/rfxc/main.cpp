@@ -46,7 +46,7 @@ namespace RR
             }
 
             auto stream = std::istringstream(outputString);
-            U8String line;
+            std::string line;
             while (getline(stream, line))
                 std::cout << "    " << line << "\n";
 
@@ -62,7 +62,7 @@ namespace RR
     }
 
     void writeResultToOutputs(const Common::ComPtr<Rfx::ICompileResult>& compileResult,
-                              const stl::enum_array<U8String, RR::Rfx::CompileOutputType>& outputs)
+                              const stl::enum_array<std::string, RR::Rfx::CompileOutputType>& outputs)
     {
         if (!compileResult)
             return;
@@ -171,7 +171,7 @@ namespace RR
 
             compileRequestDesc.inputFile = inputFiles.front().c_str();
 
-            stl::enum_array<U8String, RR::Rfx::CompileOutputType> outputs;
+            stl::enum_array<std::string, RR::Rfx::CompileOutputType> outputs;
 
             compileRequestDesc.compilerOptions.onlyRelativePaths = parseResult.count("Rl");
 

@@ -20,7 +20,7 @@ namespace RR
                 Thread(Thread&& other) noexcept : thread_(std::move(other.thread_)) {};
 
                 template <class Function, class... Args>
-                explicit Thread(const U8String& threadName, Function&& f, Args&&... args) : thread_(f, args...) { SetName(threadName); }
+                explicit Thread(const std::string& threadName, Function&& f, Args&&... args) : thread_(f, args...) { SetName(threadName); }
 
                 Thread& operator=(Thread&& other) noexcept
                 {
@@ -28,7 +28,7 @@ namespace RR
                     return *this;
                 }
 
-                inline void SetName(const U8String& threadName)
+                inline void SetName(const std::string& threadName)
                 {
 #ifdef OS_WINDOWS
                     const auto& wThreadName = StringConversions::UTF8ToWString(threadName);

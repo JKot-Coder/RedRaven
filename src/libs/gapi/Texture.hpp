@@ -22,12 +22,12 @@ namespace RR::GAPI
         static SharedPtr Create(
             const GpuResourceDescription& description,
             IDataBuffer::SharedPtr initialData,
-            const U8String& name)
+            const std::string& name)
         {
             return SharedPtr(new Texture(description, initialData, name));
         }
 
-        Texture(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
+        Texture(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const std::string& name)
             : GpuResource(description, initialData, name)
         {
             if (!description.IsTexture())

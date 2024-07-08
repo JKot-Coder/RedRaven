@@ -29,21 +29,21 @@ namespace RR
                 template <typename T>
                 struct D3D12TypeName
                 {
-                    static U8String name;
+                    static std::string name;
                 };
 
-                template <> U8String D3D12TypeName<ID3D12Fence>::name = "Fence";
-                template <> U8String D3D12TypeName<ID3D12Device>::name = "Device";
-                template <> U8String D3D12TypeName<ID3D12GraphicsCommandList>::name = "GraphicsCommandList";
-                template <> U8String D3D12TypeName<ID3D12GraphicsCommandList4>::name = "GraphicsCommandList4";
-                template <> U8String D3D12TypeName<ID3D12CommandAllocator>::name = "Allocator";
-                template <> U8String D3D12TypeName<ID3D12Resource>::name = "GPUResource";
-                template <> U8String D3D12TypeName<ID3D12DescriptorHeap>::name = "DescriptorHeap";
-                template <> U8String D3D12TypeName<ID3D12CommandQueue>::name = "CommandQueue";
-                template <> U8String D3D12TypeName<IDXGISwapChain3>::name = "SwapChain3";
+                template <> std::string D3D12TypeName<ID3D12Fence>::name = "Fence";
+                template <> std::string D3D12TypeName<ID3D12Device>::name = "Device";
+                template <> std::string D3D12TypeName<ID3D12GraphicsCommandList>::name = "GraphicsCommandList";
+                template <> std::string D3D12TypeName<ID3D12GraphicsCommandList4>::name = "GraphicsCommandList4";
+                template <> std::string D3D12TypeName<ID3D12CommandAllocator>::name = "Allocator";
+                template <> std::string D3D12TypeName<ID3D12Resource>::name = "GPUResource";
+                template <> std::string D3D12TypeName<ID3D12DescriptorHeap>::name = "DescriptorHeap";
+                template <> std::string D3D12TypeName<ID3D12CommandQueue>::name = "CommandQueue";
+                template <> std::string D3D12TypeName<IDXGISwapChain3>::name = "SwapChain3";
 
                 template <typename T>
-                inline U8String GetTypeName()
+                inline std::string GetTypeName()
                 {
                     using Type = typename std::remove_pointer<T>::type;
 
@@ -54,28 +54,23 @@ namespace RR
                 }
 #ifdef ENABLE_API_OBJECT_NAMES
                 template <typename T>
-                inline void SetAPIName(const T& apiObject, const U8String& name, int32_t index = -1)
+                inline void SetAPIName(const T& apiObject, const std::string& name, int32_t index = -1)
                 {
-                    if (index > 0)
-                    {
-                        apiObject->SetName(StringConversions::UTF8ToWString(fmt::format(FMT_STRING("{}::{}_{:02}"), GetTypeName<T>(), name, index)).c_str());
-                    }
-                    else
-                    {
-                        apiObject->SetName(StringConversions::UTF8ToWString(fmt::format(FMT_STRING("{}::{}"), GetTypeName<T>(), name)).c_str());
-                    }
+                   // const std::string formatedName = fmt::format((index > 0) ? "{0}::{1}_{:02}" : "{}::{}", GetTypeName<T>(), name, index);
+                    const std::string formatedName = fmt::format("{}", name);
+                    apiObject->SetName(StringConversions::UTF8ToWString(formatedName).c_str());
                 }
 #else
                 template <typename T>
-                inline void SetAPIName(const T&, const U8String&)
+                inline void SetAPIName(const T&, const std::string&)
                 {
                 }
                 template <typename T>
-                inline void SetAPIName(const T&, const U8String&, int32_t)
+                inline void SetAPIName(const T&, const std::string&, int32_t)
                 {
                 }
 #endif
-                U8String HResultToString(HRESULT hr);
+                std::string HResultToString(HRESULT hr);
 
                 D3D12_RESOURCE_FLAGS GetResourceFlags(GpuResourceBindFlags flags);
                 D3D12_RESOURCE_DESC GetResourceDesc(const GpuResourceDescription& resourceDesc);

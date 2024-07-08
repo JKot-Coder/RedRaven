@@ -12,7 +12,7 @@ namespace RR::Rfx
     {
         // Todo better implemenation
         static RResult StringToInt64(UnownedStringSlice string, int64_t& outValue) { return StringToInt64(string.asString(), outValue); }
-        static RResult StringToInt64(U8String string, int64_t& outValue)
+        static RResult StringToInt64(std::string string, int64_t& outValue)
         {
             char* end;
             errno = 0;

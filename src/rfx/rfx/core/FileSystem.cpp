@@ -11,7 +11,7 @@ namespace RR
             return fs::status(path);
         }
 
-        RfxResult OSFileSystem::GetPathUniqueIdentity(const fs::path& path, U8String& indetity) const
+        RfxResult OSFileSystem::GetPathUniqueIdentity(const fs::path& path, std::string& indetity) const
         {
             std::error_code errorcode;
             indetity = fs::canonical(path, errorcode).generic_u8string();
@@ -25,7 +25,7 @@ namespace RR
             return RfxResult::Fail;
         }
 
-        /* RfxResult OSFileSystem::CalcCombinedPath(const fs::path& fromPath, const U8String& path, fs::path& pathOut)
+        /* RfxResult OSFileSystem::CalcCombinedPath(const fs::path& fromPath, const std::string& path, fs::path& pathOut)
         {
             // Don't need to fix delimiters - because combine path handles both path delimiter types
             switch (fromPathType)

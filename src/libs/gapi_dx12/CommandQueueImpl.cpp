@@ -36,7 +36,7 @@ namespace RR
                 D3DCommandQueue_ = nullptr;
             }
 
-            void CommandQueueImpl::Init(const U8String& name)
+            void CommandQueueImpl::Init(const std::string& name)
             {
                 ASSERT(!D3DCommandQueue_);
 

@@ -332,7 +332,7 @@ namespace RR
         io.AddMousePosEvent(fmousePosition.x, fmousePosition.y);
     }
 
-    void CharCallback(const Window& window, U8Glyph ch)
+    void CharCallback(const Window& window, char32_t ch)
     {
         std::ignore = window;
 

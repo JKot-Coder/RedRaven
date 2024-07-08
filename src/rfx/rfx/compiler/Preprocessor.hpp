@@ -23,8 +23,8 @@ namespace RR
             ~Preprocessor();
 
             void PushInputFile(const std::shared_ptr<SourceFile>& sourceFile);
-            void DefineMacro(const U8String& macro);
-            void DefineMacro(const U8String& key, const U8String& value);
+            void DefineMacro(const std::string& macro);
+            void DefineMacro(const std::string& key, const std::string& value);
 
             // read the entire input into tokens
             std::vector<Token> ReadAllTokens();

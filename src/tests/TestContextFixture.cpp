@@ -151,7 +151,7 @@ namespace RR
             return GAPI::GpuResourceDescription::Texture1D(0, GAPI::GpuResourceFormat::Unknown, GAPI::GpuResourceBindFlags::ShaderResource);
         }
 
-        GAPI::Buffer::SharedPtr TestContextFixture::createBufferFromString(const char* data, const U8String& name, GAPI::GpuResourceBindFlags bindFlags)
+        GAPI::Buffer::SharedPtr TestContextFixture::createBufferFromString(const char* data, const std::string& name, GAPI::GpuResourceBindFlags bindFlags)
         {
             const auto dataBuffer = std::make_shared<DataBuffer>(strlen(data), static_cast<const void*>(data));
             const auto description = GAPI::GpuResourceDescription::Buffer(dataBuffer->Size(), bindFlags);

@@ -27,11 +27,11 @@ namespace RR
             }
 
             template <typename T>
-            U8String replaceTabWithSpaces(T string, uint32_t tabSize)
+            std::string replaceTabWithSpaces(T string, uint32_t tabSize)
             {
                 auto start = string.begin();
                 const auto end = string.end();
-                U8String out;
+                std::string out;
 
                 for (auto cur = start; cur < end;)
                 {
@@ -58,19 +58,19 @@ namespace RR
                 return out;
             }
 
-            U8String reduceLengthFromHead(size_t startIndex, const U8String& string)
+            std::string reduceLengthFromHead(size_t startIndex, const std::string& string)
             {
-                auto head = utf8::iterator<U8String::const_iterator>(string.begin(), string.begin(), string.end());
+                auto head = utf8::iterator<std::string::const_iterator>(string.begin(), string.begin(), string.end());
 
                 while (startIndex--)
                     head++;
 
-                return U8String(head.base(), string.end());
+                return std::string(head.base(), string.end());
             }
 
-            U8String reduceLengthFromTail(size_t maxLength, const U8String& string)
+            std::string reduceLengthFromTail(size_t maxLength, const std::string& string)
             {
-                auto tail = utf8::iterator<U8String::const_iterator>(string.end(), string.begin(), string.end());
+                auto tail = utf8::iterator<std::string::const_iterator>(string.end(), string.begin(), string.end());
 
                 size_t length = utf8::distance(string.begin(), string.end());
                 ASSERT(length > maxLength);
@@ -80,10 +80,10 @@ namespace RR
                 while (reduceLength--)
                     tail--;
 
-                return U8String(string.begin(), tail.base());
+                return std::string(string.begin(), tail.base());
             }
 
-            U8String sourceLocationNoteDiagnostic(const Diagnostic& diagnostic, size_t maxLineLength)
+            std::string sourceLocationNoteDiagnostic(const Diagnostic& diagnostic, size_t maxLineLength)
             {
                 const auto sourceView = diagnostic.location.GetSourceView();
                 ASSERT(sourceView);
@@ -103,13 +103,13 @@ namespace RR
                 // For now just go with 4.
                 const uint32_t tabSize = 4;
 
-                U8String lineToLocation = U8String(sourceLineSlice.begin(), diagnosticLocation);
+                std::string lineToLocation = std::string(sourceLineSlice.begin(), diagnosticLocation);
                 lineToLocation = replaceTabWithSpaces(lineToLocation, tabSize);
                 size_t caretOffset = utf8::distance(lineToLocation.begin(), lineToLocation.end());
                 caretOffset += diagnosicEOF ? 1 : 0;
 
                 auto sourceLine = replaceTabWithSpaces(sourceLineSlice, tabSize);
-                U8String caretLine;
+                std::string caretLine;
 
                 // Now the caretLine which appears underneath the sourceLine
                 {
@@ -129,8 +129,8 @@ namespace RR
 
                     if (maxLineLength > 0)
                     {
-                        const U8String ellipsis = "...";
-                        const U8String spaces = "   ";
+                        const std::string ellipsis = "...";
+                        const std::string spaces = "   ";
                         ASSERT(ellipsis.length() == spaces.length());
                         const auto ellipsisLen = ellipsis.length();
 
@@ -149,7 +149,7 @@ namespace RR
 
                         if (size_t(utf8::distance(sourceLine.begin(), sourceLine.end())) > maxLineLength)
                             sourceLine = ellipsis + reduceLengthFromTail(maxLineLength - ellipsisLen,
-                                                                         U8String(sourceLine.begin() + ellipsisLen, sourceLine.end()));
+                                                                         std::string(sourceLine.begin() + ellipsisLen, sourceLine.end()));
                     }
                 }
 
@@ -160,7 +160,7 @@ namespace RR
             }
         }
 
-        U8String GetSeverityName(Severity severity)
+        std::string GetSeverityName(Severity severity)
         {
             switch (severity)
             {
@@ -173,7 +173,7 @@ namespace RR
             }
         }
 
-        void DiagnosticSink::diagnoseImpl(const DiagnosticInfo& info, const U8String& formattedMessage)
+        void DiagnosticSink::diagnoseImpl(const DiagnosticInfo& info, const std::string& formattedMessage)
         {
             if (info.severity >= Severity::Error)
                 errorCount_++;
@@ -188,9 +188,9 @@ namespace RR
             }
         }
 
-        U8String DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic)
+        std::string DiagnosticSink::formatDiagnostic(const Diagnostic& diagnostic)
         {
-            U8String humaneLocString;
+            std::string humaneLocString;
 
             const bool includeSourceLocation = diagnostic.location.GetSourceView() != nullptr;
 
@@ -215,9 +215,9 @@ namespace RR
                                                humaneLocation.column);
             }
 
-            U8String format = (diagnostic.errorID >= 0) ? "{0} {1}: {2}\n" : "{0}: {2}\n";
+            std::string format = (diagnostic.errorID >= 0) ? "{0} {1}: {2}\n" : "{0}: {2}\n";
 
-            U8String diagnosticString = humaneLocString + fmt::format(format,
+            std::string diagnosticString = humaneLocString + fmt::format(format,
                                                                       GetSeverityName(diagnostic.severity),
                                                                       diagnostic.errorID,
                                                                       diagnostic.message);

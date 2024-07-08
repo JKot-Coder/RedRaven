@@ -60,7 +60,7 @@ namespace RR
                     Disabled = -1
                 };
 
-                static void Log(Level level, const U8String& msg);
+                static void Log(Level level, const std::string& msg);
             };
 
             namespace Log

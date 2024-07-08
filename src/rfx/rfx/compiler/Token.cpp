@@ -4,7 +4,7 @@ namespace RR
 {
     namespace Rfx
     {
-        U8String TokenTypeToString(Token::Type type)
+        std::string TokenTypeToString(Token::Type type)
         {
             switch (type)
             {

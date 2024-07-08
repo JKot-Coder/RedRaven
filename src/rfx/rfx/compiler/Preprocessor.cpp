@@ -21,17 +21,17 @@ namespace RR
     {
         namespace
         {
-            U8String getFileNameTokenValue(const Token& token)
+            std::string getFileNameTokenValue(const Token& token)
             {
                 const UnownedStringSlice& content = token.stringSlice;
 
                 // A file name usually doesn't process escape sequences
                 // (this is import on Windows, where `\\` is a valid
                 // path separator character).
-                return U8String(content.begin(), content.end());
+                return std::string(content.begin(), content.end());
             }
 
-            U8String getStringLiteralTokenValue(const Token& token)
+            std::string getStringLiteralTokenValue(const Token& token)
             {
                 ASSERT(token.type == Token::Type::StringLiteral || token.type == Token::Type::CharLiteral);
 
@@ -43,7 +43,7 @@ namespace RR
                 auto quote = *cursor++;
                 ASSERT(quote == '\'' || quote == '"');
 
-                U8String result;
+                std::string result;
                 for (;;)
                 {
                     ASSERT(cursor != end);
@@ -258,7 +258,7 @@ namespace RR
         {
         public:
             // Get the name of the directive being parsed.
-            inline U8String GetName() const { return token.GetContentString(); }
+            inline std::string GetName() const { return token.GetContentString(); }
 
         public:
             Token token;
@@ -310,11 +310,11 @@ namespace RR
 
             std::vector<Token> ReadAllTokens();
 
-            void DefineMacro(const U8String& macro);
-            void DefineMacro(const U8String& key, const U8String& value);
+            void DefineMacro(const std::string& macro);
+            void DefineMacro(const std::string& key, const std::string& value);
 
             // Find the currently-defined macro of the given name, or return nullptr
-            std::shared_ptr<MacroDefinition> LookupMacro(const U8String& name) const;
+            std::shared_ptr<MacroDefinition> LookupMacro(const std::string& name) const;
 
             // Push a new input file onto the input stack of the preprocessor
             void PushInputFile(const std::shared_ptr<InputFile>& inputFile);
@@ -353,7 +353,7 @@ namespace RR
             bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic);
             bool expectRaw(DirectiveContext& context, Token::Type expected, DiagnosticInfo const& diagnostic, Token& outToken);
 
-            U8String readDirectiveMessage();
+            std::string readDirectiveMessage();
 
             void beginConditional(const DirectiveContext& context, bool enable);
 
@@ -400,7 +400,7 @@ namespace RR
             void expectEndOfDirective(DirectiveContext& context);
 
             void parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
-                               const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex);
+                               const std::unordered_map<std::string, uint32_t>& mapParamNameToIndex);
 
         private:
             std::shared_ptr<IncludeSystem> includeSystem_;
@@ -412,17 +412,17 @@ namespace RR
 
             /// The unique identities of any paths that have issued `#pragma once` directives to
             /// stop them from being included again.
-            std::unordered_set<U8String> pragmaOnceUniqueIdentities_;
+            std::unordered_set<std::string> pragmaOnceUniqueIdentities_;
 
             /// A pre-allocated token that can be returned to represent end-of-input situations.
             Token endOfFileToken_;
 
             /// Macros defined in this environment
-            std::unordered_map<U8String, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
+            std::unordered_map<std::string, std::shared_ptr<MacroDefinition>> macrosDefinitions_;
 
         private:
             // Look up the directive with the given name.
-            static Directive findDirective(const U8String& name)
+            static Directive findDirective(const std::string& name)
             {
                 auto search = directiveMap.find(name);
 
@@ -433,7 +433,7 @@ namespace RR
             }
 
             // Look up the `#pragma` directive with the given name.
-            static PragmaDirective findPragmaDirective(const U8String& name)
+            static PragmaDirective findPragmaDirective(const std::string& name)
             {
                 auto search = paragmaDirectiveMap.find(name);
 
@@ -444,8 +444,8 @@ namespace RR
             }
 
         private:
-            static const std::unordered_map<U8String, Directive> directiveMap;
-            static const std::unordered_map<U8String, PragmaDirective> paragmaDirectiveMap;
+            static const std::unordered_map<std::string, Directive> directiveMap;
+            static const std::unordered_map<std::string, PragmaDirective> paragmaDirectiveMap;
         };
 
         //
@@ -900,13 +900,13 @@ namespace RR
 
             struct Param
             {
-                U8String name;
+                std::string name;
                 SourceLocation sourceLocation;
                 bool isVariadic = false;
             };
 
         public:
-            U8String GetName() const { return name; }
+            std::string GetName() const { return name; }
             Token GetNameToken() const { return nameToken; }
             bool IsBuiltin() const { return flavor == MacroDefinition::Flavor::BuiltinObjectLike; }
 
@@ -928,7 +928,7 @@ namespace RR
 
             /// The name under which the macro was `#define`d
             /// TODO: replace name with uniqueidentifier for better performance
-            U8String name;
+            std::string name;
 
             /// The name token of macro
             Token nameToken;
@@ -1000,7 +1000,7 @@ namespace RR
             void initPastedSourceViewForTokens(TokenReader& tokenReader, const Token& initiatingToken, TokenList& outTokenList) const;
 
             /// Push a stream onto `currentOpStreams_` that consists of a single token
-            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, const HumaneSourceLocation& humaneSourceLocation, U8String const& content);
+            void pushSingleTokenStream(Token::Type tokenType, const SourceLocation& sourceLocation, const HumaneSourceLocation& humaneSourceLocation, std::string const& content);
 
             /// Push a stream for a source-location builtin (`__FILE__` or `__LINE__`), with content set up by `valueBuilder`
             template <typename F>
@@ -1229,7 +1229,7 @@ namespace RR
             }
         }
 
-        const std::unordered_map<U8String, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
+        const std::unordered_map<std::string, PreprocessorImpl::Directive> PreprocessorImpl::directiveMap = {
             {"if", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfDirective}},
             {"ifdef", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfdefDirective}},
             {"ifndef", {Directive::Flags::ProcessWhenSkipping, &PreprocessorImpl::handleIfndefDirective}},
@@ -1245,7 +1245,7 @@ namespace RR
             {"pragma", {Directive::Flags::None, &PreprocessorImpl::handlePragmaDirective}},
         };
 
-        const std::unordered_map<U8String, PreprocessorImpl::PragmaDirective> PreprocessorImpl::paragmaDirectiveMap = {
+        const std::unordered_map<std::string, PreprocessorImpl::PragmaDirective> PreprocessorImpl::paragmaDirectiveMap = {
             {"once", {&PreprocessorImpl::handlePragmaOnceDirective}},
         };
 
@@ -1316,7 +1316,7 @@ namespace RR
             }
         }
 
-        void PreprocessorImpl::DefineMacro(const U8String& macro)
+        void PreprocessorImpl::DefineMacro(const std::string& macro)
         {
             auto delimiterPos = macro.find('=');
 
@@ -1329,7 +1329,7 @@ namespace RR
             DefineMacro(macro, "");
         }
 
-        void PreprocessorImpl::DefineMacro(const U8String& key, const U8String& value)
+        void PreprocessorImpl::DefineMacro(const std::string& key, const std::string& value)
         {
             PathInfo pathInfo = PathInfo::makeCommandLine();
 
@@ -1365,7 +1365,7 @@ namespace RR
             Lexer valueLexer(valueView, context_);
             macro->tokens = valueLexer.LexAllSemanticTokens();
 
-            std::unordered_map<U8String, uint32_t> mapParamNameToIndex;
+            std::unordered_map<std::string, uint32_t> mapParamNameToIndex;
             parseMacroOps(macro, mapParamNameToIndex);
 
             macrosDefinitions_[keyName] = macro;
@@ -1373,7 +1373,7 @@ namespace RR
 
         // Find the currently-defined macro of the given name, or return nullptr
         // TODO: in cpp 20, String can be replaced with string_view.
-        std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const U8String& name) const
+        std::shared_ptr<MacroDefinition> PreprocessorImpl::LookupMacro(const std::string& name) const
         {
             const auto& search = macrosDefinitions_.find(name);
             return search != macrosDefinitions_.end() ? search->second : nullptr;
@@ -1385,7 +1385,7 @@ namespace RR
 
             errno = 0;
 
-            U8Char* end;
+            char* end;
             const auto result = std::strtol(token.stringSlice.data(), &end, radix);
 
             if (errno == ERANGE)
@@ -1404,7 +1404,7 @@ namespace RR
 
             errno = 0;
 
-            U8Char* end;
+            char* end;
             const auto result = std::strtoul(token.stringSlice.data(), &end, radix);
 
             if (errno == ERANGE)
@@ -1840,7 +1840,7 @@ namespace RR
                         if (!expectRaw(context, Token::Type::Identifier, Diagnostics::expectedTokenInDefinedExpression, nameToken))
                             return 0;
 
-                        U8String name = nameToken.GetContentString();
+                        std::string name = nameToken.GetContentString();
                         // If we saw an opening `(`, then expect one to close
                         if (leftParen.type != Token::Type::Unknown)
                         {
@@ -2110,7 +2110,7 @@ namespace RR
             if (!expectRaw(directiveContext, Token::Type::Identifier, Diagnostics::expectedTokenInPreprocessorDirective, nameToken))
                 return;
 
-            U8String name = nameToken.GetContentString();
+            std::string name = nameToken.GetContentString();
 
             const auto& oldMacro = LookupMacro(name);
             if (oldMacro)
@@ -2128,7 +2128,7 @@ namespace RR
                 }
             }
             auto macro = std::make_shared<MacroDefinition>();
-            std::unordered_map<U8String, uint32_t> mapParamNameToIndex;
+            std::unordered_map<std::string, uint32_t> mapParamNameToIndex;
 
             // If macro name is immediately followed (with no space) by `(`,
             // then we have a function-like macro
@@ -2309,9 +2309,9 @@ namespace RR
             macrosDefinitions_.erase(name);
         }
 
-        U8String PreprocessorImpl::readDirectiveMessage()
+        std::string PreprocessorImpl::readDirectiveMessage()
         {
-            U8String result;
+            std::string result;
 
             // This is a hacky shoddy way to get an unprocessed message string, with proper handling of a few whitespace characters, etc.
             // But it should work fine, because the tokens in the directive must be from the same memory slice.
@@ -2333,7 +2333,7 @@ namespace RR
             advanceRawToken();
 
             // Read the message.
-            U8String message = readDirectiveMessage();
+            std::string message = readDirectiveMessage();
 
             setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
 
@@ -2349,7 +2349,7 @@ namespace RR
             advanceRawToken();
 
             // Read the message.
-            U8String message = readDirectiveMessage();
+            std::string message = readDirectiveMessage();
 
             setLexerDiagnosticSuppression(getInputFile(directiveContext), false);
 
@@ -2364,7 +2364,7 @@ namespace RR
             if (!expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
                 return;
 
-            U8String path = getFileNameTokenValue(pathToken);
+            std::string path = getFileNameTokenValue(pathToken);
 
             const auto& sourceLocation = directiveContext.token.sourceLocation;
             const auto& includedFromPathInfo = sourceLocation.GetSourceView()->GetSourceFile();
@@ -2516,7 +2516,7 @@ namespace RR
         }
 
         void PreprocessorImpl::parseMacroOps(const std::shared_ptr<MacroDefinition>& macro,
-                                             const std::unordered_map<U8String, uint32_t>& mapParamNameToIndex)
+                                             const std::unordered_map<std::string, uint32_t>& mapParamNameToIndex)
         {
             // Scan through the tokens to recognize the "ops" that make up
             // the macro body.
@@ -2645,13 +2645,13 @@ namespace RR
             impl_->PushInputFile(std::make_shared<InputFile>(*impl_, sourceView));
         }
 
-        void Preprocessor::DefineMacro(const U8String& macro)
+        void Preprocessor::DefineMacro(const std::string& macro)
         {
             ASSERT(impl_);
             impl_->DefineMacro(macro);
         }
 
-        void Preprocessor::DefineMacro(const U8String& key, const U8String& value)
+        void Preprocessor::DefineMacro(const std::string& key, const std::string& value)
         {
             ASSERT(impl_);
             impl_->DefineMacro(key, value);
@@ -3104,7 +3104,7 @@ namespace RR
                     auto paramIndex = op.index1;
                     auto tokenReader = getArgTokens(paramIndex);
 
-                    U8String string;
+                    std::string string;
                     for (bool first = true; !tokenReader.IsAtEnd(); first = false)
                     {
                         auto token = tokenReader.AdvanceToken();
@@ -3142,7 +3142,7 @@ namespace RR
                     //
                     // The only key details here are that we specify the type of the token (`IntegerLiteral`)
                     // and its content (the value of `loc.line`).
-                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](U8String& string, const SourceLocation& loc) { string += std::to_string(loc.humaneSourceLoc.line); });
+                    pushStreamForSourceLocBuiltin(Token::Type::IntegerLiteral, [=](std::string& string, const SourceLocation& loc) { string += std::to_string(loc.humaneSourceLoc.line); });
                 }
                 break;
 
@@ -3150,7 +3150,7 @@ namespace RR
                 {
                     // The `__FILE__` case is quite similar to `__LINE__`, except for the type of token it yields,
                     // and the way it computes the desired token content.
-                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](U8String& string, const SourceLocation& loc) { string = loc.GetSourceView()->GetPathInfo().foundPath; });
+                    pushStreamForSourceLocBuiltin(Token::Type::StringLiteral, [=](std::string& string, const SourceLocation& loc) { string = loc.GetSourceView()->GetPathInfo().foundPath; });
                 }
                 break;
 
@@ -3186,7 +3186,7 @@ namespace RR
             return false;
         }
 
-        void MacroInvocation::pushSingleTokenStream(Token::Type tokenType, const SourceLocation& tokenLoc, const HumaneSourceLocation& humaneSourceLocation, U8String const& content)
+        void MacroInvocation::pushSingleTokenStream(Token::Type tokenType, const SourceLocation& tokenLoc, const HumaneSourceLocation& humaneSourceLocation, std::string const& content)
         {
             // The goal here is to push a token stream that represents a single token
             // with exactly the given `content`, etc.
@@ -3228,7 +3228,7 @@ namespace RR
             // The `valueBuilder` provided by the caller will determine what the content
             // of the token will be based on the source location (either to generate the
             // `__LINE__` or the `__FILE__` value).
-            U8String content;
+            std::string content;
             valueBuilder(content, initiatingLoc);
 
             // Next we constuct and push an input stream with exactly the token type and content we want.

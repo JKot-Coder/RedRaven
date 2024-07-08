@@ -10,7 +10,7 @@ namespace RR
 {
     namespace FileSystem
     {
-        FileStream::FileStream(const U8String& fileName)
+        FileStream::FileStream(const std::string& fileName)
             : _fileName(fileName), _fileStream(), _mode(Mode::CLOSED)
         {
         }

@@ -52,12 +52,12 @@ namespace RR
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 
         private:
-            static SharedPtr Create(CommandQueueType type, const U8String& name)
+            static SharedPtr Create(CommandQueueType type, const std::string& name)
             {
                 return SharedPtr(new CommandQueue(type, name));
             }
 
-            CommandQueue(CommandQueueType type, const U8String& name)
+            CommandQueue(CommandQueueType type, const std::string& name)
                 : Resource(Object::Type::CommandQueue, name),
                   type_(type)
             {

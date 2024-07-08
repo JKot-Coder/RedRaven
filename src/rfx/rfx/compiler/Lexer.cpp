@@ -13,9 +13,9 @@ namespace RR
     {
         namespace
         {
-            inline bool isWhiteSpace(U8Glyph ch) { return (ch == ' ' || ch == '\t'); }
-            inline bool isNewLineChar(U8Glyph ch) { return (ch == '\n' || ch == '\r'); }
-            inline bool isEOF(U8Glyph ch) { return ch == Lexer::kEOF; }
+            inline bool isWhiteSpace(char32_t ch) { return (ch == ' ' || ch == '\t'); }
+            inline bool isNewLineChar(char32_t ch) { return (ch == '\n' || ch == '\r'); }
+            inline bool isEOF(char32_t ch) { return ch == Lexer::kEOF; }
 
             UnownedStringSlice trimQuoutes(UnownedStringSlice tokenSlice, Token::Type tokenType)
             {
@@ -42,7 +42,7 @@ namespace RR
                 return UnownedStringSlice(begin, end);
             }
 
-            bool isNumberExponent(U8Glyph ch, uint32_t base)
+            bool isNumberExponent(char32_t ch, uint32_t base)
             {
                 switch (ch)
                 { // clang-format off
@@ -57,7 +57,7 @@ namespace RR
             {
                 ASSERT(*cursor == '\\');
 
-                U8Glyph next = 0;
+                char32_t next = 0;
 
                 // Peak next char if exist
                 if (std::distance(cursor, end) > 1)
@@ -66,7 +66,7 @@ namespace RR
                 return isNewLineChar(next);
             }
 
-            char* appendGlyph(U8Glyph cp, char* result)
+            char* appendGlyph(char32_t cp, char* result)
             {
                 if (cp <= 0xFF) // one octet
                     *(result++) = static_cast<uint8_t>(cp);
@@ -91,7 +91,7 @@ namespace RR
                 return result;
             }
 
-            U8Char* scrubbingToken(UnownedStringSlice source, U8Char* dstBegin, bool scrubbingEscapedCharacters)
+            char* scrubbingToken(UnownedStringSlice source, char* dstBegin, bool scrubbingEscapedCharacters)
             {
                 auto srcEnd = source.end();
                 auto cursor = source.begin();
@@ -172,11 +172,11 @@ namespace RR
                                 // Hexadecimal escape: any number of characters
                                 case 'x':
                                 {
-                                    U8Glyph value = 0;
+                                    char32_t value = 0;
                                     for (;;)
                                     {
                                         char d = *++cursor;
-                                        U8Glyph digitValue = 0;
+                                        char32_t digitValue = 0;
                                         if (('0' <= d) && (d <= '9'))
                                         {
                                             digitValue = d - '0';
@@ -674,7 +674,7 @@ namespace RR
 
                     if (ch >= 0x20)
                     {
-                        U8String charString;
+                        std::string charString;
                         utf8::append(ch, charString);
 
                         diagnose(this, loc, LexerDiagnostics::illegalCharacterPrint, charString);
@@ -798,7 +798,7 @@ namespace RR
             // and semantic checking logic.
             for (;;)
             {
-                U8Glyph ch = peek();
+                char32_t ch = peek();
 
                 // Accept any alphanumeric character, plus underscores.
                 if ((('a' <= ch) && (ch <= 'z')) ||
@@ -820,7 +820,7 @@ namespace RR
         {
             for (;;)
             {
-                U8Glyph ch = peek();
+                char32_t ch = peek();
 
                 int32_t digitVal = 0;
                 switch (ch)
@@ -847,7 +847,7 @@ namespace RR
 
                 if (digitVal >= int32_t(base))
                 {
-                    U8String charString;
+                    std::string charString;
                     utf8::append(ch, charString);
                     diagnose(this, getSourceLocation(), LexerDiagnostics::invalidDigitForBase, charString, base);
                 }
@@ -926,7 +926,7 @@ namespace RR
             }
         }
 
-        void Lexer::lexStringLiteralBody(U8Glyph quote)
+        void Lexer::lexStringLiteralBody(char32_t quote)
         {
             for (;;)
             {

@@ -22,12 +22,12 @@ namespace RR
             static SharedPtr Create(
                 const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
-                const U8String& name)
+                const std::string& name)
             {
                 return SharedPtr(new Buffer(description, initialData, name));
             }
 
-            Buffer(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const U8String& name)
+            Buffer(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const std::string& name)
                 : GpuResource(description, initialData, name)
             {
                 if (!description.IsBuffer())

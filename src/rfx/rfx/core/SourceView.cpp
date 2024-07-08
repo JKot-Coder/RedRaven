@@ -19,7 +19,7 @@ namespace RR
         }
 
         /* !!!!!!!!!!!!!!!!!!!!!!!!!! PathInfo !!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-        const U8String PathInfo::getMostUniqueIdentity() const
+        const std::string PathInfo::getMostUniqueIdentity() const
         {
             switch (type)
             {

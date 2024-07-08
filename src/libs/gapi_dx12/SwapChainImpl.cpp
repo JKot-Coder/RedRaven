@@ -31,7 +31,7 @@ namespace RR
                 ResourceReleaseContext::DeferredD3DResourceRelease(D3DSwapChain_);
             }
 
-            void SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const U8String& name)
+            void SwapChainImpl::Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description, const std::string& name)
             {
                 UNUSED(device); // Not used
                 UNUSED(name); // Swapchain don't have name

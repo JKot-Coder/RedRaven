@@ -67,7 +67,7 @@ namespace RR
             public:
                 struct DescriptorHeapDesc
                 {
-                    U8String name;
+                    std::string name;
                     uint32_t numDescriptors_;
                     D3D12_DESCRIPTOR_HEAP_TYPE type;
                     D3D12_DESCRIPTOR_HEAP_FLAGS flags;
@@ -198,7 +198,7 @@ namespace RR
                 }
 
             private:
-                U8String name_;
+                std::string name_;
 
                 uint32_t numDescriptors_ = 0;
                 uint32_t descriptorSize_ = 0;

@@ -25,7 +25,7 @@ namespace RR
             struct FormatInfo
             {
                 GpuResourceFormat format;
-                U8String name;
+                std::string name;
 
                 FormatType type;
 
@@ -183,7 +183,7 @@ namespace RR
                 return formatInfo[static_cast<uint32_t>(format)].compressionBlock.height;
             }
 
-            U8String ToString(GpuResourceFormat format)
+            std::string ToString(GpuResourceFormat format)
             {
                 ASSERT(format == formatInfo[static_cast<uint32_t>(format)].format);
                 return formatInfo[static_cast<uint32_t>(format)].name;

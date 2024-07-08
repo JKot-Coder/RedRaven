@@ -7,14 +7,14 @@ namespace RR
         struct UnownedStringSlice
         {
         public:
-            typedef U8Char* iterator;
-            typedef const U8Char* const_iterator;
+            typedef char* iterator;
+            typedef const char* const_iterator;
             typedef std::reverse_iterator<iterator> reverse_iterator;
             typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
             UnownedStringSlice() = default;
-            UnownedStringSlice(const U8Char* string) : begin_(string), end_(string + strlen(string)) { }
-            UnownedStringSlice(const U8String& string) : begin_(string.c_str()), end_(string.c_str() + string.length()) { }
+            UnownedStringSlice(const char* string) : begin_(string), end_(string + strlen(string)) { }
+            UnownedStringSlice(const std::string& string) : begin_(string.c_str()), end_(string.c_str() + string.length()) { }
             UnownedStringSlice(const_iterator begin, const_iterator end) : begin_(begin), end_(end) { }
             UnownedStringSlice(const_iterator begin, size_t len) : begin_(begin), end_(begin + len) { }
 
@@ -41,7 +41,7 @@ namespace RR
             bool empty() const { return length() == 0; }
             size_t size() const { return std::distance(begin_, end_); }
             size_t length() const { return std::distance(begin_, end_); }
-            U8String asString() const { return U8String(begin_, end_); }
+            std::string asString() const { return std::string(begin_, end_); }
 
             bool operator==(UnownedStringSlice const& other) const;
             bool operator!=(UnownedStringSlice const& other) const
@@ -63,7 +63,7 @@ namespace RR
                 return head(otherSize) == other;
             }
 
-            bool isStartsWith(U8Char const* string) const
+            bool isStartsWith(char const* string) const
             {
                 ASSERT(string != nullptr);
                 return isStartsWith(UnownedStringSlice(string));
@@ -80,10 +80,10 @@ namespace RR
             const_iterator end_;
         };
 
-        template <U8Char Delimiter>
+        template <char Delimiter>
         struct StringSplitIterator
         {
-            StringSplitIterator(const U8Char* parentBegin, const U8Char* parentEnd) : begin_(parentBegin),
+            StringSplitIterator(const char* parentBegin, const char* parentEnd) : begin_(parentBegin),
                                                                                       parentEnd_(parentEnd)
             {
                 ASSERT(parentBegin && parentEnd);
@@ -113,12 +113,12 @@ namespace RR
             UnownedStringSlice slice() const { return UnownedStringSlice(begin_, end_); }
 
         private:
-            const U8Char* begin_;
-            const U8Char* end_;
-            const U8Char* parentEnd_;
+            const char* begin_;
+            const char* end_;
+            const char* parentEnd_;
         };
 
-        template <typename T, U8Char Delimiter>
+        template <typename T, char Delimiter>
         struct StringSplit
         {
             typedef StringSplitIterator<Delimiter> iterator;
@@ -150,7 +150,7 @@ struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
     }
 };
 
-template <typename T, RR::U8Char Delimiter>
+template <typename T, RR::char Delimiter>
 struct fmt::formatter<RR::Rfx::StringSplit<T, Delimiter>> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.

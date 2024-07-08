@@ -27,13 +27,13 @@ namespace RR
             Vector2i GetMousePosition() const override;
             void SetMousePosition(const Vector2i& position) const override;
 
-            void SetTitle(const U8String& title) const override;
+            void SetTitle(const std::string& title) const override;
             void SetWindowAlpha(float alpha) const override;
 
             int32_t GetWindowAttribute(Window::Attribute attribute) const override;
             void SetWindowAttribute(Window::Attribute attribute, int32_t value) override;
 
-            void SetClipboardText(const U8String& text) const override;
+            void SetClipboardText(const std::string& text) const override;
             const char* GetClipboardText() const override;
 
             void ShowCursor(bool value) override;

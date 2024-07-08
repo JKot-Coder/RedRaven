@@ -4,7 +4,7 @@ namespace OpenDemo
 {
     namespace GAPI
     {
-        U8String Result::ToString() const
+        std::string Result::ToString() const
         {
             switch (value_)
             {

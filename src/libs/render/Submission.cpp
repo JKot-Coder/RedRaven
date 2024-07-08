@@ -64,7 +64,7 @@ namespace RR
                 TaskVariant taskVariant;
 #ifdef DEBUG
                 // backward::StackTrace stackTrace;
-                // U8String label;
+                // std::string label;
 #endif
             };
         }

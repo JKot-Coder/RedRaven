@@ -32,12 +32,12 @@ namespace RR::Rfx
         {
         }
 
-        U8String GetContentString() const
+        std::string GetContentString() const
         {
             if (stringSlice.length() == 0)
                 return "";
 
-            return U8String(stringSlice.begin(), stringSlice.end());
+            return std::string(stringSlice.begin(), stringSlice.end());
         }
 
         inline bool isValid() const { return type != Type::Unknown; }
@@ -61,7 +61,7 @@ namespace RR::Rfx
     {
     };
 
-    U8String TokenTypeToString(Token::Type type);
+    std::string TokenTypeToString(Token::Type type);
 
     using TokenList = std::vector<Token>;
 

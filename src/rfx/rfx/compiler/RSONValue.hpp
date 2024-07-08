@@ -226,7 +226,7 @@ namespace RR::Rfx
         }
         double getFloat(double default) const { return (type == Type::Float) ? floatValue : default; }
 
-        U8String asString() const
+        std::string asString() const
         {
             switch (type)
             {
@@ -240,12 +240,12 @@ namespace RR::Rfx
                 default: return "";
             }
         }
-        U8String getString() const
+        std::string getString() const
         {
             ASSERT(type == Type::String);
             return stringValue.asString();
         }
-        U8String getString(U8String default) const { return (type == Type::String) ? stringValue.asString() : default; }
+        std::string getString(std::string default) const { return (type == Type::String) ? stringValue.asString() : default; }
         const RSONValue& getReferenced() const
         {
             if (type != Type::Reference || !referenceValue.reference)
@@ -262,7 +262,7 @@ namespace RR::Rfx
         }
 
     public:
-        template <typename T, U8Char Delimiter>
+        template <typename T, char Delimiter>
         const RSONValue& find(const StringSplit<T, Delimiter>& stringSplit) const
         {
             RSONValue const* current = this;
@@ -318,7 +318,7 @@ namespace RR::Rfx
                 return nullValue();
 
             // Encode index to pointer
-            U8Char* ptr = (U8Char*)(container->size());
+            char* ptr = (char*)(container->size());
             return container->emplace_back_unsorted(UnownedStringSlice(ptr, ptr), std::move(value)).second;
         }
 
@@ -381,7 +381,7 @@ namespace RR::Rfx
         }
     };
 
-    U8String RSONValueTypeToString(RSONValue::Type type);
+    std::string RSONValueTypeToString(RSONValue::Type type);
 }
 
 template <>

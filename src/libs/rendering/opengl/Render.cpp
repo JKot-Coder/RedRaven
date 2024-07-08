@@ -31,7 +31,7 @@ namespace OpenDemo
     {
         namespace OpenGL
         {
-            const auto gluErrorU8String = [](GLenum errorCode) -> const char* {
+            const auto gluErrorstd::string = [](GLenum errorCode) -> const char* {
                 switch (errorCode)
                 {
                     default:
@@ -111,7 +111,7 @@ namespace OpenDemo
                 GLenum error;
                 while ((error = glGetError()) != GL_NO_ERROR)
                 {
-                    fprintf(stderr, "GL_ERROR: %d : %s\n", error, gluErrorU8String(error));
+                    fprintf(stderr, "GL_ERROR: %d : %s\n", error, gluErrorstd::string(error));
                 }
 
                 SDL_GL_SwapWindow(_window->GetSDLWindow());

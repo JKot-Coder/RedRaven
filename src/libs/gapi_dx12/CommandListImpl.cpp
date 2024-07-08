@@ -73,7 +73,7 @@ namespace RR::GAPI::DX12
 
     void CommandListImpl::CommandAllocatorsPool::Init(
         D3D12_COMMAND_LIST_TYPE type,
-        const U8String& name)
+        const std::string& name)
     {
         type_ = type;
         name_ = name;
@@ -125,7 +125,7 @@ namespace RR::GAPI::DX12
         ResourceReleaseContext::DeferredD3DResourceRelease(D3DCommandList_);
     }
 
-    void CommandListImpl::Init(const U8String& name, int32_t index)
+    void CommandListImpl::Init(const std::string& name, int32_t index)
     {
         ASSERT(!D3DCommandList_);
 

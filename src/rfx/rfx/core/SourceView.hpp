@@ -20,7 +20,7 @@ namespace RR::Rfx
         void SetContent(UnownedStringSlice content);
 
         /// Calculate a display path -> can canonicalize if necessary
-        U8String CalcVerbosePath() const;
+        std::string CalcVerbosePath() const;
 
     private:
         UnownedStringSlice content_; ///< The actual contents of the file.

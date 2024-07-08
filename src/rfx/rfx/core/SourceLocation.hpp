@@ -63,33 +63,33 @@ namespace RR
             bool operator!=(const PathInfo& rhs) const { return !(*this == rhs); }
 
             /// Returns the 'most unique' identity for the path. If has a 'uniqueIdentity' returns that, else the foundPath, else "".
-            const U8String getMostUniqueIdentity() const;
+            const std::string getMostUniqueIdentity() const;
 
             // So simplify construction. In normal usage it's safer to use make methods over constructing directly.
-            static PathInfo makeSplit(const U8String& foundPathIn, const U8String& uniqueIdentity)
+            static PathInfo makeSplit(const std::string& foundPathIn, const std::string& uniqueIdentity)
             {
                 ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0);
                 return PathInfo {Type::Split, foundPathIn, uniqueIdentity};
             }
 
-            static PathInfo makeUnknown() { return PathInfo {Type::Unknown, U8String(), U8String()}; }
-            static PathInfo makeTokenPaste() { return PathInfo {Type::TokenPaste, "token paste", U8String()}; }
-            static PathInfo makeNormal(const U8String& foundPathIn, const U8String& uniqueIdentity)
+            static PathInfo makeUnknown() { return PathInfo {Type::Unknown, std::string(), std::string()}; }
+            static PathInfo makeTokenPaste() { return PathInfo {Type::TokenPaste, "token paste", std::string()}; }
+            static PathInfo makeNormal(const std::string& foundPathIn, const std::string& uniqueIdentity)
             {
                 ASSERT(uniqueIdentity.length() > 0 && foundPathIn.length() > 0);
                 return PathInfo {Type::Normal, foundPathIn, uniqueIdentity};
             }
-            static PathInfo makePath(const U8String& pathIn)
+            static PathInfo makePath(const std::string& pathIn)
             {
                 ASSERT(pathIn.length() > 0);
-                return PathInfo {Type::FoundPath, pathIn, U8String()};
+                return PathInfo {Type::FoundPath, pathIn, std::string()};
             }
-            static PathInfo makeCommandLine() { return PathInfo {Type::CommandLine, "command line", U8String()}; }
-            static PathInfo makeFromString(const U8String& userPath) { return PathInfo {Type::FromString, userPath, U8String()}; }
+            static PathInfo makeCommandLine() { return PathInfo {Type::CommandLine, "command line", std::string()}; }
+            static PathInfo makeFromString(const std::string& userPath) { return PathInfo {Type::FromString, userPath, std::string()}; }
 
             Type type = Type::Unknown; ///< The type of path
-            U8String foundPath; ///< The path where the file was found (might contain relative elements)
-            U8String uniqueIdentity; ///< The unique identity of the file on the path found
+            std::string foundPath; ///< The path where the file was found (might contain relative elements)
+            std::string uniqueIdentity; ///< The unique identity of the file on the path found
         };
 
         // A source location in a format a human might like to see

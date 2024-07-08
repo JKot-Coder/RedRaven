@@ -14,7 +14,7 @@ namespace RR
             FenceImpl() = default;
             ~FenceImpl();
 
-            void Init(const U8String& name);
+            void Init(const std::string& name);
 
             uint64_t Increment();
             void Wait(std::optional<uint64_t> value, uint32_t timeout = INFINITY_WAIT) const override;

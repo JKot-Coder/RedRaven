@@ -68,7 +68,7 @@ namespace RR
             inline void Close() { return GetPrivateImpl()->Close(); }
 
         protected:
-            CommandList(CommandListType type, const U8String& name)
+            CommandList(CommandListType type, const std::string& name)
                 : Resource(Object::Type::CommandList, name),
                   type_(type)
             {
@@ -93,13 +93,13 @@ namespace RR
                                               const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint);
 
         private:
-            static SharedPtr Create(const U8String& name)
+            static SharedPtr Create(const std::string& name)
             {
                 return SharedPtr(new CopyCommandList(CommandListType::Copy, name));
             }
 
         protected:
-            CopyCommandList(CommandListType type, const U8String& name)
+            CopyCommandList(CommandListType type, const std::string& name)
                 : CommandList(type, name)
             {
             }
@@ -118,13 +118,13 @@ namespace RR
             inline void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewFloat(unorderedAcessView, clearValue); };
 
         private:
-            static SharedPtr Create(const U8String& name)
+            static SharedPtr Create(const std::string& name)
             {
                 return SharedPtr(new ComputeCommandList(CommandListType::Compute, name));
             }
 
         protected:
-            ComputeCommandList(CommandListType type, const U8String& name)
+            ComputeCommandList(CommandListType type, const std::string& name)
                 : CopyCommandList(type, name)
             {
             }
@@ -144,13 +144,13 @@ namespace RR
             inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:
-            static SharedPtr Create(const U8String& name)
+            static SharedPtr Create(const std::string& name)
             {
                 return SharedPtr(new GraphicsCommandList(name));
             }
 
         protected:
-            GraphicsCommandList(const U8String& name)
+            GraphicsCommandList(const std::string& name)
                 : ComputeCommandList(CommandListType::Graphics, name)
             {
             }

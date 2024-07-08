@@ -13,13 +13,13 @@ namespace RR
         class FileStream final : public Common::Stream
         {
         public:
-            FileStream(const U8String& fileName);
+            FileStream(const std::string& fileName);
             virtual ~FileStream() override;
 
             bool Open(Mode mode);
             void Close();
 
-            virtual inline U8String GetName() const override
+            virtual inline std::string GetName() const override
             {
                 return _fileName;
             }
@@ -35,7 +35,7 @@ namespace RR
             virtual std::istream* GetNativeStream() override;
 
         private:
-            U8String _fileName;
+            std::string _fileName;
             std::fstream _fileStream;
             Mode _mode;
         };

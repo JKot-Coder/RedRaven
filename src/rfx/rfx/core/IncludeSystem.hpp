@@ -33,7 +33,7 @@ namespace RR
                 {
                 }*/
 
-            Common::RResult FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const;
+            Common::RResult FindFile(const std::string& pathToInclude, const std::string& pathIncludedFrom, PathInfo& outPathInfo) const;
             /*
 
             SearchDirectoryList* getSearchDirectoryList() const { return m_searchDirectories; }

@@ -457,7 +457,7 @@ namespace RR::Platform
         glfwSetCursorPos(window_, position.x, position.y);
     }
 
-    void GlfwWindowImpl::SetTitle(const U8String& title) const
+    void GlfwWindowImpl::SetTitle(const std::string& title) const
     {
         ASSERT(window_);
 
@@ -533,7 +533,7 @@ namespace RR::Platform
         return glfwGetClipboardString(window_);
     }
 
-    void GlfwWindowImpl::SetClipboardText(const U8String& text) const
+    void GlfwWindowImpl::SetClipboardText(const std::string& text) const
     {
         ASSERT(window_);
 

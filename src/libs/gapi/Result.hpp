@@ -53,7 +53,7 @@ namespace OpenDemo
             }
 
         public:
-            U8String ToString() const;
+            std::string ToString() const;
 
             inline bool IsSuccess() const { return static_cast<int32_t>(value_) >= 0; }
             inline bool IsFailure() const { return static_cast<int32_t>(value_) < 0; }

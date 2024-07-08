@@ -9,7 +9,7 @@ namespace RR::AssetImporter::Processors
 {
     REGISTER_PROCESSOR(Bundle)
 
-    std::vector<U8String> Bundle::GetListOfExtensions() const
+    std::vector<std::string> Bundle::GetListOfExtensions() const
     {
         return {".bundle"};
     }

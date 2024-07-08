@@ -144,7 +144,7 @@ namespace RR
                 resource->ResetInitialData();
         }
 
-        void ResourceImpl::Init(const GpuResourceDescription& resourceDesc, const U8String& name)
+        void ResourceImpl::Init(const GpuResourceDescription& resourceDesc, const std::string& name)
         {
             // TextureDesc ASSERT checks done on Texture initialization;
             ASSERT(!D3DResource_);
@@ -190,7 +190,7 @@ namespace RR
             D3DUtils::SetAPIName(D3DResource_.get(), name);
         }
 
-        void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const U8String& name)
+        void ResourceImpl::Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const std::string& name)
         {
             ASSERT(resource);
             ASSERT(!D3DResource_);

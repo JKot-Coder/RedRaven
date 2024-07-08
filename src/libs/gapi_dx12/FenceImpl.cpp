@@ -20,7 +20,7 @@ namespace RR
                 CloseHandle(event_);
             }
 
-            void FenceImpl::Init(const U8String& name)
+            void FenceImpl::Init(const std::string& name)
             {
                 ASSERT(!D3DFence_);
 

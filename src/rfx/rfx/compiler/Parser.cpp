@@ -253,7 +253,7 @@ namespace RR::Rfx
         UnownedStringSlice allocateString(T begin, T end)
         {
             size_t size = std::distance(begin, end);
-            const auto buf = (U8Char*)getAllocator().Allocate(size);
+            const auto buf = (char*)getAllocator().Allocate(size);
             std::copy(begin, end, buf);
             return UnownedStringSlice(buf, buf + size);
         }
@@ -299,7 +299,7 @@ namespace RR::Rfx
         ASSERT(token.type == Token::Type::FloatingPointLiteral);
         errno = 0;
 
-        U8Char* end;
+        char* end;
         outValue = std::strtod(token.stringSlice.data(), &end);
 
         if (errno == ERANGE)
@@ -558,7 +558,7 @@ namespace RR::Rfx
     namespace
     {
         template <uint32_t base>
-        static uint32_t uintToReversedString(uint32_t num, U8Char* buffer)
+        static uint32_t uintToReversedString(uint32_t num, char* buffer)
         {
             uint32_t index = 0;
 
@@ -581,7 +581,7 @@ namespace RR::Rfx
         RR_RETURN_VALUE_ON_FAIL(builder_.StartArray(), RSONValue {});
 
         uint32_t index = 0;
-        U8Char buffer[12];
+        char buffer[12];
 
         while (true)
         {
@@ -589,7 +589,7 @@ namespace RR::Rfx
                 break;
 
             const auto end = &buffer[0] + uintToReversedString<10>(index, &buffer[0]);
-            const auto keyStringSlice = allocateString(std::reverse_iterator<U8Char*>(end), std::reverse_iterator<U8Char*>(&buffer[0]));
+            const auto keyStringSlice = allocateString(std::reverse_iterator<char*>(end), std::reverse_iterator<char*>(&buffer[0]));
             builder_.PushNamespace(keyStringSlice);
 
             RSONValue value = parseAndEvaluateExpression();
@@ -762,7 +762,7 @@ namespace RR::Rfx
                 return RResult::Ok;
             }
 
-        const U8String& tokensString = fmt::format("{}", fmt::join(expected, " or "));
+        const std::string& tokensString = fmt::format("{}", fmt::join(expected, " or "));
         getSink().Diagnose(peekToken(), Diagnostics::unexpectedTokenExpectedTokenType, peekTokenType(), tokensString);
         return RResult::Fail;
     }

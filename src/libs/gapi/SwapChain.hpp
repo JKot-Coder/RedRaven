@@ -67,12 +67,12 @@ namespace RR
             std::any GetWaitableObject() const { return GetPrivateImpl()->GetWaitableObject(); }
 
         private:
-            static SharedPtr Create(const SwapChainDescription& description, const U8String& name)
+            static SharedPtr Create(const SwapChainDescription& description, const std::string& name)
             {
                 return SharedPtr(new SwapChain(description, name));
             }
 
-            SwapChain(const SwapChainDescription& description, const U8String& name);
+            SwapChain(const SwapChainDescription& description, const std::string& name);
 
             void Reset(const SwapChainDescription& description);
 

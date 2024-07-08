@@ -132,7 +132,7 @@ namespace RR
             {
                 struct Element
                 {
-                    U8String semanticName;
+                    std::string semanticName;
                     GpuResourceFormat format;
                     uint32_t arraySize;
                     uint32_t alignedByteOffset;
@@ -379,7 +379,7 @@ namespace RR
             void initInputLayoutDesc(const InputLayout& inputLayout,
                                      D3D12_INPUT_LAYOUT_DESC& d3dInputLayout,
                                      std::vector<D3D12_INPUT_ELEMENT_DESC>& d3dElementDescs,
-                                     std::vector<U8String>& semanticNames)
+                                     std::vector<std::string>& semanticNames)
             {
                 for (uint32_t streamIndex = 0; inputLayout.inputStreams.size(); ++streamIndex)
                 {
@@ -427,7 +427,7 @@ namespace RR
             InputLayout inputLayout;
 
             std::vector<D3D12_INPUT_ELEMENT_DESC> d3dElementDescs(8);
-            std::vector<U8String> semanticNames(8);
+            std::vector<std::string> semanticNames(8);
 
             initBlendDesc(gpsoDesc.blendDesc, d3d12psoDesc.BlendState);
             initResterizerDesc(gpsoDesc.rasterizerDesc, d3d12psoDesc.RasterizerState);

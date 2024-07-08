@@ -63,7 +63,7 @@ namespace OpenDemo
                     return pszMsg;
                 }
 
-                U8String HResultToString(HRESULT hr)
+                std::string HResultToString(HRESULT hr)
                 {
                     if (SUCCEEDED(hr))
                         return "";

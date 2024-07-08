@@ -19,7 +19,7 @@ namespace RR
         class Lexer final : Common::NonCopyable
         {
         public:
-            static constexpr U8Glyph kEOF = 0xFFFFFF;
+            static constexpr char32_t kEOF = 0xFFFFFF;
 
             enum class Flags : uint32_t
             {
@@ -61,7 +61,7 @@ namespace RR
 
             inline bool isReachEOF() const { return cursor_ == end_; }
 
-            inline U8Glyph peek() const
+            inline char32_t peek() const
             {
                 if (isReachEOF())
                     return kEOF;
@@ -85,7 +85,7 @@ namespace RR
             void lexIdentifier();
             void lexNumberAfterDecimalPoint(uint32_t base);
             void lexNumberSuffix();
-            void lexStringLiteralBody(U8Glyph quote);
+            void lexStringLiteralBody(char32_t quote);
 
         private:
             std::shared_ptr<SourceView> sourceView_;

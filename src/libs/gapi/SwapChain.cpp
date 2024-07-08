@@ -9,7 +9,7 @@ namespace RR
 {
     namespace GAPI
     {
-        SwapChain::SwapChain(const SwapChainDescription& description, const U8String& name)
+        SwapChain::SwapChain(const SwapChainDescription& description, const std::string& name)
             : Resource(Object::Type::SwapChain, name),
               description_(description)
         {

@@ -69,7 +69,7 @@ namespace RR::Rfx
         return RfxResult::Ok;
     }
 
-    RResult SourceManager::findSourceFileByUniqueIdentity(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const
+    RResult SourceManager::findSourceFileByUniqueIdentity(const std::string& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const
     {
         const auto findIt = sourceFileMap_.find(uniqueIdentity);
         if (findIt != sourceFileMap_.end())
@@ -81,13 +81,13 @@ namespace RR::Rfx
         return RResult::NotFound;
     }
 
-    void SourceManager::addSourceFile(const U8String& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile)
+    void SourceManager::addSourceFile(const std::string& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile)
     {
         ASSERT(RR_FAILED(findSourceFileByUniqueIdentity(uniqueIdentity, sourceFile)));
         sourceFileMap_.emplace(uniqueIdentity, sourceFile);
     }
 
-    std::shared_ptr<SourceFile> SourceManager::CreateFileFromString(const PathInfo& pathInfo, const U8String& content)
+    std::shared_ptr<SourceFile> SourceManager::CreateFileFromString(const PathInfo& pathInfo, const std::string& content)
     {
         ASSERT(pathInfo.type == PathInfo::Type::CommandLine ||
                pathInfo.type == PathInfo::Type::FromString ||

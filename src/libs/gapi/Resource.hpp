@@ -42,11 +42,11 @@ namespace RR
             }
 
             template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
-            inline U8String GetName() const { return name_; }
+            inline std::string GetName() const { return name_; }
 
         protected:
             template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
-            Resource(Type type, const U8String& name) : Object(type), name_(name) { }
+            Resource(Type type, const std::string& name) : Object(type), name_(name) { }
 
             template <bool isNamed = IsNamed, typename = std::enable_if_t<!isNamed>>
             Resource(Type type) : Object(type) { }
@@ -57,7 +57,7 @@ namespace RR
             // clang-format on
 
             std::unique_ptr<T> privateImpl_ = nullptr;
-            std::conditional_t<IsNamed, U8String, monostate> name_;
+            std::conditional_t<IsNamed, std::string, monostate> name_;
         };
     }
 }

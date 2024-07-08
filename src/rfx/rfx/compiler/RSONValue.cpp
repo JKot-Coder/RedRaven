@@ -2,7 +2,7 @@
 
 namespace RR::Rfx
 {
-    U8String RSONValueTypeToString(RSONValue::Type type)
+    std::string RSONValueTypeToString(RSONValue::Type type)
     {
         static_assert(int(RSONValue::Type::CountOf) == 9);
         switch (type)

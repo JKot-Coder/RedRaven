@@ -44,7 +44,7 @@ namespace RR::Platform
 
         struct Description
         {
-            U8String title = "";
+            std::string title = "";
             Vector2i size = {0, 0};
 
             bool autoIconify = true;
@@ -72,13 +72,13 @@ namespace RR::Platform
         virtual Vector2i GetMousePosition() const = 0;
         virtual void SetMousePosition(const Vector2i& position) const = 0;
 
-        virtual void SetTitle(const U8String& title) const = 0;
+        virtual void SetTitle(const std::string& title) const = 0;
         virtual void SetWindowAlpha(float alpha) const = 0;
 
         virtual int32_t GetWindowAttribute(Window::Attribute attribute) const = 0;
         virtual void SetWindowAttribute(Window::Attribute attribute, int32_t value) = 0;
 
-        virtual void SetClipboardText(const U8String& text) const = 0;
+        virtual void SetClipboardText(const std::string& text) const = 0;
         virtual const char* GetClipboardText() const = 0;
 
         virtual void ShowCursor(bool value) = 0;
@@ -91,7 +91,7 @@ namespace RR::Platform
         virtual void Show() const = 0;
 
     public:
-        Event<void(const Window&, U8Glyph ch)> OnChar;
+        Event<void(const Window&, char32_t ch)> OnChar;
         Event<void(const Window&)> OnClose;
         Event<void(const Window&, const Vector2i& scale)> OnContentScaleChange;
         Event<void(const Window&, bool focused)> OnFocus;

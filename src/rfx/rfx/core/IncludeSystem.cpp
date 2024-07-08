@@ -13,7 +13,7 @@ namespace RR
 {
     namespace Rfx
     {
-        Common::RResult IncludeSystem::FindFile(const U8String& pathToInclude, const U8String& pathIncludedFrom, PathInfo& outPathInfo) const
+        Common::RResult IncludeSystem::FindFile(const std::string& pathToInclude, const std::string& pathIncludedFrom, PathInfo& outPathInfo) const
         {
             outPathInfo.type = PathInfo::Type::Unknown;
 
@@ -74,7 +74,7 @@ namespace RR
                 return RfxResult::NotFound;
 
             // Get the uniqueIdentity
-            U8String uniqueIdentity;
+            std::string uniqueIdentity;
             RR_RETURN_ON_FAIL(fileSystemExt_->GetPathUniqueIdentity(combinedPath, uniqueIdentity));
 
             // If the rel path exists -> a uniqueIdentity MUST exists too

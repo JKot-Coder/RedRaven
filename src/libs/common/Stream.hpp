@@ -11,7 +11,7 @@ namespace RR
         public:
             virtual ~Stream() {};
 
-            virtual U8String GetName() const = 0;
+            virtual std::string GetName() const = 0;
 
             virtual int64_t GetPosition() = 0;
             virtual void SetPosition(int64_t value) = 0;

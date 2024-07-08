@@ -16,7 +16,7 @@ namespace RR
             Internal,
         };
 
-        U8String GetSeverityName(Severity severity);
+        std::string GetSeverityName(Severity severity);
 
         // A structure to be used in static data describing different
         // diagnostic messages.
@@ -32,7 +32,7 @@ namespace RR
         {
             Diagnostic() = default;
 
-            U8String message;
+            std::string message;
             SourceLocation location;
             int32_t errorID = -1;
             Severity severity;
@@ -46,7 +46,7 @@ namespace RR
             class IWriter
             {
             public:
-                virtual void Write(const U8String& message) = 0;
+                virtual void Write(const std::string& message) = 0;
             };
 
             DiagnosticSink(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) {};
@@ -108,7 +108,7 @@ namespace RR
 
         private:
             template <typename T, typename... Args>
-            inline U8String formatDiagnostic(const T& token, const DiagnosticInfo& info, Args&&... args)
+            inline std::string formatDiagnostic(const T& token, const DiagnosticInfo& info, Args&&... args)
             {
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;
@@ -121,9 +121,9 @@ namespace RR
                 return formatDiagnostic(diagnostic);
             }
 
-            U8String formatDiagnostic(const Diagnostic& diagnostic);
+            std::string formatDiagnostic(const Diagnostic& diagnostic);
 
-            void diagnoseImpl(const DiagnosticInfo& info, const U8String& formattedMessage);
+            void diagnoseImpl(const DiagnosticInfo& info, const std::string& formattedMessage);
 
         private:
             uint32_t errorCount_ = 0;
@@ -135,11 +135,11 @@ namespace RR
         class BufferWriter final : public DiagnosticSink::IWriter
         {
         public:
-            void Write(const U8String& message) override { buffer_ += message; }
-            U8String GetBuffer() const { return buffer_; }
+            void Write(const std::string& message) override { buffer_ += message; }
+            std::string GetBuffer() const { return buffer_; }
 
         private:
-            U8String buffer_;
+            std::string buffer_;
         };
     }
 }

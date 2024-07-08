@@ -57,7 +57,7 @@ namespace RR::GAPI::DX12::D3DUtils
         return pszMsg;
     }
 
-    U8String HResultToString(HRESULT hr)
+    std::string HResultToString(HRESULT hr)
     {
         if (SUCCEEDED(hr))
             return "";

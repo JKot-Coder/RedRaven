@@ -25,6 +25,6 @@ namespace RR::AssetImporter
         void importAsset(const std::filesystem::path& path);
 
     private:
-        std::unordered_map<U8String, Processor*> processors_;
+        std::unordered_map<std::string, Processor*> processors_;
     };
 }

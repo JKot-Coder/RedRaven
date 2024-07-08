@@ -25,7 +25,7 @@ namespace RR
             CommandListImpl(const CommandListType commandListType);
             ~CommandListImpl();
 
-            void Init(const U8String& name, int32_t index = -1);
+            void Init(const std::string& name, int32_t index = -1);
             std::any GetNativeHandle() const override { return D3DCommandList_.get(); }
             D3D12_COMMAND_LIST_TYPE GetType() const { return type_; }
             void Close() override;
@@ -71,7 +71,7 @@ namespace RR
             public:
                 ~CommandAllocatorsPool();
 
-                void Init(D3D12_COMMAND_LIST_TYPE type, const U8String& name);
+                void Init(D3D12_COMMAND_LIST_TYPE type, const std::string& name);
 
                 ComSharedPtr<ID3D12CommandAllocator> GetNextAllocator();
                 void ResetAfterSubmit(CommandQueueImpl& commandQueue);
@@ -81,7 +81,7 @@ namespace RR
                 ComSharedPtr<ID3D12CommandAllocator> createAllocator() const;
 
             private:
-                U8String name_;
+                std::string name_;
                 D3D12_COMMAND_LIST_TYPE type_;
                 std::unique_ptr<FenceImpl> fence_;
                 std::queue<AllocatorFecnceValuePair> allocators_;

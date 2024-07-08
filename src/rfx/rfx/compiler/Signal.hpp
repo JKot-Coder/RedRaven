@@ -14,7 +14,7 @@ namespace RR
             AbortCompilation,
         };
 
-        void handleSignal(SignalType type, const U8String& message);
+        void handleSignal(SignalType type, const std::string& message);
         // clang-format off
         #define RFX_UNEXPECTED(reason) \
             handleSignal(SignalType::Unexpected, reason)
