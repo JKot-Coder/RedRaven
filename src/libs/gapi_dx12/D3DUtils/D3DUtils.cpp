@@ -63,7 +63,7 @@ namespace RR::GAPI::DX12::D3DUtils
             return "";
 
         const auto pMessage = ErrorMessage(hr);
-        const auto& messageString = StringEncoding::WideToUTF8(std::wstring(pMessage));
+        const auto& messageString = Common::StringEncoding::WideToUTF8(std::wstring(pMessage));
         LocalFree((HLOCAL)pMessage);
 
         return messageString;
@@ -177,7 +177,7 @@ namespace RR::GAPI::DX12::D3DUtils
             // Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
             if (SUCCEEDED(result = D3D12CreateDevice(adapter.get(), minimumFeatureLevel, _uuidof(ID3D12Device), nullptr)))
             {
-                Log::Print::Info("Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, StringEncoding::WideToUTF8(std::wstring_view(desc.Description)));
+                Log::Print::Info("Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, Common::StringEncoding::WideToUTF8(std::wstring_view(desc.Description)));
                 break;
             }
         }

@@ -48,11 +48,11 @@ namespace RR
             {
                 arguments.push_back(L"-D");
 
-                cstring = cstringAllocator.Allocate(StringEncoding::UTF8ToWide(define));
+                cstring = cstringAllocator.Allocate(Common::StringEncoding::UTF8ToWide(define));
                 arguments.push_back(cstring);
             }
 
-            cstring = cstringAllocator.Allocate(StringEncoding::UTF8ToWide(source->GetPathInfo().getMostUniqueIdentity()));
+            cstring = cstringAllocator.Allocate(Common::StringEncoding::UTF8ToWide(source->GetPathInfo().getMostUniqueIdentity()));
             arguments.push_back(cstring);
 
             DxcBuffer dxcSource;

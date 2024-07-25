@@ -3,7 +3,7 @@
 #include "utf8.h"
 #include <string>
 
-namespace RR
+namespace RR::Common
 {
     namespace StringEncoding
     {

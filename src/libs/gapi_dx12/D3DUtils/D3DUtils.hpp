@@ -59,7 +59,7 @@ namespace RR
                 {
                    // const std::string formatedName = fmt::format((index > 0) ? "{0}::{1}_{:02}" : "{}::{}", GetTypeName<T>(), name, index);
                     const std::string formatedName = fmt::format("{}", name);
-                    apiObject->SetName(StringEncoding::UTF8ToWide(formatedName).c_str());
+                    apiObject->SetName(Common::StringEncoding::UTF8ToWide(formatedName).c_str());
                 }
 #else
                 template <typename T>

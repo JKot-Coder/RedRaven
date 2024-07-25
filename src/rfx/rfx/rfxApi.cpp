@@ -634,11 +634,11 @@ namespace RR::Rfx
 
                         arguments.push_back(L"-D");
 
-                        cstring = cstringAllocator.Allocate(StringEncoding::UTF8ToWide(define));
+                        cstring = cstringAllocator.Allocate(Common::StringEncoding::UTF8ToWide(define));
                         arguments.push_back(cstring);
                     }
 
-                    cstring = cstringAllocator.Allocate(StringEncoding::UTF8ToWide(pathInfo.uniqueIdentity));
+                    cstring = cstringAllocator.Allocate(Common::StringEncoding::UTF8ToWide(pathInfo.uniqueIdentity));
                     arguments.push_back(cstring);
 
                     if (FAILED(dxcCompiler->Compile(&source, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(dxcResult.put()))))

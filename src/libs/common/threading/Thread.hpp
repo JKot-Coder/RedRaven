@@ -34,7 +34,7 @@ namespace RR
                 {
 #ifdef OS_WINDOWS
                     // Todo move to cpp to avoid include stringEncoding
-                    const auto& wThreadName = StringEncoding::UTF8ToWide(threadName);
+                    const auto& wThreadName = Common::StringEncoding::UTF8ToWide(threadName);
                     SetThreadDescription(static_cast<HANDLE>(GetNativeHandle()), wThreadName.c_str());
 #else
                     ASSERT_MSG(false, "Not implemented");
