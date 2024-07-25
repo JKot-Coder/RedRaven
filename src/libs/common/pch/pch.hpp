@@ -14,6 +14,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <string_view>
 
 // using namespace RR::Common;
 using namespace RR::Common::Debug;
