@@ -204,7 +204,7 @@ namespace RR
                 const auto images = std::make_unique<std::vector<DirectX::Image>>();
                 setupImageArray(*images, resource);
 
-                return DirectX::SaveToDDSFile(images->data(), images->size(), metadata, DirectX::DDS_FLAGS_NONE, StringConversions::UTF8ToWString(path).c_str());
+                return DirectX::SaveToDDSFile(images->data(), images->size(), metadata, DirectX::DDS_FLAGS_NONE, StringEncoding::UTF8ToWide(path).c_str());
             }
 
             /*

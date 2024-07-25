@@ -12,12 +12,12 @@ namespace RR
 
             DirectX::TexMetadata receivedMetadata;
             DirectX::ScratchImage receivedImage;
-            result = DirectX::LoadFromDDSFile(StringConversions::UTF8ToWString(receivedPath).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &receivedMetadata, receivedImage);
+            result = DirectX::LoadFromDDSFile(StringEncoding::UTF8ToWide(receivedPath).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &receivedMetadata, receivedImage);
             ASSERT(SUCCEEDED(result));
 
             DirectX::TexMetadata approvedMetadata;
             DirectX::ScratchImage approvedImage;
-            result = DirectX::LoadFromDDSFile(StringConversions::UTF8ToWString(approvedPath).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &approvedMetadata, approvedImage);
+            result = DirectX::LoadFromDDSFile(StringEncoding::UTF8ToWide(approvedPath).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &approvedMetadata, approvedImage);
             ASSERT(SUCCEEDED(result));
 
             bool equal = (approvedImage.GetPixelsSize() == receivedImage.GetPixelsSize());

@@ -69,7 +69,7 @@ namespace OpenDemo
                         return "";
 
                     const auto pMessage = ErrorMessage(hr);
-                    const auto& messageString = StringConversions::WStringToUTF8(pMessage);
+                    const auto& messageString = StringEncoding::WideToUTF8(pMessage);
                     LocalFree((HLOCAL)pMessage);
 
                     return messageString;
@@ -186,7 +186,7 @@ namespace OpenDemo
                         // Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
                         if (SUCCEEDED(result = D3D12CreateDevice(adapter.get(), minimumFeatureLevel, _uuidof(ID3D12Device), nullptr)))
                         {
-                            Log::Print::Info("Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, StringConversions::WStringToUTF8(desc.Description));
+                            Log::Print::Info("Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, StringEncoding::WideToUTF8(desc.Description));
                             break;
                         }
                     }
