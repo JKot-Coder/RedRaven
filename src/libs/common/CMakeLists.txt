@@ -60,6 +60,7 @@ set( COMMON_SRC
     Time.hpp
     ErrorNo.cpp
     ErrorNo.hpp
+    EastlAllocator.cpp
 )
 source_group( "" FILES ${COMMON_SRC} )
 
