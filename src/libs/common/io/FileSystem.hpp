@@ -1,20 +1,19 @@
 #pragma once
 
-#include <filesystem>
-
 namespace RR::Common
 {
     enum class RResult : int32_t;
-    namespace fs = std::filesystem;
 
     namespace IO
     {
-        class IFileSystem
+        enum class FileOpenMode : uint32_t;
+        class File;
+
+        class FileSystem final
         {
         public:
-            virtual fs::file_status GetPathStatus(const fs::path& path) const = 0;
-            virtual RResult GetPathUniqueIdentity(const fs::path& path, U8String& indetity) const = 0;
-            //       virtual RResult CalcCombinedPath(SlangPathType fromPathType, const U8String& fromPath, const U8String& path, fs::path& pathOut) = 0;
+            bool IsExist(std::string_view path);
+            RResult Open(std::string_view path, FileOpenMode acess, File& file);
         };
     }
 }

@@ -2,46 +2,35 @@
 
 #include "common/EnumClassOperators.hpp"
 
-#include <filesystem>
+#if OS_WINDOWS
+#include "platform/windows/File.hpp"
+#endif
 
 namespace RR::Common
 {
     enum class RResult : int32_t;
-    namespace fs = std::filesystem;
 
     namespace IO
     {
-        enum class FileAccessMode : uint32_t;
-        ENUM_CLASS_BITWISE_OPS(FileAccessMode);
-
-        enum class FileAccessMode : uint32_t
+        enum class FileOpenMode : uint32_t
         {
-            Read = 1 << 0,
-            Write = 1 << 1,
-            Open = 1 << 2,
-            Create = 1 << 3,
-            Append = 1 << 4,
-            Truncate = 1 << 5,
-
-            ReadWrite = Read | Write,
-            OpenCreate = Open | Create
+            Read = 1,       // Opens a file for read only, only if it exists.
+            ReadWrite,      // Opens a file for read and write, only if it exists.
+            Create,         // Opens a file for read and write. Create empty file if it doesn't exist.
+            CreateTruncate, // Opens a file for read and write, truncated. Create empty file if it doesn't exist.
+            CreateAppend    // Opens a file for read and write at it's end. Create empty file if it doesn't exist.
         };
 
-        class File
+        class File final : protected FileData
         {
         public:
             ~File();
 
-            RResult Open(const fs::path& path, FileAccessMode accessMode);
+            RResult Open(const std::string_view& path, FileOpenMode accessMode);
             void Close();
-
-            size_t Write(const void* buffer, size_t byteSize) const;
-
             bool IsOpen() const { return handle_ != InvalidHandle; }
 
-        private:
-            static constexpr int InvalidHandle = -1;
-            int handle_ = InvalidHandle;
+            size_t Write(const void* buffer, size_t byteSize) const;
         };
     }
 }
