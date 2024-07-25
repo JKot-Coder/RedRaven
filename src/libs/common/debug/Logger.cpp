@@ -1,6 +1,7 @@
 #include "Logger.hpp"
 
 #include "common/debug/DebugStream.hpp"
+#include "common/StringEncoding.hpp"
 
 #if defined(OS_WINDOWS)
 #include <windows.h>

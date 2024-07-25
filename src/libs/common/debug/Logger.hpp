@@ -2,8 +2,7 @@
 
 #include <cassert>
 #include <tuple>
-
-#include "common/String.hpp"
+#include <string>
 
 namespace RR
 {

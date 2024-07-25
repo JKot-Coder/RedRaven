@@ -6,6 +6,8 @@
 #include <windows.h>
 #endif // OS_WINDOWS
 
+#include "common/StringEncoding.hpp"
+
 namespace RR
 {
     namespace Common
@@ -31,6 +33,7 @@ namespace RR
                 inline void SetName(const std::string& threadName)
                 {
 #ifdef OS_WINDOWS
+                    // Todo move to cpp to avoid include stringEncoding
                     const auto& wThreadName = StringEncoding::UTF8ToWide(threadName);
                     SetThreadDescription(static_cast<HANDLE>(GetNativeHandle()), wThreadName.c_str());
 #else

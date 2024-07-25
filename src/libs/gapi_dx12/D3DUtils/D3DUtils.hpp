@@ -3,6 +3,7 @@
 #include "gapi/ForwardDeclarations.hpp"
 
 #include "gapi_dx12/D3DUtils/DXGIFormatsUtils.hpp"
+#include "common/StringEncoding.hpp"
 
 using HRESULT = long;
 

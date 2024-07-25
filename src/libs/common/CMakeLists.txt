@@ -55,7 +55,7 @@ set( COMMON_SRC
     Result.cpp
     Singleton.hpp
     Stream.hpp
-    String.hpp
+    StringEncoding.hpp
     Time.cpp
     Time.hpp
     ErrorNo.cpp

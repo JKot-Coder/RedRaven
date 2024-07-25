@@ -6,7 +6,6 @@
 
 #ifdef __cplusplus
 #include "common/NonCopyableMovable.hpp"
-#include "common/String.hpp"
 #include "common/debug/Logger.hpp"
 #include <array>
 #include <cstddef>
