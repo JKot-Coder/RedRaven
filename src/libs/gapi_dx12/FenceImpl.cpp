@@ -33,15 +33,6 @@ namespace RR
                 ASSERT(event_);
             }
 
-            uint64_t FenceImpl::Increment()
-            {
-                ASSERT(D3DFence_);
-
-                cpuValue_++;
-
-                return cpuValue_;
-            }
-
             void FenceImpl::Wait(std::optional<uint64_t> value, uint32_t timeout) const
             {
                 ASSERT(D3DFence_);

@@ -16,7 +16,12 @@ namespace RR
 
             void Init(const std::string& name);
 
-            uint64_t Increment();
+            uint64_t Increment()
+            {
+                ASSERT(D3DFence_);
+                return ++cpuValue_;
+            }
+
             void Wait(std::optional<uint64_t> value, uint32_t timeout = INFINITY_WAIT) const override;
 
             uint64_t GetGpuValue() const override
