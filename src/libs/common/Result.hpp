@@ -131,6 +131,7 @@ namespace RR::Common
         InvalidHandle = RR_MAKE_ERROR(RR_FACILITY_WIN_API, 6), // Indicates that a handle passed in as parameter to a method is invalid. (0x80070006)
         InvalidArgument = RR_MAKE_ERROR(RR_FACILITY_WIN_API, 0x57), // Indicates that an argument passed in as parameter to a method is invalid. (0x80070057)
         OutOfMemory = RR_MAKE_ERROR(RR_FACILITY_WIN_API, 0xe), // Operation could not complete - ran out of memory (0x8007000E)
+        DiskFull = RR_MAKE_ERROR(RR_FACILITY_WIN_API, 0x70), // There is not enough space on the disk.
 
         NotImplemented = RR_MAKE_ERROR(RR_FACILITY_WIN_GENERAL, 0x4001), // Functionality is not implemented (0x80004001)
         NoInterface = RR_MAKE_ERROR(RR_FACILITY_WIN_GENERAL, 0x4002), // Interface not be found (0x80004002)

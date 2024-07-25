@@ -18,6 +18,7 @@ namespace RR::Common
             case RResult::NoInterface: return u8"No such interface supported";
             case RResult::NotImplemented: return u8"Not implemented";
             case RResult::OutOfMemory: return u8"Failed to allocate necessary memory";
+            case RResult::DiskFull: return u8"There is not enough space on the disk";
             case RResult::Unexpected: return u8"Unexpected failure";
             case RResult::CannotOpen: return u8"File/Resource could not be opened";
             case RResult::NotFound: return u8"File/resource could not be found";
