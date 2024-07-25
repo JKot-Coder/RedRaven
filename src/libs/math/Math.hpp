@@ -340,7 +340,7 @@ namespace RR
     inline constexpr T AlignTo(T value, size_t alignment)
     {
         static_assert(std::is_integral<T>::value, "Expect integral types.");
-        ASSERT(IsPowerOfTwo(alignment))
+        ASSERT(IsPowerOfTwo(alignment));
         const size_t bumpedValue = static_cast<size_t>(value) + (alignment - 1);
         const size_t truncatedValue = bumpedValue & ~(alignment - 1);
         return static_cast<T>(truncatedValue);
