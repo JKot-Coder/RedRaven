@@ -26,7 +26,7 @@ set(CMAKE_C_STANDARD 11 CACHE STRING "")
 set(CMAKE_C_STANDARD_REQUIRED ON CACHE STRING "")
 set(CMAKE_C_EXTENSIONS ON CACHE STRING "")
 set(std_c_flags "-std:c11 -D__STDC__=1 -Wno-implicit-function-declaration") #/Zc:__STDC__
-# -Wno-implicit-function-declaration because a lot of libraries don't #include <io.h> 
+# -Wno-implicit-function-declaration because a lot of libraries don't #include <io.h>
 # for read/open/access and clang 16 made that an error instead of a warning.
 
 # Set C++ standard.
@@ -72,7 +72,7 @@ else()
   message(FATAL_ERROR "Invalid VCPKG_CRT_LINKAGE: \"${VCPKG_CRT_LINKAGE}\".")
 endif()
 set(VCPKG_DBG_FLAG "/Z7 /Brepro") # clang-cl only supports /Z7
- 
+
 # Set charset flag.
 set(CHARSET_FLAG "/utf-8")
 if(DEFINED VCPKG_SET_CHARSET_FLAG AND NOT VCPKG_SET_CHARSET_FLAG)
@@ -155,7 +155,7 @@ if(VCPKG_USE_SANITIZERS)
       set(clang_ver_path "${LLVM_BIN_DIR}/../lib/clang/$ENV{LLVMToolsVersion}")
     endif()
     #set(ENV{PATH} "$ENV{PATH};${clang_ver_path}/lib/windows")
-    
+
     if(NOT VCPKG_USE_COMPILER_FOR_LINKAGE)
       #set(ENV{LINK} "$ENV{LINK} /LIBPATH:\"${clang_ver_path}/lib/windows\"")
       #set(sanitizer_path "/LIBPATH:\\\\\"${clang_ver_path}/lib/windows\\\\\"" )
@@ -236,8 +236,8 @@ set(CMAKE_ASM_MASM_FLAGS_INIT "${CMAKE_CL_NOLOGO}")
 set(CMAKE_RC_FLAGS_INIT "-c65001 ${windows_defs}")
 set(CMAKE_RC_FLAGS_DEBUG_INIT "-D_DEBUG")
 
-# Setup try_compile correctly. Requires all variables required by the toolchain. 
-list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES VCPKG_CRT_LINKAGE 
+# Setup try_compile correctly. Requires all variables required by the toolchain.
+list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES VCPKG_CRT_LINKAGE
                                                  VCPKG_C_FLAGS VCPKG_CXX_FLAGS
                                                  VCPKG_C_FLAGS_DEBUG VCPKG_CXX_FLAGS_DEBUG
                                                  VCPKG_C_FLAGS_RELEASE VCPKG_CXX_FLAGS_RELEASE
