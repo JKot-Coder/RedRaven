@@ -107,23 +107,23 @@ add_subdirectory(src/dependencies/utfcpp)
 find_package(imgui CONFIG REQUIRED)
 
 #=================================== Catch2 ==================================#
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v2.13.10
-)
-FetchContent_MakeAvailable(Catch2)
+# FetchContent_Declare(
+#   Catch2
+#   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#   GIT_TAG        182c910b4b63ff587a3440e08f84f70497e49a81 #v2.13.10
+# )
+# FetchContent_MakeAvailable(Catch2)
 
 #=============================== ApprovalTests ===============================#
-FetchContent_Declare(
-  ApprovalTests
-  GIT_REPOSITORY https://github.com/approvals/ApprovalTests.cpp.git
-  GIT_TAG        v.10.12.1
-)
-# Tell the ApprovalTests CMake files that we want to use its copy of Catch2:
-set(APPROVAL_TESTS_BUILD_THIRD_PARTY_CATCH2 ON CACHE BOOL "")
-FetchContent_MakeAvailable(ApprovalTests)
-target_compile_options(ApprovalTests PRIVATE "$<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-copy-with-dtor>" )
+# FetchContent_Declare(
+#   ApprovalTests
+#   GIT_REPOSITORY https://github.com/approvals/ApprovalTests.cpp.git
+#   GIT_TAG        36bea0276415b521229b0f01271601a37f72b4de #v.10.12.1
+# )
+# # Tell the ApprovalTests CMake files that we want to use its copy of Catch2:
+# set(APPROVAL_TESTS_BUILD_THIRD_PARTY_CATCH2 ON CACHE BOOL "")
+# FetchContent_MakeAvailable(ApprovalTests)
+# target_compile_options(ApprovalTests PRIVATE "$<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-copy-with-dtor>" )
 
 #=================================== Glfw ====================================#
 # FetchContent_Declare(
@@ -139,78 +139,79 @@ target_compile_options(ApprovalTests PRIVATE "$<$<CXX_COMPILER_ID:Clang>:-Wno-de
 find_package(glfw3 CONFIG REQUIRED)
 
 #============================= DirectX-Headers ===============================#
-if(NOT WIN32)
-  FetchContent_Declare(
-    directx-headers
-    GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers
-    GIT_TAG        v1.606.4
-    OVERRIDE_FIND_PACKAGE
-  )
-  set(DXHEADERS_INSTALL ON CACHE BOOL "" FORCE)
-  FetchContent_MakeAvailable(directx-headers)
-endif ()
+# if(NOT WIN32)
+#   FetchContent_Declare(
+#     directx-headers
+#     GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers
+#     GIT_TAG        f149cfead6063bcf955d1a7b1ee91a6ece90f830 #v1.606.4
+#     OVERRIDE_FIND_PACKAGE
+#   )
+#   set(DXHEADERS_INSTALL ON CACHE BOOL "" FORCE)
+#   FetchContent_MakeAvailable(directx-headers)
+# endif ()
 
-#=============================== DirectXMath =================================#
-if(NOT WIN32)
-  FetchContent_Declare(
-    directxmath
-    GIT_REPOSITORY https://github.com/microsoft/DirectXMath
-    GIT_TAG        may2022
-    OVERRIDE_FIND_PACKAGE
-  )
-  FetchContent_MakeAvailable(directxmath)
-  add_library(Microsoft::DirectXMath ALIAS DirectXMath)
-endif ()
+# #=============================== DirectXMath =================================#
+# if(NOT WIN32)
+#   FetchContent_Declare(
+#     directxmath
+#     GIT_REPOSITORY https://github.com/microsoft/DirectXMath
+#     GIT_TAG        e95d84892ec894967c48151f9106bd4388e85e63 #may2022
+#     OVERRIDE_FIND_PACKAGE
+#   )
+#   FetchContent_MakeAvailable(directxmath)
+#   add_library(Microsoft::DirectXMath ALIAS DirectXMath)
+# endif ()
 
-#================================ DirectXTex =================================#
-FetchContent_Declare(
-  DirectXTex
-  GIT_REPOSITORY https://github.com/microsoft/DirectXTex
-  GIT_TAG        apr2021
-)
-set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
-set(BUILD_DX12 OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(DirectXTex)
-
-#================================== cxxopts ==================================#
-FetchContent_Declare(
-        cxxopts
-        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-        GIT_TAG        v3.0.0
-        GIT_SHALLOW    TRUE
-)
-set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-set(CXXOPTS_ENABLE_WARNINGS OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(cxxopts)
+# #================================ DirectXTex =================================#
+# FetchContent_Declare(
+#   DirectXTex
+#   GIT_REPOSITORY https://github.com/microsoft/DirectXTex
+#   GIT_TAG        edee596475fdbec95c9d0f194036d6f190a83ba1 #apr2021
+# )
+# set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+# set(BUILD_DX11 OFF CACHE BOOL "" FORCE)
+# set(BUILD_DX12 OFF CACHE BOOL "" FORCE)
+# FetchContent_MakeAvailable(DirectXTex)
 
 #================================== cxxopts ==================================#
-FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
-  GIT_TAG        yaml-cpp-0.7.0
-)
-set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
-set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(yaml-cpp)
+# FetchContent_Declare(
+#         cxxopts
+#         GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+#         GIT_TAG        c74846a891b3cc3bfa992d588b1295f528d43039 #v3.0.0
+#         GIT_SHALLOW    TRUE
+# )
+# set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+# set(CXXOPTS_ENABLE_WARNINGS OFF CACHE BOOL "" FORCE)
+# FetchContent_MakeAvailable(cxxopts)
+
+#=================================== yaml ===================================#
+# FetchContent_Declare(
+#   yaml-cpp
+#   GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
+#   GIT_TAG        0579ae3d976091d7d664aa9d2527e0d0cff25763 #yaml-cpp-0.7.0
+# )
+# set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+# set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+# set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+# FetchContent_MakeAvailable(yaml-cpp)
 
 #================================== stduuid ==================================#
-FetchContent_Declare(
-  stduuid
-  GIT_REPOSITORY https://github.com/mariusbancila/stduuid
-  GIT_TAG        v1.2.2
-)
-set(UUID_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(stduuid)
+# FetchContent_Declare(
+#   stduuid
+#   GIT_REPOSITORY https://github.com/mariusbancila/stduuid
+#   GIT_TAG        5c538cca02932aa0266659661d5b4726f3a317c7 #v1.2.2
+# )
+# set(UUID_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# FetchContent_MakeAvailable(stduuid)
 
 #================================= magic_enum ================================#
 FetchContent_Declare(
   magic_enum
   GIT_REPOSITORY https://github.com/Neargye/magic_enum
-  GIT_TAG        v0.9.1
+  GIT_TAG        67abcf483a4c5e5027aaf2976b338bd71e28c749 #v0.9.1
+  UPDATE_DISCONNECTED 1
 )
 FetchContent_MakeAvailable(magic_enum)
 
@@ -269,28 +270,28 @@ target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 find_package(flecs CONFIG REQUIRED)
 
 #==================================== efsw ===================================#
-FetchContent_Declare(
-  efsw
-  GIT_REPOSITORY https://github.com/SpartanJ/efsw
-  GIT_TAG        1.3.1
-)
-FetchContent_MakeAvailable(efsw)
-set(BuildTests OFF CACHE BOOL "" FORCE)
+# FetchContent_Declare(
+#   efsw
+#   GIT_REPOSITORY https://github.com/SpartanJ/efsw
+#   GIT_TAG        3b0ffd2908fa8d52a54e228f92c67330dfd015b4 #1.3.1
+# )
+# FetchContent_MakeAvailable(efsw)
+# set(BuildTests OFF CACHE BOOL "" FORCE)
 
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
-set_property(TARGET Catch2 PROPERTY FOLDER "Dependencies")
-set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
-set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
-set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
-set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
-set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
-set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
-set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
-set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
+# set_property(TARGET Catch2 PROPERTY FOLDER "Dependencies")
+# set_property(TARGET ApprovalTests PROPERTY FOLDER "Dependencies")
+# set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui::imgui PROPERTY FOLDER "Dependencies")
+#set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
+# set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
+# set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
+# set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
+# set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
 # set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
+# set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)
