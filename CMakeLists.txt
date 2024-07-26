@@ -249,22 +249,23 @@ find_package(EASTL CONFIG REQUIRED)
 # FetchContent_MakeAvailable(EABase)
 
 #==================================== Fmt ====================================#
-# FetchContent_Declare(
-#   FMT
-#   GIT_REPOSITORY https://github.com/fmtlib/fmt
-#   GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281 #10.2.1
-# )
-# FetchContent_MakeAvailable(FMT)
-# target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
-find_package(fmt CONFIG REQUIRED)
+FetchContent_Declare(
+  FMT
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281 #10.2.1
+  UPDATE_DISCONNECTED 1
+)
+FetchContent_MakeAvailable(FMT)
+target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 
 #=================================== Flecs ===================================#
-FetchContent_Declare(
-  flecs
-  GIT_REPOSITORY https://github.com/SanderMertens/flecs
-  GIT_TAG        v3.2.11
-)
-FetchContent_MakeAvailable(flecs)
+# FetchContent_Declare(
+#   flecs
+#   GIT_REPOSITORY https://github.com/SanderMertens/flecs
+#   GIT_TAG        198607d10ab8f8fc44540043271d6e3be019250b #v3.2.11
+# )
+# FetchContent_MakeAvailable(flecs)
+find_package(flecs CONFIG REQUIRED)
 
 #==================================== efsw ===================================#
 FetchContent_Declare(
@@ -287,8 +288,8 @@ set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
 set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
-set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
 set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui::imgui PROPERTY FOLDER "Dependencies")
+# set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
 
 add_subdirectory(src)
