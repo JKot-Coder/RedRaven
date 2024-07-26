@@ -12,8 +12,9 @@ namespace RR::Common
         class FileSystem final
         {
         public:
-            bool IsExist(std::string_view path);
-            RResult Open(std::string_view path, FileOpenMode acess, File& file);
+            std::string CurrentPath() const;
+            bool IsExist(std::string_view path) const;
+            RResult Open(std::string_view path, FileOpenMode acess, File& file)const;
         };
     }
 }
