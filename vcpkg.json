@@ -1,7 +1,6 @@
 {
   "dependencies": [
     "cxxopts",
-    "fmt",
     "glfw3",
     "eastl",
     "flecs",
@@ -14,10 +13,6 @@
     }
   ],
   "overrides": [
-    {
-      "name": "fmt",
-      "version": "10.2.1"
-    },
     {
       "name": "glfw3",
       "version": "3.3.7"
