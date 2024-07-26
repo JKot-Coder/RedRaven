@@ -4,6 +4,7 @@
     {
       "name": "default",
       "generator": "Ninja",
+      "hidden": true,
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
@@ -14,6 +15,22 @@
       },
       "environment": {
         "VCPKG_FEATURE_FLAGS": "-binarycaching,manifests"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "relWithDebInfo",
+      "displayName": "RelWithDebInfo",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ]

@@ -1,4 +1,4 @@
-#if !defined(DEBUG) && !defined(RELEASE) && !defined(HYBRID)
+#if !defined(DEBUG) && !defined(RELEASE) && !defined(RELEASE_WITH_DEBUG_INFO)
 static_assert(false, "Build target undefined");
 #endif
 

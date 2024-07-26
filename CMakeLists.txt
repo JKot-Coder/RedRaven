@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.24.0)
 
 project(RedRaven VERSION 0.0.3 LANGUAGES CXX)
 
-set(CMAKE_CONFIGURATION_TYPES Debug Release Hybrid)
+set(CMAKE_CONFIGURATION_TYPES Debug Release RelWithDebInfo)
 
 enable_testing()
 
@@ -36,21 +36,21 @@ endif()
 
 set(CMAKE_DEBUG_POSTFIX "_d")
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-set(CMAKE_CXX_FLAGS_HYBRID "/O2 /Zi /Zo")
-set(CMAKE_C_FLAGS_HYBRID "/O2 /Zi /Zo")
-set(CMAKE_EXE_LINKER_FLAGS_HYBRID "/DEBUG")
-set(CMAKE_SHARED_LINKER_FLAGS_HYBRID "/DEBUG")
-else()
-set(CMAKE_CXX_FLAGS_HYBRID "-O2 -g")
-set(CMAKE_C_FLAGS_HYBRID "-O2 -g")
-set(CMAKE_EXE_LINKER_FLAGS_HYBRID "-O2 -g")
-set(CMAKE_SHARED_LINKER_FLAGS_HYBRID "-O2 -g")
-endif()
+# if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+# set(CMAKE_CXX_FLAGS_HYBRID "/O2 /Zi /Zo")
+# set(CMAKE_C_FLAGS_HYBRID "/O2 /Zi /Zo")
+# set(CMAKE_EXE_LINKER_FLAGS_HYBRID "/DEBUG")
+# set(CMAKE_SHARED_LINKER_FLAGS_HYBRID "/DEBUG")
+# else()
+# set(CMAKE_CXX_FLAGS_HYBRID "-O2 -g")
+# set(CMAKE_C_FLAGS_HYBRID "-O2 -g")
+# set(CMAKE_EXE_LINKER_FLAGS_HYBRID "-O2 -g")
+# set(CMAKE_SHARED_LINKER_FLAGS_HYBRID "-O2 -g")
+# endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_HYBRID ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 #set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/build/lib)
@@ -63,7 +63,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 add_compile_definitions( $<$<CONFIG:Debug>:DEBUG> )
 add_compile_definitions( $<$<CONFIG:Release>:RELEASE> )
-add_compile_definitions( $<$<CONFIG:Hybrid>:HYBRID> )
+add_compile_definitions( $<$<CONFIG:RelWithDebInfo>:RELEASE_WITH_DEBUG_INFO> )
 
 set(PLATFORM_DEFINITIONS)
 
@@ -81,11 +81,14 @@ endif ()
 
 add_definitions(${PLATFORM_DEFINITIONS})
 
-if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-  set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>" -static-libsan)
-  set(LINK_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>" -static-libsan)
-else()
-  set(COMPILE_SANITIZE_FLAGS "$<$<CONFIG:Debug>:-fsanitize=address>")
+if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
+    set(COMPILE_SANITIZE_FLAGS "-fsanitize=address" "-fno-omit-frame-pointer")
+    set(LINK_SANITIZE_FLAGS "-fsanitize=address" "-shared-libasan")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+  else()
+    set(COMPILE_SANITIZE_FLAGS "-fsanitize=address" "-fno-omit-frame-pointer")
+  endif()
 endif()
 
 add_compile_options(${COMPILE_SANITIZE_FLAGS})
