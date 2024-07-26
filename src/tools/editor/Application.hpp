@@ -2,6 +2,7 @@
 
 #include "imgui_impl/ImguiPlatformImpl.hpp"
 #include "math/ForwardDeclarations.hpp"
+#include "flecs.h"
 
 namespace RR
 {
@@ -24,5 +25,6 @@ namespace RR
         bool show_demo_window = true;
         bool show_another_window = false;
         ImguiPlatfomImpl imguiPlatformInput;
+        flecs::world world;
     };
 }

@@ -98,6 +98,7 @@ include_directories(src)
 
 #================================ Dependencies ===============================#
 
+add_subdirectory(src/dependencies/cr)
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/utfcpp)

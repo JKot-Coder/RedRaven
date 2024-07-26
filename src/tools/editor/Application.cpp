@@ -18,6 +18,10 @@
 #include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
 
+#include "ecs_module/Manager.hpp"
+
+#include "common/Result.hpp"
+
 namespace RR
 {
     namespace
@@ -394,6 +398,14 @@ namespace RR
 
     void Application::init()
     {
+        EcsModule::Manager manager;
+        if (manager.Load("editor_ecs_d.dll", world) != Common::RResult::Ok)
+        {
+            LOG_ERROR("cant load shit!");
+        }
+        else
+        {
+        }
 
         //   testEvent.Register<Application>(this, &Application::bar);
     }
