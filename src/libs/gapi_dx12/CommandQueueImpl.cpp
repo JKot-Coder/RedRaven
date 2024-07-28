@@ -61,7 +61,7 @@ namespace RR
                 if (waitForPendingUploads)
                     InitialDataUploder::Instance().FlushAndWaitFor(*this);
 
-                std::array<ID3D12CommandList*, 2> commandLists;
+                std::array<ID3D12CommandList*, 1> commandLists;
                 size_t numCommandLists = 0;
 
                 auto pushCommandList = [&commandLists, &numCommandLists](const CommandListImpl& commandList) {
