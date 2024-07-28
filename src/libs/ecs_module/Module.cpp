@@ -2,7 +2,7 @@
 
 #include "common/io/FileSystem.hpp"
 #include "common/Result.hpp"
-#include "flecs.h"
+#include "ecs_module/Context.hpp"
 
 #define CR_HOST CR_SAFE
 #pragma clang diagnostic push
@@ -15,7 +15,7 @@ namespace RR::EcsModule
     Module::Module(){}
     Module::~Module(){}
 
-    Common::RResult Module::Load(const std::string& filename, flecs::world& world)
+    Common::RResult Module::Load(const std::string& filename, Context& ctx)
     {
         Common::IO::FileSystem fs;
 
@@ -27,12 +27,18 @@ namespace RR::EcsModule
         if(!cr_plugin_open(*impl, filename.c_str()))
             return Common::RResult::Fail;
 
-        impl->userdata = &world;
+        impl->userdata = &ctx;
 
         cr_plugin_reload(*impl);
 
         impl_.swap(impl);
 
         return Common::RResult::Ok;
+    }
+
+    void Module::Reload()
+    {
+        ASSERT(impl_);
+        cr_plugin_reload(*impl_);
     }
 }

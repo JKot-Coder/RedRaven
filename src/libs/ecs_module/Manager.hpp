@@ -1,14 +1,11 @@
 #pragma once
 
 #include "ecs_module\Module.hpp"
+#include "ecs_module\Context.hpp"
 
 namespace RR::Common
 {
     enum class RResult : int32_t;
-}
-
-namespace flecs {
-    struct world;
 }
 
 namespace RR::EcsModule
@@ -16,9 +13,12 @@ namespace RR::EcsModule
     class Manager final
     {
     public:
-        Common::RResult Load(const std::string& path, flecs::world& world);
+        Manager(const Context& ctx) : ctx_(ctx) {};
+        Common::RResult Load(const std::string& path);
+        void Update();
 
     private:
+        Context ctx_;
         std::vector<Module> modules_;
     };
 }

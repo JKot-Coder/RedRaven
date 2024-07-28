@@ -6,11 +6,11 @@
 
 namespace RR::EcsModule
 {
-    Common::RResult Manager::Load(const std::string& path, flecs::world& world)
+    Common::RResult Manager::Load(const std::string& path)
     {
         Module module;
 
-        Common::RResult result = module.Load(path, world);
+        Common::RResult result = module.Load(path, ctx_);
         if(result != Common::RResult::Ok)
         {
             Log::Format::Error("Failed to load module: {}. Error: {}", path, Common::GetErrorMessage(result));
@@ -19,5 +19,13 @@ namespace RR::EcsModule
 
         modules_.push_back(std::move(module));
         return Common::RResult::Ok;
+    }
+
+    void Manager::Update()
+    {
+        for(auto& module : modules_)
+        {
+            module.Reload();
+        }
     }
 }

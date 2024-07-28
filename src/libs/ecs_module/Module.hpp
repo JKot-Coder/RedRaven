@@ -14,6 +14,7 @@ namespace RR::Common
 namespace RR::EcsModule
 {
     using ModuleImpl = cr_plugin;
+    struct Context;
 
     class Module final
     {
@@ -24,7 +25,8 @@ namespace RR::EcsModule
         Module(Module&&) noexcept = default;
         Module& operator=(Module&&) noexcept = default;
 
-        Common::RResult Load(const std::string& filename, flecs::world& world);
+        Common::RResult Load(const std::string& filename, Context& ctx);
+        void Reload();
 
     private:
         std::unique_ptr<ModuleImpl> impl_;

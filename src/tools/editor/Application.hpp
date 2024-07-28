@@ -3,6 +3,7 @@
 #include "imgui_impl/ImguiPlatformImpl.hpp"
 #include "math/ForwardDeclarations.hpp"
 #include "flecs.h"
+#include "ecs_module/Manager.hpp"
 
 namespace RR
 {
@@ -14,6 +15,8 @@ namespace RR
     class Application final
     {
     public:
+        Application();
+        ~Application();
         int Run();
 
     private:
@@ -26,5 +29,6 @@ namespace RR
         bool show_another_window = false;
         ImguiPlatfomImpl imguiPlatformInput;
         flecs::world world;
+        std::unique_ptr<EcsModule::Manager> ecsManager;
     };
 }

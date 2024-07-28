@@ -18,7 +18,6 @@
 #include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
 
-#include "ecs_module/Manager.hpp"
 
 #include "common/Result.hpp"
 
@@ -181,6 +180,9 @@ namespace RR
         draw(deviceContext, 0.00001f);
     }
 
+    Application::Application() {}
+    Application::~Application() {}
+
     int Application::Run()
     {
         init();
@@ -207,9 +209,6 @@ namespace RR
             return 1;
         }
 
-        // Setup Dear ImGui context
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
@@ -294,7 +293,7 @@ namespace RR
 
         return 0;
     }
-
+    #pragma clang optimize off
     void Application::draw(Render::DeviceContext& deviceContext, float dt)
     {
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -343,6 +342,9 @@ namespace RR
                         show_another_window = false;
                     ImGui::End();
                 }
+
+                ecsManager->Update();
+                world.progress();
 
                 // Rendering
                 ImGui::Render();
@@ -395,11 +397,17 @@ namespace RR
         deviceContext.Present(g_pSwapChain);
         deviceContext.MoveToNextFrame(g_CommandQueue);
     }
-
+    #pragma clang optimize on
     void Application::init()
     {
-        EcsModule::Manager manager;
-        if (manager.Load("editor_ecs_d.dll", world) != Common::RResult::Ok)
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        auto imguiCtx = ImGui::CreateContext();
+
+        EcsModule::Context ctx(world, *imguiCtx);
+
+        ecsManager = std::make_unique<EcsModule::Manager>(ctx);
+        if (ecsManager->Load("editor_ecs.dll") != Common::RResult::Ok)
         {
             LOG_ERROR("cant load shit!");
         }

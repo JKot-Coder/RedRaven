@@ -9,6 +9,8 @@ set(SRC ${SRC})
 set(LIBRARIES
     common
     flecs::flecs
+    imgui::imgui
+    ecs_module::interface
     cr)
 
 #=============================== Target ===============================#
