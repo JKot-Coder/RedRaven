@@ -344,7 +344,7 @@ namespace RR
                 }
 
                 ecsManager->Update();
-                world.progress();
+                editorWorld.progress();
 
                 // Rendering
                 ImGui::Render();
@@ -404,7 +404,7 @@ namespace RR
         IMGUI_CHECKVERSION();
         auto imguiCtx = ImGui::CreateContext();
 
-        EcsModule::Context ctx(world, *imguiCtx);
+        EcsModule::Context ctx(editorWorld, *imguiCtx);
 
         ecsManager = std::make_unique<EcsModule::Manager>(ctx);
         if (ecsManager->Load("editor_ecs.dll") != Common::RResult::Ok)

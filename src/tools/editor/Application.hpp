@@ -28,7 +28,7 @@ namespace RR
         bool show_demo_window = true;
         bool show_another_window = false;
         ImguiPlatfomImpl imguiPlatformInput;
-        flecs::world world;
+        flecs::world editorWorld;
         std::unique_ptr<EcsModule::Manager> ecsManager;
     };
 }
