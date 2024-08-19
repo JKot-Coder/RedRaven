@@ -15,7 +15,9 @@
 #include <memory>
 #include <vector>
 #include <string_view>
+using namespace RR::Common::Debug;
+#include "math/Base.hpp"
 
 // using namespace RR::Common;
-using namespace RR::Common::Debug;
+
 #endif // __cplusplus
