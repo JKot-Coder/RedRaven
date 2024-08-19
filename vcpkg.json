@@ -31,7 +31,7 @@
     },
     {
       "name": "flecs",
-      "version": "3.2.11"
+      "version": "4.0.1"
     }
   ]
 }
