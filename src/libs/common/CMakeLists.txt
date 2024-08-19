@@ -43,9 +43,7 @@ set( COMMON_SRC
     Event.hpp
     EventProvider.hpp
     Exception.hpp
-    LinearAllocator.cpp
     LinearAllocator.hpp
-    LinearAllocator.inl
     NonCopyableMovable.hpp
     OnScopeExit.hpp
     pch/pch.hpp
