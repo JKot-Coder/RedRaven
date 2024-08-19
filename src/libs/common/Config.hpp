@@ -20,7 +20,7 @@
 #define INLINE
 #endif // ENABLE_INLINE
 
-#define UNUSED(...) ((void)(std::make_tuple(__VA_ARGS__)))
+#define UNUSED(...) (void)(sizeof(__VA_ARGS__))
 
 #ifdef _MSC_VER
 #define USED
