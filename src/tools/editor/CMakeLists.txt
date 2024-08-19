@@ -21,7 +21,6 @@ set(LIBRARIES
     render
     imgui::imgui
     ecs_module
-    flecs::flecs
     )
 
 if (WIN32)

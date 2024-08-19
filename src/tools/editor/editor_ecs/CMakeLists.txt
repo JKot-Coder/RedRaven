@@ -8,8 +8,8 @@ set(SRC ${SRC})
 
 set(LIBRARIES
     common
-    flecs::flecs
     imgui::imgui
+    ecs
     ecs_module::interface
     cr)
 

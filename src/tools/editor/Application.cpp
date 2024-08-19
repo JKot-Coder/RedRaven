@@ -344,7 +344,7 @@ namespace RR
                 }
 
                 ecsManager->Update();
-                editorWorld.progress();
+                editorWorld.Tick();
 
                 // Rendering
                 ImGui::Render();

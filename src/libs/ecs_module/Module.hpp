@@ -2,10 +2,6 @@
 
 struct cr_plugin;
 
-namespace flecs {
-    struct world;
-}
-
 namespace RR::Common
 {
     enum class RResult : int32_t;

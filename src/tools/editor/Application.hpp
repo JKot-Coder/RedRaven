@@ -2,7 +2,7 @@
 
 #include "imgui_impl/ImguiPlatformImpl.hpp"
 #include "math/ForwardDeclarations.hpp"
-#include "flecs.h"
+#include "ecs/World.hpp"
 #include "ecs_module/Manager.hpp"
 
 namespace RR
@@ -28,7 +28,7 @@ namespace RR
         bool show_demo_window = true;
         bool show_another_window = false;
         ImguiPlatfomImpl imguiPlatformInput;
-        flecs::world editorWorld;
+        Ecs::World editorWorld;
         std::unique_ptr<EcsModule::Manager> ecsManager;
     };
 }

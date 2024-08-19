@@ -1,19 +1,35 @@
-#include <flecs.h>
 #include <imgui.h>
 #include "cr.h"
 #include "ecs_module\Context.hpp"
+#include "ecs\Event.hpp"
+#include "ecs\World.hpp"
 
 struct TaskBar{};
+
+struct  MySuperEvent : RR::Ecs::Event
+{
+    MySuperEvent() : RR::Ecs::Event(sizeof(MySuperEvent)) {};
+    /* data */
+};
 
 #pragma clang optimize off
 int init(const RR::EcsModule::Context& ctx)
 {
-    flecs::world& world = *ctx.world;
+    RR::Ecs::World& world = *ctx.editorWorld;
+    world.Event<MySuperEvent>().Emit(MySuperEvent{});
+   // std::tuple<RR::Ecs::World> my_tuple = std::make_tuple(RR::Ecs::World{});
 
+    UNUSED(world, ctx);
+/*
     world.add<TaskBar>();
     ImGui::SetCurrentContext(ctx.imguiCtx);
-    //SetAllocatorFunctions();
 
+world.system("TaskBar").with(EcsSystem).each([](flecs::entity e){
+    Log::Format::Info("{}", e.name().c_str());
+});
+*/
+    //SetAllocatorFunctions();
+/*
     world.system<TaskBar>("TaskBar")
     .each([](const TaskBar&) {
         if (ImGui::BeginMainMenuBar())
@@ -35,7 +51,7 @@ int init(const RR::EcsModule::Context& ctx)
             }
             ImGui::EndMainMenuBar();
         }
-    });
+    });*/
 
     return 0;
 }
