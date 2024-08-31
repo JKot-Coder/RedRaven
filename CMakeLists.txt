@@ -102,6 +102,7 @@ add_subdirectory(src/dependencies/cr)
 add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/utfcpp)
+add_subdirectory(src/dependencies/flecs)
 #add_subdirectory(src/dependencies/imgui)
 
 find_package(imgui CONFIG REQUIRED)
@@ -267,7 +268,7 @@ target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 #   GIT_TAG        198607d10ab8f8fc44540043271d6e3be019250b #v3.2.11
 # )
 # FetchContent_MakeAvailable(flecs)
-find_package(flecs CONFIG REQUIRED)
+# find_package(flecs CONFIG REQUIRED)
 
 #==================================== efsw ===================================#
 # FetchContent_Declare(

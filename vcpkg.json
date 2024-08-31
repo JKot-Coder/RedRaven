@@ -3,7 +3,6 @@
     "cxxopts",
     "glfw3",
     "eastl",
-    "flecs",
     {
       "name": "imgui",
       "features": [
@@ -28,10 +27,6 @@
     {
       "name": "eastl",
       "version": "3.21.12"
-    },
-    {
-      "name": "flecs",
-      "version": "4.0.1"
     }
   ]
 }
