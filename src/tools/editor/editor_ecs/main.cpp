@@ -1,22 +1,20 @@
 #include <imgui.h>
 #include "cr.h"
 #include "ecs_module\Context.hpp"
-#include "ecs\Event.hpp"
-#include "ecs\World.hpp"
+#include "ecs\Ecs.hpp"
 
 struct TaskBar{};
 
-struct  MySuperEvent : RR::Ecs::Event
+struct  MySuperEvent : RR::Ecs::event
 {
-    MySuperEvent() : RR::Ecs::Event(sizeof(MySuperEvent)) {};
+    MySuperEvent() : RR::Ecs::event(sizeof(MySuperEvent)) {};
     /* data */
 };
 
 #pragma clang optimize off
 int init(const RR::EcsModule::Context& ctx)
 {
-    RR::Ecs::World& world = *ctx.editorWorld;
-    world.Event<MySuperEvent>().Emit(MySuperEvent{});
+    RR::Ecs::world& world = *ctx.editorWorld;
    // std::tuple<RR::Ecs::World> my_tuple = std::make_tuple(RR::Ecs::World{});
 
     UNUSED(world, ctx);

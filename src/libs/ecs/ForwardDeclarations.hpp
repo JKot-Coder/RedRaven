@@ -9,8 +9,7 @@ namespace flecs {
 
 namespace RR::Ecs
 {
-    using EntityId = flecs::entity_t;
-    using EventId = flecs::entity_t;
-
-    struct Event;
+    using entity_t = flecs::entity_t;
+    struct event;
+    struct world;
 }

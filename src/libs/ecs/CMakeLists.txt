@@ -4,6 +4,9 @@ set( SRC
     World.hpp
     World.cpp
     Event.hpp
+    EventBuilder.hpp
+    SystemBuilder.hpp
+    Ecs.hpp
     ForwardDeclarations.hpp )
 source_group( "" FILES ${SRC} )
 

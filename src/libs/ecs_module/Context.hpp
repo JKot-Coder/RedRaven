@@ -1,18 +1,15 @@
 #pragma once
 
-struct ImGuiContext;
+#include "ecs\ForwardDeclarations.hpp"
 
-namespace RR::Ecs
-{
-    class World;
-}
+struct ImGuiContext;
 
 namespace RR::EcsModule
 {
     struct Context final
     {
-        Context(Ecs::World& editorWorld, ImGuiContext& imguiCtx) : editorWorld(&editorWorld), imguiCtx(&imguiCtx) { }
-        Ecs::World* editorWorld;
+        Context(Ecs::world& editorWorld, ImGuiContext& imguiCtx) : editorWorld(&editorWorld), imguiCtx(&imguiCtx) { }
+        Ecs::world* editorWorld;
         ImGuiContext* imguiCtx;
     };
 }

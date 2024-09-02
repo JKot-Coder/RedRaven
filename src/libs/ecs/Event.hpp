@@ -9,45 +9,45 @@ namespace RR::Ecs
     // implement aligment on allocation
     static constexpr int EVENT_ALIGNMENT = alignof(uint32_t);
 
-    struct alignas(EVENT_ALIGNMENT) Event
+    struct alignas(EVENT_ALIGNMENT) event
     {
         using SizeType = uint16_t;
         SizeType size;
 
-        constexpr Event(size_t size_) : size(static_cast<SizeType>(size_)) {
+        constexpr event(size_t size_) : size(static_cast<SizeType>(size_)) {
             ASSERT(size_ < (size_t)std::numeric_limits<SizeType>::max);
         };
     };
 
-    struct EventDescription
+    struct event_description
     {
-        EventId eventId;
-        EntityId entity = 0;
+        entity_t eventId;
+        entity_t entity = 0;
     };
 
-    class EventStorage : protected Common::LinearAllocator<EVENT_ALIGNMENT>
+    class event_storage : protected Common::LinearAllocator<EVENT_ALIGNMENT>
     {
     private:
         static constexpr int InitialEventQueueSize = 1024*1024;
         static constexpr int Aligment = EVENT_ALIGNMENT;
 
     public:
-        EventStorage() : LinearAllocator(InitialEventQueueSize) {};
+        event_storage() : LinearAllocator(InitialEventQueueSize) {};
 
         template <typename EventType>
-        void Push(EventType&& event, const EventDescription& eventDesc)
+        void Push(EventType&& event, const event_description& eventDesc)
         {
-            static_assert(std::is_base_of<Event, EventType>::value, "EventType must derive from Event");
+            static_assert(std::is_base_of<Ecs::event, EventType>::value, "EventType must derive from Event");
             static_assert(IsAlignedTo(sizeof(EventType), Aligment));
-            static_assert(IsAlignedTo(sizeof(EntityId), Aligment));
+            static_assert(IsAlignedTo(sizeof(entity_t), Aligment));
 
             constexpr auto eventSize = sizeof(EventType);
-            const auto headerSize = sizeof(EntityId);
+            const auto headerSize = sizeof(entity_t);
             auto at = Allocate(eventSize + headerSize);
 
             ASSERT(IsAlignedTo(at, Aligment));
 
-            new (at) EntityId(eventDesc.eventId);
+            new (at) entity_t(eventDesc.eventId);
                     //if constexpr ((T::staticFlags() & EVFLG_DESTROY) == 0)
             memcpy(static_cast<char*>(at) + headerSize, &event, eventSize);
         }
@@ -63,11 +63,11 @@ namespace RR::Ecs
 
                 while (pos < allocated)
                 {
-                    const auto headerSize = sizeof(EntityId);
-                    EventId eventId = *(EventId*)(data + pos);
+                    const auto headerSize = sizeof(entity_t);
+                    entity_t eventId = *(entity_t*)(data + pos);
                     pos += headerSize;
 
-                    Event& event = *(Event*)(data + pos);
+                    Ecs::event& event = *(Ecs::event*)(data + pos);
                     cb(eventId, event);
                     pos += event.size;
                 }
