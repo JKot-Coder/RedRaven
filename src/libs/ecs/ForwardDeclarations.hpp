@@ -9,7 +9,16 @@ namespace flecs {
 
 namespace RR::Ecs
 {
-    using entity_t = flecs::entity_t;
-    struct event;
-    struct world;
+    using IdT = flecs::ecs_id_t;
+    using EntityT = flecs::entity_t;
+    struct Entity;
+    struct Event;
+    struct World;
+
+    struct SystemDescription;
+
+    template <typename E>
+    struct EventBuilder;
+    template <typename... Components>
+    struct SystemBuilder;
 }

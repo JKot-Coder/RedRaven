@@ -2,9 +2,9 @@
 
 namespace RR::Ecs
 {
-    void world::tick()
+    void World::Tick()
     {
-        eventStorage.ProcessEvents([this](entity_t entityId, const Ecs::event& event) {
+        eventStorage.ProcessEvents([this](EntityT entityId, const Ecs::Event& event) {
             if(entityId)
                 dispatchEventImmediately(entityId, event);
             else
@@ -14,12 +14,12 @@ namespace RR::Ecs
         //world.progress();
     }
 
-    void world::broadcastEventImmediately(const Ecs::event& event) const
+    void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
         UNUSED(event);
     }
 
-    void world::dispatchEventImmediately(entity_t entity, const Ecs::event& event) const
+    void World::dispatchEventImmediately(EntityT entity, const Ecs::Event& event) const
     {
         ASSERT(entity);
         UNUSED(entity, event);

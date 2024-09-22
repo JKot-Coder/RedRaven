@@ -407,7 +407,7 @@ namespace RR
         EcsModule::Context ctx(editorWorld, *imguiCtx);
 
         ecsManager = std::make_unique<EcsModule::Manager>(ctx);
-        if (ecsManager->Load("editor_ecs.dll") != Common::RResult::Ok)
+        if (ecsManager->Load("editor_ecs_d.dll") != Common::RResult::Ok)
         {
             LOG_ERROR("cant load shit!");
         }
