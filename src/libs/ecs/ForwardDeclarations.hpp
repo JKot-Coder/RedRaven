@@ -9,6 +9,7 @@ namespace flecs {
 
 namespace RR::Ecs
 {
+    using HashType = uint64_t;
     using IdT = flecs::ecs_id_t;
     using EntityT = flecs::entity_t;
     struct Entity;

@@ -7,6 +7,7 @@ set( SRC
     EventBuilder.hpp
     SystemBuilder.hpp
     Ecs.hpp
+    Hash.hpp
     ForwardDeclarations.hpp )
 source_group( "" FILES ${SRC} )
 

@@ -2,13 +2,20 @@
 
 #include "EASTL/fixed_vector.h"
 #include "ecs/ForwardDeclarations.hpp"
+#include "ecs/Hash.hpp"
+#include <string_view>
 #include <flecs.h>
 
 namespace RR::Ecs
 {
+    using HashSystemName = HashString<64>;
+
     struct SystemDesctiption : public ecs_system_desc_t
     {
-        eastl::fixed_vector<EntityT, 16> on_events;
+        HashSystemName hash;
+        eastl::fixed_vector<HashSystemName, 8> before;
+        eastl::fixed_vector<HashSystemName, 8> after;
+        eastl::fixed_vector<EntityT, 16> onEvents;
     };
 
     struct Id
@@ -27,8 +34,19 @@ namespace RR::Ecs
         IdT id_;
     };
 
-    struct Entity : Id
+    struct EntityView : Id
     {
+        /** Return the entity name.
+         *
+         * @return The entity name.
+         */
+        std::string_view Name() const { return std::string_view(ecs_get_name(world_->Flecs().c_ptr(), id_)); }
+    };
+
+    struct Entity : EntityView
+    {
+        Entity() : EntityView() { }
+
         /** Wrap an existing entity id.
          *
          * @param world The world in which the entity is created.
@@ -40,12 +58,6 @@ namespace RR::Ecs
             id_ = id;
         }
     };
-
-    Entity World::Lookup(const char* name, const char* sep, const char* root_sep, bool recursive) const
-    {
-        auto e = ecs_lookup_path_w_sep(world, 0, name, sep, root_sep, recursive);
-        return Entity(*this, e);
-    }
 
     struct System final : Entity
     {
@@ -66,7 +78,7 @@ namespace RR::Ecs
     };
 
     template <>
-    System World::Init<System>(const SystemDesctiption& desc)
+    inline System World::Init<System>(const SystemDesctiption& desc)
     {
         const auto id = ecs_system_init(Flecs(), &desc);
         return Ecs::System(*this, id);
@@ -114,9 +126,12 @@ namespace RR::Ecs
     {
         using BaseClass = SystemBuilderBase<Components...>;
 
-        SystemBuilder(World& world, const char* name = nullptr)
+        SystemBuilder(World& world, const char* name)
             : BaseClass(world, name)
         {
+            ASSERT(name);
+            ASSERT(name[0] != 0); //Not empty
+            desc().hash = HashSystemName(name);
             // flecs::_::sig<Components...>(world).populate(this);
         }
 
@@ -124,31 +139,26 @@ namespace RR::Ecs
         SystemBuilder& OnEvent()
         {
             static_assert((std::is_base_of<Event, EventTypes>::value && ...), "EventType must derive from Event");
-            (desc().on_events.emplace_back(flecs::type_id<EventTypes>()), ...);
+            (desc().onEvents.emplace_back(flecs::type_id<EventTypes>()), ...);
             return *this;
         }
 
         template <typename... Args>
         SystemBuilder& After(Args&&... args)
         {
-            (After(args), ...);
+            (after(args), ...);
             return *this;
         }
 
-        SystemBuilder& After(const System& system)
+        SystemBuilder& after(const System& system)
         {
-            After(system.RawId());
+            after(system.Name());
             return *this;
         }
 
-        SystemBuilder& After(const char* name)
+        SystemBuilder& after(std::string_view name)
         {
-            const auto e = BaseClass::world_->Lookup(name);
-            return *this;
-        }
-
-        SystemBuilder& After(IdT id)
-        {
+            desc().after.push_back(HashSystemName(name));
             return *this;
         }
 
@@ -156,6 +166,18 @@ namespace RR::Ecs
         SystemBuilder& Before(Args&&... args)
         {
             (Before(args), ...);
+            return *this;
+        }
+
+        SystemBuilder& before(const System& system)
+        {
+            before(system.Name());
+            return *this;
+        }
+
+        SystemBuilder& before(std::string_view name)
+        {
+            desc().before.push_back(HashSystemName(name));
             return *this;
         }
 

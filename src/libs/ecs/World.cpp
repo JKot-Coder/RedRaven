@@ -1,4 +1,5 @@
 #include "World.hpp"
+#include "SystemBuilder.hpp"
 
 namespace RR::Ecs
 {
@@ -12,6 +13,18 @@ namespace RR::Ecs
         });
 
         //world.progress();
+    }
+
+    Entity World::Lookup(const char* name, const char* sep, const char* root_sep, bool recursive) const
+    {
+        auto e = ecs_lookup_path_w_sep(world, 0, name, sep, root_sep, recursive);
+        return Entity(*this, e);
+    }
+
+    Entity World::GetAlive(EntityT e) const
+    {
+        e = ecs_get_alive(world, e);
+        return Entity(*this, e);
     }
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const

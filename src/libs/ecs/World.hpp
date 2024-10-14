@@ -12,13 +12,13 @@ namespace RR::Ecs
         template <typename EventType>
         inline EventBuilder<EventType> Event() const;
         template <typename... Components>
-        inline SystemBuilder<Components...> System(const char* name = nullptr);
+        inline SystemBuilder<Components...> System(const char* name);
 
         template <typename T, typename DescriptionType>
         T Init(const DescriptionType& desc);
 
         void Tick();
-        flecs::world& Flecs() { return world; }
+        const flecs::world& Flecs() const { return world; }
 
         /** Lookup entity by name.
          *
@@ -27,6 +27,13 @@ namespace RR::Ecs
          * @result The entity if found, or 0 if not found.
          */
         Entity Lookup(const char *name, const char *sep = "::", const char *root_sep = "::", bool recursive = true) const;
+
+        /** Get alive entity for id.
+         * Returns the entity with the current generation.
+         *
+         * @see ecs_get_alive()
+         */
+        Entity GetAlive(EntityT e) const;
 
     private:
         template<typename U>

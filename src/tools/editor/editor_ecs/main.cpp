@@ -42,7 +42,7 @@ int init(const RR::EcsModule::Context& ctx)
         RR::Common::Debug::Log::Format::Info("!!!!!");
     });
 
-    world.System<Position>().OnEvent<MySuperEvent>().After("asd", s).Each([](Position&)
+    world.System<Position>("asd").OnEvent<MySuperEvent>().After("asd", s).Each([](Position&)
     {
         RR::Common::Debug::Log::Format::Info("!!!!!");
     });
