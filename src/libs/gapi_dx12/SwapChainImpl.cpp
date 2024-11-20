@@ -53,7 +53,7 @@ namespace RR
                     nullptr,
                     swapChain1.put()));
 
-                if (FAILED(swapChain1.template try_as(D3DSwapChain_)))
+                if (FAILED(swapChain1.try_as<IDXGISwapChain3>(D3DSwapChain_)))
                     LOG_FATAL("Failed to cast swapchain");
                 // TODO DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
                 D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);

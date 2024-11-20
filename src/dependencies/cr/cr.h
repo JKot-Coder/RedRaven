@@ -1100,6 +1100,8 @@ static so_handle cr_so_load(const std::string &filename) {
     return new_dll;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type"
 static cr_plugin_main_func cr_so_symbol(so_handle handle) {
     CR_ASSERT(handle);
     auto new_main = (cr_plugin_main_func)GetProcAddress(handle, CR_MAIN_FUNC);
@@ -1109,6 +1111,7 @@ static cr_plugin_main_func cr_so_symbol(so_handle handle) {
     }
     return new_main;
 }
+#pragma clang diagnostic pop
 
 #ifdef __MINGW32__
 #include <setjmp.h>

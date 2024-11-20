@@ -205,13 +205,13 @@ namespace RR
 
     private:
         template <AngleUnitType From, AngleUnitType To>
-        static inline constexpr FloatFormat cast(FloatFormat value);
+        constexpr FloatFormat cast(FloatFormat value);
 
         template <>
-        static inline constexpr FloatFormat cast<AngleUnitType::Degree, AngleUnitType::Radian>(FloatFormat value) { return value * DEG2RAD; }
+        constexpr FloatFormat cast<AngleUnitType::Degree, AngleUnitType::Radian>(FloatFormat value) { return value * DEG2RAD; }
 
         template <>
-        static inline constexpr FloatFormat cast<AngleUnitType::Radian, AngleUnitType::Degree>(FloatFormat value) { return value * RAD2DEG; }
+        constexpr FloatFormat cast<AngleUnitType::Radian, AngleUnitType::Degree>(FloatFormat value) { return value * RAD2DEG; }
 
         FloatFormat value_ = 0.0f;
     };
