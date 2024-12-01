@@ -81,8 +81,6 @@ namespace RR
                     d3dDevice_->QueryInterface(IID_PPV_ARGS(debugLayer.put()));
                     d3dDevice_ = nullptr;
 
-                    ASSERT(debugLayer);
-
                     if (debugLayer)
                     {
                         Log::Print::Info("Dx12 leaked objects report:\n");
