@@ -5,6 +5,7 @@ set( SRC
     World.cpp
     Event.hpp
     EventBuilder.hpp
+    System.hpp
     SystemBuilder.hpp
     Ecs.hpp
     Hash.hpp
