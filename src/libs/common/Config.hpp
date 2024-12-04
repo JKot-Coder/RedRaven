@@ -22,6 +22,18 @@
 
 #define UNUSED(...) (void)(sizeof(__VA_ARGS__))
 
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__clang__)
+#define LIKELY(x) (__builtin_expect(!!(x), 1))
+#define UNLIKELY(x) (__builtin_expect(!!(x), 0))
+#elif defined(__cpp_attributes) && __cpp_attributes >= 201803L
+// For compilers supporting C++20 [[likely]]
+#define LIKELY(x) (x) [[likely]]
+#define UNLIKELY(x) (x) [[unlikely]]
+#else
+#define LIKELY(x)(x)
+#define UNLIKELY(x) (x)
+#endif
+
 #ifdef _MSC_VER
 #define USED
 #define NO_SANITIZE_ADDRESS __declspec(no_sanitize_address)
