@@ -6,6 +6,7 @@ set( SRC
     Event.hpp
     EventBuilder.hpp
     System.hpp
+    System.cpp
     SystemBuilder.hpp
     Ecs.hpp
     Hash.hpp

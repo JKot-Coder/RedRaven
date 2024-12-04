@@ -42,10 +42,13 @@ int init(const RR::EcsModule::Context& ctx)
         RR::Common::Debug::Log::Format::Info("!!!!!");
     });
 
-    world.System<Position>("asd").OnEvent<MySuperEvent>().After("asd", s).Each([](Position&)
+    UNUSED(s); // TODO fix after(s) syntax
+    world.System<Position>("asd").OnEvent<MySuperEvent>().After("asd").Each([](Position&)
     {
         RR::Common::Debug::Log::Format::Info("!!!!!");
     });
+
+    world.Tick();
 
     world.Event<MySuperEvent>().EmitImmediately({});
 /*

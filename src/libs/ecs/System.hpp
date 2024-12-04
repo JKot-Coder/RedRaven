@@ -1,20 +1,25 @@
 #pragma once
 
 #include "ecs/Hash.hpp"
+//#include "ecs/World.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 
 #include "EASTL/fixed_vector.h"
+#include "EASTL/unordered_map.h"
+#include "EASTL/atomic.h"
 
+#include <common/threading/Mutex.hpp>
 #include <string_view>
 #include <flecs.h>
 
 namespace RR::Ecs
 {
-     using HashSystemName = HashString<64>;
+    using HashSystemName = HashString<64>;
+    using HashSystemType = HashType;
 
     struct SystemDescription : public ecs_system_desc_t
     {
-        HashSystemName hash;
+        HashSystemName hashName;
         eastl::fixed_vector<HashSystemName, 8> before;
         eastl::fixed_vector<HashSystemName, 8> after;
         eastl::fixed_vector<EntityT, 16> onEvents;
@@ -42,7 +47,7 @@ namespace RR::Ecs
          *
          * @return The entity name.
          */
-        std::string_view Name() const { return std::string_view(ecs_get_name(world_->Flecs().c_ptr(), id_)); }
+        //std::string_view Name() const { return std::string_view(ecs_get_name(world_->Flecs().c_ptr(), id_)); }
     };
 
     struct Entity : EntityView
@@ -80,41 +85,32 @@ namespace RR::Ecs
     };
 
     class SystemStorage
-        {
-
-
-
+    {
     public:
-        SystemStorage()  {};
+        SystemStorage() { };
 
-        template <typename EventType>
-        void Push(EventType&& event, const EventDescription& eventDesc)
+        void Push(const SystemDescription& systemDescription)
         {
-            static_assert(std::is_base_of<Ecs::event, EventType>::value, "EventType must derive from Event");
-            static_assert(IsAlignedTo(sizeof(EventType), Aligment));
-            static_assert(IsAlignedTo(sizeof(EntityT), Aligment));
+            HashSystemType hash = systemDescription.hashName;
 
-            constexpr auto eventSize = sizeof(EventType);
-            const auto headerSize = sizeof(EntityT);
-            auto at = Allocate(eventSize + headerSize);
+            Common::Threading::UniqueLock<Common::Threading::Mutex> lock(mutex);
 
-            ASSERT(IsAlignedTo(at, Aligment));
+            if (descriptions.find(hash) != descriptions.end())
+            {
+                LOG_ERROR("System: {} already registered!", systemDescription.hashName.string.c_str());
+                return;
+            }
 
-            new (at) EntityT(eventDesc.eventId);
-                    //if constexpr ((T::staticFlags() & EVFLG_DESTROY) == 0)
-            memcpy(static_cast<char*>(at) + headerSize, &event, eventSize);
+            isDirty = true;
+            descriptions[hash] = systemDescription;
         }
 
+        void RegisterDeffered();
 
-        private:
-            std::vector<SystemDescription2*> systemsToRegister;
-            std::vector<SystemDescription*> systems;
+    private:
+        eastl::atomic<bool> isDirty = false;
+        Common::Threading::Mutex mutex;
+        eastl::unordered_map<HashSystemType, SystemDescription> descriptions;
+        std::vector<SystemDescription*> systems;
     };
-
-    template <>
-    inline System World::Init<System>(const SystemDescription& desc)
-    {
-        const auto id = ecs_system_init(Flecs(), &desc);
-        return Ecs::System(*this, id);
-    }
 }

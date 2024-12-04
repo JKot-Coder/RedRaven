@@ -5,6 +5,8 @@ namespace RR::Ecs
 {
     void World::Tick()
     {
+        systemStorage.RegisterDeffered();
+
         eventStorage.ProcessEvents([this](EntityT entityId, const Ecs::Event& event) {
             if(entityId)
                 dispatchEventImmediately(entityId, event);

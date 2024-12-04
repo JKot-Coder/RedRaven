@@ -2,6 +2,7 @@
 
 #include <flecs.h>
 #include "Event.hpp"
+#include "System.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 
 namespace RR::Ecs
@@ -54,6 +55,7 @@ namespace RR::Ecs
     private:
         flecs::world world;
         EventStorage eventStorage;
+        SystemStorage systemStorage;
     };
 
     template <typename EventType>
@@ -71,5 +73,13 @@ namespace RR::Ecs
             broadcastEventImmediately(std::move(event));
         else
             dispatchEventImmediately(eventDesc.entity, std::move(event));
+    }
+
+    template <>
+    inline System World::Init<System>(const SystemDescription& desc)
+    {
+        const auto id = ecs_system_init(Flecs(), &desc);
+        systemStorage.Push(desc);
+        return Ecs::System(*this, id);
     }
 }

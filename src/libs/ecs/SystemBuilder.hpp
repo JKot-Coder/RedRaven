@@ -53,7 +53,7 @@ namespace RR::Ecs
         {
             ASSERT(name);
             ASSERT(name[0] != 0); //Not empty
-            desc().hash = HashSystemName(name);
+            desc().hashName = HashSystemName(name);
             // flecs::_::sig<Components...>(world).populate(this);
         }
 
@@ -72,11 +72,11 @@ namespace RR::Ecs
             return *this;
         }
 
-        SystemBuilder& after(const System& system)
+    /*    SystemBuilder& after(const System& system)
         {
             after(system.Name());
             return *this;
-        }
+        }*/
 
         SystemBuilder& after(std::string_view name)
         {
