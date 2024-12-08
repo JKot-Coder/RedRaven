@@ -15,6 +15,7 @@
 #include <memory>
 #include <vector>
 #include <string_view>
+#include <EASTL/string_view.h>
 using namespace RR::Common::Debug;
 #include "math/Base.hpp"
 
