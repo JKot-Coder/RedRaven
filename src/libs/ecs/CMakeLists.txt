@@ -10,8 +10,10 @@ set( SRC
     SystemBuilder.hpp
     Ecs.hpp
     Hash.hpp
-    ForwardDeclarations.hpp )
-source_group( "" FILES ${SRC} )
+    ForwardDeclarations.hpp
+    TypeName.hpp
+    TypeName.cpp)
+    source_group( "" FILES ${SRC} )
 
 set (SRC
     ${SRC}
