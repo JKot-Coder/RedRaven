@@ -1,5 +1,9 @@
 ﻿---
 BasedOnStyle: WebKit
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: true
 AlignAfterOpenBracket: Align
 AlignOperands: 'true'
 BreakBeforeBinaryOperators: None
@@ -22,7 +26,6 @@ BreakConstructorInitializers: BeforeColon
 AlwaysBreakTemplateDeclarations: No
 NamespaceIndentation: All
 IndentCaseLabels: true
-AllowShortCaseLabelsOnASingleLine: true
 BreakAfterAttributes: Leave
 SortIncludes: true
 ...
