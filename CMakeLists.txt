@@ -103,6 +103,7 @@ add_subdirectory(src/dependencies/stb)
 add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/flecs)
+add_subdirectory(src/dependencies/ska)
 #add_subdirectory(src/dependencies/imgui)
 
 find_package(imgui CONFIG REQUIRED)
