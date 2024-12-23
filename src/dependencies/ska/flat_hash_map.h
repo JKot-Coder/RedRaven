@@ -6,12 +6,14 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <functional>
 #include <cmath>
-#include <algorithm>
-#include <iterator>
-#include <utility>
-#include <type_traits>
+#include <EASTL/functional.h>
+#include <EASTL/algorithm.h>
+#include <EASTL/iterator.h>
+#include <EASTL/utility.h>
+#include <EASTL/type_traits.h>
+#include <EASTL/initializer_list.h>
+#include <EASTL/memory.h>
 
 #ifdef _MSC_VER
 #define SKA_NOINLINE(...) __declspec(noinline) __VA_ARGS__
@@ -38,12 +40,12 @@ struct functor_storage : Functor
     template<typename... Args>
     Result operator()(Args &&... args)
     {
-        return static_cast<Functor &>(*this)(std::forward<Args>(args)...);
+        return static_cast<Functor &>(*this)(eastl::forward<Args>(args)...);
     }
     template<typename... Args>
     Result operator()(Args &&... args) const
     {
-        return static_cast<const Functor &>(*this)(std::forward<Args>(args)...);
+        return static_cast<const Functor &>(*this)(eastl::forward<Args>(args)...);
     }
 };
 template<typename Result, typename... Args>
@@ -57,7 +59,7 @@ struct functor_storage<Result, Result (*)(Args...)>
     }
     Result operator()(Args... args) const
     {
-        return function(std::forward<Args>(args)...);
+        return function(eastl::forward<Args>(args)...);
     }
     operator function_ptr &()
     {
@@ -94,12 +96,12 @@ struct KeyOrValueHasher : functor_storage<size_t, hasher>
         return static_cast<const hasher_storage &>(*this)(value.first);
     }
     template<typename F, typename S>
-    size_t operator()(const std::pair<F, S> & value)
+    size_t operator()(const eastl::pair<F, S> & value)
     {
         return static_cast<hasher_storage &>(*this)(value.first);
     }
     template<typename F, typename S>
-    size_t operator()(const std::pair<F, S> & value) const
+    size_t operator()(const eastl::pair<F, S> & value) const
     {
         return static_cast<const hasher_storage &>(*this)(value.first);
     }
@@ -130,27 +132,27 @@ struct KeyOrValueEquality : functor_storage<bool, key_equal>
         return static_cast<equality_storage &>(*this)(lhs.first, rhs.first);
     }
     template<typename F, typename S>
-    bool operator()(const key_type & lhs, const std::pair<F, S> & rhs)
+    bool operator()(const key_type & lhs, const eastl::pair<F, S> & rhs)
     {
         return static_cast<equality_storage &>(*this)(lhs, rhs.first);
     }
     template<typename F, typename S>
-    bool operator()(const std::pair<F, S> & lhs, const key_type & rhs)
+    bool operator()(const eastl::pair<F, S> & lhs, const key_type & rhs)
     {
         return static_cast<equality_storage &>(*this)(lhs.first, rhs);
     }
     template<typename F, typename S>
-    bool operator()(const value_type & lhs, const std::pair<F, S> & rhs)
+    bool operator()(const value_type & lhs, const eastl::pair<F, S> & rhs)
     {
         return static_cast<equality_storage &>(*this)(lhs.first, rhs.first);
     }
     template<typename F, typename S>
-    bool operator()(const std::pair<F, S> & lhs, const value_type & rhs)
+    bool operator()(const eastl::pair<F, S> & lhs, const value_type & rhs)
     {
         return static_cast<equality_storage &>(*this)(lhs.first, rhs.first);
     }
     template<typename FL, typename SL, typename FR, typename SR>
-    bool operator()(const std::pair<FL, SL> & lhs, const std::pair<FR, SR> & rhs)
+    bool operator()(const eastl::pair<FL, SL> & lhs, const eastl::pair<FR, SR> & rhs)
     {
         return static_cast<equality_storage &>(*this)(lhs.first, rhs.first);
     }
@@ -190,7 +192,7 @@ struct sherwood_v3_entry
     template<typename... Args>
     void emplace(int8_t distance, Args &&... args)
     {
-        new (std::addressof(value)) T(std::forward<Args>(args)...);
+        new (eastl::addressof(value)) T(eastl::forward<Args>(args)...);
         distance_from_desired = distance;
     }
 
@@ -236,7 +238,7 @@ struct AssignIfTrue
     }
     void operator()(T & lhs, T && rhs)
     {
-        lhs = std::move(rhs);
+        lhs = eastl::move(rhs);
     }
 };
 template<typename T>
@@ -276,22 +278,21 @@ struct HashPolicySelector<T, void_t<typename T::hash_policy>>
     typedef typename T::hash_policy type;
 };
 
-template<typename T, typename FindKey, typename ArgumentHash, typename Hasher, typename ArgumentEqual, typename Equal, typename ArgumentAlloc, typename EntryAlloc>
-class sherwood_v3_table : private EntryAlloc, private Hasher, private Equal
+template<typename T, typename FindKey, typename ArgumentHash, typename Hasher, typename ArgumentEqual, typename Equal, typename ArgumentAlloc>
+class sherwood_v3_table : private Hasher, private Equal
 {
     using Entry = detailv3::sherwood_v3_entry<T>;
-    using AllocatorTraits = std::allocator_traits<EntryAlloc>;
-    using EntryPointer = typename AllocatorTraits::pointer;
+    using EntryPointer = Entry*;
     struct convertible_to_iterator;
 
 public:
 
     using value_type = T;
     using size_type = size_t;
-    using difference_type = std::ptrdiff_t;
+    using difference_type = ptrdiff_t;
     using hasher = ArgumentHash;
     using key_equal = ArgumentEqual;
-    using allocator_type = EntryAlloc;
+    using allocator_type = ArgumentAlloc;
     using reference = value_type &;
     using const_reference = const value_type &;
     using pointer = value_type *;
@@ -301,7 +302,7 @@ public:
     {
     }
     explicit sherwood_v3_table(size_type bucket_count, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
-        : EntryAlloc(alloc), Hasher(hash), Equal(equal)
+        : Hasher(hash), Equal(equal)
     {
         rehash(bucket_count);
     }
@@ -314,7 +315,7 @@ public:
     {
     }
     explicit sherwood_v3_table(const ArgumentAlloc & alloc)
-        : EntryAlloc(alloc)
+        : ArgumentAlloc(alloc)
     {
     }
     template<typename It>
@@ -368,29 +369,21 @@ public:
         }
     }
     sherwood_v3_table(sherwood_v3_table && other) noexcept
-        : EntryAlloc(std::move(other)), Hasher(std::move(other)), Equal(std::move(other))
+        : EntryAlloc(eastl::move(other)), Hasher(eastl::move(other)), Equal(eastl::move(other))
     {
         swap_pointers(other);
     }
     sherwood_v3_table(sherwood_v3_table && other, const ArgumentAlloc & alloc) noexcept
-        : EntryAlloc(alloc), Hasher(std::move(other)), Equal(std::move(other))
+        : EntryAlloc(alloc), Hasher(eastl::move(other)), Equal(eastl::move(other))
     {
         swap_pointers(other);
     }
     sherwood_v3_table & operator=(const sherwood_v3_table & other)
     {
-        if (this == std::addressof(other))
+        if (this == eastl::addressof(other))
             return *this;
 
         clear();
-        if (AllocatorTraits::propagate_on_container_copy_assignment::value)
-        {
-            if (static_cast<EntryAlloc &>(*this) != static_cast<const EntryAlloc &>(other))
-            {
-                reset_to_empty_state();
-            }
-            AssignIfTrue<EntryAlloc, AllocatorTraits::propagate_on_container_copy_assignment::value>()(*this, other);
-        }
         _max_load_factor = other._max_load_factor;
         static_cast<Hasher &>(*this) = other;
         static_cast<Equal &>(*this) = other;
@@ -400,16 +393,9 @@ public:
     }
     sherwood_v3_table & operator=(sherwood_v3_table && other) noexcept
     {
-        if (this == std::addressof(other))
+        if (this == eastl::addressof(other))
             return *this;
-        else if (AllocatorTraits::propagate_on_container_move_assignment::value)
-        {
-            clear();
-            reset_to_empty_state();
-            AssignIfTrue<EntryAlloc, AllocatorTraits::propagate_on_container_move_assignment::value>()(*this, std::move(other));
-            swap_pointers(other);
-        }
-        else if (static_cast<EntryAlloc &>(*this) == static_cast<EntryAlloc &>(other))
+        else if (static_cast<ArgumentAlloc&>(*this) == static_cast<ArgumentAlloc&>(other))
         {
             swap_pointers(other);
         }
@@ -419,11 +405,11 @@ public:
             _max_load_factor = other._max_load_factor;
             rehash_for_other_container(other);
             for (T & elem : other)
-                emplace(std::move(elem));
+                emplace(eastl::move(elem));
             other.clear();
         }
-        static_cast<Hasher &>(*this) = std::move(other);
-        static_cast<Equal &>(*this) = std::move(other);
+        static_cast<Hasher &>(*this) = eastl::move(other);
+        static_cast<Equal &>(*this) = eastl::move(other);
         return *this;
     }
     ~sherwood_v3_table()
@@ -455,7 +441,7 @@ public:
         }
         EntryPointer current = EntryPointer();
 
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = eastl::forward_iterator_tag;
         using value_type = ValueType;
         using difference_type = ptrdiff_t;
         using pointer = ValueType *;
@@ -492,7 +478,7 @@ public:
         }
         ValueType * operator->() const
         {
-            return std::addressof(current->value);
+            return eastl::addressof(current->value);
         }
 
         operator templated_iterator<const value_type>() const
@@ -555,25 +541,25 @@ public:
     {
         return find(key) == end() ? 0 : 1;
     }
-    std::pair<iterator, iterator> equal_range(const FindKey & key)
+    eastl::pair<iterator, iterator> equal_range(const FindKey & key)
     {
         iterator found = find(key);
         if (found == end())
             return { found, found };
         else
-            return { found, std::next(found) };
+            return { found, eastl::next(found) };
     }
-    std::pair<const_iterator, const_iterator> equal_range(const FindKey & key) const
+    eastl::pair<const_iterator, const_iterator> equal_range(const FindKey & key) const
     {
         const_iterator found = find(key);
         if (found == end())
             return { found, found };
         else
-            return { found, std::next(found) };
+            return { found, eastl::next(found) };
     }
 
     template<typename Key, typename... Args>
-    std::pair<iterator, bool> emplace(Key && key, Args &&... args)
+    eastl::pair<iterator, bool> emplace(Key && key, Args &&... args)
     {
         size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
         EntryPointer current_entry = entries + ptrdiff_t(index);
@@ -583,21 +569,21 @@ public:
             if (compares_equal(key, current_entry->value))
                 return { { current_entry }, false };
         }
-        return emplace_new_key(distance_from_desired, current_entry, std::forward<Key>(key), std::forward<Args>(args)...);
+        return emplace_new_key(distance_from_desired, current_entry, eastl::forward<Key>(key), eastl::forward<Args>(args)...);
     }
 
-    std::pair<iterator, bool> insert(const value_type & value)
+    eastl::pair<iterator, bool> insert(const value_type & value)
     {
         return emplace(value);
     }
-    std::pair<iterator, bool> insert(value_type && value)
+    eastl::pair<iterator, bool> insert(value_type && value)
     {
-        return emplace(std::move(value));
+        return emplace(eastl::move(value));
     }
     template<typename... Args>
     iterator emplace_hint(const_iterator, Args &&... args)
     {
-        return emplace(std::forward<Args>(args)...).first;
+        return emplace(eastl::forward<Args>(args)...).first;
     }
     iterator insert(const_iterator, const value_type & value)
     {
@@ -605,7 +591,7 @@ public:
     }
     iterator insert(const_iterator, value_type && value)
     {
-        return emplace(std::move(value)).first;
+        return emplace(eastl::move(value)).first;
     }
 
     template<typename It>
@@ -623,7 +609,7 @@ public:
 
     void rehash(size_t num_buckets)
     {
-        num_buckets = std::max(num_buckets, static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
+        num_buckets = eastl::max(num_buckets, static_cast<size_t>(eastl::ceil(num_elements / static_cast<double>(_max_load_factor))));
         if (num_buckets == 0)
         {
             reset_to_empty_state();
@@ -633,13 +619,13 @@ public:
         if (num_buckets == bucket_count())
             return;
         int8_t new_max_lookups = compute_max_lookups(num_buckets);
-        EntryPointer new_buckets(AllocatorTraits::allocate(*this, num_buckets + new_max_lookups));
+        auto new_buckets = (EntryPointer)eastl::allocate_memory(static_cast<ArgumentAlloc&>(*this), sizeof(Entry) * (num_buckets + new_max_lookups), alignof(Entry), 0);
         EntryPointer special_end_item = new_buckets + static_cast<ptrdiff_t>(num_buckets + new_max_lookups - 1);
         for (EntryPointer it = new_buckets; it != special_end_item; ++it)
             it->distance_from_desired = -1;
         special_end_item->distance_from_desired = Entry::special_end_value;
-        std::swap(entries, new_buckets);
-        std::swap(num_slots_minus_one, num_buckets);
+        eastl::swap(entries, new_buckets);
+        eastl::swap(num_slots_minus_one, num_buckets);
         --num_slots_minus_one;
         hash_policy.commit(new_prime_index);
         int8_t old_max_lookups = max_lookups;
@@ -649,7 +635,7 @@ public:
         {
             if (it->has_value())
             {
-                emplace(std::move(it->value));
+                emplace(eastl::move(it->value));
                 it->destroy_value();
             }
         }
@@ -674,7 +660,7 @@ public:
         --num_elements;
         for (EntryPointer next = current + ptrdiff_t(1); !next->is_at_desired_position(); ++current, ++next)
         {
-            current->emplace(next->distance_from_desired - 1, std::move(next->value));
+            current->emplace(next->distance_from_desired - 1, eastl::move(next->value));
             next->destroy_value();
         }
         return { to_erase.current };
@@ -694,15 +680,15 @@ public:
         }
         if (end_it == this->end())
             return this->end();
-        ptrdiff_t num_to_move = std::min(static_cast<ptrdiff_t>(end_it.current->distance_from_desired), end_it.current - begin_it.current);
+        ptrdiff_t num_to_move = eastl::min(static_cast<ptrdiff_t>(end_it.current->distance_from_desired), end_it.current - begin_it.current);
         EntryPointer to_return = end_it.current - num_to_move;
         for (EntryPointer it = end_it.current; !it->is_at_desired_position();)
         {
             EntryPointer target = it - num_to_move;
-            target->emplace(it->distance_from_desired - num_to_move, std::move(it->value));
+            target->emplace(it->distance_from_desired - num_to_move, eastl::move(it->value));
             it->destroy_value();
             ++it;
-            num_to_move = std::min(static_cast<ptrdiff_t>(it->distance_from_desired), num_to_move);
+            num_to_move = eastl::min(static_cast<ptrdiff_t>(it->distance_from_desired), num_to_move);
         }
         return { to_return };
     }
@@ -736,12 +722,10 @@ public:
 
     void swap(sherwood_v3_table & other)
     {
-        using std::swap;
+        using eastl::swap;
         swap_pointers(other);
         swap(static_cast<ArgumentHash &>(*this), static_cast<ArgumentHash &>(other));
         swap(static_cast<ArgumentEqual &>(*this), static_cast<ArgumentEqual &>(other));
-        if (AllocatorTraits::propagate_on_container_swap::value)
-            swap(static_cast<EntryAlloc &>(*this), static_cast<EntryAlloc &>(other));
     }
 
     size_t size() const
@@ -797,21 +781,21 @@ private:
     static int8_t compute_max_lookups(size_t num_buckets)
     {
         int8_t desired = detailv3::log2(num_buckets);
-        return std::max(detailv3::min_lookups, desired);
+        return eastl::max(detailv3::min_lookups, desired);
     }
 
     size_t num_buckets_for_reserve(size_t num_elements) const
     {
-        return static_cast<size_t>(std::ceil(num_elements / std::min(0.5, static_cast<double>(_max_load_factor))));
+        return static_cast<size_t>(eastl::ceil(num_elements / eastl::min(0.5, static_cast<double>(_max_load_factor))));
     }
     void rehash_for_other_container(const sherwood_v3_table & other)
     {
-        rehash(std::min(num_buckets_for_reserve(other.size()), other.bucket_count()));
+        rehash(eastl::min(num_buckets_for_reserve(other.size()), other.bucket_count()));
     }
 
     void swap_pointers(sherwood_v3_table & other)
     {
-        using std::swap;
+        using eastl::swap;
         swap(hash_policy, other.hash_policy);
         swap(entries, other.entries);
         swap(num_slots_minus_one, other.num_slots_minus_one);
@@ -821,21 +805,21 @@ private:
     }
 
     template<typename Key, typename... Args>
-    SKA_NOINLINE(std::pair<iterator, bool>) emplace_new_key(int8_t distance_from_desired, EntryPointer current_entry, Key && key, Args &&... args)
+    SKA_NOINLINE(eastl::pair<iterator, bool>) emplace_new_key(int8_t distance_from_desired, EntryPointer current_entry, Key && key, Args &&... args)
     {
-        using std::swap;
+        using eastl::swap;
         if (num_slots_minus_one == 0 || distance_from_desired == max_lookups || num_elements + 1 > (num_slots_minus_one + 1) * static_cast<double>(_max_load_factor))
         {
             grow();
-            return emplace(std::forward<Key>(key), std::forward<Args>(args)...);
+            return emplace(eastl::forward<Key>(key), eastl::forward<Args>(args)...);
         }
         else if (current_entry->is_empty())
         {
-            current_entry->emplace(distance_from_desired, std::forward<Key>(key), std::forward<Args>(args)...);
+            current_entry->emplace(distance_from_desired, eastl::forward<Key>(key), eastl::forward<Args>(args)...);
             ++num_elements;
             return { { current_entry }, true };
         }
-        value_type to_insert(std::forward<Key>(key), std::forward<Args>(args)...);
+        value_type to_insert(eastl::forward<Key>(key), eastl::forward<Args>(args)...);
         swap(distance_from_desired, current_entry->distance_from_desired);
         swap(to_insert, current_entry->value);
         iterator result = { current_entry };
@@ -843,7 +827,7 @@ private:
         {
             if (current_entry->is_empty())
             {
-                current_entry->emplace(distance_from_desired, std::move(to_insert));
+                current_entry->emplace(distance_from_desired, eastl::move(to_insert));
                 ++num_elements;
                 return { result, true };
             }
@@ -860,7 +844,7 @@ private:
                 {
                     swap(to_insert, result.current->value);
                     grow();
-                    return emplace(std::move(to_insert));
+                    return emplace(eastl::move(to_insert));
                 }
             }
         }
@@ -868,7 +852,7 @@ private:
 
     void grow()
     {
-        rehash(std::max(size_t(4), 2 * bucket_count()));
+        rehash(eastl::max(size_t(4), 2 * bucket_count()));
     }
 
     void deallocate_data(EntryPointer begin, size_t num_slots_minus_one, int8_t max_lookups)
@@ -1215,7 +1199,7 @@ struct prime_number_hash_policy
             &mod5746614499066534157, &mod7240280573005008577, &mod9122181901073924329,
             &mod11493228998133068689, &mod14480561146010017169, &mod18446744073709551557
         };
-        const size_t * found = std::lower_bound(std::begin(prime_list), std::end(prime_list) - 1, size);
+        const size_t * found = eastl::lower_bound(eastl::begin(prime_list), eastl::end(prime_list) - 1, size);
         size = *found;
         return mod_functions[1 + found - prime_list];
     }
@@ -1278,7 +1262,7 @@ struct fibonacci_hash_policy
 
     int8_t next_size_over(size_t & size) const
     {
-        size = std::max(size_t(2), detailv3::next_power_of_two(size));
+        size = eastl::max(size_t(2), detailv3::next_power_of_two(size));
         return 64 - detailv3::log2(size);
     }
     void commit(int8_t shift)
@@ -1294,30 +1278,28 @@ private:
     int8_t shift = 63;
 };
 
-template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename A = std::allocator<std::pair<K, V> > >
+template<typename K, typename V, typename H = eastl::hash<K>, typename E = eastl::equal_to<K>, typename A = EASTLAllocatorType>
 class flat_hash_map
         : public detailv3::sherwood_v3_table
         <
-            std::pair<K, V>,
+            eastl::pair<K, V>,
             K,
             H,
-            detailv3::KeyOrValueHasher<K, std::pair<K, V>, H>,
+            detailv3::KeyOrValueHasher<K, eastl::pair<K, V>, H>,
             E,
-            detailv3::KeyOrValueEquality<K, std::pair<K, V>, E>,
-            A,
-            typename std::allocator_traits<A>::template rebind_alloc<detailv3::sherwood_v3_entry<std::pair<K, V>>>
+            detailv3::KeyOrValueEquality<K, eastl::pair<K, V>, E>,
+            A
         >
 {
     using Table = detailv3::sherwood_v3_table
     <
-        std::pair<K, V>,
+        eastl::pair<K, V>,
         K,
         H,
-        detailv3::KeyOrValueHasher<K, std::pair<K, V>, H>,
+        detailv3::KeyOrValueHasher<K, eastl::pair<K, V>, H>,
         E,
-        detailv3::KeyOrValueEquality<K, std::pair<K, V>, E>,
-        A,
-        typename std::allocator_traits<A>::template rebind_alloc<detailv3::sherwood_v3_entry<std::pair<K, V>>>
+        detailv3::KeyOrValueEquality<K, eastl::pair<K, V>, E>,
+        A
     >;
 public:
 
@@ -1335,53 +1317,53 @@ public:
     }
     inline V & operator[](K && key)
     {
-        return emplace(std::move(key), convertible_to_value()).first->second;
+        return emplace(eastl::move(key), convertible_to_value()).first->second;
     }
     V & at(const K & key)
     {
         auto found = this->find(key);
         if (found == this->end())
-            throw std::out_of_range("Argument passed to at() was not in the map.");
+            throw eastl::out_of_range("Argument passed to at() was not in the map.");
         return found->second;
     }
     const V & at(const K & key) const
     {
         auto found = this->find(key);
         if (found == this->end())
-            throw std::out_of_range("Argument passed to at() was not in the map.");
+            throw eastl::out_of_range("Argument passed to at() was not in the map.");
         return found->second;
     }
 
     using Table::emplace;
-    std::pair<typename Table::iterator, bool> emplace()
+    eastl::pair<typename Table::iterator, bool> emplace()
     {
         return emplace(key_type(), convertible_to_value());
     }
     template<typename M>
-    std::pair<typename Table::iterator, bool> insert_or_assign(const key_type & key, M && m)
+    eastl::pair<typename Table::iterator, bool> insert_or_assign(const key_type & key, M && m)
     {
-        auto emplace_result = emplace(key, std::forward<M>(m));
+        auto emplace_result = emplace(key, eastl::forward<M>(m));
         if (!emplace_result.second)
-            emplace_result.first->second = std::forward<M>(m);
+            emplace_result.first->second = eastl::forward<M>(m);
         return emplace_result;
     }
     template<typename M>
-    std::pair<typename Table::iterator, bool> insert_or_assign(key_type && key, M && m)
+    eastl::pair<typename Table::iterator, bool> insert_or_assign(key_type && key, M && m)
     {
-        auto emplace_result = emplace(std::move(key), std::forward<M>(m));
+        auto emplace_result = emplace(eastl::move(key), eastl::forward<M>(m));
         if (!emplace_result.second)
-            emplace_result.first->second = std::forward<M>(m);
+            emplace_result.first->second = eastl::forward<M>(m);
         return emplace_result;
     }
     template<typename M>
     typename Table::iterator insert_or_assign(typename Table::const_iterator, const key_type & key, M && m)
     {
-        return insert_or_assign(key, std::forward<M>(m)).first;
+        return insert_or_assign(key, eastl::forward<M>(m)).first;
     }
     template<typename M>
     typename Table::iterator insert_or_assign(typename Table::const_iterator, key_type && key, M && m)
     {
-        return insert_or_assign(std::move(key), std::forward<M>(m)).first;
+        return insert_or_assign(eastl::move(key), eastl::forward<M>(m)).first;
     }
 
     friend bool operator==(const flat_hash_map & lhs, const flat_hash_map & rhs)
@@ -1413,7 +1395,7 @@ private:
     };
 };
 
-template<typename T, typename H = std::hash<T>, typename E = std::equal_to<T>, typename A = std::allocator<T> >
+template<typename T, typename H = eastl::hash<T>, typename E = eastl::equal_to<T>, typename A = EASTLAllocatorType>
 class flat_hash_set
         : public detailv3::sherwood_v3_table
         <
@@ -1423,8 +1405,7 @@ class flat_hash_set
             detailv3::functor_storage<size_t, H>,
             E,
             detailv3::functor_storage<bool, E>,
-            A,
-            typename std::allocator_traits<A>::template rebind_alloc<detailv3::sherwood_v3_entry<T>>
+            A
         >
 {
     using Table = detailv3::sherwood_v3_table
@@ -1435,8 +1416,7 @@ class flat_hash_set
         detailv3::functor_storage<size_t, H>,
         E,
         detailv3::functor_storage<bool, E>,
-        A,
-        typename std::allocator_traits<A>::template rebind_alloc<detailv3::sherwood_v3_entry<T>>
+        A
     >;
 public:
 
@@ -1448,25 +1428,25 @@ public:
     }
 
     template<typename... Args>
-    std::pair<typename Table::iterator, bool> emplace(Args &&... args)
+    eastl::pair<typename Table::iterator, bool> emplace(Args &&... args)
     {
-        return Table::emplace(T(std::forward<Args>(args)...));
+        return Table::emplace(T(eastl::forward<Args>(args)...));
     }
-    std::pair<typename Table::iterator, bool> emplace(const key_type & arg)
+    eastl::pair<typename Table::iterator, bool> emplace(const key_type & arg)
     {
         return Table::emplace(arg);
     }
-    std::pair<typename Table::iterator, bool> emplace(key_type & arg)
+    eastl::pair<typename Table::iterator, bool> emplace(key_type & arg)
     {
         return Table::emplace(arg);
     }
-    std::pair<typename Table::iterator, bool> emplace(const key_type && arg)
+    eastl::pair<typename Table::iterator, bool> emplace(const key_type && arg)
     {
-        return Table::emplace(std::move(arg));
+        return Table::emplace(eastl::move(arg));
     }
-    std::pair<typename Table::iterator, bool> emplace(key_type && arg)
+    eastl::pair<typename Table::iterator, bool> emplace(key_type && arg)
     {
-        return Table::emplace(std::move(arg));
+        return Table::emplace(eastl::move(arg));
     }
 
     friend bool operator==(const flat_hash_set & lhs, const flat_hash_set & rhs)
@@ -1488,7 +1468,7 @@ public:
 
 
 template<typename T>
-struct power_of_two_std_hash : std::hash<T>
+struct power_of_two_std_hash : eastl::hash<T>
 {
     typedef ska::power_of_two_hash_policy hash_policy;
 };
