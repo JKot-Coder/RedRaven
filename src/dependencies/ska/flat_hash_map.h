@@ -209,6 +209,20 @@ struct sherwood_v3_entry
 
 inline int8_t log2(size_t value)
 {
+#ifdef _MSC_VER
+  unsigned long res;
+  if(sizeof(uint64_t) == sizeof(size_t))
+    _BitScanReverse64(&res, value);
+  else
+    _BitScanReverse(&res, value);
+  return (int8_t)res;
+#elif defined __GNUC__ || defined __clang__
+  if(sizeof(uint64_t) == sizeof(size_t))
+    return 63 - static_cast<int8_t>(__builtin_clzll(mask));
+  else
+    return 31 - static_cast<int8_t>(__builtin_clz(mask));
+#endif
+
     static constexpr int8_t table[64] =
     {
         63,  0, 58,  1, 59, 47, 53,  2,
