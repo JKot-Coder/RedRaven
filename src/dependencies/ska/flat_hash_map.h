@@ -28,6 +28,7 @@ namespace ska
 struct prime_number_hash_policy;
 struct power_of_two_hash_policy;
 struct fibonacci_hash_policy;
+typedef uint32_t hash_size_t;
 
 namespace detailv3
 {
@@ -269,7 +270,7 @@ struct AssignIfTrue<T, false>
     }
 };
 
-inline size_t next_power_of_two(size_t i)
+inline hash_size_t next_power_of_two(hash_size_t i)
 {
     return hash_size_t(1) << (detailv3::log2(i - 1) + 1);
 }
@@ -302,7 +303,7 @@ protected:
 public:
 
     using value_type = T;
-    using size_type = size_t;
+    using hash_size_type = hash_size_t;
     using difference_type = ptrdiff_t;
     using hasher = ArgumentHash;
     using key_equal = ArgumentEqual;
@@ -315,16 +316,16 @@ public:
     sherwood_v3_table()
     {
     }
-    explicit sherwood_v3_table(size_type bucket_count, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
+    explicit sherwood_v3_table(hash_size_type bucket_count, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
         : ArgumentAlloc(alloc), Hasher(hash), Equal(equal)
     {
         rehash(bucket_count);
     }
-    sherwood_v3_table(size_type bucket_count, const ArgumentAlloc & alloc)
+    sherwood_v3_table(hash_size_type bucket_count, const ArgumentAlloc & alloc)
         : sherwood_v3_table(bucket_count, ArgumentHash(), ArgumentEqual(), alloc)
     {
     }
-    sherwood_v3_table(size_type bucket_count, const ArgumentHash & hash, const ArgumentAlloc & alloc)
+    sherwood_v3_table(hash_size_type bucket_count, const ArgumentHash & hash, const ArgumentAlloc & alloc)
         : sherwood_v3_table(bucket_count, hash, ArgumentEqual(), alloc)
     {
     }
@@ -333,33 +334,33 @@ public:
     {
     }
     template<typename It>
-    sherwood_v3_table(It first, It last, size_type bucket_count = 0, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
+    sherwood_v3_table(It first, It last, hash_size_type bucket_count = 0, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
         : sherwood_v3_table(bucket_count, hash, equal, alloc)
     {
         insert(first, last);
     }
     template<typename It>
-    sherwood_v3_table(It first, It last, size_type bucket_count, const ArgumentAlloc & alloc)
+    sherwood_v3_table(It first, It last, hash_size_type bucket_count, const ArgumentAlloc & alloc)
         : sherwood_v3_table(first, last, bucket_count, ArgumentHash(), ArgumentEqual(), alloc)
     {
     }
     template<typename It>
-    sherwood_v3_table(It first, It last, size_type bucket_count, const ArgumentHash & hash, const ArgumentAlloc & alloc)
+    sherwood_v3_table(It first, It last, hash_size_type bucket_count, const ArgumentHash & hash, const ArgumentAlloc & alloc)
         : sherwood_v3_table(first, last, bucket_count, hash, ArgumentEqual(), alloc)
     {
     }
-    sherwood_v3_table(std::initializer_list<T> il, size_type bucket_count = 0, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
+    sherwood_v3_table(std::initializer_list<T> il, hash_size_type bucket_count = 0, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
         : sherwood_v3_table(bucket_count, hash, equal, alloc)
     {
         if (bucket_count == 0)
             rehash(il.size());
         insert(il.begin(), il.end());
     }
-    sherwood_v3_table(std::initializer_list<T> il, size_type bucket_count, const ArgumentAlloc & alloc)
+    sherwood_v3_table(std::initializer_list<T> il, hash_size_type bucket_count, const ArgumentAlloc & alloc)
         : sherwood_v3_table(il, bucket_count, ArgumentHash(), ArgumentEqual(), alloc)
     {
     }
-    sherwood_v3_table(std::initializer_list<T> il, size_type bucket_count, const ArgumentHash & hash, const ArgumentAlloc & alloc)
+    sherwood_v3_table(std::initializer_list<T> il, hash_size_type bucket_count, const ArgumentHash & hash, const ArgumentAlloc & alloc)
         : sherwood_v3_table(il, bucket_count, hash, ArgumentEqual(), alloc)
     {
     }
@@ -529,7 +530,7 @@ public:
 
     iterator find(const FindKey & key)
     {
-        size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
+        hash_size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
         EntryPointer it = entries + ptrdiff_t(index);
         for (int8_t distance = 0; it->distance_from_desired >= distance; ++distance, ++it)
         {
@@ -542,7 +543,7 @@ public:
     {
         return const_cast<sherwood_v3_table *>(this)->find(key);
     }
-    size_t count(const FindKey & key) const
+    hash_size_t count(const FindKey & key) const
     {
         return find(key) == end() ? 0 : 1;
     }
@@ -566,7 +567,7 @@ public:
     template<typename Key, typename... Args>
     eastl::pair<iterator, bool> emplace(Key && key, Args &&... args)
     {
-        size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
+        hash_size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
         EntryPointer current_entry = entries + ptrdiff_t(index);
         int8_t distance_from_desired = 0;
         for (; current_entry->distance_from_desired >= distance_from_desired; ++current_entry, ++distance_from_desired)
@@ -612,9 +613,9 @@ public:
         insert(il.begin(), il.end());
     }
 
-    void rehash(size_t num_buckets)
+    void rehash(hash_size_t num_buckets)
     {
-        num_buckets = eastl::max(num_buckets, static_cast<size_t>(eastl::ceil(num_elements / static_cast<double>(_max_load_factor))));
+        num_buckets = eastl::max(num_buckets, static_cast<hash_size_t>(ceilf(float(num_elements) / _max_load_factor)));
         if (num_buckets == 0)
         {
             reset_to_empty_state();
@@ -647,9 +648,9 @@ public:
         deallocate_data(new_buckets, num_buckets, old_max_lookups);
     }
 
-    void reserve(size_t num_elements)
+    void reserve(hash_size_t num_reserved_elements)
     {
-        size_t required_buckets = num_buckets_for_reserve(num_elements);
+        hash_size_t required_buckets = num_buckets_for_reserve(num_reserved_elements);
         if (required_buckets > bucket_count())
             rehash(required_buckets);
     }
@@ -698,7 +699,7 @@ public:
         return { to_return };
     }
 
-    size_t erase(const FindKey & key)
+    hash_size_t erase(const FindKey & key)
     {
         auto found = find(key);
         if (found == end())
@@ -733,29 +734,29 @@ public:
         swap(static_cast<ArgumentEqual &>(*this), static_cast<ArgumentEqual &>(other));
     }
 
-    size_t size() const
+    hash_size_t size() const
     {
         return num_elements;
     }
-    size_t max_size() const
+    hash_size_t max_size() const
     {
         return eastl::numeric_limits<typename eastl::pointer_traits<EntryPointer>::difference_type>::max() / sizeof(Entry);
     }
-    size_t bucket_count() const
+    hash_size_t bucket_count() const
     {
         return num_slots_minus_one ? num_slots_minus_one + 1 : 0;
     }
-    size_type max_bucket_count() const
+    hash_size_type max_bucket_count() const
     {
         return (eastl::numeric_limits<typename eastl::pointer_traits<EntryPointer>::difference_type>::max() - min_lookups) / sizeof(Entry);
     }
-    size_t bucket(const FindKey & key) const
+    hash_size_t bucket(const FindKey & key) const
     {
         return hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
     }
     float load_factor() const
     {
-        size_t buckets = bucket_count();
+        hash_size_t buckets = bucket_count();
         if (buckets)
             return static_cast<float>(num_elements) / bucket_count();
         else
@@ -777,21 +778,21 @@ public:
 
 private:
     EntryPointer entries = Entry::empty_default_table();
-    size_t num_slots_minus_one = 0;
+    hash_size_t num_slots_minus_one = 0;
     typename HashPolicySelector<ArgumentHash>::type hash_policy;
     int8_t max_lookups = detailv3::min_lookups - 1;
     float _max_load_factor = 0.5f;
-    size_t num_elements = 0;
+    hash_size_t num_elements = 0;
 
-    static int8_t compute_max_lookups(size_t num_buckets)
+    static int8_t compute_max_lookups(hash_size_t num_buckets)
     {
         int8_t desired = detailv3::log2(num_buckets);
         return eastl::max(detailv3::min_lookups, desired);
     }
 
-    size_t num_buckets_for_reserve(size_t num_elements) const
+    hash_size_t num_buckets_for_reserve(hash_size_t num_elements_) const
     {
-        return static_cast<size_t>(eastl::ceil(num_elements / eastl::min(0.5, static_cast<double>(_max_load_factor))));
+        return static_cast<hash_size_t>(ceilf(float(num_elements_) / eastl::min(0.5f, _max_load_factor)));
     }
     void rehash_for_other_container(const sherwood_v3_table & other)
     {
@@ -813,7 +814,7 @@ private:
     SKA_NOINLINE(eastl::pair<iterator, bool>) emplace_new_key(int8_t distance_from_desired, EntryPointer current_entry, Key && key, Args &&... args)
     {
         using eastl::swap;
-        if (num_slots_minus_one == 0 || distance_from_desired == max_lookups || num_elements + 1 > (num_slots_minus_one + 1) * static_cast<double>(_max_load_factor))
+        if (num_slots_minus_one == 0 || distance_from_desired == max_lookups || num_elements + 1 > hash_size_t(float(num_slots_minus_one + 1) * _max_load_factor))
         {
             grow();
             return emplace(eastl::forward<Key>(key), eastl::forward<Args>(args)...);
@@ -857,10 +858,10 @@ private:
 
     void grow()
     {
-        rehash(eastl::max(size_t(4), 2 * bucket_count()));
+        rehash(eastl::max(hash_size_t(4), 2 * bucket_count()));
     }
 
-    void deallocate_data(EntryPointer begin, size_t num_slots_minus_one, int8_t max_lookups)
+    void deallocate_data(EntryPointer begin, hash_size_t num_slots_minus_one_, int8_t max_lookups_)
     {
         if (begin != Entry::empty_default_table())
         {
@@ -1407,7 +1408,7 @@ class flat_hash_set
             T,
             T,
             H,
-            detailv3::functor_storage<size_t, H>,
+            detailv3::functor_storage<hash_size_t, H>,
             E,
             detailv3::functor_storage<bool, E>,
             A
@@ -1418,7 +1419,7 @@ class flat_hash_set
         T,
         T,
         H,
-        detailv3::functor_storage<size_t, H>,
+        detailv3::functor_storage<hash_size_t, H>,
         E,
         detailv3::functor_storage<bool, E>,
         A
