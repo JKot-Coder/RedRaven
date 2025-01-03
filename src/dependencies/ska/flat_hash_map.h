@@ -160,6 +160,7 @@ struct KeyOrValueEquality : functor_storage<bool, key_equal>
     }
 };
 static constexpr int8_t min_lookups = 4;
+static constexpr int8_t special_end_value = 0;
 template<typename T>
 struct sherwood_v3_entry
 {
@@ -205,26 +206,25 @@ struct sherwood_v3_entry
     }
 
     int8_t distance_from_desired = -1;
-    static constexpr int8_t special_end_value = 0;
     union { T value; };
 };
 
-inline int8_t log2(size_t value)
+template<typename T>
+inline int8_t log2(T value)
 {
 #ifdef _MSC_VER
-  unsigned long res;
-  if(sizeof(uint64_t) == sizeof(size_t))
-    _BitScanReverse64(&res, value);
-  else
-    _BitScanReverse(&res, value);
-  return (int8_t)res;
+    unsigned long res;
+    if (sizeof(T) == sizeof(uint64_t))
+        _BitScanReverse64(&res, value);
+    else
+        _BitScanReverse(&res, value);
+    return (int8_t)res;
 #elif defined __GNUC__ || defined __clang__
-  if(sizeof(uint64_t) == sizeof(size_t))
-    return 63 - static_cast<int8_t>(__builtin_clzll(mask));
-  else
+    if (sizeof(T) == sizeof(uint64_t)) return 63 - static_cast<int8_t>(__builtin_clzll(mask));
+        else
     return 31 - static_cast<int8_t>(__builtin_clz(mask));
-#endif
-
+#else
+    #error "log2 not implemented"
     static constexpr int8_t table[64] =
     {
         63,  0, 58,  1, 59, 47, 53,  2,
@@ -243,6 +243,7 @@ inline int8_t log2(size_t value)
     value |= value >> 16;
     value |= value >> 32;
     return table[((value - (value >> 1)) * 0x07EDD5E59A4E28C2) >> 58];
+#endif
 }
 
 template<typename T, bool>
