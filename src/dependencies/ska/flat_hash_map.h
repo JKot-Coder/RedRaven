@@ -270,15 +270,7 @@ struct AssignIfTrue<T, false>
 
 inline size_t next_power_of_two(size_t i)
 {
-    --i;
-    i |= i >> 1;
-    i |= i >> 2;
-    i |= i >> 4;
-    i |= i >> 8;
-    i |= i >> 16;
-    i |= i >> 32;
-    ++i;
-    return i;
+    return hash_size_t(1) << (detailv3::log2(i - 1) + 1);
 }
 
 template<typename...> using void_t = void;
@@ -295,8 +287,13 @@ struct HashPolicySelector<T, void_t<typename T::hash_policy>>
 };
 
 template<typename T, typename FindKey, typename ArgumentHash, typename Hasher, typename ArgumentEqual, typename Equal, typename ArgumentAlloc>
-class sherwood_v3_table : private Hasher, private Equal
+class
+#ifdef _MSC_VER
+__declspec(empty_bases)
+#endif
+sherwood_v3_table : public ArgumentAlloc, private Hasher, private Equal
 {
+protected:
     using Entry = detailv3::sherwood_v3_entry<T>;
     using EntryPointer = Entry*;
     struct convertible_to_iterator;
@@ -318,7 +315,7 @@ public:
     {
     }
     explicit sherwood_v3_table(size_type bucket_count, const ArgumentHash & hash = ArgumentHash(), const ArgumentEqual & equal = ArgumentEqual(), const ArgumentAlloc & alloc = ArgumentAlloc())
-        : Hasher(hash), Equal(equal)
+        : ArgumentAlloc(alloc), Hasher(hash), Equal(equal)
     {
         rehash(bucket_count);
     }
@@ -366,31 +363,22 @@ public:
     {
     }
     sherwood_v3_table(const sherwood_v3_table & other)
-        : sherwood_v3_table(other, AllocatorTraits::select_on_container_copy_construction(other.get_allocator()))
+        : sherwood_v3_table(other, other.get_allocator())
     {
     }
     sherwood_v3_table(const sherwood_v3_table & other, const ArgumentAlloc & alloc)
-        : EntryAlloc(alloc), Hasher(other), Equal(other), _max_load_factor(other._max_load_factor)
+        : ArgumentAlloc(alloc), Hasher(other), Equal(other), _max_load_factor(other._max_load_factor)
     {
         rehash_for_other_container(other);
-        try
-        {
-            insert(other.begin(), other.end());
-        }
-        catch(...)
-        {
-            clear();
-            deallocate_data(entries, num_slots_minus_one, max_lookups);
-            throw;
-        }
+        insert(other.begin(), other.end());
     }
     sherwood_v3_table(sherwood_v3_table && other) noexcept
-        : EntryAlloc(eastl::move(other)), Hasher(eastl::move(other)), Equal(eastl::move(other))
+        : ArgumentAlloc(eastl::move(other)), Hasher(eastl::move(other)), Equal(eastl::move(other))
     {
         swap_pointers(other);
     }
     sherwood_v3_table(sherwood_v3_table && other, const ArgumentAlloc & alloc) noexcept
-        : EntryAlloc(alloc), Hasher(eastl::move(other)), Equal(eastl::move(other))
+        : ArgumentAlloc(alloc), Hasher(eastl::move(other)), Equal(eastl::move(other))
     {
         swap_pointers(other);
     }
@@ -750,7 +738,7 @@ public:
     }
     size_t max_size() const
     {
-        return (AllocatorTraits::max_size(*this)) / sizeof(Entry);
+        return eastl::numeric_limits<typename eastl::pointer_traits<EntryPointer>::difference_type>::max() / sizeof(Entry);
     }
     size_t bucket_count() const
     {
@@ -758,7 +746,7 @@ public:
     }
     size_type max_bucket_count() const
     {
-        return (AllocatorTraits::max_size(*this) - min_lookups) / sizeof(Entry);
+        return (eastl::numeric_limits<typename eastl::pointer_traits<EntryPointer>::difference_type>::max() - min_lookups) / sizeof(Entry);
     }
     size_t bucket(const FindKey & key) const
     {
@@ -875,7 +863,7 @@ private:
     {
         if (begin != Entry::empty_default_table())
         {
-            AllocatorTraits::deallocate(*this, begin, num_slots_minus_one + max_lookups + 1);
+            EASTLFree(static_cast<ArgumentAlloc&>(*this), begin, sizeof(Entry) * (num_slots_minus_one_ + max_lookups_ + 1));
         }
     }
 
@@ -1281,9 +1269,9 @@ struct fibonacci_hash_policy
         size = eastl::max(size_t(2), detailv3::next_power_of_two(size));
         return 64 - detailv3::log2(size);
     }
-    void commit(int8_t shift)
+    void commit(int8_t shift_)
     {
-        this->shift = shift;
+        this->shift = shift_;
     }
     void reset()
     {
