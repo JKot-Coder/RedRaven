@@ -3,6 +3,7 @@ project (ecs)
 set( SRC
     World.hpp
     World.cpp
+    EntityBuilder.hpp
     Event.hpp
     EventBuilder.hpp
     System.hpp
