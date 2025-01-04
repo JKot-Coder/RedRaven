@@ -2,6 +2,7 @@ project (ecs)
 
 set( SRC
     EntityId.hpp
+    Index.hpp
     World.hpp
     World.cpp
     Archetype.hpp
