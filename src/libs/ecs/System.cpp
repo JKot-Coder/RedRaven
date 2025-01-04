@@ -68,14 +68,14 @@ namespace RR::Ecs
         eastl::sort(tmpSystemList.begin(), tmpSystemList.end(), [](auto a, auto b) { return a->hashName < b->hashName; });
 
         // Map hash of name to more simple global index
-        eastl::unordered_map<HashSystemType, uint32_t> systemHashToIdxMap;
+        eastl::unordered_map<HashType, uint32_t> systemHashToIdxMap;
 
         for (uint32_t i = 0; i < tmpSystemList.size(); i++)
             systemHashToIdxMap[tmpSystemList[i]->hashName.hash] = i;
 
         constexpr uint32_t invalidId = std::numeric_limits<uint32_t>::max();
 
-        auto systemHashToIdx = [&systemHashToIdxMap](HashSystemType hash) {
+        auto systemHashToIdx = [&systemHashToIdxMap](HashType hash) {
             const auto it = systemHashToIdxMap.find(hash);
             return it != systemHashToIdxMap.end() ? it->second : invalidId;
         };
@@ -84,7 +84,7 @@ namespace RR::Ecs
         auto makeEdge = [&](uint32_t fromIdx, uint32_t toIdx) { edges.emplace(fromIdx, toIdx); };
         UNUSED(makeEdge);
 
-        auto insertOrderEdge = [&](HashSystemName system, HashSystemName other, bool before) {
+        auto insertOrderEdge = [&](HashName system, HashName other, bool before) {
             const auto systemIdx = systemHashToIdx(system.hash);
             const auto otherIdx = systemHashToIdx(other.hash);
             ASSERT(systemIdx != invalidId); // Impossible

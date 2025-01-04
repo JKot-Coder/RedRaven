@@ -1,7 +1,9 @@
 #pragma once
 
+
 #include "ecs/Hash.hpp"
 //#include "ecs/World.hpp"
+#include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 
 #include "EASTL/fixed_vector.h"
@@ -10,78 +12,30 @@
 
 #include <common/threading/Mutex.hpp>
 #include <string_view>
-#include <flecs.h>
 
 namespace RR::Ecs
 {
-    using HashSystemName = HashString<64>;
-    using HashSystemType = HashType;
-
-    struct SystemDescription : public ecs_system_desc_t
+    struct SystemDescription
     {
-        HashSystemName hashName;
-        eastl::fixed_vector<HashSystemName, 8> before;
-        eastl::fixed_vector<HashSystemName, 8> after;
-        eastl::fixed_vector<EntityT, 16> onEvents;
+        HashName hashName;
+        eastl::fixed_vector<HashName, 8> before;
+        eastl::fixed_vector<HashName, 8> after;
+        eastl::fixed_vector<EntityId, 16> onEvents;
     };
 
-    struct Id
+    struct System final
     {
-        Id() : world_(nullptr), id_(0) { }
-
-        IdT RawId() const { return id_; }
-        operator IdT() const { return id_; }
-
-        const World* World() const { return world_; }
-
-    protected:
-        /* World is optional, but guarantees that entity identifiers extracted from
-         * the id are valid */
-        const Ecs::World* world_;
-        IdT id_;
-    };
-
-    struct EntityView : Id
-    {
-        /** Return the entity name.
-         *
-         * @return The entity name.
-         */
-        //std::string_view Name() const { return std::string_view(ecs_get_name(world_->Flecs().c_ptr(), id_)); }
-    };
-
-    struct Entity : EntityView
-    {
-        Entity() : EntityView() { }
-
-        /** Wrap an existing entity id.
-         *
-         * @param world The world in which the entity is created.
-         * @param id The entity id.
-         */
-        explicit Entity(const Ecs::World& world, EntityT id)
-        {
-            world_ = &world;
-            id_ = id;
-        }
-    };
-
-    struct System final : Entity
-    {
-        explicit System()
-        {
-            id_ = 0;
-            world_ = nullptr;
-        }
-
     private:
         friend struct Ecs::World;
 
-        explicit System(const Ecs::World& world, IdT id)
+        explicit System(const Ecs::World& world, HashName hashName)
         {
-            id_ = id;
+            hashName_ = hashName;
             world_ = &world;
         };
+
+        HashName hashName_;
+        const Ecs::World* world_ = nullptr;
     };
 
     class SystemStorage
@@ -91,7 +45,7 @@ namespace RR::Ecs
 
         void Push(const SystemDescription& systemDescription)
         {
-            HashSystemType hash = systemDescription.hashName;
+            HashType hash = systemDescription.hashName;
 
             Common::Threading::UniqueLock<Common::Threading::Mutex> lock(mutex);
 
@@ -110,7 +64,7 @@ namespace RR::Ecs
     private:
         eastl::atomic<bool> isDirty = false;
         Common::Threading::Mutex mutex;
-        eastl::unordered_map<HashSystemType, SystemDescription> descriptions;
+        eastl::unordered_map<HashType, SystemDescription> descriptions;
         std::vector<SystemDescription*> systems;
     };
 }
