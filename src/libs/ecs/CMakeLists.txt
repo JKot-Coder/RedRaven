@@ -12,8 +12,8 @@ set( SRC
     Ecs.hpp
     Hash.hpp
     ForwardDeclarations.hpp
-    TypeName.hpp
-    TypeName.cpp)
+    TypeTraits.hpp
+    TypeTraits.cpp)
     source_group( "" FILES ${SRC} )
 
 set (SRC

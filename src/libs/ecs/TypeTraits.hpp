@@ -10,8 +10,13 @@
 #define FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 #endif
 
+#include "ecs/Index.hpp"
+#include "ecs/Hash.hpp"
+
 namespace RR::Ecs
 {
+    struct TypeId : public Index<TypeId, HashType>{};
+
     template <typename T>
     struct TypeName
     {
@@ -94,6 +99,14 @@ namespace RR::Ecs
     public:
         static constexpr std::string_view string_view() { return name.string_view(); }
         static constexpr char* c_str() { return name.c_str(); }
+    };
+
+    template <typename T>
+    struct TypeInfo
+    {
+        static constexpr std::string_view Name = TypeName<T>::string_view();
+        static constexpr uint64_t Hash = Ecs::ConstexprHash(Name);
+        static constexpr TypeId Id = TypeId(Hash);
     };
 }
 
