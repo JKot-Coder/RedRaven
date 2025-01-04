@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
+#include "ecs/Id.hpp"
 #include "common/LinearAllocator.hpp"
 
 namespace RR::Ecs
@@ -21,8 +22,8 @@ namespace RR::Ecs
 
     struct EventDescription
     {
-        EntityT eventId;
-        EntityT entity = 0;
+        EntityId eventId = {};
+        EntityId entity = {};
     };
 
     class EventStorage : protected Common::LinearAllocator<EVENT_ALIGNMENT>
@@ -39,15 +40,15 @@ namespace RR::Ecs
         {
             static_assert(std::is_base_of<Ecs::event, EventType>::value, "EventType must derive from Event");
             static_assert(IsAlignedTo(sizeof(EventType), Aligment));
-            static_assert(IsAlignedTo(sizeof(EntityT), Aligment));
+            static_assert(IsAlignedTo(sizeof(EntityId), Aligment));
 
             constexpr auto eventSize = sizeof(EventType);
-            const auto headerSize = sizeof(EntityT);
+            const auto headerSize = sizeof(EntityId);
             auto at = Allocate(eventSize + headerSize);
 
             ASSERT(IsAlignedTo(at, Aligment));
 
-            new (at) EntityT(eventDesc.eventId);
+            new (at) EntityId(eventDesc.eventId);
                     //if constexpr ((T::staticFlags() & EVFLG_DESTROY) == 0)
             memcpy(static_cast<char*>(at) + headerSize, &event, eventSize);
         }
@@ -63,8 +64,8 @@ namespace RR::Ecs
 
                 while (pos < allocated)
                 {
-                    const auto headerSize = sizeof(EntityT);
-                    EntityT eventId = *(EntityT*)(data + pos);
+                    const auto headerSize = sizeof(EntityId);
+                    EntityId eventId = *(EntityId*)(data + pos);
                     pos += headerSize;
 
                     Ecs::Event& event = *(Ecs::Event*)(data + pos);
