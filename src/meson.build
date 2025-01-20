@@ -1,2 +1,0 @@
-subdir('libs')
-subdir('tools')
