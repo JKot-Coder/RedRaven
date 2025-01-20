@@ -16,6 +16,10 @@
 #include <vector>
 #include <string_view>
 #include <EASTL/array.h>
+#include <EASTL/vector.h>
+#include <EASTL/memory.h>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/unique_ptr.h>
 #include <EASTL/string_view.h>
 using namespace RR::Common::Debug;
 #include "math/Base.hpp"
