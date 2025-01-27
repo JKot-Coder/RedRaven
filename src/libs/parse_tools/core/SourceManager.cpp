@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <fstream>
 
-namespace RR::Rfx
+namespace RR::ParseTools
 {
     namespace
     {

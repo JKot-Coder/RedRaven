@@ -4,7 +4,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         namespace Diagnostics
         { // clang-format off

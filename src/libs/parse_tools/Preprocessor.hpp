@@ -2,7 +2,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         struct CompileContext;
         class SourceFile;

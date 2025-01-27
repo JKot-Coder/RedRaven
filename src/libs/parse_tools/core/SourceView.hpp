@@ -5,7 +5,7 @@
 #include "parse_tools/core/UnownedStringSlice.hpp"
 #include "utf8.h"
 
-namespace RR::Rfx
+namespace RR::ParseTools
 {
     // A logical or physical storage object for a range of input code
     // that has logically contiguous source locations.

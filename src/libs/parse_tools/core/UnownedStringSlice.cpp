@@ -2,7 +2,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         bool UnownedStringSlice::operator==(UnownedStringSlice const& other) const
         {

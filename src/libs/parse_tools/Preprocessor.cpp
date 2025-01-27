@@ -17,7 +17,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         namespace
         {
@@ -306,7 +306,7 @@ namespace RR
             SourceManager& GetSourceManager() const { return *sourceManager_; }
             IncludeSystem GetIncludeSystem() const { return *includeSystem_; }
             std::shared_ptr<CompileContext> GetContext() const { return context_; }
-            Common::LinearAllocator<16>& GetAllocator() const { return context_->allocator; }
+            auto& GetAllocator() const { return context_->allocator; }
 
             std::vector<Token> ReadAllTokens();
 
@@ -2846,7 +2846,7 @@ namespace RR
                         // parameter had no arguments (which is *not* the same as having a single empty
                         // argument).
                         //
-                        // We could implement matching behavior in Rfx with special-case logic here, but
+                        // We could implement matching behavior in ParseTools with special-case logic here, but
                         // doing so adds extra complexity so we may be better off avoiding it.
                         //
                         // The Microsoft C++ compiler automatically discards commas in a case like this
@@ -2858,7 +2858,7 @@ namespace RR
                         // were provided for a variadic parameter. This is a relatively complicated feature
                         // to try and replicate
                         //
-                        // For Rfx it may be simplest to solve this problem at the parser level, by allowing
+                        // For ParseTools it may be simplest to solve this problem at the parser level, by allowing
                         // trailing commas in argument lists without error/warning. However, if we *do* decide
                         // to implement the gcc extension for `##` it would be logical to try to detect and
                         // intercept that special case here.
@@ -3350,7 +3350,7 @@ namespace RR
                         //      int x = coolFunction(3); // uses the macro
                         //      int (*functionPtr)(int) f = coolFunction; // uses the function
                         //
-                        // While we don't expect users to make heavy use of this feature in Rfx,
+                        // While we don't expect users to make heavy use of this feature in ParseTools,
                         // it is worthwhile to try to stay compatible.
                         //
                         // Because the macro name is already in `lookaheadToken_`, we can peak

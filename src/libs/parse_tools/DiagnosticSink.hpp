@@ -5,7 +5,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         enum class Severity
         {

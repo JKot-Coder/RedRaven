@@ -4,7 +4,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         fs::file_status OSFileSystem::GetPathStatus(const fs::path& path) const
         {

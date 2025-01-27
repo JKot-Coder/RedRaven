@@ -4,7 +4,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         // Exceptions should not generally be used in code, use the 'signal' mechanism
         // ideally using the macros in the Signal.hpp such as `PARSE_UNEXPECTED`

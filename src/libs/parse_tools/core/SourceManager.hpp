@@ -9,7 +9,7 @@ namespace RR::Common
     enum class RResult;
 }
 
-namespace RR::Rfx
+namespace RR::ParseTools
 {
     using RResult = Common::RResult;
 

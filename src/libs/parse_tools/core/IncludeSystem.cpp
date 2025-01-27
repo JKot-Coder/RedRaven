@@ -11,7 +11,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         Common::RResult IncludeSystem::FindFile(const std::string& pathToInclude, const std::string& pathIncludedFrom, PathInfo& outPathInfo) const
         {

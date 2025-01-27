@@ -9,7 +9,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         namespace
         {
@@ -277,7 +277,7 @@ namespace RR
 
         Lexer::~Lexer() { }
 
-        Lexer::Allocator& Lexer::getAllocator() { return context_->allocator; }
+        auto& Lexer::getAllocator() { return context_->allocator; }
         DiagnosticSink& Lexer::GetDiagnosticSink() const { return context_->sink; }
 
         Token Lexer::ReadToken()

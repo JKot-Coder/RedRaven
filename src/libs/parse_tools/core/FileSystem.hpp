@@ -10,7 +10,7 @@ namespace RR
         enum class RResult : int32_t;
     }
 
-    namespace Rfx
+    namespace ParseTools
     {
         class IRfxFileSystem
         {

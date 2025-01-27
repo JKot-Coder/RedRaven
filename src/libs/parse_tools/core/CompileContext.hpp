@@ -4,7 +4,7 @@
 #include "parse_tools/DiagnosticCore.hpp"
 #include "parse_tools/core/SourceManager.hpp"
 
-namespace RR::Rfx
+namespace RR::ParseTools
 {
     struct CompileContext
     {

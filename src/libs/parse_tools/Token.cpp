@@ -2,7 +2,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         std::string TokenTypeToString(Token::Type type)
         {

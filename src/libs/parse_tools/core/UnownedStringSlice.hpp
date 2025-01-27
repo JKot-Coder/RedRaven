@@ -2,7 +2,7 @@
 
 namespace RR
 {
-    namespace Rfx
+    namespace ParseTools
     {
         struct UnownedStringSlice
         {
@@ -140,22 +140,22 @@ namespace RR
 }
 
 template <>
-struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
+struct fmt::formatter<RR::ParseTools::UnownedStringSlice> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::Rfx::UnownedStringSlice stringSlice, FormatContext& ctx)
+    auto format(RR::ParseTools::UnownedStringSlice stringSlice, FormatContext& ctx)
     {
         return formatter<string_view>::format(string_view(stringSlice.begin(), stringSlice.length()), ctx);
     }
 };
 
 template <typename T, char Delimiter>
-struct fmt::formatter<RR::Rfx::StringSplit<T, Delimiter>> : formatter<string_view>
+struct fmt::formatter<RR::ParseTools::StringSplit<T, Delimiter>> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::Rfx::StringSplit<T, Delimiter> stringSplit, FormatContext& ctx)
+    auto format(RR::ParseTools::StringSplit<T, Delimiter> stringSplit, FormatContext& ctx)
     {
         return formatter<string_view>::format(string_view(stringSplit.begin().slice().begin(), stringSplit.length()), ctx);
     }

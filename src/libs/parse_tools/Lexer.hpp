@@ -6,13 +6,7 @@
 
 namespace RR
 {
-    namespace Common
-    {
-        template<size_t Alignment>
-        class LinearAllocator;
-    }
-
-    namespace Rfx
+    namespace ParseTools
     {
         class DiagnosticSink;
         struct CompileContext;
@@ -20,7 +14,6 @@ namespace RR
         class Lexer final : Common::NonCopyable
         {
         public:
-            using Allocator = Common::LinearAllocator<16>;
             static constexpr char32_t kEOF = 0xFFFFFF;
 
             enum class Flags : uint32_t
@@ -59,7 +52,7 @@ namespace RR
             };
 
         private:
-            Allocator& getAllocator();
+            auto& getAllocator();
 
             inline bool isReachEOF() const { return cursor_ == end_; }
 

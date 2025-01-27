@@ -5,7 +5,7 @@
 
 #include "common/EnumClassOperators.hpp"
 
-namespace RR::Rfx
+namespace RR::ParseTools
 {
     struct Token
     {
@@ -155,12 +155,12 @@ namespace RR::Rfx
 }
 
 template <>
-struct fmt::formatter<RR::Rfx::Token::Type> : formatter<string_view>
+struct fmt::formatter<RR::ParseTools::Token::Type> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::Rfx::Token::Type tokenType, FormatContext& ctx)
+    auto format(RR::ParseTools::Token::Type tokenType, FormatContext& ctx)
     {
-        return formatter<string_view>::format(RR::Rfx::TokenTypeToString(tokenType), ctx);
+        return formatter<string_view>::format(RR::ParseTools::TokenTypeToString(tokenType), ctx);
     }
 };

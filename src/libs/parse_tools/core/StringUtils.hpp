@@ -4,7 +4,7 @@
 #include "rfx/core/UnownedStringSlice.hpp"
 #include <cstdlib>
 
-namespace RR::Rfx
+namespace RR::ParseTools
 {
     using RResult = Common::RResult;
 
