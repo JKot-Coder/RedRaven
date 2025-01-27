@@ -1,7 +1,7 @@
 #pragma once
 
-#include "rfx/core/SourceLocation.hpp"
-#include "rfx/core/UnownedStringSlice.hpp"
+#include "parse_tools/core/SourceLocation.hpp"
+#include "parse_tools/core/UnownedStringSlice.hpp"
 
 namespace RR
 {
@@ -80,7 +80,7 @@ namespace RR
             template <typename... Args>
             inline void Diagnose(DiagnosticInfo const& info, Args const&... args)
             {
-                ASSERT(info.severity == Severity::Note || info.id == 12345 || info.id > 30000) // Ignore cutom error & compile errors
+                ASSERT(info.severity == Severity::Note || info.id == 12345 || info.id > 30000); // Ignore cutom error & compile errors
 
                 Diagnostic diagnostic;
                 diagnostic.errorID = info.id;

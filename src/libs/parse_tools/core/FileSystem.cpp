@@ -11,18 +11,18 @@ namespace RR
             return fs::status(path);
         }
 
-        RfxResult OSFileSystem::GetPathUniqueIdentity(const fs::path& path, std::string& indetity) const
+        Common::RResult OSFileSystem::GetPathUniqueIdentity(const fs::path& path, std::string& indetity) const
         {
             std::error_code errorcode;
             indetity = fs::canonical(path, errorcode).generic_u8string();
 
             if (!errorcode)
-                return RfxResult::Ok;
+                return Common::RResult::Ok;
 
             if (errorcode == std::errc::no_such_file_or_directory)
-                return RfxResult::NotFound;
+                return Common::RResult::NotFound;
 
-            return RfxResult::Fail;
+            return Common::RResult::Fail;
         }
 
         /* RfxResult OSFileSystem::CalcCombinedPath(const fs::path& fromPath, const std::string& path, fs::path& pathOut)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "rfx/core/SourceLocation.hpp"
-#include "rfx/core/UnownedStringSlice.hpp"
+#include "parse_tools/core/SourceLocation.hpp"
+#include "parse_tools/core/UnownedStringSlice.hpp"
 
 #include "common/EnumClassOperators.hpp"
 

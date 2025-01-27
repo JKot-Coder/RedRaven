@@ -1,9 +1,9 @@
 #include "DiagnosticSink.hpp"
 
-#include "rfx/compiler/DiagnosticCore.hpp"
-#include "rfx/compiler/Lexer.hpp"
-#include "rfx/compiler/Signal.hpp"
-#include "rfx/core/SourceView.hpp"
+#include "parse_tools/DiagnosticCore.hpp"
+#include "parse_tools/Lexer.hpp"
+#include "parse_tools/core/Signal.hpp"
+#include "parse_tools/core/SourceView.hpp"
 
 namespace RR
 {
@@ -184,7 +184,7 @@ namespace RR
             if (info.severity > Severity::Internal)
             {
                 // TODO: figure out a better policy for aborting compilation
-                RFX_ABORT_COMPILATION("");
+                PARSE_ABORT("");
             }
         }
 

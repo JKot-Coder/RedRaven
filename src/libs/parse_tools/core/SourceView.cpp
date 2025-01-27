@@ -113,7 +113,7 @@ namespace RR
             return true;
         }
 
-        const UnownedStringSlice::const_iterator SourceView::GetContentFrom(const SourceLocation& loc) const
+        UnownedStringSlice::const_iterator SourceView::GetContentFrom(const SourceLocation& loc) const
         {
             ASSERT(loc.GetSourceView() == shared_from_this());
 

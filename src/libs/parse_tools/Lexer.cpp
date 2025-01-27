@@ -1,8 +1,8 @@
 #include "Lexer.hpp"
 
 #include "common/LinearAllocator.hpp"
-#include "compiler/CompileContext.hpp"
-#include "rfx/compiler/DiagnosticCore.hpp"
+#include "parse_tools/core/CompileContext.hpp"
+#include "parse_tools/DiagnosticCore.hpp"
 
 #include <iterator>
 #include <unordered_map>
@@ -277,7 +277,7 @@ namespace RR
 
         Lexer::~Lexer() { }
 
-        Common::LinearAllocator& Lexer::getAllocator() { return context_->allocator; }
+        Lexer::Allocator& Lexer::getAllocator() { return context_->allocator; }
         DiagnosticSink& Lexer::GetDiagnosticSink() const { return context_->sink; }
 
         Token Lexer::ReadToken()

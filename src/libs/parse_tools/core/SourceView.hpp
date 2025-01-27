@@ -1,8 +1,9 @@
 #pragma once
 
-#include "rfx/compiler/Token.hpp"
-#include "rfx/core/SourceLocation.hpp"
-#include "rfx/core/UnownedStringSlice.hpp"
+#include "parse_tools/Token.hpp"
+#include "parse_tools/core/SourceLocation.hpp"
+#include "parse_tools/core/UnownedStringSlice.hpp"
+#include "utf8.h"
 
 namespace RR::Rfx
 {
@@ -39,7 +40,7 @@ namespace RR::Rfx
         /// Get the associated 'content' (the source text)
         UnownedStringSlice GetContent() const { return content_; }
 
-        const UnownedStringSlice::const_iterator GetContentFrom(const SourceLocation& loc) const;
+        UnownedStringSlice::const_iterator GetContentFrom(const SourceLocation& loc) const;
 
         size_t GetContentSize() const { return content_.length(); }
 

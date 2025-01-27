@@ -1,13 +1,14 @@
 #pragma once
 
-#include "rfx/core/SourceLocation.hpp"
-
-#include "rfx/compiler/Token.hpp"
+#include "parse_tools/core/SourceLocation.hpp"
+#include "parse_tools/Token.hpp"
+#include "utf8.h"
 
 namespace RR
 {
     namespace Common
     {
+        template<size_t Alignment>
         class LinearAllocator;
     }
 
@@ -19,6 +20,7 @@ namespace RR
         class Lexer final : Common::NonCopyable
         {
         public:
+            using Allocator = Common::LinearAllocator<16>;
             static constexpr char32_t kEOF = 0xFFFFFF;
 
             enum class Flags : uint32_t
@@ -57,7 +59,7 @@ namespace RR
             };
 
         private:
-            Common::LinearAllocator& getAllocator();
+            Allocator& getAllocator();
 
             inline bool isReachEOF() const { return cursor_ == end_; }
 

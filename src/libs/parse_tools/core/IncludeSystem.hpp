@@ -7,6 +7,7 @@ namespace RR
 {
     namespace Common
     {
+        template<size_t>
         class LinearAllocator;
         enum class RResult : int32_t;
     }

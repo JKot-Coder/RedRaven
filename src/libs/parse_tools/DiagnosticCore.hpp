@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rfx/compiler/DiagnosticSink.hpp"
+#include "parse_tools/DiagnosticSink.hpp"
 
 namespace RR
 {
@@ -9,13 +9,13 @@ namespace RR
         namespace Diagnostics
         { // clang-format off
             #define DIAGNOSTIC(id, severity, name, messageFormat) static constexpr DiagnosticInfo name = { id, Severity::severity, #name, messageFormat };
-            #include "rfx/compiler/DiagnosticDefinitions.hpp"
+            #include "parse_tools/DiagnosticDefinitions.hpp"
         } // clang-format on
 
         namespace LexerDiagnostics
         { // clang-format off
             #define DIAGNOSTIC(id, severity, name, messageFormat) static constexpr DiagnosticInfo name = { id, Severity::severity, #name, messageFormat };
-            #include "rfx/compiler/LexerDiagnosticDefinitions.hpp"
+            #include "parse_tools/LexerDiagnosticDefinitions.hpp"
         } // clang-format on
     }
 }

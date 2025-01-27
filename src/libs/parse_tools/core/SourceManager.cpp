@@ -4,8 +4,8 @@
 #include "common/LinearAllocator.hpp"
 #include "common/OnScopeExit.hpp"
 #include "common/Result.hpp"
-#include "compiler/CompileContext.hpp"
-#include "core/SourceLocation.hpp"
+#include "parse_tools/core/CompileContext.hpp"
+#include "parse_tools/core/SourceLocation.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -66,7 +66,7 @@ namespace RR::Rfx
         outSourceFile = std::make_shared<SourceFile>(pathInfo);
         outSourceFile->SetContent(UnownedStringSlice(content, content + sizeInBytes));
 
-        return RfxResult::Ok;
+        return RResult::Ok;
     }
 
     RResult SourceManager::findSourceFileByUniqueIdentity(const std::string& uniqueIdentity, std::shared_ptr<SourceFile>& sourceFile) const

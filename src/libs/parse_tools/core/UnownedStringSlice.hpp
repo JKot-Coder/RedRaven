@@ -150,7 +150,7 @@ struct fmt::formatter<RR::Rfx::UnownedStringSlice> : formatter<string_view>
     }
 };
 
-template <typename T, RR::char Delimiter>
+template <typename T, char Delimiter>
 struct fmt::formatter<RR::Rfx::StringSplit<T, Delimiter>> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.

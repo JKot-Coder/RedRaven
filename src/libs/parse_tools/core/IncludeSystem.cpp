@@ -1,7 +1,7 @@
 #include "IncludeSystem.hpp"
 
-#include "rfx/core/FileSystem.hpp"
-#include "rfx/core/SourceLocation.hpp"
+#include "parse_tools/core/FileSystem.hpp"
+#include "parse_tools/core/SourceLocation.hpp"
 
 #include "common/LinearAllocator.hpp"
 #include "common/OnScopeExit.hpp"
@@ -33,9 +33,9 @@ namespace RR
 
             // Try just relative to current path
             {
-                RfxResult result = findFileImpl(pathToInclude, pathIncludedFrom, outPathInfo);
+                Common::RResult result = findFileImpl(pathToInclude, pathIncludedFrom, outPathInfo);
                 // It either succeeded or wasn't found, anything else is a failure passed back
-                if (RR_SUCCEEDED(result) || result != RfxResult::NotFound)
+                if (RR_SUCCEEDED(result) || result != Common::RResult::NotFound)
                     return result;
             }
             /*
@@ -50,10 +50,10 @@ namespace RR
                     }
                 }*/
 
-            return RfxResult::NotFound;
+            return Common::RResult::NotFound;
         }
 
-        RfxResult IncludeSystem::findFileImpl(const fs::path& path, const fs::path& fromPath, PathInfo& outPathInfo) const
+        Common::RResult IncludeSystem::findFileImpl(const fs::path& path, const fs::path& fromPath, PathInfo& outPathInfo) const
         {
             fs::path combinedPath;
 
@@ -71,7 +71,7 @@ namespace RR
             // This checks the path exists
             fs::file_status status = fileSystemExt_->GetPathStatus(combinedPath);
             if (status.type() != fs::file_type::regular)
-                return RfxResult::NotFound;
+                return Common::RResult::NotFound;
 
             // Get the uniqueIdentity
             std::string uniqueIdentity;
@@ -79,11 +79,11 @@ namespace RR
 
             // If the rel path exists -> a uniqueIdentity MUST exists too
             if (uniqueIdentity.length() <= 0)
-                return RfxResult::Fail; // Unique identity can't be empty
+                return Common::RResult::Fail; // Unique identity can't be empty
 
             outPathInfo = PathInfo::makeNormal(combinedPath.lexically_normal().generic_u8string(), uniqueIdentity);
 
-            return RfxResult::Ok;
+            return Common::RResult::Ok;
         }
     }
 }

@@ -1,11 +1,11 @@
 #include "Preprocessor.hpp"
 
-#include "rfx/compiler/CompileContext.hpp"
-#include "rfx/compiler/DiagnosticCore.hpp"
-#include "rfx/compiler/Lexer.hpp"
+#include "parse_tools/core/CompileContext.hpp"
+#include "parse_tools/DiagnosticCore.hpp"
+#include "parse_tools/Lexer.hpp"
 
-#include "rfx/core/IncludeSystem.hpp"
-#include "rfx/core/StringEscapeUtil.hpp"
+#include "parse_tools/core/IncludeSystem.hpp"
+#include "parse_tools/core/StringEscapeUtil.hpp"
 
 #include "common/LinearAllocator.hpp"
 #include "common/Result.hpp"
@@ -306,7 +306,7 @@ namespace RR
             SourceManager& GetSourceManager() const { return *sourceManager_; }
             IncludeSystem GetIncludeSystem() const { return *includeSystem_; }
             std::shared_ptr<CompileContext> GetContext() const { return context_; }
-            Common::LinearAllocator& GetAllocator() const { return context_->allocator; }
+            Common::LinearAllocator<16>& GetAllocator() const { return context_->allocator; }
 
             std::vector<Token> ReadAllTokens();
 

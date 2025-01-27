@@ -6,8 +6,8 @@ namespace RR
 {
     namespace Rfx
     {
-        // Exceptions should not generally be used in core/compiler-core, use the 'signal' mechanism
-        // ideally using the macros in the signal.hpp such as `RFX_UNEXPECTED`
+        // Exceptions should not generally be used in code, use the 'signal' mechanism
+        // ideally using the macros in the Signal.hpp such as `PARSE_UNEXPECTED`
 
         using Exception = std::runtime_error;
 

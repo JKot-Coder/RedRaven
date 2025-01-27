@@ -16,23 +16,23 @@ namespace RR
 
         void handleSignal(SignalType type, const std::string& message);
         // clang-format off
-        #define RFX_UNEXPECTED(reason) \
+        #define PARSE_UNEXPECTED(reason) \
             handleSignal(SignalType::Unexpected, reason)
 
-        #define RFX_UNIMPLEMENTED_X(what) \
+        #define PARSE_UNIMPLEMENTED_X(what) \
             handleSignal(SignalType::Unimplemented, what)
 
-        #define RFX_UNREACHABLE(msg) \
+        #define PARSE_UNREACHABLE(msg) \
             handleSignal(SignalType::Unreachable, msg)
 
         //TODO ?
-        #define RFX_ASSERT_FAILURE(msg) \
+        #define PARSE_ASSERT_FAILURE(msg) \
             handleSignal(SignalType::AssertFailure, msg)
 
-        #define RFX_INVALID_OPERATION(msg) \
+        #define PARSE_INVALID_OPERATION(msg) \
             handleSignal(SignalType::InvalidOperation, msg)
 
-        #define RFX_ABORT_COMPILATION(msg) \
+        #define PARSE_ABORT(msg) \
             handleSignal(SignalType::AbortCompilation, msg)
         // clang-format on
     }
