@@ -26,11 +26,50 @@ std::ostream& operator<<(std::ostream& stream, const ClangString& str)
     return stream << str.c_str();
 }
 
+struct OutputStream
+{
+    OutputStream(const std::string& outputPath) : stream(outputPath) { }
+    std::ofstream stream;
+    int32_t intendLen = 0;
+
+    bool is_open() const { return stream.is_open(); }
+
+    OutputStream& intend(int intendCnt = 1)
+    {
+        for (auto i = intendCnt * 4; i > 0; i--)
+            stream.put(' ');
+
+        return *this;
+    }
+    template<typename T>
+    OutputStream& operator<<(const T& str)
+    {
+        stream << str;
+        return *this;
+    }
+
+    OutputStream& operator<<(std::ostream& (*manip)(std::ostream&))
+    {
+        stream << manip;
+        return *this;
+    }
+
+    template<typename T>
+    OutputStream& operator<<(T&& value)
+    {
+        stream << std::forward<T>(value);
+        return *this;
+    }
+};
+
+
+
 struct EcsTypeInformation
 {
     std::string filename;
     struct SystemDesc
     {
+        std::vector<std::string> args;
         std::string name;
     };
 
@@ -56,7 +95,6 @@ CXChildVisitResult annotationsVisitor(CXCursor cursor, CXCursor, CXClientData cl
 // Function to collect annotations from a cursor and its children
 void getAnnotations(CXCursor cursor, std::vector<std::string>& annotations)
 {
-
     std::cout << "Getting annotations for cursor...\n";
     clang_visitChildren(cursor, annotationsVisitor, &annotations);
 }
@@ -74,9 +112,9 @@ CXChildVisitResult visitor(CXCursor cursor, CXCursor /*parent*/, CXClientData cl
         unsigned line, column, offset;
         clang_getSpellingLocation(location, &file, &line, &column, &offset);
 
-        ClangString fileName = clang_getFileName(file);
+        ClangString fileNameq = clang_getFileName(file);
         std::cout << "Function: " << name
-                  << " at " << (file ? fileName.c_str() : "null")
+                  << " at " << (file ? fileNameq.c_str() : "null")
                   << ":" << line << ":" << column << std::endl;
 
         std::vector<std::string> annotations;
@@ -95,6 +133,12 @@ CXChildVisitResult visitor(CXCursor cursor, CXCursor /*parent*/, CXClientData cl
 
         if (isSystem)
         {
+            for (int i = 0; i < clang_Cursor_getNumArguments(cursor); ++i)
+            {
+                CXCursor argCursor = clang_Cursor_getArgument(cursor, i);
+                ClangString argName = clang_getCursorSpelling(argCursor);
+                systemDesc.args.push_back(argName.c_str());
+            }
             ecsInfo.systems.push_back(systemDesc);
         }
     }
@@ -139,7 +183,7 @@ bool checkDiagnostics(CXTranslationUnit translationUnit)
 
 void codegen(const std::string& outputPath, const EcsTypeInformation& ecsTypeInformation)
 {
-    std::ofstream codegen(outputPath);
+    OutputStream codegen(outputPath);
 
     if (!codegen.is_open())
     {
@@ -149,7 +193,23 @@ void codegen(const std::string& outputPath, const EcsTypeInformation& ecsTypeInf
 
     codegen << "// Generated with ECS Codegen Version: " << VERSION_STR << std::endl;
     codegen << "#include \"" << ecsTypeInformation.filename << '\"' << std::endl;
-    auto qw = ecsTypeInformation;
+
+    for (const auto& system : ecsTypeInformation.systems)
+    {
+        codegen << "void register(RR::Ecs::World& world)" << std::endl;
+        codegen << "{" << std::endl;
+        {
+            codegen.intend() << system.name << '(';
+            for (size_t i = 0; i < system.args.size(); i++)
+            {
+                codegen << system.args[i];
+                if (i < system.args.size() - 1)
+                    codegen << system.args[i] << ", ";
+            }
+            codegen << ");" << std::endl;
+        }
+        codegen << "}" << std::endl;
+    }
 }
 
 int main(int argc, char** argv)
@@ -172,7 +232,8 @@ int main(int argc, char** argv)
     std::vector<const char*> clangArgs = {
         "-x", "c++",
         "-std=c++17",
-        "-DECS_CODEGEN"};
+        "-DECS_CODEGEN",
+        "-I.",};
 
     CXTranslationUnit translationUnit;
     CXErrorCode errorCode = clang_parseTranslationUnit2(

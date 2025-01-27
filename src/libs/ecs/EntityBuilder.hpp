@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/Id.hpp"
+#include "ecs/EntityId.hpp"
 
 namespace RR::Ecs
 {

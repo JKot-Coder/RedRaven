@@ -16,7 +16,6 @@ endif()
 
 set(LLVM_DIR $ENV{LLVMInstallDir})
 find_library(LIBCLANG_LIBRARY NAMES libclang libclang.lib PATHS "${LLVM_DIR}/lib" NO_DEFAULT_PATH)
-message(WARNING "${LLVM_DIR}/include")
 
 #=============================== Target ===============================#
 

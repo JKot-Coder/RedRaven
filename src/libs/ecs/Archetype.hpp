@@ -34,7 +34,7 @@ namespace RR::Ecs
             using ComponentArg = typename eastl::remove_reference<ComponentArg>::type;
             using Component = typename ArgType::Component;
 
-            return ComponentId(TypeInfo<Component>::Id.Value());
+            return ComponentId(TypeTraits<Component>::Id.Value());
         }
     }
 
@@ -54,7 +54,7 @@ namespace RR::Ecs
                 hash *= prime;
             };
 
-            (hash_64_fnv1a(TypeInfo<Components>::Hash), ...);
+            (hash_64_fnv1a(TypeTraits<Components>::Hash), ...);
             return hash;
         }
 

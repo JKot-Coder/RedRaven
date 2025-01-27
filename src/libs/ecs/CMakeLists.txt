@@ -6,6 +6,7 @@ set( SRC
     World.hpp
     World.cpp
     Archetype.hpp
+    TypeStorage.hpp
     EntityStorage.hpp
     EntityBuilder.hpp
     Event.hpp

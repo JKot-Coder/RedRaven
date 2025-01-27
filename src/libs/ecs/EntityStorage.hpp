@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/Id.hpp"
+#include "ecs/EntityId.hpp"
 
 namespace RR::Ecs
 {

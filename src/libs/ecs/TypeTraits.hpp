@@ -101,14 +101,30 @@ namespace RR::Ecs
         static constexpr char* c_str() { return name.c_str(); }
     };
 
+    struct TypeDescriptor
+    {
+        TypeId id;
+        uint32_t size;
+        uint32_t alignment;
+    };
+
     template <typename T>
-    struct TypeInfo
+    struct TypeTraits
     {
         static constexpr std::string_view Name = TypeName<T>::string_view();
         static constexpr uint64_t Hash = Ecs::ConstexprHash(Name);
         static constexpr TypeId Id = TypeId(Hash);
+
+        static constexpr TypeDescriptor descriptor = {Id, sizeof(T), alignof(T)};
     };
 }
 
 #undef FUNCTION_SIGNATURE
 #undef MSVC
+
+namespace eastl
+{
+    using namespace RR::Ecs;
+    template<>
+    struct hash<TypeId> : eastl::hash<RR::Ecs::Index<TypeId, size_t>> {};
+}

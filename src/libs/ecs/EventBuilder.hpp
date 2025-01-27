@@ -11,10 +11,11 @@ namespace RR::Ecs
     public:
         EventBuilder(const World& world) : world(&world), description()
         {
-            description.eventId = world.typeId<EventType>();
+            // TODO;
+            description.eventId = {};// world.typeId<EventType>();
         }
 
-        EventBuilder Entity(EntityT entity)
+        EventBuilder Entity(EntityId entity)
         {
             description.entity = entity;
             return *this;

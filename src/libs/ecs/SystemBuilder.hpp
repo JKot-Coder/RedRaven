@@ -12,25 +12,30 @@ namespace RR::Ecs
         explicit NodeBuilder(World& world, const char* name = nullptr)
             : world_(&world)
         {
-            ecs_entity_desc_t entity_desc = {};
-            entity_desc.name = name;
-            entity_desc.sep = "::";
-            entity_desc.root_sep = "::";
-            desc_.entity = ecs_entity_init(world_->Flecs(), &entity_desc);
+            UNUSED(world, name);
+          //  ecs_entity_desc_t entity_desc = {};
+          //  entity_desc.name = name;
+         //   entity_desc.sep = "::";
+         //   entity_desc.root_sep = "::";
+           // desc_.entity = ecs_entity_init(world_->Flecs(), &entity_desc);
         }
-
+/*
         template <typename Func>
         T Each(Func&& func)
         {
             using Delegate = typename flecs::_::each_delegate<
                 typename std::decay<Func>::type, Components...>;
 
-            desc_.callback = Delegate::run;
-            desc_.callback_ctx = Delegate::make(FLECS_FWD(func));
-            desc_.callback_ctx_free = reinterpret_cast<
-                ecs_ctx_free_t>(flecs::_::free_obj<Delegate>);
-            return world_->Init<T>(desc_);
-        }
+
+            UNUSED(func);
+          //  desc_.callback = Delegate::run;
+         //   desc_.callback_ctx = Delegate::make(FLECS_FWD(func));
+          //  desc_.callback_ctx_free = reinterpret_cast<
+//ecs_ctx_free_t>(flecs::_::free_obj<Delegate>);
+        //    return world_->Init<T>(desc_);
+
+            return
+        }*/
 
     protected:
         TDesc desc_ {};
@@ -53,7 +58,7 @@ namespace RR::Ecs
         {
             ASSERT(name);
             ASSERT(name[0] != 0); //Not empty
-            desc().hashName = HashSystemName(name);
+            desc().hashName = HashName(name);
             // flecs::_::sig<Components...>(world).populate(this);
         }
 
@@ -80,7 +85,7 @@ namespace RR::Ecs
 
         SystemBuilder& after(std::string_view name)
         {
-            desc().after.push_back(HashSystemName(name));
+            desc().after.push_back(HashName(name));
             return *this;
         }
 
