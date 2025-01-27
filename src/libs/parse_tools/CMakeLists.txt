@@ -29,7 +29,6 @@ set(CORE_SRC
     "core/SourceView.cpp"
     "core/StringEscapeUtil.cpp"
     "core/StringEscapeUtil.hpp"
-    "core/StringUtils.hpp"
     "core/UnownedStringSlice.cpp"
     "core/UnownedStringSlice.hpp")
 source_group( "core" FILES ${CORE_SRC} )
