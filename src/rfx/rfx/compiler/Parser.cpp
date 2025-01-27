@@ -211,7 +211,7 @@ namespace RR::Rfx
 
     private:
         DiagnosticSink& getSink() const { return context_->sink; }
-        Common::LinearAllocator& getAllocator() const { return context_->allocator; }
+        auto& getAllocator() const { return context_->allocator; }
 
         Token peekToken() const { return *currentToken_; }
         Token::Type peekTokenType() const { return currentToken_->type; }
