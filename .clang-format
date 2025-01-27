@@ -1,8 +1,8 @@
 ﻿---
 BasedOnStyle: WebKit
 AllowShortCaseLabelsOnASingleLine: true
-AllowShortBlocksOnASingleLine: Always
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: true
 AlignAfterOpenBracket: Align
 AlignOperands: 'true'
@@ -23,6 +23,7 @@ BraceWrapping:
   AfterObjCDeclaration: true
 Cpp11BracedListStyle: true
 BreakConstructorInitializers: BeforeColon
+PackConstructorInitializers: CurrentLine
 AlwaysBreakTemplateDeclarations: No
 NamespaceIndentation: All
 IndentCaseLabels: true
