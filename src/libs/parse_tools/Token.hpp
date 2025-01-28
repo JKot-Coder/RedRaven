@@ -159,7 +159,7 @@ struct fmt::formatter<RR::ParseTools::Token::Type> : formatter<string_view>
 {
     // parse is inherited from formatter<string_view>.
     template <typename FormatContext>
-    auto format(RR::ParseTools::Token::Type tokenType, FormatContext& ctx)
+    auto format(RR::ParseTools::Token::Type tokenType, FormatContext& ctx) const
     {
         return formatter<string_view>::format(RR::ParseTools::TokenTypeToString(tokenType), ctx);
     }

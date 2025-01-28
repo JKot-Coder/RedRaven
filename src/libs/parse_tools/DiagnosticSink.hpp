@@ -46,7 +46,9 @@ namespace RR
             class IWriter
             {
             public:
+                virtual void Put(const char ch)  = 0;
                 virtual void Write(const std::string& message) = 0;
+                virtual void Write(const char* str, size_t count) = 0;
             };
 
             DiagnosticSink(bool onlyRelativePaths) : onlyRelativePaths_(onlyRelativePaths) {};
@@ -135,7 +137,9 @@ namespace RR
         class BufferWriter final : public DiagnosticSink::IWriter
         {
         public:
-            void Write(const std::string& message) override { buffer_ += message; }
+            void Put(const char ch) override { buffer_.push_back(ch); }
+            void Write(const std::string& message) override { buffer_.append(message); }
+            void Write(const char* str, size_t count) override { buffer_.append(str, count);  }
             std::string GetBuffer() const { return buffer_; }
 
         private:

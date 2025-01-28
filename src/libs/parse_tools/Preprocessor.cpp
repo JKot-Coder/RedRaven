@@ -2231,8 +2231,8 @@ namespace RR
 
                 // Once we have parsed the macro parameters, we can perform the additional validation
                 // step of checking that any parameters before the last parameter are not variadic.
-                size_t lastParamIndex = macro->params.size() - 1;
-                for (size_t i = 0; i < lastParamIndex; ++i)
+                int32_t lastParamIndex = int32_t(macro->params.size()) - 1;
+                for (int32_t i = 0; i < lastParamIndex; ++i)
                 {
                     auto& param = macro->params[i];
                     if (!param.isVariadic)
