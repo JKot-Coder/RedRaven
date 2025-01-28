@@ -5,17 +5,12 @@ namespace RR
     namespace Common
     {
         enum class RResult : int32_t;
-        class LinearAllocator;
     }
 
     namespace Rfx
     {
         class ParserImpl;
-        class DiagnosticSink;
-        class ASTBuilder;
-        class SourceView;
         struct CompileContext;
-        struct Token;
         struct TokenSpan;
         struct RSONValue;
 
