@@ -15,7 +15,8 @@
 
 namespace RR::Ecs
 {
-    struct TypeId : public Index<TypeId, HashType>{};
+    struct TypeIdTag {};
+    using TypeId = Index<TypeIdTag, HashType>;
 
     template <typename T>
     struct TypeName
@@ -112,7 +113,7 @@ namespace RR::Ecs
     struct TypeTraits
     {
         static constexpr std::string_view Name = TypeName<T>::string_view();
-        static constexpr uint64_t Hash = Ecs::ConstexprHash(Name);
+        static constexpr HashType Hash = Ecs::ConstexprHash(Name);
         static constexpr TypeId Id = TypeId(Hash);
 
         static constexpr TypeDescriptor descriptor = {Id, sizeof(T), alignof(T)};
@@ -121,10 +122,10 @@ namespace RR::Ecs
 
 #undef FUNCTION_SIGNATURE
 #undef MSVC
-
+/*
 namespace eastl
 {
     using namespace RR::Ecs;
     template<>
-    struct hash<TypeId> : eastl::hash<RR::Ecs::Index<TypeId, size_t>> {};
-}
+    struct hash<TypeId> : eastl::hash<TypeId::ValueType> {};
+}*/

@@ -5,10 +5,12 @@
 //#include "ecs/World.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
+#include "ecs/TypeTraits.hpp"
 
 #include "EASTL/fixed_vector.h"
 #include "EASTL/unordered_map.h"
 #include "EASTL/atomic.h"
+#include "EASTL/fixed_function.h"
 
 #include <common/threading/Mutex.hpp>
 #include <string_view>
@@ -17,10 +19,18 @@ namespace RR::Ecs
 {
     struct SystemDescription
     {
+        static constexpr size_t FunctionSize = 128;
+        using OnEventCallbackFunc = void(*)(const Event&);
+
         HashName hashName;
+        union System
+        {
+            eastl::fixed_function<FunctionSize, void(const Event&)> onEventCb;
+        };
+        
         eastl::fixed_vector<HashName, 8> before;
         eastl::fixed_vector<HashName, 8> after;
-        eastl::fixed_vector<EntityId, 16> onEvents;
+        eastl::fixed_vector<TypeId, 16> onEvents;
     };
 
     struct System final

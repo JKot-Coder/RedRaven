@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/System.hpp"
 #include "ecs/ForwardDeclarations.hpp"
+#include "ecs/System.hpp"
 #include <flecs.h>
 
 namespace RR::Ecs
@@ -13,29 +13,29 @@ namespace RR::Ecs
             : world_(&world)
         {
             UNUSED(world, name);
-          //  ecs_entity_desc_t entity_desc = {};
-          //  entity_desc.name = name;
-         //   entity_desc.sep = "::";
-         //   entity_desc.root_sep = "::";
-           // desc_.entity = ecs_entity_init(world_->Flecs(), &entity_desc);
+            //  ecs_entity_desc_t entity_desc = {};
+            //  entity_desc.name = name;
+            //   entity_desc.sep = "::";
+            //   entity_desc.root_sep = "::";
+            // desc_.entity = ecs_entity_init(world_->Flecs(), &entity_desc);
         }
-/*
-        template <typename Func>
-        T Each(Func&& func)
-        {
-            using Delegate = typename flecs::_::each_delegate<
-                typename std::decay<Func>::type, Components...>;
+        /*
+                template <typename Func>
+                T Each(Func&& func)
+                {
+                    using Delegate = typename flecs::_::each_delegate<
+                        typename std::decay<Func>::type, Components...>;
 
 
-            UNUSED(func);
-          //  desc_.callback = Delegate::run;
-         //   desc_.callback_ctx = Delegate::make(FLECS_FWD(func));
-          //  desc_.callback_ctx_free = reinterpret_cast<
-//ecs_ctx_free_t>(flecs::_::free_obj<Delegate>);
-        //    return world_->Init<T>(desc_);
+                    UNUSED(func);
+                  //  desc_.callback = Delegate::run;
+                 //   desc_.callback_ctx = Delegate::make(FLECS_FWD(func));
+                  //  desc_.callback_ctx_free = reinterpret_cast<
+        //ecs_ctx_free_t>(flecs::_::free_obj<Delegate>);
+                //    return world_->Init<T>(desc_);
 
-            return
-        }*/
+                    return
+                }*/
 
     protected:
         TDesc desc_ {};
@@ -57,16 +57,42 @@ namespace RR::Ecs
             : BaseClass(world, name)
         {
             ASSERT(name);
-            ASSERT(name[0] != 0); //Not empty
+            ASSERT(name[0] != 0); // Not empty
             desc().hashName = HashName(name);
             // flecs::_::sig<Components...>(world).populate(this);
         }
 
-        template <typename... EventTypes>
-        SystemBuilder& OnEvent()
+        template <typename... EventTypes, typename Callback>
+        SystemBuilder& OnEvent(Callback&& callback)
         {
-            static_assert((std::is_base_of<Event, EventTypes>::value && ...), "EventType must derive from Event");
-            (desc().onEvents.emplace_back(flecs::type_id<EventTypes>()), ...);
+            static_assert(sizeof...(EventTypes) > 0, "At least one event type must be specified");
+            static_assert((std::is_base_of_v<Event, EventTypes> && ...), "All event types must derive from ecs::Event");
+
+            (desc().onEvents.emplace_back(TypeTraits<EventTypes>::Id), ...);
+
+            if constexpr (std::is_invocable_r_v<void, decltype(callback), const Event&>)
+            {
+                desc().onEventCb = callback;
+            }
+            else
+            {
+                if constexpr (std::is_invocable_r_v<void, decltype(callback)>)
+                {
+                    desc().onEventCb = [callback](const Event&) {
+                        callback();
+                    };
+                }
+                else
+                {
+                    using EventType = std::tuple_element_t<0, std::tuple<EventTypes...>>;
+                    static_assert(std::is_invocable_r_v<void, decltype(callback), const EventType&>,
+                                  "OnEvent callback must accept either (const Event&) or no parameters");
+                    desc().onEventCb = [callback](const Event& evt) {
+                        callback(static_cast<const EventType&>(evt));
+                    };
+                }
+            }
+
             return *this;
         }
 
@@ -77,11 +103,11 @@ namespace RR::Ecs
             return *this;
         }
 
-    /*    SystemBuilder& after(const System& system)
-        {
-            after(system.Name());
-            return *this;
-        }*/
+        /*    SystemBuilder& after(const System& system)
+            {
+                after(system.Name());
+                return *this;
+            }*/
 
         SystemBuilder& after(std::string_view name)
         {
