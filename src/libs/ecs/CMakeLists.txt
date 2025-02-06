@@ -18,7 +18,10 @@ set( SRC
     Hash.hpp
     ForwardDeclarations.hpp
     TypeTraits.hpp
-    TypeTraits.cpp)
+    TypeTraits.cpp
+    FunctionTraits.hpp
+    ComponentTraits.hpp
+    IterationHelpers.hpp)
     source_group( "" FILES ${SRC} )
 
 set (SRC

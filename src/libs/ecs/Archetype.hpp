@@ -1,22 +1,23 @@
 #pragma once
 
+#include "ecs/ComponentTraits.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
 #include "ecs/TypeTraits.hpp"
 #include "ska/flat_hash_map.h"
+#include <numeric>
 
 namespace RR::Ecs
 {
-    struct ComponentId : public Index<ComponentId, HashType>{};
-    struct ArchetypeId : public Index<ArchetypeId, HashType>{};
-    struct ArchetypeEntityIndex : public Index<ArchetypeEntityIndex>{};
-    
-    class ComponentsView
+    using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
+    using ArchetypeEntityIndex = Index<struct ArchetypeEntityIndexTag>;
+
+    class ComponentInfoView
     {
     public:
-        using iterator = const ComponentId*;
+        using iterator = const ComponentInfo*;
 
-        ComponentsView(const iterator& begin, const iterator& end) : begin_(begin), end_(end) {}
+        ComponentInfoView(const iterator& begin, const iterator& end) : begin_(begin), end_(end) { }
 
         iterator begin() const { return begin_; }
         iterator end() const { return end_; }
@@ -26,17 +27,6 @@ namespace RR::Ecs
         iterator end_;
     };
 
-    namespace detail
-    {
-        template <typename ComponentArg>
-        ComponentId GetComponentId()
-        {
-            using ComponentArg = typename eastl::remove_reference<ComponentArg>::type;
-            using Component = typename ArgType::Component;
-
-            return ComponentId(TypeTraits<Component>::Id.Value());
-        }
-    }
 
     template <typename... Components>
     struct ArchetypeInfo
@@ -54,7 +44,7 @@ namespace RR::Ecs
                 hash *= prime;
             };
 
-            (hash_64_fnv1a(TypeTraits<Components>::Hash), ...);
+            (hash_64_fnv1a(GetTypeHash<Components>()), ...);
             return hash;
         }
 
@@ -62,13 +52,21 @@ namespace RR::Ecs
         static constexpr ArchetypeId Id = ArchetypeId::FromValue(getArchetypeHash());
     };
 
-    template <typename Allocator = EASTLAllocatorType>
     class Archetype
     {
-    private:
+    public:
         struct ComponentData
         {
-            ComponentData(size_t chunkSizePower, size_t sizeOfElement, const Allocator& allocator) : chunkSize(1 << chunkSizePower), sizeOfElement(sizeOfElement), allocator(allocator) { }
+            using Allocator = EASTLAllocatorType;
+
+            ComponentData(size_t chunkSizePower, size_t sizeOfElement, size_t alignmentOfElement, const Allocator& allocator)
+                : chunkSize(1 << chunkSizePower),
+                  sizeOfElement(sizeOfElement),
+                  alignmentOfElement(alignmentOfElement),
+                  containerAlignment(std::lcm(chunkSize, alignmentOfElement)),
+                  allocator(allocator)
+            {
+            }
 
             ~ComponentData()
             {
@@ -79,27 +77,39 @@ namespace RR::Ecs
             void AllocateChunk()
             {
                 capacity += chunkSize;
-                chunks.push_back(allocator.allocate(chunkSize * sizeOfElement, containerAlignment, 0));
+                chunks.push_back((char*)allocator.allocate(chunkSize * sizeOfElement, containerAlignment, 0));
+            }
+/*
+            char* GetData(size_t linearIndex)
+            {
+                return GetData(linearIndex >> chunkSizePower, linear_index & chunkMask);
+            }
+*/
+            char* Get(size_t chunk, size_t index) const
+            {
+                ASSERT(chunk < chunks.size());
+                ASSERT(index < chunkSize);
+                return chunks[chunk] + (index) * sizeOfElement;
             }
 
-            eastl::vector<char*, Allocator> chunks;
+            eastl::vector<char*> chunks;
             // size_t size;
             size_t chunkSize = 0;
-            // size_t  containerAlignment;
-            size_t capacity = 0;
             size_t sizeOfElement = 0;
+            size_t alignmentOfElement = 0;
+            size_t containerAlignment = 0;
+            size_t capacity = 0;
             Allocator allocator;
         };
 
     public:
-        Archetype(size_t chunkSizePower, ComponentsView componets) : Archetype(chunkSizePower, eastl::move(componets), Allocator()) { };
-        Archetype(size_t chunkSizePower, ComponentsView componets, const Allocator& allocator)
+        Archetype(size_t chunkSizePower, ComponentInfoView components)
             : chunkSize(1 << chunkSizePower)
         {
-            for (ComponentId componentId : componets)
+            for (ComponentInfo componentInfo : components)
             {
-                componentsData.push_back(ComponentData(chunkSizePower, allocator));
-                componentIdToDataIndex[componentId] = componentsData.size() - 1;
+                componentsData.emplace_back(chunkSizePower, componentInfo.size, componentInfo.alignment, ComponentData::Allocator {});
+                componentIdToDataIndex[componentInfo.id] = componentsData.size() - 1;
             }
         }
 
@@ -109,12 +119,23 @@ namespace RR::Ecs
             return ArchetypeEntityIndex(entityCount++);
         }
 
+        const ComponentData* GetComponentData(ComponentId componentId) const
+        {
+            auto it = componentIdToDataIndex.find(componentId);
+            return it != componentIdToDataIndex.end() ? &componentsData[it->second] : nullptr;
+        };
+
+        size_t GetEntityCount() const { return entityCount; }
+        size_t GetChunkCount() const { return chunkCount; }
+        size_t GetChunkSize() const { return chunkSize; }
+
     private:
         void expand(size_t requiredEntityCount)
         {
             while (entityCount + requiredEntityCount > capacity)
             {
                 capacity += chunkSize;
+                chunkCount++;
                 for (ComponentData& componentData : componentsData)
                 {
                     componentData.AllocateChunk();
@@ -126,14 +147,8 @@ namespace RR::Ecs
         size_t entityCount = 0;
         size_t capacity = 0;
         size_t chunkSize = 0;
+        size_t chunkCount = 0;
         eastl::vector<ComponentData> componentsData;
         ska::flat_hash_map<ComponentId, size_t> componentIdToDataIndex;
     };
-}
-
-namespace eastl
-{
-    using namespace RR::Ecs;
-    template<>
-    struct hash<ArchetypeId> : eastl::hash<RR::Ecs::Index<ArchetypeId, size_t>> {};
 }
