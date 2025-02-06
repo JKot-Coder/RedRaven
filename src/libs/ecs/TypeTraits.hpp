@@ -10,20 +10,34 @@
 #define FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 #endif
 
-#include "ecs/Index.hpp"
 #include "ecs/Hash.hpp"
+#include "ecs/Index.hpp"
+#include <EASTL/array.h>
+#include <EASTL/string_view.h>
 
 namespace RR::Ecs
 {
-    struct TypeIdTag {};
-    using TypeId = Index<TypeIdTag, HashType>;
+    using TypeId = Index<struct TypeIdTag, HashType>;
 
+    /**
+     * @brief Compile-time type name extraction and storage
+     */
     template <typename T>
     struct TypeName
     {
     private:
-        // use std::string_view since eastl::string_view::find are not constexpr
-        constexpr static const eastl::string_view extractTypeNameFromSignature(std::string_view funcName) noexcept
+        template <size_t Size>
+        struct FixedString
+        {
+            constexpr std::string_view c_str() const noexcept { return data.data(); }
+            constexpr std::string_view string_view() const noexcept { return {data.data(), size}; }
+
+            size_t size = 0;
+            eastl::array<char, Size> data {};
+        };
+
+        // Extract type name from compiler-specific function signature
+        static constexpr eastl::string_view extractTypeNameFromSignature(std::string_view funcName) noexcept
         {
             const auto trimPrefix = [](std::string_view str, std::string_view trim) {
                 return str.substr(str.find(trim) + trim.size());
@@ -35,26 +49,17 @@ namespace RR::Ecs
 #else
             funcName = trimPrefix(funcName, "T = ");
             auto end_pos = funcName.find(";");
-            if (end_pos == funcName.npos) { end_pos = funcName.find("]"); }
+            if (end_pos == funcName.npos)
+                end_pos = funcName.find("]");
 #endif
-            funcName = funcName.substr(0, end_pos);
-            return {funcName.data(), funcName.size()};
+
+            return {funcName.data(), end_pos};
         }
 
-        constexpr static eastl::string_view getTypeNameView() noexcept
+        static constexpr eastl::string_view getTypeNameView() noexcept
         {
             return extractTypeNameFromSignature(FUNCTION_SIGNATURE);
         }
-
-        template <int Size>
-        struct FixedString
-        {
-            constexpr std::string_view c_str() const noexcept { return data.data(); };
-            constexpr std::string_view string_view() const noexcept { return {data.data(), size}; };
-
-            size_t size = 0;
-            eastl::array<char, Size> data {};
-        };
 
         static constexpr eastl::string_view typeNameView = getTypeNameView();
         using FixedTypeName = FixedString<typeNameView.size()>;
@@ -71,17 +76,14 @@ namespace RR::Ecs
             {
 #ifdef MSVC
                 const auto substr = typeName.substr(readIndex);
-                constexpr eastl::string_view classString = "class ";
-                if (substr.starts_with(classString))
+                if (substr.starts_with("class "))
                 {
-                    readIndex += classString.size();
+                    readIndex += 6;
                     continue;
                 }
-
-                constexpr eastl::string_view structString = "struct ";
-                if (substr.starts_with(structString))
+                if (substr.starts_with("struct "))
                 {
-                    readIndex += structString.size();
+                    readIndex += 7;
                     continue;
                 }
 #endif
@@ -96,12 +98,16 @@ namespace RR::Ecs
             return result;
         }
 
-        static constexpr FixedTypeName name = filterTypeName(typeNameView);
+        static constexpr auto name = filterTypeName(typeNameView);
+
     public:
-        static constexpr std::string_view string_view() { return name.string_view(); }
-        static constexpr char* c_str() { return name.c_str(); }
+        static constexpr std::string_view string_view() noexcept { return name.string_view(); }
+        static constexpr const char* c_str() noexcept { return name.c_str(); }
     };
 
+    /**
+     * @brief Type descriptor containing runtime type information
+     */
     struct TypeDescriptor
     {
         TypeId id;
@@ -109,6 +115,9 @@ namespace RR::Ecs
         uint32_t alignment;
     };
 
+    /**
+     * @brief Compile-time type traits for ECS types
+     */
     template <typename T>
     struct TypeTraits
     {
@@ -116,8 +125,23 @@ namespace RR::Ecs
         static constexpr HashType Hash = Ecs::ConstexprHash(Name);
         static constexpr TypeId Id = TypeId(Hash);
 
-        static constexpr TypeDescriptor descriptor = {Id, sizeof(T), alignof(T)};
+        static constexpr TypeDescriptor Descriptor = {Id, sizeof(T), alignof(T)};
     };
+
+    /**
+     * @brief Helper type aliases for common operations
+     */
+    template <typename T>
+    inline constexpr std::string_view GetTypeName = TypeTraits<T>::Name;
+
+    template <typename T>
+    inline constexpr HashType GetTypeHash = TypeTraits<T>::Hash;
+
+    template <typename T>
+    inline constexpr TypeId GetTypeId = TypeTraits<T>::Id;
+
+    template <typename T>
+    inline constexpr TypeDescriptor GetTypeDescriptor = TypeTraits<T>::Descriptor;
 }
 
 #undef FUNCTION_SIGNATURE
