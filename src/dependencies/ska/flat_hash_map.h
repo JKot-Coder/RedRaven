@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cmath>
+#include <exception>
 #include <EASTL/functional.h>
 #include <EASTL/algorithm.h>
 #include <EASTL/iterator.h>
@@ -1055,14 +1056,14 @@ public:
     {
         auto found = this->find(key);
         if (found == this->end())
-            throw eastl::out_of_range("Argument passed to at() was not in the map.");
+            throw std::out_of_range("Argument passed to at() was not in the map.");
         return found->second;
     }
     const V & at(const K & key) const
     {
         auto found = this->find(key);
         if (found == this->end())
-            throw eastl::out_of_range("Argument passed to at() was not in the map.");
+            throw std::out_of_range("Argument passed to at() was not in the map.");
         return found->second;
     }
 
