@@ -19,15 +19,11 @@ namespace RR::Ecs
 {
     struct SystemDescription
     {
-        static constexpr size_t FunctionSize = 128;
+        static constexpr size_t FunctionSize = 64;
         using OnEventCallbackFunc = void(*)(const Event&);
 
         HashName hashName;
-        union System
-        {
-            eastl::fixed_function<FunctionSize, void(const Event&)> onEventCb;
-        };
-        
+        eastl::fixed_function<FunctionSize, void(const Event&)> onEvent;
         eastl::fixed_vector<HashName, 8> before;
         eastl::fixed_vector<HashName, 8> after;
         eastl::fixed_vector<TypeId, 16> onEvents;

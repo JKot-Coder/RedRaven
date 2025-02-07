@@ -68,17 +68,17 @@ namespace RR::Ecs
             static_assert(sizeof...(EventTypes) > 0, "At least one event type must be specified");
             static_assert((std::is_base_of_v<Event, EventTypes> && ...), "All event types must derive from ecs::Event");
 
-            (desc().onEvents.emplace_back(TypeTraits<EventTypes>::Id), ...);
+            (desc().onEvents.emplace_back(GetTypeId<EventTypes>), ...);
 
             if constexpr (std::is_invocable_r_v<void, decltype(callback), const Event&>)
             {
-                desc().onEventCb = callback;
+                desc().onEvent = callback;
             }
             else
             {
                 if constexpr (std::is_invocable_r_v<void, decltype(callback)>)
                 {
-                    desc().onEventCb = [callback](const Event&) {
+                    desc().onEvent = [callback](const Event&) {
                         callback();
                     };
                 }
@@ -87,7 +87,7 @@ namespace RR::Ecs
                     using EventType = std::tuple_element_t<0, std::tuple<EventTypes...>>;
                     static_assert(std::is_invocable_r_v<void, decltype(callback), const EventType&>,
                                   "OnEvent callback must accept either (const Event&) or no parameters");
-                    desc().onEventCb = [callback](const Event& evt) {
+                    desc().onEvent = [callback](const Event& evt) {
                         callback(static_cast<const EventType&>(evt));
                     };
                 }

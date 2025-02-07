@@ -11,7 +11,7 @@ namespace RR::Ecs
         template <typename T>
         TypeId Register()
         {
-            const auto descriptor = TypeTraits<T>::descriptor;
+            const auto descriptor = GetTypeDescriptor<T>;
             types.insert({descriptor.id, descriptor});
             return descriptor.id;
         }

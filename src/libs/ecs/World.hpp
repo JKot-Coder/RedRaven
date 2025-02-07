@@ -8,6 +8,8 @@
 #include "ecs/EntityId.hpp"
 #include "ecs/System.hpp"
 #include "ecs/EntityBuilder.hpp"
+#include "ecs/FunctionTraits.hpp"
+#include "ecs/IterationHelpers.hpp"
 #include "ska/flat_hash_map.h"
 
 namespace RR::Ecs
@@ -25,6 +27,13 @@ namespace RR::Ecs
         T Init(const DescriptionType& desc);
 
         void Tick();
+
+        template <typename Callable>
+        void Each(Callable&& callable)
+        {
+            // TODO get correct archetype
+            QueryArchetype::Query(eastl::forward<Callable>(callable), *archetypesMap.at(ArchetypeId(0)).get());
+        }
 
     private:
         template <typename U>
@@ -59,7 +68,7 @@ namespace RR::Ecs
         }
 
         template<typename Arg>
-        void initComponent(Archetype<>& archetype, ArchetypeEntityIndex entity_index, Arg&& arg) {
+        void initComponent(Archetype& archetype, ArchetypeEntityIndex entity_index, Arg&& arg) {
             using ArgType = typename eastl::remove_reference<Arg>::type;
             using Component = typename ArgType::Component;
             constexpr size_t num_args = ArgType::num_args;
@@ -103,7 +112,6 @@ namespace RR::Ecs
         template <typename EventType>
         void emitImmediately(EventType&& event, const EventDescription& eventDesc) const;
 
-
         void broadcastEventImmediately(const Ecs::Event& event) const;
         void dispatchEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
@@ -112,7 +120,7 @@ namespace RR::Ecs
         EventStorage eventStorage;
         SystemStorage systemStorage;
         TypeStorage typeStorage;
-        ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype<>>> archetypesMap;
+        ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
 
     template <typename EventType>
