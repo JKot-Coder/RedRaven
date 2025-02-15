@@ -17,15 +17,23 @@ namespace RR::Ecs
     struct EventBuilder;
     template <typename... Components>
     struct SystemBuilder;
-    template <typename T>
+    template <typename C, typename T>
     class EntityBuilder;
 
-    template <typename C, typename Args>
-    struct ComponentArg
+    /**
+     * @brief List of types with compile-time access
+     * @tparam Types Variadic template parameter pack of types
+     */
+    template <typename... Types>
+    struct TypeList
     {
-        using Component = C;
-        ComponentArg(Args&& args_) : args(eastl::move(args_)) { }
-        static constexpr size_t num_args = eastl::tuple_size<Args>::value;
-        Args args;
+        static constexpr size_t Count = sizeof...(Types);
+
+        template <size_t Index>
+        using Get = eastl::tuple_element_t<Index, eastl::tuple<Types...>>;
+
+        template <typename Type>
+        using Append = TypeList<Types..., Type>;
     };
+
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/Archetype.hpp"
+#include "EASTL/algorithm.h"
 
 namespace RR::Ecs
 {
@@ -17,7 +18,7 @@ namespace RR::Ecs
 
         Arg& Get(size_t chunkIndex, size_t index)
         {
-            Component* ptr = reinterpret_cast<Component*>(data->Get(chunkIndex, index));
+            Component* ptr = reinterpret_cast<Component*>(data->GetData(chunkIndex, index));
 
             if constexpr (std::is_pointer_v<Arg>)
             {

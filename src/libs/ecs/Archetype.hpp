@@ -6,27 +6,17 @@
 #include "ecs/TypeTraits.hpp"
 #include "ska/flat_hash_map.h"
 #include <numeric>
+#include <EASTL/vector_set.h>
+#include <EASTL/fixed_vector.h>
+#include <EASTL/sort.h>
 
 namespace RR::Ecs
 {
     using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
     using ArchetypeEntityIndex = Index<struct ArchetypeEntityIndexTag>;
 
-    class ComponentInfoView
-    {
-    public:
-        using iterator = const ComponentInfo*;
-
-        ComponentInfoView(const iterator& begin, const iterator& end) : begin_(begin), end_(end) { }
-
-        iterator begin() const { return begin_; }
-        iterator end() const { return end_; }
-
-    private:
-        iterator begin_;
-        iterator end_;
-    };
-
+    template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
+    using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
 
     template <typename... Components>
     struct ArchetypeInfo
@@ -44,7 +34,7 @@ namespace RR::Ecs
                 hash *= prime;
             };
 
-            (hash_64_fnv1a(GetTypeHash<Components>()), ...);
+            (hash_64_fnv1a(GetTypeHash<Components>), ...);
             return hash;
         }
 
@@ -59,8 +49,11 @@ namespace RR::Ecs
         {
             using Allocator = EASTLAllocatorType;
 
+            // TODO maybe fixed chunch size in kb, not element counts.
             ComponentData(size_t chunkSizePower, size_t sizeOfElement, size_t alignmentOfElement, const Allocator& allocator)
                 : chunkSize(1 << chunkSizePower),
+                  chunkSizePower(chunkSizePower),
+                  chunkMask(chunkSize - 1),
                   sizeOfElement(sizeOfElement),
                   alignmentOfElement(alignmentOfElement),
                   containerAlignment(std::lcm(chunkSize, alignmentOfElement)),
@@ -79,13 +72,13 @@ namespace RR::Ecs
                 capacity += chunkSize;
                 chunks.push_back((char*)allocator.allocate(chunkSize * sizeOfElement, containerAlignment, 0));
             }
-/*
-            char* GetData(size_t linearIndex)
+
+            char* GetData(ArchetypeEntityIndex entityIndex) const
             {
-                return GetData(linearIndex >> chunkSizePower, linear_index & chunkMask);
+                return GetData(entityIndex.Value() >> chunkSizePower, entityIndex.Value() & chunkMask);
             }
-*/
-            char* Get(size_t chunk, size_t index) const
+
+            char* GetData(size_t chunk, size_t index) const
             {
                 ASSERT(chunk < chunks.size());
                 ASSERT(index < chunkSize);
@@ -93,8 +86,9 @@ namespace RR::Ecs
             }
 
             eastl::vector<char*> chunks;
-            // size_t size;
             size_t chunkSize = 0;
+            size_t chunkSizePower =0;
+            size_t chunkMask = 0;
             size_t sizeOfElement = 0;
             size_t alignmentOfElement = 0;
             size_t containerAlignment = 0;
@@ -103,20 +97,41 @@ namespace RR::Ecs
         };
 
     public:
-        Archetype(size_t chunkSizePower, ComponentInfoView components)
+
+        template <typename Interator>
+        Archetype(size_t chunkSizePower, Interator compBegin, Interator compEnd)
             : chunkSize(1 << chunkSizePower)
         {
-            for (ComponentInfo componentInfo : components)
+            for (Interator it = compBegin; it != compEnd; it++)
             {
+                ComponentInfo& componentInfo = *it;
                 componentsData.emplace_back(chunkSizePower, componentInfo.size, componentInfo.alignment, ComponentData::Allocator {});
                 componentIdToDataIndex[componentInfo.id] = componentsData.size() - 1;
+                components.push_back_unsorted(componentInfo.id);
             }
+            eastl::quick_sort(components.begin(), components.end());
         }
 
         ArchetypeEntityIndex Insert()
         {
             expand(1);
             return ArchetypeEntityIndex(entityCount++);
+        }
+
+        // Component list should be sorted!
+        template <class Iterator>
+        bool HasComponents(Iterator compBegin, Iterator compEnd) const
+        {
+            return std::includes(components.begin(), components.end(), compBegin, compEnd);
+        }
+
+        template <typename ArgsTuple>
+        void InitComponent(ArchetypeEntityIndex entityIndex, const ComponentInfo& componentInfo, ArgsTuple&& arg)
+        {
+            auto* componentData = GetComponentData(componentInfo.id);
+            ASSERT(componentData != nullptr);
+
+            componentData->GetData(entityIndex);
         }
 
         const ComponentData* GetComponentData(ComponentId componentId) const
@@ -150,5 +165,6 @@ namespace RR::Ecs
         size_t chunkCount = 0;
         eastl::vector<ComponentData> componentsData;
         ska::flat_hash_map<ComponentId, size_t> componentIdToDataIndex;
+        FixedVectorSet<ComponentId, 64> components;
     };
 }

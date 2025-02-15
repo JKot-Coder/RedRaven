@@ -8,7 +8,7 @@ namespace RR::Ecs
      * @tparam Tag Type tag used to differentiate different kinds of indices
      * @tparam IndexType Underlying type used to store the index value
      */
-    template <typename Tag, typename IndexType = uint32_t>
+    template <typename Tag, typename IndexType = size_t>
     class Index
     {
     public:
@@ -28,13 +28,6 @@ namespace RR::Ecs
         constexpr bool operator<=(const Index& other) const noexcept { return value_ <= other.value_; }
         constexpr bool operator>(const Index& other) const noexcept { return value_ > other.value_; }
         constexpr bool operator>=(const Index& other) const noexcept { return value_ >= other.value_; }
-
-        constexpr Index& operator++() noexcept { ++value_; return *this; }
-        constexpr Index operator++(int) noexcept { Index tmp(*this); ++value_; return tmp; }
-        constexpr Index& operator--() noexcept { --value_; return *this; }
-        constexpr Index operator--(int) noexcept { Index tmp(*this); --value_; return tmp; }
-
-        constexpr bool IsValid() const noexcept { return value_ != static_cast<IndexType>(-1); }
 
     protected:
         IndexType value_;

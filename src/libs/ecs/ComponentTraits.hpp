@@ -36,11 +36,7 @@ namespace RR::Ecs
 
         static constexpr size_t Size = sizeof(RawType);
         static constexpr size_t Alignment = alignof(RawType);
-
-        static constexpr ComponentInfo GetInfo() noexcept
-        {
-            return ComponentInfo{Id, Size, Alignment};  // Pre-C++20 aggregate initialization
-        }
+        static constexpr ComponentInfo ComponentInfo{Id, Size, Alignment};
     };
 
     template <typename T>
@@ -48,4 +44,7 @@ namespace RR::Ecs
 
     template <typename T>
     static constexpr ComponentId GetComponentId = ComponentTraits<T>::Id;
+
+    template <typename T>
+    static constexpr ComponentInfo GetComponentInfo = ComponentTraits<T>::ComponentInfo;
 }

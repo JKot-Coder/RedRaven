@@ -6,19 +6,6 @@
 namespace RR::Ecs
 {
     /**
-     * @brief List of function argument types with compile-time access
-     * @tparam Args Variadic template parameter pack of argument types
-     */
-    template <typename... Args>
-    struct ArgumentList
-    {
-        static constexpr size_t Count = sizeof...(Args);
-
-        template <size_t Index>
-        using Get = eastl::tuple_element_t<Index, eastl::tuple<Args...>>;
-    };
-
-    /**
      * @brief Base traits for function types
      * @tparam RetType Function return type
      * @tparam Args Function argument types
@@ -27,7 +14,7 @@ namespace RR::Ecs
     struct FunctionTraitsBase
     {
         using ReturnType = RetType;
-        using Arguments = ArgumentList<Args...>;
+        using Arguments = TypeList<Args...>;
 
         static constexpr bool IsCallable = true;
         static constexpr size_t ArgsCount = sizeof...(Args);

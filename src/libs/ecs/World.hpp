@@ -1,15 +1,15 @@
 #pragma once
 
 #include "ecs/Archetype.hpp"
+#include "ecs/EntityBuilder.hpp"
+#include "ecs/EntityId.hpp"
 #include "ecs/EntityStorage.hpp"
-#include "ecs/TypeStorage.hpp"
 #include "ecs/Event.hpp"
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/EntityId.hpp"
-#include "ecs/System.hpp"
-#include "ecs/EntityBuilder.hpp"
 #include "ecs/FunctionTraits.hpp"
 #include "ecs/IterationHelpers.hpp"
+#include "ecs/System.hpp"
+#include "ecs/TypeStorage.hpp"
 #include "ska/flat_hash_map.h"
 
 namespace RR::Ecs
@@ -21,7 +21,7 @@ namespace RR::Ecs
         inline EventBuilder<EventType> Event() const;
         template <typename... Components>
         inline SystemBuilder<Components...> System(const char* name);
-        EntityBuilder<void> Entity(){ return EntityBuilder<void>(*this); }
+        auto Entity() { return EntityBuilder<void, void>(*this); }
 
         template <typename T, typename DescriptionType>
         T Init(const DescriptionType& desc);
@@ -31,80 +31,95 @@ namespace RR::Ecs
         template <typename Callable>
         void Each(Callable&& callable)
         {
-            // TODO get correct archetype
-            QueryArchetype::Query(eastl::forward<Callable>(callable), *archetypesMap.at(ArchetypeId(0)).get());
+            using ArgList = GetArgumentList<Callable>;
+            queryImpl<ArgList>(eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
 
     private:
         template <typename U>
         friend struct EventBuilder;
 
-        template <typename U>
+        template <typename C, typename T>
         friend class EntityBuilder;
 
-        template <typename Tuple, std::size_t... Indices>
-        static constexpr ArchetypeId getArhetypeIdForTuple()
+        template <typename... Components>
+        static constexpr ArchetypeId getArhetypeIdForComponents(TypeList<Components...>)
         {
-            return ArchetypeInfo<typename eastl::tuple_element_t<Indices, eastl::decay_t<Tuple>>::Component...>::Id;
+            return ArchetypeInfo<Components...>::Id;
+        }
+
+        template <typename... Components>
+        static constexpr auto getComponentsInfoArray(TypeList<Components...>)
+        {
+            return eastl::array<ComponentInfo, TypeList<Components...>::Count> {GetComponentInfo<Components>...};
         }
 
         template <typename Tuple, std::size_t... Indices>
         void registerTypesInTuple()
         {
+            // TODO for what?
             return typeStorage.Register<eastl::tuple_element_t<Indices, eastl::decay_t<Tuple>>::Component...>();
         }
 
         EntityId createEntity() { return EntityId(0, 0); }
 
-        template <typename TupleType>
-        EntityId createEntity(TupleType&& args)
+        template <typename ComponentsList, typename ArgsTuple>
+        EntityId createEntity(ArgsTuple&& args)
         {
-            constexpr size_t numComponents = eastl::tuple_size<TupleType>();
-            constexpr auto indexSequence = eastl::make_index_sequence<numComponents>();
-
             auto entity = createEntity();
-            initComponents<TupleType>(entity, eastl::move(args), indexSequence);
+            initComponents<ComponentsList, ArgsTuple>(entity, eastl::move(args));
             return entity;
         }
 
-        template<typename Arg>
-        void initComponent(Archetype& archetype, ArchetypeEntityIndex entity_index, Arg&& arg) {
-            using ArgType = typename eastl::remove_reference<Arg>::type;
-            using Component = typename ArgType::Component;
-            constexpr size_t num_args = ArgType::num_args;
-            initComponent<Component>(archetype, entity_index, arg.args, std::make_index_sequence<num_args>());
-        }
-
-
-        template <typename TupleType, size_t... Index>
-        void initComponents(EntityId entity, TupleType&& tuple, const eastl::index_sequence<Index...>& indices)
+        template <typename ComponentsList, typename ArgsTuple, size_t... Index>
+        void initComponentsImpl(EntityId entity, ArgsTuple&& argsTuple, const eastl::index_sequence<Index...>&)
         {
-            UNUSED(entity);
-            UNUSED(tuple);
-
-            static constexpr ArchetypeId archetypeId = getArhetypeIdForTuple<TupleType, Index...>();
-            Log::Format::Fatal("ArchetypeInfo: {}\n", eastl::hash<ArchetypeId>{}(archetypeId));
+            constexpr ArchetypeId archetypeId = getArhetypeIdForComponents(ComponentsList {});
+            Log::Format::Fatal("ArchetypeInfo: {}\n", eastl::hash<ArchetypeId> {}(archetypeId));
             Log::Format::Fatal("ArchetypeInfo: {}\n", archetypeId.Value());
 
-            Archetype<>* archetype = nullptr;
+            size_t chunkSizePower = 7; // TODO move it somewhere
+
+            auto componentsInfo = getComponentsInfoArray(ComponentsList {});
+
             auto it = archetypesMap.find(archetypeId);
+            Archetype* archetype = nullptr;
+
             if (it == archetypesMap.end())
             {
-                //size_t chunkSizePower, ComponentsView componets)
-            //    auto archUniqPtr = eastl::make_unique<Archetype<>>();
-            //    archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
-                //archetype = archUniqPtr.get();
+                auto archUniqPtr = eastl::make_unique<Archetype>(chunkSizePower, componentsInfo.begin(), componentsInfo.end());
+                archetype = archUniqPtr.get();
+                archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
             }
             else
                 archetype = it->second.get();
 
- UNUSED(archetype);
-       //     const auto enitityIndex = archetype->insert(entity, componentId);
+            const auto entityIndex = archetype->Insert();
+            archetype->InitComponent(entityIndex, componentsInfo[Index]..., eastl::move(eastl::get<Index>(argsTuple))...);
+        }
 
-            // UNUSED(Index);
-            // auto& archetype = getArchetype(mask, info);
-            // const auto index = archetype.insert(entity, mask);
-            // initComponent(archetype, index, eastl::get<Index>(eastl::move(tuple)))...;
+        template <typename ComponentsList, typename ArgsTuple>
+        void initComponents(EntityId entity, ArgsTuple&& argsTuple)
+        {
+            initComponentsImpl<ComponentsList>(entity, eastl::forward<ArgsTuple>(argsTuple), eastl::make_index_sequence<ComponentsList::Count>());
+        }
+
+        template <typename ArgumentList, typename Callable, size_t... Index>
+        void queryImpl(Callable&& callable, const eastl::index_sequence<Index...>&)
+        {
+            // TODO cache this
+
+            eastl::array<ComponentId, ArgumentList::Count> components = {GetComponentId<typename ArgumentList::template Get<Index>>...};
+            eastl::quick_sort(components.begin(), components.end());
+
+            // TODO CACHING !
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                archetype.HasComponents(components.begin(), components.end());
+
+                QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);
+            }
         }
 
         template <typename EventType>
@@ -147,7 +162,7 @@ namespace RR::Ecs
         return Ecs::System(*this, desc.hashName);
     }
 
-    void EntityBuilder<void>::Commit() && { world_.createEntity(); };
-    template<typename TupleType>
-    void EntityBuilder<TupleType>::Commit() && { world_.createEntity(eastl::move(args_)); };
+    void EntityBuilder<void, void>::Commit() && { world_.createEntity(); };
+    template <typename ComponentsList, typename TupleType>
+    void EntityBuilder<ComponentsList, TupleType>::Commit() && { world_.createEntity<ComponentsList>(eastl::move(args_)); };
 }

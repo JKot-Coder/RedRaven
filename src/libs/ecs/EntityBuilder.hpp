@@ -1,19 +1,24 @@
 #pragma once
 
-#include "ecs/ForwardDeclarations.hpp"
 #include "ecs/EntityId.hpp"
+#include "ecs/ForwardDeclarations.hpp"
+#include "EASTL/tuple.h"
 
 namespace RR::Ecs
 {
-    template <typename TupleType>
+    template <typename ComponentList, typename ArgsTuple>
     class [[nodiscard]] EntityBuilder;
 
     template <>
-    class [[nodiscard]] EntityBuilder<void>
+    class [[nodiscard]] EntityBuilder<void, void>
     {
     public:
         template <typename Component, typename... ARGS>
-        auto Add(ARGS&&... args) &&;
+        auto Add(ARGS&&... args) &&
+        {
+            auto componentTyple = eastl::make_tuple(eastl::move(args)...);
+            return EntityBuilder<TypeList<Component>, decltype(componentTyple)>(world_, eastl::move(componentTyple));
+        }
 
         inline void Commit() &&;
 
@@ -26,37 +31,33 @@ namespace RR::Ecs
         World& world_;
     };
 
-    template <typename TupleType>
+    template <typename ComponentList, typename ArgsTuple>
     class [[nodiscard]] EntityBuilder
     {
     public:
         template <typename Component, typename... ARGS>
-        auto Add(ARGS&&... args) && {
-            using ComponentArgType = ComponentArg<Component, eastl::tuple<ARGS...>>;
-            ComponentArgType arg {eastl::tuple<ARGS...>(eastl::forward<ARGS>(args)...)};
-            using NewTupleType = decltype(eastl::tuple_cat(eastl::declval<TupleType>(), eastl::make_tuple(eastl::move(arg))));
-            return EntityBuilder<NewTupleType>(world_, eastl::tuple_cat(eastl::move(args_), eastl::make_tuple(eastl::move(arg))));
+        auto Add(ARGS&&... args) &&
+        {
+            auto argsTuple = eastl::make_tuple(make_tuple(args)...);
+            return EntityBuilder<typename ComponentList::template Append<Component>, decltype(eastl::tuple_cat(eastl::move(args_), argsTuple))>
+                (world_, eastl::tuple_cat(eastl::move(args_), argsTuple));
         }
 
         inline void Commit() &&;
+
+        static constexpr auto GetComponentsInfoList()
+        {
+            return getComponentsInfoListImpl(eastl::make_index_sequence<ComponentList::Count>{});
+        }
+
     private:
-        template <typename U>
+        template <typename C, typename T>
         friend class EntityBuilder;
 
-        explicit EntityBuilder(World& world, TupleType&& args) : world_(world), args_(eastl::move(args)) { };
+        explicit EntityBuilder(World& world, ArgsTuple&& args) : world_(world), args_(eastl::move(args)) { };
 
     private:
         World& world_;
-        TupleType args_;
+        ArgsTuple args_;
     };
-
-    template <typename Component, typename... ARGS>
-    auto EntityBuilder<void>::Add(ARGS&&... args) &&
-    {
-        using ComponentArgType = ComponentArg<Component, eastl::tuple<ARGS...>>;
-        ComponentArgType arg {eastl::tuple<ARGS...>(eastl::forward<ARGS>(args)...)};
-        using NewTupleType = eastl::tuple<ComponentArgType>;
-        return EntityBuilder<NewTupleType>(world_, eastl::make_tuple(eastl::move(arg)));
-    }
-
 }
