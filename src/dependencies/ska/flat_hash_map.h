@@ -873,7 +873,7 @@ protected:
 
     void deallocate_data(EntryPointer begin, hash_size_t num_slots_minus_one_, int8_t max_lookups_)
     {
-        if (begin != Entry::empty_default_table())
+        if (num_slots_minus_one_ != 0)
         {
             EASTLFree(static_cast<ArgumentAlloc&>(*this), begin, sizeof(Entry) * (num_slots_minus_one_ + max_lookups_ + 1));
         }
