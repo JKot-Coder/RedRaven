@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/EntityId.hpp"
 #include "common/LinearAllocator.hpp"
 
 namespace RR::Ecs

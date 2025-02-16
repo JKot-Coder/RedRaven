@@ -6,7 +6,6 @@ namespace RR::Ecs
     template<int FixedSize>
     struct HashString;
     using HashType = uint64_t;
-    struct EntityId;
     struct Entity;
     struct Event;
     struct World;
@@ -17,8 +16,9 @@ namespace RR::Ecs
     struct EventBuilder;
     template <typename... Components>
     struct SystemBuilder;
-    template <typename C, typename T>
-    class EntityBuilder;
+    struct QueryBuilder;
+    template <typename C, typename A>
+    struct EntityBuilder;
 
     /**
      * @brief List of types with compile-time access

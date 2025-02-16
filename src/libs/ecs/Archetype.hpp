@@ -13,7 +13,7 @@
 namespace RR::Ecs
 {
     using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
-    using ArchetypeEntityIndex = Index<struct ArchetypeEntityIndexTag>;
+    using ArchetypeEntityIndex = Idnex<struct ArchetypeEntityIndexTag>;
 
     template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
@@ -125,13 +125,14 @@ namespace RR::Ecs
             return std::includes(components.begin(), components.end(), compBegin, compEnd);
         }
 
-        template <typename ArgsTuple>
-        void InitComponent(ArchetypeEntityIndex entityIndex, const ComponentInfo& componentInfo, ArgsTuple&& arg)
+        template <typename Component, typename ArgsTuple>
+        void InitComponent(ArchetypeEntityIndex entityIndex, ComponentId componentId, ArgsTuple&& arg)
         {
-            auto* componentData = GetComponentData(componentInfo.id);
+            auto* componentData = GetComponentData(GetComponentId<Component>());
             ASSERT(componentData != nullptr);
 
-            componentData->GetData(entityIndex);
+            componentData->GetData(entityIndex)
+            new (destination) Component(eastl::forward<Component>(arg));
         }
 
         const ComponentData* GetComponentData(ComponentId componentId) const

@@ -29,7 +29,7 @@ namespace RR::Ecs
         template <size_t Size>
         struct FixedString
         {
-            constexpr std::string_view c_str() const noexcept { return data.data(); }
+            constexpr const char* c_str() const noexcept { return data.data(); }
             constexpr std::string_view string_view() const noexcept { return {data.data(), size}; }
 
             size_t size = 0;
@@ -98,7 +98,7 @@ namespace RR::Ecs
             return result;
         }
 
-        static constexpr auto name = filterTypeName(typeNameView);
+        static constexpr FixedTypeName name = filterTypeName(typeNameView);
 
     public:
         static constexpr std::string_view string_view() noexcept { return name.string_view(); }
@@ -121,8 +121,8 @@ namespace RR::Ecs
     template <typename T>
     struct TypeTraits
     {
-        static constexpr std::string_view Name = TypeName<T>::string_view();
-        static constexpr HashType Hash = Ecs::ConstexprHash(Name);
+        static constexpr const char* Name = TypeName<T>::c_str();
+        static constexpr HashType Hash = Ecs::ConstexprHash(TypeName<T>::string_view());
         static constexpr TypeId Id = TypeId(Hash);
 
         static constexpr TypeDescriptor Descriptor = {Id, sizeof(T), alignof(T)};
@@ -132,7 +132,7 @@ namespace RR::Ecs
      * @brief Helper type aliases for common operations
      */
     template <typename T>
-    inline constexpr std::string_view GetTypeName = TypeTraits<T>::Name;
+    inline constexpr auto GetTypeName = TypeTraits<T>::Name;
 
     template <typename T>
     inline constexpr HashType GetTypeHash = TypeTraits<T>::Hash;

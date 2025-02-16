@@ -1,14 +1,13 @@
 project (ecs)
 
 set( SRC
-    EntityId.hpp
     Index.hpp
     World.hpp
     World.cpp
-    Archetype.hpp
     TypeStorage.hpp
     EntityStorage.hpp
     EntityBuilder.hpp
+    QueryBuilder.hpp
     Event.hpp
     EventBuilder.hpp
     System.hpp
@@ -20,8 +19,7 @@ set( SRC
     TypeTraits.hpp
     TypeTraits.cpp
     FunctionTraits.hpp
-    ComponentTraits.hpp
-    IterationHelpers.hpp)
+    ComponentTraits.hpp)
     source_group( "" FILES ${SRC} )
 
 set (SRC

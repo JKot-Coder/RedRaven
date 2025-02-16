@@ -3,7 +3,6 @@
 
 #include "ecs/Hash.hpp"
 //#include "ecs/World.hpp"
-#include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/TypeTraits.hpp"
 

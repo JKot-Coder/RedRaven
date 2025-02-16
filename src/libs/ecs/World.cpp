@@ -1,19 +1,24 @@
 #include "World.hpp"
 #include "SystemBuilder.hpp"
+#include "ecs\EntityBuilder.hpp"
 
 namespace RR::Ecs
 {
+    EntityBuilder<void, void>World::Entity()
+    {
+        return EntityBuilder<void, void>(*this);
+    }
+
     void World::Tick()
     {
         systemStorage.RegisterDeffered();
 
-        eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
+        /*eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if(entityId)
                 dispatchEventImmediately(entityId, event);
             else
                 broadcastEventImmediately(event);
-        });
-
+        });*/
         //world.progress();
     }
 /*
@@ -27,7 +32,7 @@ namespace RR::Ecs
     {
         e = ecs_get_alive(world, e);
         return Entity(*this, e);
-    }*/
+    }
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
@@ -38,5 +43,5 @@ namespace RR::Ecs
     {
         ASSERT(entity);
         UNUSED(entity, event);
-    }
+    }*/
 }
