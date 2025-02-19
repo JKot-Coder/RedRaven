@@ -13,14 +13,16 @@ namespace RR::Ecs
     {
     public:
         using ValueType = IndexType;
+        static constexpr ValueType InvalidValue = static_cast<IndexType>(-1);
+        static constexpr Index Invalid() { return Index{}; };
 
-        constexpr Index() noexcept : value_(static_cast<IndexType>(-1)) { }
+        constexpr Index() noexcept = default;
         explicit constexpr Index(ValueType value) noexcept : value_(value) { }
 
         static constexpr Index FromValue(ValueType value) noexcept { return Index(value); }
 
         constexpr IndexType Value() const noexcept { return value_; }
-        constexpr bool IsValid() const noexcept { return value_ != static_cast<IndexType>(-1); }
+        constexpr bool IsValid() const noexcept { return value_ != InvalidValue; }
 
         constexpr bool operator==(const Index& other) const noexcept { return value_ == other.value_; }
         constexpr bool operator!=(const Index& other) const noexcept { return value_ != other.value_; }
@@ -30,7 +32,7 @@ namespace RR::Ecs
         constexpr bool operator>=(const Index& other) const noexcept { return value_ >= other.value_; }
 
     protected:
-        IndexType value_;
+        IndexType value_ = InvalidValue;
     };
 }
 

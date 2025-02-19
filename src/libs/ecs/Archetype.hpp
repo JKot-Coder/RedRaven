@@ -1,22 +1,20 @@
 #pragma once
 
 #include "ecs/ComponentTraits.hpp"
+#include "ecs/ForwardDeclarations.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
 #include "ecs/TypeTraits.hpp"
 #include "ska/flat_hash_map.h"
-#include <numeric>
-#include <EASTL/vector_set.h>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/sort.h>
+#include <EASTL/vector_set.h>
+#include <numeric>
 
 namespace RR::Ecs
 {
     using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
     using ArchetypeEntityIndex = Index<struct ArchetypeEntityIndexTag>;
-
-    template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
-    using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
 
     template <typename... Components>
     struct ArchetypeInfo
@@ -42,6 +40,24 @@ namespace RR::Ecs
         static constexpr ArchetypeId Id = ArchetypeId::FromValue(getArchetypeHash());
     };
 
+    template <typename Interator>
+    static constexpr ArchetypeId GetArchetypeIdForComponents(Interator begin, Interator end)
+    {
+        static_assert(eastl::is_same_v<HashType, uint64_t>, "Update hash combine function");
+
+        uint64_t hash = 0xcbf29ce484222325;
+
+        auto hash_64_fnv1a = [&](uint64_t value) {
+            uint64_t prime = 0x100000001b3;
+            hash = hash ^ value;
+            hash *= prime;
+        };
+
+        for (auto it = begin; it != end; ++it)
+            hash_64_fnv1a((*it).Value());
+        return ArchetypeId::FromValue(hash);
+    }
+
     class Archetype
     {
     public:
@@ -50,72 +66,80 @@ namespace RR::Ecs
             using Allocator = EASTLAllocatorType;
 
             // TODO maybe fixed chunch size in kb, not element counts.
-            ComponentData(size_t chunkSizePower, size_t sizeOfElement, size_t alignmentOfElement, const Allocator& allocator)
-                : chunkSize(1 << chunkSizePower),
+            ComponentData(size_t chunkSizePower, ComponentInfo componentInfo, const Allocator& allocator)
+                : componentInfo(componentInfo),
+                  chunkSize(1 << chunkSizePower),
                   chunkSizePower(chunkSizePower),
                   chunkMask(chunkSize - 1),
-                  sizeOfElement(sizeOfElement),
-                  alignmentOfElement(alignmentOfElement),
-                  containerAlignment(std::lcm(chunkSize, alignmentOfElement)),
+                  containerAlignment(std::lcm(chunkSize, componentInfo.alignment)),
                   allocator(allocator)
             {
             }
 
             ~ComponentData()
             {
-                for (char* data : chunks)
-                    allocator.deallocate(data, chunkSize * sizeOfElement);
+                for (std::byte* data : chunks)
+                    allocator.deallocate(data, chunkSize * sizeOfElement());
             }
 
             void AllocateChunk()
             {
                 capacity += chunkSize;
-                chunks.push_back((char*)allocator.allocate(chunkSize * sizeOfElement, containerAlignment, 0));
+                chunks.push_back((std::byte*)allocator.allocate(chunkSize * sizeOfElement(), containerAlignment, 0));
             }
 
-            char* GetData(ArchetypeEntityIndex entityIndex) const
+            std::byte* GetData(ArchetypeEntityIndex entityIndex) const
             {
                 return GetData(entityIndex.Value() >> chunkSizePower, entityIndex.Value() & chunkMask);
             }
 
-            char* GetData(size_t chunk, size_t index) const
+            std::byte* GetData(size_t chunk, size_t index) const
             {
                 ASSERT(chunk < chunks.size());
                 ASSERT(index < chunkSize);
-                return chunks[chunk] + (index) * sizeOfElement;
+                return chunks[chunk] + (index)*sizeOfElement();
             }
 
-            eastl::vector<char*> chunks;
+            const ComponentInfo& GetComponentInfo() const { return componentInfo; }
+
+        private:
+            friend class Archetype;
+            size_t alignmentOfElement() const { return componentInfo.alignment; }
+            size_t sizeOfElement() const { return componentInfo.size; }
+
+        private:
+            eastl::vector<std::byte*> chunks;
+            ComponentInfo componentInfo;
             size_t chunkSize = 0;
-            size_t chunkSizePower =0;
+            size_t chunkSizePower = 0;
             size_t chunkMask = 0;
-            size_t sizeOfElement = 0;
-            size_t alignmentOfElement = 0;
             size_t containerAlignment = 0;
             size_t capacity = 0;
             Allocator allocator;
         };
 
     public:
-
+        // Compomentn Info should be sorted
         template <typename Interator>
-        Archetype(size_t chunkSizePower, Interator compBegin, Interator compEnd)
-            : chunkSize(1 << chunkSizePower)
+        Archetype(ArchetypeId id, size_t chunkSizePower, Interator compInfoBegin, Interator compInfoEnd)
+            : id(id), chunkSize(1 << chunkSizePower)
         {
-            for (Interator it = compBegin; it != compEnd; it++)
+            for (Interator it = compInfoBegin; it != compInfoEnd; it++)
             {
                 ComponentInfo& componentInfo = *it;
-                componentsData.emplace_back(chunkSizePower, componentInfo.size, componentInfo.alignment, ComponentData::Allocator {});
-                componentIdToDataIndex[componentInfo.id] = componentsData.size() - 1;
+                componentsData.emplace_back(chunkSizePower, componentInfo, ComponentData::Allocator {});
                 components.push_back_unsorted(componentInfo.id);
             }
-            eastl::quick_sort(components.begin(), components.end());
+
+            ASSERT(componentsData[0].componentInfo.id == GetComponentId<EntityId>);
         }
 
-        ArchetypeEntityIndex Insert()
+        void Move(const ComponentInfo& componentInfo, std::byte* dst, std::byte* src)
         {
-            expand(1);
-            return ArchetypeEntityIndex(entityCount++);
+            if (componentInfo.move)
+                componentInfo.move(dst, src);
+            else
+                memmove(dst, src, componentInfo.size);
         }
 
         // Component list should be sorted!
@@ -136,10 +160,16 @@ namespace RR::Ecs
 
         const ComponentData* GetComponentData(ComponentId componentId) const
         {
-            auto it = componentIdToDataIndex.find(componentId);
-            return it != componentIdToDataIndex.end() ? &componentsData[it->second] : nullptr;
+            auto it = components.find(componentId);
+            return it != components.end() ? &componentsData[eastl::distance(components.begin(), it)] : nullptr;
         };
 
+        ArchetypeEntityIndex Insert(EntityStorage& entityStorage, EntityId entityId);
+        ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
+        void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
+
+        auto GetComponentsBegin() const { return components.begin(); }
+        auto GetComponentsEnd() const { return components.end(); }
         size_t GetEntityCount() const { return entityCount; }
         size_t GetChunkCount() const { return chunkCount; }
         size_t GetChunkSize() const { return chunkSize; }
@@ -159,12 +189,12 @@ namespace RR::Ecs
             }
         }
 
+        ArchetypeId id;
         size_t entityCount = 0;
         size_t capacity = 0;
         size_t chunkSize = 0;
         size_t chunkCount = 0;
         eastl::vector<ComponentData> componentsData;
-        ska::flat_hash_map<ComponentId, size_t> componentIdToDataIndex;
-        FixedVectorSet<ComponentId, 64> components;
+        FixedVectorSet<ComponentId, 64> components; // TODO magicNumber
     };
 }

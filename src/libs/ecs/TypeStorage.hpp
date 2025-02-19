@@ -5,7 +5,7 @@
 
 namespace RR::Ecs
 {
-    class TypeStorage
+    class Components
     {
     public:
         template <typename T>

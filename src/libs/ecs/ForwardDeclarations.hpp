@@ -13,12 +13,14 @@ namespace RR::Ecs
 
     struct SystemDescription;
 
+    struct EntityStorage;
     template <typename T>
     struct EventBuilder;
     template <typename... Components>
     struct SystemBuilder;
     template <typename C, typename T>
-    class EntityBuilder;
+    struct EntityBuilder;
+    struct QueryBuilder;
 
     /**
      * @brief List of types with compile-time access

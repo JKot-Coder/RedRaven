@@ -1,33 +1,45 @@
 #include "World.hpp"
-#include "SystemBuilder.hpp"
+#include "ecs/SystemBuilder.hpp"
+#include "ecs/EntityBuilder.hpp"
 
 namespace RR::Ecs
 {
+    Entity World::Entity()
+    {
+        return Ecs::Entity(*this, createEntity());
+    }
+
+    Entity World::Entity(EntityId entityId)
+    {
+        ASSERT(IsAlive(entityId));
+        return Ecs::Entity(*this, entityId);
+    }
+
     void World::Tick()
     {
         systemStorage.RegisterDeffered();
 
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
-            if(entityId)
+            if (entityId)
                 dispatchEventImmediately(entityId, event);
             else
                 broadcastEventImmediately(event);
         });
 
-        //world.progress();
+        // world.progress();
     }
-/*
-    Entity World::Lookup(const char* name, const char* sep, const char* root_sep, bool recursive) const
-    {
-        auto e = ecs_lookup_path_w_sep(world, 0, name, sep, root_sep, recursive);
-        return Entity(*this, e);
-    }
+    /*
+        Entity World::Lookup(const char* name, const char* sep, const char* root_sep, bool recursive) const
+        {
+            auto e = ecs_lookup_path_w_sep(world, 0, name, sep, root_sep, recursive);
+            return Entity(*this, e);
+        }
 
-    Entity World::GetAlive(EntityId e) const
-    {
-        e = ecs_get_alive(world, e);
-        return Entity(*this, e);
-    }*/
+        Entity World::GetAlive(EntityId e) const
+        {
+            e = ecs_get_alive(world, e);
+            return Entity(*this, e);
+        }*/
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {

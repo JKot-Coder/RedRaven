@@ -10,6 +10,7 @@
 #define FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 #endif
 
+#include "ecs/EntityId.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
 #include <EASTL/array.h>
@@ -126,6 +127,17 @@ namespace RR::Ecs
         static constexpr TypeId Id = TypeId(Hash);
 
         static constexpr TypeDescriptor Descriptor = {Id, sizeof(T), alignof(T)};
+    };
+
+    // Specialization for EntityId to ensure it always has ID 0
+    template <>
+    struct TypeTraits<EntityId>
+    {
+        static constexpr std::string_view Name = TypeName<EntityId>::string_view();
+        static constexpr HashType Hash = 0;
+        static constexpr TypeId Id = TypeId(0);
+
+        static constexpr TypeDescriptor Descriptor = {Id, sizeof(EntityId), alignof(EntityId)};
     };
 
     /**

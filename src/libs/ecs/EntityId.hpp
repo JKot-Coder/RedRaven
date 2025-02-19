@@ -12,29 +12,26 @@ namespace RR::Ecs
         static const uint32_t MaxGenerationsCount = 1 << GenerationBits;
         static const uint32_t GenerationsMask = MaxGenerationsCount - 1;
         static const uint32_t InvalidRawId = 0xFFFFFFFF;
-
-        struct IdComponents
+        struct IdFields
         {
-            uint32_t entityIndex : IndexBits;
+            uint32_t index : IndexBits;
             uint32_t generation : GenerationBits;
         };
-
         union
         {
-            IdComponents components;
+            IdFields fields;
             uint32_t rawId;
         };
-
-        uint32_t GetEntityIndex() const { return components.entityIndex; }
-        uint32_t GetGeneration() const { return components.generation; }
-        uint32_t Int() const { return InvalidRawId; }
 
         EntityId() : rawId(InvalidRawId) { }
         EntityId(uint32_t index, uint32_t generation)
         {
-            components.entityIndex = index;
-            components.generation = generation;
+            fields.index = index;
+            fields.generation = generation;
         }
+
+        uint32_t GetGeneration() const { return fields.generation; }
+        uint32_t GetIndex() const { return fields.index; }
         operator bool() const { return rawId != InvalidRawId; }
     };
 }

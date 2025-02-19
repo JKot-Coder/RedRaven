@@ -6,8 +6,11 @@ set( SRC
     World.hpp
     World.cpp
     Archetype.hpp
-    TypeStorage.hpp
+    Archetype.cpp
+    ComponentStorage.hpp
     EntityStorage.hpp
+    QueryBuilder.hpp
+    QueryBuilder.cpp
     EntityBuilder.hpp
     Event.hpp
     EventBuilder.hpp
