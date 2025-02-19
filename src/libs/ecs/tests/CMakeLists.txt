@@ -5,7 +5,7 @@ set(SRC
 source_group( "" FILES ${SRC} )
 
 set(TESTS_SRC
-    "BasicTests.cpp"
+    "EntityAndComponents.cpp"
 )
 source_group( "Tests" FILES ${TESTS_SRC} )
 
