@@ -34,7 +34,7 @@
 #define UNLIKELY(x) (x)
 #endif
 
-#ifdef _MSC_VER
+#if (defined(_MSC_VER) && !defined(__clang__))
 #define USED
 #define NO_SANITIZE_ADDRESS __declspec(no_sanitize_address)
 #else
