@@ -1,5 +1,7 @@
 project (ecs)
 
+add_subdirectory(tests)
+
 set( SRC
     EntityId.hpp
     Index.hpp
