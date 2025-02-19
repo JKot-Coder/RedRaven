@@ -27,7 +27,7 @@ namespace RR::Ecs
             return world_.Has(entity_, components.begin(), components.end());
         }
 
-        EntityBuilder<void, void> Mutate();
+        EntityBuilder<void, void> Edit();
 
     private:
         friend World;
@@ -59,7 +59,7 @@ namespace RR::Ecs
             return *this;
         }
 
-        Entity Commit() &&
+        Entity Apply() &&
         {
             eastl::quick_sort(remove_.begin(), remove_.end());
             return Entity(world_, world_.commit<TypeList<>>(entity_, {remove_.begin(), remove_.end()}, eastl::make_tuple()));
@@ -88,7 +88,7 @@ namespace RR::Ecs
                 world_, entity_, eastl::move(remove_), eastl::tuple_cat(eastl::move(args_), argsTuple));
         }
 
-        Entity Commit() &&
+        Entity Apply() &&
         {
             eastl::quick_sort(remove_.begin(), remove_.end());
             return Entity(world_, world_.commit<ComponentList>(entity_, {remove_.begin(), remove_.end()}, eastl::move(args_)));
@@ -114,5 +114,5 @@ namespace RR::Ecs
         ArgsTuple args_;
     };
 
-    inline EntityBuilder<void, void> Entity::Mutate() { return EntityBuilder<void, void>(world_, entity_); }
+    inline EntityBuilder<void, void> Entity::Edit() { return EntityBuilder<void, void>(world_, entity_); }
 }

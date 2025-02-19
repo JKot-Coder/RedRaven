@@ -49,7 +49,7 @@ TEST_CASE("Create entity", "[Entity]")
         REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
     }
 
-    SECTION("Mutate")
+    SECTION("Edit")
     {
         // clang-format off
         struct Foo { int x;};
@@ -59,15 +59,15 @@ TEST_CASE("Create entity", "[Entity]")
 
         Entity entt1 = world.Entity();
         REQUIRE(!entt1.Has<Foo>());
-        entt1.Mutate().Add<Foo>(1).Commit();
+        entt1.Edit().Add<Foo>(1).Apply();
         REQUIRE(entt1.Has<Foo>());
         REQUIRE(!entt1.Has<Foo, Bar>());
-        entt1.Mutate().Add<Bar>(1).Commit();
+        entt1.Edit().Add<Bar>(1).Apply();
         REQUIRE(entt1.Has<Foo, Bar>());
 
         Entity entt2 = world.Entity();
         REQUIRE(!entt2.Has<Foo, Bar>());
-        entt2.Mutate().Add<Foo>(1).Add<Bar>(1).Commit();
+        entt2.Edit().Add<Foo>(1).Add<Bar>(1).Apply();
         REQUIRE(entt2.Has<Foo, Bar>());
     }
 
@@ -79,14 +79,14 @@ TEST_CASE("Create entity", "[Entity]")
         // clang-format on
         World world;
 
-        Entity entt1 = world.Entity().Mutate().Add<Foo>(1).Commit();
+        Entity entt1 = world.Entity().Edit().Add<Foo>(1).Apply();
         REQUIRE(entt1.Has<Foo>());
-        entt1.Mutate().Remove<Foo>().Commit();
+        entt1.Edit().Remove<Foo>().Apply();
         REQUIRE(!entt1.Has<Foo>());
 
-        Entity entt2 = world.Entity().Mutate().Add<Foo>(1).Commit();
+        Entity entt2 = world.Entity().Edit().Add<Foo>(1).Apply();
         REQUIRE(entt2.Has<Foo>());
-        entt2.Mutate().Remove<Foo>().Add<Bar>(1).Commit();
+        entt2.Edit().Remove<Foo>().Add<Bar>(1).Apply();
         REQUIRE(entt2.Has<Bar>());
         REQUIRE(!entt2.Has<Foo>());
     }
@@ -103,7 +103,7 @@ TEST_CASE("Create entity", "[Entity]")
         world.Entity();
 
         Entity entt1 = world.Entity();
-        entt1.Mutate().Add<Foo>(1).Add<Bar>(1).Commit();
+        entt1.Edit().Add<Foo>(1).Add<Bar>(1).Apply();
 
         int summ = 0;
         Query query = world.Query<Foo,Bar>().Build();
@@ -118,8 +118,8 @@ TEST_CASE("Create entity", "[Entity]")
         summ = 0;
 
         Entity entt2 = world.Entity();
-        entt2.Mutate().Add<Foo>(2).Commit();
-        entt2.Mutate().Add<Bar>(2).Commit();
+        entt2.Edit().Add<Foo>(2).Apply();
+        entt2.Edit().Add<Bar>(2).Apply();
 
         query.Each([&](Foo foo, Bar bar)
         {
@@ -129,7 +129,7 @@ TEST_CASE("Create entity", "[Entity]")
 
         REQUIRE(summ == 6);
 
-        world.Entity().Mutate().Add<Foo>(999).Commit();
+        world.Entity().Edit().Add<Foo>(999).Apply();
         summ = 0;
 
         query.Each([&](Foo foo) { summ += foo.x; });
