@@ -3,6 +3,7 @@
     "cxxopts",
     "glfw3",
     "eastl",
+    "catch2",
     {
       "name": "imgui",
       "features": [
@@ -27,6 +28,10 @@
     {
       "name": "eastl",
       "version": "3.21.12"
+    },
+    {
+      "name": "catch2",
+      "version": "3.8.0"
     }
   ]
 }

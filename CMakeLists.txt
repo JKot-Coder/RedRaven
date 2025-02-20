@@ -116,6 +116,7 @@ find_package(imgui CONFIG REQUIRED)
 #   GIT_TAG        182c910b4b63ff587a3440e08f84f70497e49a81 #v2.13.10
 # )
 # FetchContent_MakeAvailable(Catch2)
+find_package(Catch2 CONFIG REQUIRED)
 
 #=============================== ApprovalTests ===============================#
 # FetchContent_Declare(
