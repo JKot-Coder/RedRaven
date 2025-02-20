@@ -140,13 +140,13 @@ namespace RR::Ecs
         }
 
         template <typename Components, typename ArgsTuple, size_t... Index>
-        EntityId commitImpl(EntityId entity, ComponentsView removeComponents,  ArgsTuple&& args, eastl::index_sequence<Index...>)
+        EntityId commitImpl(EntityId entity, ComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
             EntityRecord record;
             bool valid = entityStorage.Get(entity, record);
             ASSERT(valid);
 
-            if(!valid)
+            if (!valid)
                 return entity;
 
             Archetype* from = nullptr;
@@ -170,7 +170,7 @@ namespace RR::Ecs
             };
 
             (addComponent(GetComponentId<typename Components::template Get<Index>>), ...);
-            for(auto it = removeComponents.begin(); it < removeComponents.end(); ++it)
+            for (auto it = removeComponents.begin(); it < removeComponents.end(); ++it)
                 components.erase(*it);
 
             ArchetypeId archetypeId = GetArchetypeIdForComponents(components.begin(), components.end());
@@ -184,7 +184,6 @@ namespace RR::Ecs
             (new (to.GetComponentData(GetComponentId<typename Components::template Get<Index>>)->GetData(index)) typename Components::template Get<Index> {eastl::move(eastl::get<Index>(args)) },... );
 
             // TODO validate remove components and add/remove at some thime.
-
 
             return entity;
         }
@@ -207,7 +206,7 @@ namespace RR::Ecs
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
                 const Archetype& archetype = *it->second;
-                if(!archetype.HasComponents(requireComps.begin(), requireComps.end()))
+                if (!archetype.HasComponents(requireComps.begin(), requireComps.end()))
                     continue;
 
                 QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);

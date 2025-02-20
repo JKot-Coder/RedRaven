@@ -8,6 +8,7 @@ namespace RR::Ecs
     template <typename Arg>
     struct ComponentAcessor
     {
+        using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
         ComponentAcessor(const Archetype& archetype)
@@ -34,12 +35,6 @@ namespace RR::Ecs
     struct QueryArchetype
     {
     private:
-        template <typename Func, typename... Args>
-        static void invokeCallback(const Func& func, Args... args)
-        {
-            func(args...);
-        }
-
         template <size_t UNROLL_N, typename Func, typename... ComponentAcessors>
         static void queryChunk(Func&& func, size_t chunkIndex, size_t entitesCount, ComponentAcessors... components)
         {
@@ -51,7 +46,7 @@ namespace RR::Ecs
             #pragma unroll UNROLL_N // clang-format on
             for (size_t i = 0; i < entitesCount; i++)
             {
-                invokeCallback(eastl::forward<Func>(func), components.Get(chunkIndex, i)...);
+                func(eastl::forward<typename ComponentAcessors::Argument>(components.Get(chunkIndex, i))...);
             }
         }
 

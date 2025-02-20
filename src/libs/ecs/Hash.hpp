@@ -38,15 +38,8 @@ namespace RR::Ecs
         constexpr inline HashString(const char* cstr) : string(cstr), hash(Hash(cstr)) { }
         constexpr inline HashString() = default;
 
-        constexpr bool operator==(const HashString& other) const
-        {
-            return hash == other.hash;
-        }
-
-        constexpr operator HashType() const noexcept
-        {
-            return hash;
-        }
+        constexpr bool operator==(const HashString& other) const { return hash == other.hash; }
+        constexpr operator HashType() const noexcept { return hash; }
 
         eastl::fixed_string<char, FixedSize> string;
         HashType hash;

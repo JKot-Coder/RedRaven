@@ -16,10 +16,7 @@ namespace RR::Ecs
             return descriptor.id;
         }
 
-        TypeDescriptor operator[](TypeId id)
-        {
-            return types[id];
-        }
+        const TypeDescriptor& operator[](TypeId id) const { return types[id]; }
 
     private:
         ska::flat_hash_map<TypeId, TypeDescriptor> types;
