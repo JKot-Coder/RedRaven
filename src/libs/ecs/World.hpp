@@ -139,6 +139,12 @@ namespace RR::Ecs
             return false;
         }
 
+        template <typename Component, typename ArgsTuple, size_t... Index>
+        void constructComponent(std::byte* ptr, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        {
+            new (ptr) Component {std::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
+        }
+
         template <typename Components, typename ArgsTuple, size_t... Index>
         EntityId commitImpl(EntityId entity, ComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
@@ -181,8 +187,14 @@ namespace RR::Ecs
             ArchetypeEntityIndex index = from ? to.Mutate(entityStorage, *from, fromIndex) : to.Insert(entityStorage, entity);
 
             // Component data initialization
-            (new (to.GetComponentData(GetComponentId<typename Components::template Get<Index>>)->GetData(index)) typename Components::template Get<Index> {eastl::move(eastl::get<Index>(args)) },... );
+            (
+                constructComponent<typename Components::template Get<Index>>(
+                    to.GetComponentData(GetComponentId<typename Components::template Get<Index>>)->GetData(index),
+                    eastl::move(std::get<Index>(args)),
+                    eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
+                ...);
 
+            UNUSED(index);
             // TODO validate remove components and add/remove at some thime.
 
             return entity;
@@ -259,7 +271,7 @@ namespace RR::Ecs
                 archetype = it->second.get();
 
             const auto entityIndex = archetype->Insert();
-            archetype->InitComponent(entityIndex, componentsInfo[Index]..., eastl::move(eastl::get<Index>(argsTuple))...);
+            archetype->InitComponent(entityIndex, componentsInfo[Index]..., eastl::move(std::get<Index>(argsTuple))...);
         }
 
         template <typename ComponentsList, typename ArgsTuple>

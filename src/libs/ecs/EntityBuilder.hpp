@@ -1,6 +1,8 @@
 #pragma once
 
-#include "EASTL/tuple.h"
+// EASTL tuple have a bugs https://github.com/electronicarts/EASTL/issues/562
+// Fallback to std 
+#include <tuple>
 #include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/World.hpp"
@@ -48,9 +50,10 @@ namespace RR::Ecs
         template <typename Component, typename... ARGS>
         auto Add(ARGS&&... args) &&
         {
-            auto argsTuple = eastl::make_tuple(eastl::forward<ARGS>(args)...);
-            return EntityBuilder<TypeList<Component>, decltype(argsTuple)>(
-                world_, entity_, eastl::move(remove_), eastl::move(argsTuple));
+            auto argsTuple = std::make_tuple(eastl::forward<ARGS>(args)...);
+            auto tupleOfTuples = std::make_tuple(eastl::move(argsTuple));
+            return EntityBuilder<TypeList<Component>, decltype(tupleOfTuples)>(
+                world_, entity_, eastl::move(remove_), eastl::move(tupleOfTuples));
         }
         template <typename Component>
         auto Remove() &&
@@ -62,7 +65,7 @@ namespace RR::Ecs
         Entity Apply() &&
         {
             eastl::quick_sort(remove_.begin(), remove_.end());
-            return Entity(world_, world_.commit<TypeList<>>(entity_, {remove_.begin(), remove_.end()}, eastl::make_tuple()));
+            return Entity(world_, world_.commit<TypeList<>>(entity_, {remove_.begin(), remove_.end()}, std::make_tuple()));
         }
 
     private:
@@ -83,9 +86,10 @@ namespace RR::Ecs
         template <typename Component, typename... ARGS>
         auto Add(ARGS&&... args) &&
         {
-            auto argsTuple = eastl::make_tuple(eastl::forward<ARGS>(args)...);
-            return EntityBuilder<typename ComponentList::template Append<Component>, decltype(eastl::tuple_cat(eastl::move(args_), argsTuple))>(
-                world_, entity_, eastl::move(remove_), eastl::tuple_cat(eastl::move(args_), argsTuple));
+            auto argsTuple = std::make_tuple(eastl::forward<ARGS>(args)...);
+            auto tupleOfTuples = std::tuple_cat(eastl::move(args_), eastl::move(std::make_tuple(argsTuple)));
+            return EntityBuilder<typename ComponentList::template Append<Component>, decltype(tupleOfTuples)>(
+                world_, entity_, eastl::move(remove_), eastl::move(tupleOfTuples));
         }
 
         Entity Apply() &&

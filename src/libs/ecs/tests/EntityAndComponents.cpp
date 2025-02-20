@@ -49,15 +49,15 @@ TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
     REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
 }
 
-TEST_CASE_METHOD(WorldFixture, "Edit Components", "[Components]")
+TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
 {
     // clang-format off
-    struct Foo { int x;};
+    struct Foo { int x; int z;};
     struct Bar { int x;};
     // clang-format on
     Entity entt1 = world.Entity();
     REQUIRE(!entt1.Has<Foo>());
-    entt1.Edit().Add<Foo>(1).Apply();
+    entt1.Edit().Add<Foo>(1,1).Apply();
     REQUIRE(entt1.Has<Foo>());
     REQUIRE(!entt1.Has<Foo, Bar>());
     entt1.Edit().Add<Bar>(1).Apply();
@@ -65,7 +65,7 @@ TEST_CASE_METHOD(WorldFixture, "Edit Components", "[Components]")
 
     Entity entt2 = world.Entity();
     REQUIRE(!entt2.Has<Foo, Bar>());
-    entt2.Edit().Add<Foo>(1).Add<Bar>(1).Apply();
+    entt2.Edit().Add<Foo>(1,1).Add<Bar>(1).Apply();
     REQUIRE(entt2.Has<Foo, Bar>());
 }
 
@@ -98,6 +98,19 @@ TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
 }
 
 TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
+{
+    struct Tag{};
+
+    world.Entity().Edit().Add<Tag>().Apply();
+    Entity entt2 = world.Entity().Edit().Add<Tag>().Apply();
+    world.Entity().Edit().Add<Tag>().Apply();
+
+    REQUIRE(entt2.Has<Tag>());
+    entt2.Edit().Remove<Tag>().Apply();
+    REQUIRE(!entt2.Has<Tag>());
+}
+
+TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
 {
     World& world  = *new World();
     enum class Op
