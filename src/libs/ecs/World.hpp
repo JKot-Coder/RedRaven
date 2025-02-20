@@ -239,6 +239,7 @@ namespace RR::Ecs
 
         EntityId createEntity() { return entityStorage.Create(); }
 
+        // TODO Dublicate impl
         template <typename ArgumentList, typename Callable, size_t... Index>
         void queryImpl(Callable&& callable, const eastl::index_sequence<Index...>&)
         {

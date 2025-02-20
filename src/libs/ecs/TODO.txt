@@ -3,3 +3,5 @@
 # Put enttity in empty archetype
 # Make api to create with builder.
 # Add names for Entitties
+# Caching
+# Move instead copy 

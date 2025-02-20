@@ -37,5 +37,4 @@ namespace RR::Ecs
         template <typename Type>
         using Append = TypeList<Types..., Type>;
     };
-
 }
