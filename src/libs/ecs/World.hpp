@@ -239,47 +239,6 @@ namespace RR::Ecs
 
         EntityId createEntity() { return entityStorage.Create(); }
 
-        template <typename ComponentsList, typename ArgsTuple>
-        EntityId createEntity(ArgsTuple&& args)
-        {
-            auto entity = createEntity();
-            initComponents<ComponentsList, ArgsTuple>(entity, eastl::move(args));
-            return entity;
-        }
-
-        template <typename ComponentsList, typename ArgsTuple, size_t... Index>
-        void initComponentsImpl(EntityId entity, ArgsTuple&& argsTuple, const eastl::index_sequence<Index...>&)
-        {
-            constexpr ArchetypeId archetypeId = getArhetypeIdForComponents(ComponentsList {});
-            Log::Format::Fatal("ArchetypeInfo: {}\n", eastl::hash<ArchetypeId> {}(archetypeId));
-            Log::Format::Fatal("ArchetypeInfo: {}\n", archetypeId.Value());
-
-            size_t chunkSizePower = 7; // TODO move it somewhere
-
-            auto componentsInfo = getComponentsInfoArray(ComponentsList {});
-
-            auto it = archetypesMap.find(archetypeId);
-            Archetype* archetype = nullptr;
-
-            if (it == archetypesMap.end())
-            {
-                auto archUniqPtr = eastl::make_unique<Archetype>(chunkSizePower, componentsInfo.begin(), componentsInfo.end());
-                archetype = archUniqPtr.get();
-                archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
-            }
-            else
-                archetype = it->second.get();
-
-            const auto entityIndex = archetype->Insert();
-            archetype->InitComponent(entityIndex, componentsInfo[Index]..., eastl::move(std::get<Index>(argsTuple))...);
-        }
-
-        template <typename ComponentsList, typename ArgsTuple>
-        void initComponents(EntityId entity, ArgsTuple&& argsTuple)
-        {
-            initComponentsImpl<ComponentsList>(entity, eastl::forward<ArgsTuple>(argsTuple), eastl::make_index_sequence<ComponentsList::Count>());
-        }
-
         template <typename ArgumentList, typename Callable, size_t... Index>
         void queryImpl(Callable&& callable, const eastl::index_sequence<Index...>&)
         {
