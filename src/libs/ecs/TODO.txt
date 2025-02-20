@@ -1,0 +1,5 @@
+# Tags should not allocate memory!
+# Debug checks for incorrect api calls
+# Put enttity in empty archetype
+# Make api to create with builder.
+# Add names for Entitties
