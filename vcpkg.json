@@ -26,8 +26,12 @@
       "version": "1.89.9"
     },
     {
+      "name": "eabase",
+      "version": "2024-08-18"
+    },
+    {
       "name": "eastl",
-      "version": "3.21.12"
+      "version": "3.21.23"
     },
     {
       "name": "catch2",
