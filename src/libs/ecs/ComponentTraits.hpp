@@ -65,7 +65,7 @@ namespace RR::Ecs
                 new (dest) T(eastl::move(*(T*)source));
             }
             else
-                static_assert(TypeName<T>() + " is not move constructible");
+                static_assert("T is not move constructible");
         }
 
     } // details
@@ -90,10 +90,10 @@ namespace RR::Ecs
         {
             if constexpr (Condition)
             {
-                return eastl::forward<T>(v);
+                return nullptr;
             }
             else
-                return nullptr;
+                return eastl::forward<T>(v);
         }
 
         template <typename T>
@@ -106,8 +106,8 @@ namespace RR::Ecs
                     alignof(T),
                     eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
                     eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),
-                    eval<eastl::is_move_constructible_v<T>>(&details::CopyConstructor<T>),
-                    eval<eastl::is_move_constructible_v<T>>(&details::MoveConstructor<T>)
+                    eval<eastl::is_trivially_copy_constructible_v<T>>(&details::CopyConstructor<T>),
+                    eval<eastl::is_trivially_move_constructible_v<T>>(&details::MoveConstructor<T>)
             };
         }
     };

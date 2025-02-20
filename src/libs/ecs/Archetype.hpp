@@ -134,12 +134,16 @@ namespace RR::Ecs
             ASSERT(componentsData[0].componentInfo.id == GetComponentId<EntityId>);
         }
 
-        void Move(const ComponentInfo& componentInfo, std::byte* dst, std::byte* src)
+        ~Archetype()
         {
-            if (componentInfo.move)
-                componentInfo.move(dst, src);
-            else
-                memmove(dst, src, componentInfo.size);
+            for(auto& data : componentsData )
+            {
+                if (!data.componentInfo.destructor)
+                    continue;
+
+                for(size_t index = 0; index < entityCount; index++)
+                    data.componentInfo.destructor(data.GetData(ArchetypeEntityIndex::FromValue(index)));
+            }
         }
 
         // Component list should be sorted!
