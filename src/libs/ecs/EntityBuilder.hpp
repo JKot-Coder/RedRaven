@@ -26,7 +26,7 @@ namespace RR::Ecs
         {
             eastl::array<ComponentId, sizeof...(Components)> components = {GetComponentId<Components>...};
             eastl::quick_sort(components.begin(), components.end());
-            return world_.Has(entity_, components.begin(), components.end());
+            return world_.Has(entity_, SortedComponentsView(components));
         }
 
         EntityBuilder<void, void> Edit();

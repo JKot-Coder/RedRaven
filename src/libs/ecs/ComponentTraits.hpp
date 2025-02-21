@@ -13,13 +13,15 @@ namespace RR::Ecs
     template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
     using ComponentsSet = FixedVectorSet<ComponentId, 32>;
-    struct ComponentsView
+    struct SortedComponentsView
     {
         using Iterator = const ComponentId*;
-        ComponentsView(Iterator begin, Iterator end) : begin_(begin), end_(end) { }
+        template <typename T>
+        constexpr SortedComponentsView(const T& containter) : begin_(containter.begin()), end_(containter.end()) { }
+        constexpr SortedComponentsView(Iterator begin, Iterator end) : begin_(begin), end_(end) { }
 
-        Iterator begin() const { return begin_; }
-        Iterator end() const { return end_; }
+        constexpr Iterator begin() const { return begin_; }
+        constexpr Iterator end() const { return end_; }
 
     private:
         Iterator begin_;

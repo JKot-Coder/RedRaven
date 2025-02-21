@@ -40,8 +40,7 @@ namespace RR::Ecs
         static constexpr ArchetypeId Id = ArchetypeId::FromValue(getArchetypeHash());
     };
 
-    template <typename Interator>
-    static constexpr ArchetypeId GetArchetypeIdForComponents(Interator begin, Interator end)
+    static constexpr ArchetypeId GetArchetypeIdForComponents(SortedComponentsView components)
     {
         static_assert(eastl::is_same_v<HashType, uint64_t>, "Update hash combine function");
 
@@ -53,7 +52,7 @@ namespace RR::Ecs
             hash *= prime;
         };
 
-        for (auto it = begin; it != end; ++it)
+        for (auto it = components.begin(); it != components.end(); ++it)
             hash_64_fnv1a((*it).Value());
         return ArchetypeId::FromValue(hash);
     }
@@ -146,11 +145,9 @@ namespace RR::Ecs
             }
         }
 
-        // Component list should be sorted!
-        template <class Iterator>
-        bool HasComponents(Iterator compBegin, Iterator compEnd) const
+        bool HasComponents(SortedComponentsView hasComponents) const
         {
-            return std::includes(components.begin(), components.end(), compBegin, compEnd);
+            return std::includes(components.begin(), components.end(), hasComponents.begin(), hasComponents.end());
         }
 
         template <typename ArgsTuple>
@@ -172,8 +169,7 @@ namespace RR::Ecs
         ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
         void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
 
-        auto GetComponentsBegin() const { return components.begin(); }
-        auto GetComponentsEnd() const { return components.end(); }
+        SortedComponentsView GetComponentsView() const { return SortedComponentsView(components); }
         size_t GetEntityCount() const { return entityCount; }
         size_t GetChunkCount() const { return chunkCount; }
         size_t GetChunkSize() const { return chunkSize; }

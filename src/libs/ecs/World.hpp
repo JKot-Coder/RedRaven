@@ -32,15 +32,13 @@ namespace RR::Ecs
 
         bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
-        // Components should be sorted
-        template <typename ComponentIterator>
-        bool Has(EntityId entityId, ComponentIterator begin, ComponentIterator end)
+        bool Has(EntityId entityId, SortedComponentsView components)
         {
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
 
             if (getArchetypeForEntity(entityId, archetype, index))
-                return archetype->HasComponents(begin, end);
+                return archetype->HasComponents(components);
 
             return false;
         }
@@ -80,9 +78,8 @@ namespace RR::Ecs
 
         friend struct Query;
 
-        // Remove components should be sorted
         template <typename Components, typename ArgsTuple>
-        EntityId commit(EntityId entity, ComponentsView removeComponents, ArgsTuple&& args)
+        EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args)
         {
             return commitImpl<Components>(entity, removeComponents, eastl::forward<ArgsTuple>(args), eastl::make_index_sequence<Components::Count>());
         }
@@ -93,8 +90,7 @@ namespace RR::Ecs
             return componentStorage[id];
         }
 
-        // Components should be sorted
-        Archetype& getOrCreateArchetype(ArchetypeId archetypeId, ComponentsView components)
+        Archetype& getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
         {
             Archetype* archetype = nullptr;
 
@@ -146,7 +142,7 @@ namespace RR::Ecs
         }
 
         template <typename Components, typename ArgsTuple, size_t... Index>
-        EntityId commitImpl(EntityId entity, ComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        EntityId commitImpl(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
             EntityRecord record;
             bool valid = entityStorage.Get(entity, record);
@@ -162,8 +158,8 @@ namespace RR::Ecs
 
             if (getArchetypeForEntity(entity, from, fromIndex))
             {
-                for (auto it = from->GetComponentsBegin(); it != from->GetComponentsEnd(); ++it)
-                    components.push_back_unsorted(*it); // Components already sorted
+                for (auto component : from->GetComponentsView())
+                    components.push_back_unsorted(component); // Components already sorted
             }
             else
                 components.push_back_unsorted(GetComponentId<EntityId>);
@@ -176,11 +172,11 @@ namespace RR::Ecs
             };
 
             (addComponent(GetComponentId<typename Components::template Get<Index>>), ...);
-            for (auto it = removeComponents.begin(); it < removeComponents.end(); ++it)
-                components.erase(*it);
+            for (auto component : removeComponents)
+                components.erase(component);
 
-            ArchetypeId archetypeId = GetArchetypeIdForComponents(components.begin(), components.end());
-            Archetype& to = getOrCreateArchetype(archetypeId, {components.begin(), components.end()});
+            ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
+            Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
             if (from == &to)
                 return entity;
 
@@ -218,7 +214,7 @@ namespace RR::Ecs
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
                 const Archetype& archetype = *it->second;
-                if (!archetype.HasComponents(requireComps.begin(), requireComps.end()))
+                if (!archetype.HasComponents(SortedComponentsView(requireComps)))
                     continue;
 
                 QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);
