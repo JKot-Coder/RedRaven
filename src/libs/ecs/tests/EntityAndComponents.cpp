@@ -149,7 +149,8 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     entt2.Edit().Remove<NonTrivial>().Apply();
 
     // Check no any copy
-    world.Query<NonTrivial>().Build().Each([&](NonTrivial&) { });
+    const auto view = world.View().Require<NonTrivial>();
+    view.Each([&](NonTrivial&) { });
 
     Entity entt3 = world.Entity().Edit().Add<NonTrivial>(4).Add<Op>(Op::Construct).Apply();
     entt3.Edit().Remove<Op>().Apply();
@@ -187,7 +188,8 @@ TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
     REQUIRE(!entt2.Has<Vector>());
 
     int32_t summ = 0;
-    world.Query<Vector>().Build().Each([&](Vector vector) { summ += vector[0]; });
+    const auto view = world.View().Require<Vector>();
+    view.Each([&](Vector vector) { summ += vector[0]; });
     REQUIRE(summ == 4);
 }
 
@@ -208,8 +210,8 @@ TEST_CASE("Query tests", "[Query]")
         entt1.Edit().Add<Foo>(1).Add<Bar>(1).Apply();
 
         int summ = 0;
-        Query query = world.Query<Foo, Bar>().Build();
-        query.Each([&](Foo foo, Bar bar) {
+        const auto view = world.View().Require<Foo, Bar>();
+        view.Each([&](Foo foo, Bar bar) {
             summ += foo.x + bar.x;
             REQUIRE(foo.x == bar.x);
         });
@@ -222,7 +224,7 @@ TEST_CASE("Query tests", "[Query]")
         entt2.Edit().Add<Foo>(2).Apply();
         entt2.Edit().Add<Bar>(2).Apply();
 
-        query.Each([&](Foo foo, Bar bar) {
+        view.Each([&](Foo foo, Bar bar) {
             summ += foo.x + bar.x;
             REQUIRE(foo.x == bar.x);
         });
@@ -232,7 +234,7 @@ TEST_CASE("Query tests", "[Query]")
         world.Entity().Edit().Add<Foo>(999).Apply();
         summ = 0;
 
-        query.Each([&](Foo foo) { summ += foo.x; });
+        view.Each([&](Foo foo) { summ += foo.x; });
 
         REQUIRE(summ == 3);
     }

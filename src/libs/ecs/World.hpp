@@ -8,7 +8,8 @@
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/FunctionTraits.hpp"
 #include "ecs/IterationHelpers.hpp"
-#include "ecs/QueryBuilder.hpp"
+#include "ecs/Query.hpp"
+#include "ecs/View.hpp"
 #include "ecs/System.hpp"
 #include "ska/flat_hash_map.h"
 
@@ -24,8 +25,8 @@ namespace RR::Ecs
         Ecs::Entity Entity();
         Ecs::Entity Entity(EntityId entityId);
 
-        template <typename... Components>
-        QueryBuilder Query() { return QueryBuilder(*this).Require<Components...>(); }
+        Ecs::View View() { return Ecs::View(*this); }
+        Ecs::Query Query(const Ecs::View&) { return Ecs::Query(*this, createEntity()); }
 
         template <typename T, typename DescriptionType>
         T Create(DescriptionType&& desc);
@@ -60,13 +61,6 @@ namespace RR::Ecs
 
         void Tick();
 
-        template <typename Callable>
-        void Each(Callable&& callable)
-        {
-            using ArgList = GetArgumentList<Callable>;
-            queryImpl<ArgList>(eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
-        }
-
         World() { RegisterComponent<EntityId>(); }
 
     private:
@@ -76,6 +70,7 @@ namespace RR::Ecs
         template <typename C, typename T>
         friend struct EntityBuilder;
 
+        friend struct View;
         friend struct Query;
 
         template <typename Components, typename ArgsTuple>
@@ -203,7 +198,29 @@ namespace RR::Ecs
             queryImpl<ArgList>(query, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
 
-        // TODO this could be moved to query
+        template <typename Callable>
+        void query(const Ecs::View& view, Callable&& callable)
+        {
+            using ArgList = GetArgumentList<Callable>;
+            queryImpl<ArgList>(view, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
+        }
+
+        template <typename ArgumentList, typename Callable, size_t... Index>
+        void queryImpl(const Ecs::View& view, Callable&& callable, eastl::index_sequence<Index...>)
+        {
+            const auto& requireComps = view.require;
+            // Todo check all args in callable persist in requireComps with std::includes
+
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!archetype.HasComponents(SortedComponentsView(requireComps)))
+                    continue;
+
+                QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);
+            }
+        }
+
         template <typename ArgumentList, typename Callable, size_t... Index>
         void queryImpl(const Ecs::Query& query, Callable&& callable, eastl::index_sequence<Index...>)
         {
@@ -234,25 +251,6 @@ namespace RR::Ecs
         }
 
         EntityId createEntity() { return entityStorage.Create(); }
-
-        // TODO Dublicate impl
-        template <typename ArgumentList, typename Callable, size_t... Index>
-        void queryImpl(Callable&& callable, const eastl::index_sequence<Index...>&)
-        {
-            // TODO cache this
-
-            eastl::array<ComponentId, ArgumentList::Count> components = {GetComponentId<typename ArgumentList::template Get<Index>>...};
-            eastl::quick_sort(components.begin(), components.end());
-
-            // TODO CACHING !
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-            {
-                const Archetype& archetype = *it->second;
-                archetype.HasComponents(components.begin(), components.end());
-
-                QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);
-            }
-        }
 
         template <typename EventType>
         void emit(EventType&& event, const EventDescription& eventDesc) const;
@@ -294,9 +292,15 @@ namespace RR::Ecs
         return Ecs::System(*this, desc.hashName);
     }
 
-    template <>
-    inline Query World::Create<Query>(QueryDescription&& desc)
+    template <typename Callable>
+    void View::Each(Callable&& callable) const
     {
-        return Ecs::Query(*this, eastl::forward<QueryDescription>(desc));
+        world.query(*this, eastl::forward<Callable>(callable));
+    }
+
+    template <typename Callable>
+    void Query::Each(Callable&& callable) const
+    {
+        world.query(*this, eastl::forward<Callable>(callable));
     }
 }

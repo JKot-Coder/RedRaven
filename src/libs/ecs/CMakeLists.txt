@@ -11,14 +11,14 @@ set( SRC
     Archetype.cpp
     ComponentStorage.hpp
     EntityStorage.hpp
-    QueryBuilder.hpp
-    QueryBuilder.cpp
+    Query.hpp
     EntityBuilder.hpp
     Event.hpp
     EventBuilder.hpp
     System.hpp
     System.cpp
     SystemBuilder.hpp
+    View.hpp
     Ecs.hpp
     Hash.hpp
     ForwardDeclarations.hpp
