@@ -48,7 +48,7 @@ namespace RR::Ecs
                 continue;
 
             std::byte* src = scrData->GetData(fromIndex);
-            Copy(componentInfo, dst, src);
+            Move(componentInfo, dst, src);
         }
 
         entityStorage.Mutate(*(EntityId*)from.componentsData[0].GetData(fromIndex), id, index);

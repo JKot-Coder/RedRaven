@@ -127,7 +127,7 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     struct NonTrivial
     {
         NonTrivial(int32_t id) : id(id) { OpLog.emplace_back(id, Op::Construct); };
-        ~NonTrivial() { OpLog.emplace_back(id, Op::Destuct); };
+        ~NonTrivial() { OpLog.emplace_back(id, Op::Destuct); id = -1; };
         NonTrivial(const NonTrivial& other) {
             OpLog.emplace_back(other.id, Op::Copy);
             id = other.id;
@@ -154,24 +154,26 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     Entity entt3 = world.Entity().Edit().Add<NonTrivial>(4).Add<Op>(Op::Construct).Apply();
     entt3.Edit().Remove<Op>().Apply();
 
-    REQUIRE(OpLog.size() == 9);
-    REQUIRE(OpLog[0] == eastl::pair {1, Op::Construct});
-    REQUIRE(OpLog[1] == eastl::pair {2, Op::Construct});
-    REQUIRE(OpLog[2] == eastl::pair {3, Op::Construct});
-    REQUIRE(OpLog[3] == eastl::pair {3, Op::MoveFrom});
-    REQUIRE(OpLog[4] == eastl::pair {2, Op::MoveTo});
-    REQUIRE(OpLog[5] == eastl::pair {2, Op::Destuct});
+    size_t index = 0;
+    REQUIRE(OpLog.size() == 10);
+    REQUIRE(OpLog[index++] == eastl::pair {1, Op::Construct});
+    REQUIRE(OpLog[index++] == eastl::pair {2, Op::Construct});
+    REQUIRE(OpLog[index++] == eastl::pair {3, Op::Construct});
+    REQUIRE(OpLog[index++] == eastl::pair {3, Op::MoveFrom});
+    REQUIRE(OpLog[index++] == eastl::pair {2, Op::MoveTo});
+    REQUIRE(OpLog[index++] == eastl::pair {2, Op::Destuct});
 
-    REQUIRE(OpLog[6] == eastl::pair {4, Op::Construct});
-    REQUIRE(OpLog[7] == eastl::pair {4, Op::Copy});
-    REQUIRE(OpLog[8] == eastl::pair {4, Op::Destuct});
+    REQUIRE(OpLog[index++] == eastl::pair {4, Op::Construct});
+    REQUIRE(OpLog[index++] == eastl::pair {4, Op::MoveFrom});
+    REQUIRE(OpLog[index++] == eastl::pair {-1, Op::MoveTo});
+    REQUIRE(OpLog[index++] == eastl::pair {-1, Op::Destuct});
 
     delete &world;
 
-    REQUIRE(OpLog.size() == 12);
-    REQUIRE(OpLog[9] == eastl::pair {1, Op::Destuct});
-    REQUIRE(OpLog[10] == eastl::pair {3, Op::Destuct});
-    REQUIRE(OpLog[11] == eastl::pair {4, Op::Destuct});
+    REQUIRE(OpLog.size() == 13);
+    REQUIRE(OpLog[index++] == eastl::pair {1, Op::Destuct});
+    REQUIRE(OpLog[index++] == eastl::pair {3, Op::Destuct});
+    REQUIRE(OpLog[index++] == eastl::pair {4, Op::Destuct});
 }
 
 TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
