@@ -3,5 +3,10 @@
 # Put enttity in empty archetype
 # Make api to create with builder.
 # Add names for Entitties
-# Caching
++ Caching
 + Move instead copy
+# Chunk size in kb
++ Implement Query.
+# Rework systems.
+# Appear / dissapear
+# Track
