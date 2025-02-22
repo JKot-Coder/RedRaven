@@ -5,12 +5,16 @@
 //#include "ecs/World.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
+#include "ecs/Archetype.hpp"
 #include "ecs/TypeTraits.hpp"
 
 #include "EASTL/fixed_vector.h"
 #include "EASTL/unordered_map.h"
 #include "EASTL/atomic.h"
 #include "EASTL/fixed_function.h"
+
+#include "ecs/View.hpp"
+#include "ecs/Query.hpp"
 
 #include <common/threading/Mutex.hpp>
 #include <string_view>
@@ -44,16 +48,16 @@ namespace RR::Ecs
         const Ecs::World* world_ = nullptr;
     };
 
+
     class SystemStorage
     {
     public:
         SystemStorage() { };
 
+
         void Push(const SystemDescription& systemDescription)
         {
             HashType hash = systemDescription.hashName;
-
-            Common::Threading::UniqueLock<Common::Threading::Mutex> lock(mutex);
 
             if (descriptions.find(hash) != descriptions.end())
             {
@@ -69,7 +73,6 @@ namespace RR::Ecs
 
     private:
         eastl::atomic<bool> isDirty = false;
-        Common::Threading::Mutex mutex;
         eastl::unordered_map<HashType, SystemDescription> descriptions;
         std::vector<SystemDescription*> systems;
     };

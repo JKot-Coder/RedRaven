@@ -15,6 +15,13 @@ namespace RR::Ecs
             return *this;
         }
 
+        template <typename... Components>
+        View Exclude()
+        {
+            (exclude.insert(GetComponentId<Components>), ...);
+            return *this;
+        }
+
         template <typename Callable>
         void Each(Callable&& callable) const;
 

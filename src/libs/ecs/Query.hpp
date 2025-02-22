@@ -1,8 +1,12 @@
 #pragma once
 
+#include "ecs/Index.hpp"
+
 namespace RR::Ecs
 {
     struct World;
+    using QueryId = Index<struct QueryIdTag, HashType>;
+
     struct Query
     {
         ~Query() { }
@@ -13,10 +17,10 @@ namespace RR::Ecs
     private:
         friend World;
 
-        explicit Query(World& world, EntityId id) : world(world), id(id) {};
+        explicit Query(World& world, QueryId id) : world(world), id(id) {};
 
     private:
         World& world;
-        EntityId id;
+        QueryId id;
     };
 }

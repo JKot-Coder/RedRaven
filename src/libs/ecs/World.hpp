@@ -17,6 +17,14 @@ namespace RR::Ecs
 {
     struct World
     {
+    private:
+
+        struct QueryData
+        {
+            View view;
+            eastl::fixed_vector<const Archetype*, 16> cache;
+        };
+
     public:
         template <typename EventType>
         inline EventBuilder<EventType> Event() const;
@@ -26,7 +34,7 @@ namespace RR::Ecs
         Ecs::Entity Entity(EntityId entityId);
 
         Ecs::View View() { return Ecs::View(*this); }
-        Ecs::Query Query(const Ecs::View&) { return Ecs::Query(*this, createEntity()); }
+        Ecs::Query Query(const Ecs::View& view) { return Ecs::Query(*this, _register(view)); }
 
         template <typename T, typename DescriptionType>
         T Create(DescriptionType&& desc);
@@ -39,7 +47,7 @@ namespace RR::Ecs
             ArchetypeEntityIndex index;
 
             if (getArchetypeForEntity(entityId, archetype, index))
-                return archetype->HasComponents(components);
+                return archetype->HasAll(components);
 
             return false;
         }
@@ -73,6 +81,43 @@ namespace RR::Ecs
         friend struct View;
         friend struct Query;
 
+        static bool matches(const Archetype& archetype, const Ecs::View& view)
+        {
+            if LIKELY (!archetype.HasAll(SortedComponentsView(view.require)) ||
+                       archetype.HasAny(SortedComponentsView(view.exclude)))
+                return false;
+
+            return true;
+        }
+
+        void updateCache(const Archetype& archetype)
+        {
+            for (auto& view : views)
+            {
+                if(!matches(archetype, view.view))
+                    continue;
+
+                view.cache.push_back(&archetype);
+            }
+        }
+
+        QueryId _register(const Ecs::View& view)
+        {
+            size_t index = views.size();
+            views.push_back( {view, {}});
+
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                views[index].cache.push_back(&archetype);
+            }
+
+            return QueryId::FromValue(index);
+        }
+
         template <typename Components, typename ArgsTuple>
         EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args)
         {
@@ -102,6 +147,8 @@ namespace RR::Ecs
                 auto archUniqPtr = eastl::make_unique<Archetype>(archetypeId, chunkSizePower, componentsInfo.begin(), componentsInfo.end());
                 archetype = archUniqPtr.get();
                 archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
+
+                updateCache(*archetype);
             }
             else
                 archetype = it->second.get();
@@ -208,13 +255,12 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Callable, size_t... Index>
         void queryImpl(const Ecs::View& view, Callable&& callable, eastl::index_sequence<Index...>)
         {
-            const auto& requireComps = view.require;
             // Todo check all args in callable persist in requireComps with std::includes
 
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
                 const Archetype& archetype = *it->second;
-                if (!archetype.HasComponents(SortedComponentsView(requireComps)))
+                if (!matches(archetype, view))
                     continue;
 
                 QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);
@@ -224,17 +270,11 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Callable, size_t... Index>
         void queryImpl(const Ecs::Query& query, Callable&& callable, eastl::index_sequence<Index...>)
         {
-            const auto& requireComps = query.desc().require;
             // Todo check all args in callable persist in requireComps with std::includes
 
-            // TODO CACHING !
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            for (auto archetype : views[query.id.Value()].cache)
             {
-                const Archetype& archetype = *it->second;
-                if (!archetype.HasComponents(SortedComponentsView(requireComps)))
-                    continue;
-
-                QueryArchetype::Query(eastl::forward<Callable>(callable), archetype);
+                QueryArchetype::Query(eastl::forward<Callable>(callable), *archetype);
             }
         }
 
@@ -263,6 +303,7 @@ namespace RR::Ecs
     private:
         EntityStorage entityStorage;
         EventStorage eventStorage;
+        eastl::vector<QueryData> views;
         SystemStorage systemStorage;
         ComponentStorage componentStorage;
         ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;

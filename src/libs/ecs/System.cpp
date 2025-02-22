@@ -57,8 +57,6 @@ namespace RR::Ecs
         if (!isDirty)
             return;
 
-        Common::Threading::UniqueLock<Common::Threading::Mutex> lock(mutex);
-
         eastl::vector<SystemDescription*> tmpSystemList;
         for (auto& [key, value] : descriptions)
             tmpSystemList.push_back(&value);

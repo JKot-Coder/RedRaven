@@ -145,9 +145,30 @@ namespace RR::Ecs
             }
         }
 
-        bool HasComponents(SortedComponentsView hasComponents) const
+        bool HasAll(SortedComponentsView components_) const
         {
-            return std::includes(components.begin(), components.end(), hasComponents.begin(), hasComponents.end());
+            return std::includes(components.begin(), components.end(), components_.begin(), components_.end());
+        }
+
+        bool HasAny(SortedComponentsView components_) const
+        {
+            auto it1 = components.begin();
+            auto it2 = components_.begin();
+
+            while (it1 != components.end() && it2 != components_.end())
+            {
+                if (*it1 < *it2)
+                {
+                    ++it1;
+                }
+                else if (*it2 < *it1)
+                {
+                    ++it2;
+                }
+                else
+                    return true;
+            }
+            return false;
         }
 
         template <typename ArgsTuple>
@@ -173,6 +194,7 @@ namespace RR::Ecs
         size_t GetEntityCount() const { return entityCount; }
         size_t GetChunkCount() const { return chunkCount; }
         size_t GetChunkSize() const { return chunkSize; }
+        ArchetypeId GetId() const { return id; }
 
     private:
         void expand(size_t requiredEntityCount)
