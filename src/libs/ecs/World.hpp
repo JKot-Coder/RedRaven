@@ -18,7 +18,6 @@ namespace RR::Ecs
     struct World
     {
     private:
-
         struct QueryData
         {
             View view;
@@ -94,7 +93,7 @@ namespace RR::Ecs
         {
             for (auto& view : views)
             {
-                if(!matches(archetype, view.view))
+                if (!matches(archetype, view.view))
                     continue;
 
                 view.cache.push_back(&archetype);
@@ -104,7 +103,7 @@ namespace RR::Ecs
         QueryId _register(const Ecs::View& view)
         {
             size_t index = views.size();
-            views.push_back( {view, {}});
+            views.push_back({view, {}});
 
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
@@ -297,7 +296,7 @@ namespace RR::Ecs
         EntityId createEntity() { return entityStorage.Create(); }
 
         template <typename EventType>
-        void emit(EventType&& event, const EventDescription& eventDesc) const;
+        void emit(EventType&& event, const EventDescription& eventDesc);
         template <typename EventType>
         void emitImmediately(EventType&& event, const EventDescription& eventDesc) const;
 

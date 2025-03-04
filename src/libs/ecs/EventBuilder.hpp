@@ -9,7 +9,7 @@ namespace RR::Ecs
     struct EventBuilder
     {
     public:
-        EventBuilder(const World& world) : world(&world), description()
+        EventBuilder(World& world) : world(world), description()
         {
             // TODO;
             description.eventId = {};// world.typeId<EventType>();
@@ -21,23 +21,23 @@ namespace RR::Ecs
             return *this;
         }
 
-        void Emit(EventType&& event) const
+        void Emit(EventType&& event)
         {
             static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
-            world->emit(std::move(event), description);
+            world.emit(std::move(event), description);
         }
 
         void EmitImmediately(EventType&& event) const
         {
             static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
-            world->emitImmediately(std::move(event), description);
+            world.emitImmediately(std::move(event), description);
         }
 
     private:
-        const World* world;
+        World& world;
         EventDescription description;
     };
 
     template <typename E>
-    EventBuilder<E> World::Event() const { return EventBuilder<E>(*this); };
+    EventBuilder<E> World::Event() { return EventBuilder<E>(*this); };
 }

@@ -1,13 +1,14 @@
 #pragma once
 
+#include "ecs/View.hpp"
 #include "ecs/Index.hpp"
 
 namespace RR::Ecs
 {
     struct World;
-    using QueryId = Index<struct QueryIdTag, HashType>;
+    using QueryId = Index<struct QueryIdTag, size_t>;
 
-    struct Query
+    struct Query final
     {
         ~Query() { }
 

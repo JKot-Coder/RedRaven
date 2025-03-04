@@ -27,7 +27,7 @@ namespace RR::Ecs
         EntityState state;
     };
 
-    struct EntityStorage
+    struct EntityStorage final
     {
         eastl::vector<EntityRecord> entityRecords;
         eastl::vector<uint32_t> freeIndices;

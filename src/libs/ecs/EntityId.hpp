@@ -2,7 +2,7 @@
 
 namespace RR::Ecs
 {
-    struct EntityId
+    struct EntityId final
     {
         static const uint32_t IndexBits = 24;
         static const uint32_t GenerationBits = 8;

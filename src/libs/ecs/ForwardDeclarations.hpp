@@ -16,7 +16,6 @@ namespace RR::Ecs
     struct EntityStorage;
     template <typename T>
     struct EventBuilder;
-    template <typename... Components>
     struct SystemBuilder;
     template <typename C, typename T>
     struct EntityBuilder;

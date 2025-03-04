@@ -9,7 +9,7 @@ namespace RR::Ecs
      * @tparam IndexType Underlying type used to store the index value
      */
     template <typename Tag, typename IndexType = size_t>
-    class Index
+    class Index final
     {
     public:
         using ValueType = IndexType;

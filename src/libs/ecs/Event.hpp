@@ -10,7 +10,8 @@ namespace RR::Ecs
     // implement aligment on allocation
     static constexpr int EVENT_ALIGNMENT = alignof(uint32_t);
 
-    struct alignas(EVENT_ALIGNMENT) Event
+    struct alignas(EVENT_ALIGNMENT)
+    Event
     {
         using SizeType = uint16_t;
         SizeType size;
@@ -38,7 +39,7 @@ namespace RR::Ecs
         template <typename EventType>
         void Push(EventType&& event, const EventDescription& eventDesc)
         {
-            static_assert(std::is_base_of<Ecs::event, EventType>::value, "EventType must derive from Event");
+            static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
             static_assert(IsAlignedTo(sizeof(EventType), Aligment));
             static_assert(IsAlignedTo(sizeof(EntityId), Aligment));
 
@@ -51,6 +52,7 @@ namespace RR::Ecs
             new (at) EntityId(eventDesc.eventId);
                     //if constexpr ((T::staticFlags() & EVFLG_DESTROY) == 0)
             memcpy(static_cast<char*>(at) + headerSize, &event, eventSize);
+            // TODO MEM MOVE?
         }
 
         template<typename CallBack>

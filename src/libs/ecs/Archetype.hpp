@@ -17,7 +17,7 @@ namespace RR::Ecs
     using ArchetypeEntityIndex = Index<struct ArchetypeEntityIndexTag>;
 
     template <typename... Components>
-    struct ArchetypeInfo
+    struct ArchetypeInfo final
     {
     private:
         static constexpr HashType getArchetypeHash()
@@ -57,7 +57,7 @@ namespace RR::Ecs
         return ArchetypeId::FromValue(hash);
     }
 
-    class Archetype
+    class Archetype final
     {
     public:
         struct ComponentData
@@ -139,7 +139,7 @@ namespace RR::Ecs
 
         ~Archetype()
         {
-            for(auto& data : componentsData )
+            for(auto& data : componentsData)
             {
                 if (!data.componentInfo.destructor)
                     continue;
