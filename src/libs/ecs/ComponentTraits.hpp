@@ -112,6 +112,53 @@ namespace RR::Ecs
                 eval<eastl::is_trivially_move_constructible_v<T>>(&details::MoveConstructor<T>)};
         }
     };
+
+    template <typename Storage>
+    struct ComponentInfoIterator
+    {
+        using ComponentIdIterator = const ComponentId*;
+
+        using value_type = ComponentInfo;
+        using difference_type = std::ptrdiff_t;
+        using pointer = ComponentInfo*;
+        using reference = ComponentInfo&;
+        using iterator_category = std::forward_iterator_tag;
+
+        explicit ComponentInfoIterator(Storage& storage, ComponentIdIterator iterator) : storage(storage), iter(iterator) { }
+
+        reference operator*() const
+        {
+            ComponentId id = *iter;
+            ASSERT(storage.find(id) != storage.end());
+            return storage[id];
+        }
+
+        pointer operator->() const
+        {
+            ComponentId id = *iter;
+            ASSERT(storage.find(id) != storage.end());
+            return &storage[id];
+        }
+
+        ComponentInfoIterator& operator++()
+        {
+            ++iter;
+            return *this;
+        }
+
+        ComponentInfoIterator operator++(int)
+        {
+            ComponentInfoIterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        bool operator==(const ComponentInfoIterator& other) const { return iter == other.iter; }
+        bool operator!=(const ComponentInfoIterator& other) const { return iter != other.iter; }
+
+    private:
+        Storage& storage;
+        ComponentIdIterator iter;
     };
 
     template <typename T>
