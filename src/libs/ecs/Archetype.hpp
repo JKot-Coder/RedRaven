@@ -175,15 +175,6 @@ namespace RR::Ecs
             return false;
         }
 
-        template <typename ArgsTuple>
-        void InitComponent(ArchetypeEntityIndex entityIndex, const ComponentInfo& componentInfo, ArgsTuple&& arg)
-        {
-            auto* componentData = GetComponentData(componentInfo.id);
-            ASSERT(componentData != nullptr);
-
-            componentData->GetData(entityIndex);
-        }
-
         const ComponentData* GetComponentData(ComponentId componentId) const
         {
             auto it = components.find(componentId);
