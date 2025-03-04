@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <ecs/Ecs.hpp>
+#include <ecs/Archetype.hpp>
 
 using namespace RR::Ecs;
 
@@ -100,14 +101,34 @@ TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
 TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
 {
     struct Tag{};
+    struct Tag2{};
 
     world.Entity().Edit().Add<Tag>().Apply();
-    Entity entt2 = world.Entity().Edit().Add<Tag>().Apply();
+    Entity entt2 = world.Entity().Edit().Add<Tag>().Add<Tag2>().Apply();
     world.Entity().Edit().Add<Tag>().Apply();
 
     REQUIRE(entt2.Has<Tag>());
+    REQUIRE(entt2.Has<Tag2>());
+    entt2.Edit().Remove<Tag2>().Apply();
+    REQUIRE(!entt2.Has<Tag2>());
     entt2.Edit().Remove<Tag>().Apply();
     REQUIRE(!entt2.Has<Tag>());
+}
+
+TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
+{
+    struct Tag{};
+
+    Entity entt2 = world.Entity().Edit().Add<Tag>().Apply();
+
+    Archetype* archetype = nullptr;
+    ArchetypeEntityIndex index;
+    REQUIRE(world.ResolveEntityArhetype(entt2.GetId(), archetype, index));
+    REQUIRE(archetype);
+    REQUIRE(index.Value() == 0);
+    auto* data = archetype->GetComponentData(GetComponentId<Tag>);
+    REQUIRE(data);
+    REQUIRE(data->GetSize() == 0);
 }
 
 TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
