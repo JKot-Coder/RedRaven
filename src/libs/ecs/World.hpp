@@ -138,12 +138,11 @@ namespace RR::Ecs
             auto it = archetypesMap.find(archetypeId);
             if (it == archetypesMap.end())
             {
-                // Todo this could be rid with iterator and getComponentInfo call under hood
-                eastl::fixed_vector<ComponentInfo, 32> componentsInfo; // TODO magic number
-                for (auto compIt = components.begin(); compIt != components.end(); ++compIt)
-                    componentsInfo.emplace_back(eastl::move(getComponentInfo(*compIt)));
-
-                auto archUniqPtr = eastl::make_unique<Archetype>(archetypeId, chunkSizePower, componentsInfo.begin(), componentsInfo.end());
+                auto archUniqPtr = eastl::make_unique<Archetype>(
+                    archetypeId,
+                    chunkSizePower,
+                    ComponentInfoIterator(componentStorage, components.begin()),
+                    ComponentInfoIterator(componentStorage, components.end()));
                 archetype = archUniqPtr.get();
                 archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
 
