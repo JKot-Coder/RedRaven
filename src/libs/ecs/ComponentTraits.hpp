@@ -182,6 +182,8 @@ namespace RR::Ecs
         static constexpr size_t Size = sizeof(RawType);
         static constexpr size_t Alignment = alignof(RawType);
         static constexpr ComponentInfo ComponentInfo = ComponentInfo::Create<T>();
+        static constexpr bool IsComponent = eastl::is_same_v<RawType, T>;
+        static constexpr bool IsTag = std::is_empty_v<T>;
     };
 
     template <typename T>
@@ -192,4 +194,10 @@ namespace RR::Ecs
 
     template <typename T>
     static constexpr ComponentInfo GetComponentInfo = ComponentTraits<T>::ComponentInfo;
+
+    template <typename T>
+    static constexpr bool IsComponent = ComponentTraits<T>::IsComponent;
+
+    template <typename T>
+    static constexpr bool IsTag = ComponentTraits<T>::IsTag;
 }
