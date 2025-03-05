@@ -178,8 +178,12 @@ namespace RR::Ecs
         }
 
         template <typename Component, typename ArgsTuple, size_t... Index>
-        void constructComponent(std::byte* ptr, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        void constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
+            if constexpr (IsTag<Component>)
+                return;
+
+            auto* ptr = archetype.GetComponentData(GetComponentId<Component>)->GetData(index);
             new (ptr) Component {std::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
         }
 
@@ -227,7 +231,7 @@ namespace RR::Ecs
             // Component data initialization
             (
                 constructComponent<typename Components::template Get<Index>>(
-                    to.GetComponentData(GetComponentId<typename Components::template Get<Index>>)->GetData(index),
+                    to, index,
                     eastl::move(std::get<Index>(args)),
                     eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
                 ...);

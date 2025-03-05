@@ -84,6 +84,8 @@ namespace RR::Ecs
             void AllocateChunk()
             {
                 capacity += chunkSize;
+                if(!sizeOfElement())
+                    return;
                 chunks.push_back((std::byte*)allocator.allocate(chunkSize * sizeOfElement(), containerAlignment, 0));
             }
 
@@ -96,10 +98,12 @@ namespace RR::Ecs
             {
                 ASSERT(chunk < chunks.size());
                 ASSERT(index < chunkSize);
+                ASSERT(sizeOfElement());
                 return chunks[chunk] + (index)*sizeOfElement();
             }
 
             const ComponentInfo& GetComponentInfo() const { return componentInfo; }
+            size_t GetSize() const  { return chunks.size() * chunkSize * sizeOfElement(); }
 
         private:
             friend class Archetype;

@@ -101,17 +101,16 @@ namespace RR::Ecs
         template <typename T>
         static constexpr ComponentInfo Create()
         {
-            return
-            {
+            return {
                 ComponentId(GetTypeId<T>.Value()),
-                    sizeof(T),
-                    alignof(T),
-                    eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
-                    eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),
-                    eval<eastl::is_trivially_copy_constructible_v<T>>(&details::CopyConstructor<T>),
-                    eval<eastl::is_trivially_move_constructible_v<T>>(&details::MoveConstructor<T>)
-            };
+                eastl::is_empty_v<T> ? 0 : sizeof(T),
+                alignof(T),
+                eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
+                eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),
+                eval<eastl::is_trivially_copy_constructible_v<T>>(&details::CopyConstructor<T>),
+                eval<eastl::is_trivially_move_constructible_v<T>>(&details::MoveConstructor<T>)};
         }
+    };
     };
 
     template <typename T>

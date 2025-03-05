@@ -39,6 +39,9 @@ namespace RR::Ecs
         for (size_t i = 0; i < componentsData.size(); i++)
         {
             const auto& componentInfo = componentsData[i].GetComponentInfo();
+            if (componentInfo.size == 0)
+                continue;
+
             std::byte* dst = componentsData[i].GetData(index);
 
             // TODO Could be faster find if we start from previous finded, to not iterate over same components id.
@@ -71,6 +74,9 @@ namespace RR::Ecs
         for (auto& data : componentsData)
         {
             const auto& componentInfo = data.componentInfo;
+            if (componentInfo.size == 0)
+                continue;
+
             const auto removedPtr = data.GetData(index);
             const auto lastIndexData = data.GetData(lastIndex);
 
