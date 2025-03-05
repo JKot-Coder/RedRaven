@@ -7,6 +7,7 @@ source_group( "" FILES ${SRC} )
 set(TESTS_SRC
     "EntityAndComponents.cpp"
     "ViewsAndQueries.cpp"
+    "Traits.cpp"
 )
 source_group( "Tests" FILES ${TESTS_SRC} )
 

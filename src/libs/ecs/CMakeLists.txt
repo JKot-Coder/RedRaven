@@ -23,7 +23,6 @@ set( SRC
     Hash.hpp
     ForwardDeclarations.hpp
     TypeTraits.hpp
-    TypeTraits.cpp
     FunctionTraits.hpp
     ComponentTraits.hpp
     IterationHelpers.hpp)
