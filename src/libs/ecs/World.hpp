@@ -45,7 +45,7 @@ namespace RR::Ecs
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
 
-            if (getArchetypeForEntity(entityId, archetype, index))
+            if (ResolveEntityArhetype(entityId, archetype, index))
                 return archetype->HasAll(components);
 
             return false;
@@ -57,7 +57,7 @@ namespace RR::Ecs
 
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
-            if (getArchetypeForEntity(entityId, archetype, index))
+            if (ResolveEntityArhetype(entityId, archetype, index))
                 archetype->Delete(entityStorage, index, false);
 
             entityStorage.Destroy(entityId);
@@ -65,6 +65,29 @@ namespace RR::Ecs
 
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
+
+        // TODO return void
+        bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index)
+        {
+            EntityRecord record;
+            if (!entityStorage.Get(entity, record))
+                return false;
+
+            // TODO this is should always valid in future
+            if (record.archetypeId.IsValid())
+            {
+                auto it = archetypesMap.find(record.archetypeId);
+                ASSERT(it != archetypesMap.end());
+                if (it != archetypesMap.end())
+                {
+                    archetype = &(*it->second);
+                    index = record.index;
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         void Tick();
 
@@ -155,27 +178,6 @@ namespace RR::Ecs
             return *archetype;
         }
 
-        bool getArchetypeForEntity(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index)
-        {
-            EntityRecord record;
-            if (!entityStorage.Get(entity, record))
-                return false;
-
-            if (record.archetypeId.IsValid())
-            {
-                auto it = archetypesMap.find(record.archetypeId);
-                ASSERT(it != archetypesMap.end());
-                if (it != archetypesMap.end())
-                {
-                    archetype = &(*it->second);
-                    index = record.index;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         template <typename Component, typename ArgsTuple, size_t... Index>
         void constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
@@ -201,7 +203,7 @@ namespace RR::Ecs
             ComponentsSet components;
             ComponentsSet added;
 
-            if (getArchetypeForEntity(entity, from, fromIndex))
+            if (ResolveEntityArhetype(entity, from, fromIndex))
             {
                 for (auto component : from->GetComponentsView())
                     components.push_back_unsorted(component); // Components already sorted
