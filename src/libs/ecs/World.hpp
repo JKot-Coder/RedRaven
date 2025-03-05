@@ -9,8 +9,8 @@
 #include "ecs/FunctionTraits.hpp"
 #include "ecs/IterationHelpers.hpp"
 #include "ecs/Query.hpp"
-#include "ecs/View.hpp"
 #include "ecs/System.hpp"
+#include "ecs/View.hpp"
 #include "ska/flat_hash_map.h"
 
 namespace RR::Ecs
@@ -33,7 +33,7 @@ namespace RR::Ecs
         Ecs::Entity Entity(EntityId entityId);
 
         Ecs::View View() { return Ecs::View(*this); }
-        Ecs::Query Query(const Ecs::View& view) { return Ecs::Query(*this, _register(view)); }
+        Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
 
         template <typename T, typename DescriptionType>
         T Create(DescriptionType&& desc);
@@ -79,6 +79,7 @@ namespace RR::Ecs
 
         friend struct View;
         friend struct Query;
+        friend struct QueryBuilder;
 
         static bool matches(const Archetype& archetype, const Ecs::View& view)
         {
@@ -345,5 +346,11 @@ namespace RR::Ecs
     void Query::Each(Callable&& callable) const
     {
         world.query(*this, eastl::forward<Callable>(callable));
+    }
+
+    inline Query QueryBuilder::Build() &&
+    {
+        auto& world = view.world;
+        return Query(world, world._register(eastl::move(view)));
     }
 }

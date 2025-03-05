@@ -8,15 +8,13 @@ struct WorldFixture
     World world;
 };
 
+// clang-format off
+struct Foo { int x;};
+struct Bar { int x;};
+// clang-format on
+
 TEST_CASE_METHOD(WorldFixture, "View", "[View]")
 {
-    World world;
-
-    // clang-format off
-    struct Foo { int x;};
-    struct Bar { int x;};
-    // clang-format on
-
     world.Entity();
 
     world.Entity().Edit().Add<Foo>(1).Apply();
@@ -30,15 +28,8 @@ TEST_CASE_METHOD(WorldFixture, "View", "[View]")
     REQUIRE(summ == 2);
 }
 
-TEST_CASE("View", "[View]")
+TEST_CASE_METHOD(WorldFixture, "View require", "[View]")
 {
-    World world;
-
-    // clang-format off
-    struct Foo { int x;};
-    struct Bar { int x;};
-    // clang-format on
-
     world.Entity();
 
     Entity entt1 = world.Entity();
@@ -74,15 +65,8 @@ TEST_CASE("View", "[View]")
     REQUIRE(summ == 3);
 }
 
-TEST_CASE_METHOD(WorldFixture, "View Exclude", "[View]")
+TEST_CASE_METHOD(WorldFixture, "View exclude", "[View]")
 {
-    World world;
-
-    // clang-format off
-    struct Foo { int x;};
-    struct Bar { int x;};
-    // clang-format on
-
     world.Entity();
 
     world.Entity().Edit().Add<Foo>(1).Add<Bar>(1).Apply();
@@ -97,21 +81,13 @@ TEST_CASE_METHOD(WorldFixture, "View Exclude", "[View]")
 
 TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
 {
-    World world;
-
-    // clang-format off
-    struct Foo { int x;};
-    struct Bar { int x;};
-    // clang-format on
-
     world.Entity();
 
     Entity entt1 = world.Entity();
     entt1.Edit().Add<Foo>(1).Apply();
 
     int summ = 0;
-    const auto view = world.View().Require<Foo>();
-    const auto query = world.Query(view);
+    const auto query = world.Query().Require<Foo>().Build();
     query.Each([&](EntityId id, Foo foo) {
         summ += foo.x;
         REQUIRE(id.rawId == 1);
@@ -131,19 +107,11 @@ TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
 
 TEST_CASE_METHOD(WorldFixture, "Query Exclude", "[Query]")
 {
-    World world;
-
-    // clang-format off
-    struct Foo { int x;};
-    struct Bar { int x;};
-    // clang-format on
-
     world.Entity().Edit().Add<Foo>(1).Apply();
     world.Entity().Edit().Add<Foo>(1).Add<Bar>(1).Apply();
 
     int summ = 0;
-    const auto view = world.View().Require<Foo>().Exclude<Bar>();
-    const auto query = world.Query(view);
+    const auto query = world.Query().Require<Foo>().Exclude<Bar>().Build();
     query.Each([&](Foo foo) { summ += foo.x; });
 
     REQUIRE(summ == 1);

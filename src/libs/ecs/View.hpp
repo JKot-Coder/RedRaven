@@ -4,8 +4,6 @@
 
 namespace RR::Ecs
 {
-    struct World;
-
     struct View
     {
         template <typename... Components>
@@ -26,7 +24,9 @@ namespace RR::Ecs
         void Each(Callable&& callable) const;
 
     private:
-        friend World;
+        friend struct World;
+        friend struct SystemBuilder;
+        friend struct QueryBuilder;
 
         View(World& world) : world(world) { };
 
