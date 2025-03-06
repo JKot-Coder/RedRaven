@@ -6,12 +6,12 @@
 namespace RR::Ecs
 {
     template <typename Arg>
-    struct ComponentAcessor
+    struct ComponentAccessor
     {
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAcessor(const Archetype& archetype)
+        ComponentAccessor(const Archetype& archetype)
         {
             data = archetype.GetComponentData(GetComponentId<Component>);
             ASSERT(data);
@@ -32,11 +32,11 @@ namespace RR::Ecs
         const Archetype::ComponentData* data;
     };
 
-    struct QueryArchetype
+    struct ArchetypeIterator
     {
     private:
-        template <size_t UNROLL_N, typename Func, typename... ComponentAcessors>
-        static void queryChunk(Func&& func, size_t chunkIndex, size_t entitesCount, ComponentAcessors... components)
+        template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
+        static void processChunk(Func&& func, size_t chunkIndex, size_t entitiesCount, ComponentAccessors... components)
         {
             // clang-format off
             #ifdef __GNUC__
@@ -44,30 +44,30 @@ namespace RR::Ecs
             #endif
 
             #pragma unroll UNROLL_N // clang-format on
-            for (size_t i = 0; i < entitesCount; i++)
+            for (size_t i = 0; i < entitiesCount; i++)
             {
-                func(eastl::forward<typename ComponentAcessors::Argument>(components.Get(chunkIndex, i))...);
+                func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(chunkIndex, i))...);
             }
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
-        static void queryArchetypeImpl(Func&& func, const Archetype& archetype, const eastl::index_sequence<Index...>&)
+        static void iterateArchetypeImpl(Func&& func, const Archetype& archetype, const eastl::index_sequence<Index...>&)
         {
-            auto componentAcessors = eastl::make_tuple(ComponentAcessor<typename ArgumentList::template Get<Index>>(archetype)...);
+            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype)...);
 
             for (size_t chunkIdx = 0, chunkCount = archetype.GetChunkCount(), entityOffset = 0; chunkIdx < chunkCount; chunkIdx++, entityOffset += archetype.GetChunkSize())
             {
                 size_t entitiesCount = eastl::min(archetype.GetEntityCount() - entityOffset, archetype.GetChunkSize());
-                queryChunk<4>(eastl::forward<Func>(func), chunkIdx, entitiesCount, eastl::get<Index>(componentAcessors)...);
+                processChunk<4>(eastl::forward<Func>(func), chunkIdx, entitiesCount, eastl::get<Index>(componentAccessors)...);
             }
         }
 
     public:
         template <typename Callable>
-        static void Query(Callable&& callable, const Archetype& archetype)
+        static void ForEach(Callable&& callable, const Archetype& archetype)
         {
             using ArgList = GetArgumentList<Callable>;
-            queryArchetypeImpl<ArgList>(eastl::forward<Callable>(callable), archetype, eastl::make_index_sequence<ArgList::Count>());
+            iterateArchetypeImpl<ArgList>(eastl::forward<Callable>(callable), archetype, eastl::make_index_sequence<ArgList::Count>());
         }
     };
 }
