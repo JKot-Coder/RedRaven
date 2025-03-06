@@ -17,7 +17,7 @@ namespace RR::Ecs
             ASSERT(data);
         }
 
-        Arg& Get(size_t chunkIndex, size_t index)
+        Arg Get(size_t chunkIndex, size_t index)
         {
             Component* ptr = reinterpret_cast<Component*>(data->GetData(chunkIndex, index));
 
