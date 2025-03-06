@@ -107,16 +107,32 @@ TEST_CASE_METHOD(WorldFixture, "View exclude", "[View]")
     REQUIRE(summ == 1);
 }
 
+TEST_CASE_METHOD(WorldFixture, "View query for entity", "[View]")
+{
+    const auto entt1 = world.Entity().Edit().Add<int>(1).Apply();
+    const auto entt2 = world.Entity().Edit().Add<int>(2).Apply();
+    const auto entt3 = world.Entity().Edit().Add<int>(3).Apply();
+
+    const auto view = world.View().Require<int>();
+    int calls = 0;
+    view.ForEntity(entt3, [&](int i) { calls++; REQUIRE(i == 3); });
+    view.ForEntity(entt1, [&](int i) { calls++; REQUIRE(i == 1); });
+    view.ForEntity(entt2, [&](int i) { calls++; REQUIRE(i == 2); });
+
+    REQUIRE(calls == 3);
+}
+
 TEST_CASE("View special args", "[View]")
 {
     World world;
-    world.Entity().Edit().Add<Foo>(1).Apply();
+    const auto entt1 = world.Entity().Edit().Add<Foo>(1).Apply();
 
     const auto view = world.View().Require<Foo>();
     int calls = 0;
     view.ForEach([&](Foo, World& worldArg) { calls++; REQUIRE(&world == &worldArg); });
     view.ForEach([&](Foo, World* worldArg) { calls++; REQUIRE(&world == worldArg); });
-    REQUIRE(calls == 2);
+    view.ForEntity(entt1, [&](Foo, World* worldArg) { calls++; REQUIRE(&world == worldArg); });
+    REQUIRE(calls == 3);
 }
 
 TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
