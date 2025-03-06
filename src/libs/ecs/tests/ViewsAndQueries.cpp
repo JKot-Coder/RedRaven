@@ -79,6 +79,18 @@ TEST_CASE_METHOD(WorldFixture, "View exclude", "[View]")
     REQUIRE(summ == 1);
 }
 
+TEST_CASE("View special args", "[View]")
+{
+    World world;
+    world.Entity().Edit().Add<Foo>(1).Apply();
+
+    const auto view = world.View().Require<Foo>();
+    int calls = 0;
+    view.Each([&](Foo, World& worldArg) { calls++; REQUIRE(&world == &worldArg); });
+    view.Each([&](Foo, World* worldArg) { calls++; REQUIRE(&world == worldArg); });
+    REQUIRE(calls == 2);
+}
+
 TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
 {
     world.Entity();
