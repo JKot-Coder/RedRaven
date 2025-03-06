@@ -21,7 +21,7 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void Each(Callable&& callable) const;
+        void ForEach(Callable&& callable) const;
 
     private:
         friend struct World;

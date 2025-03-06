@@ -171,7 +171,7 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
 
     // Check no any copy
     const auto view = world.View().Require<NonTrivial>();
-    view.Each([&](NonTrivial&) { });
+    view.ForEach([&](NonTrivial&) { });
 
     Entity entt3 = world.Entity().Edit().Add<NonTrivial>(4).Add<Op>(Op::Construct).Apply();
     entt3.Edit().Remove<Op>().Apply();
@@ -210,6 +210,6 @@ TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
 
     int32_t summ = 0;
     const auto view = world.View().Require<Vector>();
-    view.Each([&](Vector vector) { summ += vector[0]; });
+    view.ForEach([&](Vector vector) { summ += vector[0]; });
     REQUIRE(summ == 4);
 }

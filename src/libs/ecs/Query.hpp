@@ -13,7 +13,7 @@ namespace RR::Ecs
         ~Query() { }
 
         template <typename Callable>
-        void Each(Callable&& callable) const;
+        void ForEach(Callable&& callable) const;
 
     private:
         friend World;

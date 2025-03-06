@@ -339,13 +339,13 @@ namespace RR::Ecs
     }
 
     template <typename Callable>
-    void View::Each(Callable&& callable) const
+    void View::ForEach(Callable&& callable) const
     {
         world.query(*this, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
-    void Query::Each(Callable&& callable) const
+    void Query::ForEach(Callable&& callable) const
     {
         world.query(*this, eastl::forward<Callable>(callable));
     }
