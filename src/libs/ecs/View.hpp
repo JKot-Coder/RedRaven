@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ecs/Entity.hpp"
 #include "ecs/ComponentTraits.hpp"
 
 namespace RR::Ecs
@@ -22,6 +23,10 @@ namespace RR::Ecs
 
         template <typename Callable>
         void ForEach(Callable&& callable) const;
+        template <typename Callable>
+        void ForEntity(EntityId id, Callable&& callable) const;
+        template <typename Callable>
+        void ForEntity(Entity entity, Callable&& callable) const;
 
     private:
         friend struct World;

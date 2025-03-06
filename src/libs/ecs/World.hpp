@@ -257,6 +257,37 @@ namespace RR::Ecs
             queryImpl<ArgList>(view, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
 
+        template <typename Callable>
+        void queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable)
+        {
+            using ArgList = GetArgumentList<Callable>;
+            queryForEntityImpl<ArgList>(entityId, view, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
+        }
+
+        template <typename ArgumentList, typename Callable, size_t... Index>
+        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, Callable&& callable, eastl::index_sequence<Index...>)
+        {
+            // Todo check all args in callable persist in requireComps with std::includes
+            // Todo check entity are ok for requireComps and Args
+
+            Archetype* archetype = nullptr;
+            ArchetypeEntityIndex index;
+
+            if (!ResolveEntityArhetype(entityId, archetype, index))
+            {
+                ASSERT(false);
+                return;
+            }
+
+            if (!matches(*archetype, view))
+            {
+                ASSERT(false);
+                return;
+            }
+
+            ArchetypeIterator::ForEntity(index, eastl::forward<Callable>(callable), {*this, *archetype});
+        }
+
         template <typename ArgumentList, typename Callable, size_t... Index>
         void queryImpl(const Ecs::View& view, Callable&& callable, eastl::index_sequence<Index...>)
         {
@@ -342,6 +373,18 @@ namespace RR::Ecs
     void View::ForEach(Callable&& callable) const
     {
         world.query(*this, eastl::forward<Callable>(callable));
+    }
+
+    template <typename Callable>
+    void View::ForEntity(EntityId entityId, Callable&& callable) const
+    {
+        world.queryForEntity(entityId, *this, eastl::forward<Callable>(callable));
+    }
+
+    template <typename Callable>
+    void View::ForEntity(Entity entity, Callable&& callable) const
+    {
+        ForEntity(entity.GetId(), eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
