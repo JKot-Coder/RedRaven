@@ -78,14 +78,14 @@ namespace RR::Ecs
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
-        static void iterateArchetypeImpl(Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
+        static void processArchetype(Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
             auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(context)...);
 
-            for (size_t chunkIdx = 0, chunkCount = context.archetype.GetChunkCount(), entityOffset = 0; chunkIdx < chunkCount; chunkIdx++, entityOffset += context.archetype.GetChunkSize())
+            for (size_t chunkIndex = 0, chunkCount = context.archetype.GetChunkCount(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += context.archetype.GetChunkSize())
             {
                 size_t entitiesCount = eastl::min(context.archetype.GetEntityCount() - entityOffset, context.archetype.GetChunkSize());
-                processChunk<4>(eastl::forward<Func>(func), chunkIdx, entitiesCount, eastl::get<Index>(componentAccessors)...);
+                processChunk<4>(eastl::forward<Func>(func), chunkIndex, entitiesCount, eastl::get<Index>(componentAccessors)...);
             }
         }
 
@@ -94,7 +94,7 @@ namespace RR::Ecs
         static void ForEach(Callable&& callable, const IterationContext& context)
         {
             using ArgList = GetArgumentList<Callable>;
-            iterateArchetypeImpl<ArgList>(eastl::forward<Callable>(callable), context, eastl::make_index_sequence<ArgList::Count>());
+            processArchetype<ArgList>(eastl::forward<Callable>(callable), context, eastl::make_index_sequence<ArgList::Count>());
         }
     };
 }
