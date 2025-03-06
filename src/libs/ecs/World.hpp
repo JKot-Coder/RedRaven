@@ -268,7 +268,7 @@ namespace RR::Ecs
                 if (!matches(archetype, view))
                     continue;
 
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), archetype);
+                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, archetype});
             }
         }
 
@@ -279,7 +279,7 @@ namespace RR::Ecs
 
             for (auto archetype : views[query.id.Value()].cache)
             {
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), *archetype);
+                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
             }
         }
 

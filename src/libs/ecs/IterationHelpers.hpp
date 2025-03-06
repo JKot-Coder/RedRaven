@@ -5,15 +5,22 @@
 
 namespace RR::Ecs
 {
-    template <typename Arg>
+    struct IterationContext
+    {
+        IterationContext(Ecs::World& world, const Archetype& archetype) : world(world), archetype(archetype) { };
+        Ecs::World& world;
+        const Archetype& archetype;
+    };
+
+    template <typename Arg, typename Enable = void>
     struct ComponentAccessor
     {
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype& archetype)
+        ComponentAccessor(const IterationContext& context)
         {
-            data = archetype.GetComponentData(GetComponentId<Component>);
+            data = context.archetype.GetComponentData(GetComponentId<Component>);
             ASSERT(data);
         }
 
@@ -30,6 +37,26 @@ namespace RR::Ecs
         }
 
         const Archetype::ComponentData* data;
+    };
+
+    template <typename Arg>
+    struct ComponentAccessor<Arg, eastl::enable_if_t<eastl::is_same_v<Ecs::World, GetComponentType<Arg>>>>
+    {
+        using Argument = Arg;
+        using Component = GetComponentType<Arg>;
+
+        ComponentAccessor(const IterationContext& context) : world(context.world) { };
+        Arg Get(size_t chunkIndex, size_t index)
+        {
+            if constexpr (std::is_pointer_v<Arg>)
+            {
+                return &world;
+            }
+            else
+                return world;
+        }
+
+        Ecs::World& world;
     };
 
     struct ArchetypeIterator
@@ -51,23 +78,23 @@ namespace RR::Ecs
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
-        static void iterateArchetypeImpl(Func&& func, const Archetype& archetype, const eastl::index_sequence<Index...>&)
+        static void iterateArchetypeImpl(Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
-            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype)...);
+            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(context)...);
 
-            for (size_t chunkIdx = 0, chunkCount = archetype.GetChunkCount(), entityOffset = 0; chunkIdx < chunkCount; chunkIdx++, entityOffset += archetype.GetChunkSize())
+            for (size_t chunkIdx = 0, chunkCount = context.archetype.GetChunkCount(), entityOffset = 0; chunkIdx < chunkCount; chunkIdx++, entityOffset += context.archetype.GetChunkSize())
             {
-                size_t entitiesCount = eastl::min(archetype.GetEntityCount() - entityOffset, archetype.GetChunkSize());
+                size_t entitiesCount = eastl::min(context.archetype.GetEntityCount() - entityOffset, context.archetype.GetChunkSize());
                 processChunk<4>(eastl::forward<Func>(func), chunkIdx, entitiesCount, eastl::get<Index>(componentAccessors)...);
             }
         }
 
     public:
         template <typename Callable>
-        static void ForEach(Callable&& callable, const Archetype& archetype)
+        static void ForEach(Callable&& callable, const IterationContext& context)
         {
             using ArgList = GetArgumentList<Callable>;
-            iterateArchetypeImpl<ArgList>(eastl::forward<Callable>(callable), archetype, eastl::make_index_sequence<ArgList::Count>());
+            iterateArchetypeImpl<ArgList>(eastl::forward<Callable>(callable), context, eastl::make_index_sequence<ArgList::Count>());
         }
     };
 }
