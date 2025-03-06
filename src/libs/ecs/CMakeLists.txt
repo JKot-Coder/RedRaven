@@ -12,6 +12,8 @@ set( SRC
     ComponentStorage.hpp
     EntityStorage.hpp
     Query.hpp
+    Entity.hpp
+    Entity.cpp
     EntityBuilder.hpp
     Event.hpp
     EventBuilder.hpp

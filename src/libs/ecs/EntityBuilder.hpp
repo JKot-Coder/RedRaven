@@ -9,40 +9,6 @@
 
 namespace RR::Ecs
 {
-    template <typename ComponentList, typename ArgsTuple>
-    struct [[nodiscard]] EntityBuilder;
-
-    template <>
-    struct [[nodiscard]] EntityBuilder<void, void>;
-    struct Entity
-    {
-    public:
-        EntityId GetId() const { return entity_; }
-        void Destruct() { world_.Destruct(entity_); }
-        bool IsAlive() const { return world_.IsAlive(entity_); }
-
-        template <typename... Components>
-        bool Has()
-        {
-            eastl::array<ComponentId, sizeof...(Components)> components = {GetComponentId<Components>...};
-            eastl::quick_sort(components.begin(), components.end());
-            return world_.Has(entity_, SortedComponentsView(components));
-        }
-
-        EntityBuilder<void, void> Edit();
-
-    private:
-        friend World;
-        template <typename C, typename A>
-        friend struct EntityBuilder;
-
-        Entity(World& world, EntityId entity) : world_(world), entity_(entity) { }
-
-    private:
-        World& world_;
-        EntityId entity_;
-    };
-
     template <>
     struct [[nodiscard]] EntityBuilder<void, void>
     {
