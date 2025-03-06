@@ -13,7 +13,7 @@ struct Foo { int x;};
 struct Bar { int x;};
 // clang-format on
 
-TEST_CASE_METHOD(WorldFixture, "View", "[View]")
+TEST_CASE_METHOD(WorldFixture, "View read", "[View]")
 {
     world.Entity();
 
@@ -21,11 +21,39 @@ TEST_CASE_METHOD(WorldFixture, "View", "[View]")
     world.Entity().Edit().Add<Bar>(1).Apply();
     world.Entity().Edit().Add<Foo>(1).Apply();
 
-    int summ = 0;
     const auto view = world.View().Require<Foo>();
+
+    int summ = 0;
     view.Each([&](Foo foo) { summ += foo.x; });
 
     REQUIRE(summ == 2);
+
+    summ = 0;
+    view.Each([&](Foo& foo) { summ += foo.x; });
+    REQUIRE(summ == 2);
+
+    summ = 0;
+    view.Each([&](Foo* foo) { summ += foo->x; });
+    REQUIRE(summ == 2);
+}
+
+TEST_CASE_METHOD(WorldFixture, "View modify", "[View]")
+{
+    world.Entity().Edit().Add<Foo>(1).Apply();
+    world.Entity().Edit().Add<Foo>(1).Apply();
+
+    const auto view = world.View().Require<Foo>();
+
+    int summ = 0;
+    view.Each([&](Foo foo) { summ += foo.x; });
+    REQUIRE(summ == 2);
+
+    view.Each([&](Foo& foo) { foo.x++; });
+    view.Each([&](Foo* foo) { foo->x++; });
+
+    summ = 0;
+    view.Each([&](Foo foo) { summ += foo.x; });
+    REQUIRE(summ == 6);
 }
 
 TEST_CASE_METHOD(WorldFixture, "View require", "[View]")
