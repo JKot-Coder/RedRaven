@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/Archetype.hpp"
 #include "EASTL/algorithm.h"
+#include "ecs/Archetype.hpp"
 
 namespace RR::Ecs
 {
@@ -39,7 +39,7 @@ namespace RR::Ecs
         static void queryChunk(Func&& func, size_t chunkIndex, size_t entitesCount, ComponentAcessors... components)
         {
             // clang-format off
-            #ifdef __GNUC__ 
+            #ifdef __GNUC__
             #error "Fix unroll for ggc"
             #endif
 
