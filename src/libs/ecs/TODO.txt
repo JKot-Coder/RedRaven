@@ -12,6 +12,8 @@
 # Track
 # Check world match
 + ImplementTypeInfo iterator
-# implement Query iterator
++ implement Query iterator
 # implement Event query 
-# implement shared components
++ implement query context
+# query by entity.
+# singletonss
