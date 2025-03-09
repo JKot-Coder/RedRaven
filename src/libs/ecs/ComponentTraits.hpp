@@ -49,44 +49,20 @@ namespace RR::Ecs
             ((T*)data)->~T();
         }
 
-        template <typename T>
-        static void CopyConstructor([[maybe_unused]] void* dest, [[maybe_unused]] const void* source)
-        {
-            if constexpr (eastl::is_copy_constructible_v<T>)
-            {
-                new (dest) T(*(T*)source);
-            }
-            else
-                static_assert("T is not copy constructible");
-        }
-
-        template <typename T>
-        static void MoveConstructor([[maybe_unused]] void* dest, [[maybe_unused]] void* source)
-        {
-            if constexpr (eastl::is_move_constructible_v<T>)
-            {
-                new (dest) T(eastl::move(*(T*)source));
-            }
-            else
-                static_assert("T is not move constructible");
-        }
-
     } // details
 
     struct ComponentInfo
     {
         using DefaultConstructor = void (*)(void* mem);
         using Destructor = void (*)(void* mem);
-        using CopyConstructor = void (*)(void* dest, const void* src);
-        using MoveConstructor = void (*)(void* dest, void* src);
+        using Move = void (*)(void* dest, void* src);
 
         ComponentId id;
         size_t size;
         size_t alignment;
         DefaultConstructor constructDefault;
         Destructor destructor;
-        CopyConstructor copy;
-        MoveConstructor move;
+        Move move;
 
         template <bool Condition, typename T>
         static constexpr T eval(T&& v)
@@ -100,16 +76,21 @@ namespace RR::Ecs
         }
 
         template <typename T>
-        static constexpr ComponentInfo Create()
-        {
+        static constexpr ComponentInfo Create() {
             return {
                 ComponentId(GetTypeId<T>.Value()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
                 alignof(T),
                 eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
                 eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),
-                eval<eastl::is_trivially_copy_constructible_v<T>>(&details::CopyConstructor<T>),
-                eval<eastl::is_trivially_move_constructible_v<T>>(&details::MoveConstructor<T>)};
+                [](void* dest, void* source) {
+                    if constexpr (std::is_move_constructible_v<T>) {
+                        new (dest) T(std::move(*static_cast<T*>(source)));
+                    } else
+                        static_assert(sizeof(T) == 0, "Type T must be move constructible");
+                    }
+                }
+            };
         }
     };
 

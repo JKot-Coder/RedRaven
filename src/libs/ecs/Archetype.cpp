@@ -4,22 +4,6 @@
 
 namespace RR::Ecs
 {
-    void Copy(const ComponentInfo& componentInfo, std::byte* dst, std::byte* src)
-    {
-        if(componentInfo.copy)
-            componentInfo.copy(dst, src);
-        else
-            memcpy(dst, src, componentInfo.size);
-    }
-
-    void Move(const ComponentInfo& componentInfo, std::byte* dst, std::byte* src)
-    {
-        if (componentInfo.move)
-            componentInfo.move(dst, src);
-        else
-            memmove(dst, src, componentInfo.size);
-    }
-
     ArchetypeEntityIndex Archetype::Insert(EntityStorage& entityStorage, EntityId entityId)
     {
         expand(1);
@@ -51,7 +35,7 @@ namespace RR::Ecs
                 continue;
 
             std::byte* src = scrData->GetData(fromIndex);
-            Move(componentInfo, dst, src);
+            componentInfo.move(dst, src);
         }
 
         entityStorage.Mutate(*(EntityId*)from.componentsData[0].GetData(fromIndex), id, index);
@@ -81,7 +65,7 @@ namespace RR::Ecs
             const auto lastIndexData = data.GetData(lastIndex);
 
             if (index != lastIndex)
-                Move(componentInfo, removedPtr, lastIndexData);
+                componentInfo.move(removedPtr, lastIndexData);
 
             if (componentInfo.destructor)
                 componentInfo.destructor(lastIndexData);
