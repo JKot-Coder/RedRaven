@@ -148,7 +148,11 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     struct NonTrivial
     {
         NonTrivial(int32_t id) : id(id) { OpLog.emplace_back(id, Op::Construct); };
-        ~NonTrivial() { OpLog.emplace_back(id, Op::Destuct); id = -1; };
+        ~NonTrivial()
+        {
+            OpLog.emplace_back(id, Op::Destuct);
+            id = -1;
+        };
         NonTrivial(const NonTrivial& other) {
             OpLog.emplace_back(other.id, Op::Copy);
             id = other.id;

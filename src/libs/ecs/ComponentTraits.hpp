@@ -76,7 +76,8 @@ namespace RR::Ecs
         }
 
         template <typename T>
-        static constexpr ComponentInfo Create() {
+        static constexpr ComponentInfo Create()
+        {
             return {
                 ComponentId(GetTypeId<T>.Value()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
@@ -84,13 +85,13 @@ namespace RR::Ecs
                 eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
                 eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),
                 [](void* dest, void* source) {
-                    if constexpr (std::is_move_constructible_v<T>) {
+                    if constexpr (std::is_move_constructible_v<T>)
+                    {
                         new (dest) T(std::move(*static_cast<T*>(source)));
-                    } else
-                        static_assert(sizeof(T) == 0, "Type T must be move constructible");
                     }
-                }
-            };
+                    else
+                        static_assert(sizeof(T) == 0, "Type T must be move constructible");
+                }};
         }
     };
 

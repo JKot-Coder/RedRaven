@@ -116,7 +116,7 @@ TEST_CASE_METHOD(WorldFixture, "View query for entity", "[View]")
     const auto view = world.View().Require<int>();
     int calls = 0;
     view.ForEntity(entt3, [&](int i) { calls++; REQUIRE(i == 3); });
-    view.ForEntity(entt1, [&](int i) { calls++; REQUIRE(i == 1); });
+    view.ForEntity(entt1.GetId(), [&](int i) { calls++; REQUIRE(i == 1); });
     view.ForEntity(entt2, [&](int i) { calls++; REQUIRE(i == 2); });
 
     REQUIRE(calls == 3);
