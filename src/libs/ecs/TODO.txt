@@ -13,7 +13,8 @@
 # Check world match
 + ImplementTypeInfo iterator
 + implement Query iterator
-# implement Event query 
+# implement Event query
 + implement query context
-# query by entity.
++ query by entity.
 # singletonss
+# checks for copy/move only
