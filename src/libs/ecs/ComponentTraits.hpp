@@ -111,15 +111,17 @@ namespace RR::Ecs
         reference operator*() const
         {
             ComponentId id = *iter;
-            ASSERT(storage.find(id) != storage.end());
-            return storage[id];
+            auto it = storage.find(id);
+            ASSERT(it != storage.end());
+            return it->second;
         }
 
         pointer operator->() const
         {
             ComponentId id = *iter;
-            ASSERT(storage.find(id) != storage.end());
-            return &storage[id];
+            auto it = storage.find(id);
+            ASSERT(it != storage.end());
+            return it->second;
         }
 
         ComponentInfoIterator& operator++()
