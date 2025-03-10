@@ -19,6 +19,7 @@ namespace RR::Ecs
         }
 
         ComponentInfo& operator[](ComponentId id) { return componentsInfo[id]; }
+        auto find(ComponentId id) { return componentsInfo.find(id); }
         auto find(ComponentId id) const { return componentsInfo.find(id); }
         auto begin() const { return componentsInfo.begin(); }
         auto end() const { return componentsInfo.end(); }
