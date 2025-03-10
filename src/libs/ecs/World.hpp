@@ -235,17 +235,11 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void query(const Ecs::View& view, Callable&& callable)
+        void query(MatchedArchetypeSpan span, Callable&& callable)
         {
             // Todo check all args in callable persist in requireComps with std::includes
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-            {
-                const Archetype& archetype = *it->second;
-                if (!matches(archetype, view))
-                    continue;
-
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, archetype});
-            }
+            for (auto archetype : span)
+                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
         }
 
         template <typename Callable>
@@ -258,8 +252,22 @@ namespace RR::Ecs
             });
 
             ASSERT(archetypes);
-            for (auto archetype : *archetypes)
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
+            this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable));
+        }
+
+        template <typename Callable>
+        void query(const Ecs::View& view, Callable&& callable)
+        {
+            // Todo check all args in callable persist in requireComps with std::includes
+
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, archetype});
+            }
         }
 
         template <typename Callable>

@@ -33,7 +33,7 @@ namespace RR::Ecs
     struct SystemDescription
     {
         static constexpr size_t FunctionSize = 64;
-        eastl::fixed_function<FunctionSize, void(const Ecs::Event&, const Ecs::Query&)> onEvent;
+        eastl::fixed_function<FunctionSize, void(Ecs::World& world, const Ecs::Event&, Ecs::MatchedArchetypeSpan)> onEvent;
         eastl::fixed_vector<TypeId, 16> onEvents;
         eastl::fixed_vector<SystemId, 8> before;
         eastl::fixed_vector<SystemId, 8> after;

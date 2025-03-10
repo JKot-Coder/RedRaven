@@ -91,8 +91,8 @@ namespace RR::Ecs
             // TODO simplicate this mess with calls
             // TODO performance note: to call onEvent we query system and we query system again in onEvent
 
-              desc.onEvent = [cb = std::forward<Callback>(callback)](const Ecs::Event&, const Ecs::Query& query)  {
-                  query.world.query(query, eastl::move(cb));
+            desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event&, Ecs::MatchedArchetypeSpan archetypes) {
+                world.query(archetypes, eastl::move(cb));
             };
 
             return view.world.Create(eastl::move(desc), eastl::move(view));

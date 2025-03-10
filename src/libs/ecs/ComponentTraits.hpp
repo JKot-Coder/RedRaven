@@ -14,7 +14,7 @@ namespace RR::Ecs
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
     using ComponentsSet = FixedVectorSet<ComponentId, 32>;
 
-    struct SortedComponentsView
+    struct SortedComponentsView // TODO eastl::span?
     {
         using Iterator = const ComponentId*;
         template <typename T>

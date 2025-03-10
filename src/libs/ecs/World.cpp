@@ -75,18 +75,8 @@ namespace RR::Ecs
 
         for(const auto systemId : it->second)
     {
-            cacheForSystemsView.ForEntity(EntityId(systemId.Value()), [ &event, systemId](World& world, SystemDescription& desc){
-
-                        desc.onEvent(event, Ecs::Query(world, QueryId(systemId.Value())));
-          /*    // desc.onEvent(event,  )
-                for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-                {
-                    const Archetype& archetype = *it->second;
-                    if (!matches(archetype, view))
-                        continue;
-
-                    cache.push_back(&archetype);
-                }*/ 
+            cacheForSystemsView.ForEntity(EntityId(systemId.Value()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+                desc.onEvent(world, event, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
             });
         }
 

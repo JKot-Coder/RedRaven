@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "EASTL/span.h" 
+
 namespace RR::Ecs
 {
     template<int FixedSize>
@@ -20,6 +22,9 @@ namespace RR::Ecs
     template <typename C, typename T>
     struct EntityBuilder;
     struct QueryBuilder;
+    class Archetype;
+
+    using MatchedArchetypeSpan = eastl::span<const Archetype*>; //TODO maybe move somewhre
 
     /**
      * @brief List of types with compile-time access
