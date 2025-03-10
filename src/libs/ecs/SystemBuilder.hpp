@@ -75,14 +75,6 @@ namespace RR::Ecs
             return *this;
         }
 
-        template <typename Callback, typename Event, typename... Args>
-        static void callQuery(Query query, const Event& event, Callback&& callback, TypeList<Args...>)
-        {
-          //  query.ForEach([&event](Args... args) { callback(event, eastl::forward<Args>(args)...); });
-         // query.ForEach();
-            query.world.query(query, eastl::forward<Callback>(callback));
-        }
-
         template <typename... EventTypes, typename Callback>
         System OnEvent(Callback&& callback) &&
         {
@@ -102,32 +94,6 @@ namespace RR::Ecs
               desc.onEvent = [cb = std::forward<Callback>(callback)](const Ecs::Event&, const Ecs::Query& query)  {
                   query.world.query(query, eastl::move(cb));
             };
-
-
-     /*       desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
-                callQuery(query, event, eastl::move(cb), ArgList {});
-            };
-
-
-       desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
-                callQuery(query, event, eastl::move(cb), ArgList {});
-            };*/
-/*
-
-            constexpr bool isFirstArgEvent = IsFirstArgEvent<ArgList>::Value;
-
-            if constexpr (isFirstArgEvent)
-            {
-                using TrimmedArgList = TrimFirstArg<ArgList>;
-                desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
-                    callQuery(query, event, eastl::move(cb), TrimmedArgList {});
-                };
-            } else 
-            {
-                desc.onEvent = [cb = std::forward<Callback>(callback)](const Event&, Query query) {
-                    callQuery(query, eastl::move(cb), ArgList {});
-                };
-            }*/
 
             return view.world.Create(eastl::move(desc), eastl::move(view));
         }
