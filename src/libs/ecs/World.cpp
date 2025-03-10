@@ -4,6 +4,29 @@
 
 namespace RR::Ecs
 {
+    World::World() : cacheForQueriesView(*this), cacheForSystemsView(*this)
+    {
+        RegisterComponent<EntityId>();
+        RegisterComponent<Ecs::View>();
+        RegisterComponent<MatchedArchetypeCache>();
+
+        {
+            // Manually create archetype for queries
+            // This is required because of cyclic dependency of creating arhetype require cacheForQueriesQuery and
+            // creating cacheForQueriesQuery query require creating archetype
+            constexpr eastl::array<ComponentId, 3> components = {GetComponentId<EntityId>, GetComponentId<Ecs::View>, GetComponentId<MatchedArchetypeCache>};
+            static_assert(components[0] < components[1]);
+            static_assert(components[1] < components[2]);
+
+            ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
+            getOrCreateArchetype(archetypeId, SortedComponentsView(components));
+        }
+
+        cacheForQueriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Build().id;
+        cacheForQueriesView.Require<Ecs::View, MatchedArchetypeCache>();
+        cacheForSystemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
+    }
+
     Entity World::Entity()
     {
         return Ecs::Entity(*this, createEntity());
@@ -46,10 +69,26 @@ namespace RR::Ecs
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
         const auto it = eventsToSystems.find(event.id);
-        ASSERT(it != eventsToSystems.end()); // TODO should be ok btw
+        // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
+        if(it == eventsToSystems.end())
+            return;
 
-      //  for(const auto systemId : it->second)
-      //      systems[systemId.Value()].onEvent(event, );
+        for(const auto systemId : it->second)
+    {
+            cacheForSystemsView.ForEntity(EntityId(systemId.Value()), [ &event, systemId](World& world, SystemDescription& desc){
+
+                        desc.onEvent(event, Ecs::Query(world, QueryId(systemId.Value())));
+          /*    // desc.onEvent(event,  )
+                for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+                {
+                    const Archetype& archetype = *it->second;
+                    if (!matches(archetype, view))
+                        continue;
+
+                    cache.push_back(&archetype);
+                }*/ 
+            });
+        }
 
         UNUSED(event);
     }
@@ -58,5 +97,55 @@ namespace RR::Ecs
     {
         ASSERT(entity);
         UNUSED(entity, event);
+    }
+
+    QueryId World::_register(const Ecs::View& view)
+    {
+        Ecs::Entity entt = Entity();
+        entt.Edit()
+            .Add<Ecs::View>(view)
+            .Add<MatchedArchetypeCache>()
+            .Apply();
+
+        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache){
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                cache.push_back(&archetype);
+            }
+        });
+
+        return QueryId::FromValue(entt.GetId().rawId);
+    }
+
+    Ecs::System World::Create(SystemDescription&& desc, Ecs::View&& view)
+    {
+        UNUSED(desc);
+        Ecs::Entity entt = Entity();
+        entt.Edit()
+            .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
+            .Add<MatchedArchetypeCache>()
+            .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
+            .Apply();
+
+        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache){
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                cache.push_back(&archetype);
+            }
+        });
+
+        const auto systemId = SystemId(entt.GetId().rawId);
+        for (const auto event : desc.onEvents)
+            eventsToSystems[event].push_back(systemId);
+
+        return Ecs::System(*this, systemId);
     }
 }

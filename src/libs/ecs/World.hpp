@@ -25,6 +25,8 @@ namespace RR::Ecs
             eastl::fixed_vector<const Archetype*, 16> cache;
         };
 
+        using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; //TODO naming?
+
     public:
         template <typename EventType>
         inline EventBuilder<EventType> Event();
@@ -35,16 +37,7 @@ namespace RR::Ecs
         Ecs::View View() { return Ecs::View(*this); }
         Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
 
-        Ecs::System Create(SystemDescription&& desc, Ecs::View&& view)
-        {
-            QueryId query = _register(view);
-            systems.emplace_back(eastl::forward<SystemDescription>(desc));
-            SystemId id = SystemId(systems.size() - 1);
-            // TODO maybe  fill it on process/tick after sorting systems order to have ordered list in this
-            for (auto eventId : desc.onEvents)
-                eventsToSystems[eventId].push_back(id);
-            return Ecs::System(*this, id, query);
-        }
+        Ecs::System Create(SystemDescription&& desc, Ecs::View&& view);
 
         bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
@@ -99,7 +92,7 @@ namespace RR::Ecs
 
         void Tick();
 
-        World() { RegisterComponent<EntityId>(); }
+        World();
 
     private:
         template <typename U>
@@ -124,31 +117,20 @@ namespace RR::Ecs
 
         void updateCache(const Archetype& archetype)
         {
-            for (auto& view : views)
-            {
-                if (!matches(archetype, view.view))
-                    continue;
+            // This could only happends while world creation process.
+            // We create archetype to place this query, and while create archetype we tring use this query.
+            if UNLIKELY(!cacheForQueriesQuery.IsValid())
+                return;
 
-                view.cache.push_back(&archetype);
-            }
-        }
-
-        QueryId _register(const Ecs::View& view)
-        {
-            size_t index = views.size();
-            views.push_back({view, {}});
-
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-            {
-                const Archetype& archetype = *it->second;
+            Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
                 if (!matches(archetype, view))
-                    continue;
+                    return;
 
-                views[index].cache.push_back(&archetype);
-            }
-
-            return QueryId::FromValue(index);
+                cache.push_back(&archetype);
+            });
         }
+
+        QueryId _register(const Ecs::View& view);
 
         template <typename Components, typename ArgsTuple>
         EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args)
@@ -316,8 +298,13 @@ namespace RR::Ecs
         void queryImpl(const Ecs::Query& query, Callable&& callable, eastl::index_sequence<Index...>)
         {
             // Todo check all args in callable persist in requireComps with std::includes
+            MatchedArchetypeCache* archetypes = nullptr;
+            cacheForQueriesView.ForEntity(EntityId(query.id.Value()), [&archetypes](MatchedArchetypeCache& cache) {
+                archetypes = &cache;
+            });
 
-            for (auto archetype : views[query.id.Value()].cache)
+            ASSERT(archetypes);
+            for (auto archetype : *archetypes)
             {
                 ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
             }
@@ -348,10 +335,13 @@ namespace RR::Ecs
     private:
         EntityStorage entityStorage;
         EventStorage eventStorage;
-        eastl::vector<QueryData> views;
+    // eastl::vector<QueryData> views;
         eastl::vector<SystemDescription> systems;
         // SystemStorage systemStorage;
         ComponentStorage componentStorage;
+        Ecs::View cacheForQueriesView;
+        Ecs::View cacheForSystemsView;
+        Ecs::QueryId cacheForQueriesQuery;
         ska::flat_hash_map<TypeId, eastl::fixed_vector<SystemId, 8>> eventsToSystems; // Todo rename //TODO eventId
         ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
@@ -379,6 +369,7 @@ namespace RR::Ecs
         world.query(*this, eastl::forward<Callable>(callable));
     }
 
+    // TODO Maybe move it wold, if we have entity, we don't need view!
     template <typename Callable>
     void View::ForEntity(EntityId entityId, Callable&& callable) const
     {

@@ -33,8 +33,7 @@ namespace RR::Ecs
     struct SystemDescription
     {
         static constexpr size_t FunctionSize = 64;
-        // using OnEventCallbackFunc = void(*)(const Event&);
-        eastl::fixed_function<FunctionSize, void(const Event&, Query)> onEvent;
+        eastl::fixed_function<FunctionSize, void(const Ecs::Event&, const Ecs::Query&)> onEvent;
         eastl::fixed_vector<TypeId, 16> onEvents;
         eastl::fixed_vector<SystemId, 8> before;
         eastl::fixed_vector<SystemId, 8> after;
@@ -46,12 +45,11 @@ namespace RR::Ecs
         friend Ecs::World;
         friend Ecs::SystemBuilder;
 
-        explicit System(Ecs::World& world, SystemId id, QueryId queryId) : world(world), id(id), queryId(queryId) { };
+        explicit System(Ecs::World& world, SystemId id) : world(world), id(id) { };
 
     private:
         World& world;
         SystemId id;
-        QueryId queryId;
     };
 
     /*

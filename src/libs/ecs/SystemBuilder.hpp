@@ -83,12 +83,6 @@ namespace RR::Ecs
             query.world.query(query, eastl::forward<Callback>(callback));
         }
 
-        template <typename Callback, typename... Args>
-        static void callQuery(Query query, Callback&& callback, TypeList<Args...>)
-        {
-            query.ForEach(callback);
-        }
-
         template <typename... EventTypes, typename Callback>
         System OnEvent(Callback&& callback) &&
         {
@@ -100,12 +94,26 @@ namespace RR::Ecs
             // todo GET/CHECK event RAW TYPE
             (desc.onEvents.emplace_back(GetTypeId<EventTypes>), ...);
 
+            UNUSED(callback);
+            UNUSED(ArgList);
             // TODO simplicate this mess with calls
-            desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
+            // TODO performance note: to call onEvent we query system and we query system again in onEvent
+
+              desc.onEvent = [cb = std::forward<Callback>(callback)](const Ecs::Event&, const Ecs::Query& query)  {
+                  query.world.query(query, eastl::move(cb));
+            };
+
+
+     /*       desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
                 callQuery(query, event, eastl::move(cb), ArgList {});
             };
 
+
+       desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
+                callQuery(query, event, eastl::move(cb), ArgList {});
+            };*/
 /*
+
             constexpr bool isFirstArgEvent = IsFirstArgEvent<ArgList>::Value;
 
             if constexpr (isFirstArgEvent)
