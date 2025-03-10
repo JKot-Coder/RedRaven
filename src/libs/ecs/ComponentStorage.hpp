@@ -5,6 +5,7 @@
 
 namespace RR::Ecs
 {
+// TODO why we need this
     class ComponentStorage
     {
     public:

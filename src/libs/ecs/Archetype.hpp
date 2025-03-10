@@ -122,7 +122,7 @@ namespace RR::Ecs
         };
 
     public:
-        // Compomentn Info should be sorted
+        // Compoment info should be sorted
         template <typename Interator>
         Archetype(ArchetypeId id, size_t chunkSizePower, Interator compInfoBegin, Interator compInfoEnd)
             : id(id), chunkSize(1 << chunkSizePower)

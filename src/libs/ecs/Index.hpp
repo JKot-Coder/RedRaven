@@ -21,7 +21,7 @@ namespace RR::Ecs
 
         static constexpr Index FromValue(ValueType value) noexcept { return Index(value); }
 
-        constexpr IndexType Value() const noexcept { return value_; }
+        constexpr IndexType Value() const noexcept { return value_; } // Todo naming. GetValue in EntityId vs value.
         constexpr bool IsValid() const noexcept { return value_ != InvalidValue; }
 
         constexpr bool operator==(const Index& other) const noexcept { return value_ == other.value_; }
