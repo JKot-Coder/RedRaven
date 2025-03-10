@@ -235,17 +235,31 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void query(const Ecs::Query& query, Callable&& callable)
+        void query(const Ecs::View& view, Callable&& callable)
         {
-            using ArgList = GetArgumentList<Callable>;
-            queryImpl<ArgList>(query, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
+            // Todo check all args in callable persist in requireComps with std::includes
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, archetype});
+            }
         }
 
         template <typename Callable>
-        void query(const Ecs::View& view, Callable&& callable)
+        void query(const Ecs::Query& query, Callable&& callable)
         {
-            using ArgList = GetArgumentList<Callable>;
-            queryImpl<ArgList>(view, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
+            // Todo check all args in callable persist in requireComps with std::includes
+            MatchedArchetypeCache* archetypes = nullptr;
+            cacheForQueriesView.ForEntity(EntityId(query.id.Value()), [&archetypes](MatchedArchetypeCache& cache) {
+                archetypes = &cache;
+            });
+
+            ASSERT(archetypes);
+            for (auto archetype : *archetypes)
+                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
         }
 
         template <typename Callable>
@@ -277,37 +291,6 @@ namespace RR::Ecs
             }
 
             ArchetypeIterator::ForEntity(index, eastl::forward<Callable>(callable), {*this, *archetype});
-        }
-
-        template <typename ArgumentList, typename Callable, size_t... Index>
-        void queryImpl(const Ecs::View& view, Callable&& callable, eastl::index_sequence<Index...>)
-        {
-            // Todo check all args in callable persist in requireComps with std::includes
-
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-            {
-                const Archetype& archetype = *it->second;
-                if (!matches(archetype, view))
-                    continue;
-
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, archetype});
-            }
-        }
-
-        template <typename ArgumentList, typename Callable, size_t... Index>
-        void queryImpl(const Ecs::Query& query, Callable&& callable, eastl::index_sequence<Index...>)
-        {
-            // Todo check all args in callable persist in requireComps with std::includes
-            MatchedArchetypeCache* archetypes = nullptr;
-            cacheForQueriesView.ForEntity(EntityId(query.id.Value()), [&archetypes](MatchedArchetypeCache& cache) {
-                archetypes = &cache;
-            });
-
-            ASSERT(archetypes);
-            for (auto archetype : *archetypes)
-            {
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
-            }
         }
 
         template <typename... Components>
