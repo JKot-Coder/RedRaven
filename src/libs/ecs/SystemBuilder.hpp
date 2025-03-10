@@ -50,14 +50,14 @@ namespace RR::Ecs
         template <typename... Components>
         SystemBuilder Require() &&
         {
-            desc.view.Require<Components...>();
+            view.Require<Components...>();
             return *this;
         }
 
         template <typename... Components>
         SystemBuilder Exclude() &&
         {
-            desc.view.Exclude<Components...>();
+            view.Exclude<Components...>();
             return *this;
         }
 
