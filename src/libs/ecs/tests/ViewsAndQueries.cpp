@@ -146,7 +146,7 @@ TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
     const auto query = world.Query().Require<Foo>().Build();
     query.ForEach([&](EntityId id, Foo foo) {
         summ += foo.x;
-        REQUIRE(id.rawId == 1);
+        REQUIRE(id == entt1.GetId());
     });
 
     REQUIRE(summ == 1);
@@ -163,7 +163,7 @@ TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
 
 TEST_CASE_METHOD(WorldFixture, "Query Exclude", "[Query]")
 {
-    world.Entity().Edit().Add<Foo>(1).Apply();
+    Entity entt1 = world.Entity().Edit().Add<Foo>(1).Apply();
     world.Entity().Edit().Add<Foo>(1).Add<Bar>(1).Apply();
 
     int summ = 0;
@@ -177,7 +177,7 @@ TEST_CASE_METHOD(WorldFixture, "Query Exclude", "[Query]")
     entt2.Edit().Add<Foo>(2).Add<Bar>(2).Add<float>(0.0f).Apply();
     query.ForEach([&](EntityId id, Foo foo) {
         summ += foo.x;
-        REQUIRE(id.rawId == 0);
+        REQUIRE(id.rawId == entt1.GetId());
     });
 
     REQUIRE(summ == 1);

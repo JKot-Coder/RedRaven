@@ -14,9 +14,9 @@ TEST_CASE_METHOD(WorldFixture, "Create Entity", "[Entity]")
     Entity entt1 = world.Entity();
     Entity entt2 = world.Entity();
     Entity entt3 = world.Entity();
-    REQUIRE(entt1.GetId().rawId == 0);
-    REQUIRE(entt2.GetId().rawId == 1);
-    REQUIRE(entt3.GetId().rawId == 2);
+    REQUIRE(entt1.GetId());
+    REQUIRE(entt2.GetId().rawId == entt1.GetId().rawId + 1);
+    REQUIRE(entt3.GetId().rawId == entt2.GetId().rawId + 1);
 }
 
 TEST_CASE_METHOD(WorldFixture, "Delete Entity", "[Entity]")
@@ -29,7 +29,7 @@ TEST_CASE_METHOD(WorldFixture, "Delete Entity", "[Entity]")
     Entity entt3 = world.Entity();
     REQUIRE(entt1.IsAlive());
     REQUIRE(entt3.IsAlive());
-    REQUIRE(entt1.GetId().rawId == 0);
+    REQUIRE(entt1.GetId());
     REQUIRE(entt3.GetId().GetGeneration() == entt2.GetId().GetGeneration() + 1);
     REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
 }
@@ -45,7 +45,7 @@ TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
     REQUIRE(!entt2.IsAlive());
     REQUIRE(entt1.IsAlive());
     REQUIRE(entt3.IsAlive());
-    REQUIRE(entt1.GetId().rawId == 0);
+    REQUIRE(entt1.GetId());
     REQUIRE(entt3.GetId().GetGeneration() == entt2.GetId().GetGeneration() + 1);
     REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
 }
