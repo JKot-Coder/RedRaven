@@ -18,3 +18,4 @@
 + query by entity.
 # singletonss
 # checks for copy/move only
+# todo refactor systems/queries to entitites.

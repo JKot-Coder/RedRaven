@@ -4,6 +4,7 @@
 #include "ecs/ComponentStorage.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/EntityStorage.hpp"
+#include "ecs/Entity.hpp"
 #include "ecs/Event.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/FunctionTraits.hpp"
@@ -26,17 +27,24 @@ namespace RR::Ecs
 
     public:
         template <typename EventType>
-        inline EventBuilder<EventType> Event() const;
-        template <typename... Components>
-        inline SystemBuilder<Components...> System(const char* name);
+        inline EventBuilder<EventType> Event();
+        SystemBuilder System();
         Ecs::Entity Entity();
         Ecs::Entity Entity(EntityId entityId);
 
         Ecs::View View() { return Ecs::View(*this); }
         Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
 
-        template <typename T, typename DescriptionType>
-        T Create(DescriptionType&& desc);
+        Ecs::System Create(SystemDescription&& desc, Ecs::View&& view)
+        {
+            QueryId query = _register(view);
+            systems.emplace_back(eastl::forward<SystemDescription>(desc));
+            SystemId id = SystemId(systems.size() - 1);
+            // TODO maybe  fill it on process/tick after sorting systems order to have ordered list in this
+            for (auto eventId : desc.onEvents)
+                eventsToSystems[eventId].push_back(id);
+            return Ecs::System(*this, id, query);
+        }
 
         bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
@@ -103,6 +111,7 @@ namespace RR::Ecs
         friend struct View;
         friend struct Query;
         friend struct QueryBuilder;
+        friend struct SystemBuilder;
 
         static bool matches(const Archetype& archetype, const Ecs::View& view)
         {
@@ -340,33 +349,28 @@ namespace RR::Ecs
         EntityStorage entityStorage;
         EventStorage eventStorage;
         eastl::vector<QueryData> views;
-        SystemStorage systemStorage;
+        eastl::vector<SystemDescription> systems;
+        // SystemStorage systemStorage;
         ComponentStorage componentStorage;
+        ska::flat_hash_map<TypeId, eastl::fixed_vector<SystemId, 8>> eventsToSystems; // Todo rename //TODO eventId
         ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
 
     template <typename EventType>
-    void World::emit(EventType&& event, const EventDescription& eventDesc) const
+    void World::emit(EventType&& event, const EventDescription& eventDesc)
     {
-        static_assert(std::is_base_of<Ecs::event, EventType>::value, "EventType must derive from Event");
-        eventStorage.Push(std::move(event), eventDesc);
+        static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+        eventStorage.Push(eastl::forward<EventType>(event), eventDesc);
     }
 
     template <typename EventType>
     void World::emitImmediately(EventType&& event, const EventDescription& eventDesc) const
     {
-        static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
+        static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
         if (!eventDesc.entity)
-            broadcastEventImmediately(std::move(event));
+            broadcastEventImmediately(eastl::forward<EventType>(event));
         else
-            dispatchEventImmediately(eventDesc.entity, std::move(event));
-    }
-
-    template <>
-    inline System World::Create<System>(SystemDescription&& desc)
-    {
-        systemStorage.Push(desc);
-        return Ecs::System(*this, desc.hashName);
+            dispatchEventImmediately(eventDesc.entity, eastl::forward<EventType>(event));
     }
 
     template <typename Callable>

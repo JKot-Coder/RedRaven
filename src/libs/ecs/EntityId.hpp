@@ -23,7 +23,7 @@ namespace RR::Ecs
             uint32_t rawId;
         };
 
-        EntityId() : rawId(InvalidRawId) { }
+        constexpr EntityId() : rawId(InvalidRawId) { }
         EntityId(uint32_t index, uint32_t generation)
         {
             fields.index = index;

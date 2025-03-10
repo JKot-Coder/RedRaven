@@ -51,7 +51,7 @@ namespace RR::Ecs
             return true;
         }
     }
-
+/*
     void SystemStorage::RegisterDeffered()
     {
         if (!isDirty)
@@ -120,5 +120,5 @@ namespace RR::Ecs
             systems.push_back(tmpSystemList[sortedList[id]]);
 
         isDirty = false;
-    }
+    }*/
 }

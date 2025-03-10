@@ -9,6 +9,8 @@ namespace RR::Ecs
         return Ecs::Entity(*this, createEntity());
     }
 
+    SystemBuilder World::System() { return Ecs::SystemBuilder(*this); }
+
     Entity World::Entity(EntityId entityId)
     {
         ASSERT(IsAlive(entityId));
@@ -17,7 +19,7 @@ namespace RR::Ecs
 
     void World::Tick()
     {
-        systemStorage.RegisterDeffered();
+        //systemStorage.RegisterDeffered();
 
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if (entityId)
@@ -43,6 +45,12 @@ namespace RR::Ecs
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
+        const auto it = eventsToSystems.find(event.id);
+        ASSERT(it != eventsToSystems.end()); // TODO should be ok btw
+
+      //  for(const auto systemId : it->second)
+      //      systems[systemId.Value()].onEvent(event, );
+
         UNUSED(event);
     }
 

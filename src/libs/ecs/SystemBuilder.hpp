@@ -2,10 +2,159 @@
 
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/System.hpp"
-#include <flecs.h>
+#include "ecs/FunctionTraits.hpp"
+// #include <flecs.h>
 
 namespace RR::Ecs
 {
+/*
+    template<typename ArgList, bool HasArg = (ArgList::Count > 0)>
+    struct IsFirstArgEvent;
+
+    template <typename ArgList>
+    struct IsFirstArgEvent<ArgList, true>
+    {
+        using FirstArg = typename ArgList::template Get<0>;
+        static constexpr bool Value =
+            eastl::is_same_v<FirstArg, Event> ||
+            eastl::is_base_of_v<Event, FirstArg>;
+    };
+
+    template <typename ArgList>
+    struct IsFirstArgEvent<ArgList, false>
+    {
+        static constexpr bool Value = false;
+    };
+
+    namespace _
+    {
+        template <typename TypeListT>
+        struct TrimFirstArg;
+
+        template <typename First, typename... Rest>
+        struct TrimFirstArg<TypeList<First, Rest...>>
+        {
+            using TrimmedList = TypeList<Rest...>;
+        };
+    }
+    template <typename TypeListT>
+    using TrimFirstArg = typename _::TrimFirstArg<TypeListT>::TrimmedList;
+*/
+    struct [[nodiscard]] SystemBuilder
+    {
+    private:
+        friend struct Ecs::World;
+        SystemBuilder(World& world) : view(world) { };
+
+    public:
+        template <typename... Components>
+        SystemBuilder Require() &&
+        {
+            desc.view.Require<Components...>();
+            return *this;
+        }
+
+        template <typename... Components>
+        SystemBuilder Exclude() &&
+        {
+            desc.view.Exclude<Components...>();
+            return *this;
+        }
+
+        template <typename... Args>
+        SystemBuilder& After(Args&&... args) &&
+        {
+            (after(args), ...);
+            return *this;
+        }
+
+        template <typename... Args>
+        SystemBuilder& Before(Args&&... args) &&
+        {
+            (after(args), ...);
+            return *this;
+        }
+
+        template <typename Callback, typename Event, typename... Args>
+        static void callQuery(Query query, const Event& event, Callback&& callback, TypeList<Args...>)
+        {
+          //  query.ForEach([&event](Args... args) { callback(event, eastl::forward<Args>(args)...); });
+         // query.ForEach();
+            query.world.query(query, eastl::forward<Callback>(callback));
+        }
+
+        template <typename Callback, typename... Args>
+        static void callQuery(Query query, Callback&& callback, TypeList<Args...>)
+        {
+            query.ForEach(callback);
+        }
+
+        template <typename... EventTypes, typename Callback>
+        System OnEvent(Callback&& callback) &&
+        {
+            static_assert(sizeof...(EventTypes) > 0, "At least one event type must be specified");
+            static_assert((std::is_base_of_v<Event, EventTypes> && ...), "All event types must derive from ecs::Event");
+
+            using ArgList = GetArgumentList<Callback>;
+
+            // todo GET/CHECK event RAW TYPE
+            (desc.onEvents.emplace_back(GetTypeId<EventTypes>), ...);
+
+            // TODO simplicate this mess with calls
+            desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
+                callQuery(query, event, eastl::move(cb), ArgList {});
+            };
+
+/*
+            constexpr bool isFirstArgEvent = IsFirstArgEvent<ArgList>::Value;
+
+            if constexpr (isFirstArgEvent)
+            {
+                using TrimmedArgList = TrimFirstArg<ArgList>;
+                desc.onEvent = [cb = std::forward<Callback>(callback)](const Event& event, Query query)  {
+                    callQuery(query, event, eastl::move(cb), TrimmedArgList {});
+                };
+            } else 
+            {
+                desc.onEvent = [cb = std::forward<Callback>(callback)](const Event&, Query query) {
+                    callQuery(query, eastl::move(cb), ArgList {});
+                };
+            }*/
+
+            return view.world.Create(eastl::move(desc), eastl::move(view));
+        }
+
+    private:
+        SystemBuilder& after(const System& system)
+        {
+            after(system.id);
+            return *this;
+        }
+
+        SystemBuilder& after(const SystemId& system)
+        {
+            desc.after.push_back(system);
+            return *this;
+        }
+
+        SystemBuilder& before(const System& system)
+        {
+            before(system.id);
+            return *this;
+        }
+
+        SystemBuilder& before(const SystemId& system)
+        {
+            desc.before.push_back(system);
+            return *this;
+        }
+
+    private:
+        SystemDescription desc;
+        View view;
+    };
+
+    /*
     template <typename T, typename TDesc, typename... Components>
     struct NodeBuilder
     {
@@ -19,7 +168,7 @@ namespace RR::Ecs
             //   entity_desc.root_sep = "::";
             // desc_.entity = ecs_entity_init(world_->Flecs(), &entity_desc);
         }
-        /*
+
                 template <typename Func>
                 T Each(Func&& func)
                 {
@@ -35,7 +184,7 @@ namespace RR::Ecs
                 //    return world_->Init<T>(desc_);
 
                     return
-                }*/
+                }
 
     protected:
         TDesc desc_ {};
@@ -103,11 +252,11 @@ namespace RR::Ecs
             return *this;
         }
 
-        /*    SystemBuilder& after(const System& system)
+            SystemBuilder& after(const System& system)
             {
                 after(system.Name());
                 return *this;
-            }*/
+            }
 
         SystemBuilder& after(std::string_view name)
         {
@@ -143,4 +292,5 @@ namespace RR::Ecs
     {
         return SystemBuilder<Components...>(*this, name);
     }
+    */
 }

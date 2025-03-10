@@ -18,6 +18,7 @@ namespace RR::Ecs
     private:
         friend World;
         friend QueryBuilder;
+         friend SystemBuilder; // TODO don't think it's should be here;
 
         explicit Query(World& world, QueryId id) : world(world), id(id) {};
 

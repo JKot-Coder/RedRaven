@@ -8,17 +8,21 @@ namespace RR::Ecs
 {
     // For Vector4 in Event EVENT_ALIGNMENT must be changed and/or
     // implement aligment on allocation
-    static constexpr int EVENT_ALIGNMENT = alignof(uint32_t);
+    // TODO why and how much we need?
+    // type id is require 8 butes. maybe we need uint32_t hashes?
+    static constexpr int EVENT_ALIGNMENT = alignof(size_t);
 
     struct alignas(EVENT_ALIGNMENT)
     Event
     {
         using SizeType = uint16_t;
-        SizeType size;
 
-        constexpr Event(size_t size_) : size(static_cast<SizeType>(size_)) {
-            ASSERT(size_ < (size_t)std::numeric_limits<SizeType>::max);
+        constexpr Event(TypeId id, size_t size) : id(id), size(static_cast<SizeType>(size)) {
+            ASSERT(size < (size_t)std::numeric_limits<SizeType>::max);
         };
+
+        TypeId id; // TODO replace with eventId;
+        SizeType size;
     };
 
     struct EventDescription
