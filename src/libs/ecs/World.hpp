@@ -235,11 +235,13 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void query(MatchedArchetypeSpan span, Callable&& callable)
+        void query(MatchedArchetypeSpan span, Callable&& callable, const Ecs::Event* event)
         {
+            IterationContext context {*this, event};
+
             // Todo check all args in callable persist in requireComps with std::includes
             for (auto archetype : span)
-                ArchetypeIterator::ForEach(*archetype, eastl::forward<Callable>(callable), {*this, nullptr});
+                ArchetypeIterator::ForEach(*archetype, eastl::forward<Callable>(callable), context);
         }
 
         template <typename Callable>
@@ -252,13 +254,14 @@ namespace RR::Ecs
             });
 
             ASSERT(archetypes);
-            this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable));
+            this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable), nullptr);
         }
 
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable)
         {
             // Todo check all args in callable persist in requireComps with std::includes
+            IterationContext context {*this, nullptr};
 
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
@@ -266,7 +269,7 @@ namespace RR::Ecs
                 if (!matches(archetype, view))
                     continue;
 
-                ArchetypeIterator::ForEach(archetype, eastl::forward<Callable>(callable), {*this, nullptr});
+                ArchetypeIterator::ForEach(archetype, eastl::forward<Callable>(callable), context);
             }
         }
 

@@ -72,6 +72,34 @@ namespace RR::Ecs
         Ecs::World& world;
     };
 
+    template <typename Arg>
+    struct ComponentAccessor<Arg, eastl::enable_if_t<eastl::is_base_of_v<Ecs::Event, GetComponentType<Arg>>>>
+    {
+        using Argument = Arg;
+        using Component = GetComponentType<Arg>;
+
+        ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) { };
+        Arg Get(ArchetypeEntityIndex) { return dereference(); }
+        Arg Get(size_t, size_t) { return dereference(); }
+
+    private:
+        Arg dereference()
+        {
+            if constexpr (eastl::is_pointer_v<Argument>)
+            {
+                static_assert(eastl::is_const_v<eastl::remove_pointer_t<Argument>>, "Event component should be read only accessed");
+                return static_cast<Argument>(event);
+            }
+            else
+            {
+                static_assert(eastl::is_const_v<eastl::remove_reference_t<Argument>>, "Event component should be read only accessed");
+                return static_cast<Argument>(*event);
+            }
+        }
+
+        const Ecs::Event* event;
+    };
+
     struct ArchetypeIterator
     {
     private:

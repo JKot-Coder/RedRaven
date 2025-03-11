@@ -52,8 +52,8 @@ namespace RR::Ecs
             // todo GET/CHECK event RAW TYPE
             (desc.onEvents.emplace_back(GetComponentId<EventTypes>), ...);
 
-            desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event&, Ecs::MatchedArchetypeSpan archetypes) {
-                world.query(archetypes, eastl::move(cb));
+            desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event& event, Ecs::MatchedArchetypeSpan archetypes) {
+                world.query(archetypes, eastl::move(cb), &event);
             };
 
             return view.world.Create(eastl::move(desc), eastl::move(view));
