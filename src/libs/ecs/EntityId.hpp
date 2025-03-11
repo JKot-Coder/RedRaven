@@ -33,6 +33,7 @@ namespace RR::Ecs
 
         uint32_t GetGeneration() const { return fields.generation; }
         uint32_t GetIndex() const { return fields.index; }
+        uint32_t GetRawId() const { return rawId; }
         operator bool() const { return rawId != InvalidRawId; }
     };
 }
