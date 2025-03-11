@@ -17,17 +17,17 @@ namespace RR::Ecs
     {
         using SizeType = uint16_t;
 
-        constexpr Event(TypeId id, size_t size) : id(id), size(static_cast<SizeType>(size)) {
+        constexpr Event(ComponentId id, size_t size) : id(id), size(static_cast<SizeType>(size)) {
             ASSERT(size < (size_t)std::numeric_limits<SizeType>::max);
         };
 
-        TypeId id; // TODO replace with eventId;
+        ComponentId id; // TODO replace with eventId;
         SizeType size;
     };
 
     struct EventDescription
     {
-        EntityId eventId = {};
+        ComponentId eventId = {};
         EntityId entity = {};
     };
 

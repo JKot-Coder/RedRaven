@@ -11,8 +11,7 @@ namespace RR::Ecs
     public:
         EventBuilder(World& world) : world(world), description()
         {
-            // TODO;
-            description.eventId = {};// world.typeId<EventType>();
+            description.eventId = GetComponentId<EventType>;
         }
 
         EventBuilder Entity(EntityId entity)

@@ -10,7 +10,7 @@ struct WorldFixture
 
 struct TestEvent : Event
 {
-    TestEvent() : RR::Ecs::Event(GetTypeId<TestEvent>, sizeof(TestEvent)) { };
+    TestEvent() : RR::Ecs::Event(GetComponentId<TestEvent>, sizeof(TestEvent)) { };
 };
 
 TEST_CASE_METHOD(WorldFixture, "System create", "[System]")

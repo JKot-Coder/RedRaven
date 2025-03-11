@@ -90,6 +90,7 @@ namespace RR::Ecs
             UNUSED(ArgList);
             // TODO simplicate this mess with calls
             // TODO performance note: to call onEvent we query system and we query system again in onEvent
+            (desc.onEvents.emplace_back(GetComponentId<EventTypes>), ...);
 
             desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event&, Ecs::MatchedArchetypeSpan archetypes) {
                 world.query(archetypes, eastl::move(cb));
