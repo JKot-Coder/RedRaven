@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/View.hpp"
 #include "ecs/Index.hpp"
+#include "ecs/View.hpp"
 
 namespace RR::Ecs
 {
@@ -18,9 +18,9 @@ namespace RR::Ecs
     private:
         friend World;
         friend QueryBuilder;
-         friend SystemBuilder; // TODO don't think it's should be here;
+        friend SystemBuilder; // TODO don't think it's should be here;
 
-        explicit Query(World& world, QueryId id) : world(world), id(id) {};
+        explicit Query(World& world, QueryId id) : world(world), id(id) { };
 
     private:
         World& world;
@@ -50,7 +50,7 @@ namespace RR::Ecs
     private:
         friend World;
 
-        explicit QueryBuilder(World& world) : view(world) {};
+        explicit QueryBuilder(World& world) : view(world) { };
 
     private:
         View view;
