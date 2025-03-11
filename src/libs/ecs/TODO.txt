@@ -7,7 +7,7 @@
 + Move instead copy
 # Chunk size in kb
 + Implement Query.
-# Rework systems.
++ Rework systems.
 # Appear / dissapear
 # Track
 # Check world match
@@ -18,4 +18,6 @@
 + query by entity.
 # singletonss
 # checks for copy/move only
-# todo refactor systems/queries to entitites.
++ todo refactor systems/queries to entitites.
+# rework queries/view (cache)
+# world view?
