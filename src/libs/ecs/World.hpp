@@ -2,9 +2,9 @@
 
 #include "ecs/Archetype.hpp"
 #include "ecs/ComponentStorage.hpp"
+#include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/EntityStorage.hpp"
-#include "ecs/Entity.hpp"
 #include "ecs/Event.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/FunctionTraits.hpp"
@@ -25,7 +25,7 @@ namespace RR::Ecs
             eastl::fixed_vector<const Archetype*, 16> cache;
         };
 
-        using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; //TODO naming?
+        using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; // TODO naming?
 
     public:
         template <typename EventType>
@@ -119,7 +119,7 @@ namespace RR::Ecs
         {
             // This could only happends while world creation process.
             // We create archetype to place this query, and while create archetype we tring use this query.
-            if UNLIKELY(!cacheForQueriesQuery.IsValid())
+            if UNLIKELY (!cacheForQueriesQuery.IsValid())
                 return;
 
             Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
@@ -274,11 +274,11 @@ namespace RR::Ecs
         void queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            queryForEntityImpl<ArgList>(entityId, view, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
+            queryForEntityImpl<ArgList>(entityId, view, eastl::forward<Callable>(callable));
         }
 
-        template <typename ArgumentList, typename Callable, size_t... Index>
-        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, Callable&& callable, eastl::index_sequence<Index...>)
+        template <typename ArgumentList, typename Callable>
+        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, Callable&& callable)
         {
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
@@ -326,7 +326,7 @@ namespace RR::Ecs
     private:
         EntityStorage entityStorage;
         EventStorage eventStorage;
-    // eastl::vector<QueryData> views;
+        // eastl::vector<QueryData> views;
         eastl::vector<SystemDescription> systems;
         // SystemStorage systemStorage;
         ComponentStorage componentStorage;
