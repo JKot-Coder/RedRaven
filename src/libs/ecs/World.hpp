@@ -239,7 +239,7 @@ namespace RR::Ecs
         {
             // Todo check all args in callable persist in requireComps with std::includes
             for (auto archetype : span)
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, *archetype});
+                ArchetypeIterator::ForEach(*archetype, eastl::forward<Callable>(callable), {*this, nullptr});
         }
 
         template <typename Callable>
@@ -266,7 +266,7 @@ namespace RR::Ecs
                 if (!matches(archetype, view))
                     continue;
 
-                ArchetypeIterator::ForEach(eastl::forward<Callable>(callable), {*this, archetype});
+                ArchetypeIterator::ForEach(archetype, eastl::forward<Callable>(callable), {*this, nullptr});
             }
         }
 
@@ -298,7 +298,7 @@ namespace RR::Ecs
                 return;
             }
 
-            ArchetypeIterator::ForEntity(index, eastl::forward<Callable>(callable), {*this, *archetype});
+            ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), {*this, nullptr});
         }
 
         template <typename... Components>
