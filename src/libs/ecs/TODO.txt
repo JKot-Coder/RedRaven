@@ -13,7 +13,9 @@
 # Check world match
 + ImplementTypeInfo iterator
 + implement Query iterator
-# implement Event query
++ implement Event query
+# deffered events
+# event for entity
 + implement query context
 + query by entity.
 # singletonss
