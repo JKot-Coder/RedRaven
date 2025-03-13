@@ -9,32 +9,29 @@ namespace RR::Ecs
     struct EventBuilder
     {
     public:
-        EventBuilder(World& world) : world(world), description()
-        {
-            description.eventId = GetComponentId<EventType>;
-        }
+        EventBuilder(World& world) : world(world) { }
 
         EventBuilder Entity(EntityId entity)
         {
-            description.entity = entity;
+            entityId = entity;
             return *this;
         }
 
         void Emit(EventType&& event)
         {
-            static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
-            world.emit(std::move(event), description);
+            static_assert(std::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            world.emit(entityId, eastl::forward<EventType>(event));
         }
 
-        void EmitImmediately(EventType&& event) const
+        void EmitImmediately(const EventType& event) const
         {
-            static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
-            world.emitImmediately(std::move(event), description);
+            static_assert(std::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            world.emitImmediately(entityId, event);
         }
 
     private:
         World& world;
-        EventDescription description;
+        EntityId entityId;
     };
 
     template <typename E>

@@ -90,6 +90,7 @@ namespace RR::Ecs
             return false;
         }
 
+        void ProcessDefferedEvents();
         void Tick();
 
         World();
@@ -319,9 +320,9 @@ namespace RR::Ecs
         EntityId createEntity() { return entityStorage.Create(); }
 
         template <typename EventType>
-        void emit(EventType&& event, const EventDescription& eventDesc);
+        void emit(EntityId entity, EventType&& event);
         template <typename EventType>
-        void emitImmediately(EventType&& event, const EventDescription& eventDesc) const;
+        void emitImmediately(EntityId entity, const EventType& event) const;
 
         void broadcastEventImmediately(const Ecs::Event& event) const;
         void dispatchEventImmediately(EntityId entity, const Ecs::Event& event) const;
@@ -341,20 +342,20 @@ namespace RR::Ecs
     };
 
     template <typename EventType>
-    void World::emit(EventType&& event, const EventDescription& eventDesc)
+    void World::emit(EntityId entity, EventType&& event)
     {
         static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-        eventStorage.Push(eastl::forward<EventType>(event), eventDesc);
+        eventStorage.Push(entity, eastl::forward<EventType>(event));
     }
 
     template <typename EventType>
-    void World::emitImmediately(EventType&& event, const EventDescription& eventDesc) const
+    void World::emitImmediately(EntityId entity, const EventType& event) const
     {
         static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-        if (!eventDesc.entity)
-            broadcastEventImmediately(eastl::forward<EventType>(event));
+        if (!entity)
+            broadcastEventImmediately(event);
         else
-            dispatchEventImmediately(eventDesc.entity, eastl::forward<EventType>(event));
+            dispatchEventImmediately(entity, event);
     }
 
     template <typename Callable>

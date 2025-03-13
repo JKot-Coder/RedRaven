@@ -40,16 +40,20 @@ namespace RR::Ecs
         return Ecs::Entity(*this, entityId);
     }
 
-    void World::Tick()
+    void World::ProcessDefferedEvents()
     {
-        //systemStorage.RegisterDeffered();
-
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if (entityId)
                 dispatchEventImmediately(entityId, event);
             else
                 broadcastEventImmediately(event);
         });
+    }
+
+    void World::Tick()
+    {
+        ProcessDefferedEvents();
+        // systemStorage.RegisterDeffered();
 
         // world.progress();
     }
@@ -70,11 +74,11 @@ namespace RR::Ecs
     {
         const auto it = eventsToSystems.find(event.id);
         // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
-        if(it == eventsToSystems.end())
+        if (it == eventsToSystems.end())
             return;
 
-        for(const auto systemId : it->second)
-    {
+        for (const auto systemId : it->second)
+        {
             cacheForSystemsView.ForEntity(EntityId(systemId.Value()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
                 desc.onEvent(world, event, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
             });

@@ -88,12 +88,12 @@ namespace RR::Ecs
             if constexpr (eastl::is_pointer_v<Argument>)
             {
                 static_assert(eastl::is_const_v<eastl::remove_pointer_t<Argument>>, "Event component should be read only accessed");
-                return static_cast<Argument>(event);
+                return event->As<Component>();
             }
             else
             {
                 static_assert(eastl::is_const_v<eastl::remove_reference_t<Argument>>, "Event component should be read only accessed");
-                return static_cast<Argument>(*event);
+                return *event->As<Component>();
             }
         }
 
