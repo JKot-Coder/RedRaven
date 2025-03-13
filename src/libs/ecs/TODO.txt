@@ -14,12 +14,13 @@
 + ImplementTypeInfo iterator
 + implement Query iterator
 + implement Event query
-# deffered events
++ deffered events
 # event for entity
 + implement query context
 + query by entity.
-# singletonss
+# singletons
 # checks for copy/move only
 + todo refactor systems/queries to entitites.
-# rework queries/view (cache)
+# rework queries/view (uncached queries?)
 # world view?
+# rework chunk system
