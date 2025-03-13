@@ -1,6 +1,6 @@
 #include "World.hpp"
-#include "ecs/SystemBuilder.hpp"
 #include "ecs/EntityBuilder.hpp"
+#include "ecs/SystemBuilder.hpp"
 
 namespace RR::Ecs
 {
@@ -101,7 +101,7 @@ namespace RR::Ecs
             .Add<MatchedArchetypeCache>()
             .Apply();
 
-        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache){
+        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache) {
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
                 const Archetype& archetype = *it->second;
@@ -125,7 +125,7 @@ namespace RR::Ecs
             .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
             .Apply();
 
-        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache){
+        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache) {
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
             {
                 const Archetype& archetype = *it->second;
