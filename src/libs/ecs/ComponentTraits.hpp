@@ -79,7 +79,7 @@ namespace RR::Ecs
         static constexpr ComponentInfo Create()
         {
             return {
-                ComponentId(GetTypeId<T>.Value()),
+                ComponentId(GetTypeId<T>.GetRaw()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
                 alignof(T),
                 eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
@@ -161,7 +161,7 @@ namespace RR::Ecs
     {
         using RawType = typename ComponentType<T>::Type;
 
-        static constexpr ComponentId Id = ComponentId(GetTypeId<RawType>.Value());
+        static constexpr ComponentId Id = ComponentId(GetTypeId<RawType>.GetRaw());
 
         static constexpr size_t Size = sizeof(RawType);
         static constexpr size_t Alignment = alignof(RawType);

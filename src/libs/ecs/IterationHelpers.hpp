@@ -18,20 +18,22 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype& archetype, const IterationContext&)
+        ComponentAccessor(const Archetype& archetype, ArchetypeComponentIndex componentIndex, size_t chunkIndex, const IterationContext&)
         {
-            data = archetype.GetComponentData(GetComponentId<Component>);
+            ASSERT(componentIndex);
+
+            data = archetype.GetData(componentIndex, chunkIndex);
             ASSERT(data);
         }
 
-        Arg Get(ArchetypeEntityIndex entityIndex)
+        static ArchetypeComponentIndex GetComponentIndex(const Archetype& archetype)
         {
-            return dereference(reinterpret_cast<Component*>(data->GetData(entityIndex)));
+            return archetype.GetComponentIndex(GetComponentId<Component>);
         }
 
-        Arg Get(size_t chunkIndex, size_t index)
+        Arg Get(size_t entityIndex)
         {
-            return dereference(reinterpret_cast<Component*>(data->GetData(chunkIndex, index)));
+            return dereference(reinterpret_cast<Component*>(data + sizeof(Component) * entityIndex));
         }
 
     private:
@@ -45,7 +47,7 @@ namespace RR::Ecs
                 return *ptr;
         }
 
-        const Archetype::ComponentData* data;
+        std::byte* data;
     };
 
     template <typename Arg>
@@ -54,9 +56,9 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype&, const IterationContext& context) : world(context.world) { };
-        Arg Get(ArchetypeEntityIndex) { return dereference(); }
-        Arg Get(size_t, size_t) { return dereference(); }
+        ComponentAccessor(const Archetype&, ArchetypeComponentIndex, size_t, const IterationContext& context) : world(context.world) { };
+        static ArchetypeComponentIndex GetComponentIndex(const Archetype&) { return {}; }
+        Arg Get(size_t) { return dereference(); }
 
     private:
         Arg dereference()
@@ -78,9 +80,9 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) { };
-        Arg Get(ArchetypeEntityIndex) { return dereference(); }
-        Arg Get(size_t, size_t) { return dereference(); }
+        ComponentAccessor(const Archetype&, ArchetypeComponentIndex, size_t, const IterationContext& context) : event(context.event) { };
+        static ArchetypeComponentIndex GetComponentIndex(const Archetype&) { return {}; }
+        Arg Get(size_t) { return dereference(); }
 
     private:
         Arg dereference()
@@ -104,7 +106,7 @@ namespace RR::Ecs
     {
     private:
         template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
-        static void processChunk(Func&& func, size_t chunkIndex, size_t entitiesCount, ComponentAccessors... components)
+        static void processChunk(Func&& func, size_t entitiesCount, ComponentAccessors... components)
         {
             // clang-format off
             #ifdef __GNUC__
@@ -114,20 +116,22 @@ namespace RR::Ecs
             #pragma unroll UNROLL_N // clang-format on
             for (size_t i = 0; i < entitiesCount; i++)
             {
-                func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(chunkIndex, i))...);
+                func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(i))...);
             }
         }
 
         template <typename Func, typename... ComponentAccessors>
         static void invokeForEntity(ArchetypeEntityIndex entityIndex, Func&& func, ComponentAccessors... components)
         {
-            func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(entityIndex))...);
+            func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(entityIndex.GetIndexInChunk()))...);
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
         static void processEntity(const Archetype& archetype, ArchetypeEntityIndex entityIndex, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
-            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
+            // TODO optimize finding index, based on previous finded.
+            std::array<ArchetypeComponentIndex, sizeof...(Index)> componentIndexes = {ComponentAccessor<typename ArgumentList::template Get<Index>>::GetComponentIndex(archetype)...};
+            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, componentIndexes[Index], entityIndex.GetChunkIndex(), context)...);
 
             invokeForEntity(entityIndex, eastl::forward<Func>(func), eastl::get<Index>(componentAccessors)...);
         }
@@ -135,12 +139,15 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Func, size_t... Index>
         static void processArchetype(const Archetype& archetype, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
-            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
+            // TODO optimize finding index, based on previous finded.
+            std::array<ArchetypeComponentIndex, sizeof...(Index)> componentIndexes = {ComponentAccessor<typename ArgumentList::template Get<Index>>::GetComponentIndex(archetype)...};
 
-            for (size_t chunkIndex = 0, chunkCount = archetype.GetChunkCount(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += archetype.GetChunkSize())
+            for (size_t chunkIndex = 0, chunkCount = archetype.GetChunksCount(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += archetype.GetChunkCapacity())
             {
-                size_t entitiesCount = eastl::min(archetype.GetEntityCount() - entityOffset, archetype.GetChunkSize());
-                processChunk<4>(eastl::forward<Func>(func), chunkIndex, entitiesCount, eastl::get<Index>(componentAccessors)...);
+                auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, componentIndexes[Index], chunkIndex, context)...);
+
+                size_t entitiesCount = eastl::min(archetype.GetEntitiesCount() - entityOffset, archetype.GetChunkCapacity());
+                processChunk<4>(eastl::forward<Func>(func), entitiesCount, eastl::get<Index>(componentAccessors)...);
             }
         }
 

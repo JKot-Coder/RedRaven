@@ -21,7 +21,7 @@ namespace RR::Ecs
 
         static constexpr Index FromValue(ValueType value) noexcept { return Index(value); }
 
-        constexpr IndexType Value() const noexcept { return value_; } // Todo naming. GetValue in EntityId vs value.
+        constexpr IndexType GetRaw() const noexcept { return value_; } // Todo naming. GetValue in EntityId vs value.
         constexpr bool IsValid() const noexcept { return value_ != InvalidValue; }
 
         constexpr bool operator==(const Index& other) const noexcept { return value_ == other.value_; }
@@ -30,6 +30,7 @@ namespace RR::Ecs
         constexpr bool operator<=(const Index& other) const noexcept { return value_ <= other.value_; }
         constexpr bool operator>(const Index& other) const noexcept { return value_ > other.value_; }
         constexpr bool operator>=(const Index& other) const noexcept { return value_ >= other.value_; }
+        operator bool() const { return value_ != InvalidValue; }
 
     protected:
         IndexType value_ = InvalidValue;
@@ -43,7 +44,7 @@ namespace eastl
     {
         constexpr size_t operator()(const RR::Ecs::Index<Tag, IndexType>& index) const noexcept
         {
-            return static_cast<size_t>(index.Value());
+            return static_cast<size_t>(index.GetRaw());
         }
     };
 }

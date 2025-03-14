@@ -79,7 +79,7 @@ namespace RR::Ecs
 
         for (const auto systemId : it->second)
         {
-            cacheForSystemsView.ForEntity(EntityId(systemId.Value()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+            cacheForSystemsView.ForEntity(EntityId(systemId.GetRaw()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
                 desc.onEvent(world, event, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
             });
         }

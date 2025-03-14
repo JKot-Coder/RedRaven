@@ -5,7 +5,7 @@
 # Add names for Entitties
 + Caching
 + Move instead copy
-# Chunk size in kb
++ Chunk size in kb
 + Implement Query.
 + Rework systems.
 # Appear / dissapear
@@ -23,4 +23,4 @@
 + todo refactor systems/queries to entitites.
 # rework queries/view (uncached queries?)
 # world view?
-# rework chunk system
++ rework chunk system

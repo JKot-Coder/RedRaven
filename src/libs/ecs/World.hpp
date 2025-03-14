@@ -149,14 +149,11 @@ namespace RR::Ecs
         {
             Archetype* archetype = nullptr;
 
-            size_t chunkSizePower = 7; // TODO move it somewhere
-
             auto it = archetypesMap.find(archetypeId);
             if (it == archetypesMap.end())
             {
                 auto archUniqPtr = eastl::make_unique<Archetype>(
                     archetypeId,
-                    chunkSizePower,
                     ComponentInfoIterator(componentStorage, components.begin()),
                     ComponentInfoIterator(componentStorage, components.end()));
                 archetype = archUniqPtr.get();
@@ -176,7 +173,7 @@ namespace RR::Ecs
             if constexpr (IsTag<Component>)
                 return;
 
-            auto* ptr = archetype.GetComponentData(GetComponentId<Component>)->GetData(index);
+            auto* ptr = archetype.GetData(GetComponentId<Component>, index);
             new (ptr) Component {std::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
         }
 
@@ -250,7 +247,7 @@ namespace RR::Ecs
         {
             // Todo check all args in callable persist in requireComps with std::includes
             MatchedArchetypeCache* archetypes = nullptr;
-            cacheForQueriesView.ForEntity(EntityId(query.id.Value()), [&archetypes](MatchedArchetypeCache& cache) {
+            cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
                 archetypes = &cache;
             });
 

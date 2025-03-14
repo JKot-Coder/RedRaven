@@ -6,9 +6,8 @@ namespace RR::Ecs
 {
     ArchetypeEntityIndex Archetype::Insert(EntityStorage& entityStorage, EntityId entityId)
     {
-        expand(1);
-        auto index = ArchetypeEntityIndex(entityCount++);
-        *(EntityId*)componentsData[0].GetData(index) = entityId;
+        auto index = componentsData.Insert();
+        *(EntityId*)componentsData.GetData(ArchetypeComponentIndex(0), index) = entityId;
         entityStorage.Mutate(entityId, id, index);
         return index;
     }
@@ -17,28 +16,28 @@ namespace RR::Ecs
     {
         ASSERT(&from != this);
 
-        expand(1);
-        auto index = ArchetypeEntityIndex(entityCount++);
+        auto index = componentsData.Insert();
 
-        for (size_t i = 0; i < componentsData.size(); i++)
+        for (size_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
-            const auto& componentInfo = componentsData[i].GetComponentInfo();
-            if (componentInfo.size == 0)
+            const auto& componentInfo = componentsData.componentsInfo[componentIndex];
+
+           if (componentInfo.size == 0)
                 continue;
 
-            std::byte* dst = componentsData[i].GetData(index);
+           std::byte* dst = componentsData.GetData(ArchetypeComponentIndex(componentIndex), index);
 
-            // TODO Could be faster find if we start from previous finded, to not iterate over same components id.
-            // But this require componentsData to be sorted.
-            const ComponentData* scrData = from.GetComponentData(componentInfo.id);
-            if (!scrData)
-                continue;
+           // TODO Could be faster find if we start from previous finded, to not iterate over same components id.
+           auto fromComponentIndex = from.GetComponentIndex(componentInfo.id);
 
-            std::byte* src = scrData->GetData(fromIndex);
-            componentInfo.move(dst, src);
+           if (!fromComponentIndex)
+               continue;
+
+           std::byte* src = from.componentsData.GetData(fromComponentIndex, fromIndex);
+           componentInfo.move(dst, src);
         }
 
-        entityStorage.Mutate(*(EntityId*)from.componentsData[0].GetData(fromIndex), id, index);
+        entityStorage.Mutate(*(EntityId*)from.componentsData.GetData(ArchetypeComponentIndex(0), fromIndex), id, index);
         from.Delete(entityStorage, fromIndex, false);
 
         return index;
@@ -46,23 +45,22 @@ namespace RR::Ecs
 
     void Archetype::Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord)
     {
-        ASSERT(index.Value() < entityCount);
-        const auto lastIndex = ArchetypeEntityIndex::FromValue(entityCount - 1);
+        const auto lastIndex = componentsData.GetLastIndex();
 
         if (index != lastIndex)
-            entityStorage.Move(*(EntityId*)componentsData[0].GetData(lastIndex), index);
+            entityStorage.Move(*(EntityId*)componentsData.GetData(ArchetypeComponentIndex(0), lastIndex), index);
 
         if (updateEntityRecord)
-            entityStorage.Destroy(*(EntityId*)componentsData[0].GetData(index));
+            entityStorage.Destroy(*(EntityId*)componentsData.GetData(ArchetypeComponentIndex(0), index));
 
-        for (auto& data : componentsData)
+        for (size_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
-            const auto& componentInfo = data.componentInfo;
+            const auto& componentInfo = componentsData.componentsInfo[componentIndex];
             if (componentInfo.size == 0)
                 continue;
 
-            const auto removedPtr = data.GetData(index);
-            const auto lastIndexData = data.GetData(lastIndex);
+            const auto removedPtr = componentsData.GetData(ArchetypeComponentIndex(componentIndex), index);
+            const auto lastIndexData = componentsData.GetData(ArchetypeComponentIndex(componentIndex), lastIndex);
 
             if (index != lastIndex)
                 componentInfo.move(removedPtr, lastIndexData);
@@ -71,6 +69,6 @@ namespace RR::Ecs
                 componentInfo.destructor(lastIndexData);
         }
 
-        entityCount--;
+        componentsData.entitiesCount--;
     }
 }

@@ -125,10 +125,10 @@ TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
     ArchetypeEntityIndex index;
     REQUIRE(world.ResolveEntityArhetype(entt2.GetId(), archetype, index));
     REQUIRE(archetype);
-    REQUIRE(index.Value() == 0);
-    auto* data = archetype->GetComponentData(GetComponentId<Tag>);
-    REQUIRE(data);
-    REQUIRE(data->GetSize() == 0);
+    REQUIRE(index.GetRaw() == 0);
+    const auto componentIndex = archetype->GetComponentIndex(GetComponentId<Tag>);
+    REQUIRE(componentIndex);
+    REQUIRE(archetype->GetComponentInfo(componentIndex).size == 0);
 }
 
 TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
