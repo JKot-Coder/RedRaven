@@ -191,10 +191,13 @@ namespace RR::Ecs
 
             std::byte* GetData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
             {
+                ASSERT(entitiesCount);
+                
                 const auto indexInChunk = index.GetIndexInChunk();
+                const auto chunk = index.GetChunkIndex();
 
-                ASSERT(indexInChunk < entitiesCount % chunkCapacity);
-                return GetData(componentIndex, index.GetChunkIndex()) + indexInChunk * componentsOffsetSize[componentIndex.GetRaw()].second;
+                ASSERT((chunk + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
+                return GetData(componentIndex, chunk) + indexInChunk * componentsOffsetSize[componentIndex.GetRaw()].second;
             }
 
             ArchetypeEntityIndex Insert()
