@@ -10,18 +10,18 @@ struct WorldFixture
 
 struct TestEvent : Event
 {
-    TestEvent() : RR::Ecs::Event(GetComponentId<TestEvent>, sizeof(TestEvent)) { };
+    TestEvent() : RR::Ecs::Event(GetEventId<TestEvent>, sizeof(TestEvent)) { };
 };
 
 struct IntEvent : Event
 {
-    IntEvent(int value) : RR::Ecs::Event(GetComponentId<IntEvent>, sizeof(IntEvent)), value(value) { };
+    IntEvent(int value) : RR::Ecs::Event(GetEventId<IntEvent>, sizeof(IntEvent)), value(value) { };
     int value;
 };
 
 struct FloatEvent : Event
 {
-    FloatEvent(float value) : RR::Ecs::Event(GetComponentId<FloatEvent>, sizeof(FloatEvent)), value(value) { };
+    FloatEvent(float value) : RR::Ecs::Event(GetEventId<FloatEvent>, sizeof(FloatEvent)), value(value) { };
     float value;
 };
 

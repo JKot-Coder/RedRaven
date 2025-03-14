@@ -334,7 +334,7 @@ namespace RR::Ecs
         Ecs::View cacheForQueriesView;
         Ecs::View cacheForSystemsView;
         Ecs::QueryId cacheForQueriesQuery;
-        ska::flat_hash_map<ComponentId, eastl::fixed_vector<SystemId, 8>> eventsToSystems; // Todo rename //TODO eventId
+        ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
         ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
 

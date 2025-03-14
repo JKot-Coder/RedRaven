@@ -6,11 +6,13 @@
 
 namespace RR::Ecs
 {
+    using EventId = Index<struct EventIdTag, HashType>;
+
     struct Event
     {
         using SizeType = uint16_t;
 
-        constexpr Event(ComponentId id, size_t size) : id(id), size(static_cast<SizeType>(size)) {
+        constexpr Event(EventId id, size_t size) : id(id), size(static_cast<SizeType>(size)) {
             ASSERT(size < (size_t)std::numeric_limits<SizeType>::max);
         };
 
@@ -32,7 +34,7 @@ namespace RR::Ecs
             return convertable ? static_cast<const T*>(this) : nullptr;
         }
 
-        ComponentId id; // TODO replace with eventId;
+        EventId id;
         SizeType size;
     };
 
@@ -68,8 +70,11 @@ namespace RR::Ecs
             events.clear();
         }
 
-        private:
-            Common::ChunkAllocator allocator;
-            eastl::vector<eastl::pair<EntityId, Event*>> events;
+    private:
+        Common::ChunkAllocator allocator;
+        eastl::vector<eastl::pair<EntityId, Event*>> events;
     };
+
+    template <typename T>
+    inline constexpr EventId GetEventId = EventId(GetComponentId<T>.GetRaw());
 }

@@ -50,7 +50,7 @@ namespace RR::Ecs
             //using ArgList = GetArgumentList<Callback>;
 
             // todo GET/CHECK event RAW TYPE
-            (desc.onEvents.emplace_back(GetComponentId<EventTypes>), ...);
+            (desc.onEvents.emplace_back(GetEventId<EventTypes>), ...);
 
             desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event& event, Ecs::MatchedArchetypeSpan archetypes) {
                 world.query(archetypes, eastl::move(cb), &event);

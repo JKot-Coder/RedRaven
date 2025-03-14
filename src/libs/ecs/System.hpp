@@ -21,6 +21,7 @@
 #include "ecs/Index.hpp"
 #include "ecs/Query.hpp"
 #include "ecs/View.hpp"
+#include "ecs/Event.hpp"
 
 namespace RR::Ecs
 {
@@ -34,7 +35,7 @@ namespace RR::Ecs
     {
         static constexpr size_t FunctionSize = 64;
         eastl::fixed_function<FunctionSize, void(Ecs::World& world, const Ecs::Event&, Ecs::MatchedArchetypeSpan)> onEvent;
-        eastl::fixed_vector<ComponentId, 16> onEvents;
+        eastl::fixed_vector<EventId, 16> onEvents;
         eastl::fixed_vector<SystemId, 8> before;
         eastl::fixed_vector<SystemId, 8> after;
     };
