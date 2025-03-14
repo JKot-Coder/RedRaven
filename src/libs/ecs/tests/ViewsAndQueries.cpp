@@ -182,3 +182,32 @@ TEST_CASE_METHOD(WorldFixture, "Query Exclude", "[Query]")
 
     REQUIRE(summ == 1);
 }
+
+TEST_CASE_METHOD(WorldFixture, "Query Cache", "[Query]")
+{
+    // Arch Created first
+    int summ = 0;
+    world.Entity().Edit().Add<Foo>(1).Apply();
+    const auto queryFoo = world.Query().Require<Foo>().Build();
+    queryFoo.ForEach([&](Foo foo) { summ += foo.x; });
+    REQUIRE(summ == 1);
+
+    // Query Created first
+    summ = 0;
+    const auto queryBar = world.Query().Require<Bar>().Build();
+    world.Entity().Edit().Add<Bar>(1).Apply();
+    queryBar.ForEach([&](Bar bar) { summ += bar.x; });
+    REQUIRE(summ == 1);
+
+    // OnceAgain
+    summ = 0;
+    world.Entity().Edit().Add<Foo>(2).Add<Bar>(2).Apply();
+    queryFoo.ForEach([&](Foo foo) { summ += foo.x; });
+    queryBar.ForEach([&](Bar bar) { summ += bar.x; });
+    REQUIRE(summ == 6);
+
+    summ = 0;
+    const auto queryFooBar = world.Query().Require<Foo, Bar>().Build();
+    queryFooBar.ForEach([&](Foo foo, Bar bar) { summ += foo.x + bar.x; });
+    REQUIRE(summ == 4);
+}
