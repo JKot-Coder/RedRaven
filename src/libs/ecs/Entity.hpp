@@ -16,9 +16,10 @@ namespace RR::Ecs
     {
     public:
         EntityId GetId() const { return entity_; }
-        void Destruct();
+        void Destruct() const;
         bool IsAlive() const;
         bool Has(SortedComponentsView componentsView) const;
+        bool ResolveEntityArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const;
 
         template <typename... Components>
         bool Has() const
@@ -28,7 +29,7 @@ namespace RR::Ecs
             return Has(SortedComponentsView(components));
         }
 
-        EntityBuilder<void, void> Edit();
+        EntityBuilder<void, void> Edit() const;
 
     private:
         friend World;

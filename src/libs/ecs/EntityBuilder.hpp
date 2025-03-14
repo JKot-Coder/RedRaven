@@ -84,5 +84,5 @@ namespace RR::Ecs
         ArgsTuple args_;
     };
 
-    inline EntityBuilder<void, void> Entity::Edit() { return EntityBuilder<void, void>(world_, entity_); }
+    inline EntityBuilder<void, void> Entity::Edit() const { return EntityBuilder<void, void>(world_, entity_); }
 }

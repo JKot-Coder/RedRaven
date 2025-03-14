@@ -22,6 +22,7 @@ namespace RR::Ecs
     template <typename C, typename T>
     struct EntityBuilder;
     struct QueryBuilder;
+    struct ArchetypeEntityIndex;
     class Archetype;
 
     using MatchedArchetypeSpan = eastl::span<const Archetype*>; //TODO maybe move somewhre
