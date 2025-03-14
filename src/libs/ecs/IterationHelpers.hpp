@@ -20,10 +20,17 @@ namespace RR::Ecs
 
         ComponentAccessor(const Archetype& archetype, ArchetypeComponentIndex componentIndex, size_t chunkIndex, const IterationContext&)
         {
-            ASSERT(componentIndex);
-
-            data = archetype.GetData(componentIndex, chunkIndex);
-            ASSERT(data);
+            if constexpr (std::is_pointer_v<Arg>)
+            {
+                data = componentIndex ? archetype.GetData(componentIndex, chunkIndex) : nullptr;
+                ASSERT(!componentIndex || data);
+            }
+            else
+            {
+                ASSERT(componentIndex);
+                data = archetype.GetData(componentIndex, chunkIndex);
+                ASSERT(data);
+            }
         }
 
         static ArchetypeComponentIndex GetComponentIndex(const Archetype& archetype)

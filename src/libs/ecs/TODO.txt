@@ -24,3 +24,4 @@
 # rework queries/view (uncached queries?)
 # world view?
 + rework chunk system
++ Optional components
