@@ -9,6 +9,15 @@ struct WorldFixture
     World world;
 };
 
+Archetype& resolveArchetype(Entity entt)
+{
+    Archetype* archetype = nullptr;
+    ArchetypeEntityIndex index;
+    REQUIRE(entt.ResolveEntityArhetype(archetype, index));
+    REQUIRE(archetype);
+    return *archetype;
+};
+
 TEST_CASE_METHOD(WorldFixture, "Create Entity", "[Entity]")
 {
     Entity entt1 = world.Entity();
@@ -123,12 +132,53 @@ TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
 
     Archetype* archetype = nullptr;
     ArchetypeEntityIndex index;
-    REQUIRE(world.ResolveEntityArhetype(entt2.GetId(), archetype, index));
+    REQUIRE(entt2.ResolveEntityArhetype(archetype, index));
     REQUIRE(archetype);
     REQUIRE(index.GetRaw() == 0);
     const auto componentIndex = archetype->GetComponentIndex(GetComponentId<Tag>);
     REQUIRE(componentIndex);
     REQUIRE(archetype->GetComponentInfo(componentIndex).size == 0);
+}
+
+TEST_CASE_METHOD(WorldFixture, "Heavy component", "[Comonents]")
+{
+    using HeavyComponent = std::array<uint32_t, 1024>;
+
+    Entity heavy = world.Entity().Edit().Add<HeavyComponent>().Apply();
+    Entity light = world.Entity().Edit().Add<int>().Apply();
+
+    Archetype& heavyArch = resolveArchetype(heavy);
+    Archetype& lightArch = resolveArchetype(light);
+
+    REQUIRE(lightArch.GetChunkCapacity() > heavyArch.GetChunkCapacity() * 10);
+    REQUIRE(heavyArch.GetEntitySize() == (sizeof(uint32_t) * 1024 + sizeof(EntityId)));
+    REQUIRE(heavyArch.GetChunkSize() >= heavyArch.GetEntitySize() * heavyArch.GetChunkCapacity());
+
+    std::vector<Entity> entities;
+    for (size_t i = 0; i < heavyArch.GetChunkCapacity() * 3; i++)
+        entities.push_back(world.Entity().Edit().Add<HeavyComponent>().Apply());
+
+    for (auto entity : entities)
+        entity.Edit().Remove<HeavyComponent>().Apply();
+}
+
+TEST_CASE_METHOD(WorldFixture, "Entities chunking", "[Comonents]")
+{
+    Entity entt = world.Entity().Edit().Add<int>().Apply();
+    Archetype& intArch = resolveArchetype(entt);
+
+    std::vector<Entity> entities;
+    for (size_t i = 0; i < intArch.GetChunkCapacity() * 3; i++)
+        entities.push_back(world.Entity().Edit().Add<int>().Apply());
+
+    for (auto entity : entities)
+        entity.Edit().Add<float>().Apply();
+
+    for (auto entity : entities)
+        entity.Edit().Remove<int>().Apply();
+
+    REQUIRE(entities[0].Has<float>());
+    REQUIRE(!entities[0].Has<int>());
 }
 
 TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
