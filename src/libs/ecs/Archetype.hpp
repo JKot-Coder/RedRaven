@@ -111,19 +111,19 @@ namespace RR::Ecs
                 ASSERT(IsPowerOfTwo(BaseChunkSize));
                 ASSERT(BaseChunkSize > 0);
 
-                size_t entitySize = 0;
+                size_t entitySizeBytes = 0;
                 for (Iterator it = compInfoBegin; it != compInfoEnd; ++it)
                 {
                     ComponentInfo& componentInfo = *it;
                     componentsInfo.push_back(componentInfo);
                     components.push_back_unsorted(componentInfo.id);
-                    entitySize += componentInfo.size;
+                    entitySizeBytes += componentInfo.size;
                 }
                 ASSERT(componentsInfo[0].id == GetComponentId<EntityId>);
 
-                size_t chunkSizeBytes = entitySize * BaseChunkEntityCount;
+                size_t chunkSizeBytes = entitySizeBytes * BaseChunkEntityCount;
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
-                chunkCapacity = chunkSizeBytes / entitySize;
+                chunkCapacity = chunkSizeBytes / entitySizeBytes;
 
                 componentsOffsetSize.resize(componentsInfo.size());
 
@@ -131,7 +131,7 @@ namespace RR::Ecs
                 {
                     size_t offset = 0;
                     size_t index = 0;
-
+          
                     for (const auto& componentInfo : componentsInfo)
                     {
                         offset = AlignTo(offset, componentInfo.alignment);
@@ -148,6 +148,7 @@ namespace RR::Ecs
                     break;
                 }
 
+                entitySize = entitySizeBytes;
                 chunkSize = chunkSizeBytes;
             }
 
@@ -222,6 +223,7 @@ namespace RR::Ecs
             size_t chunkCapacity; // In entities
             size_t totalCapacity = 0; // In entities
             size_t entitiesCount = 0;
+            size_t entitySize = 0;
 
             FixedVectorSet<ComponentId, 32> components;
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
@@ -298,6 +300,8 @@ namespace RR::Ecs
         size_t GetEntitiesCount() const { return componentsData.entitiesCount; }
         size_t GetChunksCount() const { return componentsData.chunks.size(); }
         size_t GetChunkCapacity() const { return componentsData.chunkCapacity; }
+        size_t GetChunkSize() const { return componentsData.chunkSize; }
+        size_t GetEntitySize() const { return componentsData.entitySize; }
         ArchetypeId GetId() const { return id; }
 
     private:
