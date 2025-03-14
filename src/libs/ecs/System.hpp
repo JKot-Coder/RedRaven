@@ -29,8 +29,6 @@ namespace RR::Ecs
     struct World;
     struct SystemBuilder;
 
-    using SystemId = Index<struct SystemIdTag, HashType>; // TODO size_t ?
-
     struct SystemDescription
     {
         static constexpr size_t FunctionSize = 64;

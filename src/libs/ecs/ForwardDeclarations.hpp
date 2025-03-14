@@ -1,7 +1,6 @@
-
 #pragma once
 
-#include "EASTL/span.h" 
+#include "EASTL/span.h"
 
 namespace RR::Ecs
 {
@@ -23,8 +22,13 @@ namespace RR::Ecs
     struct EntityBuilder;
     struct QueryBuilder;
     struct ArchetypeEntityIndex;
-    class Archetype;
+    struct Archetype;
 
+    template <typename Tag, typename IndexType = size_t>
+    struct Index;
+
+    using EventId = Index<struct EventIdTag, HashType>;
+    using SystemId = Index<struct SystemIdTag, uint32_t>;
     using MatchedArchetypeSpan = eastl::span<const Archetype*>; //TODO maybe move somewhre
 
     /**

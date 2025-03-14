@@ -6,8 +6,6 @@
 
 namespace RR::Ecs
 {
-    using EventId = Index<struct EventIdTag, HashType>;
-
     struct Event
     {
         using SizeType = uint16_t;

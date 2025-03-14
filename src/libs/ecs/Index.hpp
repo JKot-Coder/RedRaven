@@ -8,8 +8,8 @@ namespace RR::Ecs
      * @tparam Tag Type tag used to differentiate different kinds of indices
      * @tparam IndexType Underlying type used to store the index value
      */
-    template <typename Tag, typename IndexType = size_t>
-    class Index final
+    template <typename Tag, typename IndexType>
+    struct Index final
     {
     public:
         using ValueType = IndexType;

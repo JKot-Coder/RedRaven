@@ -96,7 +96,7 @@ namespace RR::Ecs
         return ArchetypeId::FromValue(hash);
     }
 
-    class Archetype final
+    struct Archetype final
     {
     public:
         class ComponentsData
@@ -192,7 +192,7 @@ namespace RR::Ecs
             std::byte* GetData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
             {
                 ASSERT(entitiesCount);
-                
+
                 const auto indexInChunk = index.GetIndexInChunk();
                 const auto chunk = index.GetChunkIndex();
 
@@ -220,7 +220,7 @@ namespace RR::Ecs
             }
 
         private:
-            friend class Archetype;
+            friend struct Archetype;
 
             size_t chunkSize; // In bytes
             size_t chunkCapacity; // In entities
