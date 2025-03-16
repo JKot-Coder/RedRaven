@@ -235,6 +235,8 @@ namespace RR::Ecs
         };
 
     private:
+        friend struct World;
+
         const auto& components() const { return componentsData.components; }
 
     public:
@@ -310,5 +312,6 @@ namespace RR::Ecs
     private:
         ArchetypeId id;
         ComponentsData componentsData;
+        ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;
     };
 }

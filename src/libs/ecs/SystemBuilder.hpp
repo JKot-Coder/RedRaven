@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/System.hpp"
 #include "ecs/FunctionTraits.hpp"
+#include "ecs/System.hpp"
 
 namespace RR::Ecs
 {
@@ -47,13 +47,16 @@ namespace RR::Ecs
             static_assert(sizeof...(EventTypes) > 0, "At least one event type must be specified");
             static_assert((std::is_base_of_v<Event, EventTypes> && ...), "All event types must derive from ecs::Event");
 
-            //using ArgList = GetArgumentList<Callback>;
+            // using ArgList = GetArgumentList<Callback>;
 
             // todo GET/CHECK event RAW TYPE
             (desc.onEvents.emplace_back(GetEventId<EventTypes>), ...);
 
-            desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event& event, Ecs::MatchedArchetypeSpan archetypes) {
-                world.query(archetypes, eastl::move(cb), &event);
+            desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event& event, Ecs::EntityId entityId, Ecs::MatchedArchetypeSpan archetypes) {
+                if (!entityId)
+                    world.query(archetypes, eastl::move(cb), &event); // todo event order differs
+                else
+                    world.queryForEntity(event, entityId, eastl::move(cb)); // todo event order differs
             };
 
             return view.world.Create(eastl::move(desc), eastl::move(view));

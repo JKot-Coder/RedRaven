@@ -11,6 +11,12 @@ namespace RR::Ecs
     public:
         EventBuilder(World& world) : world(world) { }
 
+        EventBuilder Entity(Entity entity)
+        {
+            entityId = entity.GetId();
+            return *this;
+        }
+
         EventBuilder Entity(EntityId entity)
         {
             entityId = entity;

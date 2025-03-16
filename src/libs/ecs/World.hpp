@@ -68,7 +68,7 @@ namespace RR::Ecs
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
         // TODO return void
-        bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index)
+        bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index) const
         {
             EntityRecord record;
             if (!entityStorage.Get(entity, record))
@@ -116,16 +116,41 @@ namespace RR::Ecs
             return true;
         }
 
-        void updateCache(const Archetype& archetype)
+        void updateCache(SystemId id)
+        {
+            cacheForSystemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
+                for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+                {
+                    Archetype& archetype = *it->second;
+                    if (!matches(archetype, view))
+                        continue;
+
+                    cache.push_back(&archetype);
+                    for (const auto event : systemDesc.onEvents)
+                        archetype.cache[event].push_back(id);
+                }
+
+                for (const auto event : systemDesc.onEvents)
+                    eventsToSystems[event].push_back(id);
+            });
+        }
+
+        void updateCache(Archetype& archetype)
         {
             // This could only happends while world creation process.
-            // We create archetype to place this query, and while create archetype we tring use this query.
+            // We create archetype to place this query, and while create archetype we tryng use this query.
             if UNLIKELY (!cacheForQueriesQuery.IsValid())
                 return;
 
-            Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
+            Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
                 if (!matches(archetype, view))
                     return;
+
+                if (systemDesc)
+                {
+                    for (const auto event : systemDesc->onEvents)
+                        archetype.cache[event].push_back(SystemId(id.GetRawId()));
+                }
 
                 cache.push_back(&archetype);
             });
@@ -254,6 +279,19 @@ namespace RR::Ecs
             ASSERT(archetypes);
             this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable), nullptr);
         }
+/*
+        template <typename Callable>
+        void queryForEntity(EntityId entityId, const Ecs::Query& query, Callable&& callable)
+        {
+            View* view = nullptr;
+            /// Todo. i have hadache don't sure it's optimal
+            cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [this](View& v) {
+                view = &v;
+            });
+            ASSE(view);
+
+            queryForEntity(entityId, *view, eastl::forward<Callable>(callable));
+        }*/
 
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable)
@@ -272,15 +310,23 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
+        void queryForEntity(const Ecs::Event& event, EntityId entityId, Callable&& callable)
+        {
+            using ArgList = GetArgumentList<Callable>;
+            queryForEntityImpl<ArgList>(entityId, eastl::forward<Callable>(callable), {*this, &event});
+        }
+
+        template <typename Callable>
         void queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            queryForEntityImpl<ArgList>(entityId, view, eastl::forward<Callable>(callable));
+            queryForEntityImpl<ArgList>(entityId, view, eastl::forward<Callable>(callable), {*this, nullptr});
         }
 
         template <typename ArgumentList, typename Callable>
-        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, Callable&& callable)
+        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, Callable&& callable, const IterationContext& context)
         {
+            ASSERT(entityId);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
 
@@ -299,8 +345,29 @@ namespace RR::Ecs
                 return;
             }
 
-            ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), {*this, nullptr});
+            ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
         }
+
+        // TODO fix this mess
+        template <typename ArgumentList, typename Callable>
+        void queryForEntityImpl(EntityId entityId, Callable&& callable, const IterationContext& context)
+        {
+            ASSERT(entityId);
+            // Todo check all args in callable persist in requireComps with std::includes
+            // Todo check entity are ok for requireComps and Args
+
+            Archetype* archetype = nullptr;
+            ArchetypeEntityIndex index;
+
+            if (!ResolveEntityArhetype(entityId, archetype, index))
+            {
+                ASSERT(false);
+                return;
+            }
+
+            ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
+        }
+
 
         template <typename... Components>
         static constexpr ArchetypeId getArhetypeIdForComponents(TypeList<Components...>)
