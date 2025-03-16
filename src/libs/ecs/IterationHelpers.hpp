@@ -40,20 +40,17 @@ namespace RR::Ecs
 
         Arg Get(size_t entityIndex)
         {
-            return dereference(reinterpret_cast<Component*>(data + sizeof(Component) * entityIndex));
+            if constexpr (std::is_pointer_v<Arg>)
+            {
+                return data ? reinterpret_cast<Component*>(data + sizeof(Component) * entityIndex) : nullptr;
+            }
+            else
+            {
+                return *reinterpret_cast<Component*>(data + sizeof(Component) * entityIndex);
+            }
         }
 
     private:
-        static Arg dereference(Component* ptr)
-        {
-            if constexpr (std::is_pointer_v<Arg>)
-            {
-                return ptr;
-            }
-            else
-                return *ptr;
-        }
-
         std::byte* data;
     };
 
@@ -97,12 +94,12 @@ namespace RR::Ecs
             if constexpr (eastl::is_pointer_v<Argument>)
             {
                 static_assert(eastl::is_const_v<eastl::remove_pointer_t<Argument>>, "Event component should be read only accessed");
-                return event->As<Component>();
+                return &event->As<Component>();
             }
             else
             {
                 static_assert(eastl::is_const_v<eastl::remove_reference_t<Argument>>, "Event component should be read only accessed");
-                return *event->As<Component>();
+                return event->As<Component>();
             }
         }
 
@@ -137,6 +134,7 @@ namespace RR::Ecs
         static void processEntity(const Archetype& archetype, ArchetypeEntityIndex entityIndex, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
             // TODO optimize finding index, based on previous finded.
+            // TODO this could be cached.
             std::array<ArchetypeComponentIndex, sizeof...(Index)> componentIndexes = {ComponentAccessor<typename ArgumentList::template Get<Index>>::GetComponentIndex(archetype)...};
             auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, componentIndexes[Index], entityIndex.GetChunkIndex(), context)...);
 
@@ -147,6 +145,7 @@ namespace RR::Ecs
         static void processArchetype(const Archetype& archetype, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
             // TODO optimize finding index, based on previous finded.
+             // TODO this could be cached.
             std::array<ArchetypeComponentIndex, sizeof...(Index)> componentIndexes = {ComponentAccessor<typename ArgumentList::template Get<Index>>::GetComponentIndex(archetype)...};
 
             for (size_t chunkIndex = 0, chunkCount = archetype.GetChunksCount(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += archetype.GetChunkCapacity())

@@ -3,9 +3,12 @@
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/EntityId.hpp"
 #include "common/ChunkAllocator.hpp"
+#include "ecs/ComponentTraits.hpp"
 
 namespace RR::Ecs
 {
+    using EventId = Index<struct EventIdTag, HashType>;
+
     struct Event
     {
         using SizeType = uint16_t;
@@ -15,21 +18,40 @@ namespace RR::Ecs
         };
 
         template <typename T>
-        T* As()
+        bool Is() const
         {
             static_assert(eastl::is_base_of_v<Event, T>, "T should be derived from Event");
-            bool convertable = GetComponentId<T> == id;
-            ASSERT(convertable);
-            return convertable ? static_cast<T*>(this) : nullptr;
+            return eastl::is_same_v<T, Event> ||  GetEventId<T> == id;
         }
 
         template <typename T>
-        const T* As() const
+        T& As()
         {
             static_assert(eastl::is_base_of_v<Event, T>, "T should be derived from Event");
-            bool convertable = GetComponentId<T> == id;
-            ASSERT(convertable);
-            return convertable ? static_cast<const T*>(this) : nullptr;
+            ASSERT(Is<T>());
+            return *static_cast<T*>(this);
+        }
+
+        template <typename T>
+        const T& As() const
+        {
+            static_assert(eastl::is_base_of_v<Event, T>, "T should be derived from Event");
+            ASSERT(Is<T>());
+            return *static_cast<const T*>(this);
+        }
+
+        template <typename T>
+        T* TryAs()
+        {
+            static_assert(eastl::is_base_of_v<Event, T>, "T should be derived from Event");
+            return Is<T>() ? static_cast<T*>(this) : nullptr;
+        }
+
+        template <typename T>
+        const T* TryAs() const
+        {
+            static_assert(eastl::is_base_of_v<Event, T>, "T should be derived from Event");
+            return Is<T>() ? static_cast<const T*>(this) : nullptr;
         }
 
         EventId id;
