@@ -1,7 +1,7 @@
 #pragma once
 
 // EASTL tuple have a bugs https://github.com/electronicarts/EASTL/issues/562
-// Fallback to std 
+// Fallback to std
 #include <tuple>
 #include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"

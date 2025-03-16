@@ -131,7 +131,7 @@ namespace RR::Ecs
                 {
                     size_t offset = 0;
                     size_t index = 0;
-          
+
                     for (const auto& componentInfo : componentsInfo)
                     {
                         offset = AlignTo(offset, componentInfo.alignment);
