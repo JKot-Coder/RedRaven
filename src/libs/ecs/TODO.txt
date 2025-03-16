@@ -33,3 +33,6 @@
 # more tests of edit update on deleted
 # Command buffer
 # deffered commands.
+# uint32_t everything
+# parents?
+# systems ordering
