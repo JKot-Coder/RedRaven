@@ -244,10 +244,7 @@ namespace RR::Ecs
             if (entity)
             {
                 if (!IsAlive(entity))
-                {
-                    ASSERT(false);
                     return entity;
-                }
 
                 if (!ResolveEntityArhetype(entity, from, fromIndex))
                 {

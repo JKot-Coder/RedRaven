@@ -59,6 +59,18 @@ TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
     REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
 }
 
+TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
+{
+    Entity entt1 = world.EmptyEntity();
+    REQUIRE(entt1.IsAlive());
+    entt1.Destruct();
+    REQUIRE(!entt1.IsAlive());
+
+    entt1.Edit().Add<float>(0.0f).Apply();
+    entt1.Edit().Remove<float>().Apply();
+}
+
+
 TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
 {
     REQUIRE(world.Entity().Apply().IsAlive());
