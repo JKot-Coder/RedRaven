@@ -15,7 +15,7 @@
 + implement Query iterator
 + implement Event query
 + deffered events
-# event for entity
++ event for entity
 + implement query context
 + query by entity.
 # singletons
@@ -27,5 +27,6 @@
 + Optional components
 # Refactor all queries
 # refactor includes
-# Todo assert for chunk count and chunk entity sizes
-# Todo rework Events Api
+# assert for chunk count and chunk entity sizes
++ rework Events Api
++ more Events tests
