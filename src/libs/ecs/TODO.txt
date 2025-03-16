@@ -25,3 +25,7 @@
 # world view?
 + rework chunk system
 + Optional components
+# Refactor all queries
+# refactor includes
+# Todo assert for chunk count and chunk entity sizes
+# Todo rework Events Api
