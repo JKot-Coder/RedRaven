@@ -29,8 +29,9 @@ namespace RR::Ecs
 
     public:
         SystemBuilder System();
-        Ecs::Entity Entity();
-        Ecs::Entity Entity(EntityId entityId);
+        Ecs::EntityBuilder<void, void> Entity();
+        Ecs::Entity EmptyEntity();
+        Ecs::Entity GetEntity(EntityId entityId);
 
         Ecs::View View() { return Ecs::View(*this); }
         Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
@@ -65,27 +66,18 @@ namespace RR::Ecs
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
-        // TODO return void
         bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index) const
         {
             EntityRecord record;
             if (!entityStorage.Get(entity, record))
                 return false;
 
-            // TODO this is should always valid in future
-            if (record.archetypeId.IsValid())
-            {
-                auto it = archetypesMap.find(record.archetypeId);
-                ASSERT(it != archetypesMap.end());
-                if (it != archetypesMap.end())
-                {
-                    archetype = &(*it->second);
-                    index = record.index;
-                    return true;
-                }
-            }
-
-            return false;
+            ASSERT(record.archetypeId.IsValid());
+            auto it = archetypesMap.find(record.archetypeId);
+            ASSERT(it != archetypesMap.end());
+            archetype = &(*it->second);
+            index = record.index;
+            return true;
         }
 
         template <typename EventType>
@@ -245,26 +237,34 @@ namespace RR::Ecs
         template <typename Components, typename ArgsTuple, size_t... Index>
         EntityId commitImpl(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
-            EntityRecord record;
-            bool valid = entityStorage.Get(entity, record);
-            ASSERT(valid);
-
-            if (!valid)
-                return entity;
-
+            ComponentsSet components;
             Archetype* from = nullptr;
             ArchetypeEntityIndex fromIndex;
-            ComponentsSet components;
-            ComponentsSet added;
 
-            if (ResolveEntityArhetype(entity, from, fromIndex))
+            if (entity)
             {
+                if (!IsAlive(entity))
+                {
+                    ASSERT(false);
+                    return entity;
+                }
+
+                if (!ResolveEntityArhetype(entity, from, fromIndex))
+                {
+                    ASSERT(false); // Impossible
+                    return entity;
+                }
+
                 for (auto component : from->GetComponentsView())
                     components.push_back_unsorted(component); // Components already sorted
             }
             else
+            {
+                entity = entityStorage.Create();
                 components.push_back_unsorted(GetComponentId<EntityId>);
+            }
 
+            ComponentsSet added;
             (RegisterComponent<typename Components::template Get<Index>>(), ...);
             auto addComponent = [&components](ComponentId id) -> int {
                 bool added = components.insert(id).second;
@@ -420,9 +420,6 @@ namespace RR::Ecs
         {
             return eastl::array<ComponentInfo, TypeList<Components...>::Count> {GetComponentInfo<Components>...};
         }
-
-        EntityId createEntity() { return entityStorage.Create(); }
-
 
         void broadcastEventImmediately(const Ecs::Event& event) const;
         void dispatchEventImmediately(EntityId entity, const Ecs::Event& event) const;

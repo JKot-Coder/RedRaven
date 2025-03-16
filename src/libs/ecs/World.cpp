@@ -27,18 +27,23 @@ namespace RR::Ecs
         cacheForSystemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
     }
 
-    Entity World::Entity()
+    Ecs::EntityBuilder<void, void> World::Entity()
     {
-        return Ecs::Entity(*this, createEntity());
+        return EntityBuilder<void, void>(*this, {});
+    }
+
+    Ecs::Entity World::EmptyEntity()
+    {
+        EntityId entityId = commit<TypeList<>>({}, SortedComponentsView {nullptr, nullptr}, std::make_tuple());
+        return Ecs::Entity(*this, entityId);
+    }
+
+    Ecs::Entity World::GetEntity(EntityId entityId)
+    {
+        return Ecs::Entity(*this, entityId);
     }
 
     SystemBuilder World::System() { return Ecs::SystemBuilder(*this); }
-
-    Entity World::Entity(EntityId entityId)
-    {
-        ASSERT(IsAlive(entityId));
-        return Ecs::Entity(*this, entityId);
-    }
 
     void World::ProcessDefferedEvents()
     {
@@ -125,11 +130,10 @@ namespace RR::Ecs
 
     QueryId World::_register(const Ecs::View& view)
     {
-        Ecs::Entity entt = Entity();
-        entt.Edit()
-            .Add<Ecs::View>(view)
-            .Add<MatchedArchetypeCache>()
-            .Apply();
+        Ecs::Entity entt = Entity()
+                               .Add<Ecs::View>(view)
+                               .Add<MatchedArchetypeCache>()
+                               .Apply();
 
         cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache) {
             for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
@@ -148,12 +152,12 @@ namespace RR::Ecs
     Ecs::System World::Create(SystemDescription&& desc, Ecs::View&& view)
     {
         UNUSED(desc);
-        Ecs::Entity entt = Entity();
-        entt.Edit()
-            .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
-            .Add<MatchedArchetypeCache>()
-            .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
-            .Apply();
+
+        Ecs::Entity entt = Entity()
+                               .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
+                               .Add<MatchedArchetypeCache>()
+                               .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
+                               .Apply();
 
         const auto systemId = SystemId(entt.GetId().rawId);
 

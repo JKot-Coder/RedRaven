@@ -36,6 +36,7 @@ namespace RR::Ecs
 
     private:
         friend Entity;
+        friend World;
 
         explicit EntityBuilder(World& world, EntityId entity) : world_(world), entity_(entity) { };
 
