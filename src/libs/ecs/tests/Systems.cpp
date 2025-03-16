@@ -34,8 +34,8 @@ TEST_CASE_METHOD(WorldFixture, "System create", "[System]")
 
 TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
 {
-    world.Entity().Edit().Add<int>().Apply();
-    world.Entity().Edit().Add<int>().Apply();
+    world.Entity().Add<int>().Apply();
+    world.Entity().Add<int>().Apply();
 
     int calls = 0;
     world.System().Require<int>().OnEvent<TestEvent>([&calls](EntityId id) { REQUIRE(id); calls++; });
@@ -46,7 +46,7 @@ TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
 
 TEST_CASE_METHOD(WorldFixture, "Broadcast event immediate", "[Event]")
 {
-    world.Entity().Edit().Add<int>().Apply();
+    world.Entity().Add<int>().Apply();
 
     int calls = 0;
     eastl::array<int, 4> data;
@@ -70,7 +70,7 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event immediate", "[Event]")
 
 TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
 {
-    world.Entity().Edit().Add<int>().Apply();
+    world.Entity().Add<int>().Apply();
 
     int calls = 0;
     eastl::array<int, 4> data;
@@ -109,13 +109,13 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event", "[Event]")
     // Test cache
 
     // archetype created first
-    const auto entt1 = world.Entity().Edit().Add<int>(1).Apply();
+    const auto entt1 = world.Entity().Add<int>(1).Apply();
     world.System().Require<int>().OnEvent<TestEvent>([&]() { calls++; });
     world.EmitImmediately<TestEvent>(entt1, {});
 
     // system created first
     world.System().Require<float>().OnEvent<TestEvent>([&]() { calls++; });
-    const auto entt2 = world.Entity().Edit().Add<float>(1.0f).Apply();
+    const auto entt2 = world.Entity().Add<float>(1.0f).Apply();
     world.EmitImmediately<TestEvent>(entt2, {});
 
     REQUIRE(calls == 2);
@@ -124,10 +124,10 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event", "[Event]")
 
 TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
 {
-    const auto entt1 = world.Entity().Edit().Add<int>(1).Apply();
-    const auto entt2 = world.Entity().Edit().Add<int>(2).Apply();
-    const auto entt3 = world.Entity().Edit().Add<int>(3).Apply();
-    const auto entt4 = world.Entity().Edit().Add<int>(4).Apply();
+    const auto entt1 = world.Entity().Add<int>(1).Apply();
+    const auto entt2 = world.Entity().Add<int>(2).Apply();
+    const auto entt3 = world.Entity().Add<int>(3).Apply();
+    const auto entt4 = world.Entity().Add<int>(4).Apply();
 
     int calls = 0;
     eastl::array<std::pair<EntityId, int>, 5> data;
@@ -161,10 +161,10 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
 
 TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
 {
-    const auto entt1 = world.Entity().Edit().Add<int>(1).Apply();
-    const auto entt2 = world.Entity().Edit().Add<int>(2).Apply();
-    const auto entt3 = world.Entity().Edit().Add<int>(3).Apply();
-    const auto entt4 = world.Entity().Edit().Add<int>(4).Apply();
+    const auto entt1 = world.Entity().Add<int>(1).Apply();
+    const auto entt2 = world.Entity().Add<int>(2).Apply();
+    const auto entt3 = world.Entity().Add<int>(3).Apply();
+    const auto entt4 = world.Entity().Add<int>(4).Apply();
 
     int calls = 0;
     eastl::array<std::pair<EntityId, int>, 5> data;

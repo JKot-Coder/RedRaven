@@ -20,9 +20,9 @@ Archetype& resolveArchetype(Entity entt)
 
 TEST_CASE_METHOD(WorldFixture, "Create Entity", "[Entity]")
 {
-    Entity entt1 = world.Entity();
-    Entity entt2 = world.Entity();
-    Entity entt3 = world.Entity();
+    Entity entt1 = world.EmptyEntity();
+    Entity entt2 = world.EmptyEntity();
+    Entity entt3 = world.EmptyEntity();
     REQUIRE(entt1.GetId());
     REQUIRE(entt2.GetId().rawId == entt1.GetId().rawId + 1);
     REQUIRE(entt3.GetId().rawId == entt2.GetId().rawId + 1);
@@ -30,12 +30,12 @@ TEST_CASE_METHOD(WorldFixture, "Create Entity", "[Entity]")
 
 TEST_CASE_METHOD(WorldFixture, "Delete Entity", "[Entity]")
 {
-    Entity entt1 = world.Entity();
-    Entity entt2 = world.Entity();
+    Entity entt1 = world.EmptyEntity();
+    Entity entt2 = world.EmptyEntity();
     REQUIRE(entt2.IsAlive());
     entt2.Destruct();
     REQUIRE(!entt2.IsAlive());
-    Entity entt3 = world.Entity();
+    Entity entt3 = world.EmptyEntity();
     REQUIRE(entt1.IsAlive());
     REQUIRE(entt3.IsAlive());
     REQUIRE(entt1.GetId());
@@ -45,12 +45,12 @@ TEST_CASE_METHOD(WorldFixture, "Delete Entity", "[Entity]")
 
 TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
 {
-    Entity entt1 = world.Entity();
-    Entity entt2 = world.Entity();
+    Entity entt1 = world.EmptyEntity();
+    Entity entt2 = world.EmptyEntity();
     REQUIRE(entt2.IsAlive());
     entt2.Destruct();
     world.Destruct(entt2.GetId());
-    Entity entt3 = world.Entity();
+    Entity entt3 = world.EmptyEntity();
     REQUIRE(!entt2.IsAlive());
     REQUIRE(entt1.IsAlive());
     REQUIRE(entt3.IsAlive());
@@ -59,13 +59,18 @@ TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
     REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
 }
 
+TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
+{
+    REQUIRE(world.Entity().Apply().IsAlive());
+}
+
 TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
 {
     // clang-format off
     struct Foo { int x; int z;};
     struct Bar { int x;};
     // clang-format on
-    Entity entt1 = world.Entity();
+    Entity entt1 = world.EmptyEntity();
     REQUIRE(!entt1.Has<Foo>());
     entt1.Edit().Add<Foo>(1,1).Apply();
     REQUIRE(entt1.Has<Foo>());
@@ -73,7 +78,7 @@ TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
     entt1.Edit().Add<Bar>(1).Apply();
     REQUIRE(entt1.Has<Foo, Bar>());
 
-    Entity entt2 = world.Entity();
+    Entity entt2 = world.EmptyEntity();
     REQUIRE(!entt2.Has<Foo, Bar>());
     entt2.Edit().Add<Foo>(1,1).Add<Bar>(1).Apply();
     REQUIRE(entt2.Has<Foo, Bar>());
@@ -86,12 +91,12 @@ TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
     struct Bar { int x;};
     // clang-format on
 
-    Entity entt1 = world.Entity().Edit().Add<Foo>(1).Apply();
+    Entity entt1 = world.Entity().Add<Foo>(1).Apply();
     REQUIRE(entt1.Has<Foo>());
     entt1.Edit().Remove<Foo>().Apply();
     REQUIRE(!entt1.Has<Foo>());
 
-    Entity entt2 = world.Entity().Edit().Add<Foo>(1).Apply();
+    Entity entt2 = world.Entity().Add<Foo>(1).Apply();
     REQUIRE(entt2.Has<Foo>());
     entt2.Edit().Remove<Foo>().Add<Bar>(1).Apply();
     REQUIRE(entt2.Has<Bar>());
@@ -101,7 +106,7 @@ TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
 TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
 {
     using Vector = eastl::vector<int32_t>;
-    Entity entt1 = world.Entity().Edit().Add<Vector>(1).Apply();
+    Entity entt1 = world.Entity().Add<Vector>(1).Apply();
     REQUIRE(entt1.Has<Vector>());
     entt1.Edit().Remove<Vector>().Apply();
     REQUIRE(!entt1.Has<Vector>());
@@ -112,9 +117,9 @@ TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
     struct Tag{};
     struct Tag2{};
 
-    world.Entity().Edit().Add<Tag>().Apply();
-    Entity entt2 = world.Entity().Edit().Add<Tag>().Add<Tag2>().Apply();
-    world.Entity().Edit().Add<Tag>().Apply();
+    world.Entity().Add<Tag>().Apply();
+    Entity entt2 = world.Entity().Add<Tag>().Add<Tag2>().Apply();
+    world.Entity().Add<Tag>().Apply();
 
     REQUIRE(entt2.Has<Tag>());
     REQUIRE(entt2.Has<Tag2>());
@@ -128,7 +133,7 @@ TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
 {
     struct Tag{};
 
-    Entity entt2 = world.Entity().Edit().Add<Tag>().Apply();
+    Entity entt2 = world.Entity().Add<Tag>().Apply();
 
     Archetype* archetype = nullptr;
     ArchetypeEntityIndex index;
@@ -144,8 +149,8 @@ TEST_CASE_METHOD(WorldFixture, "Heavy component", "[Comonents]")
 {
     using HeavyComponent = std::array<uint32_t, 1024>;
 
-    Entity heavy = world.Entity().Edit().Add<HeavyComponent>().Apply();
-    Entity light = world.Entity().Edit().Add<int>().Apply();
+    Entity heavy = world.Entity().Add<HeavyComponent>().Apply();
+    Entity light = world.Entity().Add<int>().Apply();
 
     Archetype& heavyArch = resolveArchetype(heavy);
     Archetype& lightArch = resolveArchetype(light);
@@ -156,7 +161,7 @@ TEST_CASE_METHOD(WorldFixture, "Heavy component", "[Comonents]")
 
     std::vector<Entity> entities;
     for (size_t i = 0; i < heavyArch.GetChunkCapacity() * 3; i++)
-        entities.push_back(world.Entity().Edit().Add<HeavyComponent>().Apply());
+        entities.push_back(world.Entity().Add<HeavyComponent>().Apply());
 
     for (auto entity : entities)
         entity.Edit().Remove<HeavyComponent>().Apply();
@@ -164,12 +169,12 @@ TEST_CASE_METHOD(WorldFixture, "Heavy component", "[Comonents]")
 
 TEST_CASE_METHOD(WorldFixture, "Entities chunking", "[Comonents]")
 {
-    Entity entt = world.Entity().Edit().Add<int>().Apply();
+    Entity entt = world.Entity().Add<int>().Apply();
     Archetype& intArch = resolveArchetype(entt);
 
     std::vector<Entity> entities;
     for (size_t i = 0; i < intArch.GetChunkCapacity() * 3; i++)
-        entities.push_back(world.Entity().Edit().Add<int>().Apply());
+        entities.push_back(world.Entity().Add<int>().Apply());
 
     for (auto entity : entities)
         entity.Edit().Add<float>().Apply();
@@ -217,9 +222,9 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
         int32_t id;
     };
 
-    world.Entity().Edit().Add<NonTrivial>(1).Apply();
-    Entity entt2 = world.Entity().Edit().Add<NonTrivial>(2).Apply();
-    world.Entity().Edit().Add<NonTrivial>(3).Apply();
+    world.Entity().Add<NonTrivial>(1).Apply();
+    Entity entt2 = world.Entity().Add<NonTrivial>(2).Apply();
+    world.Entity().Add<NonTrivial>(3).Apply();
 
     entt2.Edit().Remove<NonTrivial>().Apply();
 
@@ -227,7 +232,7 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     const auto view = world.View().Require<NonTrivial>();
     view.ForEach([&](NonTrivial&) { });
 
-    Entity entt3 = world.Entity().Edit().Add<NonTrivial>(4).Add<Op>(Op::Construct).Apply();
+    Entity entt3 = world.Entity().Add<NonTrivial>(4).Add<Op>(Op::Construct).Apply();
     entt3.Edit().Remove<Op>().Apply();
 
     size_t index = 0;
@@ -255,9 +260,9 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
 TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
 {
     using Vector = eastl::vector<int32_t>;
-    world.Entity().Edit().Add<Vector>(1).Apply();
-    Entity entt2 = world.Entity().Edit().Add<Vector>(2).Apply();
-    world.Entity().Edit().Add<Vector>(3).Apply();
+    world.Entity().Add<Vector>(1).Apply();
+    Entity entt2 = world.Entity().Add<Vector>(2).Apply();
+    world.Entity().Add<Vector>(3).Apply();
 
     entt2.Edit().Remove<Vector>().Apply();
     REQUIRE(!entt2.Has<Vector>());
