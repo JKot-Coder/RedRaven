@@ -102,6 +102,26 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
     REQUIRE(data[3] == 4);
 }
 
+TEST_CASE_METHOD(WorldFixture, "Unicast event", "[Event]")
+{
+    int calls = 0;
+
+    // Test cache
+
+    // archetype created first
+    const auto entt1 = world.Entity().Edit().Add<int>(1).Apply();
+    world.System().Require<int>().OnEvent<TestEvent>([&]() { calls++; });
+    world.EmitImmediately<TestEvent>(entt1, {});
+
+    // system created first
+    world.System().Require<float>().OnEvent<TestEvent>([&]() { calls++; });
+    const auto entt2 = world.Entity().Edit().Add<float>(1.0f).Apply();
+    world.EmitImmediately<TestEvent>(entt2, {});
+
+    REQUIRE(calls == 2);
+}
+
+
 TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
 {
     const auto entt1 = world.Entity().Edit().Add<int>(1).Apply();
