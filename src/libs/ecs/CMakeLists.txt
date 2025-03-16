@@ -16,7 +16,6 @@ set( SRC
     Entity.cpp
     EntityBuilder.hpp
     Event.hpp
-    EventBuilder.hpp
     System.hpp
     System.cpp
     SystemBuilder.hpp

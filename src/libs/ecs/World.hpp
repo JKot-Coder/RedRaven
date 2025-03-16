@@ -28,8 +28,6 @@ namespace RR::Ecs
         using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; // TODO naming?
 
     public:
-        template <typename EventType>
-        inline EventBuilder<EventType> Event();
         SystemBuilder System();
         Ecs::Entity Entity();
         Ecs::Entity Entity(EntityId entityId);
@@ -90,6 +88,47 @@ namespace RR::Ecs
             return false;
         }
 
+        template <typename EventType, typename... Args>
+        void Emit(Args&&... args)
+        {
+            static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            eventStorage.Push({}, EventType(std::forward<Args>(args)...));
+        }
+
+        template <typename EventType, typename... Args>
+        void Emit(Ecs::Entity entity, Args&&... args)
+        {
+            Emit<EventType>(entity.GetId(), std::forward<Args>(args)...);
+        }
+
+        template <typename EventType, typename... Args>
+        void Emit(EntityId entity, Args&&... args)
+        {
+            ASSERT(entity);
+            static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            eventStorage.Push(entity, EventType(std::forward<Args>(args)...));
+        }
+
+        template <typename EventType, typename... Args>
+        void EmitImmediately(Args&&... args) const
+        {
+            static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            broadcastEventImmediately(EventType(std::forward<Args>(args)...));
+        }
+
+        template <typename EventType, typename... Args>
+        void EmitImmediately(Ecs::Entity entity, Args&&... args) const
+        {
+            EmitImmediately<EventType>(entity.GetId(), std::forward<Args>(args)...);
+        }
+
+        template <typename EventType, typename... Args>
+        void EmitImmediately(EntityId entity, Args&&... args) const
+        {
+            ASSERT(entity);
+            static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            dispatchEventImmediately(entity, EventType(std::forward<Args>(args)...));
+        }
         void ProcessDefferedEvents();
         void Tick();
 
@@ -383,10 +422,6 @@ namespace RR::Ecs
 
         EntityId createEntity() { return entityStorage.Create(); }
 
-        template <typename EventType>
-        void emit(EntityId entity, EventType&& event);
-        template <typename EventType>
-        void emitImmediately(EntityId entity, const EventType& event) const;
 
         void broadcastEventImmediately(const Ecs::Event& event) const;
         void dispatchEventImmediately(EntityId entity, const Ecs::Event& event) const;
@@ -404,23 +439,6 @@ namespace RR::Ecs
         ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
         ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
-
-    template <typename EventType>
-    void World::emit(EntityId entity, EventType&& event)
-    {
-        static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-        eventStorage.Push(entity, eastl::forward<EventType>(event));
-    }
-
-    template <typename EventType>
-    void World::emitImmediately(EntityId entity, const EventType& event) const
-    {
-        static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-        if (!entity)
-            broadcastEventImmediately(event);
-        else
-            dispatchEventImmediately(entity, event);
-    }
 
     template <typename Callable>
     void View::ForEach(Callable&& callable) const
