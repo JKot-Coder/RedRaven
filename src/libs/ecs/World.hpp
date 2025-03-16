@@ -88,47 +88,48 @@ namespace RR::Ecs
             return false;
         }
 
-        template <typename EventType, typename... Args>
-        void Emit(Args&&... args)
+        template <typename EventType>
+        void Emit(EventType&& event)
         {
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-            eventStorage.Push({}, EventType(std::forward<Args>(args)...));
+            eventStorage.Push({}, std::forward<EventType>(event));
         }
 
-        template <typename EventType, typename... Args>
-        void Emit(Ecs::Entity entity, Args&&... args)
+        template <typename EventType>
+        void Emit(Ecs::Entity entity, EventType&& event)
         {
-            Emit<EventType>(entity.GetId(), std::forward<Args>(args)...);
+            Emit<EventType>(entity.GetId(), std::forward<EventType>(event));
         }
 
-        template <typename EventType, typename... Args>
-        void Emit(EntityId entity, Args&&... args)
+        template <typename EventType>
+        void Emit(EntityId entity,EventType&& event)
         {
             ASSERT(entity);
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-            eventStorage.Push(entity, EventType(std::forward<Args>(args)...));
+            eventStorage.Push(entity, std::forward<EventType>(event));
         }
 
-        template <typename EventType, typename... Args>
-        void EmitImmediately(Args&&... args) const
+        template <typename EventType>
+        void EmitImmediately(const EventType& event) const
         {
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-            broadcastEventImmediately(EventType(std::forward<Args>(args)...));
+            broadcastEventImmediately(event);
         }
 
-        template <typename EventType, typename... Args>
-        void EmitImmediately(Ecs::Entity entity, Args&&... args) const
+        template <typename EventType>
+        void EmitImmediately(Ecs::Entity entity, const EventType& event) const
         {
-            EmitImmediately<EventType>(entity.GetId(), std::forward<Args>(args)...);
+            EmitImmediately<EventType>(entity.GetId(), event);
         }
 
-        template <typename EventType, typename... Args>
-        void EmitImmediately(EntityId entity, Args&&... args) const
+        template <typename EventType>
+        void EmitImmediately(EntityId entity, const EventType& event) const
         {
             ASSERT(entity);
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-            dispatchEventImmediately(entity, EventType(std::forward<Args>(args)...));
+            dispatchEventImmediately(entity, event);
         }
+
         void ProcessDefferedEvents();
         void Tick();
 

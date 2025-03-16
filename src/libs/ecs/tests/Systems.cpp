@@ -27,9 +27,9 @@ struct FloatEvent : Event
 
 TEST_CASE_METHOD(WorldFixture, "System create", "[System]")
 {
-    world.System().OnEvent<TestEvent>([]{});
-    world.System().OnEvent<TestEvent>([]{});
-    world.System().OnEvent<TestEvent>([]{});
+    world.System().OnEvent<TestEvent>([] { });
+    world.System().OnEvent<TestEvent>([] { });
+    world.System().OnEvent<TestEvent>([] { });
 }
 
 TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
@@ -38,8 +38,8 @@ TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
     world.Entity().Edit().Add<int>().Apply();
 
     int calls = 0;
-    world.System().Require<int>().OnEvent<TestEvent>([&calls](EntityId id){ REQUIRE(id); calls++; });
-    world.EmitImmediately<TestEvent>();
+    world.System().Require<int>().OnEvent<TestEvent>([&calls](EntityId id) { REQUIRE(id); calls++; });
+    world.EmitImmediately<TestEvent>({});
 
     REQUIRE(calls == 2);
 }
@@ -86,10 +86,10 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
             data[calls++] = event.value;
         });
 
-    world.Emit<IntEvent>(1);
-    world.Emit<FloatEvent>(2);
-    world.Emit<FloatEvent>(3);
-    world.Emit<IntEvent>(4);
+    world.Emit(IntEvent {1});
+    world.Emit(FloatEvent {2});
+    world.Emit(FloatEvent {3});
+    world.Emit(IntEvent {4});
 
     REQUIRE(calls == 0);
 
@@ -121,10 +121,10 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
 
-    world.EmitImmediately<IntEvent>(entt3, 1 );
-    world.EmitImmediately<IntEvent>(entt2, 2 );
-    world.EmitImmediately<TestEvent>(entt4);
-    world.EmitImmediately<FloatEvent>(entt1, 3);
+    world.EmitImmediately<IntEvent>(entt3, {1});
+    world.EmitImmediately<IntEvent>(entt2, {2});
+    world.EmitImmediately<TestEvent>(entt4, {});
+    world.EmitImmediately<FloatEvent>(entt1, {3});
 
     REQUIRE(calls == 5);
     REQUIRE(data[0].first == entt3.GetId());
@@ -158,10 +158,10 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
 
-    world.Emit<IntEvent>(entt3, 1 );
-    world.Emit<IntEvent>(entt2, 2 );
-    world.Emit<TestEvent>(entt4);
-    world.Emit<FloatEvent>(entt1, 3);
+    world.Emit<IntEvent>(entt3, {1});
+    world.Emit<IntEvent>(entt2, {2});
+    world.Emit<TestEvent>(entt4, {});
+    world.Emit<FloatEvent>(entt1, {3});
 
     REQUIRE(calls == 0);
 
