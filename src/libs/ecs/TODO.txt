@@ -30,3 +30,6 @@
 # assert for chunk count and chunk entity sizes
 + rework Events Api
 + more Events tests
+# more tests of edit update on deleted
+# Command buffer
+# deffered commands.
