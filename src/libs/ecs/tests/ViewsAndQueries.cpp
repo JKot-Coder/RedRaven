@@ -232,7 +232,8 @@ TEST_CASE_METHOD(WorldFixture, "OptionalComponents", "[Query]")
     sumFoo = 0;
     sumBar = 0;
     world.Entity().Edit().Add<Foo>(1).Add<int>(1).Apply();
+    world.Entity().Edit().Add<Foo>(1).Add<int>(1).Apply();
     queryFoo.ForEach([&](Foo foo, Bar* bar) { sumFoo += foo.x; sumBar += bar ? bar->x : 0; });
-    REQUIRE(sumFoo == 3);
+    REQUIRE(sumFoo == 4);
     REQUIRE(sumBar == 1);
 }

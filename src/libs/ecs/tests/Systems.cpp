@@ -44,7 +44,7 @@ TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
     REQUIRE(calls == 2);
 }
 
-TEST_CASE_METHOD(WorldFixture, "System immediate  event data", "[System]")
+TEST_CASE_METHOD(WorldFixture, "Broadcast event immediate", "[Event]")
 {
     world.Entity().Edit().Add<int>().Apply();
 
@@ -69,7 +69,7 @@ TEST_CASE_METHOD(WorldFixture, "System immediate  event data", "[System]")
     REQUIRE(data[3] == 4);
 }
 
-TEST_CASE_METHOD(WorldFixture, "System deffered event data", "[System]")
+TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
 {
     world.Entity().Edit().Add<int>().Apply();
 
