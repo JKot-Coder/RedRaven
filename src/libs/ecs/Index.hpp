@@ -12,6 +12,7 @@ namespace RR::Ecs
     struct Index final
     {
     public:
+        using ThisType = Index<Tag, IndexType>;
         using ValueType = IndexType;
         static constexpr ValueType InvalidValue = static_cast<IndexType>(-1);
         static constexpr Index Invalid() { return Index{}; };
@@ -24,13 +25,13 @@ namespace RR::Ecs
         constexpr IndexType GetRaw() const noexcept { return value_; } // Todo naming. GetValue in EntityId vs value.
         constexpr bool IsValid() const noexcept { return value_ != InvalidValue; }
 
-        constexpr bool operator==(const Index& other) const noexcept { return value_ == other.value_; }
-        constexpr bool operator!=(const Index& other) const noexcept { return value_ != other.value_; }
-        constexpr bool operator<(const Index& other) const noexcept { return value_ < other.value_; }
-        constexpr bool operator<=(const Index& other) const noexcept { return value_ <= other.value_; }
-        constexpr bool operator>(const Index& other) const noexcept { return value_ > other.value_; }
-        constexpr bool operator>=(const Index& other) const noexcept { return value_ >= other.value_; }
-        operator bool() const { return value_ != InvalidValue; }
+        constexpr bool operator==(const ThisType& other) const noexcept { return value_ == other.value_; }
+        constexpr bool operator!=(const ThisType& other) const noexcept { return value_ != other.value_; }
+        constexpr bool operator<(const ThisType& other) const noexcept { return value_ < other.value_; }
+        constexpr bool operator<=(const ThisType& other) const noexcept { return value_ <= other.value_; }
+        constexpr bool operator>(const ThisType& other) const noexcept { return value_ > other.value_; }
+        constexpr bool operator>=(const ThisType& other) const noexcept { return value_ >= other.value_; }
+        explicit operator bool() const { return value_ != InvalidValue; }
 
     protected:
         IndexType value_ = InvalidValue;
