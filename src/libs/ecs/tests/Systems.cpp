@@ -39,7 +39,7 @@ TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
 
     int calls = 0;
     world.System().Require<int>().OnEvent<TestEvent>([&calls](EntityId id){ REQUIRE(id); calls++; });
-    world.Event<TestEvent>().EmitImmediately(TestEvent{});
+    world.EmitImmediately<TestEvent>();
 
     REQUIRE(calls == 2);
 }
@@ -56,11 +56,10 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event immediate", "[Event]")
             data[calls++] = event.value;
         });
 
-
-    world.Event<IntEvent>().EmitImmediately(IntEvent {1});
-    world.Event<IntEvent>().EmitImmediately(IntEvent {2});
-    world.Event<IntEvent>().EmitImmediately(IntEvent {3});
-    world.Event<IntEvent>().EmitImmediately(IntEvent {4});
+    world.EmitImmediately<IntEvent>(1);
+    world.EmitImmediately<IntEvent>(2);
+    world.EmitImmediately<IntEvent>(3);
+    world.EmitImmediately<IntEvent>(4);
 
     REQUIRE(calls == 4);
     REQUIRE(data[0] == 1);
@@ -87,10 +86,12 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
             data[calls++] = event.value;
         });
 
-    world.Event<IntEvent>().Emit(IntEvent {1});
-    world.Event<FloatEvent>().Emit(FloatEvent {2});
-    world.Event<FloatEvent>().Emit(FloatEvent {3});
-    world.Event<IntEvent>().Emit(IntEvent {4});
+    world.Emit<IntEvent>(1);
+    world.Emit<FloatEvent>(2);
+    world.Emit<FloatEvent>(3);
+    world.Emit<IntEvent>(4);
+
+    REQUIRE(calls == 0);
 
     world.ProcessDefferedEvents();
 
@@ -120,10 +121,10 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
 
-    world.Event<IntEvent>().Entity(entt3).EmitImmediately(IntEvent {1});
-    world.Event<IntEvent>().Entity(entt2).EmitImmediately(IntEvent {2});
-    world.Event<TestEvent>().Entity(entt4).EmitImmediately({});
-    world.Event<FloatEvent>().Entity(entt1).EmitImmediately(FloatEvent {3});
+    world.EmitImmediately<IntEvent>(entt3, 1 );
+    world.EmitImmediately<IntEvent>(entt2, 2 );
+    world.EmitImmediately<TestEvent>(entt4);
+    world.EmitImmediately<FloatEvent>(entt1, 3);
 
     REQUIRE(calls == 5);
     REQUIRE(data[0].first == entt3.GetId());
