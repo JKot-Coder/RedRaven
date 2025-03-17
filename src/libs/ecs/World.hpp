@@ -301,21 +301,7 @@ namespace RR::Ecs
                 return entity;
 
             if (from)
-            {
-                const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
-                const auto fromDissapear = from->cache.find(GetEventId<OnDissapear>);
-
-                if (fromDissapear != from->cache.end())
-                {
-                    if (toDissapear != to.cache.end())
-                    {
-                        SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(), toDissapear->second.begin(), toDissapear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
-                    }
-                    else
-                        for (const auto systemId : fromDissapear->second)
-                            dispatchEventImmediately(entity, systemId, OnDissapear {});
-                }
-            }
+                handleDisappearEvent(entity, *from, to);
 
             ArchetypeEntityIndex index = from ? to.Mutate(entityStorage, *from, fromIndex) : to.Insert(entityStorage, entity);
 
@@ -327,30 +313,7 @@ namespace RR::Ecs
                     eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
                 ...);
 
-            if (!from)
-            {
-                // First time appear, send On Appear event every subscriber.
-                const auto it = to.cache.find(GetEventId<OnAppear>);
-                if (it != to.cache.end())
-                    for (const auto systemId : it->second)
-                        dispatchEventImmediately(entity, systemId, OnAppear {});
-            }
-            else
-            {
-                const auto toAppear = to.cache.find(GetEventId<OnAppear>);
-                const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
-
-                if (toAppear != to.cache.end())
-                {
-                    if (fromAppear != from->cache.end())
-                    {
-                        SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
-                    }
-                    else
-                        for (const auto systemId : toAppear->second)
-                            dispatchEventImmediately(entity, systemId, OnAppear {});
-                }
-            }
+            handleAppearEvent(entity, from, to);
 
             UNUSED(index);
             // TODO validate remove components and add/remove at some thime.
@@ -467,6 +430,57 @@ namespace RR::Ecs
             }
 
             ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
+        }
+
+        void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to)
+        {
+            const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
+            const auto fromDissapear = from.cache.find(GetEventId<OnDissapear>);
+
+            if (fromDissapear != from.cache.end())
+            {
+                if (toDissapear != to.cache.end())
+                {
+                    SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(),
+                                toDissapear->second.begin(), toDissapear->second.end(),
+                                [entity, this](SystemId systemId) {
+                                    dispatchEventImmediately(entity, systemId, OnDissapear {});
+                                });
+                }
+                else
+                {
+                    for (const auto systemId : fromDissapear->second)
+                        dispatchEventImmediately(entity, systemId, OnDissapear {});
+                }
+            }
+        }
+
+        void handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
+        {
+            if (!from)
+            {
+                // First time appear, send On Appear event every subscriber.
+                const auto it = to.cache.find(GetEventId<OnAppear>);
+                if (it != to.cache.end())
+                    for (const auto systemId : it->second)
+                        dispatchEventImmediately(entity, systemId, OnAppear {});
+            }
+            else
+            {
+                const auto toAppear = to.cache.find(GetEventId<OnAppear>);
+                const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
+
+                if (toAppear != to.cache.end())
+                {
+                    if (fromAppear != from->cache.end())
+                    {
+                        SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
+                    }
+                    else
+                        for (const auto systemId : toAppear->second)
+                            dispatchEventImmediately(entity, systemId, OnAppear {});
+                }
+            }
         }
 
         template <typename... Components>
