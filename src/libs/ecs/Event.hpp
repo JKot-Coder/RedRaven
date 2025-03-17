@@ -97,4 +97,14 @@ namespace RR::Ecs
 
     template <typename T>
     inline constexpr EventId GetEventId = EventId(GetComponentId<T>.GetRaw());
+
+    struct OnAppear : Event
+    {
+        OnAppear() : Event(GetEventId<OnAppear>, sizeof(OnAppear)) { };
+    };
+
+    struct OnDissapear : Event
+    {
+        OnDissapear() : Event(GetEventId<OnDissapear>, sizeof(OnDissapear)) { };
+    };
 }

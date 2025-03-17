@@ -49,7 +49,7 @@ namespace RR::Ecs
     {
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if (entityId)
-                dispatchEventImmediately(entityId, event);
+                unicastEventImmediately(entityId, event);
             else
                 broadcastEventImmediately(event);
         });
@@ -83,14 +83,17 @@ namespace RR::Ecs
             return;
 
         for (const auto systemId : it->second)
-        {
-            cacheForSystemsView.ForEntity(EntityId(systemId.GetRaw()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-                desc.onEvent(world, event, {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
-            });
-        }
+            dispatchEventImmediately({}, systemId, event);
     }
 
-    void World::dispatchEventImmediately(EntityId entity, const Ecs::Event& event) const
+    void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
+    {
+        cacheForSystemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+            desc.onEvent(world, event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+        });
+    }
+
+    void World::unicastEventImmediately(EntityId entity, const Ecs::Event& event) const
     {
         Archetype* from;
         ArchetypeEntityIndex fromIndex;
@@ -103,29 +106,7 @@ namespace RR::Ecs
             return;    // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
 
         for (const auto systemId : it->second)
-        {
-            cacheForSystemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-                desc.onEvent(world, event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
-            });
-        }
-
-      /*/  const auto it = eventsToSystems.find(event.id);
-        // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
-        if (it == eventsToSystems.end())
-            return;
-
-        for (const auto systemId : it->second)
-        {
-            cacheForSystemsView.ForEntity(EntityId(systemId.GetRaw()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-                if(matches(entity, desc.),  ))
-                    continue;
-
-
-                desc.onEvent(world, event, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
-            });
-        }
-        queryForEntity(entity, *this, eastl::forward<Callable>(callable));*/
-
+            dispatchEventImmediately(entity, systemId, event);
     }
 
     QueryId World::_register(const Ecs::View& view)

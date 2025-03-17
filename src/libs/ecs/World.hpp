@@ -16,6 +16,26 @@
 
 namespace RR::Ecs
 {
+    namespace
+    {
+        template <typename InputIt1, typename InputIt2, typename Callback>
+        void SetDifference(InputIt1 first1, InputIt1 last1,
+                           InputIt2 first2, InputIt2 last2, Callback&& clb)
+        {
+            while (first1 != last1 && first2 != last2)
+            {
+                if (*first1 < *first2)
+                    eastl::invoke(eastl::forward<Callback>(clb), *first1++);
+                else
+                {
+                    if (!(*first2 < *first1))
+                        ++first1;
+                    ++first2;
+                }
+            }
+        }
+    }
+
     struct World
     {
     private:
@@ -58,8 +78,10 @@ namespace RR::Ecs
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
             if (ResolveEntityArhetype(entityId, archetype, index))
+            {
+                unicastEventImmediately(entityId, OnDissapear {});
                 archetype->Delete(entityStorage, index, false);
-
+            }
             entityStorage.Destroy(entityId);
         }
 
@@ -94,7 +116,7 @@ namespace RR::Ecs
         }
 
         template <typename EventType>
-        void Emit(EntityId entity,EventType&& event)
+        void Emit(EntityId entity, EventType&& event)
         {
             ASSERT(entity);
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
@@ -119,7 +141,7 @@ namespace RR::Ecs
         {
             ASSERT(entity);
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-            dispatchEventImmediately(entity, event);
+            unicastEventImmediately(entity, event);
         }
 
         void ProcessDefferedEvents();
@@ -278,6 +300,23 @@ namespace RR::Ecs
             if (from == &to)
                 return entity;
 
+            if (from)
+            {
+                const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
+                const auto fromDissapear = from->cache.find(GetEventId<OnDissapear>);
+
+                if (fromDissapear != from->cache.end())
+                {
+                    if (toDissapear != to.cache.end())
+                    {
+                        SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(), toDissapear->second.begin(), toDissapear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
+                    }
+                    else
+                        for (const auto systemId : fromDissapear->second)
+                            dispatchEventImmediately(entity, systemId, OnDissapear {});
+                }
+            }
+
             ArchetypeEntityIndex index = from ? to.Mutate(entityStorage, *from, fromIndex) : to.Insert(entityStorage, entity);
 
             // Component data initialization
@@ -287,6 +326,31 @@ namespace RR::Ecs
                     eastl::move(std::get<Index>(args)),
                     eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
                 ...);
+
+            if (!from)
+            {
+                // First time appear, send On Appear event every subscriber.
+                const auto it = to.cache.find(GetEventId<OnAppear>);
+                if (it != to.cache.end())
+                    for (const auto systemId : it->second)
+                        dispatchEventImmediately(entity, systemId, OnAppear {});
+            }
+            else
+            {
+                const auto toAppear = to.cache.find(GetEventId<OnAppear>);
+                const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
+
+                if (toAppear != to.cache.end())
+                {
+                    if (fromAppear != from->cache.end())
+                    {
+                        SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
+                    }
+                    else
+                        for (const auto systemId : toAppear->second)
+                            dispatchEventImmediately(entity, systemId, OnAppear {});
+                }
+            }
 
             UNUSED(index);
             // TODO validate remove components and add/remove at some thime.
@@ -316,19 +380,19 @@ namespace RR::Ecs
             ASSERT(archetypes);
             this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable), nullptr);
         }
-/*
-        template <typename Callable>
-        void queryForEntity(EntityId entityId, const Ecs::Query& query, Callable&& callable)
-        {
-            View* view = nullptr;
-            /// Todo. i have hadache don't sure it's optimal
-            cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [this](View& v) {
-                view = &v;
-            });
-            ASSE(view);
+        /*
+                template <typename Callable>
+                void queryForEntity(EntityId entityId, const Ecs::Query& query, Callable&& callable)
+                {
+                    View* view = nullptr;
+                    /// Todo. i have hadache don't sure it's optimal
+                    cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [this](View& v) {
+                        view = &v;
+                    });
+                    ASSE(view);
 
-            queryForEntity(entityId, *view, eastl::forward<Callable>(callable));
-        }*/
+                    queryForEntity(entityId, *view, eastl::forward<Callable>(callable));
+                }*/
 
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable)
@@ -405,7 +469,6 @@ namespace RR::Ecs
             ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
         }
 
-
         template <typename... Components>
         static constexpr ArchetypeId getArhetypeIdForComponents(TypeList<Components...>)
         {
@@ -419,7 +482,8 @@ namespace RR::Ecs
         }
 
         void broadcastEventImmediately(const Ecs::Event& event) const;
-        void dispatchEventImmediately(EntityId entity, const Ecs::Event& event) const;
+        void dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const;
+        void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
     private:
         EntityStorage entityStorage;
