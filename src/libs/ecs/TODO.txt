@@ -8,7 +8,7 @@
 + Chunk size in kb
 + Implement Query.
 + Rework systems.
-# Appear / dissapear
++ Appear / dissapear
 # Track
 # Check world match
 + ImplementTypeInfo iterator
