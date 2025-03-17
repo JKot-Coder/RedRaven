@@ -70,10 +70,10 @@ TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
     entt1.Edit().Remove<float>().Apply();
 }
 
-
 TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
 {
     REQUIRE(world.Entity().Apply().IsAlive());
+    REQUIRE(world.EmptyEntity().Edit().Apply().IsAlive());
 }
 
 TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
