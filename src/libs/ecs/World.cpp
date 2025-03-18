@@ -27,6 +27,82 @@ namespace RR::Ecs
         cacheForSystemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
     }
 
+    Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
+    {
+        Archetype* archetype = nullptr;
+
+        auto it = archetypesMap.find(archetypeId);
+        if (it == archetypesMap.end())
+        {
+            auto archUniqPtr = eastl::make_unique<Archetype>(
+                archetypeId,
+                ComponentInfoIterator(componentStorage, components.begin()),
+                ComponentInfoIterator(componentStorage, components.end()));
+            archetype = archUniqPtr.get();
+            archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
+
+            initCache(*archetype);
+        }
+        else
+            archetype = it->second.get();
+
+        return *archetype;
+    }
+
+    void World::initCache(SystemId id)
+    {
+        cacheForSystemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                cache.push_back(&archetype);
+                for (const auto event : systemDesc.onEvents)
+                    archetype.cache[event].push_back(id);
+            }
+
+            for (const auto event : systemDesc.onEvents)
+                eventsToSystems[event].push_back(id);
+        });
+    }
+
+    void World::initCache(QueryId id)
+    {
+        cacheForQueriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
+            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            {
+                const Archetype& archetype = *it->second;
+                if (!matches(archetype, view))
+                    continue;
+
+                cache.push_back(&archetype);
+            }
+        });
+    }
+
+    void World::initCache(Archetype& archetype)
+    {
+        // This could only happends while world creation process.
+        // We create archetype to place this query, and while create archetype we tryng use this query.
+        if UNLIKELY (!cacheForQueriesQuery.IsValid())
+            return;
+
+        Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
+            if (!matches(archetype, view))
+                return;
+
+            if (systemDesc)
+            {
+                for (const auto event : systemDesc->onEvents)
+                    archetype.cache[event].push_back(SystemId(id.GetRawId()));
+            }
+
+            cache.push_back(&archetype);
+        });
+    }
+
     Ecs::EntityBuilder<void, void> World::Entity()
     {
         return EntityBuilder<void, void>(*this, {});
@@ -98,42 +174,32 @@ namespace RR::Ecs
         Archetype* from;
         ArchetypeEntityIndex fromIndex;
 
-        if(!ResolveEntityArhetype(entity, from, fromIndex))
+        if (!ResolveEntityArhetype(entity, from, fromIndex))
             return;
 
         const auto it = from->cache.find(event.id);
-        if(it == from->cache.end())
-            return;    // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
+        if (it == from->cache.end())
+            return; // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
 
         for (const auto systemId : it->second)
             dispatchEventImmediately(entity, systemId, event);
     }
 
-    QueryId World::_register(const Ecs::View& view)
+    Query World::createQuery(Ecs::View&& view)
     {
         Ecs::Entity entt = Entity()
-                               .Add<Ecs::View>(view)
+                               .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
                                .Add<MatchedArchetypeCache>()
                                .Apply();
 
-        cacheForQueriesView.ForEntity(entt, [this, &view](MatchedArchetypeCache& cache) {
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-            {
-                const Archetype& archetype = *it->second;
-                if (!matches(archetype, view))
-                    continue;
+        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().rawId));
+        initCache(queryId);
 
-                cache.push_back(&archetype);
-            }
-        });
-
-        return QueryId::FromValue(entt.GetId().rawId);
+        return Ecs::Query(*this, queryId);
     }
 
-    Ecs::System World::Create(SystemDescription&& desc, Ecs::View&& view)
+    Ecs::System World::createSystem(SystemDescription&& desc, Ecs::View&& view)
     {
-        UNUSED(desc);
-
         Ecs::Entity entt = Entity()
                                .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
                                .Add<MatchedArchetypeCache>()
@@ -141,9 +207,57 @@ namespace RR::Ecs
                                .Apply();
 
         const auto systemId = SystemId(entt.GetId().rawId);
-
-        updateCache(systemId);
+        initCache(systemId);
 
         return Ecs::System(*this, systemId);
+    }
+
+    void World::handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to)
+    {
+        const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
+        const auto fromDissapear = from.cache.find(GetEventId<OnDissapear>);
+
+        if (fromDissapear != from.cache.end())
+        {
+            if (toDissapear != to.cache.end())
+            {
+                SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(),
+                              toDissapear->second.begin(), toDissapear->second.end(),
+                              [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
+            }
+            else
+            {
+                for (const auto systemId : fromDissapear->second)
+                    dispatchEventImmediately(entity, systemId, OnDissapear {});
+            }
+        }
+    }
+
+    void World::handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
+    {
+        if (!from)
+        {
+            // First time appear, send On Appear event every subscriber.
+            const auto it = to.cache.find(GetEventId<OnAppear>);
+            if (it != to.cache.end())
+                for (const auto systemId : it->second)
+                    dispatchEventImmediately(entity, systemId, OnAppear {});
+        }
+        else
+        {
+            const auto toAppear = to.cache.find(GetEventId<OnAppear>);
+            const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
+
+            if (toAppear != to.cache.end())
+            {
+                if (fromAppear != from->cache.end())
+                {
+                    SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
+                }
+                else
+                    for (const auto systemId : toAppear->second)
+                        dispatchEventImmediately(entity, systemId, OnAppear {});
+            }
+        }
     }
 }

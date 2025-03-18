@@ -52,11 +52,8 @@ namespace RR::Ecs
         Ecs::EntityBuilder<void, void> Entity();
         Ecs::Entity EmptyEntity();
         Ecs::Entity GetEntity(EntityId entityId);
-
         Ecs::View View() { return Ecs::View(*this); }
         Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
-
-        Ecs::System Create(SystemDescription&& desc, Ecs::View&& view);
 
         bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
@@ -84,6 +81,7 @@ namespace RR::Ecs
             }
             entityStorage.Destroy(entityId);
         }
+
 
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
@@ -161,6 +159,9 @@ namespace RR::Ecs
         friend struct QueryBuilder;
         friend struct SystemBuilder;
 
+        Ecs::System createSystem(SystemDescription&& desc, Ecs::View&& view);
+        Ecs::Query createQuery(Ecs::View&& view);
+
         static bool matches(const Archetype& archetype, const Ecs::View& view)
         {
             if LIKELY (!archetype.HasAll(SortedComponentsView(view.require)) ||
@@ -170,47 +171,9 @@ namespace RR::Ecs
             return true;
         }
 
-        void updateCache(SystemId id)
-        {
-            cacheForSystemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
-                for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
-                {
-                    Archetype& archetype = *it->second;
-                    if (!matches(archetype, view))
-                        continue;
-
-                    cache.push_back(&archetype);
-                    for (const auto event : systemDesc.onEvents)
-                        archetype.cache[event].push_back(id);
-                }
-
-                for (const auto event : systemDesc.onEvents)
-                    eventsToSystems[event].push_back(id);
-            });
-        }
-
-        void updateCache(Archetype& archetype)
-        {
-            // This could only happends while world creation process.
-            // We create archetype to place this query, and while create archetype we tryng use this query.
-            if UNLIKELY (!cacheForQueriesQuery.IsValid())
-                return;
-
-            Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
-                if (!matches(archetype, view))
-                    return;
-
-                if (systemDesc)
-                {
-                    for (const auto event : systemDesc->onEvents)
-                        archetype.cache[event].push_back(SystemId(id.GetRawId()));
-                }
-
-                cache.push_back(&archetype);
-            });
-        }
-
-        QueryId _register(const Ecs::View& view);
+        void initCache(SystemId id);
+        void initCache(QueryId id);
+        void initCache(Archetype& archetype);
 
         template <typename Components, typename ArgsTuple>
         EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args)
@@ -218,33 +181,7 @@ namespace RR::Ecs
             return commitImpl<Components>(entity, removeComponents, eastl::forward<ArgsTuple>(args), eastl::make_index_sequence<Components::Count>());
         }
 
-        ComponentInfo getComponentInfo(ComponentId id)
-        {
-            ASSERT(componentStorage.find(id) != componentStorage.end());
-            return componentStorage[id];
-        }
-
-        Archetype& getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
-        {
-            Archetype* archetype = nullptr;
-
-            auto it = archetypesMap.find(archetypeId);
-            if (it == archetypesMap.end())
-            {
-                auto archUniqPtr = eastl::make_unique<Archetype>(
-                    archetypeId,
-                    ComponentInfoIterator(componentStorage, components.begin()),
-                    ComponentInfoIterator(componentStorage, components.end()));
-                archetype = archUniqPtr.get();
-                archetypesMap.emplace(archetypeId, eastl::move(archUniqPtr));
-
-                updateCache(*archetype);
-            }
-            else
-                archetype = it->second.get();
-
-            return *archetype;
-        }
+        Archetype& getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components);
 
         template <typename Component, typename ArgsTuple, size_t... Index>
         void constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args, eastl::index_sequence<Index...>)
@@ -292,12 +229,17 @@ namespace RR::Ecs
             };
 
             (addComponent(GetComponentId<typename Components::template Get<Index>>), ...);
-            for (auto component : removeComponents)
-                components.erase(component);
+            if (entity)
+            {
+                for (auto component : removeComponents)
+                    components.erase(component);
+            }
+            else
+                ASSERT(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0);
 
             ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
             Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
-            if (from == &to)
+            if (from && from->id == to.id)
                 return entity;
 
             if (from)
@@ -432,69 +374,8 @@ namespace RR::Ecs
             ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
         }
 
-        void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to)
-        {
-            const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
-            const auto fromDissapear = from.cache.find(GetEventId<OnDissapear>);
-
-            if (fromDissapear != from.cache.end())
-            {
-                if (toDissapear != to.cache.end())
-                {
-                    SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(),
-                                toDissapear->second.begin(), toDissapear->second.end(),
-                                [entity, this](SystemId systemId) {
-                                    dispatchEventImmediately(entity, systemId, OnDissapear {});
-                                });
-                }
-                else
-                {
-                    for (const auto systemId : fromDissapear->second)
-                        dispatchEventImmediately(entity, systemId, OnDissapear {});
-                }
-            }
-        }
-
-        void handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
-        {
-            if (!from)
-            {
-                // First time appear, send On Appear event every subscriber.
-                const auto it = to.cache.find(GetEventId<OnAppear>);
-                if (it != to.cache.end())
-                    for (const auto systemId : it->second)
-                        dispatchEventImmediately(entity, systemId, OnAppear {});
-            }
-            else
-            {
-                const auto toAppear = to.cache.find(GetEventId<OnAppear>);
-                const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
-
-                if (toAppear != to.cache.end())
-                {
-                    if (fromAppear != from->cache.end())
-                    {
-                        SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
-                    }
-                    else
-                        for (const auto systemId : toAppear->second)
-                            dispatchEventImmediately(entity, systemId, OnAppear {});
-                }
-            }
-        }
-
-        template <typename... Components>
-        static constexpr ArchetypeId getArhetypeIdForComponents(TypeList<Components...>)
-        {
-            return ArchetypeInfo<Components...>::Id;
-        }
-
-        template <typename... Components>
-        static constexpr auto getComponentsInfoArray(TypeList<Components...>)
-        {
-            return eastl::array<ComponentInfo, TypeList<Components...>::Count> {GetComponentInfo<Components>...};
-        }
-
+        void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to);
+        void handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to);
         void broadcastEventImmediately(const Ecs::Event& event) const;
         void dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const;
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
@@ -540,7 +421,6 @@ namespace RR::Ecs
 
     inline Query QueryBuilder::Build() &&
     {
-        auto& world = view.world;
-        return Query(world, world._register(eastl::move(view)));
+        return view.world.createQuery(eastl::move(view));
     }
 }
