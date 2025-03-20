@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 
 #include "common/Config.hpp"
 
@@ -8,6 +7,8 @@
 #include "common/NonCopyableMovable.hpp"
 #include "common/debug/Logger.hpp"
 #include <array>
+#include <cstdint>
+#include <cstdlib>
 #include <cstddef>
 #include <fmt/core.h>
 #include <fmt/printf.h>
@@ -26,4 +27,7 @@ using namespace RR::Common::Debug;
 
 // using namespace RR::Common;
 
-#endif // __cplusplus
+#else
+#include <cstddef.h>
+#include <stdint.h>
+#endif
