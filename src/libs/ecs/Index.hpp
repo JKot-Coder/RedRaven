@@ -18,23 +18,23 @@ namespace RR::Ecs
         static constexpr Index Invalid() { return Index{}; };
 
         constexpr Index() noexcept = default;
-        explicit constexpr Index(ValueType value) noexcept : value_(value) { }
+        explicit constexpr Index(ValueType value) noexcept : value(value) { }
 
         static constexpr Index FromValue(ValueType value) noexcept { return Index(value); }
 
-        constexpr IndexType GetRaw() const noexcept { return value_; } // Todo naming. GetValue in EntityId vs value.
-        constexpr bool IsValid() const noexcept { return value_ != InvalidValue; }
+        constexpr IndexType GetRaw() const noexcept { return value; } // Todo naming. GetValue in EntityId vs value.
+        [[nodiscard]] constexpr bool IsValid() const noexcept { return value != InvalidValue; }
 
-        constexpr bool operator==(const ThisType& other) const noexcept { return value_ == other.value_; }
-        constexpr bool operator!=(const ThisType& other) const noexcept { return value_ != other.value_; }
-        constexpr bool operator<(const ThisType& other) const noexcept { return value_ < other.value_; }
-        constexpr bool operator<=(const ThisType& other) const noexcept { return value_ <= other.value_; }
-        constexpr bool operator>(const ThisType& other) const noexcept { return value_ > other.value_; }
-        constexpr bool operator>=(const ThisType& other) const noexcept { return value_ >= other.value_; }
-        explicit operator bool() const { return value_ != InvalidValue; }
+        constexpr bool operator==(const ThisType& other) const noexcept { return value == other.value; }
+        constexpr bool operator!=(const ThisType& other) const noexcept { return value != other.value; }
+        constexpr bool operator<(const ThisType& other) const noexcept { return value < other.value; }
+        constexpr bool operator<=(const ThisType& other) const noexcept { return value <= other.value; }
+        constexpr bool operator>(const ThisType& other) const noexcept { return value > other.value; }
+        constexpr bool operator>=(const ThisType& other) const noexcept { return value >= other.value; }
+        explicit operator bool() const { return value != InvalidValue; }
 
-    protected:
-        IndexType value_ = InvalidValue;
+    private:
+        IndexType value = InvalidValue;
     };
 }
 

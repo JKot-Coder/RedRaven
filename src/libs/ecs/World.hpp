@@ -1,50 +1,21 @@
 #pragma once
 
-#include "ecs/Archetype.hpp"
+#include "ecs/ForwardDeclarations.hpp"
+#include "ecs/EntityStorage.hpp"
 #include "ecs/ComponentStorage.hpp"
+#include "ecs/Query.hpp"
+#include "ecs/View.hpp"
+#include "ecs/System.hpp"
+#include "ecs/IterationHelpers.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
-#include "ecs/EntityStorage.hpp"
-#include "ecs/Event.hpp"
-#include "ecs/ForwardDeclarations.hpp"
-#include "ecs/FunctionTraits.hpp"
-#include "ecs/IterationHelpers.hpp"
-#include "ecs/Query.hpp"
-#include "ecs/System.hpp"
-#include "ecs/View.hpp"
 #include "ska/flat_hash_map.h"
 
 namespace RR::Ecs
 {
-    namespace
-    {
-        template <typename InputIt1, typename InputIt2, typename Callback>
-        void SetDifference(InputIt1 first1, InputIt1 last1,
-                           InputIt2 first2, InputIt2 last2, Callback&& clb)
-        {
-            while (first1 != last1 && first2 != last2)
-            {
-                if (*first1 < *first2)
-                    eastl::invoke(eastl::forward<Callback>(clb), *first1++);
-                else
-                {
-                    if (!(*first2 < *first1))
-                        ++first1;
-                    ++first2;
-                }
-            }
-        }
-    }
-
     struct World
     {
     private:
-        struct QueryData
-        {
-            View view;
-            eastl::fixed_vector<const Archetype*, 16> cache;
-        };
-
         using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; // TODO naming?
 
     public:
@@ -383,7 +354,6 @@ namespace RR::Ecs
     private:
         EntityStorage entityStorage;
         EventStorage eventStorage;
-        // eastl::vector<QueryData> views;
         eastl::vector<SystemDescription> systems;
         // SystemStorage systemStorage;
         ComponentStorage componentStorage;

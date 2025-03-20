@@ -48,8 +48,7 @@ namespace RR::Ecs
         {
             ((T*)data)->~T();
         }
-
-    } // details
+    }
 
     struct ComponentInfo
     {

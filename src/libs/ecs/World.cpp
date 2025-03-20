@@ -2,6 +2,26 @@
 #include "ecs/EntityBuilder.hpp"
 #include "ecs/SystemBuilder.hpp"
 
+namespace
+{
+    template <typename InputIt1, typename InputIt2, typename Callback>
+    void SetDifference(InputIt1 first1, InputIt1 last1,
+                       InputIt2 first2, InputIt2 last2, Callback&& clb)
+    {
+        while (first1 != last1 && first2 != last2)
+        {
+            if (*first1 < *first2)
+                eastl::invoke(eastl::forward<Callback>(clb), *first1++);
+            else
+            {
+                if (!(*first2 < *first1))
+                    ++first1;
+                ++first2;
+            }
+        }
+    }
+}
+
 namespace RR::Ecs
 {
     World::World() : cacheForQueriesView(*this), cacheForSystemsView(*this)

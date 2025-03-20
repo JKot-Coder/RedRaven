@@ -59,7 +59,7 @@ namespace RR::Ecs
                     world.queryForEntity(event, entityId, eastl::move(cb)); // todo event order differs
             };
 
-            return view.world.Create(eastl::move(desc), eastl::move(view));
+            return view.world.createSystem(eastl::move(desc), eastl::move(view));
         }
 
     private:
@@ -88,7 +88,7 @@ namespace RR::Ecs
         }
 
     private:
-        SystemDescription desc;
+        SystemDescription desc = {};
         View view;
     };
 }

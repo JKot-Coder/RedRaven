@@ -2,6 +2,7 @@
 
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/EntityId.hpp"
+#include "ecs/Archetype.hpp"
 
 namespace RR::Ecs
 {

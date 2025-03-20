@@ -44,10 +44,10 @@ namespace RR::Ecs
         friend Ecs::World;
         friend Ecs::SystemBuilder;
 
-        explicit System(Ecs::World& world, SystemId id) : world(world), id(id) { };
+        explicit System(Ecs::World& world, SystemId id) : world(&world), id(id) { };
 
     private:
-        World& world;
+        World* world; // TODO We don't use it for now.
         SystemId id;
     };
 

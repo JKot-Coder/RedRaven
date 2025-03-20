@@ -1,6 +1,10 @@
 #pragma once
 
+#include "EASTL/tuple.h"
 #include "EASTL/span.h"
+
+#include <cstddef>
+#include <cstdint>
 
 namespace RR::Ecs
 {

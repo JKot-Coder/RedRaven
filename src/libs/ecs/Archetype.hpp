@@ -9,7 +9,6 @@
 #include <EASTL/fixed_vector.h>
 #include <EASTL/sort.h>
 #include <EASTL/vector_set.h>
-#include <numeric>
 
 namespace RR::Ecs
 {
