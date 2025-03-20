@@ -1,0 +1,25 @@
+---
+Checks: '*,
+-abseil-*,
+-altera-*,
+-android-*,
+-boost-*,
+-bugprone-*,
+-cert-*,
+-llvmlibc-*,
+-modernize-use-trailing-return-type,
+-readability-identifier-length,
+-google-readability-braces-around-statements,
+-hicpp-braces-around-statements,
+-readability-braces-around-statements,
+-readability-redundant-access-specifiers,
+-readability-named-parameter,
+-fuchsia-overloaded-operator,
+-llvm-header-guard,
+-google-readability-namespace-comments,
+-google-readability-todo,
+-llvm-namespace-comment,
+-bugprone-easily-swappable-parameters'
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle:     none
