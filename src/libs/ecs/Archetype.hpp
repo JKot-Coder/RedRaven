@@ -127,6 +127,7 @@ namespace RR::Ecs
                 chunkCapacity = chunkSizeBytes / entitySizeBytes;
 
                 componentsOffsetSize.resize(componentsInfo.size());
+                componentChunks.resize(componentsInfo.size());
 
                 for (;;)
                 {
@@ -155,21 +156,21 @@ namespace RR::Ecs
 
             ~ComponentsData()
             {
-                for (size_t i = 0; i < componentsInfo.size(); i++)
+                for (size_t componentIndex = 0; componentIndex < componentsInfo.size(); componentIndex++)
                 {
-                    const auto& componentInfo = componentsInfo[i];
+                    const auto& componentInfo = componentsInfo[componentIndex];
                     if (!componentInfo.destructor)
                         continue;
 
                     size_t entityIndex = 0;
-                    for (const auto chunk : chunks)
+                    for (size_t chunkIndex = 0; chunkIndex < chunks.size(); chunkIndex++)
                     {
                         for (size_t index = 0; index < chunkCapacity && entityIndex < entitiesCount; index++, entityIndex++)
-                            componentInfo.destructor(chunk + componentsOffsetSize[i].first + index * componentsOffsetSize[i].second);
+                            componentInfo.destructor(componentChunks[componentIndex][chunkIndex] + index * componentsOffsetSize[componentIndex].second); //(chunk.componentChunks[i] + index * componentsOffsetSize[i].second);
                     }
                 }
 
-                for (auto chunk : chunks)
+                for (const auto chunk : chunks)
                     delete[] chunk;
             }
 
@@ -182,23 +183,29 @@ namespace RR::Ecs
                 return ArchetypeComponentIndex(eastl::distance(components.begin(), it));
             }
 
-            std::byte* GetData(ArchetypeComponentIndex componentIndex, size_t chunkIndex) const
+            std::byte* GetComponentChunkData(ArchetypeComponentIndex componentIndex, size_t chunkIndex) const
             {
                 ASSERT(componentIndex);
                 ASSERT(chunkIndex < chunks.size());
-
-                return chunks[chunkIndex] + componentsOffsetSize[componentIndex.GetRaw()].first;
+                return componentChunks[componentIndex.GetRaw()][chunkIndex];
             }
 
-            std::byte* GetData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
+            std::byte* const* GetComponentsData(ArchetypeComponentIndex componentIndex) const
             {
+                ASSERT(componentIndex);
+                return componentChunks[componentIndex.GetRaw()].data();
+            }
+
+            std::byte* GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
+            {
+                ASSERT(componentIndex);
                 ASSERT(entitiesCount);
 
                 const auto indexInChunk = index.GetIndexInChunk();
                 const auto chunk = index.GetChunkIndex();
 
                 ASSERT((chunk + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
-                return GetData(componentIndex, chunk) + indexInChunk * componentsOffsetSize[componentIndex.GetRaw()].second;
+                return GetComponentChunkData(componentIndex, chunk) + indexInChunk * componentsInfo[componentIndex.GetRaw()].size;
             }
 
             ArchetypeEntityIndex Insert()
@@ -206,7 +213,10 @@ namespace RR::Ecs
                 if (entitiesCount == totalCapacity)
                 {
                     totalCapacity += chunkCapacity;
-                    chunks.push_back(new std::byte[chunkSize]);
+                    auto chunk = chunks.emplace_back(new std::byte[chunkSize]);
+
+                    for(size_t i = 0; i < componentsInfo.size(); i++)
+                        componentChunks[i].emplace_back(chunk + componentsOffsetSize[i].first);
                 }
 
                 entitiesCount++;
@@ -233,6 +243,7 @@ namespace RR::Ecs
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
             eastl::fixed_vector<eastl::pair<size_t, size_t>, 32> componentsOffsetSize;
             eastl::vector<std::byte*> chunks;
+            eastl::fixed_vector<eastl::vector<std::byte*>, 32> componentChunks;
         };
 
     private:
@@ -274,24 +285,44 @@ namespace RR::Ecs
             return false;
         }
 
-        std::byte* GetData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
+        EntityId& GetEntityIdData(ArchetypeEntityIndex index) const
         {
-            return componentsData.GetData(componentIndex, index);
+            return *(EntityId*)componentsData.GetComponentData(ArchetypeComponentIndex(0), index);
         }
 
-        std::byte* GetData(ArchetypeComponentIndex componentIndex, size_t chunkIndex) const
+        std::byte* GetComponentChunkData(ArchetypeComponentIndex componentIndex, size_t chunkIndex) const
         {
-            return componentsData.GetData(componentIndex, chunkIndex);
+            ASSERT(componentIndex);
+            return componentsData.GetComponentChunkData(componentIndex, chunkIndex);
         }
 
-        std::byte* GetData(ComponentId componentId, ArchetypeEntityIndex index) const
+        std::byte* GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
         {
-            // Assume components present, no additional check for perf
-            const auto componentIndex = componentsData.GetComponentIndex(componentId);
-            return componentsData.GetData(componentIndex, index);
+            ASSERT(componentIndex);
+            return componentsData.GetComponentData(componentIndex, index);
         }
 
-        ArchetypeComponentIndex GetComponentIndex(ComponentId componentId) const { return componentsData.GetComponentIndex(componentId); }
+        std::byte* const* GetComponentsData(ArchetypeComponentIndex componentIndex) const
+        {
+            ASSERT(componentIndex);
+            return componentsData.GetComponentsData(componentIndex);
+        }
+
+        template <typename Component>
+        ArchetypeComponentIndex GetComponentIndex() const
+        {
+            if constexpr (eastl::is_same_v<Component, EntityId>)
+                return ArchetypeComponentIndex(0);
+
+            return componentsData.GetComponentIndex(GetComponentId<Component>);
+        }
+
+        template <typename ComponentId>
+        ArchetypeComponentIndex GetComponentIndex(ComponentId componentId) const
+        {
+            return componentsData.GetComponentIndex(componentId);
+        }
+
         const ComponentInfo& GetComponentInfo(ArchetypeComponentIndex index) const
         {
             ASSERT(index);

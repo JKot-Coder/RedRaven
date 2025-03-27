@@ -25,7 +25,7 @@ namespace RR::Ecs
            if (componentInfo.size == 0)
                 continue;
 
-           std::byte* dst = componentsData.GetData(ArchetypeComponentIndex(componentIndex), index);
+           std::byte* dst = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
 
            // TODO Could be faster find if we start from previous finded, to not iterate over same components id.
            auto fromComponentIndex = from.GetComponentIndex(componentInfo.id);
@@ -33,11 +33,11 @@ namespace RR::Ecs
            if (!fromComponentIndex)
                continue;
 
-           std::byte* src = from.componentsData.GetData(fromComponentIndex, fromIndex);
+           std::byte* src = from.componentsData.GetComponentData(fromComponentIndex, fromIndex);
            componentInfo.move(dst, src);
         }
 
-        entityStorage.Mutate(*(EntityId*)from.componentsData.GetData(ArchetypeComponentIndex(0), fromIndex), id, index);
+        entityStorage.Mutate(GetEntityIdData(fromIndex), *this, index);
         from.Delete(entityStorage, fromIndex, false);
 
         return index;
@@ -48,10 +48,10 @@ namespace RR::Ecs
         const auto lastIndex = componentsData.GetLastIndex();
 
         if (index != lastIndex)
-            entityStorage.Move(*(EntityId*)componentsData.GetData(ArchetypeComponentIndex(0), lastIndex), index);
+            entityStorage.Move(GetEntityIdData(lastIndex), index);
 
         if (updateEntityRecord)
-            entityStorage.Destroy(*(EntityId*)componentsData.GetData(ArchetypeComponentIndex(0), index));
+            entityStorage.Destroy(GetEntityIdData(index));
 
         for (size_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
@@ -59,8 +59,8 @@ namespace RR::Ecs
             if (componentInfo.size == 0)
                 continue;
 
-            const auto removedPtr = componentsData.GetData(ArchetypeComponentIndex(componentIndex), index);
-            const auto lastIndexData = componentsData.GetData(ArchetypeComponentIndex(componentIndex), lastIndex);
+            const auto removedPtr = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
+            const auto lastIndexData = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), lastIndex);
 
             if (index != lastIndex)
                 componentInfo.move(removedPtr, lastIndexData);

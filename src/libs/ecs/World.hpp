@@ -160,7 +160,9 @@ namespace RR::Ecs
             if constexpr (IsTag<Component>)
                 return;
 
-            auto* ptr = archetype.GetData(GetComponentId<Component>, index);
+            // TODO this could be reused from mutate.
+            const auto componentIndex = archetype.GetComponentIndex<Component>();
+            auto* ptr = archetype.GetComponentData(componentIndex, index);
             new (ptr) Component {std::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
         }
 

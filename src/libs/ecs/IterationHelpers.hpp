@@ -2,6 +2,7 @@
 
 #include "EASTL/algorithm.h"
 #include "ecs/Archetype.hpp"
+#include <immintrin.h>
 
 namespace RR::Ecs
 {
@@ -18,40 +19,54 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype& archetype, ArchetypeComponentIndex componentIndex, size_t chunkIndex, const IterationContext&)
+        ComponentAccessor(const Archetype& archetype, const IterationContext&)
+        {
+            const auto componentIndex = archetype.GetComponentIndex<Component>();
+            if constexpr (std::is_pointer_v<Arg>)
+            {
+                c = componentIndex ? archetype.GetComponentsData(componentIndex) : nullptr;
+            } else {
+                c = archetype.GetComponentsData(componentIndex);
+                ASSERT(data);
+                ASSERT(c);
+            }
+        }
+
+        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex)
         {
             if constexpr (std::is_pointer_v<Arg>)
             {
-                data = componentIndex ? archetype.GetData(componentIndex, chunkIndex) : nullptr;
-                ASSERT(!componentIndex || data);
+                data = c ? *(c + chunkIndex) : nullptr;
+
             }
             else
             {
-                ASSERT(componentIndex);
-                data = archetype.GetData(componentIndex, chunkIndex);
+                data = *(c + chunkIndex);
                 ASSERT(data);
             }
         }
 
-        static ArchetypeComponentIndex GetComponentIndex(const Archetype& archetype)
+        void Prefetch(const Archetype& archetype, size_t chunkIndex)
         {
-            return archetype.GetComponentIndex(GetComponentId<Component>);
+            if (!(std::is_pointer_v<Arg>) || data)
+                _mm_prefetch(reinterpret_cast<const char*>(*(c + chunkIndex)), _MM_HINT_T0);
         }
 
-        Arg Get(size_t entityIndex)
+        Component* Get(size_t entityIndex)
         {
-            if constexpr (std::is_pointer_v<Arg>)
+            if constexpr (eastl::is_pointer_v<Arg>)
             {
-                return data ? reinterpret_cast<Component*>(data + sizeof(Component) * entityIndex) : nullptr;
+                return data ? reinterpret_cast<Component*>(data) + entityIndex : nullptr;
             }
             else
             {
-                return *reinterpret_cast<Component*>(data + sizeof(Component) * entityIndex);
+                return reinterpret_cast<Component*>(data) + entityIndex;
             }
         }
 
     private:
         std::byte* data;
+        std::byte* const * c;
     };
 
     template <typename Arg>
@@ -60,21 +75,11 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype&, ArchetypeComponentIndex, size_t, const IterationContext& context) : world(context.world) { };
-        static ArchetypeComponentIndex GetComponentIndex(const Archetype&) { return {}; }
-        Arg Get(size_t) { return dereference(); }
+        ComponentAccessor(const Archetype&, const IterationContext& context) : world(context.world) { };
+        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) {};
+        World* Get(size_t) { return &world; }
 
     private:
-        Arg dereference()
-        {
-            if constexpr (std::is_pointer_v<Arg>)
-            {
-                return &world;
-            }
-            else
-                return world;
-        }
-
         Ecs::World& world;
     };
 
@@ -84,59 +89,66 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype&, ArchetypeComponentIndex, size_t, const IterationContext& context) : event(context.event) { };
-        static ArchetypeComponentIndex GetComponentIndex(const Archetype&) { return {}; }
-        Arg Get(size_t) { return dereference(); }
+        ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) { };
+        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) {};
 
-    private:
-        Arg dereference()
+        Component* Get(size_t)
         {
-            if constexpr (eastl::is_pointer_v<Argument>)
-            {
-                static_assert(eastl::is_const_v<eastl::remove_pointer_t<Argument>>, "Event component should be read only accessed");
-                return &event->As<Component>();
-            }
-            else
-            {
-                static_assert(eastl::is_const_v<eastl::remove_reference_t<Argument>>, "Event component should be read only accessed");
-                return event->As<Component>();
-            }
+            static_assert(eastl::is_const_v<eastl::remove_pointer_t<Argument>>, "Event component should be read only accessed");
+            return &event->As<Component>();
         }
-
+    private:
         const Ecs::Event* event;
     };
 
     struct ArchetypeIterator
     {
     private:
+        template <typename Arg>
+        static Arg castComponentPtrToArg(GetComponentType<Arg>* ptr)
+        {
+            if constexpr (eastl::is_pointer_v<Arg>)
+            {
+                return ptr;
+            }
+            else
+                return *ptr;
+        }
+
+        template <typename... Args, typename... ComponentDataPtrs, typename Func>
+        static void invoke(Func&& func, ComponentDataPtrs __restrict... ptrs)
+        {
+            func(castComponentPtrToArg<Args>(ptrs)...);
+        }
+
         template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
         static void processChunk(Func&& func, size_t entitiesCount, ComponentAccessors... components)
         {
-            // clang-format off
-            #ifdef __GNUC__
-            #error "Fix unroll for ggc"
-            #endif
+            #if 0 // Auto unroll worlks better
+                // clang-format off
+                #ifdef __GNUC__
+                #error "Fix unroll for ggc"
+                #endif
 
-            #pragma unroll UNROLL_N // clang-format on
+                #pragma unroll UNROLL_N // clang-format on
+            #endif
             for (size_t i = 0; i < entitiesCount; i++)
-            {
-                func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(i))...);
-            }
+                invoke<typename ComponentAccessors::Argument...>(eastl::forward<Func>(func), components.Get(i)...);
         }
 
         template <typename Func, typename... ComponentAccessors>
         static void invokeForEntity(ArchetypeEntityIndex entityIndex, Func&& func, ComponentAccessors... components)
         {
-            func(eastl::forward<typename ComponentAccessors::Argument>(components.Get(entityIndex.GetIndexInChunk()))...);
+            func(castComponentPtrToArg<typename ComponentAccessors::Argument>(components.Get(entityIndex.GetIndexInChunk()))...);
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
         static void processEntity(const Archetype& archetype, ArchetypeEntityIndex entityIndex, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
             // TODO optimize finding index, based on previous finded.
-            // TODO this could be cached.
-            std::array<ArchetypeComponentIndex, sizeof...(Index)> componentIndexes = {ComponentAccessor<typename ArgumentList::template Get<Index>>::GetComponentIndex(archetype)...};
-            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, componentIndexes[Index], entityIndex.GetChunkIndex(), context)...);
+            // TODO componentIndexes could be cached.
+             auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
+            (eastl::get<Index>(componentAccessors).SetChunkIndex(archetype, entityIndex.GetChunkIndex()), ...);
 
             invokeForEntity(entityIndex, eastl::forward<Func>(func), eastl::get<Index>(componentAccessors)...);
         }
@@ -145,13 +157,12 @@ namespace RR::Ecs
         static void processArchetype(const Archetype& archetype, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
         {
             // TODO optimize finding index, based on previous finded.
-             // TODO this could be cached.
-            std::array<ArchetypeComponentIndex, sizeof...(Index)> componentIndexes = {ComponentAccessor<typename ArgumentList::template Get<Index>>::GetComponentIndex(archetype)...};
+            // TODO componentIndexes could be cached.
+            auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
 
             for (size_t chunkIndex = 0, chunkCount = archetype.GetChunksCount(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += archetype.GetChunkCapacity())
             {
-                auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, componentIndexes[Index], chunkIndex, context)...);
-
+                (eastl::get<Index>(componentAccessors).SetChunkIndex(archetype, chunkIndex), ...);
                 size_t entitiesCount = eastl::min(archetype.GetEntitiesCount() - entityOffset, archetype.GetChunkCapacity());
                 processChunk<4>(eastl::forward<Func>(func), entitiesCount, eastl::get<Index>(componentAccessors)...);
             }
