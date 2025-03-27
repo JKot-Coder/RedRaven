@@ -1207,6 +1207,29 @@ constexpr uint64_t Rng::rotl(uint64_t x, unsigned k) noexcept {
     return (x << k) | (x >> (64U - k));
 }
 
+
+struct Meter {
+    Meter(detail::PerformanceCounters& pc, uint64_t numIters) : pc(pc), mNumIters(numIters) {}
+
+    template <typename Op>
+    std::chrono::nanoseconds measure(Op&& op) {
+        pc.beginMeasure();
+        Clock::time_point const before = Clock::now();
+        while (mNumIters-- > 0) {
+            op();
+        }
+        Clock::time_point const after = Clock::now();
+        pc.endMeasure();
+
+        return after - before;
+    }
+
+private:
+    detail::PerformanceCounters& pc;
+    uint64_t mNumIters;
+};
+
+
 template <typename Op>
 ANKERL_NANOBENCH_NO_SANITIZE("integer")
 Bench& Bench::run(Op&& op) {
@@ -1215,15 +1238,8 @@ Bench& Bench::run(Op&& op) {
     auto& pc = detail::performanceCounters();
 
     while (auto n = iterationLogic.numIters()) {
-        pc.beginMeasure();
-        Clock::time_point const before = Clock::now();
-        while (n-- > 0) {
-            op();
-        }
-        Clock::time_point const after = Clock::now();
-        pc.endMeasure();
         pc.updateResults(iterationLogic.numIters());
-        iterationLogic.add(after - before, pc);
+        iterationLogic.add(op(Meter{pc, n}), pc);
     }
     iterationLogic.moveResultTo(mResults);
     return *this;
@@ -2276,7 +2292,7 @@ struct IterationLogic::Impl {
             if (mBench.relative()) {
                 double d = 100.0;
                 if (!mBench.results().empty()) {
-                    d = rMedian <= 0.0 ? 0.0 : mBench.results().front().median(Result::Measure::elapsed) / rMedian * 100.0;
+                    d = rMedian <= 0.0 ? 0.0 : mBench.results().front().median(Result::Measure::elapsed) / (rMedian / mBench.batch()) * 100.0;
                 }
                 columns.emplace_back(11, 1, "relative", "%", d);
             }
