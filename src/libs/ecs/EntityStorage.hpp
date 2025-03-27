@@ -17,12 +17,12 @@ namespace RR::Ecs
     struct EntityRecord
     {
         EntityRecord() = default;
-        EntityRecord(ArchetypeId archetypeId, ArchetypeEntityIndex index, uint32_t generation, EntityState state)
-            : archetypeId(archetypeId), index(index), generation(generation), state(state)
+        EntityRecord(Archetype& archetype, ArchetypeEntityIndex index, uint32_t generation, EntityState state)
+            : archetype(&archetype), index(index), generation(generation), state(state)
         {
         }
 
-        ArchetypeId archetypeId;
+        Archetype* archetype;
         ArchetypeEntityIndex index;
         uint32_t generation;
         EntityState state;
@@ -33,14 +33,14 @@ namespace RR::Ecs
         eastl::vector<EntityRecord> entityRecords;
         eastl::vector<uint32_t> freeIndices;
 
-        EntityId Create(EntityState state = EntityState::Alive)
+        EntityId Create(Archetype& archetype, ArchetypeEntityIndex index, EntityState state = EntityState::Alive)
         {
             EntityId entityId;
             if (freeIndices.empty())
             {
                 entityId = EntityId(entityRecords.size(), 0);
                 uint32_t generation = entityId.fields.generation;
-                entityRecords.emplace_back(ArchetypeId::Invalid(), ArchetypeEntityIndex::Invalid(), generation, state);
+                entityRecords.emplace_back(archetype, index, generation, state);
             }
             else
             {
@@ -49,7 +49,7 @@ namespace RR::Ecs
 
                 uint32_t generation = entityRecords[entityIndex].generation;
                 entityId = EntityId(entityIndex, generation);
-                entityRecords[entityIndex] = {ArchetypeId::Invalid(), ArchetypeEntityIndex::Invalid(), generation, state};
+                entityRecords[entityIndex] = EntityRecord{archetype, index, generation, state};
             }
             return entityId;
         }
@@ -92,12 +92,12 @@ namespace RR::Ecs
             return false;
         }
 
-        bool Mutate(EntityId entityId, ArchetypeId archetypeId, ArchetypeEntityIndex index)
+        bool Mutate(EntityId entityId, Archetype& archetype, ArchetypeEntityIndex index)
         {
             if (IsAlive(entityId))
             {
                 auto& entityRecord = entityRecords[entityId.fields.index];
-                entityRecord.archetypeId = archetypeId;
+                entityRecord.archetype = &archetype;
                 entityRecord.index = index;
                 entityRecord.state = EntityState::Alive;
                 return true;

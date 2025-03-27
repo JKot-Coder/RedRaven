@@ -53,7 +53,6 @@ namespace RR::Ecs
             entityStorage.Destroy(entityId);
         }
 
-
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
@@ -63,11 +62,12 @@ namespace RR::Ecs
             if (!entityStorage.Get(entity, record))
                 return false;
 
-            ASSERT(record.archetypeId.IsValid());
-            auto it = archetypesMap.find(record.archetypeId);
-            ASSERT(it != archetypesMap.end());
-            archetype = &(*it->second);
+            archetype = record.archetype;
             index = record.index;
+
+            ASSERT(archetype);
+            ASSERT(index);
+
             return true;
         }
 
@@ -165,58 +165,63 @@ namespace RR::Ecs
         }
 
         template <typename Components, typename ArgsTuple, size_t... Index>
-        EntityId commitImpl(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        EntityId commitImpl(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
             ComponentsSet components;
             Archetype* from = nullptr;
             ArchetypeEntityIndex fromIndex;
 
-            if (entity)
+            if (entityId)
             {
-                if (!IsAlive(entity))
-                    return entity;
+                if (!IsAlive(entityId))
+                    return entityId;
 
-                if (!ResolveEntityArhetype(entity, from, fromIndex))
+                if (!ResolveEntityArhetype(entityId, from, fromIndex))
                 {
                     ASSERT(false); // Impossible
-                    return entity;
+                    return entityId;
                 }
 
                 for (auto component : from->GetComponentsView())
                     components.push_back_unsorted(component); // Components already sorted
-            }
-            else
-            {
-                entity = entityStorage.Create();
-                components.push_back_unsorted(GetComponentId<EntityId>);
-            }
 
-            ComponentsSet added;
-            (RegisterComponent<typename Components::template Get<Index>>(), ...);
-            auto addComponent = [&components](ComponentId id) -> int {
-                bool added = components.insert(id).second;
-                ASSERT_MSG(added, "Only new components can be added");
-                return 0;
-            };
-
-            (addComponent(GetComponentId<typename Components::template Get<Index>>), ...);
-            if (entity)
-            {
                 for (auto component : removeComponents)
                     components.erase(component);
             }
             else
                 ASSERT(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0);
 
+            ComponentsSet added;
+            (RegisterComponent<typename Components::template Get<Index>>(), ...);
+            auto addComponent = [&components](ComponentId id) -> int {
+                bool added = components.insert(id).second;
+                UNUSED(added);
+                ASSERT_MSG(added, "Only new components can be added");
+                return 0;
+            };
+
+            if (!entityId)
+                components.push_back_unsorted(GetComponentId<EntityId>);
+
+            (addComponent(GetComponentId<typename Components::template Get<Index>>), ...);
+
             ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
             Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
-            if (from && from->id == to.id)
-                return entity;
 
+            if (from && from == &to)
+                return entityId;
+
+            ArchetypeEntityIndex index;
             if (from)
-                handleDisappearEvent(entity, *from, to);
-
-            ArchetypeEntityIndex index = from ? to.Mutate(entityStorage, *from, fromIndex) : to.Insert(entityStorage, entity);
+            {
+                handleDisappearEvent(entityId, *from, to);
+                index = to.Mutate(entityStorage, *from, fromIndex);
+            }
+            else
+            {
+                index = to.Insert(entityStorage);
+                entityId = to.GetEntityIdData(index);
+            }
 
             // Component data initialization
             (
@@ -226,12 +231,12 @@ namespace RR::Ecs
                     eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
                 ...);
 
-            handleAppearEvent(entity, from, to);
+            handleAppearEvent(entityId, from, to);
 
-            UNUSED(index);
+            ASSERT(entityId);
             // TODO validate remove components and add/remove at some thime.
 
-            return entity;
+            return entityId;
         }
 
         template <typename Callable>
@@ -361,6 +366,8 @@ namespace RR::Ecs
         Ecs::View cacheForSystemsView;
         Ecs::QueryId cacheForQueriesQuery;
         ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
+        ska::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
+        eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
         ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
 

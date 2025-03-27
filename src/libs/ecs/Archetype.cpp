@@ -4,11 +4,11 @@
 
 namespace RR::Ecs
 {
-    ArchetypeEntityIndex Archetype::Insert(EntityStorage& entityStorage, EntityId entityId)
+    ArchetypeEntityIndex Archetype::Insert(EntityStorage& entityStorage)
     {
         auto index = componentsData.Insert();
-        *(EntityId*)componentsData.GetData(ArchetypeComponentIndex(0), index) = entityId;
-        entityStorage.Mutate(entityId, id, index);
+        GetEntityIdData(index) = entityStorage.Create(*this, index);
+
         return index;
     }
 

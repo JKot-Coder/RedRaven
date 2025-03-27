@@ -13,6 +13,7 @@
 namespace RR::Ecs
 {
     using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
+    using ArchetypeIndex = Index<struct ArchetypeIndexTag>;
     using ArchetypeComponentIndex = Index<struct ArchetypeComponentIndexTag>;
 
     struct ArchetypeEntityIndex final
@@ -50,6 +51,7 @@ namespace RR::Ecs
         uint32_t GetIndexInChunk() const { return fields.indexInChunk; }
         uint32_t GetRaw() const { return rawIndex; }
 
+        explicit operator bool() const { return rawIndex != InvalidRawIndex; }
         bool operator==(const ArchetypeEntityIndex other) const { return rawIndex == other.rawIndex; }
         bool operator!=(const ArchetypeEntityIndex other) const { return rawIndex != other.rawIndex; }
     };
@@ -241,8 +243,8 @@ namespace RR::Ecs
     public:
         // Components info should be sorted
         template <typename Interator>
-        Archetype(ArchetypeId id, Interator compInfoBegin, Interator compInfoEnd)
-            : id(id), componentsData(compInfoBegin, compInfoEnd)
+        Archetype(Interator compInfoBegin, Interator compInfoEnd)
+            : componentsData(compInfoBegin, compInfoEnd)
         {
         }
 
@@ -296,7 +298,7 @@ namespace RR::Ecs
             return componentsData.componentsInfo[index.GetRaw()];
         }
 
-        ArchetypeEntityIndex Insert(EntityStorage& entityStorage, EntityId entityId);
+        ArchetypeEntityIndex Insert(EntityStorage& entityStorage);
         ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
         void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
 
@@ -306,10 +308,8 @@ namespace RR::Ecs
         size_t GetChunkCapacity() const { return componentsData.chunkCapacity; }
         size_t GetChunkSize() const { return componentsData.chunkSize; }
         size_t GetEntitySize() const { return componentsData.entitySize; }
-        ArchetypeId GetId() const { return id; }
 
     private:
-        ArchetypeId id;
         ComponentsData componentsData;
         ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;
     };
