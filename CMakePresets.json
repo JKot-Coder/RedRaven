@@ -1,40 +1,47 @@
 {
-  "version": 2,
-  "configurePresets": [
-    {
-      "name": "default",
-      "generator": "Ninja",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/build",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-win-llvm",
-        "VCPKG_HOST_TRIPLET": "x64-win-llvm",
-        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets",
-        "VCPKG_PLATFORM_TOOLSET": "llvm",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      },
-      "environment": {
-        "VCPKG_FEATURE_FLAGS": "-binarycaching,manifests"
-      }
-    },
-    {
-      "name": "debug",
-      "displayName": "Debug",
-      "inherits": "default",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "relWithDebInfo",
-      "displayName": "RelWithDebInfo",
-      "inherits": "default",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    }
-  ]
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "default",
+            "generator": "Ninja",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-win-llvm",
+                "VCPKG_HOST_TRIPLET": "x64-win-llvm",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets",
+                "VCPKG_PLATFORM_TOOLSET": "llvm",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            },
+            "environment": {
+                "VCPKG_FEATURE_FLAGS": "-binarycaching,manifests"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "relWithDebInfo",
+            "displayName": "RelWithDebInfo",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ]
 }
-
