@@ -27,13 +27,16 @@
 + Optional components
 # Refactor all queries
 # refactor includes
-# assert for chunk count and chunk entity sizes
++ assert for chunk count and chunk entity sizes
 + rework Events Api
 + more Events tests
-# more tests of edit update on deleted
++ more tests of edit update on deleted
 # Command buffer
 # deffered commands.
 # uint32_t everything
-# parents?
+# parents? (Better to not do)
 # systems ordering
 # Benchmarks
+# replace Ska?
+# delete systems / queries
+# do not allow delete add world entityid or event.
