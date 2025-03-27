@@ -24,49 +24,34 @@ namespace RR::Ecs
             const auto componentIndex = archetype.GetComponentIndex<Component>();
             if constexpr (std::is_pointer_v<Arg>)
             {
-                c = componentIndex ? archetype.GetComponentsData(componentIndex) : nullptr;
+                componentDataArray = componentIndex ? archetype.GetComponentsData(componentIndex) : nullptr;
             } else {
-                c = archetype.GetComponentsData(componentIndex);
+                componentDataArray = archetype.GetComponentsData(componentIndex);
                 ASSERT(data);
-                ASSERT(c);
+                ASSERT(componentDataArray);
             }
         }
 
         void SetChunkIndex(const Archetype& archetype, size_t chunkIndex)
         {
-            if constexpr (std::is_pointer_v<Arg>)
-            {
-                data = c ? *(c + chunkIndex) : nullptr;
-
-            }
-            else
-            {
-                data = *(c + chunkIndex);
-                ASSERT(data);
-            }
+            data = (!eastl::is_pointer_v<Arg> || componentDataArray) ? *(componentDataArray + chunkIndex) : nullptr;
+            ASSERT(!eastl::is_pointer_v<Arg> || data);
         }
 
         void Prefetch(const Archetype& archetype, size_t chunkIndex)
         {
             if (!(std::is_pointer_v<Arg>) || data)
-                _mm_prefetch(reinterpret_cast<const char*>(*(c + chunkIndex)), _MM_HINT_T0);
+                _mm_prefetch(reinterpret_cast<const char*>(*(componentDataArray + chunkIndex)), _MM_HINT_T0);
         }
 
         Component* Get(size_t entityIndex)
         {
-            if constexpr (eastl::is_pointer_v<Arg>)
-            {
-                return data ? reinterpret_cast<Component*>(data) + entityIndex : nullptr;
-            }
-            else
-            {
-                return reinterpret_cast<Component*>(data) + entityIndex;
-            }
+            return (!eastl::is_pointer_v<Arg> || data) ? reinterpret_cast<Component*>(data) + entityIndex : nullptr;
         }
 
     private:
         std::byte* data;
-        std::byte* const * c;
+        std::byte* const * componentDataArray;
     };
 
     template <typename Arg>
