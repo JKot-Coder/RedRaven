@@ -283,13 +283,12 @@ namespace RR::Ecs
             // Todo check all args in callable persist in requireComps with std::includes
             IterationContext context {*this, nullptr};
 
-            for (auto it = archetypesMap.begin(); it != archetypesMap.end(); it++)
+            for (const auto& archetype : archetypes)
             {
-                const Archetype& archetype = *it->second;
-                if (!matches(archetype, view))
+                if (!matches(*archetype, view))
                     continue;
 
-                ArchetypeIterator::ForEach(archetype, eastl::forward<Callable>(callable), context);
+                ArchetypeIterator::ForEach(*archetype, eastl::forward<Callable>(callable), context);
             }
         }
 
@@ -370,7 +369,6 @@ namespace RR::Ecs
         ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
         ska::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
-        ska::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
     };
 
     template <typename Callable>
