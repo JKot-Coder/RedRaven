@@ -43,6 +43,8 @@ namespace RR::Ecs
         static constexpr ArchetypeEntityIndex Invalid() { return ArchetypeEntityIndex {}; };
         ArchetypeEntityIndex(uint32_t indexInChunk, uint32_t chunkIndex)
         {
+            ASSERT(indexInChunk < MaxEntitiesCount);
+            ASSERT(chunkIndex < MaxChunksCount);
             fields.indexInChunk = indexInChunk;
             fields.chunk = chunkIndex;
         }
