@@ -5,10 +5,10 @@
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
 #include "ecs/TypeTraits.hpp"
-#include "ska/flat_hash_map.h"
 #include <EASTL/fixed_vector.h>
 #include <EASTL/sort.h>
 #include <EASTL/vector_set.h>
+#include "absl/container/flat_hash_map.h"
 
 namespace RR::Ecs
 {
@@ -342,6 +342,6 @@ namespace RR::Ecs
 
     private:
         ComponentsData componentsData;
-        ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;
+        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;
     };
 }

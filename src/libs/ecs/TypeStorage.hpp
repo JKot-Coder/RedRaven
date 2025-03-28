@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/TypeTraits.hpp"
-#include "ska/flat_hash_map.h"
+#include "absl/container/flat_hash_map.h"
 
 namespace RR::Ecs
 {
@@ -19,6 +19,6 @@ namespace RR::Ecs
         const TypeDescriptor& operator[](TypeId id) const { return types[id]; }
 
     private:
-        ska::flat_hash_map<TypeId, TypeDescriptor> types;
+        absl::flat_hash_map<TypeId, TypeDescriptor> types;
     };
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/ComponentTraits.hpp"
-#include "ska/flat_hash_map.h"
+#include "absl/container/flat_hash_map.h"
 
 namespace RR::Ecs
 {
@@ -25,6 +25,6 @@ namespace RR::Ecs
         auto end() const { return componentsInfo.end(); }
 
     private:
-        ska::flat_hash_map<ComponentId, ComponentInfo> componentsInfo;
+        absl::flat_hash_map<ComponentId, ComponentInfo> componentsInfo;
     };
 }

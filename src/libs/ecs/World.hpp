@@ -9,7 +9,7 @@
 #include "ecs/IterationHelpers.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
-#include "ska/flat_hash_map.h"
+#include "absl/container/flat_hash_map.h"
 
 namespace RR::Ecs
 {
@@ -163,7 +163,7 @@ namespace RR::Ecs
             // TODO this could be reused from mutate.
             const auto componentIndex = archetype.GetComponentIndex<Component>();
             auto* ptr = archetype.GetComponentData(componentIndex, index);
-            new (ptr) Component {std::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
+            new (ptr) Component {eastl::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
         }
 
         template <typename Components, typename ArgsTuple, size_t... Index>
@@ -264,18 +264,18 @@ namespace RR::Ecs
             this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable), nullptr);
         }
         /*
-                template <typename Callable>
-                void queryForEntity(EntityId entityId, const Ecs::Query& query, Callable&& callable)
-                {
-                    View* view = nullptr;
-                    /// Todo. i have hadache don't sure it's optimal
-                    cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [this](View& v) {
-                        view = &v;
-                    });
-                    ASSE(view);
+        template <typename Callable>
+        void queryForEntity(EntityId entityId, const Ecs::Query& query, Callable&& callable)
+        {
+            View* view = nullptr;
+            /// Todo. i have hadache don't sure it's optimal
+            cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [this](View& v) {
+                view = &v;
+            });
+            ASSE(view);
 
-                    queryForEntity(entityId, *view, eastl::forward<Callable>(callable));
-                }*/
+            queryForEntity(entityId, *view, eastl::forward<Callable>(callable));
+        }*/
 
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable)
@@ -366,9 +366,10 @@ namespace RR::Ecs
         Ecs::View cacheForQueriesView;
         Ecs::View cacheForSystemsView;
         Ecs::QueryId cacheForQueriesQuery;
-        ska::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
-        ska::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
+        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
+        absl::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
+       // absl::flat_hash_map<EntityId, EntityRecord> entityRecords;
     };
 
     template <typename Callable>
