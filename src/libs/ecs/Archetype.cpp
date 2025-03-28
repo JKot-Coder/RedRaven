@@ -37,7 +37,7 @@ namespace RR::Ecs
            componentInfo.move(dst, src);
         }
 
-        entityStorage.Mutate(GetEntityIdData(fromIndex), *this, index);
+        entityStorage.Mutate(from.GetEntityIdData(fromIndex), *this, index);
         from.Delete(entityStorage, fromIndex, false);
 
         return index;
