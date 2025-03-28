@@ -36,7 +36,7 @@
 # uint32_t everything
 # parents? (Better to not do)
 # systems ordering
-# Benchmarks
-# replace Ska?
++ Benchmarks
++ replace Ska?
 # delete systems / queries
 # do not allow delete add world entityid or event.
