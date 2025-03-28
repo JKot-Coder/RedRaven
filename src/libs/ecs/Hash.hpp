@@ -9,7 +9,7 @@ namespace RR::Ecs
     template <int FixedSize>
     struct HashString;
 
-    using HashType = uint64_t;
+    using HashType = uint32_t;
     using HashName = HashString<64>;
 
     namespace details

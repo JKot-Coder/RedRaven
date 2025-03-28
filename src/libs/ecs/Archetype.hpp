@@ -62,18 +62,32 @@ namespace RR::Ecs
     private:
         static constexpr HashType getArchetypeHash()
         {
-            static_assert(eastl::is_same_v<HashType, uint64_t>, "Update hash combine function");
+            if constexpr (eastl::is_same_v<HashType, uint64_t>)
+            {
+                uint64_t hash = 0xcbf29ce484222325;
 
-            uint64_t hash = 0xcbf29ce484222325;
+                auto fnv1a = [&](uint64_t value) {
+                    uint64_t prime = 0x100000001b3;
+                    hash = hash ^ value;
+                    hash *= prime;
+                };
 
-            auto hash_64_fnv1a = [&](uint64_t value) {
-                uint64_t prime = 0x100000001b3;
-                hash = hash ^ value;
-                hash *= prime;
-            };
+                (fnv1a(GetTypeHash<Components>), ...);
+                return hash;
+            }
+            else
+            {
+                uint32_t hash = 0x811c9dc5;
 
-            (hash_64_fnv1a(GetTypeHash<Components>), ...);
-            return hash;
+                auto fnv1a = [&](uint64_t value) {
+                    uint32_t prime = 0x1000193;
+                    hash = hash ^ value;
+                    hash *= prime;
+                };
+
+                (fnv1a(GetTypeHash<Components>), ...);
+                return hash;
+            }
         }
 
     public:
@@ -82,19 +96,32 @@ namespace RR::Ecs
 
     static constexpr ArchetypeId GetArchetypeIdForComponents(SortedComponentsView components)
     {
-        static_assert(eastl::is_same_v<HashType, uint64_t>, "Update hash combine function");
-
-        uint64_t hash = 0xcbf29ce484222325;
-
-        auto hash_64_fnv1a = [&](uint64_t value) {
-            uint64_t prime = 0x100000001b3;
-            hash = hash ^ value;
-            hash *= prime;
+        auto fnv1a = [&](SortedComponentsView components) {
+            if constexpr (eastl::is_same_v<HashType, uint64_t>)
+            {
+                uint64_t hash = 0xcbf29ce484222325;
+                uint64_t prime = 0x100000001b3;
+                for (auto it = components.begin(); it != components.end(); ++it)
+                {
+                    hash = hash ^ (*it).GetRaw();
+                    hash *= prime;
+                }
+                return hash;
+            }
+            else
+            {
+                uint32_t hash = 0x811c9dc5;
+                uint32_t prime = 0x1000193;
+                for (auto it = components.begin(); it != components.end(); ++it)
+                {
+                    hash = hash ^ (*it).GetRaw();
+                    hash *= prime;
+                }
+                return hash;
+            }
         };
 
-        for (auto it = components.begin(); it != components.end(); ++it)
-            hash_64_fnv1a((*it).GetRaw());
-        return ArchetypeId::FromValue(hash);
+        return ArchetypeId::FromValue(fnv1a(components));
     }
 
     struct Archetype final

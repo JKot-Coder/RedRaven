@@ -10,7 +10,7 @@ namespace RR::Ecs
 {
     template<int FixedSize>
     struct HashString;
-    using HashType = uint64_t;
+    using HashType = uint32_t;
     struct EntityId;
     struct Entity;
     struct Event;
@@ -26,7 +26,7 @@ namespace RR::Ecs
     struct ArchetypeEntityIndex;
     struct Archetype;
 
-    template <typename Tag, typename IndexType = size_t>
+    template <typename Tag, typename IndexType = uint32_t>
     struct Index;
 
     using EventId = Index<struct EventIdTag, HashType>;

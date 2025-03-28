@@ -38,18 +38,6 @@ namespace RR::Ecs
     };
 }
 
-namespace eastl
-{
-    template <typename Tag, typename IndexType>
-    struct hash<RR::Ecs::Index<Tag, IndexType>>
-    {
-        constexpr size_t operator()(const RR::Ecs::Index<Tag, IndexType>& index) const noexcept
-        {
-            return static_cast<size_t>(index.GetRaw());
-        }
-    };
-}
-
 namespace std
 {
     template <typename Tag, typename IndexType>
