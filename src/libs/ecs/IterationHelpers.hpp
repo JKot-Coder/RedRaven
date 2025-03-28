@@ -35,7 +35,7 @@ namespace RR::Ecs
         void SetChunkIndex(const Archetype& archetype, size_t chunkIndex)
         {
             data = (!eastl::is_pointer_v<Arg> || componentDataArray) ? *(componentDataArray + chunkIndex) : nullptr;
-            ASSERT(!eastl::is_pointer_v<Arg> || data);
+            ASSERT(eastl::is_pointer_v<Arg> || data);
         }
 
         void Prefetch(const Archetype& archetype, size_t chunkIndex)
@@ -74,12 +74,16 @@ namespace RR::Ecs
         using Argument = Arg;
         using Component = GetComponentType<Arg>;
 
-        ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) { };
+        ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) {
+            static_assert(eastl::is_pointer_v<Argument> || eastl::is_reference_v<Argument>, "Event component should be accessed as pointer or reference");
+        };
         void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) {};
 
-        Component* Get(size_t)
+        const Component* Get(size_t)
         {
-            static_assert(eastl::is_const_v<eastl::remove_pointer_t<Argument>>, "Event component should be read only accessed");
+            using T = eastl::remove_pointer_t<eastl::remove_reference_t<Argument>>;
+            static_assert(eastl::is_const_v<T>, "Event component should be read only accessed");
+
             return &event->As<Component>();
         }
     private:
@@ -89,8 +93,8 @@ namespace RR::Ecs
     struct ArchetypeIterator
     {
     private:
-        template <typename Arg>
-        static Arg castComponentPtrToArg(GetComponentType<Arg>* ptr)
+        template <typename Arg, typename Ptr>
+        static Arg castComponentPtrToArg(Ptr* ptr)
         {
             if constexpr (eastl::is_pointer_v<Arg>)
             {
