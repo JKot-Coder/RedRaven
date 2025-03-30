@@ -18,8 +18,8 @@ namespace RR::Ecs
 
     struct ArchetypeEntityIndex final
     {
-        static const uint32_t IndexBits = 24;
-        static const uint32_t ChunkBits = 8;
+        static const uint32_t IndexBits = 18;
+        static const uint32_t ChunkBits = 14;
         static_assert(IndexBits + ChunkBits == sizeof(uint32_t) * 8);
 
         static const uint32_t MaxEntitiesCount = 1 << IndexBits;
