@@ -177,7 +177,7 @@ TEST_CASE_METHOD(WorldFixture, "Query Exclude", "[Query]")
     entt2.Edit().Add<Foo>(2).Add<Bar>(2).Add<float>(0.0f).Apply();
     query.ForEach([&](EntityId id, Foo foo) {
         summ += foo.x;
-        REQUIRE(id.rawId == entt1.GetId());
+        REQUIRE(id == entt1.GetId());
     });
 
     REQUIRE(summ == 1);
