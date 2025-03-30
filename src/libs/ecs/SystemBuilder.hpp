@@ -54,9 +54,9 @@ namespace RR::Ecs
 
             desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event& event, Ecs::EntityId entityId, Ecs::MatchedArchetypeSpan archetypes) {
                 if (!entityId)
-                    world.query(archetypes, eastl::move(cb), &event); // todo event order differs
+                    world.query(archetypes, &event, eastl::move(cb));
                 else
-                    world.queryForEntity(event, entityId, eastl::move(cb)); // todo event order differs
+                    world.queryForEntity(entityId, event, eastl::move(cb));
             };
 
             return view.world.createSystem(eastl::move(desc), eastl::move(view));

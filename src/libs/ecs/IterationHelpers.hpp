@@ -132,7 +132,7 @@ namespace RR::Ecs
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
-        static void processEntity(const Archetype& archetype, ArchetypeEntityIndex entityIndex, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
+        static void processEntity(const Archetype& archetype, ArchetypeEntityIndex entityIndex, const IterationContext& context, Func&& func, const eastl::index_sequence<Index...>&)
         {
             // TODO optimize finding index, based on previous finded.
             // TODO componentIndexes could be cached.
@@ -143,7 +143,7 @@ namespace RR::Ecs
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
-        static void processArchetype(const Archetype& archetype, Func&& func, const IterationContext& context, const eastl::index_sequence<Index...>&)
+        static void processArchetype(const Archetype& archetype, const IterationContext& context, Func&& func, const eastl::index_sequence<Index...>&)
         {
             // TODO optimize finding index, based on previous finded.
             // TODO componentIndexes could be cached.
@@ -159,17 +159,17 @@ namespace RR::Ecs
 
     public:
         template <typename Callable>
-        static void ForEach(const Archetype& archetype, Callable&& callable, const IterationContext& context)
+        static void ForEach(const Archetype& archetype, const IterationContext& context, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            processArchetype<ArgList>(archetype, eastl::forward<Callable>(callable), context, eastl::make_index_sequence<ArgList::Count>());
+            processArchetype<ArgList>(archetype, context, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
 
         template <typename Callable>
-        static void ForEntity(const Archetype& archetype, ArchetypeEntityIndex entityId, Callable&& callable, const IterationContext& context)
+        static void ForEntity(const Archetype& archetype, ArchetypeEntityIndex entityId, const IterationContext& context, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            processEntity<ArgList>(archetype, entityId, eastl::forward<Callable>(callable), context, eastl::make_index_sequence<ArgList::Count>());
+            processEntity<ArgList>(archetype, entityId, context, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
     };
 }

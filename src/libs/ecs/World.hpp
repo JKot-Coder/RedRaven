@@ -242,13 +242,13 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void query(MatchedArchetypeSpan span, Callable&& callable, const Ecs::Event* event)
+        void query(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable)
         {
             IterationContext context {*this, event};
 
             // Todo check all args in callable persist in requireComps with std::includes
             for (auto archetype : span)
-                ArchetypeIterator::ForEach(*archetype, eastl::forward<Callable>(callable), context);
+                ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
         }
 
         template <typename Callable>
@@ -261,21 +261,8 @@ namespace RR::Ecs
             });
 
             ASSERT(archetypes);
-            this->query(MatchedArchetypeSpan(*archetypes), eastl::forward<Callable>(callable), nullptr);
+            this->query(MatchedArchetypeSpan(*archetypes), nullptr, eastl::forward<Callable>(callable));
         }
-        /*
-        template <typename Callable>
-        void queryForEntity(EntityId entityId, const Ecs::Query& query, Callable&& callable)
-        {
-            View* view = nullptr;
-            /// Todo. i have hadache don't sure it's optimal
-            cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [this](View& v) {
-                view = &v;
-            });
-            ASSE(view);
-
-            queryForEntity(entityId, *view, eastl::forward<Callable>(callable));
-        }*/
 
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable)
@@ -288,26 +275,26 @@ namespace RR::Ecs
                 if (!matches(*archetype, view))
                     continue;
 
-                ArchetypeIterator::ForEach(*archetype, eastl::forward<Callable>(callable), context);
+                ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
             }
         }
 
         template <typename Callable>
-        void queryForEntity(const Ecs::Event& event, EntityId entityId, Callable&& callable)
+        void queryForEntity(EntityId entityId, const Ecs::Event& event, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            queryForEntityImpl<ArgList>(entityId, eastl::forward<Callable>(callable), {*this, &event});
+            queryForEntityImpl<ArgList>(entityId, {*this, &event}, eastl::forward<Callable>(callable));
         }
 
         template <typename Callable>
         void queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            queryForEntityImpl<ArgList>(entityId, view, eastl::forward<Callable>(callable), {*this, nullptr});
+            queryForEntityImpl<ArgList>(entityId, view, {*this, nullptr}, eastl::forward<Callable>(callable));
         }
 
         template <typename ArgumentList, typename Callable>
-        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, Callable&& callable, const IterationContext& context)
+        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, const IterationContext& context, Callable&& callable)
         {
             ASSERT(entityId);
             // Todo check all args in callable persist in requireComps with std::includes
@@ -328,12 +315,12 @@ namespace RR::Ecs
                 return;
             }
 
-            ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
+            ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
         }
 
         // TODO fix this mess
         template <typename ArgumentList, typename Callable>
-        void queryForEntityImpl(EntityId entityId, Callable&& callable, const IterationContext& context)
+        void queryForEntityImpl(EntityId entityId, const IterationContext& context, Callable&& callable)
         {
             ASSERT(entityId);
             // Todo check all args in callable persist in requireComps with std::includes
@@ -348,7 +335,7 @@ namespace RR::Ecs
                 return;
             }
 
-            ArchetypeIterator::ForEntity(*archetype, index, eastl::forward<Callable>(callable), context);
+            ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
         }
 
         void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to);
