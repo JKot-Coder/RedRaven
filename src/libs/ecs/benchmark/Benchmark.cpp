@@ -431,9 +431,8 @@ TEST_CASE("Update entities", "[Entity]")
                 ankerl::nanobench::doNotOptimizeAway(&entities);
             });
         }
-
         {
-            bench.run("Ecs", [&](ankerl::nanobench::Meter meter) {
+            bench.run("Ecs query", [&](ankerl::nanobench::Meter meter) {
                 World world;
                 for (uint32_t i = 0; i < batchSize; i++)
                     world
@@ -454,7 +453,30 @@ TEST_CASE("Update entities", "[Entity]")
             });
         }
         {
-            bench.run("Flecs", [&](ankerl::nanobench::Meter meter) {
+            bench.run("Ecs system", [&](ankerl::nanobench::Meter meter) {
+                World world;
+                for (uint32_t i = 0; i < batchSize; i++)
+                    world
+                        .Entity()
+                        .Add<PositionComponent>(1.0f, 2.0f)
+                        .Add<VelocityComponent>(1.0f, 2.0f)
+                        .Add<DataComponent>()
+                        .Apply();
+
+                struct BenchEvent : public Event { BenchEvent() : Event(GetEventId<BenchEvent>, sizeof(BenchEvent)) { } };
+                world.System().Require<PositionComponent, VelocityComponent>().OnEvent<BenchEvent>([&](PositionComponent& position, const VelocityComponent& velocity) {
+                    position.x += velocity.x;
+                    position.y += velocity.y;
+                });
+
+                return meter.measure([&world]() {
+                    world.EmitImmediately<BenchEvent>({});
+                });
+                ankerl::nanobench::doNotOptimizeAway(&world);
+            });
+        }
+        {
+            bench.run("Flecs query", [&](ankerl::nanobench::Meter meter) {
                 flecs::world flecsWorld;
                 for (uint32_t i = 0; i < batchSize; i++)
                     flecsWorld.entity().set<PositionComponent>({1.0f, 2.0f}).set<VelocityComponent>({1.0f, 2.0f}).set<DataComponent>({});
@@ -470,7 +492,23 @@ TEST_CASE("Update entities", "[Entity]")
                 ankerl::nanobench::doNotOptimizeAway(&flecsWorld);
             });
         }
+        {
+            bench.run("Flecs system", [&](ankerl::nanobench::Meter meter) {
+                flecs::world world;
+                for (uint32_t i = 0; i < batchSize; i++)
+                    world.entity().set<PositionComponent>({1.0f, 2.0f}).set<VelocityComponent>({1.0f, 2.0f}).set<DataComponent>({});
 
+                world.system<PositionComponent, VelocityComponent>().kind(flecs::OnUpdate).each([](PositionComponent& position, VelocityComponent& velocity) {
+                    position.x += velocity.x;
+                    position.y += velocity.y;
+                });
+
+                // warmup
+                world.progress();
+                return meter.measure([&world]() { world.progress(); });
+                ankerl::nanobench::doNotOptimizeAway(&world);
+            });
+        }
         {
             bench.run("Chunks", [&](ankerl::nanobench::Meter meter) {
                 const size_t chunkSize = 16 * 1024;
