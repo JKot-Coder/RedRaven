@@ -256,7 +256,7 @@ namespace RR::Ecs
         {
             // Todo check all args in callable persist in requireComps with std::includes
             MatchedArchetypeCache* archetypes = nullptr;
-            cacheForQueriesView.ForEntity(EntityId(query.id.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
+            queriesView.ForEntity(EntityId(query.id.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
                 archetypes = &cache;
             });
 
@@ -360,12 +360,12 @@ namespace RR::Ecs
     private:
         EntityStorage entityStorage;
         EventStorage eventStorage;
-        eastl::vector<SystemDescription> systems;
+       // eastl::vector<SystemDescription> systems;
         // SystemStorage systemStorage;
         ComponentStorage componentStorage;
-        Ecs::View cacheForQueriesView;
-        Ecs::View cacheForSystemsView;
-        Ecs::QueryId cacheForQueriesQuery;
+        Ecs::View queriesView;
+        Ecs::View systemsView;
+        Ecs::QueryId queriesQuery;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
         absl::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;

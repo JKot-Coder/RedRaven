@@ -24,7 +24,7 @@ namespace
 
 namespace RR::Ecs
 {
-    World::World() : cacheForQueriesView(*this), cacheForSystemsView(*this)
+    World::World() : queriesView(*this), systemsView(*this)
     {
         RegisterComponent<EntityId>();
         RegisterComponent<Ecs::View>();
@@ -32,8 +32,8 @@ namespace RR::Ecs
 
         {
             // Manually create archetype for queries
-            // This is required because of cyclic dependency of creating arhetype require cacheForQueriesQuery and
-            // creating cacheForQueriesQuery query require creating archetype
+            // This is required because of cyclic dependency: creating arhetype require queriesQuery and
+            // creating queriesQuery query require creating archetype
             constexpr eastl::array<ComponentId, 3> components = {GetComponentId<EntityId>, GetComponentId<Ecs::View>, GetComponentId<MatchedArchetypeCache>};
             static_assert(components[0] < components[1]);
             static_assert(components[1] < components[2]);
@@ -42,9 +42,9 @@ namespace RR::Ecs
             getOrCreateArchetype(archetypeId, SortedComponentsView(components));
         }
 
-        cacheForQueriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Build().id;
-        cacheForQueriesView.Require<Ecs::View, MatchedArchetypeCache>();
-        cacheForSystemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
+        queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Build().id;
+        queriesView.Require<Ecs::View, MatchedArchetypeCache>();
+        systemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
     }
 
     Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
@@ -72,7 +72,7 @@ namespace RR::Ecs
 
     void World::initCache(SystemId id)
     {
-        cacheForSystemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
+        systemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
             for (eastl::unique_ptr<Archetype>& archetype : archetypes)
             {
                 if (!matches(*archetype, view))
@@ -90,7 +90,7 @@ namespace RR::Ecs
 
     void World::initCache(QueryId id)
     {
-        cacheForQueriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
+        queriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
             for (eastl::unique_ptr<Archetype>& archetype : archetypes)
             {
                 if (!matches(*archetype, view))
@@ -105,10 +105,10 @@ namespace RR::Ecs
     {
         // This could only happends while world creation process.
         // We create archetype to place this query, and while create archetype we tryng use this query.
-        if UNLIKELY (!cacheForQueriesQuery.IsValid())
+        if UNLIKELY (!queriesQuery.IsValid())
             return;
 
-        Ecs::Query(*this, cacheForQueriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
+        Ecs::Query(*this, queriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
             if (!matches(archetype, view))
                 return;
 
@@ -183,7 +183,7 @@ namespace RR::Ecs
 
     void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
     {
-        cacheForSystemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
             desc.onEvent(world, event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
         });
     }
