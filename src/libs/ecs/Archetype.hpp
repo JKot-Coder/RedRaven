@@ -6,9 +6,9 @@
 #include "ecs/Index.hpp"
 #include "ecs/TypeTraits.hpp"
 #include <EASTL/fixed_vector.h>
-#include <EASTL/sort.h>
 #include <EASTL/vector_set.h>
 #include "absl/container/flat_hash_map.h"
+#include <cstddef>
 
 namespace RR::Ecs
 {
@@ -20,23 +20,12 @@ namespace RR::Ecs
     {
         static const uint32_t IndexBits = 18;
         static const uint32_t ChunkBits = 14;
-        static_assert(IndexBits + ChunkBits == sizeof(uint32_t) * 8);
+        static_assert(IndexBits + ChunkBits == sizeof(uint32_t) * CHAR_BIT);
 
-        static const uint32_t MaxEntitiesCount = 1 << IndexBits;
-        static const uint32_t MaxChunksCount = 1 << ChunkBits;
+        static const uint32_t MaxEntitiesCount = 1U << IndexBits;
+        static const uint32_t MaxChunksCount = 1U << ChunkBits;
         static const uint32_t ChunkMask = MaxChunksCount - 1;
         static const uint32_t InvalidRawIndex = 0xFFFFFFFF;
-
-        struct IndexFields
-        {
-            uint32_t indexInChunk : IndexBits;
-            uint32_t chunk : ChunkBits;
-        };
-        union
-        {
-            IndexFields fields;
-            uint32_t rawIndex;
-        };
 
         constexpr ArchetypeEntityIndex() : rawIndex(InvalidRawIndex) { };
         constexpr ArchetypeEntityIndex(uint32_t index) : rawIndex(index) { }
@@ -56,6 +45,18 @@ namespace RR::Ecs
         explicit operator bool() const { return rawIndex != InvalidRawIndex; }
         bool operator==(const ArchetypeEntityIndex other) const { return rawIndex == other.rawIndex; }
         bool operator!=(const ArchetypeEntityIndex other) const { return rawIndex != other.rawIndex; }
+
+    private:
+        struct IndexFields
+        {
+            uint32_t indexInChunk : IndexBits;
+            uint32_t chunk : ChunkBits;
+        };
+        union
+        {
+            IndexFields fields;
+            uint32_t rawIndex;
+        };
     };
 
     template <typename... Components>
@@ -69,7 +70,7 @@ namespace RR::Ecs
                 uint64_t hash = 0xcbf29ce484222325;
 
                 auto fnv1a = [&](uint64_t value) {
-                    uint64_t prime = 0x100000001b3;
+                    const uint64_t prime = 0x100000001b3;
                     hash = hash ^ value;
                     hash *= prime;
                 };
@@ -82,7 +83,7 @@ namespace RR::Ecs
                 uint32_t hash = 0x811c9dc5;
 
                 auto fnv1a = [&](uint64_t value) {
-                    uint32_t prime = 0x1000193;
+                    const uint32_t prime = 0x1000193;
                     hash = hash ^ value;
                     hash *= prime;
                 };
@@ -102,9 +103,9 @@ namespace RR::Ecs
             if constexpr (eastl::is_same_v<HashType, uint64_t>)
             {
                 uint64_t hash = 0xcbf29ce484222325;
-                uint64_t prime = 0x100000001b3;
                 for (auto it = components.begin(); it != components.end(); ++it)
                 {
+                    const uint64_t prime = 0x100000001b3;
                     hash = hash ^ (*it).GetRaw();
                     hash *= prime;
                 }
@@ -113,9 +114,10 @@ namespace RR::Ecs
             else
             {
                 uint32_t hash = 0x811c9dc5;
-                uint32_t prime = 0x1000193;
+
                 for (auto it = components.begin(); it != components.end(); ++it)
                 {
+                    const uint32_t prime = 0x1000193;
                     hash = hash ^ (*it).GetRaw();
                     hash *= prime;
                 }
@@ -244,7 +246,7 @@ namespace RR::Ecs
                     totalCapacity += chunkCapacity;
                     auto chunk = chunks.emplace_back(new std::byte[chunkSize]);
 
-                    for(size_t i = 0; i < componentsInfo.size(); i++)
+                    for (size_t i = 0; i < componentsInfo.size(); i++)
                         componentChunks[i].emplace_back(chunk + componentsOffsetSize[i].first);
                 }
 
@@ -255,7 +257,7 @@ namespace RR::Ecs
             ArchetypeEntityIndex GetLastIndex() const
             {
                 ASSERT(entitiesCount);
-                ASSERT(chunks.size() > 0);
+                ASSERT(!chunks.empty());
                 return ArchetypeEntityIndex((entitiesCount - 1) % chunkCapacity, chunks.size() - 1);
             }
 
