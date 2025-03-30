@@ -147,7 +147,7 @@ TEST_CASE("Create Entity", "[Entity]")
 {
     ankerl::nanobench::Bench bench;
     bench.title("Create Entity")
-        .warmup(1000)
+        .warmup(10)
         .relative(true)
         .performanceCounters(true);
 
