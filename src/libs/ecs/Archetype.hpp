@@ -258,7 +258,7 @@ namespace RR::Ecs
             {
                 ASSERT(entitiesCount);
                 ASSERT(!chunks.empty());
-                return ArchetypeEntityIndex((entitiesCount - 1) % chunkCapacity, chunks.size() - 1);
+                return ArchetypeEntityIndex((entitiesCount - 1) % chunkCapacity, (entitiesCount - 1) / chunkCapacity);
             }
 
         private:
