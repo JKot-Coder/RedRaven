@@ -196,8 +196,11 @@ TEST_CASE_METHOD(WorldFixture, "Entities chunking", "[Comonents]")
     for (auto entity : entities)
         entity.Edit().Remove<int>().Apply();
 
-    REQUIRE(entities[0].Has<float>());
-    REQUIRE(!entities[0].Has<int>());
+    REQUIRE(entities.front().Has<float>());
+    REQUIRE(!entities.front().Has<int>());
+
+    REQUIRE(entities.back().Has<float>());
+    REQUIRE(!entities.back().Has<int>());
 }
 
 TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
