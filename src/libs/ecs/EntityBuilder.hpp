@@ -6,6 +6,7 @@
 #include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/World.hpp"
+#include <EASTL/sort.h>
 
 namespace RR::Ecs
 {

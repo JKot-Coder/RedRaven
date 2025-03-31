@@ -30,9 +30,11 @@ namespace RR::Ecs
         template <size_t Size>
         struct FixedString
         {
-            constexpr std::string_view c_str() const noexcept { return data.data(); }
-            constexpr std::string_view string_view() const noexcept { return {data.data(), size}; }
+            [[nodiscard]] constexpr std::string_view c_str() const noexcept { return data.data(); }
+            [[nodiscard]] constexpr std::string_view string_view() const noexcept { return {data.data(), size}; }
 
+        private:
+            friend struct TypeName<T>;
             size_t size = 0;
             eastl::array<char, Size> data {};
         };
@@ -49,9 +51,9 @@ namespace RR::Ecs
             auto end_pos = funcName.rfind(">::getTypeNameView(void) noexcept");
 #else
             funcName = trimPrefix(funcName, "T = ");
-            auto end_pos = funcName.find(";");
-            if (end_pos == funcName.npos)
-                end_pos = funcName.find("]");
+            auto end_pos = funcName.find(';');
+            if (end_pos == eastl::string_view::npos)
+                end_pos = funcName.find(']');
 #endif
 
             return {funcName.data(), end_pos};
@@ -111,6 +113,9 @@ namespace RR::Ecs
      */
     struct TypeDescriptor
     {
+        constexpr TypeDescriptor(TypeId id, uint32_t size, uint32_t alignment)
+            : id(id), size(size), alignment(alignment) {}
+
         TypeId id;
         uint32_t size;
         uint32_t alignment;
@@ -126,7 +131,7 @@ namespace RR::Ecs
         static constexpr HashType Hash = Ecs::ConstexprHash(Name);
         static constexpr TypeId Id = TypeId(Hash);
 
-        static constexpr TypeDescriptor Descriptor = {Id, sizeof(T), alignof(T)};
+        static constexpr TypeDescriptor Descriptor() { return TypeDescriptor{Id, sizeof(T), alignof(T)}; }
     };
 
     // Specialization for EntityId to ensure it always has ID 0
@@ -137,7 +142,7 @@ namespace RR::Ecs
         static constexpr HashType Hash = 0;
         static constexpr TypeId Id = TypeId(0);
 
-        static constexpr TypeDescriptor Descriptor = {Id, sizeof(EntityId), alignof(EntityId)};
+        static constexpr TypeDescriptor Descriptor() { return TypeDescriptor{Id, sizeof(EntityId), alignof(EntityId)}; }
     };
 
     /**
@@ -153,7 +158,7 @@ namespace RR::Ecs
     inline constexpr TypeId GetTypeId = TypeTraits<T>::Id;
 
     template <typename T>
-    inline constexpr TypeDescriptor GetTypeDescriptor = TypeTraits<T>::Descriptor;
+    inline constexpr TypeDescriptor GetTypeDescriptor = TypeTraits<T>::Descriptor();
 }
 
 #undef FUNCTION_SIGNATURE

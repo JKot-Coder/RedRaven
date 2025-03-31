@@ -59,13 +59,13 @@ namespace RR::Ecs
             if (componentInfo.size == 0)
                 continue;
 
-            const auto removedPtr = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
-            const auto lastIndexData = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), lastIndex);
+            auto *const removedPtr = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
+            auto *const lastIndexData = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), lastIndex);
 
             if (index != lastIndex)
                 componentInfo.move(removedPtr, lastIndexData);
 
-            if (componentInfo.destructor)
+            if (componentInfo.destructor != nullptr)
                 componentInfo.destructor(lastIndexData);
         }
 
