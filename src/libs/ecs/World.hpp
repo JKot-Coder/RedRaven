@@ -19,16 +19,16 @@ namespace RR::Ecs
         using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; // TODO naming?
 
     public:
-        SystemBuilder System();
-        Ecs::EntityBuilder<void, void> Entity();
-        Ecs::Entity EmptyEntity();
-        Ecs::Entity GetEntity(EntityId entityId);
-        Ecs::View View() { return Ecs::View(*this); }
-        Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
+        [[nodiscard]] Ecs::SystemBuilder System();
+        [[nodiscard]] Ecs::EntityBuilder<void, void> Entity();
+        [[nodiscard]] Ecs::Entity EmptyEntity();
+        [[nodiscard]] Ecs::Entity GetEntity(EntityId entityId) { return Ecs::Entity(*this, entityId); }
+        [[nodiscard]] Ecs::View View() { return Ecs::View(*this); }
+        [[nodiscard]] Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
 
-        bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
+        [[nodiscard]] bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
-        bool Has(EntityId entityId, SortedComponentsView components)
+        [[nodiscard]] bool Has(EntityId entityId, SortedComponentsView components)
         {
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
@@ -56,7 +56,7 @@ namespace RR::Ecs
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
-        bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index) const
+        [[nodiscard]] bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index) const
         {
             EntityRecord record;
             if (!entityStorage.Get(entity, record))

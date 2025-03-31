@@ -15,7 +15,7 @@ struct Bar { int x;};
 
 TEST_CASE_METHOD(WorldFixture, "View read", "[View]")
 {
-    world.EmptyEntity();
+    UNUSED(world.EmptyEntity());
 
     world.Entity().Add<Foo>(1).Apply();
     world.Entity().Add<Bar>(1).Apply();
@@ -58,7 +58,7 @@ TEST_CASE_METHOD(WorldFixture, "View modify", "[View]")
 
 TEST_CASE_METHOD(WorldFixture, "View require", "[View]")
 {
-    world.EmptyEntity();
+    UNUSED(world.EmptyEntity());
 
     Entity entt1 = world.EmptyEntity();
     entt1.Edit().Add<Foo>(1).Add<Bar>(1).Apply();
@@ -95,7 +95,7 @@ TEST_CASE_METHOD(WorldFixture, "View require", "[View]")
 
 TEST_CASE_METHOD(WorldFixture, "View exclude", "[View]")
 {
-    world.EmptyEntity();
+    UNUSED(world.EmptyEntity());
 
     world.Entity().Add<Foo>(1).Add<Bar>(1).Apply();
     world.Entity().Add<Foo>(1).Apply();
@@ -137,7 +137,7 @@ TEST_CASE("View special args", "[View]")
 
 TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
 {
-    world.EmptyEntity();
+    UNUSED(world.EmptyEntity());
 
     Entity entt1 = world.EmptyEntity();
     entt1.Edit().Add<Foo>(1).Apply();
