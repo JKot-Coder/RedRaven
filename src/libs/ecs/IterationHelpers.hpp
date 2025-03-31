@@ -27,13 +27,13 @@ namespace RR::Ecs
                 componentDataArray = componentIndex ? archetype.GetComponentsData(componentIndex) : nullptr;
             } else {
                 componentDataArray = archetype.GetComponentsData(componentIndex);
-                ASSERT(data);
                 ASSERT(componentDataArray);
             }
         }
 
         void SetChunkIndex(const Archetype& archetype, size_t chunkIndex)
         {
+            ASSERT(chunkIndex < archetype.GetChunksCount());
             data = (!eastl::is_pointer_v<Arg> || componentDataArray) ? *(componentDataArray + chunkIndex) : nullptr;
             ASSERT(eastl::is_pointer_v<Arg> || data);
         }
@@ -61,7 +61,7 @@ namespace RR::Ecs
         using Component = GetComponentType<Arg>;
 
         ComponentAccessor(const Archetype&, const IterationContext& context) : world(context.world) { };
-        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) {};
+        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
         World* Get(size_t) { return &world; }
 
     private:
@@ -77,7 +77,7 @@ namespace RR::Ecs
         ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) {
             static_assert(eastl::is_pointer_v<Argument> || eastl::is_reference_v<Argument>, "Event component should be accessed as pointer or reference");
         };
-        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) {};
+        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
 
         const Component* Get(size_t)
         {
