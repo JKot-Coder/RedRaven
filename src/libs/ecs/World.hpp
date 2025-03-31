@@ -20,11 +20,13 @@ namespace RR::Ecs
 
     public:
         [[nodiscard]] Ecs::SystemBuilder System();
+        [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
         [[nodiscard]] Ecs::EntityBuilder<void, void> Entity();
         [[nodiscard]] Ecs::Entity EmptyEntity();
         [[nodiscard]] Ecs::Entity GetEntity(EntityId entityId) { return Ecs::Entity(*this, entityId); }
         [[nodiscard]] Ecs::View View() { return Ecs::View(*this); }
         [[nodiscard]] Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
+        [[nodiscard]] Ecs::Query GetQuery(QueryId queryId) { return Ecs::Query(*this, queryId); }
 
         [[nodiscard]] bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
