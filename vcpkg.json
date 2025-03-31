@@ -10,6 +10,12 @@
         "docking-experimental",
         "dx12-binding"
       ]
+    },
+    {
+      "name": "abseil",
+      "features": [
+        "cxx17"
+      ]
     }
   ],
   "overrides": [
@@ -36,6 +42,10 @@
     {
       "name": "catch2",
       "version": "3.8.0"
+    },
+    {
+      "name": "abseil",
+      "version": "20250127.0"
     }
   ]
 }
