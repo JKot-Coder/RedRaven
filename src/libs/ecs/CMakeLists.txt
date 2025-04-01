@@ -18,7 +18,6 @@ set( SRC
     EntityBuilder.hpp
     Event.hpp
     System.hpp
-    System.cpp
     SystemBuilder.hpp
     View.hpp
     Ecs.hpp
