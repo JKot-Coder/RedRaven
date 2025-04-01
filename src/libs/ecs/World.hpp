@@ -20,7 +20,9 @@ namespace RR::Ecs
 
     public:
         [[nodiscard]] Ecs::SystemBuilder System();
+        [[nodiscard]] Ecs::SystemBuilder System(const HashName& name);
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
+        [[nodiscard]] HashName GetSystemName(SystemId systemId) const;
         [[nodiscard]] Ecs::EntityBuilder<void, void> Entity();
         [[nodiscard]] Ecs::Entity EmptyEntity();
         [[nodiscard]] Ecs::Entity GetEntity(EntityId entityId) { return Ecs::Entity(*this, entityId); }
@@ -98,7 +100,7 @@ namespace RR::Ecs
         void EmitImmediately(const EventType& event) const
         {
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
-            broadcastEventImmediately(event);
+            broadcastEventImmediately(static_cast<const Ecs::Event&>(event));
         }
 
         template <typename EventType>
@@ -115,6 +117,8 @@ namespace RR::Ecs
             unicastEventImmediately(entity, event);
         }
 
+        void Run(SystemId systemId) const;
+        void OrderSystems();
         void ProcessDefferedEvents();
         void Tick();
 
@@ -254,12 +258,13 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void query(const Ecs::Query& query, Callable&& callable)
+        void query(QueryId queryId, Callable&& callable)
         {
             // Todo check all args in callable persist in requireComps with std::includes
             MatchedArchetypeCache* archetypes = nullptr;
-            queriesView.ForEntity(EntityId(query.id.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
+            queriesView.ForEntity(EntityId(queryId.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
                 archetypes = &cache;
+                ASSERT(cache.size() > 0);
             });
 
             ASSERT(archetypes);
@@ -347,6 +352,7 @@ namespace RR::Ecs
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
     private:
+bool systemsDirty = false;
         EntityStorage entityStorage;
         EventStorage eventStorage;
        // eastl::vector<SystemDescription> systems;
@@ -355,7 +361,8 @@ namespace RR::Ecs
         Ecs::View queriesView;
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
-        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventsToSystems; // Todo rename
+        Ecs::QueryId systemsQuery;
+        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers; // Todo rename
         absl::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
        // absl::flat_hash_map<EntityId, EntityRecord> entityRecords;
@@ -383,11 +390,16 @@ namespace RR::Ecs
     template <typename Callable>
     void Query::ForEach(Callable&& callable) const
     {
-        world.query(*this, eastl::forward<Callable>(callable));
+        world.query(id, eastl::forward<Callable>(callable));
     }
 
     inline Query QueryBuilder::Build() &&
     {
         return view.world.createQuery(eastl::move(view));
+    }
+
+    inline void System::Run() const
+    {
+        world->Run(id);
     }
 }

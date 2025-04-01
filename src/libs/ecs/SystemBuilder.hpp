@@ -10,39 +10,44 @@ namespace RR::Ecs
     {
     private:
         friend struct Ecs::World;
+
         SystemBuilder(World& world) : view(world) { };
+        SystemBuilder(World& world, const HashName& name) : view(world)
+        {
+            desc.hashName = name;
+        };
 
     public:
         template <typename... Components>
-        SystemBuilder Require() &&
+        SystemBuilder& Require()
         {
             view.Require<Components...>();
             return *this;
         }
 
         template <typename... Components>
-        SystemBuilder Exclude() &&
+        SystemBuilder& Exclude()
         {
             view.Exclude<Components...>();
             return *this;
         }
 
         template <typename... Args>
-        SystemBuilder& After(Args&&... args) &&
+        SystemBuilder& After(Args&&... args)
         {
-            (after(args), ...);
+            (after(eastl::forward<Args>(args)), ...);
             return *this;
         }
 
         template <typename... Args>
-        SystemBuilder& Before(Args&&... args) &&
+        SystemBuilder& Before(Args&&... args)
         {
-            (after(args), ...);
+            (before(eastl::forward<Args>(args)), ...);
             return *this;
         }
 
         template <typename... EventTypes, typename Callback>
-        System OnEvent(Callback&& callback) &&
+        System OnEvent(Callback&& callback)
         {
             static_assert(sizeof...(EventTypes) > 0, "At least one event type must be specified");
             static_assert((std::is_base_of_v<Event, EventTypes> && ...), "All event types must derive from ecs::Event");
@@ -63,27 +68,39 @@ namespace RR::Ecs
         }
 
     private:
-        SystemBuilder& after(const System& system)
+        SystemBuilder& after(System system)
         {
             after(system.id);
             return *this;
         }
 
-        SystemBuilder& after(const SystemId& system)
+        SystemBuilder& after(SystemId system)
         {
-            desc.after.push_back(system);
+            after(view.world.GetSystemName(system));
             return *this;
         }
 
-        SystemBuilder& before(const System& system)
+        SystemBuilder& after(HashName&& name)
+        {
+            desc.after.emplace_back(eastl::forward<HashName>(name));
+            return *this;
+        }
+
+        SystemBuilder& before(System system)
         {
             before(system.id);
             return *this;
         }
 
-        SystemBuilder& before(const SystemId& system)
+        SystemBuilder& before(SystemId system)
         {
-            desc.before.push_back(system);
+            before(view.world.GetSystemName(system));
+            return *this;
+        }
+
+        SystemBuilder& before(HashName&& name)
+        {
+            desc.before.emplace_back(eastl::forward<HashName>(name));
             return *this;
         }
 

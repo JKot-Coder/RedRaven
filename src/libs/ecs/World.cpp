@@ -1,6 +1,9 @@
 #include "World.hpp"
 #include "ecs/EntityBuilder.hpp"
 #include "ecs/SystemBuilder.hpp"
+#include <EASTL/vector_multimap.h>
+#include <EASTL/bitvector.h>
+#include <EASTL/sort.h>
 
 namespace
 {
@@ -19,6 +22,49 @@ namespace
                 ++first2;
             }
         }
+    }
+
+    template <class MarkContainer, class ListContainer, class EdgeContainer, typename LoopDetectedCB>
+    static bool visitTopSort(uint32_t nodeIdx, const EdgeContainer& edges, MarkContainer& tempMark, MarkContainer& visitedMark,
+                             ListContainer& sortedList, LoopDetectedCB cb)
+    {
+        if (visitedMark[nodeIdx])
+            return true;
+
+        if (tempMark[nodeIdx])
+        {
+            cb(nodeIdx, tempMark);
+            visitedMark.set(nodeIdx, true);
+            return false;
+        }
+        tempMark.set(nodeIdx, true);
+
+        const auto range = edges.equal_range(nodeIdx);
+        for (auto edge = range.first; edge != range.second; ++edge)
+        {
+            if (!visitTopSort(edge->second, edges, tempMark, visitedMark, sortedList, cb))
+                return false;
+        }
+
+        tempMark.set(nodeIdx, false);
+        sortedList.push_back((uint32_t)nodeIdx);
+        visitedMark.set(nodeIdx, true);
+        return true;
+    }
+
+    // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+    template <class ListContainer, class EdgeContainer, typename LoopDetectedCB>
+    bool topoSort(uint32_t N, const EdgeContainer& edges, ListContainer& sortedList, LoopDetectedCB cb)
+    {
+        sortedList.reserve(N);
+        eastl::bitvector tempMark(N, false);
+        eastl::bitvector visitedMark(N, false);
+        for (uint32_t i = 0; i < N; ++i)
+        {
+            if (!visitTopSort(i, edges, tempMark, visitedMark, sortedList, cb))
+                return false;
+        }
+        return true;
     }
 }
 
@@ -43,8 +89,20 @@ namespace RR::Ecs
         }
 
         queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Build().id;
+        systemsQuery = Query().Require<Ecs::View, SystemDescription, MatchedArchetypeCache>().Build().id;
         queriesView.Require<Ecs::View, MatchedArchetypeCache>();
         systemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
+    }
+
+    HashName World::GetSystemName(SystemId systemId) const
+    {
+        const SystemDescription* descPtr = nullptr;
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&descPtr](const SystemDescription& desc) {
+            descPtr = &desc;
+        });
+        ASSERT_MSG(descPtr, "System not found");
+
+        return descPtr ? descPtr->hashName : "UNKNOWN";
     }
 
     Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
@@ -84,7 +142,7 @@ namespace RR::Ecs
             }
 
             for (const auto event : systemDesc.onEvents)
-                eventsToSystems[event].push_back(id);
+                eventSubscribers[event].push_back(id);
         });
     }
 
@@ -133,12 +191,17 @@ namespace RR::Ecs
         return Ecs::Entity(*this, entityId);
     }
 
-    Ecs::Entity World::GetEntity(EntityId entityId)
-    {
-        return Ecs::Entity(*this, entityId);
-    }
-
     SystemBuilder World::System() { return Ecs::SystemBuilder(*this); }
+    SystemBuilder World::System(const HashName& name) { return Ecs::SystemBuilder(*this, name); }
+
+    // TODO Think about this
+    // Could be system run without event?
+    void World::Run(SystemId systemId) const
+    {
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+            desc.onEvent(world, Event(EventId::Invalid(), sizeof(Event)), {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+        });
+    }
 
     void World::ProcessDefferedEvents()
     {
@@ -152,10 +215,10 @@ namespace RR::Ecs
 
     void World::Tick()
     {
-        ProcessDefferedEvents();
-        // systemStorage.RegisterDeffered();
+        OrderSystems();
+        // Update events;
 
-        // world.progress();
+        ProcessDefferedEvents();
     }
     /*
         Entity World::Lookup(const char* name, const char* sep, const char* root_sep, bool recursive) const
@@ -172,9 +235,9 @@ namespace RR::Ecs
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
-        const auto it = eventsToSystems.find(event.id);
+        const auto it = eventSubscribers.find(event.id);
         // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
-        if (it == eventsToSystems.end())
+        if (it == eventSubscribers.end())
             return;
 
         for (const auto systemId : it->second)
@@ -228,6 +291,8 @@ namespace RR::Ecs
         const auto systemId = SystemId(entt.GetId().rawId);
         initCache(systemId);
 
+        systemsDirty = true;
+
         return Ecs::System(*this, systemId);
     }
 
@@ -278,5 +343,94 @@ namespace RR::Ecs
                         dispatchEventImmediately(entity, systemId, OnAppear {});
             }
         }
+    }
+
+    void World::OrderSystems()
+    {
+        if (!systemsDirty)
+            return;
+
+        struct SystemHandle
+        {
+            SystemHandle(const SystemDescription& desc, SystemId id) : desc(&desc), id(id) { }
+            const SystemDescription* desc;
+            SystemId id;
+        };
+
+        eastl::vector<SystemHandle> tmpSystemList;
+        Ecs::Query(*this, systemsQuery).ForEach([&tmpSystemList](EntityId id, const SystemDescription& desc) {
+            tmpSystemList.emplace_back(desc, SystemId(id.GetRawId()));
+        });
+
+        // Sort by id to avoid depending on native ES registration order
+        // which might be different on different platforms, depend on hot-reload, etc...
+        eastl::sort(tmpSystemList.begin(), tmpSystemList.end(), [](auto a, auto b) { return a.desc->hashName < b.desc->hashName; });
+
+        // Map hash of name to more simple global index
+        absl::flat_hash_map<HashType, uint32_t> systemHashToIdxMap;
+
+        for (uint32_t i = 0; i < tmpSystemList.size(); i++)
+            systemHashToIdxMap[tmpSystemList[i].desc->hashName.hash] = i;
+
+        constexpr uint32_t invalidId = std::numeric_limits<uint32_t>::max();
+
+        auto systemHashToIdx = [&systemHashToIdxMap](HashType hash) {
+            const auto it = systemHashToIdxMap.find(hash);
+            return it != systemHashToIdxMap.end() ? it->second : invalidId;
+        };
+
+        eastl::vector_multimap<uint32_t, uint32_t> edges;
+        auto makeEdge = [&](uint32_t fromIdx, uint32_t toIdx) { edges.emplace(fromIdx, toIdx); };
+
+        auto insertOrderEdge = [&](HashName system, HashName other, bool before) {
+            const auto systemIdx = systemHashToIdx(system.hash);
+            const auto otherIdx = systemHashToIdx(other.hash);
+            ASSERT(systemIdx != invalidId); // Impossible
+
+            if UNLIKELY (otherIdx == invalidId)
+            {
+                Log::Format::Error("ES <{}> is supposed to be {} ES <{}>, which is undeclared.", system.string.c_str(),
+                                   before ? "before" : "after", other.string.c_str());
+                return;
+            }
+
+            makeEdge(before ? otherIdx : systemIdx, before ? systemIdx : otherIdx);
+        };
+
+        // Build edges based on before/after
+        for (const SystemHandle& handle : tmpSystemList)
+        {
+            for (const auto& other : handle.desc->after)
+                insertOrderEdge(handle.desc->hashName, other, false);
+
+            for (const auto& other : handle.desc->before)
+                insertOrderEdge(handle.desc->hashName, other, true);
+        }
+
+        eastl::vector<uint32_t> sortedList;
+        auto loopDetected = [&](size_t idx, auto&) {
+            Log::Format::Error("ES <{}> in graph to become cyclic and was removed from sorting. ES order is non-determinstic.",
+                               tmpSystemList[idx].desc->hashName.string.c_str());
+        };
+        topoSort(static_cast<uint32_t>(tmpSystemList.size()), edges, sortedList, loopDetected);
+
+        absl::flat_hash_map<SystemId, uint32_t> systemsOrder;
+        systemsOrder.reserve(tmpSystemList.size());
+        for (size_t i = 0; i < sortedList.size(); ++i)
+        {
+            const auto& system = tmpSystemList[sortedList[i]];
+            systemsOrder[system.id] = static_cast<uint32_t>(i);
+        }
+
+        for(auto& eventSubscribersPair : eventSubscribers)
+            eastl::sort( eventSubscribersPair.second.begin(),  eventSubscribersPair.second.end(), [this](auto a, auto b) { return systemsOrder[a] < systemsOrder[b] ; });
+
+        for (auto& archetype : archetypes)
+        {
+            for (auto& cache : archetype->cache)
+                eastl::sort(cache.second.begin(), cache.second.end(), [this](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });
+        }
+
+        systemsDirty = false;
     }
 }
