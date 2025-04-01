@@ -81,8 +81,8 @@ TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
 TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
 {
     // clang-format off
-    struct Foo { int x; int z;};
-    struct Bar { int x;};
+    struct Foo { int x; int z; };
+    struct Bar { int x; };
     // clang-format on
     Entity entt1 = world.EmptyEntity();
     REQUIRE(!entt1.Has<Foo>());
@@ -101,8 +101,8 @@ TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
 TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
 {
     // clang-format off
-    struct Foo { int x;};
-    struct Bar { int x;};
+    struct Foo { int x; };
+    struct Bar { int x; };
     // clang-format on
 
     Entity entt1 = world.Entity().Add<Foo>(1).Apply();
