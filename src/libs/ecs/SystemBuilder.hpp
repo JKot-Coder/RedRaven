@@ -19,28 +19,28 @@ namespace RR::Ecs
 
     public:
         template <typename... Components>
-        SystemBuilder& Require()
+        [[nodiscard]] SystemBuilder& Require()
         {
             view.Require<Components...>();
             return *this;
         }
 
         template <typename... Components>
-        SystemBuilder& Exclude()
+        [[nodiscard]] SystemBuilder& Exclude()
         {
             view.Exclude<Components...>();
             return *this;
         }
 
         template <typename... Args>
-        SystemBuilder& After(Args&&... args)
+        [[nodiscard]] SystemBuilder& After(Args&&... args)
         {
             (after(eastl::forward<Args>(args)), ...);
             return *this;
         }
 
         template <typename... Args>
-        SystemBuilder& Before(Args&&... args)
+        [[nodiscard]] SystemBuilder& Before(Args&&... args)
         {
             (before(eastl::forward<Args>(args)), ...);
             return *this;
