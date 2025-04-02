@@ -41,7 +41,7 @@
 + replace Ska?
 # delete systems / queries
 # do not allow delete add world entityid or event.
-# more checks for apper dissapear
++ more checks for apper dissapear
 # thread safity checks
 # check all args present in required components.
 # check required and exluded do not overlap

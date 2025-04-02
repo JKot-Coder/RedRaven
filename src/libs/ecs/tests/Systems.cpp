@@ -201,45 +201,79 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
 
 TEST_CASE_METHOD(WorldFixture, "OnAppear", "[Event]")
 {
-    world.Entity().Add<int>(1).Apply();
+    SECTION("Simple")
+    {
+        world.Entity().Add<int>(1).Apply();
 
-    int calls = 0;
+        int calls = 0;
+        world.System().Require<int>().OnEvent<OnAppear>().ForEach([&]() { calls++; });
+        world.Entity().Add<int>(1).Apply();
+        REQUIRE(calls == 1);
 
-    // TODO MULTIPLE REQUIRE AND CHECK DATA
-    world.System().Require<int>().OnEvent<OnAppear>().ForEach([&]() { calls++; });
-    world.Entity().Add<int>(1).Apply();
-    REQUIRE(calls == 1);
+        const auto entity = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        entity.Edit().Remove<float>().Apply();
+        REQUIRE(calls == 2);
 
-    const auto entity = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
-    entity.Edit().Remove<float>().Apply();
-    REQUIRE(calls == 2);
+        entity.Edit().Remove<int>().Apply();
+        entity.Edit().Add<int>().Apply();
+        REQUIRE(calls == 3);
 
-    entity.Edit().Remove<int>().Apply();
-    entity.Edit().Add<int>().Apply();
-    REQUIRE(calls == 3);
+        world.EmptyEntity().Edit().Add<int>().Apply();
+        REQUIRE(calls == 4);
+    }
+    SECTION("Exclude")
+    {
+        int calls = 0;
+        world.System().Require<int>().Exclude<float>().OnEvent<OnAppear>().ForEach([&]() { calls++; });
 
-    world.EmptyEntity().Edit().Add<int>().Apply();
-    REQUIRE(calls == 4);
+        world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        REQUIRE(calls == 0);
+
+        const auto entt2 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        entt2.Edit().Remove<float>().Apply();
+        REQUIRE(calls == 1);
+
+        entt2.Edit().Remove<int>().Apply();
+        REQUIRE(calls == 1);
+    }
 }
 
 TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
 {
-    world.Entity().Add<int>(1).Apply();
+    SECTION("Simple")
+    {
+        world.Entity().Add<int>(1).Apply();
 
-    int calls = 0;
-    // TODO MULTIPLE REQUIRE AND CHECK DATA
-    world.System().Require<int>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
-    const auto entt1 = world.Entity().Add<int>(1).Apply();
-    REQUIRE(calls == 0);
-    entt1.Destruct();
-    REQUIRE(calls == 1);
+        int calls = 0;
+        world.System().Require<int>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
+        const auto entt1 = world.Entity().Add<int>(1).Apply();
+        REQUIRE(calls == 0);
+        entt1.Destruct();
+        REQUIRE(calls == 1);
 
-    const auto entt2 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
-    entt2.Edit().Remove<float>().Apply();
-    REQUIRE(calls == 1);
+        const auto entt2 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        entt2.Edit().Remove<float>().Apply();
+        REQUIRE(calls == 1);
 
-    entt2.Edit().Remove<int>().Apply();
-    REQUIRE(calls == 2);
+        entt2.Edit().Remove<int>().Apply();
+        REQUIRE(calls == 2);
+    }
+    SECTION("Exclude")
+    {
+        int calls = 0;
+        world.System().Require<int>().Exclude<float>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
+
+        const auto entt1 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        entt1.Destruct();
+        REQUIRE(calls == 0);
+
+        const auto entt2 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        entt2.Edit().Remove<float>().Apply();
+        REQUIRE(calls == 0);
+
+        entt2.Edit().Remove<int>().Apply();
+        REQUIRE(calls == 1);
+    }
 }
 
 TEST_CASE("SystemOrder", "[System]")
