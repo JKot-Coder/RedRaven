@@ -1,5 +1,10 @@
 Randomness seeded to: 2600619235
 
+| relative | complexityN |               ns/op |                op/s |    err% |     total | Create archetype
+|---------:|------------:|--------------------:|--------------------:|--------:|----------:|:-----------------
+|   100.0% |           4 |            6,250.00 |          160,000.00 |    6.0% |      0.26 | :wavy_dash: `Ecs` (Unstable with ~2.6 iters. Increase `minEpochIterations` to e.g. 26)
+|   345.1% |          16 |            7,243.75 |          138,050.04 |    4.6% |      1.23 | `Ecs`
+
 | relative | complexityN |               ns/op |                op/s |    err% |     total | Create Entity
 |---------:|------------:|--------------------:|--------------------:|--------:|----------:|:--------------
 |   100.0% |           4 |               25.00 |       40,000,000.00 |    0.0% |      0.01 | `AoS`
