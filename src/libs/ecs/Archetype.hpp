@@ -270,7 +270,7 @@ namespace RR::Ecs
             size_t entitiesCount = 0;
             size_t entitySize = 0;
 
-            FixedVectorSet<ComponentId, 32> components;
+            ComponentsSet components;
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
             eastl::fixed_vector<eastl::pair<size_t, size_t>, 32> componentsOffsetSize;
             eastl::vector<std::byte*> chunks;
