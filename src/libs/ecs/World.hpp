@@ -22,7 +22,6 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::SystemBuilder System();
         [[nodiscard]] Ecs::SystemBuilder System(const HashName& name);
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
-        [[nodiscard]] HashName GetSystemName(SystemId systemId) const;
         [[nodiscard]] Ecs::EntityBuilder<void, void> Entity();
         [[nodiscard]] Ecs::Entity EmptyEntity();
         [[nodiscard]] Ecs::Entity GetEntity(EntityId entityId) { return Ecs::Entity(*this, entityId); }
@@ -117,7 +116,7 @@ namespace RR::Ecs
             unicastEventImmediately(entity, event);
         }
 
-        void Run(SystemId systemId) const;
+        void RunSystem(SystemId systemId) const;
         void OrderSystems();
         void ProcessDefferedEvents();
         void Tick();
@@ -136,7 +135,7 @@ namespace RR::Ecs
         friend struct QueryBuilder;
         friend struct SystemBuilder;
 
-        Ecs::System createSystem(SystemDescription&& desc, Ecs::View&& view);
+        Ecs::System createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name);
         Ecs::Query createQuery(Ecs::View&& view);
 
         static bool matches(const Archetype& archetype, const Ecs::View& view)
@@ -158,6 +157,8 @@ namespace RR::Ecs
             return commitImpl<Components>(entity, removeComponents, eastl::forward<ArgsTuple>(args), eastl::make_index_sequence<Components::Count>());
         }
 
+        // Private, do not use this directly.
+        Archetype& createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components);
         Archetype& getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components);
 
         template <typename Component, typename ArgsTuple, size_t... Index>
@@ -264,7 +265,6 @@ namespace RR::Ecs
             MatchedArchetypeCache* archetypes = nullptr;
             queriesView.ForEntity(EntityId(queryId.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
                 archetypes = &cache;
-                ASSERT(cache.size() > 0);
             });
 
             ASSERT(archetypes);
@@ -287,10 +287,10 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        void queryForEntity(EntityId entityId, const Ecs::Event& event, Callable&& callable)
+        void queryForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            queryForEntityImpl<ArgList>(entityId, {*this, &event}, eastl::forward<Callable>(callable));
+            queryForEntityImpl<ArgList>(entityId, {*this, event}, eastl::forward<Callable>(callable));
         }
 
         template <typename Callable>
@@ -352,7 +352,7 @@ namespace RR::Ecs
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
     private:
-bool systemsDirty = false;
+        bool systemsDirty = false;
         EntityStorage entityStorage;
         EventStorage eventStorage;
        // eastl::vector<SystemDescription> systems;
@@ -400,6 +400,6 @@ bool systemsDirty = false;
 
     inline void System::Run() const
     {
-        world->Run(id);
+        world->RunSystem(id);
     }
 }

@@ -12,10 +12,7 @@ namespace RR::Ecs
         friend struct Ecs::World;
 
         SystemBuilder(World& world) : view(world) { };
-        SystemBuilder(World& world, const HashName& name) : view(world)
-        {
-            desc.hashName = name;
-        };
+        SystemBuilder(World& world, const HashName& name) : name(name), view(world)  { };
 
     public:
         template <typename... Components>
@@ -80,7 +77,7 @@ namespace RR::Ecs
 
         SystemBuilder& after(SystemId system)
         {
-            after(view.world.GetSystemName(system));
+            after(fmt::format("system_{}", system.GetRaw()));
             return *this;
         }
 
@@ -98,7 +95,7 @@ namespace RR::Ecs
 
         SystemBuilder& before(SystemId system)
         {
-            before(view.world.GetSystemName(system));
+            before(fmt::format("system_{}", system.GetRaw()));
             return *this;
         }
 
@@ -110,6 +107,7 @@ namespace RR::Ecs
 
     private:
         SystemDescription desc = {};
+        HashName name;
         View view;
     };
 }

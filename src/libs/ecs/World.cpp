@@ -1,9 +1,9 @@
 #include "World.hpp"
 #include "ecs/EntityBuilder.hpp"
 #include "ecs/SystemBuilder.hpp"
-#include <EASTL/vector_multimap.h>
 #include <EASTL/bitvector.h>
 #include <EASTL/sort.h>
+#include <EASTL/vector_multimap.h>
 
 namespace
 {
@@ -88,13 +88,12 @@ namespace RR::Ecs
             createArchetypeNoCache(archetypeId, SortedComponentsView(components));
         }
 
-        queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Build().id;
+        queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Exclude<SystemDescription>().Build().id;
         systemsQuery = Query().Require<Ecs::View, SystemDescription, MatchedArchetypeCache>().Build().id;
         queriesView.Require<Ecs::View, MatchedArchetypeCache>();
         systemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
     }
 
-    HashName World::GetSystemName(SystemId systemId) const
     Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
     {
         size_t index = archetypes.size();
@@ -155,17 +154,21 @@ namespace RR::Ecs
 
     void World::initCache(Archetype& archetype)
     {
-        Ecs::Query(*this, queriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
+        Ecs::Query(*this, queriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
             if (!matches(archetype, view))
                 return;
 
-            if (systemDesc)
-            {
-                for (const auto event : systemDesc->onEvents)
-                    archetype.cache[event].push_back(SystemId(id.GetRawId()));
-            }
+            cache.push_back(&archetype);
+        });
+
+        Ecs::Query(*this, systemsQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription& systemDesc) {
+            if (!matches(archetype, view))
+                return;
 
             cache.push_back(&archetype);
+
+            for (const auto event : systemDesc.onEvents)
+                archetype.cache[event].push_back(SystemId(id.GetRawId()));
         });
     }
 
@@ -183,12 +186,10 @@ namespace RR::Ecs
     SystemBuilder World::System() { return Ecs::SystemBuilder(*this); }
     SystemBuilder World::System(const HashName& name) { return Ecs::SystemBuilder(*this, name); }
 
-    // TODO Think about this
-    // Could be system run without event?
-    void World::Run(SystemId systemId) const
+    void World::RunSystem(SystemId systemId) const
     {
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            desc.onEvent(world, Event(EventId::Invalid(), sizeof(Event)), {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+            desc.callback(world, nullptr, {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
         });
     }
 
@@ -236,21 +237,21 @@ namespace RR::Ecs
     void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
     {
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            desc.onEvent(world, event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+            desc.callback(world, &event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
         });
     }
 
     void World::unicastEventImmediately(EntityId entity, const Ecs::Event& event) const
     {
-        Archetype* from;
-        ArchetypeEntityIndex fromIndex;
+        Archetype* archetype;
+        ArchetypeEntityIndex index;
 
-        if (!ResolveEntityArhetype(entity, from, fromIndex))
+        if (!ResolveEntityArhetype(entity, archetype, index))
             return;
 
-        const auto it = from->cache.find(event.id);
-        if (it == from->cache.end())
-            return; // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
+        const auto it = archetype->cache.find(event.id);
+        if (it == archetype->cache.end())
+            return;
 
         for (const auto systemId : it->second)
             dispatchEventImmediately(entity, systemId, event);
@@ -269,12 +270,13 @@ namespace RR::Ecs
         return Ecs::Query(*this, queryId);
     }
 
-    Ecs::System World::createSystem(SystemDescription&& desc, Ecs::View&& view)
+    Ecs::System World::createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name)
     {
         Ecs::Entity entt = Entity()
                                .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
                                .Add<MatchedArchetypeCache>()
                                .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
+                               .Add<HashName>(eastl::forward<HashName>(name))
                                .Apply();
 
         const auto systemId = SystemId(entt.GetId().rawId);
@@ -341,25 +343,26 @@ namespace RR::Ecs
 
         struct SystemHandle
         {
-            SystemHandle(const SystemDescription& desc, SystemId id) : desc(&desc), id(id) { }
+            SystemHandle(const SystemDescription& desc, SystemId id, const HashName& hashName) : desc(&desc), id(id), hashName(hashName) { }
             const SystemDescription* desc;
             SystemId id;
+            HashName hashName;
         };
 
         eastl::vector<SystemHandle> tmpSystemList;
-        Ecs::Query(*this, systemsQuery).ForEach([&tmpSystemList](EntityId id, const SystemDescription& desc) {
-            tmpSystemList.emplace_back(desc, SystemId(id.GetRawId()));
+        Ecs::Query(*this, systemsQuery).ForEach([&tmpSystemList](EntityId id, const SystemDescription& desc, const HashName& hashName) {
+            tmpSystemList.emplace_back(desc, SystemId(id.GetRawId()), hashName);
         });
 
         // Sort by id to avoid depending on native ES registration order
         // which might be different on different platforms, depend on hot-reload, etc...
-        eastl::sort(tmpSystemList.begin(), tmpSystemList.end(), [](auto a, auto b) { return a.desc->hashName < b.desc->hashName; });
+        eastl::sort(tmpSystemList.begin(), tmpSystemList.end(), [](auto a, auto b) { return a.hashName < b.hashName; });
 
         // Map hash of name to more simple global index
         absl::flat_hash_map<HashType, uint32_t> systemHashToIdxMap;
 
         for (uint32_t i = 0; i < tmpSystemList.size(); i++)
-            systemHashToIdxMap[tmpSystemList[i].desc->hashName.hash] = i;
+            systemHashToIdxMap[tmpSystemList[i].hashName.hash] = i;
 
         constexpr uint32_t invalidId = std::numeric_limits<uint32_t>::max();
 
@@ -390,16 +393,16 @@ namespace RR::Ecs
         for (const SystemHandle& handle : tmpSystemList)
         {
             for (const auto& other : handle.desc->after)
-                insertOrderEdge(handle.desc->hashName, other, false);
+                insertOrderEdge(handle.hashName, other, false);
 
             for (const auto& other : handle.desc->before)
-                insertOrderEdge(handle.desc->hashName, other, true);
+                insertOrderEdge(handle.hashName, other, true);
         }
 
         eastl::vector<uint32_t> sortedList;
         auto loopDetected = [&](size_t idx, auto&) {
-            Log::Format::Error("ES <{}> in graph to become cyclic and was removed from sorting. ES order is non-determinstic.",
-                               tmpSystemList[idx].desc->hashName.string.c_str());
+            Log::Format::Error("ES <{}> in graph to become cyclic and was removed from sorting. ES order is non-deterministic.",
+                               tmpSystemList[idx].hashName.string.c_str());
         };
         topoSort(static_cast<uint32_t>(tmpSystemList.size()), edges, sortedList, loopDetected);
 
@@ -411,13 +414,27 @@ namespace RR::Ecs
             systemsOrder[system.id] = static_cast<uint32_t>(i);
         }
 
-        for(auto& eventSubscribersPair : eventSubscribers)
-            eastl::sort( eventSubscribersPair.second.begin(),  eventSubscribersPair.second.end(), [this](auto a, auto b) { return systemsOrder[a] < systemsOrder[b] ; });
+        for (auto& eventSubscribersPair : eventSubscribers)
+            eastl::sort(eventSubscribersPair.second.begin(), eventSubscribersPair.second.end(), [&systemsOrder](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });
 
         for (auto& archetype : archetypes)
         {
             for (auto& cache : archetype->cache)
-                eastl::sort(cache.second.begin(), cache.second.end(), [this](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });
+                eastl::sort(cache.second.begin(), cache.second.end(), [&systemsOrder](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });
+        }
+        {
+            // clang-format off
+            // This is a hacky way to sort systems in archetype storage.
+            // We temporarily remove all systems from archetype storage and reinsert them in the desired order.
+            // This approach heavily relies on internal details of the Archetype implementation.
+            // However, it significantly reduces sorting overhead at runtime during cache filling, as it ensures systems are already sorted.
+            // Sorting speed is not critical since this should ideally run only once at startup.
+            struct OrderTag{}; // clang-format on
+            for (const SystemHandle& handle : tmpSystemList)
+                Ecs::Entity(*this, EntityId(handle.id.GetRaw())).Edit().Add<OrderTag>().Apply();
+
+            for (const auto sortedIndex : sortedList)
+                Ecs::Entity(*this, EntityId(tmpSystemList[sortedIndex].id.GetRaw())).Edit().Remove<OrderTag>().Apply();
         }
 
         systemsDirty = false;
