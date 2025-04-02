@@ -237,3 +237,11 @@ TEST_CASE_METHOD(WorldFixture, "OptionalComponents", "[Query]")
     REQUIRE(sumFoo == 4);
     REQUIRE(sumBar == 1);
 }
+
+TEST_CASE_METHOD(WorldFixture, "Query empty archetype", "[Query]")
+{
+    world.Entity().Add<Foo>(1).Apply().Destruct();
+
+    const auto queryFoo = world.Query().Require<Foo>().Build();
+    queryFoo.ForEach([&]() { REQUIRE(false); });
+}

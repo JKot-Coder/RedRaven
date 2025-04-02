@@ -145,6 +145,9 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Func, size_t... Index>
         static void processArchetype(const Archetype& archetype, const IterationContext& context, Func&& func, const eastl::index_sequence<Index...>&)
         {
+            if (archetype.GetEntitiesCount() == 0)
+                return;
+
             // TODO optimize finding index, based on previous finded.
             // TODO componentIndexes could be cached.
             auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
