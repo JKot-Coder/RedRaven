@@ -85,7 +85,7 @@ namespace RR::Ecs
             static_assert(components[1] < components[2]);
 
             ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
-            getOrCreateArchetype(archetypeId, SortedComponentsView(components));
+            createArchetypeNoCache(archetypeId, SortedComponentsView(components));
         }
 
         queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Build().id;
@@ -95,14 +95,15 @@ namespace RR::Ecs
     }
 
     HashName World::GetSystemName(SystemId systemId) const
+    Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
     {
-        const SystemDescription* descPtr = nullptr;
-        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&descPtr](const SystemDescription& desc) {
-            descPtr = &desc;
-        });
-        ASSERT_MSG(descPtr, "System not found");
+        size_t index = archetypes.size();
+        archetypes.emplace_back(eastl::make_unique<Archetype>(
+            ComponentInfoIterator(componentStorage, components.begin()),
+            ComponentInfoIterator(componentStorage, components.end())));
+        archetypesMap.emplace(archetypeId, ArchetypeIndex(index));
 
-        return descPtr ? descPtr->hashName : "UNKNOWN";
+        return *archetypes.back().get();
     }
 
     Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
@@ -112,14 +113,7 @@ namespace RR::Ecs
         auto it = archetypesMap.find(archetypeId);
         if (it == archetypesMap.end())
         {
-            size_t index = archetypes.size();
-            archetypes.emplace_back(eastl::make_unique<Archetype>(
-                ComponentInfoIterator(componentStorage, components.begin()),
-                ComponentInfoIterator(componentStorage, components.end())));
-            archetypesMap.emplace(archetypeId, ArchetypeIndex(index));
-
-            archetype = archetypes.back().get();
-
+            archetype = &createArchetypeNoCache(archetypeId, components);
             initCache(*archetype);
         }
         else
@@ -161,11 +155,6 @@ namespace RR::Ecs
 
     void World::initCache(Archetype& archetype)
     {
-        // This could only happends while world creation process.
-        // We create archetype to place this query, and while create archetype we tryng use this query.
-        if UNLIKELY (!queriesQuery.IsValid())
-            return;
-
         Ecs::Query(*this, queriesQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription* systemDesc) {
             if (!matches(archetype, view))
                 return;
