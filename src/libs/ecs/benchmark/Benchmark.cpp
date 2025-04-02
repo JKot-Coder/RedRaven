@@ -143,6 +143,74 @@ struct EntityS
     DataComponent data;
 };
 
+TEST_CASE("Create archetype", "Archetype")
+{
+    ankerl::nanobench::Bench bench;
+    bench.title("Create archetype")
+        .warmup(1000)
+        .relative(true)
+        .performanceCounters(true);
+    bench.epochIterations(1);
+    bench.epochs(10000);
+    bench.relative(true);
+
+    static constexpr uint32_t systemsCount = 1000;
+
+    {
+        bench.complexityN(4);
+        bench.batch(4);
+        bench.run("Ecs", [&](ankerl::nanobench::Meter meter) {
+            World world;
+            for (uint32_t i = 0; i < systemsCount; i++)
+                world.System().OnEvent<Event>().ForEach([&]() { });
+
+            world.OrderSystems();
+
+            return meter.measure([&world]() {
+                world.Entity().Apply();
+                world.Entity().Add<int>(1).Apply();
+                world.Entity().Add<float>(1.0f).Apply();
+                world.Entity().Add<char>('c').Apply();
+            });
+            ankerl::nanobench::doNotOptimizeAway(&world);
+        });
+    }
+    {
+        bench.complexityN(16);
+        bench.batch(16);
+        bench.run("Ecs", [&](ankerl::nanobench::Meter meter) {
+            World world;
+            for (uint32_t i = 0; i < systemsCount; i++)
+                world.System().OnEvent<Event>().ForEach([&]() { });
+
+            world.OrderSystems();
+
+            return meter.measure([&world]() {
+                world.Entity().Apply();
+                world.Entity().Add<int>(1).Apply();
+                world.Entity().Add<float>(1.0f).Apply();
+                world.Entity().Add<char>('c').Apply();
+
+                world.Entity().Add<double>(1.0).Apply();
+                world.Entity().Add<double>(1.0).Add<int>(1).Apply();
+                world.Entity().Add<double>(1.0).Add<float>(1.0f).Apply();
+                world.Entity().Add<double>(1.0).Add<char>('c').Apply();
+
+                world.Entity().Add<bool>(false).Apply();
+                world.Entity().Add<bool>(false).Add<int>(1).Apply();
+                world.Entity().Add<bool>(false).Add<float>(1.0f).Apply();
+                world.Entity().Add<bool>(false).Add<char>('c').Apply();
+
+                world.Entity().Add<uint16_t>(uint16_t(0)).Apply();
+                world.Entity().Add<uint16_t>(uint16_t(0)).Add<int>(1).Apply();
+                world.Entity().Add<uint16_t>(uint16_t(0)).Add<float>(1.0f).Apply();
+                world.Entity().Add<uint16_t>(uint16_t(0)).Add<char>('c').Apply();
+            });
+            ankerl::nanobench::doNotOptimizeAway(&world);
+        });
+    }
+}
+
 TEST_CASE("Create Entity", "[Entity]")
 {
     ankerl::nanobench::Bench bench;
