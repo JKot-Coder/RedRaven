@@ -27,9 +27,9 @@ struct FloatEvent : Event
 
 TEST_CASE_METHOD(WorldFixture, "System create", "[System]")
 {
-    world.System().OnEvent<TestEvent>([] { });
-    world.System().OnEvent<TestEvent>([] { });
-    world.System().OnEvent<TestEvent>([] { });
+    world.System().ForEach([] { });
+    world.System().OnEvent<TestEvent>().ForEach([] { });
+    world.System().Require<int>().OnEvent<TestEvent>().ForEach([] { });
 }
 
 TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
@@ -38,7 +38,7 @@ TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
     world.Entity().Add<int>().Apply();
 
     int calls = 0;
-    world.System().Require<int>().OnEvent<TestEvent>([&calls](EntityId id) { REQUIRE(id); calls++; });
+    world.System().Require<int>().OnEvent<TestEvent>().ForEach([&calls](EntityId id) { REQUIRE(id); calls++; });
     world.EmitImmediately<TestEvent>({});
 
     REQUIRE(calls == 2);
@@ -50,7 +50,7 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event immediate", "[Event]")
 
     int calls = 0;
     eastl::array<int, 4> data;
-    world.System().Require<int>().OnEvent<IntEvent>(
+    world.System().Require<int>().OnEvent<IntEvent>().ForEach(
         [&calls, &data](EntityId id, const IntEvent& event) {
             REQUIRE(id);
             data[calls++] = event.value;
@@ -74,13 +74,13 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
 
     int calls = 0;
     eastl::array<int, 4> data;
-    world.System().Require<int>().OnEvent<IntEvent>(
+    world.System().Require<int>().OnEvent<IntEvent>().ForEach(
         [&calls, &data](EntityId id, const IntEvent& event) {
             REQUIRE(id);
             data[calls++] = event.value;
         });
 
-    world.System().Require<int>().OnEvent<FloatEvent>(
+    world.System().Require<int>().OnEvent<FloatEvent>().ForEach(
         [&calls, &data](EntityId id, const FloatEvent& event) {
             REQUIRE(id);
             data[calls++] = event.value;
@@ -110,17 +110,16 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event", "[Event]")
 
     // archetype created first
     const auto entt1 = world.Entity().Add<int>(1).Apply();
-    world.System().Require<int>().OnEvent<TestEvent>([&]() { calls++; });
+    world.System().Require<int>().OnEvent<TestEvent>().ForEach([&]() { calls++; });
     world.EmitImmediately<TestEvent>(entt1, {});
 
     // system created first
-    world.System().Require<float>().OnEvent<TestEvent>([&]() { calls++; });
+    world.System().Require<float>().OnEvent<TestEvent>().ForEach([&]() { calls++; });
     const auto entt2 = world.Entity().Add<float>(1.0f).Apply();
     world.EmitImmediately<TestEvent>(entt2, {});
 
     REQUIRE(calls == 2);
 }
-
 
 TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
 {
@@ -131,12 +130,12 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
 
     int calls = 0;
     eastl::array<std::pair<EntityId, int>, 5> data;
-    world.System().Require<int>().OnEvent<IntEvent, TestEvent>(
+    world.System().Require<int>().OnEvent<IntEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
             data[calls++] = {id, event.Is<IntEvent>() ? event.As<IntEvent>().value : -1};
         });
-    world.System().Require<float>().OnEvent<IntEvent>([]() { REQUIRE(false); });
-    world.System().Require<int>().OnEvent<FloatEvent, TestEvent>(
+    world.System().Require<float>().OnEvent<IntEvent>().ForEach([]() { REQUIRE(false); });
+    world.System().Require<int>().OnEvent<FloatEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
@@ -168,12 +167,12 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
 
     int calls = 0;
     eastl::array<std::pair<EntityId, int>, 5> data;
-    world.System().Require<int>().OnEvent<IntEvent, TestEvent>(
+    world.System().Require<int>().OnEvent<IntEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
             data[calls++] = {id, event.Is<IntEvent>() ? event.As<IntEvent>().value : -1};
         });
-    world.System().Require<float>().OnEvent<IntEvent>([]() { REQUIRE(false); });
-    world.System().Require<int>().OnEvent<FloatEvent, TestEvent>(
+    world.System().Require<float>().OnEvent<IntEvent>().ForEach([]() { REQUIRE(false); });
+    world.System().Require<int>().OnEvent<FloatEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
@@ -207,7 +206,7 @@ TEST_CASE_METHOD(WorldFixture, "OnAppear", "[Event]")
     int calls = 0;
 
     // TODO MULTIPLE REQUIRE AND CHECK DATA
-    world.System().Require<int>().OnEvent<OnAppear>([&]() { calls++; });
+    world.System().Require<int>().OnEvent<OnAppear>().ForEach([&]() { calls++; });
     world.Entity().Add<int>(1).Apply();
     REQUIRE(calls == 1);
 
@@ -229,7 +228,7 @@ TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
 
     int calls = 0;
     // TODO MULTIPLE REQUIRE AND CHECK DATA
-    world.System().Require<int>().OnEvent<OnDissapear>([&]() { calls++; });
+    world.System().Require<int>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
     const auto entt1 = world.Entity().Add<int>(1).Apply();
     REQUIRE(calls == 0);
     entt1.Destruct();

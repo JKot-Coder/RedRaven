@@ -464,7 +464,7 @@ TEST_CASE("Update entities", "[Entity]")
                         .Apply();
 
                 struct BenchEvent : public Event { BenchEvent() : Event(GetEventId<BenchEvent>, sizeof(BenchEvent)) { } };
-                world.System().Require<PositionComponent, VelocityComponent>().OnEvent<BenchEvent>([&](PositionComponent& position, const VelocityComponent& velocity) {
+                world.System().Require<PositionComponent, VelocityComponent>().OnEvent<BenchEvent>().ForEach([&](PositionComponent& position, const VelocityComponent& velocity) {
                     position.x += velocity.x;
                     position.y += velocity.y;
                 });

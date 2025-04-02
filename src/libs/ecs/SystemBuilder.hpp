@@ -46,25 +46,29 @@ namespace RR::Ecs
             return *this;
         }
 
-        template <typename... EventTypes, typename Callback>
-        System OnEvent(Callback&& callback)
+        template <typename... EventTypes>
+        [[nodiscard]] SystemBuilder& OnEvent()
         {
             static_assert(sizeof...(EventTypes) > 0, "At least one event type must be specified");
             static_assert((std::is_base_of_v<Event, EventTypes> && ...), "All event types must derive from ecs::Event");
 
-            // using ArgList = GetArgumentList<Callback>;
-
             // todo GET/CHECK event RAW TYPE
             (desc.onEvents.emplace_back(GetEventId<EventTypes>), ...);
 
-            desc.onEvent = [cb = std::forward<Callback>(callback)](Ecs::World& world, const Ecs::Event& event, Ecs::EntityId entityId, Ecs::MatchedArchetypeSpan archetypes) {
+            return *this;
+        }
+
+        template <typename Callback>
+        System ForEach(Callback&& callback)
+        {
+            desc.callback = [cb = std::forward<Callback>(callback)](Ecs::World& world, Ecs::Event const * event, Ecs::EntityId entityId, Ecs::MatchedArchetypeSpan archetypes) {
                 if (!entityId)
-                    world.query(archetypes, &event, eastl::move(cb));
+                    world.query(archetypes, event, eastl::move(cb));
                 else
                     world.queryForEntity(entityId, event, eastl::move(cb));
             };
 
-            return view.world.createSystem(eastl::move(desc), eastl::move(view));
+            return view.world.createSystem(eastl::move(desc), eastl::move(view), eastl::move(name));
         }
 
     private:
