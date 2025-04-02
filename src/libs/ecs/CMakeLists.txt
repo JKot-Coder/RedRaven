@@ -27,7 +27,7 @@ set( SRC
     FunctionTraits.hpp
     ComponentTraits.hpp
     IterationHelpers.hpp)
-    source_group( "" FILES ${SRC} )
+source_group( "" FILES ${SRC} )
 
 set (SRC
     ${SRC}
