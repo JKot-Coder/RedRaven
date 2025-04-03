@@ -29,10 +29,12 @@ namespace RR::Ecs
     template <typename Tag, typename IndexType = uint32_t>
     struct Index;
 
+    using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
+    using ArchetypeIndex = Index<struct ArchetypeIndexTag>;
+    using ArchetypeComponentIndex = Index<struct ArchetypeComponentIndexTag>;
     using EventId = Index<struct EventIdTag, HashType>;
     using SystemId = Index<struct SystemIdTag, uint32_t>;
-    using MatchedArchetypeSpan = eastl::span<const Archetype*>; //TODO maybe move somewhre
-
+    using MatchedArchetypeSpan = eastl::span<const Archetype*>;
     /**
      * @brief List of types with compile-time access
      * @tparam Types Variadic template parameter pack of types

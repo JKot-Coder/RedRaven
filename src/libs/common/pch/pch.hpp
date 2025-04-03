@@ -1,11 +1,11 @@
 #pragma once
 
-
+// IWYU pragma: begin_exports
 #include "common/Config.hpp"
-
-#ifdef __cplusplus
 #include "common/NonCopyableMovable.hpp"
 #include "common/debug/Logger.hpp"
+
+#ifdef __cplusplus
 #include <array>
 #include <cstdint>
 #include <cstdlib>
@@ -16,18 +16,20 @@
 #include <memory>
 #include <vector>
 #include <string_view>
+
 #include <EASTL/array.h>
 #include <EASTL/vector.h>
 #include <EASTL/memory.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/string_view.h>
-using namespace RR::Common::Debug;
-#include "math/Base.hpp"
 
-// using namespace RR::Common;
+using namespace RR::Common::Debug;
+
+#include "math/Base.hpp"
+// IWYU pragma: end_exports
 
 #else
-#include <cstddef.h>
+#include <cstddef>
 #include <stdint.h>
 #endif

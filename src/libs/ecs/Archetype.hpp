@@ -12,10 +12,6 @@
 
 namespace RR::Ecs
 {
-    using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
-    using ArchetypeIndex = Index<struct ArchetypeIndexTag>;
-    using ArchetypeComponentIndex = Index<struct ArchetypeComponentIndexTag>;
-
     struct ArchetypeEntityIndex final
     {
         static const uint32_t IndexBits = 18;

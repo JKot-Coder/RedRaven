@@ -1,4 +1,6 @@
+#include "common/pch/pch.hpp"
 #include "World.hpp"
+#include "ecs/ComponentTraits.hpp"
 #include "ecs/EntityBuilder.hpp"
 #include "ecs/SystemBuilder.hpp"
 #include <EASTL/bitvector.h>
@@ -25,8 +27,8 @@ namespace
     }
 
     template <class MarkContainer, class ListContainer, class EdgeContainer, typename LoopDetectedCB>
-    static bool visitTopSort(uint32_t nodeIdx, const EdgeContainer& edges, MarkContainer& tempMark, MarkContainer& visitedMark,
-                             ListContainer& sortedList, LoopDetectedCB cb)
+    bool visitTopSort(uint32_t nodeIdx, const EdgeContainer& edges, MarkContainer& tempMark, MarkContainer& visitedMark, // NOLINT(misc-no-recursion)
+                      ListContainer& sortedList, LoopDetectedCB cb)
     {
         if (visitedMark[nodeIdx])
             return true;
@@ -47,7 +49,7 @@ namespace
         }
 
         tempMark.set(nodeIdx, false);
-        sortedList.push_back((uint32_t)nodeIdx);
+        sortedList.push_back(nodeIdx);
         visitedMark.set(nodeIdx, true);
         return true;
     }
@@ -282,7 +284,7 @@ namespace RR::Ecs
         const auto systemId = SystemId(entt.GetId().rawId);
         initCache(systemId);
 
-        systemsDirty = true;
+        systemsOrderDirty = true;
 
         return Ecs::System(*this, systemId);
     }
@@ -310,7 +312,7 @@ namespace RR::Ecs
 
     void World::handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
     {
-        if (!from)
+        if (from == nullptr)
         {
             // First time appear, send On Appear event every subscriber.
             const auto it = to.cache.find(GetEventId<OnAppear>);
@@ -338,12 +340,15 @@ namespace RR::Ecs
 
     void World::OrderSystems()
     {
-        if (!systemsDirty)
+        if (!systemsOrderDirty)
             return;
 
         struct SystemHandle
         {
-            SystemHandle(const SystemDescription& desc, SystemId id, const HashName& hashName) : desc(&desc), id(id), hashName(hashName) { }
+            SystemHandle(const SystemDescription& desc, SystemId id, HashName hashName)
+                : desc(&desc), id(id), hashName(std::move(hashName)) { }
+
+        public:
             const SystemDescription* desc;
             SystemId id;
             HashName hashName;
@@ -374,7 +379,7 @@ namespace RR::Ecs
         eastl::vector_multimap<uint32_t, uint32_t> edges;
         auto makeEdge = [&](uint32_t fromIdx, uint32_t toIdx) { edges.emplace(fromIdx, toIdx); };
 
-        auto insertOrderEdge = [&](HashName system, HashName other, bool before) {
+        auto insertOrderEdge = [&](const HashName& system, const HashName& other, bool before) {
             const auto systemIdx = systemHashToIdx(system.hash);
             const auto otherIdx = systemHashToIdx(other.hash);
             ASSERT(systemIdx != invalidId); // Impossible
@@ -437,6 +442,6 @@ namespace RR::Ecs
                 Ecs::Entity(*this, EntityId(tmpSystemList[sortedIndex].id.GetRaw())).Edit().Remove<OrderTag>().Apply();
         }
 
-        systemsDirty = false;
+        systemsOrderDirty = false;
     }
 }

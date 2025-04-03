@@ -9,9 +9,8 @@ Checks: '*,
 -llvmlibc-*,
 -modernize-use-trailing-return-type,
 -modernize-return-braced-init-list,
--readability-identifier-length,
--google-readability-braces-around-statements,
 -hicpp-braces-around-statements,
+-readability-identifier-length,
 -readability-braces-around-statements,
 -readability-redundant-access-specifiers,
 -readability-named-parameter,
@@ -19,11 +18,16 @@ Checks: '*,
 -fuchsia-default-arguments,
 -fuchsia-default-arguments-calls,
 -llvm-header-guard,
+-llvm-namespace-comment,
 -google-readability-namespace-comments,
 -google-readability-todo,
--llvm-namespace-comment,
+-google-readability-braces-around-statements,
 -cppcoreguidelines-pro-type-union-access,
+-cppcoreguidelines-missing-std-forward, # False-positive with east::forward
 -bugprone-easily-swappable-parameters'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 FormatStyle:     none
+CheckOptions:
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:           '1'

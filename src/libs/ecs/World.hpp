@@ -1,22 +1,28 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/EntityStorage.hpp"
+
+#include "ecs/Archetype.hpp"
 #include "ecs/ComponentStorage.hpp"
-#include "ecs/Query.hpp"
-#include "ecs/View.hpp"
-#include "ecs/System.hpp"
-#include "ecs/IterationHelpers.hpp"
+#include "ecs/ComponentTraits.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
-#include "absl/container/flat_hash_map.h"
+#include "ecs/EntityStorage.hpp"
+#include "ecs/Event.hpp"
+#include "ecs/Hash.hpp"
+#include "ecs/IterationHelpers.hpp"
+#include "ecs/Query.hpp"
+#include "ecs/System.hpp"
+#include "ecs/View.hpp"
+
+#include "absl/container/flat_hash_map.h" // IWYU pragma: export
 
 namespace RR::Ecs
 {
     struct World
     {
     private:
-        using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>; // TODO naming?
+        using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>;
 
     public:
         [[nodiscard]] Ecs::SystemBuilder System();
@@ -31,7 +37,7 @@ namespace RR::Ecs
 
         [[nodiscard]] bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
 
-        [[nodiscard]] bool Has(EntityId entityId, SortedComponentsView components)
+        [[nodiscard]] bool Has(EntityId entityId, SortedComponentsView components) const
         {
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
@@ -352,20 +358,17 @@ namespace RR::Ecs
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
     private:
-        bool systemsDirty = false;
+        bool systemsOrderDirty = false;
         EntityStorage entityStorage;
         EventStorage eventStorage;
-       // eastl::vector<SystemDescription> systems;
-        // SystemStorage systemStorage;
         ComponentStorage componentStorage;
         Ecs::View queriesView;
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
         Ecs::QueryId systemsQuery;
-        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers; // Todo rename
+        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers;
         absl::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
-       // absl::flat_hash_map<EntityId, EntityRecord> entityRecords;
     };
 
     template <typename Callable>
