@@ -15,14 +15,15 @@ namespace RR::Ecs
     struct Entity
     {
     public:
-        EntityId GetId() const { return entity_; }
         void Destruct() const;
-        bool IsAlive() const;
-        bool Has(SortedComponentsView componentsView) const;
-        bool ResolveEntityArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const;
+
+        [[nodiscard]] EntityId GetId() const { return id; }
+        [[nodiscard]] bool IsAlive() const;
+        [[nodiscard]] bool Has(SortedComponentsView componentsView) const;
+        [[nodiscard]] bool ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const;
 
         template <typename... Components>
-        bool Has() const
+        [[nodiscard]] bool Has() const
         {
             eastl::array<ComponentId, sizeof...(Components)> components = {GetComponentId<Components>...};
             eastl::quick_sort(components.begin(), components.end());
@@ -36,10 +37,10 @@ namespace RR::Ecs
         template <typename C, typename A>
         friend struct EntityBuilder;
 
-        Entity(World& world, EntityId entity) : world_(world), entity_(entity) { }
+        Entity(World& world, EntityId id) : world(&world), id(id) { }
 
     private:
-        World& world_;
-        EntityId entity_;
+        World* world;
+        EntityId id;
     };
 }

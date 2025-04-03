@@ -5,11 +5,11 @@
 
 namespace RR::Ecs
 {
-    void Entity::Destruct() const { world_.Destruct(entity_); }
-    bool Entity::IsAlive() const { return world_.IsAlive(entity_); }
-    bool Entity::Has(SortedComponentsView componentsView) const { return world_.Has(entity_, componentsView); }
-    bool Entity::ResolveEntityArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const
+    void Entity::Destruct() const { world->Destruct(id); }
+    bool Entity::IsAlive() const { return world->IsAlive(id); }
+    bool Entity::Has(SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
+    bool Entity::ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const
     {
-        return world_.ResolveEntityArhetype(entity_, archetype, index);
+        return world->ResolveEntityArhetype(id, archetype, index);
     }
 }

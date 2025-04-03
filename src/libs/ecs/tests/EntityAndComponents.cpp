@@ -13,7 +13,7 @@ Archetype& resolveArchetype(Entity entt)
 {
     Archetype* archetype = nullptr;
     ArchetypeEntityIndex index;
-    REQUIRE(entt.ResolveEntityArhetype(archetype, index));
+    REQUIRE(entt.ResolveArhetype(archetype, index));
     REQUIRE(archetype);
     return *archetype;
 };
@@ -151,7 +151,7 @@ TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
 
     Archetype* archetype = nullptr;
     ArchetypeEntityIndex index;
-    REQUIRE(entt2.ResolveEntityArhetype(archetype, index));
+    REQUIRE(entt2.ResolveArhetype(archetype, index));
     REQUIRE(archetype);
     REQUIRE(index.GetRaw() == 0);
     const auto componentIndex = archetype->GetComponentIndex(GetComponentId<Tag>);

@@ -44,7 +44,6 @@ namespace RR::Ecs
         explicit EntityBuilder(World& world, EntityId entity) : world_(world), entity_(entity) { };
 
     private:
-
         World& world_;
         EntityId entity_;
         ComponentsSet remove_;
@@ -89,5 +88,5 @@ namespace RR::Ecs
         ArgsTuple args_;
     };
 
-    inline EntityBuilder<void, void> Entity::Edit() const { return EntityBuilder<void, void>(world_, entity_); }
+    inline EntityBuilder<void, void> Entity::Edit() const { return EntityBuilder<void, void>(*world, id); }
 }
