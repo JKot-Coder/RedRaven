@@ -90,6 +90,7 @@ namespace RR::Ecs
         template <typename EventType>
         void Emit(Ecs::Entity entity, EventType&& event)
         {
+            ASSERT(entity.world == this);
             Emit<EventType>(entity.GetId(), std::forward<EventType>(event));
         }
 
@@ -111,6 +112,7 @@ namespace RR::Ecs
         template <typename EventType>
         void EmitImmediately(Ecs::Entity entity, const EventType& event) const
         {
+            ASSERT(entity.world == this);
             EmitImmediately<EventType>(entity.GetId(), event);
         }
 

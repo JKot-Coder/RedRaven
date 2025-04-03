@@ -10,7 +10,7 @@
 + Rework systems.
 + Appear / dissapear
 # Track
-# Check world match
++ Check world match
 + ImplementTypeInfo iterator
 + implement Query iterator
 + implement Event query
