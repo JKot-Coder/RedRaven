@@ -373,27 +373,35 @@ namespace RR::Ecs
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
     };
 
+    inline void Entity::Destruct() const { world->Destruct(id); }
+    inline bool Entity::IsAlive() const { return world->IsAlive(id); }
+    inline bool Entity::Has(SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
+    inline bool Entity::ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const
+    {
+        return world->ResolveEntityArhetype(id, archetype, index);
+    }
+
     template <typename Callable>
-    void View::ForEach(Callable&& callable) const
+    inline void View::ForEach(Callable&& callable) const
     {
         world.query(*this, eastl::forward<Callable>(callable));
     }
 
     // TODO Maybe move it wold, if we have entity, we don't need view!
     template <typename Callable>
-    void View::ForEntity(EntityId entityId, Callable&& callable) const
+    inline void View::ForEntity(EntityId entityId, Callable&& callable) const
     {
         world.queryForEntity(entityId, *this, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
-    void View::ForEntity(Entity entity, Callable&& callable) const
+    inline void View::ForEntity(Entity entity, Callable&& callable) const
     {
         ForEntity(entity.GetId(), eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
-    void Query::ForEach(Callable&& callable) const
+    inline void Query::ForEach(Callable&& callable) const
     {
         world.query(id, eastl::forward<Callable>(callable));
     }
