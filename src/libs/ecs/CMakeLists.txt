@@ -14,6 +14,7 @@ set( SRC
     EntityStorage.hpp
     Query.hpp
     Entity.hpp
+    EntityId.hpp
     EntityBuilder.hpp
     Event.hpp
     System.hpp
