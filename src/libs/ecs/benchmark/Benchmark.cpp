@@ -536,6 +536,7 @@ TEST_CASE("Update entities", "[Entity]")
                     position.x += velocity.x;
                     position.y += velocity.y;
                 });
+                world.OrderSystems();
 
                 return meter.measure([&world]() {
                     world.EmitImmediately<BenchEvent>({});

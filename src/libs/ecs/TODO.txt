@@ -36,7 +36,7 @@
 + uint32_t everything
 # parents? (Better to not do)
 + systems ordering
-# log err while systems not ordered.
++ log err while systems not ordered.
 + Benchmarks
 + replace Ska?
 # delete systems / queries

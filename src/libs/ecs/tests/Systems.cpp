@@ -39,6 +39,7 @@ TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
 
     int calls = 0;
     world.System().Require<int>().OnEvent<TestEvent>().ForEach([&calls](EntityId id) { REQUIRE(id); calls++; });
+    world.OrderSystems();
     world.EmitImmediately<TestEvent>({});
 
     REQUIRE(calls == 2);
@@ -55,6 +56,7 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event immediate", "[Event]")
             REQUIRE(id);
             data[calls++] = event.value;
         });
+    world.OrderSystems();
 
     world.EmitImmediately<IntEvent>(1);
     world.EmitImmediately<IntEvent>(2);
@@ -86,6 +88,7 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
             data[calls++] = event.value;
         });
 
+    world.OrderSystems();
     world.Emit(IntEvent {1});
     world.Emit(FloatEvent {2});
     world.Emit(FloatEvent {3});
@@ -111,10 +114,12 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event", "[Event]")
     // archetype created first
     const auto entt1 = world.Entity().Add<int>(1).Apply();
     world.System().Require<int>().OnEvent<TestEvent>().ForEach([&]() { calls++; });
+    world.OrderSystems();
     world.EmitImmediately<TestEvent>(entt1, {});
 
     // system created first
     world.System().Require<float>().OnEvent<TestEvent>().ForEach([&]() { calls++; });
+    world.OrderSystems();
     const auto entt2 = world.Entity().Add<float>(1.0f).Apply();
     world.EmitImmediately<TestEvent>(entt2, {});
 
@@ -140,6 +145,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
 
+    world.OrderSystems();
     world.EmitImmediately<IntEvent>(entt3, {1});
     world.EmitImmediately<IntEvent>(entt2, {2});
     world.EmitImmediately<TestEvent>(entt4, {});
@@ -177,6 +183,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
             data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
         });
 
+    world.OrderSystems();
     world.Emit<IntEvent>(entt3, {1});
     world.Emit<IntEvent>(entt2, {2});
     world.Emit<TestEvent>(entt4, {});
@@ -207,6 +214,7 @@ TEST_CASE_METHOD(WorldFixture, "OnAppear", "[Event]")
 
         int calls = 0;
         world.System().Require<int>().OnEvent<OnAppear>().ForEach([&]() { calls++; });
+        world.OrderSystems();
         world.Entity().Add<int>(1).Apply();
         REQUIRE(calls == 1);
 
@@ -215,6 +223,7 @@ TEST_CASE_METHOD(WorldFixture, "OnAppear", "[Event]")
         REQUIRE(calls == 2);
 
         entity.Edit().Remove<int>().Apply();
+        world.OrderSystems();
         entity.Edit().Add<int>().Apply();
         REQUIRE(calls == 3);
 
@@ -225,7 +234,7 @@ TEST_CASE_METHOD(WorldFixture, "OnAppear", "[Event]")
     {
         int calls = 0;
         world.System().Require<int>().Exclude<float>().OnEvent<OnAppear>().ForEach([&]() { calls++; });
-
+        world.OrderSystems();
         world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
         REQUIRE(calls == 0);
 
@@ -246,6 +255,7 @@ TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
 
         int calls = 0;
         world.System().Require<int>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
+        world.OrderSystems();
         const auto entt1 = world.Entity().Add<int>(1).Apply();
         REQUIRE(calls == 0);
         entt1.Destruct();
@@ -262,7 +272,7 @@ TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
     {
         int calls = 0;
         world.System().Require<int>().Exclude<float>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
-
+        world.OrderSystems();
         const auto entt1 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
         entt1.Destruct();
         REQUIRE(calls == 0);

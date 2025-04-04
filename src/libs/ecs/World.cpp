@@ -227,6 +227,8 @@ namespace RR::Ecs
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
+        ASSERT(!systemsOrderDirty);
+
         const auto it = eventSubscribers.find(event.id);
         // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
         if (it == eventSubscribers.end())
@@ -238,6 +240,8 @@ namespace RR::Ecs
 
     void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
     {
+        ASSERT(!systemsOrderDirty);
+
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
             desc.callback(world, &event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
         });
@@ -245,6 +249,8 @@ namespace RR::Ecs
 
     void World::unicastEventImmediately(EntityId entity, const Ecs::Event& event) const
     {
+        ASSERT(!systemsOrderDirty);
+
         Archetype* archetype;
         ArchetypeEntityIndex index;
 
