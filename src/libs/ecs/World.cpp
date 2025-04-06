@@ -74,6 +74,7 @@ namespace RR::Ecs
 {
     World::World() : queriesView(*this), systemsView(*this)
     {
+        creationThreadID = std::this_thread::get_id();
         RegisterComponent<EntityId>();
         RegisterComponent<Ecs::View>();
         RegisterComponent<MatchedArchetypeCache>();
@@ -98,6 +99,7 @@ namespace RR::Ecs
 
     Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
     {
+        ASSERT_IS_CREATION_THREAD;
         size_t index = archetypes.size();
         archetypes.emplace_back(eastl::make_unique<Archetype>(
             ComponentInfoIterator(componentStorage, components.begin()),
@@ -109,6 +111,7 @@ namespace RR::Ecs
 
     Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
     {
+        ASSERT_IS_CREATION_THREAD;
         Archetype* archetype = nullptr;
 
         auto it = archetypesMap.find(archetypeId);
@@ -176,11 +179,13 @@ namespace RR::Ecs
 
     Ecs::EntityBuilder<void, void> World::Entity()
     {
+        ASSERT_IS_CREATION_THREAD;
         return EntityBuilder<void, void>(*this, {});
     }
 
     Ecs::Entity World::EmptyEntity()
     {
+        ASSERT_IS_CREATION_THREAD;
         EntityId entityId = commit<TypeList<>>({}, SortedComponentsView {nullptr, nullptr}, std::make_tuple());
         return Ecs::Entity(*this, entityId);
     }
@@ -190,6 +195,7 @@ namespace RR::Ecs
 
     void World::RunSystem(SystemId systemId) const
     {
+        ASSERT_IS_CREATION_THREAD;
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
             desc.callback(world, nullptr, {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
         });
@@ -197,6 +203,7 @@ namespace RR::Ecs
 
     void World::ProcessDefferedEvents()
     {
+        ASSERT_IS_CREATION_THREAD;
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if (entityId)
                 unicastEventImmediately(entityId, event);
@@ -207,6 +214,7 @@ namespace RR::Ecs
 
     void World::Tick()
     {
+        ASSERT_IS_CREATION_THREAD;
         OrderSystems();
         // Update events;
 
@@ -227,6 +235,7 @@ namespace RR::Ecs
 
     void World::broadcastEventImmediately(const Ecs::Event& event) const
     {
+        ASSERT_IS_CREATION_THREAD;
         ASSERT(!systemsOrderDirty);
 
         const auto it = eventSubscribers.find(event.id);
@@ -240,6 +249,7 @@ namespace RR::Ecs
 
     void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
     {
+        ASSERT_IS_CREATION_THREAD;
         ASSERT(!systemsOrderDirty);
 
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
@@ -249,6 +259,7 @@ namespace RR::Ecs
 
     void World::unicastEventImmediately(EntityId entity, const Ecs::Event& event) const
     {
+        ASSERT_IS_CREATION_THREAD;
         ASSERT(!systemsOrderDirty);
 
         Archetype* archetype;
@@ -267,6 +278,7 @@ namespace RR::Ecs
 
     Query World::createQuery(Ecs::View&& view)
     {
+        ASSERT_IS_CREATION_THREAD;
         Ecs::Entity entt = Entity()
                                .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
                                .Add<MatchedArchetypeCache>()
@@ -280,6 +292,7 @@ namespace RR::Ecs
 
     Ecs::System World::createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name)
     {
+        ASSERT_IS_CREATION_THREAD;
         Ecs::Entity entt = Entity()
                                .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
                                .Add<MatchedArchetypeCache>()
@@ -297,6 +310,7 @@ namespace RR::Ecs
 
     void World::handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to)
     {
+        ASSERT_IS_CREATION_THREAD;
         const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
         const auto fromDissapear = from.cache.find(GetEventId<OnDissapear>);
 
@@ -318,6 +332,7 @@ namespace RR::Ecs
 
     void World::handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
     {
+        ASSERT_IS_CREATION_THREAD;
         if (from == nullptr)
         {
             // First time appear, send On Appear event every subscriber.
@@ -346,6 +361,7 @@ namespace RR::Ecs
 
     void World::OrderSystems()
     {
+        ASSERT_IS_CREATION_THREAD;
         if (!systemsOrderDirty)
             return;
 

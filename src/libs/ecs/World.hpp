@@ -17,6 +17,12 @@
 
 #include "absl/container/flat_hash_map.h" // IWYU pragma: export
 
+#ifdef ENABLE_ASSERTS
+#define ASSERT_IS_CREATION_THREAD ASSERT(creationThreadID == std::this_thread::get_id())
+#else
+#define ASSERT_IS_CREATION_THREAD
+#endif
+
 namespace RR::Ecs
 {
     struct World
@@ -35,10 +41,15 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::QueryBuilder Query() { return Ecs::QueryBuilder(*this); }
         [[nodiscard]] Ecs::Query GetQuery(QueryId queryId) { return Ecs::Query(*this, queryId); }
 
-        [[nodiscard]] bool IsAlive(EntityId entityId) const { return entityStorage.IsAlive(entityId); }
+        [[nodiscard]] bool IsAlive(EntityId entityId) const
+        {
+            ASSERT_IS_CREATION_THREAD;
+            return entityStorage.IsAlive(entityId);
+        }
 
         [[nodiscard]] bool Has(EntityId entityId, SortedComponentsView components) const
         {
+            ASSERT_IS_CREATION_THREAD;
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
 
@@ -50,6 +61,7 @@ namespace RR::Ecs
 
         void Destruct(EntityId entityId)
         {
+            ASSERT_IS_CREATION_THREAD;
             if (!IsAlive(entityId)) return;
 
             Archetype* archetype = nullptr;
@@ -67,6 +79,7 @@ namespace RR::Ecs
 
         [[nodiscard]] bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index) const
         {
+            ASSERT_IS_CREATION_THREAD;
             EntityRecord record;
             if (!entityStorage.Get(entity, record))
                 return false;
@@ -84,6 +97,7 @@ namespace RR::Ecs
         void Emit(EventType&& event)
         {
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            ASSERT_IS_CREATION_THREAD;
             eventStorage.Push({}, std::forward<EventType>(event));
         }
 
@@ -97,8 +111,9 @@ namespace RR::Ecs
         template <typename EventType>
         void Emit(EntityId entity, EventType&& event)
         {
-            ASSERT(entity);
             static_assert(eastl::is_base_of_v<Ecs::Event, EventType>, "EventType must derive from Event");
+            ASSERT_IS_CREATION_THREAD;
+            ASSERT(entity);
             eventStorage.Push(entity, std::forward<EventType>(event));
         }
 
@@ -184,6 +199,7 @@ namespace RR::Ecs
         template <typename Components, typename ArgsTuple, size_t... Index>
         EntityId commitImpl(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
+            ASSERT_IS_CREATION_THREAD;
             ComponentsSet components;
             Archetype* from = nullptr;
             ArchetypeEntityIndex fromIndex;
@@ -259,6 +275,7 @@ namespace RR::Ecs
         template <typename Callable>
         void query(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             IterationContext context {*this, event};
 
             // Todo check all args in callable persist in requireComps with std::includes
@@ -269,6 +286,7 @@ namespace RR::Ecs
         template <typename Callable>
         void query(QueryId queryId, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             // Todo check all args in callable persist in requireComps with std::includes
             MatchedArchetypeCache* archetypes = nullptr;
             queriesView.ForEntity(EntityId(queryId.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
@@ -282,6 +300,7 @@ namespace RR::Ecs
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             // Todo check all args in callable persist in requireComps with std::includes
             IterationContext context {*this, nullptr};
 
@@ -297,6 +316,7 @@ namespace RR::Ecs
         template <typename Callable>
         void queryForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             using ArgList = GetArgumentList<Callable>;
             queryForEntityImpl<ArgList>(entityId, {*this, event}, eastl::forward<Callable>(callable));
         }
@@ -304,6 +324,7 @@ namespace RR::Ecs
         template <typename Callable>
         void queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             using ArgList = GetArgumentList<Callable>;
             queryForEntityImpl<ArgList>(entityId, view, {*this, nullptr}, eastl::forward<Callable>(callable));
         }
@@ -311,6 +332,7 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Callable>
         void queryForEntityImpl(EntityId entityId, const Ecs::View& view, const IterationContext& context, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             ASSERT(entityId);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
@@ -337,6 +359,7 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Callable>
         void queryForEntityImpl(EntityId entityId, const IterationContext& context, Callable&& callable)
         {
+            ASSERT_IS_CREATION_THREAD;
             ASSERT(entityId);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
@@ -361,6 +384,7 @@ namespace RR::Ecs
 
     private:
         bool systemsOrderDirty = false;
+        std::thread::id creationThreadID;
         EntityStorage entityStorage;
         EventStorage eventStorage;
         ComponentStorage componentStorage;
