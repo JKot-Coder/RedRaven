@@ -14,12 +14,14 @@ namespace RR::Ecs
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
     using ComponentsSet = FixedVectorSet<ComponentId, 32>;
 
-    struct SortedComponentsView // TODO eastl::span?
+    template <bool Sorted>
+    struct ComponentsView // TODO eastl::span?
     {
         using Iterator = const ComponentId*;
+        using IsSorted = std::integral_constant<bool, Sorted>;
         template <typename T>
-        constexpr SortedComponentsView(const T& containter) : begin_(containter.begin()), end_(containter.end()) { }
-        constexpr SortedComponentsView(Iterator begin, Iterator end) : begin_(begin), end_(end) { }
+        constexpr ComponentsView(const T& containter) : begin_(containter.begin()), end_(containter.end()) { }
+        constexpr ComponentsView(Iterator begin, Iterator end) : begin_(begin), end_(end) { }
 
         constexpr Iterator begin() const { return begin_; }
         constexpr Iterator end() const { return end_; }
@@ -28,6 +30,9 @@ namespace RR::Ecs
         Iterator begin_;
         Iterator end_;
     };
+
+    using UnsortedComponentsView = ComponentsView<false>;
+    using SortedComponentsView = ComponentsView<true>;
 
     namespace details
     {
