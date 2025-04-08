@@ -367,6 +367,16 @@ namespace RR::Ecs
         size_t GetChunkSize() const { return componentsData.chunkSize; }
         size_t GetEntitySize() const { return componentsData.entitySize; }
 
+        template <typename Component, typename... Args>
+        void ConstructComponent(ArchetypeEntityIndex index, ArchetypeComponentIndex componentIndex, Args&&... args)
+        {
+            if constexpr (IsTag<Component>)
+                return;
+
+            auto* ptr = GetComponentData(componentIndex, index);
+            new (ptr) Component { std::forward<Args>(args)... };
+        }
+
     private:
         ComponentsData componentsData;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;

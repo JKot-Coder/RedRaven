@@ -186,8 +186,7 @@ namespace RR::Ecs
                     (
                         constructComponent<typename Components::template Get<Index>>(
                             archetype, index,
-                            eastl::move(std::get<Index>(args)),
-eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
+                            eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args))),
                         ...);
                 });
             }
@@ -197,16 +196,19 @@ eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Inde
         Archetype& createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components);
         Archetype& getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components);
 
-        template <typename Component, typename ArgsTuple, size_t... Index>
-        void constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        template <typename Component, typename ArgsTuple>
+        void constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args)
         {
             if constexpr (IsTag<Component>)
                 return;
 
-            // TODO this could be reused from mutate.
-            const auto componentIndex = archetype.GetComponentIndex<Component>();
-            auto* ptr = archetype.GetComponentData(componentIndex, index);
-            new (ptr) Component {eastl::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
+            std::apply(
+                [&archetype, index](auto&&... unpackedArgs) {
+                    // TODO this could be reused from mutate.
+                    const auto componentIndex = archetype.GetComponentIndex(GetComponentId<Component>);
+                    archetype.ConstructComponent<Component>(index, componentIndex, eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+                },
+                eastl::forward<ArgsTuple>(args));
         }
 
         template <typename Callable>
