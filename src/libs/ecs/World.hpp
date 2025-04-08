@@ -174,10 +174,23 @@ namespace RR::Ecs
         void initCache(QueryId id);
         void initCache(Archetype& archetype);
 
-        template <typename Components, typename ArgsTuple>
-        EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args)
+        template <typename Components, typename ArgsTuple, size_t... Index>
+        EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
-            return commitImpl<Components>(entity, removeComponents, eastl::forward<ArgsTuple>(args), eastl::make_index_sequence<Components::Count>());
+            if(true)
+            {
+                eastl::array<ComponentId, Components::Count> components = {GetComponentId<typename Components::template Get<Index>>...};
+                (RegisterComponent<typename Components::template Get<Index>>(), ...);
+
+                return mutateEntity(entity, removeComponents, UnsortedComponentsView(components), [&](Archetype& archetype, ArchetypeEntityIndex index) {
+                    (
+                        constructComponent<typename Components::template Get<Index>>(
+                            archetype, index,
+                            eastl::move(std::get<Index>(args)),
+eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
+                        ...);
+                });
+            }
         }
 
         // Private, do not use this directly.
@@ -196,8 +209,8 @@ namespace RR::Ecs
             new (ptr) Component {eastl::forward<decltype(std::get<Index>(args))>(std::get<Index>(args))...};
         }
 
-        template <typename Components, typename ArgsTuple, size_t... Index>
-        EntityId commitImpl(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        template <typename Callable>
+        EntityId mutateEntity(EntityId entityId, SortedComponentsView removeComponents, UnsortedComponentsView addedComponents, Callable&& constructComponents)
         {
             ASSERT_IS_CREATION_THREAD;
             ComponentsSet components;
@@ -225,7 +238,7 @@ namespace RR::Ecs
                 ASSERT(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0);
 
             ComponentsSet added;
-            (RegisterComponent<typename Components::template Get<Index>>(), ...);
+
             auto addComponent = [&components](ComponentId id) -> int {
                 bool added = components.insert(id).second;
                 UNUSED(added);
@@ -236,7 +249,8 @@ namespace RR::Ecs
             if (!entityId)
                 components.push_back_unsorted(GetComponentId<EntityId>);
 
-            (addComponent(GetComponentId<typename Components::template Get<Index>>), ...);
+            for (auto component : addedComponents)
+                addComponent(component);
 
             ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
             Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
@@ -255,14 +269,7 @@ namespace RR::Ecs
                 index = to.Insert(entityStorage);
                 entityId = to.GetEntityIdData(index);
             }
-
-            // Component data initialization
-            (
-                constructComponent<typename Components::template Get<Index>>(
-                    to, index,
-                    eastl::move(std::get<Index>(args)),
-                    eastl::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(std::get<Index>(args))>>>()),
-                ...);
+            constructComponents(to, index);
 
             handleAppearEvent(entityId, from, to);
 

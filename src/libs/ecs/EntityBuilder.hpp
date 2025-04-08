@@ -34,7 +34,7 @@ namespace RR::Ecs
         Entity Apply()
         {
             eastl::quick_sort(remove_.begin(), remove_.end());
-            return Entity(world_, world_.commit<TypeList<>>(entity_, {remove_.begin(), remove_.end()}, std::make_tuple()));
+            return Entity(world_, world_.commit<TypeList<>>(entity_, {remove_.begin(), remove_.end()}, std::make_tuple(), eastl::make_index_sequence<0>()));
         }
 
     private:
@@ -72,7 +72,7 @@ namespace RR::Ecs
         Entity Apply()
         {
             eastl::quick_sort(remove_.begin(), remove_.end());
-            return Entity(world_, world_.commit<ComponentList>(entity_, {remove_.begin(), remove_.end()}, eastl::move(args_)));
+            return Entity(world_, world_.commit<ComponentList>(entity_, {remove_.begin(), remove_.end()}, eastl::move(args_), eastl::make_index_sequence<ComponentList::Count>()));
         };
 
     private:

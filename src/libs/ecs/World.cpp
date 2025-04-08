@@ -186,7 +186,7 @@ namespace RR::Ecs
     Ecs::Entity World::EmptyEntity()
     {
         ASSERT_IS_CREATION_THREAD;
-        EntityId entityId = commit<TypeList<>>({}, SortedComponentsView {nullptr, nullptr}, std::make_tuple());
+        EntityId entityId = commit<TypeList<>>({}, {nullptr, nullptr}, std::make_tuple(), eastl::make_index_sequence<0>());
         return Ecs::Entity(*this, entityId);
     }
 
