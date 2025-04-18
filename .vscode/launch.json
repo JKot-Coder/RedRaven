@@ -1,0 +1,38 @@
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cmake Editor",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "console": "internalConsole",
+            "program": "${workspaceFolder}/bin/editor.exe",
+            "args": [],
+            "preLaunchTask": "CMake: build Editor",
+            "cwd": "${workspaceFolder}/bin",
+        },
+        {
+            "name": "ECS tests",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "console": "internalConsole",
+            "program": "${workspaceFolder}/bin/ecs_tests.exe",
+            "args": [],
+            "preLaunchTask": "CMake: build ECS tests",
+            "cwd": "${workspaceFolder}/bin",
+            "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
+        },
+        {
+            "name": "ECS benchmark",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "console": "internalConsole",
+            "program": "${workspaceFolder}/bin/ecs_benchmark.exe",
+            "args": [""],
+            "preLaunchTask": "CMake: build ECS benchmark",
+            "cwd": "${workspaceFolder}/bin",
+            "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
+        }
+    ]
+}
