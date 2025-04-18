@@ -65,6 +65,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 add_compile_definitions( $<$<CONFIG:Debug>:DEBUG> )
 add_compile_definitions( $<$<CONFIG:Release>:RELEASE> )
 add_compile_definitions( $<$<CONFIG:RelWithDebInfo>:RELEASE_WITH_DEBUG_INFO> )
+string(REPLACE "-DNDEBUG" ""
+       CMAKE_CXX_FLAGS_RELWITHDEBINFO
+       "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+
+string(REPLACE "-DNDEBUG" ""
+       CMAKE_C_FLAGS_RELWITHDEBINFO
+       "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+#set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
 
 set(PLATFORM_DEFINITIONS)
 
@@ -83,13 +91,13 @@ endif ()
 add_definitions(${PLATFORM_DEFINITIONS})
 
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-  if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-    set(COMPILE_SANITIZE_FLAGS "-fsanitize=address" "-fno-omit-frame-pointer")
-    set(LINK_SANITIZE_FLAGS "-fsanitize=address" "-shared-libasan")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-  else()
-    set(COMPILE_SANITIZE_FLAGS "-fsanitize=address" "-fno-omit-frame-pointer")
-  endif()
+ # if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
+ #   set(COMPILE_SANITIZE_FLAGS "-fsanitize=address" "-fno-omit-frame-pointer")
+ #   set(LINK_SANITIZE_FLAGS "-fsanitize=address" "-shared-libasan")
+ #   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+ # else()
+ #   set(COMPILE_SANITIZE_FLAGS "-fsanitize=address" "-fno-omit-frame-pointer")
+ # endif()
 endif()
 
 add_compile_options(${COMPILE_SANITIZE_FLAGS})
@@ -109,6 +117,7 @@ add_subdirectory(src/dependencies/nanobench)
 #add_subdirectory(src/dependencies/imgui)
 
 find_package(imgui CONFIG REQUIRED)
+find_package(absl CONFIG REQUIRED)
 
 #=================================== Catch2 ==================================#
 # FetchContent_Declare(

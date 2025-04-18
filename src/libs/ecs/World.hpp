@@ -157,6 +157,7 @@ namespace RR::Ecs
         friend struct Query;
         friend struct QueryBuilder;
         friend struct SystemBuilder;
+        friend struct CommmandProcessors;
 
         Ecs::System createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name);
         Ecs::Query createQuery(Ecs::View&& view);
@@ -387,8 +388,15 @@ namespace RR::Ecs
 
         void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to);
         void handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to);
+        // Dispatch event to systems, that are subscribed to this event.
+        // Systems would be queried for all matched entities.
         void broadcastEventImmediately(const Ecs::Event& event) const;
+        // Dispatch event to specific system.
+        // System would be queried for specific entity.
+        // TODO not correct description.
         void dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const;
+        // Dispatch event to systems, that are subscribed to this event.
+        // Systems would be queried for specific entity.
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
     private:

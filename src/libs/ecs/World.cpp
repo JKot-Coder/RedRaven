@@ -1,4 +1,3 @@
-#include "common/pch/pch.hpp"
 #include "World.hpp"
 #include "ecs/ComponentTraits.hpp"
 #include "ecs/EntityBuilder.hpp"

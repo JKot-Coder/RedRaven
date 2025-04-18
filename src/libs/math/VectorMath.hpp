@@ -186,7 +186,7 @@ namespace RR
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
-    struct Vector<3, T>
+    struct alignas(4 * sizeof(T)) Vector<3, T>
     {
         static inline constexpr size_t SIZE = 3;
         using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;
@@ -401,7 +401,7 @@ namespace RR
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
-    struct Vector<4, T>
+    struct alignas(4 * sizeof(T)) Vector<4, T>
     {
         static inline constexpr size_t SIZE = 4;
         using FloatFormat = typename std::conditional<std::is_same<T, double>::value, double, float>::type;

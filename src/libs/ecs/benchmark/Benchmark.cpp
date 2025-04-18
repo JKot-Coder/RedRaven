@@ -633,3 +633,68 @@ TEST_CASE("Update entities", "[Entity]")
         }
     }
 }
+
+/*
+TEST_CASE("hashmap", "[Entity]")
+{
+    ankerl::nanobench::Bench bench;
+    bench.title("hasmap")
+        .warmup(1000)
+        .relative(true)
+        .performanceCounters(true);
+
+    for (auto batchSize :
+         {1U, 8U, 16U, 128U, 1024U, 100000U}) {
+
+        const uint32_t numEntities = 10000;
+
+        bench.complexityN(batchSize);
+        bench.batch(batchSize);
+        bench.minEpochTime(std::chrono::milliseconds(20));
+       // bench.epochIterations(std::max(10000 - int(batchSize), 1));
+        bench.epochs(100);
+        bench.relative(true);
+
+        {
+            bench.run("Ska", [&](ankerl::nanobench::Meter meter) {
+                ska::flat_hash_map<uint64_t, uint64_t> map;
+                eastl::vector<uint64_t> keys;
+
+                std::random_device dev;
+                ankerl::nanobench::Rng rng(dev());
+                for (uint32_t i = 0; i < numEntities; i++)
+                {
+                    keys.push_back(rng());
+                    map[keys.back()] = rng();
+                }
+
+                return meter.measure([&map, &rng, &keys, batchSize]() {
+                    for (uint32_t i = 0; i < batchSize; i++)
+                        map[keys[rng.bounded(numEntities - 1)]] = rng();
+                });
+                ankerl::nanobench::doNotOptimizeAway(&map);
+            });
+        }
+
+        {
+            bench.run("Absl", [&](ankerl::nanobench::Meter meter) {
+                absl::flat_hash_map<uint64_t, uint64_t> map;
+                eastl::vector<uint64_t> keys;
+
+                std::random_device dev;
+                ankerl::nanobench::Rng rng(dev());
+                for (uint32_t i = 0; i < numEntities; i++)
+                {
+                    keys.push_back(rng());
+                    map[keys.back()] = rng();
+                }
+
+                return meter.measure([&map, &rng, &keys, batchSize]() {
+                    for (uint32_t i = 0; i < batchSize; i++)
+                        map[keys[rng.bounded(numEntities - 1)]] = rng();
+                });
+                ankerl::nanobench::doNotOptimizeAway(&map);
+            });
+        }
+    }
+}*/

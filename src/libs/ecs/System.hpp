@@ -1,4 +1,22 @@
 #pragma once
+/*
+#include "ecs/Hash.hpp"
+//
+#include "ecs/Archetype.hpp"
+#include "ecs/EntityId.hpp"
+#include "ecs/ForwardDeclarations.hpp"
+#include "ecs/TypeTraits.hpp"
+
+#include "EASTL/atomic.h"
+
+#include "EASTL/unordered_map.h"
+
+#include "ecs/Query.hpp"
+
+#include <common/threading/Mutex.hpp>
+#include <string_view>
+
+*/
 #include "ecs/ForwardDeclarations.hpp"
 #include "EASTL/fixed_function.h"
 #include "ecs/Event.hpp"
@@ -35,4 +53,33 @@ namespace RR::Ecs
         World* world; // TODO We don't use it for now.
         SystemId id;
     };
+
+    /*
+        class SystemStorage
+        {
+        public:
+            SystemStorage() { };
+
+
+            void Push(const SystemDescription& systemDescription)
+            {
+                HashType hash = systemDescription.hashName;
+
+                if (descriptions.find(hash) != descriptions.end())
+                {
+                    LOG_ERROR("System: {} already registered!", systemDescription.hashName.string.c_str());
+                    return;
+                }
+
+                isDirty = true;
+                descriptions[hash] = systemDescription;
+            }
+
+            void RegisterDeffered();
+
+        private:
+            eastl::atomic<bool> isDirty;
+            eastl::unordered_map<HashType, SystemDescription> descriptions;
+            std::vector<SystemDescription*> systems;
+        };*/
 }

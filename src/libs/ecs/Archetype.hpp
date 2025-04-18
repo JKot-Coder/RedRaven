@@ -377,6 +377,12 @@ namespace RR::Ecs
             new (ptr) Component { std::forward<Args>(args)... };
         }
 
+        void MoveComponentFrom(ArchetypeEntityIndex index, ArchetypeComponentIndex componentIndex, void* src)
+        {
+            auto* dst = GetComponentData(componentIndex, index);
+            GetComponentInfo(componentIndex).move(dst, src);
+        }
+
     private:
         ComponentsData componentsData;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;

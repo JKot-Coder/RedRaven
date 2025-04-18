@@ -23,6 +23,7 @@ Checks: '*,
 -google-readability-todo,
 -google-readability-braces-around-statements,
 -cppcoreguidelines-pro-type-union-access,
+-cppcoreguidelines-pro-type-static-cast-downcast, # RTTI disabled, no dynamic_cast
 -cppcoreguidelines-missing-std-forward, # False-positive with east::forward
 -bugprone-easily-swappable-parameters'
 WarningsAsErrors: ''

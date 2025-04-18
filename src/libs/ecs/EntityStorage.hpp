@@ -6,7 +6,7 @@
 
 namespace RR::Ecs
 {
-    enum class EntityState
+    enum class EntityState : uint8_t
     {
         Dead,
         Alive,

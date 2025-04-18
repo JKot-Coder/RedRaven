@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #endif
 
-#if DEBUG
+#if DEBUG || RELEASE_WITH_DEBUG_INFO
 #define ENABLE_ASSERTS 1
 #endif
 
