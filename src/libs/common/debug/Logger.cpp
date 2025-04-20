@@ -1,5 +1,6 @@
 #include "Logger.hpp"
 
+#include <clocale>
 #include "common/debug/DebugStream.hpp"
 #include "common/StringEncoding.hpp"
 
