@@ -35,7 +35,7 @@ namespace RR::Ecs
                 auto* data_ptr = reinterpret_cast<std::byte*>(&command);
                 data_ptr += sizeof(MutateEntityCommand);
 
-                for (auto _ : command.addedComponents)
+                for ([[maybe_unused]] auto _ : command.addedComponents)
                 {
                     using ComponentDataHeader = MutateEntityCommand::ComponentDataHeader;
                     const auto& componentData = *reinterpret_cast<ComponentDataHeader*>(data_ptr);
