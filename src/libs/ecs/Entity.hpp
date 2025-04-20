@@ -4,6 +4,8 @@
 #include "ecs/EntityId.hpp"
 #include "ecs/ComponentTraits.hpp"
 
+#include <EASTL/sort.h>
+
 namespace RR::Ecs
 {
     template <typename ComponentList, typename ArgsTuple>
@@ -26,7 +28,7 @@ namespace RR::Ecs
         [[nodiscard]] bool Has() const
         {
             eastl::array<ComponentId, sizeof...(Components)> components = {GetComponentId<Components>...};
-            eastl::quick_sort(components.begin(), components.end());
+            eastl::sort(components.begin(), components.end());
             return Has(SortedComponentsView(components));
         }
 

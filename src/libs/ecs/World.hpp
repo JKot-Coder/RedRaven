@@ -17,6 +17,8 @@
 
 #include "absl/container/flat_hash_map.h" // IWYU pragma: export
 
+#include <thread>
+
 #ifdef ENABLE_ASSERTS
 #define ASSERT_IS_CREATION_THREAD ASSERT(creationThreadID == std::this_thread::get_id())
 #else

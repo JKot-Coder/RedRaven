@@ -2,6 +2,7 @@
 
 #include "EASTL/algorithm.h"
 #include "ecs/Archetype.hpp"
+#include <ecs/FunctionTraits.hpp>
 #include <immintrin.h>
 
 namespace RR::Ecs
@@ -38,7 +39,7 @@ namespace RR::Ecs
             ASSERT(eastl::is_pointer_v<Arg> || data);
         }
 
-        void Prefetch(const Archetype& archetype, size_t chunkIndex)
+        void Prefetch(size_t chunkIndex)
         {
             if (!(std::is_pointer_v<Arg>) || data)
                 _mm_prefetch(reinterpret_cast<const char*>(*(componentDataArray + chunkIndex)), _MM_HINT_T0);

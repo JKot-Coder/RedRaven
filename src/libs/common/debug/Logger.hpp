@@ -3,6 +3,8 @@
 #include <cassert>
 #include <tuple>
 #include <string>
+#include <fmt/core.h>
+#include <fmt/printf.h>
 
 namespace RR
 {
@@ -69,7 +71,7 @@ namespace RR
                     template <typename S, typename... Args>
                     inline void Info(const S& format, Args&&... args)
                     {
-                        Logger::Log(Logger::Level::Info, fmt::sprintf(format, args...));
+                        Logger::Log(Logger::Level::Info, fmt::format(format, args...));
                     }
 
                     template <typename S, typename... Args>
