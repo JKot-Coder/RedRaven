@@ -9,6 +9,9 @@ namespace RR::Ecs
 {
     using EventId = Index<struct EventIdTag, HashType>;
 
+    template <typename T>
+    inline constexpr EventId GetEventId = EventId(GetComponentId<T>.GetRaw());
+
     struct Event
     {
         using SizeType = uint16_t;
@@ -21,7 +24,7 @@ namespace RR::Ecs
         bool Is() const
         {
             static_assert(eastl::is_base_of_v<Event, T>, "T should be derived from Event");
-            return eastl::is_same_v<T, Event> ||  GetEventId<T> == id;
+            return eastl::is_same_v<T, Event> || GetEventId<T> == id;
         }
 
         template <typename T>
@@ -94,9 +97,6 @@ namespace RR::Ecs
         Common::ChunkAllocator allocator;
         eastl::vector<eastl::pair<EntityId, Event*>> events;
     };
-
-    template <typename T>
-    inline constexpr EventId GetEventId = EventId(GetComponentId<T>.GetRaw());
 
     struct OnAppear : Event
     {
