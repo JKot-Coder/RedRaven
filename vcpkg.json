@@ -8,7 +8,8 @@
       "name": "imgui",
       "features": [
         "docking-experimental",
-        "dx12-binding"
+        {"name": "dx12-binding", "platform": "windows"},
+        {"name": "metal-binding", "platform": "osx"}
       ]
     },
     {
