@@ -619,7 +619,9 @@ TEST_CASE("Update entities", "[Entity]")
                         PositionComponent* __restrict positions = reinterpret_cast<PositionComponent*>(chunks[i] + offsets[1]);
                         VelocityComponent*  __restrict velocities = reinterpret_cast<VelocityComponent*>(chunks[i] + offsets[2]);
 
-                        _mm_prefetch(reinterpret_cast<const char*>(*chunks[i+ 1]), _MM_HINT_T0);
+#if defined(__i386__) || defined(__x86_64__)
+                        _mm_prefetch(reinterpret_cast<const char*>(*chunks[i + 1]), _MM_HINT_T0);
+#endif
                         for (size_t j = 0; j < chunkCapacity && index < batchSize; j++, index++)
                         {
                             auto& __restrict position = *(positions++);

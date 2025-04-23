@@ -3,7 +3,9 @@
 #include "EASTL/algorithm.h"
 #include "ecs/Archetype.hpp"
 #include <ecs/FunctionTraits.hpp>
+#if defined(__i386__) || defined(__x86_64__)
 #include <immintrin.h>
+#endif
 
 namespace RR::Ecs
 {
@@ -32,7 +34,7 @@ namespace RR::Ecs
             }
         }
 
-        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex)
+        void SetChunkIndex([[maybe_unused]] const Archetype& archetype, size_t chunkIndex)
         {
             ASSERT(chunkIndex < archetype.GetChunksCount());
             data = (!eastl::is_pointer_v<Arg> || componentDataArray) ? *(componentDataArray + chunkIndex) : nullptr;
@@ -41,8 +43,12 @@ namespace RR::Ecs
 
         void Prefetch(size_t chunkIndex)
         {
+            UNUSED(chunkIndex);
+
+#if defined(__i386__) || defined(__x86_64__)
             if (!(std::is_pointer_v<Arg>) || data)
                 _mm_prefetch(reinterpret_cast<const char*>(*(componentDataArray + chunkIndex)), _MM_HINT_T0);
+#endif
         }
 
         Component* Get(size_t entityIndex)
@@ -62,7 +68,7 @@ namespace RR::Ecs
         using Component = GetComponentType<Arg>;
 
         ComponentAccessor(const Archetype&, const IterationContext& context) : world(context.world) { };
-        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
+        void SetChunkIndex([[maybe_unused]] const Archetype& archetype,[[maybe_unused]] size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
         World* Get(size_t) { return &world; }
 
     private:
@@ -78,7 +84,7 @@ namespace RR::Ecs
         ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) {
             static_assert(eastl::is_pointer_v<Argument> || eastl::is_reference_v<Argument>, "Event component should be accessed as pointer or reference");
         };
-        void SetChunkIndex(const Archetype& archetype, size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
+        void SetChunkIndex([[maybe_unused]] const Archetype& archetype, [[maybe_unused]] size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
 
         const Component* Get(size_t)
         {
