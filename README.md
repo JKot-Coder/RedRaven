@@ -6,17 +6,17 @@ Simpe graphics demo
 #### Install VS Code:
 1. **Install Extensions:**
     ```sh
-    code --install-extension josetr.cmake-language-support-vscode
     code --install-extension ms-vscode.cmake-tools
     code --install-extension ms-vscode.cpptools
-    code --install-extension ms-vscode.cpptools-extension-pack
-    code --install-extension shardulm94.trailing-spaces
     ```
 2. **Optional Extensions:**
     ```sh
     code --install-extension ms-vscode.cpptools-themes
     code --install-extension jbockle.jbockle-format-files
     code --install-extension jeff-hykin.better-cpp-syntax
+    code --install-extension shardulm94.trailing-spaces
+    code --install-extension josetr.cmake-language-support-vscode
+    code --install-extension ms-vscode.cpptools-extension-pack
     ```
 
 #### Install Development Tools:
