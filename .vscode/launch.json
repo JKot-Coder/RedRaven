@@ -11,6 +11,7 @@
             "args": [],
             "preLaunchTask": "CMake: build Editor",
             "cwd": "${workspaceFolder}/bin",
+            "osx": {"type": "cppdbg", "MIMode": "lldb", "program": "${workspaceFolder}/bin/editor"},
         },
         {
             "name": "ECS tests",
@@ -22,6 +23,7 @@
             "preLaunchTask": "CMake: build ECS tests",
             "cwd": "${workspaceFolder}/bin",
             "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
+            "osx": {"type": "cppdbg", "MIMode": "lldb", "program": "${workspaceFolder}/bin/ecs_tests"},
         },
         {
             "name": "ECS benchmark",
@@ -33,6 +35,7 @@
             "preLaunchTask": "CMake: build ECS benchmark",
             "cwd": "${workspaceFolder}/bin",
             "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
+            "osx": {"type": "cppdbg", "MIMode": "lldb","program": "${workspaceFolder}/bin/ecs_benchmark"},
         }
     ]
 }
