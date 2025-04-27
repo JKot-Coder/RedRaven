@@ -32,6 +32,13 @@ namespace RR::Ecs
     private:
         using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>;
 
+        struct LockGuard
+        {
+            LockGuard(World* world) : world(world) { world->lock(); }
+            ~LockGuard() { world->unlock(); }
+            World* world;
+        };
+
     public:
         [[nodiscard]] Ecs::SystemBuilder System();
         [[nodiscard]] Ecs::SystemBuilder System(const HashName& name);
@@ -160,6 +167,7 @@ namespace RR::Ecs
         friend struct QueryBuilder;
         friend struct SystemBuilder;
         friend struct CommmandProcessors;
+        friend struct LockGuard;
 
         Ecs::System createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name);
         Ecs::Query createQuery(Ecs::View&& view);
@@ -290,6 +298,7 @@ namespace RR::Ecs
             ASSERT_IS_CREATION_THREAD;
             IterationContext context {*this, event};
 
+            LockGuard lg(this);
             // Todo check all args in callable persist in requireComps with std::includes
             for (auto archetype : span)
                 ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
@@ -313,6 +322,8 @@ namespace RR::Ecs
         void query(const Ecs::View& view, Callable&& callable)
         {
             ASSERT_IS_CREATION_THREAD;
+            LockGuard lg(this);
+
             // Todo check all args in callable persist in requireComps with std::includes
             IterationContext context {*this, nullptr};
 
@@ -346,6 +357,8 @@ namespace RR::Ecs
         {
             ASSERT_IS_CREATION_THREAD;
             ASSERT(entityId);
+
+            LockGuard lg(this);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
 
@@ -373,6 +386,8 @@ namespace RR::Ecs
         {
             ASSERT_IS_CREATION_THREAD;
             ASSERT(entityId);
+
+            LockGuard lg(this);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
 
@@ -401,8 +416,22 @@ namespace RR::Ecs
         // Systems would be queried for specific entity.
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
+        [[nodiscard]] bool isLocked() const noexcept { return lockCounter > 0u; }
+        void lock() noexcept { ++lockCounter; }
+        void unlock() noexcept
+        {
+            if (lockCounter > 0u)
+                --lockCounter;
+            if (lockCounter == 0u)
+                onUnlock();
+        }
+
+        void onUnlock() {
+        }
+
     private:
         bool systemsOrderDirty = false;
+        uint32_t lockCounter{0u};
         std::thread::id creationThreadID;
         EntityStorage entityStorage;
         EventStorage eventStorage;
