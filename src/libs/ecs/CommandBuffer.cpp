@@ -5,61 +5,38 @@
 
 namespace RR::Ecs
 {
-    enum class CommandType : uint8_t
-    {
-        MutateEntity,
-        DestroyEntity,
-        AddComponent,
-        RemoveComponent,
-    };
-
-    struct MutateEntityCommand : Command
-    {
-        EntityId entityId;
-        ComponentsSet removeComponents;
-        ComponentsSet addedComponents;
-
-        struct ComponentDataHeader
-        {
-            uint16_t alignment;
-            uint16_t componentArchetypeIndex;
-        };
-    };
-
     struct CommmandProcessors
     {
         static void process(MutateEntityCommand& command, World& world)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
-           /* world.mutateEntity(command.entityId, command.removeComponents, command.addedComponents, [&](Archetype& archetype, ArchetypeEntityIndex index) {
-                auto* data_ptr = reinterpret_cast<std::byte*>(&command);
-                data_ptr += sizeof(MutateEntityCommand);
+            Archetype* archetype = nullptr;
+            ArchetypeEntityIndex index = {};
+            UNUSED(world.ResolveEntityArhetype(command.entityId, archetype, index));
 
-                for ([[maybe_unused]] auto _ : command.addedComponents)
+            world.mutateEntity(command.entityId, archetype, index, command.removedComponents, command.addedComponents, [&](Archetype& archetype, ArchetypeEntityIndex entityIndex) {
+                ASSERT(command.addedComponents.size() == command.components.size());
+
+                auto component = command.addedComponents.begin();
+                for (void* componentPtr : command.components)
                 {
-                    using ComponentDataHeader = MutateEntityCommand::ComponentDataHeader;
-                    const auto& componentData = *reinterpret_cast<ComponentDataHeader*>(data_ptr);
-                    const ArchetypeComponentIndex componentIndex = ArchetypeComponentIndex(componentData.componentArchetypeIndex);
-
-                    const auto& componentInfo = archetype.GetComponentInfo(componentIndex);
-                    data_ptr += sizeof(ComponentDataHeader);
-                    data_ptr += componentData.alignment;
-
-                    archetype.MoveComponentFrom(index, componentIndex, data_ptr);
-                    data_ptr += componentInfo.size;
+                    archetype.MoveComponentFrom(entityIndex, archetype.GetComponentIndex(*component), componentPtr);
+                    ++component;
                 }
-            });*/
-            UNUSED(world, command);
-            // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
+            });
+            // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         }
     };
 
     void CommandBuffer::ProcessCommands(World& world)
     {
-        #define PROCESS_COMMAND(commandType) \
-            case CommandType::commandType: \
-                CommmandProcessors::process(*static_cast<commandType##Command*>(command), world); \
-                break;
+        if (commands.empty())
+            return;
+
+#define PROCESS_COMMAND(commandType)                                                      \
+    case CommandType::commandType:                                                        \
+        CommmandProcessors::process(*static_cast<commandType##Command*>(command), world); \
+        break;
 
         for (auto command : commands)
         {
@@ -73,6 +50,11 @@ namespace RR::Ecs
                 ASSERT_MSG(false, "Unknown command type");
             }
         }
+
+        #undef PROCESS_COMMAND
+
+        allocator.reset();
+        commands.clear();
     }
 }
 

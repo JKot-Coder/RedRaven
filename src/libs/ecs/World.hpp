@@ -4,6 +4,7 @@
 
 #include "ecs/Archetype.hpp"
 #include "ecs/ComponentStorage.hpp"
+#include "ecs/CommandBuffer.hpp"
 #include "ecs/ComponentTraits.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
@@ -186,7 +187,7 @@ namespace RR::Ecs
         void initCache(Archetype& archetype);
 
         template <typename Components, typename ArgsTuple, size_t... Index>
-        EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq)
         {
             Archetype* from = nullptr;
             ArchetypeEntityIndex fromIndex;
@@ -208,7 +209,7 @@ namespace RR::Ecs
             eastl::array<ComponentId, Components::Count> addedComponents = {GetComponentId<typename Components::template Get<Index>>...};
             (RegisterComponent<typename Components::template Get<Index>>(), ...);
 
-            if (true)
+            if (!isLocked())
             {
                 mutateEntity(entityId, from, fromIndex, removeComponents, UnsortedComponentsView(addedComponents), [&](Archetype& archetype, ArchetypeEntityIndex index) {
                     (
@@ -217,7 +218,8 @@ namespace RR::Ecs
                             eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args))),
                         ...);
                 });
-            }
+            } else
+                commandBuffer.Commit<Components>(entityId, removeComponents, UnsortedComponentsView(addedComponents), eastl::forward<ArgsTuple>(args), indexSeq);
 
             ASSERT(entityId);
             return entityId;
@@ -432,7 +434,9 @@ namespace RR::Ecs
                 onUnlock();
         }
 
-        void onUnlock() {
+        void onUnlock()
+        {
+            commandBuffer.ProcessCommands(*this);
         }
 
     private:
@@ -442,6 +446,7 @@ namespace RR::Ecs
         EntityStorage entityStorage;
         EventStorage eventStorage;
         ComponentStorage componentStorage;
+        CommandBuffer commandBuffer;
         Ecs::View queriesView;
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
