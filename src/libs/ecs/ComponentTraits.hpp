@@ -12,7 +12,8 @@ namespace RR::Ecs
     using ComponentId = Index<struct ComponentIdTag, HashType>;
     template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
-    using ComponentsSet = FixedVectorSet<ComponentId, 32>;
+    constexpr size_t PreallocatedComponentsCount = 32;
+    using ComponentsSet = FixedVectorSet<ComponentId, PreallocatedComponentsCount>;
 
     template <bool Sorted>
     struct ComponentsView // TODO eastl::span?
@@ -21,10 +22,12 @@ namespace RR::Ecs
         using IsSorted = std::integral_constant<bool, Sorted>;
         template <typename T>
         constexpr ComponentsView(const T& containter) : begin_(containter.begin()), end_(containter.end()) { }
+        constexpr ComponentsView(Iterator begin, size_t count) : begin_(begin), end_(begin + count) { }
         constexpr ComponentsView(Iterator begin, Iterator end) : begin_(begin), end_(end) { }
 
         constexpr Iterator begin() const { return begin_; }
         constexpr Iterator end() const { return end_; }
+        constexpr size_t size() const { return eastl::distance(begin_, end_); }
 
     private:
         Iterator begin_;
