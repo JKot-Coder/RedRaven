@@ -39,7 +39,7 @@ namespace RR::Ecs
         template <typename C, typename A>
         friend struct EntityBuilder;
 
-        Entity(World& world, EntityId id) : world(&world), id(id) { }
+        Entity(World& world, EntityId id) : world(&world), id(id) { ASSERT(id); }
 
     private:
         World* world;
