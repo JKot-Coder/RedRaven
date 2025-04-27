@@ -71,9 +71,8 @@ namespace
 
 namespace RR::Ecs
 {
-    World::World() : queriesView(*this), systemsView(*this)
+    World::World() : creationThreadID(std::this_thread::get_id()), queriesView(*this), systemsView(*this)
     {
-        creationThreadID = std::this_thread::get_id();
         RegisterComponent<EntityId>();
         RegisterComponent<Ecs::View>();
         RegisterComponent<MatchedArchetypeCache>();
