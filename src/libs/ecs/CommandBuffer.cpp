@@ -31,7 +31,7 @@ namespace RR::Ecs
         static void process(MutateEntityCommand& command, World& world)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
-            world.mutateEntity(command.entityId, command.removeComponents, command.addedComponents, [&](Archetype& archetype, ArchetypeEntityIndex index) {
+           /* world.mutateEntity(command.entityId, command.removeComponents, command.addedComponents, [&](Archetype& archetype, ArchetypeEntityIndex index) {
                 auto* data_ptr = reinterpret_cast<std::byte*>(&command);
                 data_ptr += sizeof(MutateEntityCommand);
 
@@ -48,7 +48,8 @@ namespace RR::Ecs
                     archetype.MoveComponentFrom(index, componentIndex, data_ptr);
                     data_ptr += componentInfo.size;
                 }
-            });
+            });*/
+            UNUSED(world, command);
             // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
         }
     };
