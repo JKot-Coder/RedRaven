@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.2.2)
+cmake_minimum_required (VERSION 3.10)
 project(STB)
 
 add_library(STB STATIC ${PROJECT_SOURCE_DIR}/stb_image.h ${PROJECT_SOURCE_DIR}/stb_image.c)
