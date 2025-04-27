@@ -19,11 +19,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ms-extensions
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-  add_compile_options(-fms-extensions)
+ add_compile_options(-fms-extensions)
   add_compile_options(-fms-compatibility)
-  add_compile_options(-Wno-language-extension-token)
-  add_compile_options(-Wno-nested-anon-types)
-  add_compile_options(-Wno-unused-function)
+ add_compile_options(-Wno-language-extension-token)
+ add_compile_options(-Wno-nested-anon-types)
+ add_compile_options(-Wno-unused-function)
 endif()
 
 # Force MSVC to enable c++17
@@ -109,7 +109,6 @@ include_directories(src)
 
 add_subdirectory(src/dependencies/cr)
 add_subdirectory(src/dependencies/stb)
-add_subdirectory(src/dependencies/gulrak/filesystem)
 add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/flecs)
 add_subdirectory(src/dependencies/ska)
