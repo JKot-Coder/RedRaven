@@ -186,14 +186,31 @@ namespace RR::Ecs
         void initCache(Archetype& archetype);
 
         template <typename Components, typename ArgsTuple, size_t... Index>
-        EntityId commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+        EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
         {
-            if(true)
-            {
-                eastl::array<ComponentId, Components::Count> components = {GetComponentId<typename Components::template Get<Index>>...};
-                (RegisterComponent<typename Components::template Get<Index>>(), ...);
+            Archetype* from = nullptr;
+            ArchetypeEntityIndex fromIndex;
 
-                return mutateEntity(entity, removeComponents, UnsortedComponentsView(components), [&](Archetype& archetype, ArchetypeEntityIndex index) {
+            if (entityId)
+            {
+                if (!IsAlive(entityId))
+                    return entityId;
+
+                if (!ResolveEntityArhetype(entityId, from, fromIndex))
+                {
+                    ASSERT(false); // Impossible
+                    return entityId;
+                }
+            }
+            else
+                entityId = entityStorage.Create();
+
+            eastl::array<ComponentId, Components::Count> addedComponents = {GetComponentId<typename Components::template Get<Index>>...};
+            (RegisterComponent<typename Components::template Get<Index>>(), ...);
+
+            if (true)
+            {
+                mutateEntity(entityId, from, fromIndex, removeComponents, UnsortedComponentsView(addedComponents), [&](Archetype& archetype, ArchetypeEntityIndex index) {
                     (
                         constructComponent<typename Components::template Get<Index>>(
                             archetype, index,
@@ -201,6 +218,9 @@ namespace RR::Ecs
                         ...);
                 });
             }
+
+            ASSERT(entityId);
+            return entityId;
         }
 
         // Private, do not use this directly.
@@ -223,24 +243,16 @@ namespace RR::Ecs
         }
 
         template <typename Callable>
-        EntityId mutateEntity(EntityId entityId, SortedComponentsView removeComponents, UnsortedComponentsView addedComponents, Callable&& constructComponents)
+        void mutateEntity(EntityId entityId, Archetype* from, ArchetypeEntityIndex fromIndex, SortedComponentsView removeComponents, UnsortedComponentsView addedComponents, Callable&& constructComponents)
         {
             ASSERT_IS_CREATION_THREAD;
+            ASSERT(entityId);
+
             ComponentsSet components;
-            Archetype* from = nullptr;
-            ArchetypeEntityIndex fromIndex;
+            ComponentsSet added;
 
-            if (entityId)
+            if (from)
             {
-                if (!IsAlive(entityId))
-                    return entityId;
-
-                if (!ResolveEntityArhetype(entityId, from, fromIndex))
-                {
-                    ASSERT(false); // Impossible
-                    return entityId;
-                }
-
                 for (auto component : from->GetComponentsView())
                     components.push_back_unsorted(component); // Components already sorted
 
@@ -248,19 +260,17 @@ namespace RR::Ecs
                     components.erase(component);
             }
             else
+            {
+                components.push_back_unsorted(GetComponentId<EntityId>);
                 ASSERT(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0);
-
-            ComponentsSet added;
+            }
 
             auto addComponent = [&components](ComponentId id) -> int {
                 bool added = components.insert(id).second;
                 UNUSED(added);
-                ASSERT_MSG(added, "Only new components can be added");
+                ASSERT_MSG(added, "Can't add component {}. Only new components can be added.", id.GetRaw());
                 return 0;
             };
-
-            if (!entityId)
-                components.push_back_unsorted(GetComponentId<EntityId>);
 
             for (auto component : addedComponents)
                 addComponent(component);
@@ -269,7 +279,7 @@ namespace RR::Ecs
             Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
 
             if (from && from == &to)
-                return entityId;
+                return;
 
             ArchetypeEntityIndex index;
             if (from)
@@ -279,17 +289,13 @@ namespace RR::Ecs
             }
             else
             {
-                index = to.Insert(entityStorage);
-                entityId = to.GetEntityIdData(index);
+                index = to.Insert(entityId);
+                entityStorage.Mutate(entityId, to, index);
             }
             constructComponents(to, index);
 
             handleAppearEvent(entityId, from, to);
-
-            ASSERT(entityId);
             // TODO validate remove components and add/remove at some thime.
-
-            return entityId;
         }
 
         template <typename Callable>

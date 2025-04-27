@@ -356,7 +356,7 @@ namespace RR::Ecs
             return componentsData.componentsInfo[index.GetRaw()];
         }
 
-        ArchetypeEntityIndex Insert(EntityStorage& entityStorage);
+        ArchetypeEntityIndex Insert(EntityId entityId);
         ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
         void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
 

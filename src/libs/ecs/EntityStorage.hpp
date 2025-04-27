@@ -17,8 +17,7 @@ namespace RR::Ecs
     struct EntityRecord
     {
         EntityRecord() = default;
-        EntityRecord(Archetype& archetype, ArchetypeEntityIndex index, uint32_t generation, EntityState state)
-            : archetype(&archetype), index(index), generation(generation), state(state)
+        EntityRecord(uint32_t generation, EntityState state) : generation(generation), state(state)
         {
         }
 
@@ -33,14 +32,14 @@ namespace RR::Ecs
         eastl::vector<EntityRecord> entityRecords;
         eastl::vector<uint32_t> freeIndices;
 
-        EntityId Create(Archetype& archetype, ArchetypeEntityIndex index, EntityState state = EntityState::Alive)
+        EntityId Create(EntityState state = EntityState::AsyncCreation)
         {
             EntityId entityId;
             if (freeIndices.empty())
             {
                 entityId = EntityId(entityRecords.size(), 0);
                 uint32_t generation = entityId.fields.generation;
-                entityRecords.emplace_back(archetype, index, generation, state);
+                entityRecords.emplace_back(generation, state);
             }
             else
             {
@@ -49,7 +48,7 @@ namespace RR::Ecs
 
                 uint32_t generation = entityRecords[entityIndex].generation;
                 entityId = EntityId(entityIndex, generation);
-                entityRecords[entityIndex] = EntityRecord{archetype, index, generation, state};
+                entityRecords[entityIndex] = EntityRecord {generation, state};
             }
             return entityId;
         }
