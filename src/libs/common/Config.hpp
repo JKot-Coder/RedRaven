@@ -20,7 +20,7 @@
 #define INLINE
 #endif // ENABLE_INLINE
 
-#define UNUSED(...) (void)(sizeof(__VA_ARGS__))
+#define UNUSED(...) (void)([](auto&&... args){ (void(args), ...); }(__VA_ARGS__))
 
 #if (defined(__GNUC__) && (__GNUC__ >= 3)) || defined(__clang__)
 #define LIKELY(x) (__builtin_expect(!!(x), 1))
