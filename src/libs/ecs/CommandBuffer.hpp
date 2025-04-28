@@ -99,15 +99,6 @@ namespace RR::Ecs
             {
                 ASSERT(entity);
 
-                // TODO frame memory allocator
-/*
-                (calculateComponentOffset(
-                        IsTag<typename Components::template Get<Index>> ? 0 : sizeof(typename Components::template Get<Index>),
-                        IsTag<typename Components::template Get<Index>> ? 1 : alignof(typename Components::template Get<Index>)),
-                    ...);*/
-
-
-
                 auto& command = *allocator.allocateTyped<MutateEntityCommand>(
                     entity,
                     UnsortedComponentsView {AllocateElements(addedComponents.begin(), addedComponents.end()),
@@ -122,59 +113,9 @@ namespace RR::Ecs
                     eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args)))
                 ), ...);
 
-
                 command.components = {componentsPtrs, Components::Count};
-                UNUSED(args);
-/*
-                (constructComponent<typename Components::template Get<Index>>(
-                     commandPtr + offsets[Index], eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args))),
-                 ...);
-
-                command.offsets = std::move(offsets);
-                (command.addedComponents.push_back_unsorted(GetComponentId<typename Components::template Get<Index>>), ...);
-
-                for (const auto component : removeComponents)
-                    command.removeComponents.push_back_unsorted(component);
-*/
                 commands.push_back(&command);
             }
-
-         /*  template <typename Components, typename ArgsTuple, size_t... Index>
-            void Commit(EntityId entity, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
-            {
-                ASSERT(entity);
-
-                // TODO frame memory allocator
-                eastl::fixed_vector<uint16_t, PreallocatedComponentsCount> offsets;
-                size_t offset = sizeof(MutateEntityCommand);
-
-                auto calculateComponentOffset = [&](size_t size, size_t alignment) {
-                    AlignTo(offset, alignment);
-                    offsets.push_back(static_cast<uint16_t>(offset));
-                    offset += size;
-                };
-
-                (calculateComponentOffset(
-                        IsTag<typename Components::template Get<Index>> ? 0 : sizeof(typename Components::template Get<Index>),
-                        IsTag<typename Components::template Get<Index>> ? 1 : alignof(typename Components::template Get<Index>)),
-                    ...);
-
-                std::byte* commandPtr = static_cast<std::byte*>(allocator.allocate(offset, alignof(MutateEntityCommand)));
-                auto& command = *new (commandPtr) MutateEntityCommand();
-                command.entityId = entity;
-
-                (constructComponent<typename Components::template Get<Index>>(
-                     commandPtr + offsets[Index], eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args))),
-                 ...);
-
-                command.offsets = std::move(offsets);
-                (command.addedComponents.push_back_unsorted(GetComponentId<typename Components::template Get<Index>>), ...);
-
-                for (const auto component : removeComponents)
-                    command.removeComponents.push_back_unsorted(component);
-
-                commands.push_back(&command);
-            }*/
 
         private:
             Common::ChunkAllocator allocator;
