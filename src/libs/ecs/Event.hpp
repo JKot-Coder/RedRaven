@@ -74,7 +74,7 @@ namespace RR::Ecs
         {
             static_assert(std::is_base_of<Ecs::Event, EventType>::value, "EventType must derive from Event");
 
-            Event* ptr = allocator.allocateTyped<EventType>(eastl::forward<EventType>(event));
+            Event* ptr = allocator.create<EventType>(eastl::forward<EventType>(event));
             events.push_back({entityId, ptr});
         }
 

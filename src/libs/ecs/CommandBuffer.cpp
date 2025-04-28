@@ -7,7 +7,7 @@ namespace RR::Ecs
 {
     MutateEntityCommand& CommandBuffer::makeCommitCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
     {
-        MutateEntityCommand& command = *allocator.allocateTyped<MutateEntityCommand>(
+        MutateEntityCommand& command = *allocator.create<MutateEntityCommand>(
             entity, from, fromIndex, to);
 
         auto componentsIndices = allocate<ArchetypeComponentIndex>(addedComponents.size());

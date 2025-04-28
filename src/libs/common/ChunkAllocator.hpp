@@ -79,7 +79,7 @@ namespace RR::Common
         }
 
         template <typename T, typename... Args>
-        T* allocateTyped(Args&&... args)
+        T* create(Args&&... args)
         {
             void* memory = allocate(sizeof(T), alignof(T));
             return new (memory) T(std::forward<Args>(args)...);
