@@ -366,7 +366,6 @@ namespace RR::Ecs
             ASSERT_IS_CREATION_THREAD;
             ASSERT(entityId);
 
-            LockGuard lg(this);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
 
@@ -385,6 +384,7 @@ namespace RR::Ecs
                 return;
             }
 
+            LockGuard lg(this);
             ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
         }
 
@@ -395,7 +395,6 @@ namespace RR::Ecs
             ASSERT_IS_CREATION_THREAD;
             ASSERT(entityId);
 
-            LockGuard lg(this);
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
 
@@ -408,6 +407,7 @@ namespace RR::Ecs
                 return;
             }
 
+            LockGuard lg(this);
             ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
         }
 
