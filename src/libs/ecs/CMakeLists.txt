@@ -10,6 +10,7 @@ set( SRC
     World.cpp
     Archetype.hpp
     Archetype.cpp
+    ArchetypeEntityIndex.hpp
     CommandBuffer.hpp
     CommandBuffer.cpp
     ComponentStorage.hpp

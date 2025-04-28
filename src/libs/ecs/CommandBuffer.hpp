@@ -1,13 +1,14 @@
 #pragma once
 
+#include "ecs/ForwardDeclarations.hpp"
 #include "ecs/EntityId.hpp"
+#include "ecs/ArchetypeEntityIndex.hpp"
 #include "ecs/ComponentTraits.hpp"
 #include "common/ChunkAllocator.hpp"
 #include "EASTL/span.h"
 
 namespace RR::Ecs
 {
-    struct World;
     enum class CommandType : uint8_t;
 
     struct Command
@@ -24,17 +25,17 @@ namespace RR::Ecs
 
     struct MutateEntityCommand final : public Command
     {
-        MutateEntityCommand(EntityId entityId, UnsortedComponentsView addedComponents, SortedComponentsView removedComponents)
+        MutateEntityCommand(EntityId entityId, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to)
             : Command(CommandType::MutateEntity),
               entityId(entityId),
-              addedComponents(addedComponents),
-              removedComponents(removedComponents) { };
+              fromIndex(fromIndex),
+              from(from),
+              to(&to){ };
         EntityId entityId;
-        UnsortedComponentsView addedComponents;
-        SortedComponentsView removedComponents;
-        eastl::span<void*> components;
-
-       // eastl::fixed_vector<uint16_t, PreallocatedComponentsCount> offsets;
+        ArchetypeEntityIndex fromIndex;
+        Archetype *from, *to;
+        eastl::span<ArchetypeComponentIndex> componentsIndices;
+        eastl::span<void*> componentsData;
     };
 
     struct CommandBuffer final
@@ -43,6 +44,8 @@ namespace RR::Ecs
             static constexpr size_t InitialCommandQueueSize = 1024*1024;
 
         private:
+            MutateEntityCommand& makeCommitCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents);
+
             template <typename Component, typename ArgsTuple>
             void constructComponent(void* dst, ArgsTuple&& args)
             {
@@ -56,25 +59,16 @@ namespace RR::Ecs
                     eastl::forward<ArgsTuple>(args));
             }
 
+            template <typename T>
+            T* allocate(size_t count)
+            {
+                return static_cast<T*>(allocator.allocate(count * sizeof(T), alignof(T)));
+            }
+
         public:
             CommandBuffer() : allocator(InitialCommandQueueSize) { }
 
             void ProcessCommands(World& world);
-
-            template<typename Iterator>
-            auto* AllocateElements(Iterator begin, Iterator end) {
-                using ElemType = eastl::remove_cv_t<typename eastl::iterator_traits<Iterator>::value_type>;
-
-                size_t count = eastl::distance(begin, end);
-                size_t totalSize = count * sizeof(ElemType);
-
-                ElemType* firstElement = static_cast<ElemType*>(allocator.allocate(totalSize, alignof(ElemType)));
-                ElemType* currentElement = firstElement;
-                for (auto it = begin; it != end; ++it)
-                    new (currentElement++) ElemType(*it);
-
-                return firstElement;
-            }
 
             template <typename Component, typename ArgsTuple>
             void* constructComponent(ArgsTuple&& args)
@@ -95,25 +89,18 @@ namespace RR::Ecs
             }
 
             template <typename Components, typename ArgsTuple, size_t... Index>
-            void Commit(EntityId entity, SortedComponentsView removeComponents, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+            void Commit(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
             {
                 ASSERT(entity);
 
-                auto& command = *allocator.allocateTyped<MutateEntityCommand>(
-                    entity,
-                    UnsortedComponentsView {AllocateElements(addedComponents.begin(), addedComponents.end()),
-                                            eastl::distance(addedComponents.begin(), addedComponents.end())},
-                    SortedComponentsView {AllocateElements(removeComponents.begin(), removeComponents.end()),
-                                          eastl::distance(removeComponents.begin(), removeComponents.end())}
-                );
+                auto& command = makeCommitCommand(entity, from, fromIndex, to, addedComponents);
 
-                void** componentsPtrs = static_cast<void**>(allocator.allocate(sizeof(void*) * Components::Count, alignof(void*)));
-
+                void** componentsPtrs = allocate<void*>(Components::Count);
                 (void( *(componentsPtrs + Index) = constructComponent<typename Components::template Get<Index>>(
                     eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args)))
                 ), ...);
 
-                command.components = {componentsPtrs, Components::Count};
+                command.componentsData = {componentsPtrs, Components::Count};
                 commands.push_back(&command);
             }
 

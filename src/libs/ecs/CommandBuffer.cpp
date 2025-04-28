@@ -5,24 +5,33 @@
 
 namespace RR::Ecs
 {
+    MutateEntityCommand& CommandBuffer::makeCommitCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
+    {
+        MutateEntityCommand& command = *allocator.allocateTyped<MutateEntityCommand>(
+            entity, from, fromIndex, to);
+
+        auto componentsIndices = allocate<ArchetypeComponentIndex>(addedComponents.size());
+        {
+            auto it = componentsIndices;
+            for (const auto componentId : addedComponents)
+                *(++it) = to.GetComponentIndex(componentId);
+        }
+
+        command.componentsIndices = {componentsIndices, addedComponents.size()};
+        return command;
+    }
+
     struct CommmandProcessors
     {
         static void process(MutateEntityCommand& command, World& world)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
-            Archetype* archetype = nullptr;
-            ArchetypeEntityIndex index = {};
-            UNUSED(world.ResolveEntityArhetype(command.entityId, archetype, index));
+            world.mutateEntity(command.entityId, command.from, command.fromIndex, *command.to, [&](Archetype& archetype, ArchetypeEntityIndex entityIndex) {
+                ASSERT(command.componentsId.size() == command.componentsData.size());
 
-            world.mutateEntity(command.entityId, archetype, index, command.removedComponents, command.addedComponents, [&](Archetype& archetype, ArchetypeEntityIndex entityIndex) {
-                ASSERT(command.addedComponents.size() == command.components.size());
-
-                auto component = command.addedComponents.begin();
-                for (void* componentPtr : command.components)
-                {
-                    archetype.MoveComponentFrom(entityIndex, archetype.GetComponentIndex(*component), componentPtr);
-                    ++component;
-                }
+                auto componentIndex = command.componentsIndices.begin();
+                for (void* componentPtr : command.componentsData)
+                    archetype.MoveComponentFrom(entityIndex, *(++componentIndex), componentPtr);
             });
             // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         }
