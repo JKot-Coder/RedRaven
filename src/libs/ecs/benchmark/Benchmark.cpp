@@ -147,67 +147,67 @@ TEST_CASE("Create archetype", "Archetype")
 {
     ankerl::nanobench::Bench bench;
     bench.title("Create archetype")
-        .warmup(1000)
+        .warmup(100)
         .relative(true)
         .performanceCounters(true);
     bench.epochIterations(1);
-    bench.epochs(10000);
     bench.relative(true);
-
-    static constexpr uint32_t systemsCount = 1000;
-
+    for (auto systemsCount : {100U, 1000U})
     {
-        bench.complexityN(4);
-        bench.batch(4);
-        bench.run("Ecs", [&](ankerl::nanobench::Meter meter) {
-            World world;
-            for (uint32_t i = 0; i < systemsCount; i++)
-                world.System().OnEvent<Event>().ForEach([&]() { });
+        bench.epochs(systemsCount == 100 ? 60000: 3000);
+        {
+            bench.complexityN(4);
+            bench.batch(4);
+            bench.run("Ecs systems count:" + std::to_string(systemsCount), [&](ankerl::nanobench::Meter meter) {
+                World world;
+                for (uint32_t i = 0; i < systemsCount; i++)
+                    world.System().OnEvent<Event>().ForEach([&]() { });
 
-            world.OrderSystems();
+                world.OrderSystems();
 
-            return meter.measure([&world]() {
-                world.Entity().Apply();
-                world.Entity().Add<int>(1).Apply();
-                world.Entity().Add<float>(1.0f).Apply();
-                world.Entity().Add<char>('c').Apply();
+                return meter.measure([&world]() {
+                    world.Entity().Apply();
+                    world.Entity().Add<int>(1).Apply();
+                    world.Entity().Add<float>(1.0f).Apply();
+                    world.Entity().Add<char>('c').Apply();
+                });
+                ankerl::nanobench::doNotOptimizeAway(&world);
             });
-            ankerl::nanobench::doNotOptimizeAway(&world);
-        });
-    }
-    {
-        bench.complexityN(16);
-        bench.batch(16);
-        bench.run("Ecs", [&](ankerl::nanobench::Meter meter) {
-            World world;
-            for (uint32_t i = 0; i < systemsCount; i++)
-                world.System().OnEvent<Event>().ForEach([&]() { });
+        }
+        {
+            bench.complexityN(16);
+            bench.batch(16);
+            bench.run("Ecs systems count:" + std::to_string(systemsCount), [&](ankerl::nanobench::Meter meter) {
+                World world;
+                for (uint32_t i = 0; i < systemsCount; i++)
+                    world.System().OnEvent<Event>().ForEach([&]() { });
 
-            world.OrderSystems();
+                world.OrderSystems();
 
-            return meter.measure([&world]() {
-                world.Entity().Apply();
-                world.Entity().Add<int>(1).Apply();
-                world.Entity().Add<float>(1.0f).Apply();
-                world.Entity().Add<char>('c').Apply();
+                return meter.measure([&world]() {
+                    world.Entity().Apply();
+                    world.Entity().Add<int>(1).Apply();
+                    world.Entity().Add<float>(1.0f).Apply();
+                    world.Entity().Add<char>('c').Apply();
 
-                world.Entity().Add<double>(1.0).Apply();
-                world.Entity().Add<double>(1.0).Add<int>(1).Apply();
-                world.Entity().Add<double>(1.0).Add<float>(1.0f).Apply();
-                world.Entity().Add<double>(1.0).Add<char>('c').Apply();
+                    world.Entity().Add<double>(1.0).Apply();
+                    world.Entity().Add<double>(1.0).Add<int>(1).Apply();
+                    world.Entity().Add<double>(1.0).Add<float>(1.0f).Apply();
+                    world.Entity().Add<double>(1.0).Add<char>('c').Apply();
 
-                world.Entity().Add<bool>(false).Apply();
-                world.Entity().Add<bool>(false).Add<int>(1).Apply();
-                world.Entity().Add<bool>(false).Add<float>(1.0f).Apply();
-                world.Entity().Add<bool>(false).Add<char>('c').Apply();
+                    world.Entity().Add<bool>(false).Apply();
+                    world.Entity().Add<bool>(false).Add<int>(1).Apply();
+                    world.Entity().Add<bool>(false).Add<float>(1.0f).Apply();
+                    world.Entity().Add<bool>(false).Add<char>('c').Apply();
 
-                world.Entity().Add<uint16_t>(uint16_t(0)).Apply();
-                world.Entity().Add<uint16_t>(uint16_t(0)).Add<int>(1).Apply();
-                world.Entity().Add<uint16_t>(uint16_t(0)).Add<float>(1.0f).Apply();
-                world.Entity().Add<uint16_t>(uint16_t(0)).Add<char>('c').Apply();
+                    world.Entity().Add<uint16_t>(uint16_t(0)).Apply();
+                    world.Entity().Add<uint16_t>(uint16_t(0)).Add<int>(1).Apply();
+                    world.Entity().Add<uint16_t>(uint16_t(0)).Add<float>(1.0f).Apply();
+                    world.Entity().Add<uint16_t>(uint16_t(0)).Add<char>('c').Apply();
+                });
+                ankerl::nanobench::doNotOptimizeAway(&world);
             });
-            ankerl::nanobench::doNotOptimizeAway(&world);
-        });
+        }
     }
 }
 
@@ -220,12 +220,13 @@ TEST_CASE("Create Entity", "[Entity]")
         .performanceCounters(true);
 
     for (auto batchSize :
-         {4U, 8U, 16U, 128U, 1024U, 10000U}) {
+         {4U, 16U, 128U, 1024U, 10000U}) {
 
         bench.complexityN(batchSize);
         bench.batch(batchSize);
+        bench.warmup(batchSize == 10000 ? 1 : 100);
         bench.epochIterations(1);
-        bench.epochs(std::max(100000 - int(batchSize * batchSize), 1));
+        bench.epochs(batchSize == 10000 ? 600 : 60000);
         bench.relative(true);
 
         {
@@ -265,19 +266,21 @@ TEST_CASE("Create Entity", "[Entity]")
             });
         }
 
+        auto polluteWorldWithArchetypes = [](World& world) {
+            world.Entity().Add<float>(1.0f).Apply();
+            world.Entity().Add<int>(1).Apply();
+            world.Entity().Add<char>('c').Apply();
+            world.Entity().Add<PositionComponent>(1.0f, 2.0f).Apply();
+            world.Entity().Add<VelocityComponent>(1.0f, 2.0f).Apply();
+            world.Entity().Add<DataComponent>().Apply();
+            world.Entity().Add<float>(1.0f).Add<int>(1).Add<char>('c').Apply();
+            world.Entity().Add<float>(1.0f).Add<int>(1).Apply();
+        };
+
         {
             bench.run("Ecs", [&](ankerl::nanobench::Meter meter) {
                 World world;
-
-                // Polute the world with archetypes
-                world.Entity().Add<float>(1.0f).Apply();
-                world.Entity().Add<int>(1).Apply();
-                world.Entity().Add<char>('c').Apply();
-                world.Entity().Add<PositionComponent>(1.0f, 2.0f).Apply();
-                world.Entity().Add<VelocityComponent>(1.0f, 2.0f).Apply();
-                world.Entity().Add<DataComponent>().Apply();
-                world.Entity().Add<float>(1.0f).Add<int>(1).Add<char>('c').Apply();
-                world.Entity().Add<float>(1.0f).Add<int>(1).Apply();
+                polluteWorldWithArchetypes(world);
 
                 return meter.measure([batchSize, &world]() {
                     for (uint32_t i = 0; i < batchSize; i++)
@@ -288,6 +291,27 @@ TEST_CASE("Create Entity", "[Entity]")
         }
 
         {
+            bench.run("Ecs deffered", [&](ankerl::nanobench::Meter meter) {
+                World world;
+                polluteWorldWithArchetypes(world);
+
+                struct OneShotExecuteToken{};
+
+                world.Entity().Add<OneShotExecuteToken>().Apply();
+                const auto query = world.Query().Require<OneShotExecuteToken>().Build();
+
+                return meter.measure([batchSize, &query]() {
+                    query.ForEach([batchSize](World& world) {
+                        for (uint32_t i = 0; i < batchSize; i++)
+                            world.Entity().Add<PositionComponent>(1.0f, 2.0f).Add<VelocityComponent>(1.0f, 2.0f).Add<DataComponent>().Apply();
+                    });
+                });
+                ankerl::nanobench::doNotOptimizeAway(&world);
+            });
+        }
+
+        {
+            bench.epochs(bench.epochs() / 10);
             bench.run("Flecs", [&](ankerl::nanobench::Meter meter) {
                 flecs::world flecsWorld;
 
