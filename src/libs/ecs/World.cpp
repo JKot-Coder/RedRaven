@@ -86,7 +86,8 @@ namespace RR::Ecs
             static_assert(components[1] < components[2]);
 
             ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
-            createArchetypeNoCache(archetypeId, SortedComponentsView(components));
+            Archetype& archetype = createArchetypeNoCache(archetypeId, SortedComponentsView(components));
+            archetypesCache.push_back(&archetype);
         }
 
         queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Exclude<SystemDescription>().Build().id;
@@ -104,8 +105,6 @@ namespace RR::Ecs
                                                     ComponentInfoIterator(componentStorage, components.begin()),
                                                     ComponentInfoIterator(componentStorage, components.end())))
                               .first->second.get();
-
-        archetypesCache.push_back(archetype); // TODO MOVE IT TO CACHE INIT
 
         return *archetype;
     }
@@ -164,6 +163,11 @@ namespace RR::Ecs
 
     void World::initCache(Archetype& archetype)
     {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!isLocked());
+
+        archetypesCache.push_back(&archetype);
+
         Ecs::Query(*this, queriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
             if (!matches(archetype, view))
                 return;
