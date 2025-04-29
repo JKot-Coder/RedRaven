@@ -80,6 +80,7 @@ namespace RR::Ecs
             void Mutate(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
             {
                 ASSERT(entity);
+                ASSERT(!inProcess);
 
                 auto& command = makeMutateCommand(entity, from, fromIndex, to, addedComponents);
 
@@ -96,6 +97,7 @@ namespace RR::Ecs
             void InitCache(Archetype& archetype);
 
         private:
+            bool inProcess = false;
             Common::ChunkAllocator allocator;
             eastl::vector<Command*> commands;
     };

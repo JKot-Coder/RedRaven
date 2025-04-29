@@ -39,12 +39,16 @@ namespace RR::Ecs
 
     void CommandBuffer::Destroy(EntityId entity)
     {
+        ASSERT(!inProcess);
+
         auto& command = *allocator.create<DestroyEntityCommand>(entity);
         commands.push_back(&command);
     }
 
     void CommandBuffer::InitCache(Archetype& archetype)
     {
+        ASSERT(!inProcess);
+
         auto& command = *allocator.create<InitCacheForArchetypeCommand>(archetype);
         commands.push_back(&command);
     }
@@ -80,6 +84,14 @@ namespace RR::Ecs
         if (commands.empty())
             return;
 
+        // Preventing infinite recursion: Init cache commands execute queries that lock/unlock the world,
+        // which triggers command buffer flush on unlock.
+        // The ASSERT(!inProcess) in command creation ensures we don't add new commands while processing existing ones.
+        if (inProcess)
+            return;
+
+        inProcess = true;
+
 #define PROCESS_COMMAND(commandType)                                                      \
     case CommandType::commandType:                                                        \
         CommmandProcessors::process(*static_cast<commandType##Command*>(command), world); \
@@ -99,6 +111,7 @@ namespace RR::Ecs
 
         #undef PROCESS_COMMAND
 
+        inProcess = false;
         allocator.reset();
         commands.clear();
     }
