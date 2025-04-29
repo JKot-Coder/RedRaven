@@ -202,6 +202,8 @@ namespace RR::Ecs
     void World::ProcessDefferedEvents()
     {
         ASSERT_IS_CREATION_THREAD;
+        ASSERT(!isLocked());
+
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if (entityId)
                 unicastEventImmediately(entityId, event);
@@ -213,6 +215,7 @@ namespace RR::Ecs
     void World::Tick()
     {
         ASSERT_IS_CREATION_THREAD;
+        ASSERT(!isLocked());
         OrderSystems();
         // Update events;
 
@@ -360,6 +363,8 @@ namespace RR::Ecs
     void World::OrderSystems()
     {
         ASSERT_IS_CREATION_THREAD;
+        ASSERT(!isLocked());
+
         if (!systemsOrderDirty)
             return;
 
