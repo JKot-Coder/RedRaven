@@ -119,7 +119,11 @@ namespace RR::Ecs
         if (it == archetypesMap.end())
         {
             archetype = &createArchetypeNoCache(archetypeId, components);
-            initCache(*archetype);
+
+            if(isLocked())
+                commandBuffer.InitCache(*archetype);
+            else
+                initCache(*archetype);
         }
         else
             archetype = it->second.get();
