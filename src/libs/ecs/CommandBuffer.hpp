@@ -91,6 +91,8 @@ namespace RR::Ecs
                 commands.push_back(&command);
             }
 
+            void Destroy(EntityId entity);
+
         private:
             Common::ChunkAllocator allocator;
             eastl::vector<Command*> commands;

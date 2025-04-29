@@ -79,6 +79,15 @@ namespace RR::Ecs
             }
         }
 
+        void AsyncDestroy(EntityId entityId)
+        {
+            if (IsAlive(entityId))
+            {
+                auto& entityRecord = entityRecords[entityId.fields.index];
+                entityRecord.state = EntityState::AsyncDestroy;
+            }
+        }
+
         bool Move(EntityId entityId, ArchetypeEntityIndex index)
         {
             if (IsAlive(entityId))

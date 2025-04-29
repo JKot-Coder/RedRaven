@@ -33,7 +33,7 @@ TEST_CASE_METHOD(WorldFixture, "Delete Entity", "[Entity]")
     Entity entt1 = world.EmptyEntity();
     Entity entt2 = world.EmptyEntity();
     REQUIRE(entt2.IsAlive());
-    entt2.Destruct();
+    entt2.Destroy();
     REQUIRE(!entt2.IsAlive());
     Entity entt3 = world.EmptyEntity();
     REQUIRE(entt1.IsAlive());
@@ -48,8 +48,8 @@ TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
     Entity entt1 = world.EmptyEntity();
     Entity entt2 = world.EmptyEntity();
     REQUIRE(entt2.IsAlive());
-    entt2.Destruct();
-    world.Destruct(entt2.GetId());
+    entt2.Destroy();
+    world.Destroy(entt2.GetId());
     Entity entt3 = world.EmptyEntity();
     REQUIRE(!entt2.IsAlive());
     REQUIRE(entt1.IsAlive());
@@ -63,7 +63,7 @@ TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
 {
     Entity entt1 = world.EmptyEntity();
     REQUIRE(entt1.IsAlive());
-    entt1.Destruct();
+    entt1.Destroy();
     REQUIRE(!entt1.IsAlive());
 
     entt1.Edit().Add<float>(0.0f).Apply();

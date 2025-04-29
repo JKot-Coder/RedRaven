@@ -258,7 +258,7 @@ TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
         world.OrderSystems();
         const auto entt1 = world.Entity().Add<int>(1).Apply();
         REQUIRE(calls == 0);
-        entt1.Destruct();
+        entt1.Destroy();
         REQUIRE(calls == 1);
 
         const auto entt2 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
@@ -274,7 +274,7 @@ TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
         world.System().Require<int>().Exclude<float>().OnEvent<OnDissapear>().ForEach([&]() { calls++; });
         world.OrderSystems();
         const auto entt1 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
-        entt1.Destruct();
+        entt1.Destroy();
         REQUIRE(calls == 0);
 
         const auto entt2 = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();

@@ -5,6 +5,14 @@
 
 namespace RR::Ecs
 {
+    struct DestroyEntityCommand final : public Command
+    {
+        DestroyEntityCommand(EntityId entityId)
+            : Command(CommandType::DestroyEntity),
+              entityId(entityId) {};
+        EntityId entityId;
+    };
+
     MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
     {
         MutateEntityCommand& command = *allocator.create<MutateEntityCommand>(
@@ -21,6 +29,12 @@ namespace RR::Ecs
         return command;
     }
 
+    void CommandBuffer::Destroy(EntityId entity)
+    {
+        DestroyEntityCommand& command = *allocator.create<DestroyEntityCommand>(entity);
+        commands.push_back(&command);
+    }
+
     struct CommmandProcessors
     {
         static void process(MutateEntityCommand& command, World& world)
@@ -34,6 +48,11 @@ namespace RR::Ecs
                     archetype.MoveComponentFrom(entityIndex, *(++componentIndex), componentPtr);
             });
             // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        }
+
+        static void process(DestroyEntityCommand& command, World& world)
+        {
+            world.destroyImpl(command.entityId);
         }
     };
 
@@ -52,9 +71,7 @@ namespace RR::Ecs
             switch (command->type)
             {
                 PROCESS_COMMAND(MutateEntity)
-                //PROCESS_COMMAND(DestroyEntity)
-            // PROCESS_COMMAND(AddComponent)
-                    //PROCESS_COMMAND(RemoveComponent)
+                PROCESS_COMMAND(DestroyEntity)
             default:
                 ASSERT_MSG(false, "Unknown command type");
             }

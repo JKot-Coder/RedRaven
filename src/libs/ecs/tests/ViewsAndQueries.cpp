@@ -240,7 +240,7 @@ TEST_CASE_METHOD(WorldFixture, "OptionalComponents", "[Query]")
 
 TEST_CASE_METHOD(WorldFixture, "Query empty archetype", "[Query]")
 {
-    world.Entity().Add<Foo>(1).Apply().Destruct();
+    world.Entity().Add<Foo>(1).Apply().Destroy();
 
     const auto queryFoo = world.Query().Require<Foo>().Build();
     queryFoo.ForEach([&]() { REQUIRE(false); });

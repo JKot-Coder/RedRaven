@@ -69,10 +69,22 @@ namespace RR::Ecs
             return false;
         }
 
-        void Destruct(EntityId entityId)
+        void Destroy(EntityId entityId)
         {
             ASSERT_IS_CREATION_THREAD;
             if (!IsAlive(entityId)) return;
+
+            if(isLocked())
+            {
+                entityStorage.AsyncDestroy(entityId);
+                commandBuffer.Destroy(entityId);
+            } else
+                destroyImpl(entityId);
+        }
+
+        void destroyImpl(EntityId entityId)
+        {
+            ASSERT_IS_CREATION_THREAD;
 
             Archetype* archetype = nullptr;
             ArchetypeEntityIndex index;
@@ -81,6 +93,7 @@ namespace RR::Ecs
                 unicastEventImmediately(entityId, OnDissapear {});
                 archetype->Delete(entityStorage, index, false);
             }
+
             entityStorage.Destroy(entityId);
         }
 
@@ -456,7 +469,7 @@ namespace RR::Ecs
         eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
     };
 
-    inline void Entity::Destruct() const { world->Destruct(id); }
+    inline void Entity::Destroy() const { world->Destroy(id); }
     inline bool Entity::IsAlive() const { return world->IsAlive(id); }
     inline bool Entity::Has(SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
     inline bool Entity::ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const

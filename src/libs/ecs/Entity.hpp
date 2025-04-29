@@ -17,7 +17,7 @@ namespace RR::Ecs
     struct Entity
     {
     public:
-        void Destruct() const;
+        void Destroy() const;
 
         [[nodiscard]] EntityId GetId() const { return id; }
         [[nodiscard]] bool IsAlive() const;
