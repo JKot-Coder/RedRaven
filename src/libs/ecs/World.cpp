@@ -98,13 +98,16 @@ namespace RR::Ecs
     Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
     {
         ASSERT_IS_CREATION_THREAD;
-        size_t index = archetypes.size();
-        archetypes.emplace_back(eastl::make_unique<Archetype>(
-            ComponentInfoIterator(componentStorage, components.begin()),
-            ComponentInfoIterator(componentStorage, components.end())));
-        archetypesMap.emplace(archetypeId, ArchetypeIndex(index));
 
-        return *archetypes.back().get();
+        auto* archetype = archetypesMap.emplace(archetypeId,
+                                                eastl::make_unique<Archetype>(
+                                                    ComponentInfoIterator(componentStorage, components.begin()),
+                                                    ComponentInfoIterator(componentStorage, components.end())))
+                              .first->second.get();
+
+        archetypesCache.push_back(archetype); // TODO MOVE IT TO CACHE INIT
+
+        return *archetype;
     }
 
     Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
@@ -119,7 +122,7 @@ namespace RR::Ecs
             initCache(*archetype);
         }
         else
-            archetype = archetypes[it->second.GetRaw()].get();
+            archetype = it->second.get();
 
         return *archetype;
     }
@@ -127,12 +130,12 @@ namespace RR::Ecs
     void World::initCache(SystemId id)
     {
         systemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
-            for (eastl::unique_ptr<Archetype>& archetype : archetypes)
+            for (auto* archetype : archetypesCache)
             {
                 if (!matches(*archetype, view))
                     continue;
 
-                cache.push_back(archetype.get());
+                cache.push_back(archetype);
                 for (const auto event : systemDesc.onEvents)
                     archetype->cache[event].push_back(id);
             }
@@ -145,12 +148,12 @@ namespace RR::Ecs
     void World::initCache(QueryId id)
     {
         queriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
-            for (eastl::unique_ptr<Archetype>& archetype : archetypes)
+            for (const auto* archetype : archetypesCache)
             {
                 if (!matches(*archetype, view))
                     continue;
 
-                cache.push_back(archetype.get());
+                cache.push_back(archetype);
             }
         });
     }
@@ -447,7 +450,7 @@ namespace RR::Ecs
         for (auto& eventSubscribersPair : eventSubscribers)
             eastl::sort(eventSubscribersPair.second.begin(), eventSubscribersPair.second.end(), [&systemsOrder](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });
 
-        for (auto& archetype : archetypes)
+        for (auto* archetype : archetypesCache)
         {
             for (auto& cache : archetype->cache)
                 eastl::sort(cache.second.begin(), cache.second.end(), [&systemsOrder](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });

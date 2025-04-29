@@ -348,7 +348,7 @@ namespace RR::Ecs
             // Todo check all args in callable persist in requireComps with std::includes
             IterationContext context {*this, nullptr};
 
-            for (const auto& archetype : archetypes)
+            for (const auto* archetype : archetypesCache)
             {
                 if (!matches(*archetype, view))
                     continue;
@@ -465,8 +465,8 @@ namespace RR::Ecs
         Ecs::QueryId queriesQuery;
         Ecs::QueryId systemsQuery;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers;
-        absl::flat_hash_map<ArchetypeId, ArchetypeIndex> archetypesMap;
-        eastl::vector<eastl::unique_ptr<Archetype>> archetypes;
+        absl::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
+        eastl::vector<Archetype*> archetypesCache;
     };
 
     inline void Entity::Destroy() const { world->Destroy(id); }

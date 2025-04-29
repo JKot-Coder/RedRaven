@@ -30,7 +30,6 @@ namespace RR::Ecs
     struct Index;
 
     using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
-    using ArchetypeIndex = Index<struct ArchetypeIndexTag>;
     using ArchetypeComponentIndex = Index<struct ArchetypeComponentIndexTag, uint8_t>;
     using EventId = Index<struct EventIdTag, HashType>;
     using SystemId = Index<struct SystemIdTag, uint32_t>;
