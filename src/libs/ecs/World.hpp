@@ -250,7 +250,7 @@ namespace RR::Ecs
                         ...);
                 });
             } else
-                commandBuffer.Commit<Components>(entityId, from, fromIndex, to, UnsortedComponentsView(addedComponents), eastl::forward<ArgsTuple>(args), indexSeq);
+                commandBuffer.Mutate<Components>(entityId, from, fromIndex, to, UnsortedComponentsView(addedComponents), eastl::forward<ArgsTuple>(args), indexSeq);
 
             ASSERT(entityId);
             return entityId;

@@ -5,7 +5,7 @@
 
 namespace RR::Ecs
 {
-    MutateEntityCommand& CommandBuffer::makeCommitCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
+    MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
     {
         MutateEntityCommand& command = *allocator.create<MutateEntityCommand>(
             entity, from, fromIndex, to);
@@ -27,7 +27,7 @@ namespace RR::Ecs
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
             world.mutateEntity(command.entityId, command.from, command.fromIndex, *command.to, [&](Archetype& archetype, ArchetypeEntityIndex entityIndex) {
-                ASSERT(command.componentsId.size() == command.componentsData.size());
+                ASSERT(command.componentsIndices.size() == command.componentsData.size());
 
                 auto componentIndex = command.componentsIndices.begin();
                 for (void* componentPtr : command.componentsData)

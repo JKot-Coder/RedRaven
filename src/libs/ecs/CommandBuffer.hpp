@@ -44,31 +44,13 @@ namespace RR::Ecs
             static constexpr size_t InitialCommandQueueSize = 1024*1024;
 
         private:
-            MutateEntityCommand& makeCommitCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents);
-
-            template <typename Component, typename ArgsTuple>
-            void constructComponent(void* dst, ArgsTuple&& args)
-            {
-                if constexpr (IsTag<Component>)
-                    return;
-
-                std::apply(
-                    [dst](auto&&... unpackedArgs) {
-                        new (dst) Component {std::forward<decltype(unpackedArgs)>(unpackedArgs)...};
-                    },
-                    eastl::forward<ArgsTuple>(args));
-            }
+            MutateEntityCommand& makeMutateCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents);
 
             template <typename T>
             T* allocate(size_t count)
             {
                 return static_cast<T*>(allocator.allocate(count * sizeof(T), alignof(T)));
             }
-
-        public:
-            CommandBuffer() : allocator(InitialCommandQueueSize) { }
-
-            void ProcessCommands(World& world);
 
             template <typename Component, typename ArgsTuple>
             void* constructComponent(ArgsTuple&& args)
@@ -88,12 +70,17 @@ namespace RR::Ecs
                 return result;
             }
 
+        public:
+            CommandBuffer() : allocator(InitialCommandQueueSize) { }
+
+            void ProcessCommands(World& world);
+
             template <typename Components, typename ArgsTuple, size_t... Index>
-            void Commit(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+            void Mutate(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
             {
                 ASSERT(entity);
 
-                auto& command = makeCommitCommand(entity, from, fromIndex, to, addedComponents);
+                auto& command = makeMutateCommand(entity, from, fromIndex, to, addedComponents);
 
                 void** componentsPtrs = allocate<void*>(Components::Count);
                 (void( *(componentsPtrs + Index) = constructComponent<typename Components::template Get<Index>>(
