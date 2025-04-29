@@ -13,6 +13,14 @@ namespace RR::Ecs
         EntityId entityId;
     };
 
+    struct InitCacheForArchetypeCommand final : public Command
+    {
+        InitCacheForArchetypeCommand(Archetype& archetype)
+            : Command(CommandType::InitCacheForArchetype),
+              archetype(&archetype) { };
+        Archetype* archetype;
+    };
+
     MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
     {
         MutateEntityCommand& command = *allocator.create<MutateEntityCommand>(
@@ -31,7 +39,13 @@ namespace RR::Ecs
 
     void CommandBuffer::Destroy(EntityId entity)
     {
-        DestroyEntityCommand& command = *allocator.create<DestroyEntityCommand>(entity);
+        auto& command = *allocator.create<DestroyEntityCommand>(entity);
+        commands.push_back(&command);
+    }
+
+    void CommandBuffer::InitCache(Archetype& archetype)
+    {
+        auto& command = *allocator.create<InitCacheForArchetypeCommand>(archetype);
         commands.push_back(&command);
     }
 
@@ -54,6 +68,11 @@ namespace RR::Ecs
         {
             world.destroyImpl(command.entityId);
         }
+
+        static void process(InitCacheForArchetypeCommand& command, World& world)
+        {
+            world.initCache(*command.archetype);
+        }
     };
 
     void CommandBuffer::ProcessCommands(World& world)
@@ -72,6 +91,7 @@ namespace RR::Ecs
             {
                 PROCESS_COMMAND(MutateEntity)
                 PROCESS_COMMAND(DestroyEntity)
+                PROCESS_COMMAND(InitCacheForArchetype)
             default:
                 ASSERT_MSG(false, "Unknown command type");
             }

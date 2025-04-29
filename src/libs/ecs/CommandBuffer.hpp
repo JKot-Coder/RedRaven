@@ -20,7 +20,8 @@ namespace RR::Ecs
     enum class CommandType : uint8_t
     {
         MutateEntity,
-        DestroyEntity
+        DestroyEntity,
+        InitCacheForArchetype
     };
 
     struct MutateEntityCommand final : public Command
@@ -92,6 +93,7 @@ namespace RR::Ecs
             }
 
             void Destroy(EntityId entity);
+            void InitCache(Archetype& archetype);
 
         private:
             Common::ChunkAllocator allocator;
