@@ -28,7 +28,7 @@ namespace RR::Ecs
     constexpr inline HashType ConstexprHash(const char* cstr) { return details::ConstexprHashImpl(cstr, (uint32_t)std::char_traits<char>::length(cstr)); }
     constexpr inline HashType ConstexprHash(const char* str, std::size_t len) { return details::ConstexprHashImpl(str, (uint32_t)len); }
 
-    constexpr inline HashType operator"" _h(const char* str, std::size_t len) { return details::ConstexprHashImpl(str, (uint32_t)len); }
+    constexpr inline HashType operator""_h(const char* str, std::size_t len) { return details::ConstexprHashImpl(str, (uint32_t)len); }
 
     template <int FixedSize>
     struct HashString
