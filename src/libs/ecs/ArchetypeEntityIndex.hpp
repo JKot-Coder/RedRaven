@@ -6,7 +6,6 @@ namespace RR::Ecs
     {
         static const uint32_t IndexBits = 18;
         static const uint32_t ChunkBits = 14;
-        static_assert(IndexBits + ChunkBits == sizeof(uint32_t) * CHAR_BIT);
 
         static const uint32_t MaxEntitiesCount = 1U << IndexBits;
         static const uint32_t MaxChunksCount = 1U << ChunkBits;
@@ -44,4 +43,6 @@ namespace RR::Ecs
             uint32_t rawIndex;
         };
     };
+    static_assert(sizeof(ArchetypeEntityIndex) == sizeof(uint32_t));
+
 }

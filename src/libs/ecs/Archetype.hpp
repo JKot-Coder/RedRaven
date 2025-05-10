@@ -185,6 +185,7 @@ namespace RR::Ecs
             {
                 ASSERT(componentIndex);
                 ASSERT(entitiesCount);
+                ASSERT(index);
 
                 const auto indexInChunk = index.GetIndexInChunk();
                 const auto chunk = index.GetChunkIndex();
