@@ -13,6 +13,27 @@ struct Foo { int x;};
 struct Bar { int x;};
 // clang-format on
 
+TEST_CASE_METHOD(WorldFixture, "View lock", "[View]")
+{
+    REQUIRE(!world.IsLocked());
+    world.Entity().Add<Foo>(1).Apply();
+
+    const auto view = world.View().Require<Foo>();
+
+    bool called = false;
+    view.ForEach([&](Foo) {
+         REQUIRE(world.IsLocked());
+
+         view.ForEach([&](Foo) {
+            REQUIRE(world.IsLocked());
+            called = true;
+         });
+     });
+
+    REQUIRE(called);
+    REQUIRE(!world.IsLocked());
+}
+
 TEST_CASE_METHOD(WorldFixture, "View read", "[View]")
 {
     UNUSED(world.EmptyEntity());
@@ -133,6 +154,27 @@ TEST_CASE("View special args", "[View]")
     view.ForEach([&](Foo, World* worldArg) { calls++; REQUIRE(&world == worldArg); });
     view.ForEntity(entt1, [&](Foo, World* worldArg) { calls++; REQUIRE(&world == worldArg); });
     REQUIRE(calls == 3);
+}
+
+TEST_CASE_METHOD(WorldFixture, "Query lock", "[Query]")
+{
+    REQUIRE(!world.IsLocked());
+    world.Entity().Add<Foo>(1).Apply();
+
+    const auto query = world.Query().Require<Foo>().Build();
+
+    bool called = false;
+    query.ForEach([&](Foo) {
+         REQUIRE(world.IsLocked());
+
+         query.ForEach([&](Foo) {
+            REQUIRE(world.IsLocked());
+            called = true;
+         });
+     });
+
+    REQUIRE(called);
+    REQUIRE(!world.IsLocked());
 }
 
 TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")

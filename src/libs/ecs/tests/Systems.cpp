@@ -32,6 +32,24 @@ TEST_CASE_METHOD(WorldFixture, "System create", "[System]")
     world.System().Require<int>().OnEvent<TestEvent>().ForEach([] { });
 }
 
+TEST_CASE_METHOD(WorldFixture, "System lock", "[System]")
+{
+    REQUIRE(!world.IsLocked());
+    struct Foo { int x; };
+    world.Entity().Add<Foo>(1).Apply();
+
+    bool called = false;
+    const auto system = world.System().Require<Foo>().ForEach([&] {
+        REQUIRE(world.IsLocked());
+        called = true;
+    });
+
+    system.Run();
+
+    REQUIRE(called);
+    REQUIRE(!world.IsLocked());
+}
+
 TEST_CASE_METHOD(WorldFixture, "System event", "[System]")
 {
     world.Entity().Add<int>().Apply();
