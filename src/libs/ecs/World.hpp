@@ -54,19 +54,24 @@ namespace RR::Ecs
         [[nodiscard]] bool IsAlive(EntityId entityId) const
         {
             ASSERT_IS_CREATION_THREAD;
-            return entityStorage.IsAlive(entityId);
+
+            EntityRecord record;
+            if (!ResolveEntityRecord(entityId, record))
+                return false;
+
+            return record.IsAlive(IsLocked());
         }
 
         [[nodiscard]] bool Has(EntityId entityId, SortedComponentsView components) const
         {
             ASSERT_IS_CREATION_THREAD;
-            Archetype* archetype = nullptr;
-            ArchetypeEntityIndex index;
+            EntityRecord record;
 
-            if (ResolveEntityArhetype(entityId, archetype, index))
-                return archetype->HasAll(components);
+            if(!ResolveEntityRecord(entityId, record))
+                return false;
 
-            return false;
+            Archetype* archetype = record.GetArchetype(IsLocked());
+            return (archetype != nullptr) ? archetype->HasAll(components) : false;
         }
 
         void Destroy(EntityId entityId)
@@ -76,7 +81,7 @@ namespace RR::Ecs
 
             if(IsLocked())
             {
-                entityStorage.AsyncDestroy(entityId);
+                entityStorage.PendingDestroy(entityId);
                 commandBuffer.Destroy(entityId);
             } else
                 destroyImpl(entityId);
@@ -85,13 +90,13 @@ namespace RR::Ecs
         void destroyImpl(EntityId entityId)
         {
             ASSERT_IS_CREATION_THREAD;
+            ASSERT(!IsLocked());
 
-            Archetype* archetype = nullptr;
-            ArchetypeEntityIndex index;
-            if (ResolveEntityArhetype(entityId, archetype, index))
+            EntityRecord record;
+            if (ResolveEntityRecord(entityId, record))
             {
                 unicastEventImmediately(entityId, OnDissapear {});
-                archetype->Delete(entityStorage, index, false);
+                record.GetArchetype(false)->Delete(entityStorage, record.GetIndex(false), false);
             }
 
             entityStorage.Destroy(entityId);
@@ -100,20 +105,10 @@ namespace RR::Ecs
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
-        [[nodiscard]] bool ResolveEntityArhetype(EntityId entity, Archetype*& archetype, ArchetypeEntityIndex& index) const
+        [[nodiscard]] bool ResolveEntityRecord(EntityId entityId, EntityRecord& record) const
         {
             ASSERT_IS_CREATION_THREAD;
-            EntityRecord record;
-            if (!entityStorage.Get(entity, record))
-                return false;
-
-            archetype = record.archetype;
-            index = record.index;
-
-            ASSERT(archetype);
-            ASSERT(index);
-
-            return true;
+            return entityStorage.Get(entityId, record);
         }
 
         template <typename EventType>
@@ -212,14 +207,18 @@ namespace RR::Ecs
                 if (!IsAlive(entityId))
                     return entityId;
 
-                if (!ResolveEntityArhetype(entityId, from, fromIndex))
+                EntityRecord record;
+                if (!ResolveEntityRecord(entityId, record))
                 {
+                    // TODO refactor simply this.
                     ASSERT(false); // Impossible
                     return entityId;
                 }
+
+                from = record.GetArchetype(IsLocked());
+                if (!IsLocked())
+                    fromIndex = record.GetIndex(false);
             }
-            else
-                entityId = entityStorage.Create();
 
             ComponentsSet components;
             ComponentsSet added;
@@ -257,6 +256,8 @@ namespace RR::Ecs
 
             if (!IsLocked())
             {
+                if (!entityId)
+                    entityId = entityStorage.Create(to); // TODO This is double initialization of archetype. Perf degrated :(
                 mutateEntity(entityId, from, fromIndex, to, [&](Archetype& archetype, ArchetypeEntityIndex index) {
                     (
                         constructComponent<typename Components::template Get<Index>>(
@@ -264,8 +265,13 @@ namespace RR::Ecs
                             eastl::forward<std::tuple_element_t<Index, ArgsTuple>>(std::get<Index>(args))),
                         ...);
                 });
-            } else
-                commandBuffer.Mutate<Components>(entityId, from, fromIndex, to, UnsortedComponentsView(addedComponents), eastl::forward<ArgsTuple>(args), indexSeq);
+            } else {
+                if(!entityId)
+                    entityId = entityStorage.CreateAsync(to);
+                else
+                    entityStorage.PendingMutate(entityId, to);
+                commandBuffer.Mutate<Components>(entityId, from, to, UnsortedComponentsView(addedComponents), eastl::forward<ArgsTuple>(args), indexSeq);
+            }
 
             ASSERT(entityId);
             return entityId;
@@ -383,24 +389,23 @@ namespace RR::Ecs
 
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
-
-            Archetype* archetype = nullptr;
-            ArchetypeEntityIndex index;
-
-            if (!ResolveEntityArhetype(entityId, archetype, index))
+            EntityRecord record;
+            if (!ResolveEntityRecord(entityId, record))
             {
                 ASSERT(false);
                 return;
             }
 
-            if (!matches(*archetype, view))
+            if (!matches(*record.GetArchetype(false), view))
             {
+                // VODO view doesn't match with archetype. Propper logerr here
                 ASSERT(false);
                 return;
             }
 
+            // TODO Any pending mutations/deletion will be ignored. Add message/asset about it?
             LockGuard lg(this);
-            ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
+            ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
         }
 
         // TODO fix this mess
@@ -412,18 +417,16 @@ namespace RR::Ecs
 
             // Todo check all args in callable persist in requireComps with std::includes
             // Todo check entity are ok for requireComps and Args
-
-            Archetype* archetype = nullptr;
-            ArchetypeEntityIndex index;
-
-            if (!ResolveEntityArhetype(entityId, archetype, index))
+            EntityRecord record;
+            if (!ResolveEntityRecord(entityId, record))
             {
                 ASSERT(false);
                 return;
             }
 
+            // TODO. Any pending mutations/deletion will be ignored. Add message/asset about it?
             LockGuard lg(this);
-            ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
+            ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
         }
 
         void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to);
@@ -475,7 +478,14 @@ namespace RR::Ecs
     inline bool Entity::Has(SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
     inline bool Entity::ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const
     {
-        return world->ResolveEntityArhetype(id, archetype, index);
+        EntityRecord record;
+        if (!world->ResolveEntityRecord(id, record))
+            return false;
+
+        // TODO. Any pending mutations/deletion will be ignored. Add message/asset about it?
+        archetype = record.GetArchetype(false);
+        index = record.GetIndex(false);
+        return true;
     }
 
     template <typename Callable>

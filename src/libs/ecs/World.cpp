@@ -274,14 +274,13 @@ namespace RR::Ecs
         ASSERT_IS_CREATION_THREAD;
         ASSERT(!systemsOrderDirty);
 
-        Archetype* archetype;
-        ArchetypeEntityIndex index;
-
-        if (!ResolveEntityArhetype(entity, archetype, index))
+        EntityRecord record;
+        if (!ResolveEntityRecord(entity, record))
             return;
 
-        const auto it = archetype->cache.find(event.id);
-        if (it == archetype->cache.end())
+        // TODO. Any pending mutations/deletion will be ignored. Add message/asset about it?
+        const auto it = record.GetArchetype(false)->cache.find(event.id);
+        if (it == record.GetArchetype(false)->cache.end())
             return;
 
         for (const auto systemId : it->second)

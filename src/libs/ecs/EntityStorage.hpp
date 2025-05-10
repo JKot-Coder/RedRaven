@@ -1,124 +1,146 @@
 #pragma once
 
-#include "ecs/ForwardDeclarations.hpp"
-#include "ecs/EntityId.hpp"
 #include "ecs/Archetype.hpp"
+#include "ecs/EntityId.hpp"
+#include "ecs/ForwardDeclarations.hpp"
 
 namespace RR::Ecs
 {
-    enum class EntityState : uint8_t
-    {
-        Dead,
-        Alive,
-        AsyncCreation,
-        AsyncDestroy,
-    };
-
     struct EntityRecord
     {
-        EntityRecord() = default;
-        EntityRecord(uint32_t generation, EntityState state) : generation(generation), state(state)
-        {
-        }
-
-        Archetype* archetype;
+    private:
         ArchetypeEntityIndex index;
         uint32_t generation;
-        EntityState state;
+        Archetype* archetype;
+        Archetype* pendingArchetype;
+
+    public:
+        EntityRecord() = default;
+        EntityRecord(uint32_t generation) : generation(generation) { }
+
+        friend struct EntityStorage;
+
+    public:
+        bool IsAlive(bool pending) const { return pending ? pendingArchetype != nullptr : true; }
+        Archetype* GetArchetype(bool pending) const
+        {
+            return pending ? pendingArchetype : archetype;
+        }
+        ArchetypeEntityIndex GetIndex(bool pending) const
+        {
+            ASSERT(!pending);
+            UNUSED(pending);
+            return index;
+        }
+        bool HasPendingChanges() const { return archetype != pendingArchetype; }
     };
 
     struct EntityStorage final
     {
+    private:
         eastl::vector<EntityRecord> entityRecords;
-        eastl::vector<uint32_t> freeIndices;
+        eastl::vector<EntityId> freeId;
 
-        EntityId Create(EntityState state = EntityState::AsyncCreation)
+        EntityRecord& getFreeRecord(EntityId& entityId)
         {
-            EntityId entityId;
-            if (freeIndices.empty())
+            if (freeId.empty())
             {
                 entityId = EntityId(entityRecords.size(), 0);
-                uint32_t generation = entityId.fields.generation;
-                entityRecords.emplace_back(generation, state);
+                return entityRecords.emplace_back(0);
             }
             else
             {
-                uint32_t entityIndex = freeIndices.back();
-                freeIndices.pop_back();
-
-                uint32_t generation = entityRecords[entityIndex].generation;
-                entityId = EntityId(entityIndex, generation);
-                entityRecords[entityIndex] = EntityRecord {generation, state};
+                entityId = freeId.back();
+                freeId.pop_back();
+                entityRecords[entityId.GetIndex()] = EntityRecord(entityId.GetGeneration());
+                return entityRecords[entityId.GetIndex()];
             }
+        }
+
+    public:
+        EntityId Create(Archetype& archetype)
+        {
+            EntityId entityId;
+            EntityRecord& record = getFreeRecord(entityId);
+            record.archetype = &archetype;
+            record.pendingArchetype = &archetype;
             return entityId;
         }
 
-        bool IsAlive(EntityId entityId) const
+        EntityId CreateAsync(Archetype& pendingArchetype)
         {
-            return entityId.fields.index < entityRecords.size() &&
-                   entityRecords[entityId.fields.index].generation == entityId.fields.generation &&
-                   (entityRecords[entityId.fields.index].state == EntityState::Alive ||
-                    entityRecords[entityId.fields.index].state == EntityState::AsyncCreation);
+            EntityId entityId;
+            EntityRecord& record = getFreeRecord(entityId);
+            record.archetype = nullptr;
+            record.pendingArchetype = &pendingArchetype;
+            return entityId;
         }
 
         bool CanAcesss(EntityId entityId) const
         {
             return entityId.fields.index < entityRecords.size() &&
-                   entityRecords[entityId.fields.index].generation == entityId.fields.generation &&
-                   (entityRecords[entityId.fields.index].state == EntityState::Alive ||
-                    entityRecords[entityId.fields.index].state == EntityState::AsyncDestroy);
+                   entityRecords[entityId.fields.index].generation == entityId.fields.generation;
         }
 
         void Destroy(EntityId entityId)
         {
-            if (IsAlive(entityId))
+            if (CanAcesss(entityId))
             {
                 auto& entityRecord = entityRecords[entityId.fields.index];
-                entityRecord.generation = (entityRecord.generation + 1) & EntityId::GenerationsMask;
-                freeIndices.push_back(entityId.fields.index);
+                uint32_t nextGeneration = entityRecord.generation + 1;
+                if (nextGeneration < EntityId::MaxGenerations)
+                    freeId.push_back(EntityId(entityId.fields.index, nextGeneration));
+                entityRecord.generation = EntityId::MaxGenerations;
             }
         }
 
-        void AsyncDestroy(EntityId entityId)
-        {
-            if (IsAlive(entityId))
-            {
-                auto& entityRecord = entityRecords[entityId.fields.index];
-                entityRecord.state = EntityState::AsyncDestroy;
-            }
-        }
-
-        bool Move(EntityId entityId, ArchetypeEntityIndex index)
-        {
-            if (IsAlive(entityId))
-            {
-                auto& entityRecord = entityRecords[entityId.fields.index];
-                entityRecord.index = index;
-                entityRecord.state = EntityState::Alive;
-                return true;
-            }
-            return false;
-        }
-
-        bool Mutate(EntityId entityId, Archetype& archetype, ArchetypeEntityIndex index)
-        {
-            if (IsAlive(entityId))
-            {
-                auto& entityRecord = entityRecords[entityId.fields.index];
-                entityRecord.archetype = &archetype;
-                entityRecord.index = index;
-                entityRecord.state = EntityState::Alive;
-                return true;
-            }
-            return false;
-        }
-
-        bool Get(EntityId entityId, EntityRecord& entityRecord) const
+        bool PendingDestroy(EntityId entityId)
         {
             if (!CanAcesss(entityId))
                 return false;
 
-            entityRecord = entityRecords[entityId.fields.index];
+            auto& entityRecord = entityRecords[entityId.fields.index];
+            entityRecord.pendingArchetype = nullptr;
+            return true;
+        }
+
+        bool PendingMutate(EntityId entityId, Archetype& archetype)
+        {
+            if (!CanAcesss(entityId))
+                return false;
+
+            auto& entityRecord = entityRecords[entityId.fields.index];
+            entityRecord.pendingArchetype = &archetype;
+            return true;
+        }
+
+        bool Move(EntityId entityId, ArchetypeEntityIndex index)
+        {
+            if (!CanAcesss(entityId))
+                return false;
+            auto& entityRecord = entityRecords[entityId.fields.index];
+            entityRecord.index = index;
+            return true;
+        }
+
+        bool Mutate(EntityId entityId, Archetype& archetype, ArchetypeEntityIndex index)
+        {
+            if (!CanAcesss(entityId))
+                return false;
+
+            auto& entityRecord = entityRecords[entityId.fields.index];
+            entityRecord.archetype = &archetype;
+            entityRecord.pendingArchetype = &archetype;
+            entityRecord.index = index;
+            return true;
+        }
+
+        bool Get(EntityId entityId, EntityRecord& record) const
+        {
+            if (!CanAcesss(entityId))
+                return false;
+
+            record = entityRecords[entityId.fields.index];
             return true;
         }
     };

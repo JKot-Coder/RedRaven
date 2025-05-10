@@ -26,15 +26,20 @@ namespace RR::Ecs
 
     struct MutateEntityCommand final : public Command
     {
-        MutateEntityCommand(EntityId entityId, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to)
+        MutateEntityCommand(EntityId entityId, Archetype* from, Archetype& to)
             : Command(CommandType::MutateEntity),
               entityId(entityId),
-              fromIndex(fromIndex),
+#ifdef ENABLE_ASSERTS
               from(from),
-              to(&to){ };
+#endif
+              to(&to) {
+                  UNUSED(from);
+              };
         EntityId entityId;
-        ArchetypeEntityIndex fromIndex;
-        Archetype *from, *to;
+#ifdef ENABLE_ASSERTS
+        Archetype* from;
+#endif
+        Archetype* to;
         eastl::span<ArchetypeComponentIndex> componentsIndices;
         eastl::span<void*> componentsData;
     };
@@ -45,7 +50,7 @@ namespace RR::Ecs
             static constexpr size_t InitialCommandQueueSize = 1024*1024;
 
         private:
-            MutateEntityCommand& makeMutateCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents);
+            MutateEntityCommand& makeMutateCommand(EntityId entity, Archetype* from, Archetype& to, UnsortedComponentsView addedComponents);
 
             template <typename T>
             T* allocate(size_t count)
@@ -77,12 +82,12 @@ namespace RR::Ecs
             void ProcessCommands(World& world);
 
             template <typename Components, typename ArgsTuple, size_t... Index>
-            void Mutate(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+            void Mutate(EntityId entity, Archetype* from, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
             {
                 ASSERT(entity);
                 ASSERT(!inProcess);
 
-                auto& command = makeMutateCommand(entity, from, fromIndex, to, addedComponents);
+                auto& command = makeMutateCommand(entity, from, to, addedComponents);
 
                 void** componentsPtrs = allocate<void*>(Components::Count);
                 (void( *(componentsPtrs + Index) = constructComponent<typename Components::template Get<Index>>(

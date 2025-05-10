@@ -21,10 +21,10 @@ namespace RR::Ecs
         Archetype* archetype;
     };
 
-    MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, UnsortedComponentsView addedComponents)
+    MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, Archetype& to, UnsortedComponentsView addedComponents)
     {
         MutateEntityCommand& command = *allocator.create<MutateEntityCommand>(
-            entity, from, fromIndex, to);
+            entity, from, to);
 
         auto componentsIndices = allocate<ArchetypeComponentIndex>(addedComponents.size());
         {
@@ -58,7 +58,12 @@ namespace RR::Ecs
         static void process(MutateEntityCommand& command, World& world)
         {
             // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-reinterpret-cast)
-            world.mutateEntity(command.entityId, command.from, command.fromIndex, *command.to, [&](Archetype& archetype, ArchetypeEntityIndex entityIndex) {
+            EntityRecord record;
+            bool resolved = world.ResolveEntityRecord(command.entityId, record);
+            ASSERT(resolved);
+            UNUSED(resolved);
+            ASSERT(record.GetArchetype(false) == command.from);
+            world.mutateEntity(command.entityId, record.GetArchetype(false), record.GetIndex(false), *command.to, [&](Archetype& archetype, ArchetypeEntityIndex entityIndex) {
                 ASSERT(command.componentsIndices.size() == command.componentsData.size());
 
                 auto componentIndex = command.componentsIndices.begin();
@@ -96,9 +101,21 @@ namespace RR::Ecs
     case CommandType::commandType:                                                        \
         CommmandProcessors::process(*static_cast<commandType##Command*>(command), world); \
         break;
-
+//Log::Format::Info("begin\n");
         for (auto command : commands)
         {
+/*
+            switch (command->type)
+            {
+                case CommandType::DestroyEntity:
+                Log::Format::Info("Destroy {} \n", static_cast<DestroyEntityCommand*>(command)->entityId.GetRawId());
+               break;
+                case CommandType::MutateEntity:
+            Log::Format::Info("Mutate {} \n", static_cast<MutateEntityCommand*>(command)->entityId.GetRawId());
+                break;
+            }
+*/
+
             switch (command->type)
             {
                 PROCESS_COMMAND(MutateEntity)
