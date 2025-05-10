@@ -119,7 +119,7 @@ namespace RR::Ecs
         {
             archetype = &createArchetypeNoCache(archetypeId, components);
 
-            if(isLocked())
+            if (IsLocked())
                 commandBuffer.InitCache(*archetype);
             else
                 initCache(*archetype);
@@ -164,7 +164,7 @@ namespace RR::Ecs
     void World::initCache(Archetype& archetype)
     {
         ASSERT_IS_CREATION_THREAD;
-        ASSERT(!isLocked());
+        ASSERT(!IsLocked());
 
         archetypesCache.push_back(&archetype);
 
@@ -213,7 +213,7 @@ namespace RR::Ecs
     void World::ProcessDefferedEvents()
     {
         ASSERT_IS_CREATION_THREAD;
-        ASSERT(!isLocked());
+        ASSERT(!IsLocked());
 
         eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
             if (entityId)
@@ -226,7 +226,7 @@ namespace RR::Ecs
     void World::Tick()
     {
         ASSERT_IS_CREATION_THREAD;
-        ASSERT(!isLocked());
+        ASSERT(!IsLocked());
         OrderSystems();
         // Update events;
 
@@ -374,7 +374,7 @@ namespace RR::Ecs
     void World::OrderSystems()
     {
         ASSERT_IS_CREATION_THREAD;
-        ASSERT(!isLocked());
+        ASSERT(!IsLocked());
 
         if (!systemsOrderDirty)
             return;

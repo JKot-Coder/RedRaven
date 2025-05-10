@@ -74,7 +74,7 @@ namespace RR::Ecs
             ASSERT_IS_CREATION_THREAD;
             if (!IsAlive(entityId)) return;
 
-            if(isLocked())
+            if(IsLocked())
             {
                 entityStorage.AsyncDestroy(entityId);
                 commandBuffer.Destroy(entityId);
@@ -167,6 +167,8 @@ namespace RR::Ecs
         void ProcessDefferedEvents();
         void Tick();
 
+        [[nodiscard]] bool IsLocked() const noexcept { return lockCounter > 0u; }
+
         World();
 
     private:
@@ -253,7 +255,7 @@ namespace RR::Ecs
             Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
             // TODO validate remove components and add/remove at some thime.
 
-            if (!isLocked())
+            if (!IsLocked())
             {
                 mutateEntity(entityId, from, fromIndex, to, [&](Archetype& archetype, ArchetypeEntityIndex index) {
                     (
@@ -437,7 +439,6 @@ namespace RR::Ecs
         // Systems would be queried for specific entity.
         void unicastEventImmediately(EntityId entity, const Ecs::Event& event) const;
 
-        [[nodiscard]] bool isLocked() const noexcept { return lockCounter > 0u; }
         void lock() noexcept { ++lockCounter; }
         void unlock() noexcept
         {
