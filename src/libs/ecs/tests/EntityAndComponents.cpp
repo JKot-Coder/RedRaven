@@ -9,73 +9,140 @@ struct WorldFixture
     World world;
 };
 
-Archetype& resolveArchetype(Entity entt)
-{
-    Archetype* archetype = nullptr;
-    ArchetypeEntityIndex index;
-    REQUIRE(entt.ResolveArhetype(archetype, index));
-    REQUIRE(archetype);
-    return *archetype;
-};
+namespace {
+    Archetype& resolveArchetype(Entity entt)
+    {
+        Archetype* archetype = nullptr;
+        ArchetypeEntityIndex index;
+        REQUIRE(entt.ResolveArhetype(archetype, index));
+        REQUIRE(archetype);
+        return *archetype;
+    };
 
-TEST_CASE_METHOD(WorldFixture, "Create Entity", "[Entity]")
-{
-    Entity entt1 = world.EmptyEntity();
-    Entity entt2 = world.EmptyEntity();
-    Entity entt3 = world.EmptyEntity();
-    REQUIRE(entt1.GetId());
-    REQUIRE(entt2.GetId().rawId == entt1.GetId().rawId + 1);
-    REQUIRE(entt3.GetId().rawId == entt2.GetId().rawId + 1);
+    template<typename Callable>
+    void immediateTest(Callable&& call)
+    {
+        World world;
+        call(world);
+    }
+
+    template<typename Callable>
+    void defferedTest(Callable&& call)
+    {
+        World world;
+
+        struct SingleExecutionToken{};
+        world.Entity().Add<SingleExecutionToken>().Apply();
+
+        bool called = false;
+        world.View().Require<SingleExecutionToken>().ForEach([&] {
+            call(world);
+            called = true;
+        });
+        REQUIRE(called);
+    }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Delete Entity", "[Entity]")
+TEST_CASE("Create Entity", "[Entity]")
 {
-    Entity entt1 = world.EmptyEntity();
-    Entity entt2 = world.EmptyEntity();
-    REQUIRE(entt2.IsAlive());
-    entt2.Destroy();
-    REQUIRE(!entt2.IsAlive());
-    Entity entt3 = world.EmptyEntity();
-    REQUIRE(entt1.IsAlive());
-    REQUIRE(entt3.IsAlive());
-    REQUIRE(entt1.GetId());
-    REQUIRE(entt3.GetId().GetGeneration() == entt2.GetId().GetGeneration() + 1);
-    REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
+    auto test = [](World& world)
+    {
+        Entity entt1 = world.EmptyEntity();
+        Entity entt2 = world.EmptyEntity();
+        Entity entt3 = world.EmptyEntity();
+        REQUIRE(entt1.GetId());
+        REQUIRE(entt2.GetId().rawId == entt1.GetId().rawId + 1);
+        REQUIRE(entt3.GetId().rawId == entt2.GetId().rawId + 1);
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Delete deleted Entity", "[Entity]")
+TEST_CASE("Delete Entity", "[Entity]")
 {
-    Entity entt1 = world.EmptyEntity();
-    Entity entt2 = world.EmptyEntity();
-    REQUIRE(entt2.IsAlive());
-    entt2.Destroy();
-    world.Destroy(entt2.GetId());
-    Entity entt3 = world.EmptyEntity();
-    REQUIRE(!entt2.IsAlive());
-    REQUIRE(entt1.IsAlive());
-    REQUIRE(entt3.IsAlive());
-    REQUIRE(entt1.GetId());
-    REQUIRE(entt3.GetId().GetGeneration() == entt2.GetId().GetGeneration() + 1);
-    REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
+    auto test = [&](World& world) {
+        Entity entt1 = world.EmptyEntity();
+        Entity entt2 = world.EmptyEntity();
+        REQUIRE(entt2.IsAlive());
+        entt2.Destroy();
+        REQUIRE(!entt2.IsAlive());
+        Entity entt3 = world.EmptyEntity();
+        REQUIRE(entt1.IsAlive());
+        REQUIRE(entt3.IsAlive());
+        REQUIRE(entt1.GetId());
+
+        if (!world.IsLocked())
+        {
+            REQUIRE(entt3.GetId().GetGeneration() == entt2.GetId().GetGeneration() + 1);
+            REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
+        }
+        else
+        {
+            REQUIRE(entt3.GetId().GetGeneration() == 0);
+            REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex() + 1);
+        }
+    };
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
+}
+
+TEST_CASE("Delete deleted Entity", "[Entity]")
+{
+    auto test = [&](World& world) {
+        Entity entt1 = world.EmptyEntity();
+        Entity entt2 = world.EmptyEntity();
+        REQUIRE(entt2.IsAlive());
+        entt2.Destroy();
+        world.Destroy(entt2.GetId());
+        Entity entt3 = world.EmptyEntity();
+        REQUIRE(!entt2.IsAlive());
+        REQUIRE(entt1.IsAlive());
+        REQUIRE(entt3.IsAlive());
+        REQUIRE(entt1.GetId());
+        if (!world.IsLocked())
+        {
+            REQUIRE(entt3.GetId().GetGeneration() == entt2.GetId().GetGeneration() + 1);
+            REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex());
+        }
+        else
+        {
+            REQUIRE(entt3.GetId().GetGeneration() == 0);
+            REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex() + 1);
+        }
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
 {
-    Entity entt1 = world.EmptyEntity();
-    REQUIRE(entt1.IsAlive());
-    entt1.Destroy();
-    REQUIRE(!entt1.IsAlive());
+    auto test = [&](World& world) {
+        Entity entt1 = world.EmptyEntity();
+        REQUIRE(entt1.IsAlive());
+        entt1.Destroy();
+        REQUIRE(!entt1.IsAlive());
 
-    entt1.Edit().Add<float>(0.0f).Apply();
-    REQUIRE(!entt1.Has<float>());
-    entt1.Edit().Remove<float>().Apply();
-    REQUIRE(!entt1.IsAlive());
+        entt1.Edit().Add<float>(0.0f).Apply();
+        REQUIRE(!entt1.Has<float>());
+        entt1.Edit().Remove<float>().Apply();
+        REQUIRE(!entt1.IsAlive());
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
 {
-    REQUIRE(world.Entity().Apply().IsAlive());
-    REQUIRE(world.EmptyEntity().Edit().Apply().IsAlive());
+    auto test = [&](World& world) {
+        REQUIRE(world.Entity().Apply().IsAlive());
+        REQUIRE(world.EmptyEntity().Edit().Apply().IsAlive());
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
@@ -84,18 +151,24 @@ TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
     struct Foo { int x; int z; };
     struct Bar { int x; };
     // clang-format on
-    Entity entt1 = world.EmptyEntity();
-    REQUIRE(!entt1.Has<Foo>());
-    entt1.Edit().Add<Foo>(1,1).Apply();
-    REQUIRE(entt1.Has<Foo>());
-    REQUIRE(!entt1.Has<Foo, Bar>());
-    entt1.Edit().Add<Bar>(1).Apply();
-    REQUIRE(entt1.Has<Foo, Bar>());
 
-    Entity entt2 = world.EmptyEntity();
-    REQUIRE(!entt2.Has<Foo, Bar>());
-    entt2.Edit().Add<Foo>(1,1).Add<Bar>(1).Apply();
-    REQUIRE(entt2.Has<Foo, Bar>());
+    auto test = [&](World& world) {
+        Entity entt1 = world.EmptyEntity();
+        REQUIRE(!entt1.Has<Foo>());
+        entt1.Edit().Add<Foo>(1,1).Apply();
+        REQUIRE(entt1.Has<Foo>());
+        REQUIRE(!entt1.Has<Foo, Bar>());
+        entt1.Edit().Add<Bar>(1).Apply();
+        REQUIRE(entt1.Has<Foo, Bar>());
+
+        Entity entt2 = world.EmptyEntity();
+        REQUIRE(!entt2.Has<Foo, Bar>());
+        entt2.Edit().Add<Foo>(1,1).Add<Bar>(1).Apply();
+        REQUIRE(entt2.Has<Foo, Bar>());
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
@@ -105,25 +178,35 @@ TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
     struct Bar { int x; };
     // clang-format on
 
-    Entity entt1 = world.Entity().Add<Foo>(1).Apply();
-    REQUIRE(entt1.Has<Foo>());
-    entt1.Edit().Remove<Foo>().Apply();
-    REQUIRE(!entt1.Has<Foo>());
+    auto test = [&](World& world) {
+        Entity entt1 = world.Entity().Add<Foo>(1).Apply();
+        REQUIRE(entt1.Has<Foo>());
+        entt1.Edit().Remove<Foo>().Apply();
+        REQUIRE(!entt1.Has<Foo>());
 
-    Entity entt2 = world.Entity().Add<Foo>(1).Apply();
-    REQUIRE(entt2.Has<Foo>());
-    entt2.Edit().Remove<Foo>().Add<Bar>(1).Apply();
-    REQUIRE(entt2.Has<Bar>());
-    REQUIRE(!entt2.Has<Foo>());
+        Entity entt2 = world.Entity().Add<Foo>(1).Apply();
+        REQUIRE(entt2.Has<Foo>());
+        entt2.Edit().Remove<Foo>().Add<Bar>(1).Apply();
+        REQUIRE(entt2.Has<Bar>());
+        REQUIRE(!entt2.Has<Foo>());
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
 {
-    using Vector = eastl::vector<int32_t>;
-    Entity entt1 = world.Entity().Add<Vector>(1).Apply();
-    REQUIRE(entt1.Has<Vector>());
-    entt1.Edit().Remove<Vector>().Apply();
-    REQUIRE(!entt1.Has<Vector>());
+    auto test = [&](World& world) {
+        using Vector = eastl::vector<int32_t>;
+        Entity entt1 = world.Entity().Add<Vector>(1).Apply();
+        REQUIRE(entt1.Has<Vector>());
+        entt1.Edit().Remove<Vector>().Apply();
+        REQUIRE(!entt1.Has<Vector>());
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
@@ -131,16 +214,21 @@ TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
     struct Tag{};
     struct Tag2{};
 
-    world.Entity().Add<Tag>().Apply();
-    Entity entt2 = world.Entity().Add<Tag>().Add<Tag2>().Apply();
-    world.Entity().Add<Tag>().Apply();
+    auto test = [&](World& world) {
+        world.Entity().Add<Tag>().Apply();
+        Entity entt2 = world.Entity().Add<Tag>().Add<Tag2>().Apply();
+        world.Entity().Add<Tag>().Apply();
 
-    REQUIRE(entt2.Has<Tag>());
-    REQUIRE(entt2.Has<Tag2>());
-    entt2.Edit().Remove<Tag2>().Apply();
-    REQUIRE(!entt2.Has<Tag2>());
-    entt2.Edit().Remove<Tag>().Apply();
-    REQUIRE(!entt2.Has<Tag>());
+        REQUIRE(entt2.Has<Tag>());
+        REQUIRE(entt2.Has<Tag2>());
+        entt2.Edit().Remove<Tag2>().Apply();
+        REQUIRE(!entt2.Has<Tag2>());
+        entt2.Edit().Remove<Tag>().Apply();
+        REQUIRE(!entt2.Has<Tag>());
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
@@ -276,16 +364,39 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
 
 TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
 {
-    using Vector = eastl::vector<int32_t>;
-    world.Entity().Add<Vector>(1).Apply();
-    Entity entt2 = world.Entity().Add<Vector>(2).Apply();
-    world.Entity().Add<Vector>(3).Apply();
+    auto test = [&](World& world) {
+        using Vector = eastl::vector<int32_t>;
+        world.Entity().Add<Vector>(1).Apply();
+        Entity entt2 = world.Entity().Add<Vector>(2).Apply();
+        world.Entity().Add<Vector>(3).Apply();
 
-    entt2.Edit().Remove<Vector>().Apply();
-    REQUIRE(!entt2.Has<Vector>());
+        entt2.Edit().Remove<Vector>().Apply();
+        REQUIRE(!entt2.Has<Vector>());
 
-    int32_t summ = 0;
-    const auto view = world.View().Require<Vector>();
-    view.ForEach([&](Vector vector) { summ += vector[0]; });
-    REQUIRE(summ == 4);
+        int32_t summ = 0;
+        const auto view = world.View().Require<Vector>();
+        view.ForEach([&](Vector vector) { summ += vector[0]; });
+        REQUIRE(summ == (world.IsLocked() ? 0 : 4));
+    };
+
+    SECTION("Immediate") { immediateTest(test); }
+    SECTION("Deffered") { defferedTest(test); }
 }
+/*
+#include <flecs.h>
+
+TEST_CASE_METHOD(WorldFixture, "flect", "[Components]")
+{
+    flecs::world w;
+
+    w.entity().set<int>(0);
+    auto c = w.entity();
+    w.defer_begin();
+    w.each([&](int){
+       //c.set<float>(0.f);
+        c.destruct();
+        REQUIRE(!c.is_alive());
+    });
+    w.defer_end();
+    w.defer_end();
+}*/
