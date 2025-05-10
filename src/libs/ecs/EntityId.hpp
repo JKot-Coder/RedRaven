@@ -8,9 +8,8 @@ namespace RR::Ecs
         static const uint32_t GenerationBits = 8;
         static_assert(IndexBits + GenerationBits == sizeof(uint32_t) * 8);
 
-        static const uint32_t MaxEntitiesCount = 1 << IndexBits;
-        static const uint32_t MaxGenerationsCount = 1 << GenerationBits;
-        static const uint32_t GenerationsMask = MaxGenerationsCount - 1;
+        static const uint32_t MaxEntities = (1 << IndexBits) - 1;
+        static const uint32_t MaxGenerations = (1 << GenerationBits) - 1;
         static const uint32_t InvalidRawId = 0xFFFFFFFF;
         struct IdFields
         {
@@ -27,6 +26,7 @@ namespace RR::Ecs
         constexpr EntityId(uint32_t id) : rawId(id) { }
         EntityId(uint32_t index, uint32_t generation)
         {
+            ASSERT(index < MaxEntities);
             fields.index = index;
             fields.generation = generation;
         }
