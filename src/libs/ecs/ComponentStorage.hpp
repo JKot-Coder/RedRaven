@@ -6,15 +6,14 @@
 
 namespace RR::Ecs
 {
-// TODO why we need this
     class ComponentStorage
     {
     public:
         template <typename T>
         ComponentId Register()
         {
-            // TODO assert if type registered but with different size.
             constexpr auto componentInfo = ComponentInfo::Create<T>();
+            ASSERT_MSG(isValid(componentInfo), "Component differs from previous registration!");
             componentsInfo.emplace(componentInfo.id, componentInfo);
             return componentInfo.id;
         }
@@ -25,6 +24,15 @@ namespace RR::Ecs
         auto begin() const { return componentsInfo.begin(); }
         auto end() const { return componentsInfo.end(); }
 
+    private:
+        bool isValid(const ComponentInfo& componentInfo)
+        {
+            auto it = componentsInfo.find(componentInfo.id);
+            if (it == componentsInfo.end())
+                return true;
+
+            return it->second == componentInfo;
+        }
     private:
         absl::flat_hash_map<ComponentId, ComponentInfo> componentsInfo;
     };

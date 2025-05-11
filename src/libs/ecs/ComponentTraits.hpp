@@ -71,6 +71,21 @@ namespace RR::Ecs
         Destructor destructor;
         Move move;
 
+        bool operator==(const ComponentInfo& other) const
+        {
+            return id == other.id &&
+                   size == other.size &&
+                   alignment == other.alignment &&
+                   constructDefault == other.constructDefault &&
+                   destructor == other.destructor &&
+                   move == other.move;
+        }
+
+        bool operator!=(const ComponentInfo& other) const
+        {
+            return !(*this == other);
+        }
+
         template <bool Condition, typename T>
         static constexpr T eval(T&& v)
         {
