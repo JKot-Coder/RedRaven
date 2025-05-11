@@ -9,8 +9,8 @@
 namespace
 {
     template <typename InputIt1, typename InputIt2, typename Callback>
-    void SetDifference(InputIt1 first1, InputIt1 last1,
-                       InputIt2 first2, InputIt2 last2, Callback&& clb)
+    void ForEachRemovedElementinSet(InputIt1 first1, InputIt1 last1,
+                                    InputIt2 first2, InputIt2 last2, Callback&& clb)
     {
         while (first1 != last1 && first2 != last2)
         {
@@ -416,9 +416,9 @@ namespace RR::Ecs
         {
             if (toDissapear != to.cache.end())
             {
-                SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(),
-                              toDissapear->second.begin(), toDissapear->second.end(),
-                              [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
+                ForEachRemovedElementinSet(fromDissapear->second.begin(), fromDissapear->second.end(),
+                                           toDissapear->second.begin(), toDissapear->second.end(),
+                                           [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
             }
             else
             {
@@ -448,7 +448,7 @@ namespace RR::Ecs
             {
                 if (fromAppear != from->cache.end())
                 {
-                    SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
+                    ForEachRemovedElementinSet(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
                 }
                 else
                     for (const auto systemId : toAppear->second)
