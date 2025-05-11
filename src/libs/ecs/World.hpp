@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/NonCopyableMovable.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 
 #include "ecs/Archetype.hpp"
@@ -35,8 +36,10 @@ namespace RR::Ecs
 
         struct LockGuard
         {
-            LockGuard(World* world) : world(world) { world->lock(); }
+            NONCOPYABLE_MOVABLE(LockGuard)
+            explicit LockGuard(World* world) : world(world) { world->lock(); }
             ~LockGuard() { world->unlock(); }
+        private:
             World* world;
         };
 
