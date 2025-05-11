@@ -1,22 +1,23 @@
 #pragma once
 
-namespace RR
+#include "common/NonCopyableMovable.hpp"
+namespace RR::Common
 {
-    namespace Common
+    template <class T>
+    class Singleton
     {
-        template <class T>
-        class Singleton : private NonCopyable, NonMovable
-        {
-        public:
-            static T& Instance()
-            {
-                static_assert(std::is_default_constructible<T>::value, "T should be default constructible");
-                static T instance;
-                return instance;
-            }
+    public:
+        NONCOPYABLE_MOVABLE(Singleton)
 
-        protected:
-            Singleton() = default;
-        };
-    }
+        static T& Instance()
+        {
+            static_assert(std::is_default_constructible<T>::value, "T should be default constructible");
+            static T instance;
+            return instance;
+        }
+
+    protected:
+        Singleton() = default;
+        ~Singleton() = default;
+    };
 }
