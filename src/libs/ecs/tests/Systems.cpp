@@ -237,11 +237,12 @@ TEST_CASE_METHOD(WorldFixture, "OnAppear", "[Event]")
         REQUIRE(calls == 1);
 
         const auto entity = world.Entity().Add<int>(1).Add<float>(1.0f).Apply();
+        REQUIRE(calls == 2);
         entity.Edit().Remove<float>().Apply();
         REQUIRE(calls == 2);
 
         entity.Edit().Remove<int>().Apply();
-        world.OrderSystems();
+        REQUIRE(calls == 2);
         entity.Edit().Add<int>().Apply();
         REQUIRE(calls == 3);
 
