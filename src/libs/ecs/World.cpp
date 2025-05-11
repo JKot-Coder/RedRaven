@@ -416,6 +416,9 @@ namespace RR::Ecs
         {
             if (toDissapear != to.cache.end())
             {
+                // TODO THIS IS NOT VALID, caches sorted by system order, not by numeric order.
+                // This should UB for ForEachRemovedElementinSet
+                // Also use methods from component traits sorted components
                 ForEachRemovedElementinSet(fromDissapear->second.begin(), fromDissapear->second.end(),
                                            toDissapear->second.begin(), toDissapear->second.end(),
                                            [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
