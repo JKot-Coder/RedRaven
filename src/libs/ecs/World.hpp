@@ -412,7 +412,11 @@ namespace RR::Ecs
 
         ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
         Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
-        // TODO validate remove components and add/remove at some thime.
+
+#ifdef ENABLE_ASSERTS
+        std::sort(addedComponents.begin(), addedComponents.end());
+        ASSERT_MSG(!SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time");
+#endif
 
         if (!IsLocked())
         {
