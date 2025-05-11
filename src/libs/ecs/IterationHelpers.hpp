@@ -120,14 +120,14 @@ namespace RR::Ecs
         template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
         static void processChunk(Func&& func, size_t entitiesCount, ComponentAccessors... components)
         {
-            #if 0 // Auto unroll works better
-                // clang-format off
+            // clang-format off
+            #if 0
+                // Auto unroll works better
                 #ifdef __GNUC__
                 #error "Fix unroll for ggc"
                 #endif
-
-                #pragma unroll UNROLL_N // clang-format on
-            #endif
+                #pragma unroll UNROLL_N
+            #endif // clang-format on
             for (size_t i = 0; i < entitiesCount; i++)
                 invoke<typename ComponentAccessors::Argument...>(eastl::forward<Func>(func), components.Get(i)...);
         }
