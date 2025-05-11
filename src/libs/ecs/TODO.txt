@@ -1,15 +1,12 @@
 + Tags should not allocate memory!
-# Debug checks for incorrect api calls
 + Put enttity in empty archetype
 + Make api to create with builder.
-# Add names for Entitties
 + Caching
 + Move instead copy
 + Chunk size in kb
 + Implement Query.
 + Rework systems.
 + Appear / dissapear
-# Track
 + Check world match
 + ImplementTypeInfo iterator
 + implement Query iterator
@@ -18,33 +15,49 @@
 + event for entity
 + implement query context
 + query by entity.
-# singletons
-# checks for copy/move only
 + todo refactor systems/queries to entitites.
-# rework queries/view (uncached queries?)
-# world view?
 + rework chunk system
 + Optional components
-# Refactor all queries
-# refactor includes
++ Refactor all queries
 + assert for chunk count and chunk entity sizes
 + rework Events Api
 + more Events tests
 + more tests of edit update on deleted
-# Command buffer
-# deffered commands.
++ Command buffer
++ deffered commands.
 + deffered delete
-# deffered tests
++ deffered tests
 + uint32_t everything
-# parents? (Better to not do)
 + systems ordering
 + log err while systems not ordered.
 + Benchmarks
 + replace Ska?
-# delete systems / queries
-# do not allow delete add world entityid or event.
 + more checks for apper dissapear
 + thread safity checks
++ reorder functions in world
+
+Absolutely necessary:
 # check all args present in required components.
 # check required and exluded do not overlap
-+ reorder functions in world
+# Track
+# singletons
+# checks for copy/move only
+* Protection of updating same archetype in subqueries. (borrow checker) (Ask GPT how other do that?)
+
+Nice to have:
+* Caching of components index in queries and systems
+* Checks for asserts in tests
+
+???:
+# refactor includes
+# delete systems / queries
+# do not allow delete add world entityid or event.
+# Debug checks for incorrect api calls
+
+Probably:
+* parents
+* rework queries/view (uncached queries?)
+* world view?
+* Add names for entitites
+* Parrallel execution
+* Declare all subqueries in system declaration (to have 100% nice graph of dependecies)
