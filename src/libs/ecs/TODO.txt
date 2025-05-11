@@ -46,3 +46,5 @@
 + more checks for apper dissapear
 + thread safity checks
 # check all args present in required components.
+# check required and exluded do not overlap
++ reorder functions in world
