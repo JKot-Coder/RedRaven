@@ -218,7 +218,6 @@ namespace RR::Ecs
 
         std::apply(
             [&archetype, index](auto&&... unpackedArgs) {
-                // TODO this could be reused from mutate.
                 const auto componentIndex = archetype.GetComponentIndex(GetComponentId<Component>);
                 archetype.ConstructComponent<Component>(index, componentIndex, eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...);
             },
@@ -372,7 +371,6 @@ namespace RR::Ecs
             EntityRecord record;
             if (!ResolveEntityRecord(entityId, record))
             {
-                // TODO refactor simply this.
                 ASSERT(false); // Impossible
                 return entityId;
             }
