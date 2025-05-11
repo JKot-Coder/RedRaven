@@ -16,7 +16,7 @@ namespace RR::Ecs
     using ComponentsSet = FixedVectorSet<ComponentId, PreallocatedComponentsCount>;
 
     template <bool Sorted>
-    struct ComponentsView // TODO eastl::span?
+    struct ComponentsView
     {
         using Iterator = const ComponentId*;
         using IsSorted = std::integral_constant<bool, Sorted>;

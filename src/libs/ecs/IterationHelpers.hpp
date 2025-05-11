@@ -120,7 +120,7 @@ namespace RR::Ecs
         template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
         static void processChunk(Func&& func, size_t entitiesCount, ComponentAccessors... components)
         {
-            #if 0 // Auto unroll worlks better
+            #if 0 // Auto unroll works better
                 // clang-format off
                 #ifdef __GNUC__
                 #error "Fix unroll for ggc"
