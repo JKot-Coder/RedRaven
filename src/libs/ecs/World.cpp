@@ -320,7 +320,7 @@ namespace RR::Ecs
         systemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
             for (auto* archetype : archetypesCache)
             {
-                if (!matches(*archetype, view))
+                if LIKELY (!matches(*archetype, view))
                     continue;
 
                 cache.push_back(archetype);
@@ -339,7 +339,7 @@ namespace RR::Ecs
         queriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
             for (const auto* archetype : archetypesCache)
             {
-                if (!matches(*archetype, view))
+                if LIKELY(!matches(*archetype, view))
                     continue;
 
                 cache.push_back(archetype);
@@ -355,14 +355,14 @@ namespace RR::Ecs
         archetypesCache.push_back(&archetype);
 
         Ecs::Query(*this, queriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
-            if (!matches(archetype, view))
+            if LIKELY (!matches(archetype, view))
                 return;
 
             cache.push_back(&archetype);
         });
 
         Ecs::Query(*this, systemsQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription& systemDesc) {
-            if (!matches(archetype, view))
+            if LIKELY (!matches(archetype, view))
                 return;
 
             cache.push_back(&archetype);

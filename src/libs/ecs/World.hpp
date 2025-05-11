@@ -118,11 +118,8 @@ namespace RR::Ecs
 
         static bool matches(const Archetype& archetype, const Ecs::View& view)
         {
-            if LIKELY (!archetype.HasAll(SortedComponentsView(view.require)) ||
-                       archetype.HasAny(SortedComponentsView(view.exclude)))
-                return false;
-
-            return true;
+            return !(!archetype.HasAll(SortedComponentsView(view.require)) ||
+                    archetype.HasAny(SortedComponentsView(view.exclude)));
         }
 
         Archetype& createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components);
@@ -290,7 +287,7 @@ namespace RR::Ecs
 
         for (const auto* archetype : archetypesCache)
         {
-            if (!matches(*archetype, view))
+            if LIKELY (!matches(*archetype, view))
                 continue;
 
             ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
@@ -328,7 +325,7 @@ namespace RR::Ecs
             return;
         }
 
-        if (!matches(*record.GetArchetype(false), view))
+        if UNLIKELY (!matches(*record.GetArchetype(false), view))
         {
             // VODO view doesn't match with archetype. Propper logerr here
             ASSERT(false);
