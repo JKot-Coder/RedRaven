@@ -96,94 +96,18 @@ namespace RR::Ecs
         systemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
     }
 
-    Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
+    void World::Destroy(EntityId entityId)
     {
         ASSERT_IS_CREATION_THREAD;
+        if (!IsAlive(entityId)) return;
 
-        auto* archetype = archetypesMap.emplace(archetypeId,
-                                                eastl::make_unique<Archetype>(
-                                                    ComponentInfoIterator(componentStorage, components.begin()),
-                                                    ComponentInfoIterator(componentStorage, components.end())))
-                              .first->second.get();
-
-        return *archetype;
-    }
-
-    Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        Archetype* archetype = nullptr;
-
-        auto it = archetypesMap.find(archetypeId);
-        if (it == archetypesMap.end())
+        if (IsLocked())
         {
-            archetype = &createArchetypeNoCache(archetypeId, components);
-
-            if (IsLocked())
-                commandBuffer.InitCache(*archetype);
-            else
-                initCache(*archetype);
+            entityStorage.PendingDestroy(entityId);
+            commandBuffer.Destroy(entityId);
         }
         else
-            archetype = it->second.get();
-
-        return *archetype;
-    }
-
-    void World::initCache(SystemId id)
-    {
-        systemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
-            for (auto* archetype : archetypesCache)
-            {
-                if (!matches(*archetype, view))
-                    continue;
-
-                cache.push_back(archetype);
-                for (const auto event : systemDesc.onEvents)
-                    archetype->cache[event].push_back(id);
-            }
-
-            for (const auto event : systemDesc.onEvents)
-                eventSubscribers[event].push_back(id);
-        });
-    }
-
-    void World::initCache(QueryId id)
-    {
-        queriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
-            for (const auto* archetype : archetypesCache)
-            {
-                if (!matches(*archetype, view))
-                    continue;
-
-                cache.push_back(archetype);
-            }
-        });
-    }
-
-    void World::initCache(Archetype& archetype)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!IsLocked());
-
-        archetypesCache.push_back(&archetype);
-
-        Ecs::Query(*this, queriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
-            if (!matches(archetype, view))
-                return;
-
-            cache.push_back(&archetype);
-        });
-
-        Ecs::Query(*this, systemsQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription& systemDesc) {
-            if (!matches(archetype, view))
-                return;
-
-            cache.push_back(&archetype);
-
-            for (const auto event : systemDesc.onEvents)
-                archetype.cache[event].push_back(SystemId(id.GetRawId()));
-        });
+            destroyImpl(entityId);
     }
 
     Ecs::EntityBuilder<void, void> World::Entity()
@@ -208,166 +132,6 @@ namespace RR::Ecs
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
             desc.callback(world, nullptr, {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
         });
-    }
-
-    void World::ProcessDefferedEvents()
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!IsLocked());
-
-        eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
-            if (entityId)
-                unicastEventImmediately(entityId, event);
-            else
-                broadcastEventImmediately(event);
-        });
-    }
-
-    void World::Tick()
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!IsLocked());
-        OrderSystems();
-        // Update events;
-
-        ProcessDefferedEvents();
-    }
-    /*
-        Entity World::Lookup(const char* name, const char* sep, const char* root_sep, bool recursive) const
-        {
-            auto e = ecs_lookup_path_w_sep(world, 0, name, sep, root_sep, recursive);
-            return Entity(*this, e);
-        }
-
-        Entity World::GetAlive(EntityId e) const
-        {
-            e = ecs_get_alive(world, e);
-            return Entity(*this, e);
-        }*/
-
-    void World::broadcastEventImmediately(const Ecs::Event& event) const
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!systemsOrderDirty);
-
-        const auto it = eventSubscribers.find(event.id);
-        // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
-        if (it == eventSubscribers.end())
-            return;
-
-        for (const auto systemId : it->second)
-            dispatchEventImmediately({}, systemId, event);
-    }
-
-    void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!systemsOrderDirty);
-
-        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            desc.callback(world, &event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
-        });
-    }
-
-    void World::unicastEventImmediately(EntityId entity, const Ecs::Event& event) const
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!systemsOrderDirty);
-
-        EntityRecord record;
-        if (!ResolveEntityRecord(entity, record))
-            return;
-
-        // TODO. Any pending mutations/deletion will be ignored. Add message/asset about it?
-        const auto it = record.GetArchetype(false)->cache.find(event.id);
-        if (it == record.GetArchetype(false)->cache.end())
-            return;
-
-        for (const auto systemId : it->second)
-            dispatchEventImmediately(entity, systemId, event);
-    }
-
-    Query World::createQuery(Ecs::View&& view)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        Ecs::Entity entt = Entity()
-                               .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
-                               .Add<MatchedArchetypeCache>()
-                               .Apply();
-
-        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().rawId));
-        initCache(queryId);
-
-        return Ecs::Query(*this, queryId);
-    }
-
-    Ecs::System World::createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        Ecs::Entity entt = Entity()
-                               .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
-                               .Add<MatchedArchetypeCache>()
-                               .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
-                               .Add<HashName>(eastl::forward<HashName>(name))
-                               .Apply();
-
-        const auto systemId = SystemId(entt.GetId().rawId);
-        initCache(systemId);
-
-        systemsOrderDirty = true;
-
-        return Ecs::System(*this, systemId);
-    }
-
-    void World::handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
-        const auto fromDissapear = from.cache.find(GetEventId<OnDissapear>);
-
-        if (fromDissapear != from.cache.end())
-        {
-            if (toDissapear != to.cache.end())
-            {
-                SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(),
-                              toDissapear->second.begin(), toDissapear->second.end(),
-                              [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
-            }
-            else
-            {
-                for (const auto systemId : fromDissapear->second)
-                    dispatchEventImmediately(entity, systemId, OnDissapear {});
-            }
-        }
-    }
-
-    void World::handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        if (from == nullptr)
-        {
-            // First time appear, send On Appear event every subscriber.
-            const auto it = to.cache.find(GetEventId<OnAppear>);
-            if (it != to.cache.end())
-                for (const auto systemId : it->second)
-                    dispatchEventImmediately(entity, systemId, OnAppear {});
-        }
-        else
-        {
-            const auto toAppear = to.cache.find(GetEventId<OnAppear>);
-            const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
-
-            if (toAppear != to.cache.end())
-            {
-                if (fromAppear != from->cache.end())
-                {
-                    SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
-                }
-                else
-                    for (const auto systemId : toAppear->second)
-                        dispatchEventImmediately(entity, systemId, OnAppear {});
-            }
-        }
     }
 
     void World::OrderSystems()
@@ -478,5 +242,260 @@ namespace RR::Ecs
         }
 
         systemsOrderDirty = false;
+    }
+
+    void World::ProcessDefferedEvents()
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
+
+        eventStorage.ProcessEvents([this](EntityId entityId, const Ecs::Event& event) {
+            if (entityId)
+                unicastEventImmediately(entityId, event);
+            else
+                broadcastEventImmediately(event);
+        });
+    }
+
+    void World::Tick()
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
+        OrderSystems();
+        // Update events;
+
+        ProcessDefferedEvents();
+    }
+
+    void World::destroyImpl(EntityId entityId)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
+
+        EntityRecord record;
+        if (ResolveEntityRecord(entityId, record))
+        {
+            unicastEventImmediately(entityId, OnDissapear {});
+            record.GetArchetype(false)->Delete(entityStorage, record.GetIndex(false), false);
+        }
+
+        entityStorage.Destroy(entityId);
+    }
+
+    Ecs::System World::createSystem(SystemDescription&& desc, Ecs::View&& view, HashName&& name)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        Ecs::Entity entt = Entity()
+                               .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
+                               .Add<MatchedArchetypeCache>()
+                               .Add<SystemDescription>(eastl::forward<SystemDescription>(desc))
+                               .Add<HashName>(eastl::forward<HashName>(name))
+                               .Apply();
+
+        const auto systemId = SystemId(entt.GetId().rawId);
+        initCache(systemId);
+
+        systemsOrderDirty = true;
+
+        return Ecs::System(*this, systemId);
+    }
+
+    Query World::createQuery(Ecs::View&& view)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        Ecs::Entity entt = Entity()
+                               .Add<Ecs::View>(eastl::forward<Ecs::View>(view))
+                               .Add<MatchedArchetypeCache>()
+                               .Apply();
+
+        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().rawId));
+        initCache(queryId);
+
+        return Ecs::Query(*this, queryId);
+    }
+
+    void World::initCache(SystemId id)
+    {
+        // TODO NOT ALLOW FOR deffered mode!!!!!
+        systemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
+            for (auto* archetype : archetypesCache)
+            {
+                if (!matches(*archetype, view))
+                    continue;
+
+                cache.push_back(archetype);
+                for (const auto event : systemDesc.onEvents)
+                    archetype->cache[event].push_back(id);
+            }
+
+            for (const auto event : systemDesc.onEvents)
+                eventSubscribers[event].push_back(id);
+        });
+    }
+
+    void World::initCache(QueryId id)
+    {
+        // TODO NOT ALLOW FOR deffered mode!!!!!
+        queriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
+            for (const auto* archetype : archetypesCache)
+            {
+                if (!matches(*archetype, view))
+                    continue;
+
+                cache.push_back(archetype);
+            }
+        });
+    }
+
+    void World::initCache(Archetype& archetype)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
+
+        archetypesCache.push_back(&archetype);
+
+        Ecs::Query(*this, queriesQuery).ForEach([&archetype](Ecs::View& view, MatchedArchetypeCache& cache) {
+            if (!matches(archetype, view))
+                return;
+
+            cache.push_back(&archetype);
+        });
+
+        Ecs::Query(*this, systemsQuery).ForEach([&archetype](EntityId id, Ecs::View& view, MatchedArchetypeCache& cache, SystemDescription& systemDesc) {
+            if (!matches(archetype, view))
+                return;
+
+            cache.push_back(&archetype);
+
+            for (const auto event : systemDesc.onEvents)
+                archetype.cache[event].push_back(SystemId(id.GetRawId()));
+        });
+    }
+
+    Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
+    {
+        ASSERT_IS_CREATION_THREAD;
+
+        auto* archetype = archetypesMap.emplace(archetypeId,
+                                                eastl::make_unique<Archetype>(
+                                                    ComponentInfoIterator(componentStorage, components.begin()),
+                                                    ComponentInfoIterator(componentStorage, components.end())))
+                              .first->second.get();
+
+        return *archetype;
+    }
+
+    Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        Archetype* archetype = nullptr;
+
+        auto it = archetypesMap.find(archetypeId);
+        if (it == archetypesMap.end())
+        {
+            archetype = &createArchetypeNoCache(archetypeId, components);
+
+            if (IsLocked())
+                commandBuffer.InitCache(*archetype);
+            else
+                initCache(*archetype);
+        }
+        else
+            archetype = it->second.get();
+
+        return *archetype;
+    }
+
+    void World::handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        const auto toDissapear = to.cache.find(GetEventId<OnDissapear>);
+        const auto fromDissapear = from.cache.find(GetEventId<OnDissapear>);
+
+        if (fromDissapear != from.cache.end())
+        {
+            if (toDissapear != to.cache.end())
+            {
+                SetDifference(fromDissapear->second.begin(), fromDissapear->second.end(),
+                              toDissapear->second.begin(), toDissapear->second.end(),
+                              [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
+            }
+            else
+            {
+                for (const auto systemId : fromDissapear->second)
+                    dispatchEventImmediately(entity, systemId, OnDissapear {});
+            }
+        }
+    }
+
+    void World::handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        if (from == nullptr)
+        {
+            // First time appear, send On Appear event every subscriber.
+            const auto it = to.cache.find(GetEventId<OnAppear>);
+            if (it != to.cache.end())
+                for (const auto systemId : it->second)
+                    dispatchEventImmediately(entity, systemId, OnAppear {});
+        }
+        else
+        {
+            const auto toAppear = to.cache.find(GetEventId<OnAppear>);
+            const auto fromAppear = from->cache.find(GetEventId<OnAppear>);
+
+            if (toAppear != to.cache.end())
+            {
+                if (fromAppear != from->cache.end())
+                {
+                    SetDifference(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
+                }
+                else
+                    for (const auto systemId : toAppear->second)
+                        dispatchEventImmediately(entity, systemId, OnAppear {});
+            }
+        }
+    }
+
+    void World::broadcastEventImmediately(const Ecs::Event& event) const
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!systemsOrderDirty);
+
+        const auto it = eventSubscribers.find(event.id);
+        // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
+        if (it == eventSubscribers.end())
+            return;
+
+        for (const auto systemId : it->second)
+            dispatchEventImmediately({}, systemId, event);
+    }
+
+    void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!systemsOrderDirty);
+
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+            desc.callback(world, &event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+        });
+    }
+
+    void World::unicastEventImmediately(EntityId entity, const Ecs::Event& event) const
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!systemsOrderDirty);
+
+        EntityRecord record;
+        if (!ResolveEntityRecord(entity, record))
+            return;
+
+        // TODO. Any pending mutations/deletion will be ignored. Add message/asset about it?
+        const auto it = record.GetArchetype(false)->cache.find(event.id);
+        if (it == record.GetArchetype(false)->cache.end())
+            return;
+
+        for (const auto systemId : it->second)
+            dispatchEventImmediately(entity, systemId, event);
     }
 }
