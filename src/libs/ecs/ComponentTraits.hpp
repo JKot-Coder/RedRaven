@@ -29,6 +29,55 @@ namespace RR::Ecs
         constexpr Iterator end() const { return end_; }
         constexpr size_t size() const { return eastl::distance(begin_, end_); }
 
+        template <bool S = Sorted, typename = std::enable_if_t<S>>
+        constexpr bool IsIncludes(const ComponentsView& other) const
+        {
+            return std::includes(begin_, end_, other.begin_, other.end_);
+        }
+
+        template <bool S = Sorted, typename = std::enable_if_t<S>>
+        constexpr bool IsIntersects(const ComponentsView& other) const
+        {
+            auto first1 = begin();
+            auto last1 = end();
+            auto first2 = other.begin();
+            auto last2 = other.end();
+
+            while (first1 != last1 && first2 != last2)
+            {
+                if (*first1 < *first2)
+                    ++first1;
+                else
+                {
+                    if (*first2 == *first1)
+                        return true;
+                    ++first2;
+                }
+            }
+            return false;
+        }
+
+        template <bool S = Sorted, typename = std::enable_if_t<S>, typename Callback>
+        void ForEachMissing(const ComponentsView& other, Callback&& callback)
+        {
+            auto first1 = begin();
+            auto first2 = other.begin();
+            auto last1 = end();
+            auto last2 = other.end();
+
+            while (first1 != last1 && first2 != last2)
+            {
+                if (*first1 < *first2)
+                    eastl::invoke(eastl::forward<Callback>(callback), *first1++);
+                else
+                {
+                    if (!(*first2 < *first1))
+                        ++first1;
+                    ++first2;
+                }
+            }
+        }
+
     private:
         Iterator begin_;
         Iterator end_;

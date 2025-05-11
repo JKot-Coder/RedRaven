@@ -247,28 +247,12 @@ namespace RR::Ecs
 
         bool HasAll(SortedComponentsView components_) const
         {
-            return std::includes(components().begin(), components().end(), components_.begin(), components_.end());
+            return SortedComponentsView(components()).IsIncludes(components_);
         }
 
         bool HasAny(SortedComponentsView components_) const
         {
-            auto it1 = components().begin();
-            auto it2 = components_.begin();
-
-            while (it1 != components().end() && it2 != components_.end())
-            {
-                if (*it1 < *it2)
-                {
-                    ++it1;
-                }
-                else if (*it2 < *it1)
-                {
-                    ++it2;
-                }
-                else
-                    return true;
-            }
-            return false;
+            return SortedComponentsView(components()).IsIntersects(components_);
         }
 
         EntityId& GetEntityIdData(ArchetypeEntityIndex index) const
