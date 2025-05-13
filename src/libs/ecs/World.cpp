@@ -9,19 +9,34 @@
 namespace
 {
     template <typename InputIt1, typename InputIt2, typename Callback>
-    void ForEachRemovedElementinSet(InputIt1 first1, InputIt1 last1,
-                                    InputIt2 first2, InputIt2 last2, Callback&& clb)
+    void ForEachMissingElement(InputIt1 first1, InputIt1 last1,
+                               InputIt2 first2, InputIt2 last2, Callback&& clb)
     {
-        while (first1 != last1 && first2 != last2)
+        // This used for systems, which ordered in execution order.
+        // So no any optimizations based on numerical order.
+        // N^2 complexity, but should be fast enough for small sets.
+        // We need this only for Appead Dissapear and in case it could be replaced with cached results.
+
+        while (first1 != last1)
         {
-            if (*first1 < *first2)
-                eastl::invoke(eastl::forward<Callback>(clb), *first1++);
-            else
+            bool found = false;
+            auto it = first2;
+            while (it != last2)
             {
-                if (!(*first2 < *first1))
-                    ++first1;
-                ++first2;
+                if (*it++ != *first1)
+                    continue;
+
+                if(it == first2) first2++;
+                if(it == last2) last2--;
+
+                found = true;
+                break;
             }
+
+            if (!found)
+                eastl::invoke(eastl::forward<Callback>(clb), *first1);
+
+            first1++;
         }
     }
 
@@ -416,12 +431,9 @@ namespace RR::Ecs
         {
             if (toDissapear != to.cache.end())
             {
-                // TODO THIS IS NOT VALID, caches sorted by system order, not by numeric order.
-                // This should UB for ForEachRemovedElementinSet
-                // Also use methods from component traits sorted components
-                ForEachRemovedElementinSet(fromDissapear->second.begin(), fromDissapear->second.end(),
-                                           toDissapear->second.begin(), toDissapear->second.end(),
-                                           [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
+                ForEachMissingElement(fromDissapear->second.begin(), fromDissapear->second.end(),
+                                      toDissapear->second.begin(), toDissapear->second.end(),
+                                      [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnDissapear {}); });
             }
             else
             {
@@ -451,7 +463,9 @@ namespace RR::Ecs
             {
                 if (fromAppear != from->cache.end())
                 {
-                    ForEachRemovedElementinSet(toAppear->second.begin(), toAppear->second.end(), fromAppear->second.begin(), fromAppear->second.end(), [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
+                    ForEachMissingElement(toAppear->second.begin(), toAppear->second.end(),
+                                          fromAppear->second.begin(), fromAppear->second.end(),
+                                          [entity, this](SystemId systemId) { dispatchEventImmediately(entity, systemId, OnAppear {}); });
                 }
                 else
                     for (const auto systemId : toAppear->second)
