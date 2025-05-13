@@ -480,7 +480,6 @@ namespace RR::Ecs
         ASSERT(!systemsOrderDirty);
 
         const auto it = eventSubscribers.find(event.id);
-        // Little bit wierd to send event without any subsribers. TODO Maybe log here in bebug
         if (it == eventSubscribers.end())
             return;
 
