@@ -331,7 +331,8 @@ namespace RR::Ecs
 
     void World::initCache(SystemId id)
     {
-        // TODO NOT ALLOW FOR deffered mode!!!!!
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
         systemsView.ForEntity(EntityId(id.GetRaw()), [id, this](MatchedArchetypeCache& cache, SystemDescription& systemDesc, Ecs::View& view) {
             for (auto* archetype : archetypesCache)
             {
@@ -350,7 +351,8 @@ namespace RR::Ecs
 
     void World::initCache(QueryId id)
     {
-        // TODO NOT ALLOW FOR deffered mode!!!!!
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
         queriesView.ForEntity(EntityId(id.GetRaw()), [this](MatchedArchetypeCache& cache, Ecs::View& view) {
             for (const auto* archetype : archetypesCache)
             {
