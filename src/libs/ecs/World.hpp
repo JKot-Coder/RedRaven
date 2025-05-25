@@ -29,6 +29,51 @@
 
 namespace RR::Ecs
 {
+#ifdef ENABLE_ASSERTS
+    namespace Debug
+    {
+        template <typename ComponentType>
+        bool IsComponentInView(const Ecs::View& view)
+        {
+            static_assert(IsComponent<ComponentType>, "ComponentType must be a component type");
+
+            if constexpr (eastl::is_same_v<ComponentType, Ecs::World> ||
+                        eastl::is_base_of_v<Ecs::Event, ComponentType> ||
+                        eastl::is_same_v<ComponentType, Ecs::EntityId>)
+                return true;
+
+            constexpr ComponentId compId = GetComponentId<ComponentType>;
+            return view.require.find(compId) != view.require.end();
+        }
+
+        template<typename Arg>
+        void ValidateComponentAgainstView(const Ecs::View& view)
+        {
+            using ComponentType = GetComponentType<Arg>;
+            ASSERT_MSG(
+                IsComponentInView<ComponentType>(view),
+                "Component {} used in lambda is not specified in the View's require set. Check component type and View definition.",
+                GetTypeName<ComponentType>
+            );
+        }
+
+        template<typename ArgumentList, size_t... Indices>
+        void ValidateArgumentsAgainstView(const Ecs::View& view, eastl::index_sequence<Indices...>)
+        {
+            (ValidateComponentAgainstView<GetComponentType<typename ArgumentList::template Get<Indices>>>(view), ...);
+        }
+
+        template<typename Callable>
+        void ValidateLambdaArgumentsAgainstView(const Ecs::View& view, Callable&& /*callable*/)
+        {
+            using ArgList = GetArgumentList<Callable>;
+
+            if constexpr (ArgList::Count > 0)
+                ValidateArgumentsAgainstView<ArgList>(view, eastl::make_index_sequence<ArgList::Count>());
+        }
+    }
+#endif
+
     struct World
     {
     private:
@@ -526,6 +571,10 @@ namespace RR::Ecs
     template <typename Callable>
     inline void Query::ForEach(Callable&& callable) const
     {
+#ifdef ENABLE_ASSERTS
+        Debug::ValidateLambdaArgumentsAgainstView(view, callable);
+#endif
+
         world.query(id, eastl::forward<Callable>(callable));
     }
 

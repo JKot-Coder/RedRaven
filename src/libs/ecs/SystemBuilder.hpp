@@ -3,6 +3,7 @@
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/FunctionTraits.hpp"
 #include "ecs/System.hpp"
+#include "ecs/World.hpp"
 
 namespace RR::Ecs
 {
@@ -58,6 +59,9 @@ namespace RR::Ecs
         template <typename Callback>
         System ForEach(Callback&& callback)
         {
+#ifdef ENABLE_ASSERTS
+            Debug::ValidateLambdaArgumentsAgainstView(this->view, callback);
+#endif
             desc.callback = [cb = std::forward<Callback>(callback)](Ecs::World& world, Ecs::Event const * event, Ecs::EntityId entityId, Ecs::MatchedArchetypeSpan archetypes) {
                 if (!entityId)
                     world.query(archetypes, event, eastl::move(cb));
