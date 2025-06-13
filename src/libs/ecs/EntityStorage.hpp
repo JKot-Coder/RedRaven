@@ -78,18 +78,18 @@ namespace RR::Ecs
 
         bool CanAcesss(EntityId entityId) const
         {
-            return entityId.fields.index < entityRecords.size() &&
-                   entityRecords[entityId.fields.index].generation == entityId.fields.generation;
+            return entityId.GetIndex() < entityRecords.size() &&
+                   entityRecords[entityId.GetIndex()].generation == entityId.GetGeneration();
         }
 
         void Destroy(EntityId entityId)
         {
             if (CanAcesss(entityId))
             {
-                auto& entityRecord = entityRecords[entityId.fields.index];
+                auto& entityRecord = entityRecords[entityId.GetIndex()];
                 uint32_t nextGeneration = entityRecord.generation + 1;
                 if (nextGeneration < EntityId::MaxGenerations)
-                    freeId.push_back(EntityId(entityId.fields.index, nextGeneration));
+                    freeId.push_back(EntityId(entityId.GetIndex(), nextGeneration));
                 entityRecord.generation = EntityId::MaxGenerations;
             }
         }
@@ -99,7 +99,7 @@ namespace RR::Ecs
             if (!CanAcesss(entityId))
                 return false;
 
-            auto& entityRecord = entityRecords[entityId.fields.index];
+            auto& entityRecord = entityRecords[entityId.GetIndex()];
             entityRecord.pendingArchetype = nullptr;
             return true;
         }
@@ -109,7 +109,7 @@ namespace RR::Ecs
             if (!CanAcesss(entityId))
                 return false;
 
-            auto& entityRecord = entityRecords[entityId.fields.index];
+            auto& entityRecord = entityRecords[entityId.GetIndex()];
             entityRecord.pendingArchetype = &archetype;
             return true;
         }
@@ -118,7 +118,7 @@ namespace RR::Ecs
         {
             if (!CanAcesss(entityId))
                 return false;
-            auto& entityRecord = entityRecords[entityId.fields.index];
+            auto& entityRecord = entityRecords[entityId.GetIndex()];
             entityRecord.index = index;
             return true;
         }
@@ -128,7 +128,7 @@ namespace RR::Ecs
             if (!CanAcesss(entityId))
                 return false;
 
-            auto& entityRecord = entityRecords[entityId.fields.index];
+            auto& entityRecord = entityRecords[entityId.GetIndex()];
             entityRecord.archetype = &archetype;
             entityRecord.pendingArchetype = &archetype;
             entityRecord.index = index;
@@ -140,7 +140,7 @@ namespace RR::Ecs
             if (!CanAcesss(entityId))
                 return false;
 
-            record = entityRecords[entityId.fields.index];
+            record = entityRecords[entityId.GetIndex()];
             return true;
         }
     };

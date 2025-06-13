@@ -307,7 +307,7 @@ namespace RR::Ecs
                                .Add<HashName>(eastl::forward<HashName>(name))
                                .Apply();
 
-        const auto systemId = SystemId(entt.GetId().rawId);
+        const auto systemId = SystemId(entt.GetId().GetRawId());
         initCache(systemId);
 
         systemsOrderDirty = true;
@@ -323,7 +323,7 @@ namespace RR::Ecs
                                .Add<MatchedArchetypeCache>()
                                .Apply();
 
-        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().rawId));
+        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().GetRawId()));
         initCache(queryId);
 
         return Ecs::Query(*this, queryId);
