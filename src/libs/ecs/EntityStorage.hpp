@@ -21,18 +21,15 @@ namespace RR::Ecs
         friend struct EntityStorage;
 
     public:
-        bool IsAlive(bool pending) const { return pending ? pendingArchetype != nullptr : true; }
-        Archetype* GetArchetype(bool pending) const
-        {
-            return pending ? pendingArchetype : archetype;
-        }
-        ArchetypeEntityIndex GetIndex(bool pending) const
+        [[nodiscard]] bool IsAlive(bool pending) const { return pending ? pendingArchetype != nullptr : true; }
+        [[nodiscard]] Archetype* GetArchetype(bool pending) const { return pending ? pendingArchetype : archetype; }
+        [[nodiscard]] ArchetypeEntityIndex GetIndex(bool pending) const
         {
             ASSERT(!pending);
             UNUSED(pending);
             return index;
         }
-        bool HasPendingChanges() const { return archetype != pendingArchetype; }
+        [[nodiscard]] bool HasPendingChanges() const { return archetype != pendingArchetype; }
     };
 
     struct EntityStorage final
@@ -76,7 +73,7 @@ namespace RR::Ecs
             return entityId;
         }
 
-        bool CanAcesss(EntityId entityId) const
+        [[nodiscard]] bool CanAcesss(EntityId entityId) const
         {
             return entityId.GetIndex() < entityRecords.size() &&
                    entityRecords[entityId.GetIndex()].generation == entityId.GetGeneration();
