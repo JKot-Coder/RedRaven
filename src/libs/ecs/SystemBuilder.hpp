@@ -2,8 +2,8 @@
 
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/FunctionTraits.hpp"
+#include "ecs/IterationHelpers.hpp"
 #include "ecs/System.hpp"
-#include "ecs/World.hpp"
 
 namespace RR::Ecs
 {

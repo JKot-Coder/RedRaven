@@ -1,10 +1,11 @@
 #pragma once
 
-#include "ecs/ForwardDeclarations.hpp"
-#include "ecs/EntityId.hpp"
-#include "ecs/ArchetypeEntityIndex.hpp"
 #include "ecs/ComponentTraits.hpp"
+#include "ecs/EntityId.hpp"
+#include "ecs/ForwardDeclarations.hpp"
+
 #include "common/ChunkAllocator.hpp"
+
 #include "EASTL/span.h"
 
 namespace RR::Ecs

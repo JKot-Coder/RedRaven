@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/ForwardDeclarations.hpp"
 #include "ecs/ComponentTraits.hpp"
+
 #include "absl/container/flat_hash_map.h"
 
 namespace RR::Ecs
