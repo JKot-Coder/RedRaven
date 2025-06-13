@@ -165,6 +165,7 @@ namespace RR::Ecs
         public:
             const SystemDescription* desc;
             SystemId id;
+            uint32_t index = -1;
             HashName hashName;
         };
 
@@ -177,46 +178,34 @@ namespace RR::Ecs
         // which might be different on different platforms, depend on hot-reload, etc...
         eastl::sort(tmpSystemList.begin(), tmpSystemList.end(), [](auto a, auto b) { return a.hashName < b.hashName; });
 
-        // Map hash of name to more simple global index
-        absl::flat_hash_map<HashType, uint32_t> systemHashToIdxMap;
-
-        for (uint32_t i = 0; i < tmpSystemList.size(); i++)
-            systemHashToIdxMap[tmpSystemList[i].hashName.hash] = i;
-
-        constexpr uint32_t invalidId = std::numeric_limits<uint32_t>::max();
-
-        auto systemHashToIdx = [&systemHashToIdxMap](HashType hash) {
-            const auto it = systemHashToIdxMap.find(hash);
-            return it != systemHashToIdxMap.end() ? it->second : invalidId;
-        };
+        uint32_t index = 0;
+        for (auto& handle : tmpSystemList)
+            handle.index = static_cast<uint32_t>(index++);
 
         eastl::vector_multimap<uint32_t, uint32_t> edges;
+        eastl::vector_multimap<ComponentId, uint32_t> producersMap;
+
+        for (const SystemHandle& handle : tmpSystemList)
+            for(const auto& produce : handle.desc->produce)
+                producersMap.emplace(produce, handle.index);
+
         auto makeEdge = [&](uint32_t fromIdx, uint32_t toIdx) { edges.emplace(fromIdx, toIdx); };
+        auto insertOrderEdge = [&](const SystemHandle& system, ComponentId require) {
+            const auto range = producersMap.equal_range(require);
 
-        auto insertOrderEdge = [&](const HashName& system, const HashName& other, bool before) {
-            const auto systemIdx = systemHashToIdx(system.hash);
-            const auto otherIdx = systemHashToIdx(other.hash);
-            ASSERT(systemIdx != invalidId); // Impossible
-
-            if UNLIKELY (otherIdx == invalidId)
+            if UNLIKELY (range.first == range.second)
             {
-                Log::Format::Error("ES <{}> is supposed to be {} ES <{}>, which is undeclared.", system.string.c_str(),
-                                   before ? "before" : "after", other.string.c_str());
+                Log::Format::Error("ES <{}> is require token that is never produced by any system", system.hashName.string.c_str());
                 return;
             }
 
-            makeEdge(before ? otherIdx : systemIdx, before ? systemIdx : otherIdx);
+            for(auto it = range.first; it != range.second; ++it)
+                makeEdge(system.index, it->second);
         };
 
-        // Build edges based on before/after
-        for (const SystemHandle& handle : tmpSystemList)
-        {
-            for (const auto& other : handle.desc->after)
-                insertOrderEdge(handle.hashName, other, false);
-
-            for (const auto& other : handle.desc->before)
-                insertOrderEdge(handle.hashName, other, true);
-        }
+        for (const SystemHandle& system : tmpSystemList)
+            for(const auto& require : system.desc->require)
+                insertOrderEdge(system, require);
 
         eastl::vector<uint32_t> sortedList;
         auto loopDetected = [&](size_t idx, auto&) {

@@ -4,6 +4,7 @@
 #include "ecs/FunctionTraits.hpp"
 #include "ecs/IterationHelpers.hpp"
 #include "ecs/System.hpp"
+#include "ecs/ComponentTraits.hpp"
 
 namespace RR::Ecs
 {
@@ -31,16 +32,18 @@ namespace RR::Ecs
         }
 
         template <typename... Args>
-        [[nodiscard]] SystemBuilder& After(Args&&... args)
+        [[nodiscard]] SystemBuilder& Require()
         {
-            (after(eastl::forward<Args>(args)), ...);
+            static_assert((IsTag<Args> && ...), "All order tokens must be tags");
+            (desc.require.emplace_back(GetComponentId<Args>), ...);
             return *this;
         }
 
         template <typename... Args>
-        [[nodiscard]] SystemBuilder& Before(Args&&... args)
+        [[nodiscard]] SystemBuilder& Produce()
         {
-            (before(eastl::forward<Args>(args)), ...);
+            static_assert((IsTag<Args> && ...), "All order tokens must be tags");
+            (desc.produce.emplace_back(GetComponentId<Args>), ...);
             return *this;
         }
 
@@ -70,43 +73,6 @@ namespace RR::Ecs
             };
 
             return view.world.createSystem(eastl::move(desc), eastl::move(view), eastl::move(name));
-        }
-
-    private:
-        SystemBuilder& after(System system)
-        {
-            after(system.id);
-            return *this;
-        }
-
-        SystemBuilder& after(SystemId system)
-        {
-            after(fmt::format("system_{}", system.GetRaw()));
-            return *this;
-        }
-
-        SystemBuilder& after(HashName&& name)
-        {
-            desc.after.emplace_back(eastl::forward<HashName>(name));
-            return *this;
-        }
-
-        SystemBuilder& before(System system)
-        {
-            before(system.id);
-            return *this;
-        }
-
-        SystemBuilder& before(SystemId system)
-        {
-            before(fmt::format("system_{}", system.GetRaw()));
-            return *this;
-        }
-
-        SystemBuilder& before(HashName&& name)
-        {
-            desc.before.emplace_back(eastl::forward<HashName>(name));
-            return *this;
         }
 
     private:

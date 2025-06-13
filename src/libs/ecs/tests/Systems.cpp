@@ -307,6 +307,12 @@ TEST_CASE_METHOD(WorldFixture, "OnDissapear", "[Event]")
 
 TEST_CASE("SystemOrder", "[System]")
 {
+    struct System1 { };
+    struct System2 { };
+    struct System3 { };
+    struct System4 { };
+    struct System5 { };
+
     using Results = eastl::vector<int>;
     const auto check = [](World& world) {
         bool called = false;
@@ -337,24 +343,14 @@ TEST_CASE("SystemOrder", "[System]")
         checkResults.Run();
         REQUIRE(called);
     };
-    SECTION("after")
+    SECTION("order")
     {
         World world;
-        world.System("system1").After("system2").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(4); });
-        world.System("system2").After("system3").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(3); });
-        world.System("system3").After("system4").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(2); });
-        world.System("system4").After("system5").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(1); });
-        world.System("system5").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(0); });
-        check(world);
-    }
-    SECTION("before")
-    {
-        World world;
-        world.System("system1").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(4); });
-        world.System("system2").Before("system1").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(3); });
-        world.System("system3").Before("system2").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(2); });
-        world.System("system4").Before("system3").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(1); });
-        world.System("system5").Before("system4").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(0); });
+        world.System("system1").Produce<System1>().Require<System2>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(4); });
+        world.System("system2").Produce<System2>().Require<System3>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(3); });
+        world.System("system3").Produce<System3>().Require<System4>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(2); });
+        world.System("system4").Produce<System4>().Require<System5>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(1); });
+        world.System("system5").Produce<System5>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(0); });
         check(world);
     }
     SECTION("Mixed")
@@ -363,11 +359,11 @@ TEST_CASE("SystemOrder", "[System]")
         //         --- 3 - 1
         //        /     \ /
         // 5 --- 4 ----- 2
-        world.System("system1").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(4); });
-        world.System("system2").After("system3").Before("system1").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(3); });
-        world.System("system3").After("system4").Before("system2").Before("system1").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(2); });
-        world.System("system4").Before("system2").After("system5").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(1); });
-        world.System("system5").With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(0); });
+        world.System("system1").Produce<System1>().Require<System2>().Require<System3>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(4); });
+        world.System("system2").Produce<System2>().Require<System3>().Require<System4>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(3); });
+        world.System("system3").Produce<System3>().Require<System4>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(2); });
+        world.System("system4").Produce<System4>().Require<System5>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(1); });
+        world.System("system5").Produce<System5>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(0); });
         check(world);
     }
 }
