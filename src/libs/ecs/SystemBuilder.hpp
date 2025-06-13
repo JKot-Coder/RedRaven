@@ -17,16 +17,16 @@ namespace RR::Ecs
 
     public:
         template <typename... Components>
-        [[nodiscard]] SystemBuilder& Require()
+        [[nodiscard]] SystemBuilder& With()
         {
-            view.Require<Components...>();
+            view.With<Components...>();
             return *this;
         }
 
         template <typename... Components>
-        [[nodiscard]] SystemBuilder& Exclude()
+        [[nodiscard]] SystemBuilder& Without()
         {
-            view.Exclude<Components...>();
+            view.Without<Components...>();
             return *this;
         }
 

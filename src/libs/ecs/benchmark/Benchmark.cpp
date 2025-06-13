@@ -298,7 +298,7 @@ TEST_CASE("Create Entity", "[Entity]")
                 struct OneShotExecuteToken{};
 
                 world.Entity().Add<OneShotExecuteToken>().Apply();
-                const auto query = world.Query().Require<OneShotExecuteToken>().Build();
+                const auto query = world.Query().With<OneShotExecuteToken>().Build();
 
                 return meter.measure([batchSize, &query]() {
                     query.ForEach([batchSize](World& world) {
@@ -423,7 +423,7 @@ TEST_CASE("Update Entity", "[Entity]")
 
                 std::random_device dev;
                 ankerl::nanobench::Rng rng(dev());
-                const auto view = world.View().Require<PositionComponent, VelocityComponent>();
+                const auto view = world.View().With<PositionComponent, VelocityComponent>();
 
                 return meter.measure([&entities, batchSize, view, &rng]() {
                     for (uint32_t i = 0; i < batchSize; i++)
@@ -534,7 +534,7 @@ TEST_CASE("Update entities", "[Entity]")
                         .Add<DataComponent>()
                         .Apply();
 
-                const auto query = world.Query().Require<PositionComponent, VelocityComponent>().Build();
+                const auto query = world.Query().With<PositionComponent, VelocityComponent>().Build();
                 return meter.measure([query]() {
                     query.ForEach([&](PositionComponent& position, const VelocityComponent& velocity) {
                         position.x += velocity.x;
@@ -556,7 +556,7 @@ TEST_CASE("Update entities", "[Entity]")
                         .Apply();
 
                 struct BenchEvent : public Event { BenchEvent() : Event(GetEventId<BenchEvent>, sizeof(BenchEvent)) { } };
-                world.System().Require<PositionComponent, VelocityComponent>().OnEvent<BenchEvent>().ForEach([&](PositionComponent& position, const VelocityComponent& velocity) {
+                world.System().With<PositionComponent, VelocityComponent>().OnEvent<BenchEvent>().ForEach([&](PositionComponent& position, const VelocityComponent& velocity) {
                     position.x += velocity.x;
                     position.y += velocity.y;
                 });

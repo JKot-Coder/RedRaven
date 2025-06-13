@@ -8,14 +8,14 @@ namespace RR::Ecs
     struct View
     {
         template <typename... Components>
-        View Require()
+        View With()
         {
             (require.insert(GetComponentId<Components>), ...);
             return *this;
         }
 
         template <typename... Components>
-        View Exclude()
+        View Without()
         {
             (exclude.insert(GetComponentId<Components>), ...);
             return *this;

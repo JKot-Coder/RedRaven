@@ -18,7 +18,7 @@ TEST_CASE_METHOD(WorldFixture, "View lock", "[View]")
     REQUIRE(!world.IsLocked());
     world.Entity().Add<Foo>(1).Apply();
 
-    const auto view = world.View().Require<Foo>();
+    const auto view = world.View().With<Foo>();
 
     bool called = false;
     view.ForEach([&](Foo) {
@@ -42,7 +42,7 @@ TEST_CASE_METHOD(WorldFixture, "View read", "[View]")
     world.Entity().Add<Bar>(1).Apply();
     world.Entity().Add<Foo>(1).Apply();
 
-    const auto view = world.View().Require<Foo>();
+    const auto view = world.View().With<Foo>();
 
     int summ = 0;
     view.ForEach([&](Foo foo) { summ += foo.x; });
@@ -63,7 +63,7 @@ TEST_CASE_METHOD(WorldFixture, "View modify", "[View]")
     world.Entity().Add<Foo>(1).Apply();
     world.Entity().Add<Foo>(1).Apply();
 
-    const auto view = world.View().Require<Foo>();
+    const auto view = world.View().With<Foo>();
 
     int summ = 0;
     view.ForEach([&](Foo foo) { summ += foo.x; });
@@ -85,7 +85,7 @@ TEST_CASE_METHOD(WorldFixture, "View require", "[View]")
     entt1.Edit().Add<Foo>(1).Add<Bar>(1).Apply();
 
     int summ = 0;
-    const auto view = world.View().Require<Foo, Bar>();
+    const auto view = world.View().With<Foo, Bar>();
     view.ForEach([&](Foo foo, Bar bar) {
         summ += foo.x + bar.x;
         REQUIRE(foo.x == bar.x);
@@ -122,7 +122,7 @@ TEST_CASE_METHOD(WorldFixture, "View exclude", "[View]")
     world.Entity().Add<Foo>(1).Apply();
 
     int summ = 0;
-    const auto view = world.View().Require<Foo>().Exclude<Bar>();
+    const auto view = world.View().With<Foo>().Without<Bar>();
     view.ForEach([&](Foo foo) { summ += foo.x; });
 
     REQUIRE(summ == 1);
@@ -134,7 +134,7 @@ TEST_CASE_METHOD(WorldFixture, "View query for entity", "[View]")
     const auto entt2 = world.Entity().Add<int>(2).Apply();
     const auto entt3 = world.Entity().Add<int>(3).Apply();
 
-    const auto view = world.View().Require<int>();
+    const auto view = world.View().With<int>();
     int calls = 0;
     view.ForEntity(entt3, [&](int i) { calls++; REQUIRE(i == 3); });
     view.ForEntity(entt1.GetId(), [&](int i) { calls++; REQUIRE(i == 1); });
@@ -148,7 +148,7 @@ TEST_CASE("View special args", "[View]")
     World world;
     const auto entt1 = world.Entity().Add<Foo>(1).Apply();
 
-    const auto view = world.View().Require<Foo>();
+    const auto view = world.View().With<Foo>();
     int calls = 0;
     view.ForEach([&](Foo, World& worldArg) { calls++; REQUIRE(&world == &worldArg); });
     view.ForEach([&](Foo, World* worldArg) { calls++; REQUIRE(&world == worldArg); });
@@ -161,7 +161,7 @@ TEST_CASE_METHOD(WorldFixture, "Query lock", "[Query]")
     REQUIRE(!world.IsLocked());
     world.Entity().Add<Foo>(1).Apply();
 
-    const auto query = world.Query().Require<Foo>().Build();
+    const auto query = world.Query().With<Foo>().Build();
 
     bool called = false;
     query.ForEach([&](Foo) {
@@ -185,7 +185,7 @@ TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
     entt1.Edit().Add<Foo>(1).Apply();
 
     int summ = 0;
-    const auto query = world.Query().Require<Foo>().Build();
+    const auto query = world.Query().With<Foo>().Build();
     query.ForEach([&](EntityId id, Foo foo) {
         summ += foo.x;
         REQUIRE(id == entt1.GetId());
@@ -203,13 +203,13 @@ TEST_CASE_METHOD(WorldFixture, "Query", "[Query]")
     REQUIRE(summ == 3);
 }
 
-TEST_CASE_METHOD(WorldFixture, "Query Exclude", "[Query]")
+TEST_CASE_METHOD(WorldFixture, "Query Without", "[Query]")
 {
     Entity entt1 = world.Entity().Add<Foo>(1).Apply();
     world.Entity().Add<Foo>(1).Add<Bar>(1).Apply();
 
     int summ = 0;
-    const auto query = world.Query().Require<Foo>().Exclude<Bar>().Build();
+    const auto query = world.Query().With<Foo>().Without<Bar>().Build();
     query.ForEach([&](Foo foo) { summ += foo.x; });
 
     REQUIRE(summ == 1);
@@ -230,13 +230,13 @@ TEST_CASE_METHOD(WorldFixture, "Query Cache", "[Query]")
     // Arch Created first
     int summ = 0;
     world.Entity().Add<Foo>(1).Apply();
-    const auto queryFoo = world.Query().Require<Foo>().Build();
+    const auto queryFoo = world.Query().With<Foo>().Build();
     queryFoo.ForEach([&](Foo foo) { summ += foo.x; });
     REQUIRE(summ == 1);
 
     // Query Created first
     summ = 0;
-    const auto queryBar = world.Query().Require<Bar>().Build();
+    const auto queryBar = world.Query().With<Bar>().Build();
     world.Entity().Add<Bar>(1).Apply();
     queryBar.ForEach([&](Bar bar) { summ += bar.x; });
     REQUIRE(summ == 1);
@@ -249,7 +249,7 @@ TEST_CASE_METHOD(WorldFixture, "Query Cache", "[Query]")
     REQUIRE(summ == 6);
 
     summ = 0;
-    const auto queryFooBar = world.Query().Require<Foo, Bar>().Build();
+    const auto queryFooBar = world.Query().With<Foo, Bar>().Build();
     queryFooBar.ForEach([&](Foo foo, Bar bar) { summ += foo.x + bar.x; });
     REQUIRE(summ == 4);
 }
@@ -259,7 +259,7 @@ TEST_CASE_METHOD(WorldFixture, "OptionalComponents", "[Query]")
     // Arch Created first
     int sumFoo = 0, sumBar = 0;
     world.Entity().Add<Foo>(1).Apply();
-    const auto queryFoo = world.Query().Require<Foo>().Build();
+    const auto queryFoo = world.Query().With<Foo>().Build();
     queryFoo.ForEach([&](Foo foo, Bar* bar) { sumFoo += foo.x; sumBar += bar ? bar->x : 0; });
     REQUIRE(sumFoo == 1);
     REQUIRE(sumBar == 0);
@@ -284,6 +284,6 @@ TEST_CASE_METHOD(WorldFixture, "Query empty archetype", "[Query]")
 {
     world.Entity().Add<Foo>(1).Apply().Destroy();
 
-    const auto queryFoo = world.Query().Require<Foo>().Build();
+    const auto queryFoo = world.Query().With<Foo>().Build();
     queryFoo.ForEach([&]() { REQUIRE(false); });
 }

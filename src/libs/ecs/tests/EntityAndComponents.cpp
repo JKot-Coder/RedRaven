@@ -35,7 +35,7 @@ namespace {
         world.Entity().Add<SingleExecutionToken>().Apply();
 
         bool called = false;
-        world.View().Require<SingleExecutionToken>().ForEach([&] {
+        world.View().With<SingleExecutionToken>().ForEach([&] {
             call(world);
             called = true;
         });
@@ -334,7 +334,7 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     entt2.Edit().Remove<NonTrivial>().Apply();
 
     // Check no any copy
-    const auto view = world.View().Require<NonTrivial>();
+    const auto view = world.View().With<NonTrivial>();
     view.ForEach([&](NonTrivial&) { });
 
     Entity entt3 = world.Entity().Add<NonTrivial>(4).Add<Op>(Op::Construct).Apply();
@@ -374,7 +374,7 @@ TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
         REQUIRE(!entt2.Has<Vector>());
 
         int32_t summ = 0;
-        const auto view = world.View().Require<Vector>();
+        const auto view = world.View().With<Vector>();
         view.ForEach([&](Vector vector) { summ += vector[0]; });
         REQUIRE(summ == (world.IsLocked() ? 0 : 4));
     };

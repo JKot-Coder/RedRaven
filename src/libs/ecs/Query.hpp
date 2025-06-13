@@ -32,16 +32,16 @@ namespace RR::Ecs
         ~QueryBuilder() { }
 
         template <typename... Components>
-        QueryBuilder Require() &&
+        QueryBuilder With() &&
         {
-            view.Require<Components...>();
+            view.With<Components...>();
             return *this;
         }
 
         template <typename... Components>
-        QueryBuilder Exclude() &&
+        QueryBuilder Without() &&
         {
-            view.Exclude<Components...>();
+            view.Without<Components...>();
             return *this;
         }
 

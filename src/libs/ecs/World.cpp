@@ -105,10 +105,10 @@ namespace RR::Ecs
             archetypesCache.push_back(&archetype);
         }
 
-        queriesQuery = Query().Require<Ecs::View, MatchedArchetypeCache>().Exclude<SystemDescription>().Build().id;
-        systemsQuery = Query().Require<Ecs::View, SystemDescription, MatchedArchetypeCache>().Build().id;
-        queriesView.Require<Ecs::View, MatchedArchetypeCache>();
-        systemsView.Require<Ecs::View, SystemDescription, MatchedArchetypeCache>();
+        queriesQuery = Query().With<Ecs::View, MatchedArchetypeCache>().Without<SystemDescription>().Build().id;
+        systemsQuery = Query().With<Ecs::View, SystemDescription, MatchedArchetypeCache>().Build().id;
+        queriesView.With<Ecs::View, MatchedArchetypeCache>();
+        systemsView.With<Ecs::View, SystemDescription, MatchedArchetypeCache>();
     }
 
     void World::Destroy(EntityId entityId)
