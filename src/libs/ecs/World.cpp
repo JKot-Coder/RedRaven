@@ -106,9 +106,9 @@ namespace RR::Ecs
         }
 
         queriesQuery = Query().With<Ecs::View, MatchedArchetypeCache>().Without<SystemDescription>().Build().id;
-        systemsQuery = Query().With<Ecs::View, SystemDescription, MatchedArchetypeCache>().Build().id;
         queriesView.With<Ecs::View, MatchedArchetypeCache>();
         systemsView.With<Ecs::View, SystemDescription, MatchedArchetypeCache>();
+        systemsQuery = Query().With<Ecs::View, SystemDescription, MatchedArchetypeCache, HashName>().Build().id;
     }
 
     void World::Destroy(EntityId entityId)
