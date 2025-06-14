@@ -92,6 +92,9 @@ namespace RR::Ecs
         RegisterComponent<Ecs::View>();
         RegisterComponent<MatchedArchetypeCache>();
 
+        queriesView.With<Ecs::View, MatchedArchetypeCache>();
+        systemsView.With<Ecs::View, SystemDescription, MatchedArchetypeCache>();
+
         {
             // Manually create archetype for queries
             // This is required because of cyclic dependency: creating arhetype require queriesQuery and
@@ -106,8 +109,6 @@ namespace RR::Ecs
         }
 
         queriesQuery = Query().With<Ecs::View, MatchedArchetypeCache>().Without<SystemDescription>().Build().id;
-        queriesView.With<Ecs::View, MatchedArchetypeCache>();
-        systemsView.With<Ecs::View, SystemDescription, MatchedArchetypeCache>();
         systemsQuery = Query().With<Ecs::View, SystemDescription, MatchedArchetypeCache, HashName>().Build().id;
     }
 
