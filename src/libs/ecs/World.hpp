@@ -37,6 +37,7 @@ namespace RR::Ecs
         {
             static_assert(IsComponent<ComponentType>, "ComponentType must be a component type");
 
+            // Todo replace with methods to make it more clear.
             if constexpr (eastl::is_same_v<ComponentType, Ecs::World> ||
                         eastl::is_base_of_v<Ecs::Event, ComponentType> ||
                         eastl::is_same_v<ComponentType, Ecs::EntityId>)
@@ -47,8 +48,11 @@ namespace RR::Ecs
         }
 
         template<typename Arg>
-        void ValidateComponentAgainstView(const Ecs::View& view)
+        void ValidateArgumentAgainstView(const Ecs::View& view)
         {
+            if constexpr (eastl::is_pointer_v<Arg>)
+                return;
+
             using ComponentType = GetComponentType<Arg>;
             ASSERT_MSG(
                 IsComponentInView<ComponentType>(view),
@@ -60,7 +64,7 @@ namespace RR::Ecs
         template<typename ArgumentList, size_t... Indices>
         void ValidateArgumentsAgainstView(const Ecs::View& view, eastl::index_sequence<Indices...>)
         {
-            (ValidateComponentAgainstView<GetComponentType<typename ArgumentList::template Get<Indices>>>(view), ...);
+            (ValidateArgumentAgainstView<typename ArgumentList::template Get<Indices>>(view), ...);
         }
 
         template<typename Callable>
