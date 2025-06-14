@@ -10,14 +10,14 @@ namespace RR::Ecs
         template <typename... Components>
         View With()
         {
-            (require.insert(GetComponentId<Components>), ...);
+            (with.insert(GetComponentId<Components>), ...);
             return *this;
         }
 
         template <typename... Components>
         View Without()
         {
-            (exclude.insert(GetComponentId<Components>), ...);
+            (without.insert(GetComponentId<Components>), ...);
             return *this;
         }
 
@@ -37,7 +37,7 @@ namespace RR::Ecs
 
     public:
         World& world;
-        ComponentsSet require;
-        ComponentsSet exclude;
+        ComponentsSet with;
+        ComponentsSet without;
     };
 }

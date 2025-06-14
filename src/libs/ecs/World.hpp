@@ -43,7 +43,7 @@ namespace RR::Ecs
                 return true;
 
             constexpr ComponentId compId = GetComponentId<ComponentType>;
-            return view.require.find(compId) != view.require.end();
+            return view.with.find(compId) != view.with.end();
         }
 
         template<typename Arg>
@@ -163,8 +163,8 @@ namespace RR::Ecs
 
         static bool matches(const Archetype& archetype, const Ecs::View& view)
         {
-            return !(!archetype.HasAll(SortedComponentsView(view.require)) ||
-                    archetype.HasAny(SortedComponentsView(view.exclude)));
+            return !(!archetype.HasAll(SortedComponentsView(view.with)) ||
+                    archetype.HasAny(SortedComponentsView(view.without)));
         }
 
         Archetype& createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components);
