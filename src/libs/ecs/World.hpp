@@ -207,7 +207,7 @@ namespace RR::Ecs
         template <typename ArgumentList, typename Callable>
         void queryForEntityImpl(EntityId entityId, const Ecs::View& view, const IterationContext& context, Callable&& callable);
         template <typename ArgumentList, typename Callable>
-        void queryForEntityImpl(EntityId entityId, const IterationContext& context, Callable&& callable);
+        void sendEventToEntity(EntityId entityId, const IterationContext& context, Callable&& callable);
 
         void lock() noexcept { ++lockCounter; }
         void unlock() noexcept
@@ -305,7 +305,7 @@ namespace RR::Ecs
         IterationContext context {*this, event};
 
         LockGuard lg(this);
-        // Todo check all args in callable persist in requireComps with std::includes
+        // Todo check all args in callable persist in archetype.
         for (auto archetype : span)
             ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
     }
@@ -314,13 +314,20 @@ namespace RR::Ecs
     inline void World::query(QueryId queryId, Callable&& callable)
     {
         ASSERT_IS_CREATION_THREAD;
-        // Todo check all args in callable persist in requireComps with std::includes
+
         MatchedArchetypeCache* archetypes = nullptr;
-        queriesView.ForEntity(EntityId(queryId.GetRaw()), [&archetypes](MatchedArchetypeCache& cache) {
+        const Ecs::View* queryView = nullptr;
+        queriesView.ForEntity(EntityId(queryId.GetRaw()), [&archetypes, &queryView](MatchedArchetypeCache& cache, const Ecs::View& view) {
             archetypes = &cache;
+            queryView = &view;
         });
 
         ASSERT(archetypes);
+        ASSERT(queryView);
+
+        #ifdef ENABLE_ASSERTS
+            Debug::ValidateLambdaArgumentsAgainstView(*queryView, callable);
+        #endif
         this->query(MatchedArchetypeSpan(*archetypes), nullptr, eastl::forward<Callable>(callable));
     }
 
@@ -330,7 +337,10 @@ namespace RR::Ecs
         ASSERT_IS_CREATION_THREAD;
         LockGuard lg(this);
 
-        // Todo check all args in callable persist in requireComps with std::includes
+        #ifdef ENABLE_ASSERTS
+            Debug::ValidateLambdaArgumentsAgainstView(view, callable);
+        #endif
+
         IterationContext context {*this, nullptr};
 
         for (const auto* archetype : archetypesCache)
@@ -347,7 +357,7 @@ namespace RR::Ecs
     {
         ASSERT_IS_CREATION_THREAD;
         using ArgList = GetArgumentList<Callable>;
-        queryForEntityImpl<ArgList>(entityId, {*this, event}, eastl::forward<Callable>(callable));
+        sendEventToEntity<ArgList>(entityId, {*this, event}, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -364,44 +374,55 @@ namespace RR::Ecs
         ASSERT_IS_CREATION_THREAD;
         ASSERT(entityId);
 
-        // Todo check all args in callable persist in requireComps with std::includes
-        // Todo check entity are ok for requireComps and Args
+        #ifdef ENABLE_ASSERTS
+            Debug::ValidateLambdaArgumentsAgainstView(view, callable);
+        #endif
+
         EntityRecord record;
         if (!ResolveEntityRecord(entityId, record))
         {
-            ASSERT(false);
+            ASSERT_MSG(false, "Broken entity id.");
             return;
         }
 
-        if UNLIKELY (!matches(*record.GetArchetype(false), view))
+        if (record.HasPendingChanges())
+        {
+            ASSERT_MSG(false, "Can't query entity with pending changes.");
+            return;
+        }
+
+        Archetype *archetype = record.GetArchetype(IsLocked());
+        if UNLIKELY (!matches(*archetype, view))
         {
             // VODO view doesn't match with archetype. Propper logerr here
             ASSERT(false);
             return;
         }
 
-        // TODO Any pending mutations/deletion will be ignored. Add message/asset about it?
         LockGuard lg(this);
         ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
     }
 
-    // TODO fix this mess
     template <typename ArgumentList, typename Callable>
-    inline void World::queryForEntityImpl(EntityId entityId, const IterationContext& context, Callable&& callable)
+    inline void World::sendEventToEntity(EntityId entityId, const IterationContext& context, Callable&& callable)
     {
         ASSERT_IS_CREATION_THREAD;
         ASSERT(entityId);
 
-        // Todo check all args in callable persist in requireComps with std::includes
-        // Todo check entity are ok for requireComps and Args
+        // Todo check entity are ok for  Args
         EntityRecord record;
         if (!ResolveEntityRecord(entityId, record))
         {
-            ASSERT(false);
+            ASSERT_MSG(false, "Broken entity id.");
             return;
         }
 
-        // TODO. Any pending mutations/deletion will be ignored. Add message/asset about it?
+        if (record.HasPendingChanges())
+        {
+            ASSERT_MSG(false, "Can't query entity with pending changes.");
+            return;
+        }
+
         LockGuard lg(this);
         ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
     }
@@ -575,10 +596,6 @@ namespace RR::Ecs
     template <typename Callable>
     inline void Query::ForEach(Callable&& callable) const
     {
-#ifdef ENABLE_ASSERTS
-        Debug::ValidateLambdaArgumentsAgainstView(view, callable);
-#endif
-
         world.query(id, eastl::forward<Callable>(callable));
     }
 

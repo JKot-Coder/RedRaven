@@ -69,6 +69,7 @@ namespace RR::Ecs
                 if (!entityId)
                     world.query(archetypes, event, eastl::move(cb));
                 else
+                    // Todo terrible name here we don't query for entity, we send event to specific entity.
                     world.queryForEntity(entityId, event, eastl::move(cb));
             };
 
