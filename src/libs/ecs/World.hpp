@@ -195,19 +195,16 @@ namespace RR::Ecs
         [[nodiscard]] EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq);
 
         template <typename Callable>
-        void query(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable);
+        void invokeForEntities(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable);
+        template <typename Callable>
+        void invokeForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable);
+
         template <typename Callable>
         void query(QueryId queryId, Callable&& callable);
         template <typename Callable>
         void query(const Ecs::View& view, Callable&& callable);
         template <typename Callable>
-        void queryForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable);
-        template <typename Callable>
         void queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable);
-        template <typename ArgumentList, typename Callable>
-        void queryForEntityImpl(EntityId entityId, const Ecs::View& view, const IterationContext& context, Callable&& callable);
-        template <typename ArgumentList, typename Callable>
-        void sendEventToEntity(EntityId entityId, const IterationContext& context, Callable&& callable);
 
         void lock() noexcept { ++lockCounter; }
         void unlock() noexcept
@@ -299,7 +296,7 @@ namespace RR::Ecs
     }
 
     template <typename Callable>
-    inline void World::query(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable)
+    inline void World::invokeForEntities(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable)
     {
         ASSERT_IS_CREATION_THREAD;
         IterationContext context {*this, event};
@@ -308,6 +305,33 @@ namespace RR::Ecs
         // Todo check all args in callable persist in archetype.
         for (auto archetype : span)
             ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
+    }
+
+    template <typename Callable>
+    inline void World::invokeForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable)
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(entityId);
+
+        // Todo check entity are ok for  Args
+        EntityRecord record;
+        if (!ResolveEntityRecord(entityId, record))
+        {
+            ASSERT_MSG(false, "Broken entity id.");
+            return;
+        }
+
+        if (record.HasPendingChanges())
+        {
+            ASSERT_MSG(false, "Can't query entity with pending changes.");
+            return;
+        }
+
+        IterationContext context {*this, event};
+
+        // Todo check all args in callable persist in archetype.
+        LockGuard lg(this);
+        ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -328,7 +352,7 @@ namespace RR::Ecs
         #ifdef ENABLE_ASSERTS
             Debug::ValidateLambdaArgumentsAgainstView(*queryView, callable);
         #endif
-        this->query(MatchedArchetypeSpan(*archetypes), nullptr, eastl::forward<Callable>(callable));
+        this->invokeForEntities(MatchedArchetypeSpan(*archetypes), nullptr, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -353,23 +377,7 @@ namespace RR::Ecs
     }
 
     template <typename Callable>
-    inline void World::queryForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        using ArgList = GetArgumentList<Callable>;
-        sendEventToEntity<ArgList>(entityId, {*this, event}, eastl::forward<Callable>(callable));
-    }
-
-    template <typename Callable>
     inline void World::queryForEntity(EntityId entityId, const Ecs::View& view, Callable&& callable)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        using ArgList = GetArgumentList<Callable>;
-        queryForEntityImpl<ArgList>(entityId, view, {*this, nullptr}, eastl::forward<Callable>(callable));
-    }
-
-    template <typename ArgumentList, typename Callable>
-    inline void World::queryForEntityImpl(EntityId entityId, const Ecs::View& view, const IterationContext& context, Callable&& callable)
     {
         ASSERT_IS_CREATION_THREAD;
         ASSERT(entityId);
@@ -400,31 +408,7 @@ namespace RR::Ecs
         }
 
         LockGuard lg(this);
-        ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
-    }
-
-    template <typename ArgumentList, typename Callable>
-    inline void World::sendEventToEntity(EntityId entityId, const IterationContext& context, Callable&& callable)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(entityId);
-
-        // Todo check entity are ok for  Args
-        EntityRecord record;
-        if (!ResolveEntityRecord(entityId, record))
-        {
-            ASSERT_MSG(false, "Broken entity id.");
-            return;
-        }
-
-        if (record.HasPendingChanges())
-        {
-            ASSERT_MSG(false, "Can't query entity with pending changes.");
-            return;
-        }
-
-        LockGuard lg(this);
-        ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
+        ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), {*this, nullptr}, eastl::forward<Callable>(callable));
     }
 
     template <typename Components, typename ArgsTuple, size_t... Index>

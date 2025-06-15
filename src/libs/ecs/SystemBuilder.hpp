@@ -67,10 +67,9 @@ namespace RR::Ecs
 #endif
             desc.callback = [cb = std::forward<Callback>(callback)](Ecs::World& world, Ecs::Event const * event, Ecs::EntityId entityId, Ecs::MatchedArchetypeSpan archetypes) {
                 if (!entityId)
-                    world.query(archetypes, event, eastl::move(cb));
+                    world.invokeForEntities(archetypes, event, eastl::move(cb));
                 else
-                    // Todo terrible name here we don't query for entity, we send event to specific entity.
-                    world.queryForEntity(entityId, event, eastl::move(cb));
+                    world.invokeForEntity(entityId, event, eastl::move(cb));
             };
 
             return view.world.createSystem(eastl::move(desc), eastl::move(view), eastl::move(name));
