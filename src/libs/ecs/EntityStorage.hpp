@@ -29,7 +29,7 @@ namespace RR::Ecs
             UNUSED(pending);
             return index;
         }
-        [[nodiscard]] bool HasPendingChanges() const { return archetype != pendingArchetype; }
+        [[nodiscard]] bool HasPendingChanges() const { return archetype==nullptr || archetype != pendingArchetype; }
     };
 
     struct EntityStorage final
