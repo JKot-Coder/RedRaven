@@ -115,7 +115,8 @@ namespace RR::Ecs
 
         ComponentId id;
         size_t size;
-        size_t alignment;
+        bool isTrackable : 1;
+        size_t alignment : 15;
         DefaultConstructor constructDefault;
         Destructor destructor;
         Move move;
@@ -123,6 +124,7 @@ namespace RR::Ecs
         bool operator==(const ComponentInfo& other) const
         {
             return id == other.id &&
+                   isTrackable == other.isTrackable &&
                    size == other.size &&
                    alignment == other.alignment &&
                    constructDefault == other.constructDefault &&
@@ -152,6 +154,7 @@ namespace RR::Ecs
             return {
                 ComponentId(GetTypeId<T>.GetRaw()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
+                false,
                 alignof(T),
                 eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
                 eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),

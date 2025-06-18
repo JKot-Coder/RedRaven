@@ -103,7 +103,7 @@ namespace RR::Ecs
                     ComponentInfo& componentInfo = *it;
                     componentsInfo.push_back(componentInfo);
                     components.push_back_unsorted(componentInfo.id);
-                    entitySizeBytes += componentInfo.size;
+                    entitySizeBytes += componentInfo.isTrackable ? componentInfo.size * 2 : componentInfo.size;
                 }
                 ASSERT(componentsInfo[0].id == GetComponentId<EntityId>);
 
@@ -111,8 +111,7 @@ namespace RR::Ecs
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
                 chunkCapacity = chunkSizeBytes / entitySizeBytes;
 
-                componentsOffsetSize.resize(componentsInfo.size());
-                componentChunks.resize(componentsInfo.size());
+                componentsDataInfo.resize(componentsInfo.size());
 
                 for (;;)
                 {
@@ -121,9 +120,18 @@ namespace RR::Ecs
 
                     for (const auto& componentInfo : componentsInfo)
                     {
+                        auto& componentDataInfo = componentsDataInfo[index++];
+                        componentDataInfo.size = componentInfo.size;
+
                         offset = AlignTo(offset, componentInfo.alignment);
-                        componentsOffsetSize[index++] = {offset, componentInfo.size};
+                        componentDataInfo.offset = offset;
                         offset += chunkCapacity * componentInfo.size;
+
+                        if (componentInfo.isTrackable)
+                        {
+                            offset = AlignTo(offset, componentInfo.alignment);
+                            offset += chunkCapacity * componentInfo.size;
+                        }
                     }
 
                     if (UNLIKELY(offset > chunkSizeBytes))
@@ -149,9 +157,12 @@ namespace RR::Ecs
 
                     size_t entityIndex = 0;
                     for (size_t chunkIndex = 0; chunkIndex < chunks.size(); chunkIndex++)
-                    {
+                    {// Todo delete tracked
                         for (size_t index = 0; index < chunkCapacity && entityIndex < entitiesCount; index++, entityIndex++)
-                            componentInfo.destructor(componentChunks[componentIndex][chunkIndex] + index * componentsOffsetSize[componentIndex].second); //(chunk.componentChunks[i] + index * componentsOffsetSize[i].second);
+                        {
+                            const auto& componentDataInfo = componentsDataInfo[componentIndex];
+                            componentInfo.destructor(componentDataInfo.chunks[chunkIndex] + index * componentDataInfo.size); //(chunk.componentChunks[i] + index * componentsOffsetSize[i].second);
+                        }
                     }
                 }
 
@@ -172,13 +183,13 @@ namespace RR::Ecs
             {
                 ASSERT(componentIndex);
                 ASSERT(chunkIndex < chunks.size());
-                return componentChunks[componentIndex.GetRaw()][chunkIndex];
+                return componentsDataInfo[componentIndex.GetRaw()].chunks[chunkIndex];
             }
 
             std::byte* const* GetComponentsData(ArchetypeComponentIndex componentIndex) const
             {
                 ASSERT(componentIndex);
-                return componentChunks[componentIndex.GetRaw()].data();
+                return componentsDataInfo[componentIndex.GetRaw()].chunks.data();
             }
 
             std::byte* GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
@@ -191,7 +202,7 @@ namespace RR::Ecs
                 const auto chunk = index.GetChunkIndex();
 
                 ASSERT((chunk + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
-                return GetComponentChunkData(componentIndex, chunk) + indexInChunk * componentsInfo[componentIndex.GetRaw()].size;
+                return GetComponentChunkData(componentIndex, chunk) + indexInChunk * componentsDataInfo[componentIndex.GetRaw()].size;
             }
 
             ArchetypeEntityIndex Insert()
@@ -199,10 +210,10 @@ namespace RR::Ecs
                 if (entitiesCount == totalCapacity)
                 {
                     totalCapacity += chunkCapacity;
-                    auto chunk = chunks.emplace_back(new std::byte[chunkSize]);
+                    const auto chunk = chunks.emplace_back(new std::byte[chunkSize]);
 
-                    for (size_t i = 0; i < componentsInfo.size(); i++)
-                        componentChunks[i].emplace_back(chunk + componentsOffsetSize[i].first);
+                    for (auto& componentDataInfo : componentsDataInfo)
+                        componentDataInfo.chunks.emplace_back(chunk + componentDataInfo.offset);
                 }
 
                 entitiesCount++;
@@ -225,11 +236,17 @@ namespace RR::Ecs
             size_t entitiesCount = 0;
             size_t entitySize = 0;
 
+            struct ComponentsDataInfo
+            {
+                size_t size;
+                size_t offset;
+                eastl::fixed_vector<std::byte*, 16> chunks;
+            };
+
             ComponentsSet components;
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
-            eastl::fixed_vector<eastl::pair<size_t, size_t>, 32> componentsOffsetSize;
+            eastl::fixed_vector<ComponentsDataInfo, 32> componentsDataInfo;
             eastl::vector<std::byte*> chunks;
-            eastl::fixed_vector<eastl::vector<std::byte*>, 32> componentChunks;
         };
 
     private:
