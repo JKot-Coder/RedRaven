@@ -25,16 +25,17 @@ namespace RR::Ecs
            if (componentInfo.size == 0)
                 continue;
 
-           std::byte* dst = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
-
            // TODO Could be faster find if we start from previous finded, to not iterate over same components id.
            auto fromComponentIndex = from.GetComponentIndex(componentInfo.id);
 
            if (!fromComponentIndex)
                continue;
 
-           std::byte* src = from.componentsData.GetComponentData(fromComponentIndex, fromIndex);
-           componentInfo.move(dst, src);
+           ComponentData dst = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
+           ComponentData src = from.componentsData.GetComponentData(fromComponentIndex, fromIndex);
+           componentInfo.move(dst.data, src.data);
+           if (componentInfo.isTrackable)
+               componentInfo.copy(dst.trackedData, src.trackedData);
         }
 
         entityStorage.Mutate(from.GetEntityIdData(fromIndex), *this, index);
@@ -59,14 +60,22 @@ namespace RR::Ecs
             if (componentInfo.size == 0)
                 continue;
 
-            auto *const removedPtr = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
-            auto *const lastIndexData = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), lastIndex);
+            ComponentData removedData = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), index);
+            ComponentData lastIndexData = componentsData.GetComponentData(ArchetypeComponentIndex(componentIndex), lastIndex);
 
             if (index != lastIndex)
-                componentInfo.move(removedPtr, lastIndexData);
+            {
+                componentInfo.move(removedData.data, lastIndexData.data);
+                if (componentInfo.isTrackable)
+                    componentInfo.move(removedData.trackedData, lastIndexData.trackedData);
+            }
 
             if (componentInfo.destructor != nullptr)
-                componentInfo.destructor(lastIndexData);
+            {
+                componentInfo.destructor(lastIndexData.data);
+                if (componentInfo.isTrackable)
+                    componentInfo.destructor(lastIndexData.trackedData);
+            }
         }
 
         componentsData.entitiesCount--;

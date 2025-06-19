@@ -111,7 +111,7 @@ namespace RR::Ecs
     {
         using DefaultConstructor = void (*)(void* mem);
         using Destructor = void (*)(void* mem);
-        using Move = void (*)(void* dest, void* src);
+        using MoveOrCopy = void (*)(void* dest, void* src);
 
         ComponentId id;
         size_t size;
@@ -119,7 +119,8 @@ namespace RR::Ecs
         size_t alignment : 15;
         DefaultConstructor constructDefault;
         Destructor destructor;
-        Move move;
+        MoveOrCopy move;
+        MoveOrCopy copy;
 
         bool operator==(const ComponentInfo& other) const
         {
@@ -165,7 +166,16 @@ namespace RR::Ecs
                     }
                     else
                         static_assert(sizeof(T) == 0, "Type T must be move constructible");
-                }};
+                },
+                [](void* dest, void* source) {
+                    if constexpr (std::is_copy_constructible_v<T>)
+                    {
+                        new (dest) T(*static_cast<T*>(source));
+                    }
+                    else
+                        static_assert(sizeof(T) == 0, "Type T must be copy constructible");
+                }
+                };
         }
     };
 

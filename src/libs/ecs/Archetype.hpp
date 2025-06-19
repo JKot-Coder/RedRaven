@@ -85,11 +85,16 @@ namespace RR::Ecs
     struct Archetype final
     {
     public:
+        struct ComponentData
+        {
+            std::byte* data;
+            std::byte* trackedData;
+        };
+
         class ComponentsData
         {
             static constexpr size_t BaseChunkSize = 16 * 1024; // 16 kb
             static constexpr size_t BaseChunkEntityCount = 100;
-
         public:
             template <typename Iterator>
             ComponentsData(Iterator compInfoBegin, Iterator compInfoEnd)
@@ -98,40 +103,42 @@ namespace RR::Ecs
                 ASSERT(BaseChunkSize > 0);
 
                 size_t entitySizeBytes = 0;
+                size_t trackedComponentsCount = 0;
                 for (Iterator it = compInfoBegin; it != compInfoEnd; ++it)
                 {
                     ComponentInfo& componentInfo = *it;
                     componentsInfo.push_back(componentInfo);
                     components.push_back_unsorted(componentInfo.id);
                     entitySizeBytes += componentInfo.isTrackable ? componentInfo.size * 2 : componentInfo.size;
+                    trackedComponentsCount += componentInfo.isTrackable ? 1 : 0;
                 }
                 ASSERT(componentsInfo[0].id == GetComponentId<EntityId>);
 
                 size_t chunkSizeBytes = entitySizeBytes * BaseChunkEntityCount;
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
                 chunkCapacity = chunkSizeBytes / entitySizeBytes;
-
-                columns.resize(componentsInfo.size());
+                columns.resize(componentsInfo.size() + trackedComponentsCount);
 
                 for (;;)
                 {
                     size_t offset = 0;
-                    size_t index = 0;
+                    size_t componentIndex = 0;
+                    size_t trackedComponentIndex = componentsInfo.size();
 
                     for (const auto& componentInfo : componentsInfo)
                     {
-                        auto& column = columns[index++];
-                        column.size = componentInfo.size;
+                        auto initColumn = [this, &offset, &componentInfo](size_t componentIndex) {
+                            auto& column = columns[componentIndex];
 
-                        offset = AlignTo(offset, componentInfo.alignment);
-                        column.offset = offset;
-                        offset += chunkCapacity * componentInfo.size;
-
-                        if (componentInfo.isTrackable)
-                        {
+                            column.size = componentInfo.size;
                             offset = AlignTo(offset, componentInfo.alignment);
+                            column.offset = offset;
                             offset += chunkCapacity * componentInfo.size;
-                        }
+                        };
+
+                        initColumn(componentIndex++);
+                        if (componentInfo.isTrackable)
+                            initColumn(trackedComponentIndex++);
                     }
 
                     if (UNLIKELY(offset > chunkSizeBytes))
@@ -149,25 +156,25 @@ namespace RR::Ecs
 
             ~ComponentsData()
             {
-                for (size_t componentIndex = 0; componentIndex < componentsInfo.size(); componentIndex++)
-                {
-                    const auto& componentInfo = componentsInfo[componentIndex];
+                auto destroyComponent = [this](const ComponentInfo& componentInfo, eastl::span<std::byte*> chunks) {
                     if (!componentInfo.destructor)
-                        continue;
+                        return;
 
                     size_t entityIndex = 0;
-                    for (size_t chunkIndex = 0; chunkIndex < chunks.size(); chunkIndex++)
-                    {// Todo delete tracked
+                    for (auto* chunk : chunks)
                         for (size_t index = 0; index < chunkCapacity && entityIndex < entitiesCount; index++, entityIndex++)
-                        {
-                            const auto& column = columns[componentIndex];
-                            componentInfo.destructor(column.chunks[chunkIndex] + index * column.size); //(chunk.componentChunks[i] + index * componentsOffsetSize[i].second);
-                        }
-                    }
+                            componentInfo.destructor(chunk + index * componentInfo.size);
+                };
+
+                for (size_t componentIndex = 0; componentIndex < componentsInfo.size(); componentIndex++)
+                {
+                    destroyComponent(componentsInfo[componentIndex], columns[componentIndex].chunks);
+
+                    if (componentsInfo[componentIndex].isTrackable)
+                        destroyComponent(componentsInfo[componentIndex], columns[columns[componentIndex].trackedComponentIndex.GetRaw()].chunks);
                 }
 
-                for (const auto chunk : chunks)
-                    delete[] chunk;
+                chunks.clear();
             }
 
             ArchetypeComponentIndex GetComponentIndex(ComponentId componentId) const
@@ -192,17 +199,19 @@ namespace RR::Ecs
                 return columns[componentIndex.GetRaw()].chunks.data();
             }
 
-            std::byte* GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
+            ComponentData GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
             {
                 ASSERT(componentIndex);
                 ASSERT(entitiesCount);
                 ASSERT(index);
 
                 const auto indexInChunk = index.GetIndexInChunk();
-                const auto chunk = index.GetChunkIndex();
+                const auto chunkIndex = index.GetChunkIndex();
+                const auto& column = columns[componentIndex.GetRaw()];
 
-                ASSERT((chunk + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
-                return GetComponentChunkData(componentIndex, chunk) + indexInChunk * columns[componentIndex.GetRaw()].size;
+                ASSERT((chunkIndex + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
+                return {column.chunks[chunkIndex] + indexInChunk * column.size,
+                        column.trackedComponentIndex.IsValid() ? columns[column.trackedComponentIndex.GetRaw()].chunks[chunkIndex] + indexInChunk * column.size : nullptr};
             }
 
             ArchetypeEntityIndex Insert()
@@ -210,7 +219,7 @@ namespace RR::Ecs
                 if (entitiesCount == totalCapacity)
                 {
                     totalCapacity += chunkCapacity;
-                    const auto chunk = chunks.emplace_back(new std::byte[chunkSize]);
+                    std::byte* chunk = chunks.emplace_back(new std::byte[chunkSize]).get();
 
                     for (auto& column : columns)
                         column.chunks.emplace_back(chunk + column.offset);
@@ -238,15 +247,16 @@ namespace RR::Ecs
 
             struct Column
             {
+                ArchetypeComponentIndex trackedComponentIndex;
                 size_t size;
-                size_t offset;
+                size_t offset : 32;
                 eastl::fixed_vector<std::byte*, 16> chunks;
             };
 
             ComponentsSet components;
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
             eastl::fixed_vector<Column, 32> columns;
-            eastl::vector<std::byte*> chunks;
+            eastl::vector<eastl::unique_ptr<std::byte[]>> chunks;
         };
 
     private:
@@ -274,19 +284,7 @@ namespace RR::Ecs
 
         EntityId& GetEntityIdData(ArchetypeEntityIndex index) const
         {
-            return *(EntityId*)componentsData.GetComponentData(ArchetypeComponentIndex(0), index);
-        }
-
-        std::byte* GetComponentChunkData(ArchetypeComponentIndex componentIndex, size_t chunkIndex) const
-        {
-            ASSERT(componentIndex);
-            return componentsData.GetComponentChunkData(componentIndex, chunkIndex);
-        }
-
-        std::byte* GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
-        {
-            ASSERT(componentIndex);
-            return componentsData.GetComponentData(componentIndex, index);
+            return *(EntityId*)componentsData.GetComponentData(ArchetypeComponentIndex(0), index).data;
         }
 
         std::byte* const* GetComponentsData(ArchetypeComponentIndex componentIndex) const
@@ -333,14 +331,23 @@ namespace RR::Ecs
             if constexpr (IsTag<Component>)
                 return;
 
-            auto* ptr = GetComponentData(componentIndex, index);
-            new (ptr) Component { std::forward<Args>(args)... };
+            ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
+            new (componentData.data) Component { std::forward<Args>(args)... };
+
+            if constexpr (IsTrackable<Component>)
+                new (componentData.trackedData) Component { std::forward<Args>(args)... };
         }
 
         void MoveComponentFrom(ArchetypeEntityIndex index, ArchetypeComponentIndex componentIndex, void* src)
         {
-            auto* dst = GetComponentData(componentIndex, index);
-            GetComponentInfo(componentIndex).move(dst, src);
+            ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
+            const auto& componentInfo = GetComponentInfo(componentIndex);
+            if (componentInfo.size)
+            {
+                if(componentData.trackedData)
+                    componentInfo.copy(componentData.trackedData, src);
+                componentInfo.move(componentData.data, src);
+            }
         }
 
     private:
