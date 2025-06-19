@@ -242,6 +242,7 @@ namespace RR::Ecs
         static constexpr ComponentInfo ComponentInfo = ComponentInfo::Create<T>();
         static constexpr bool IsComponent = eastl::is_same_v<RawType, T>;
         static constexpr bool IsTag = std::is_empty_v<T>;
+        static constexpr bool IsTrackable = ComponentInfo.isTrackable;
     };
 
     template <typename T>
@@ -258,4 +259,7 @@ namespace RR::Ecs
 
     template <typename T>
     static constexpr bool IsTag = ComponentTraits<T>::IsTag;
+
+    template <typename T>
+    static constexpr bool IsTrackable = ComponentTraits<T>::IsTrackable;
 }
