@@ -111,7 +111,7 @@ namespace RR::Ecs
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
                 chunkCapacity = chunkSizeBytes / entitySizeBytes;
 
-                componentsDataInfo.resize(componentsInfo.size());
+                columns.resize(componentsInfo.size());
 
                 for (;;)
                 {
@@ -120,11 +120,11 @@ namespace RR::Ecs
 
                     for (const auto& componentInfo : componentsInfo)
                     {
-                        auto& componentDataInfo = componentsDataInfo[index++];
-                        componentDataInfo.size = componentInfo.size;
+                        auto& column = columns[index++];
+                        column.size = componentInfo.size;
 
                         offset = AlignTo(offset, componentInfo.alignment);
-                        componentDataInfo.offset = offset;
+                        column.offset = offset;
                         offset += chunkCapacity * componentInfo.size;
 
                         if (componentInfo.isTrackable)
@@ -160,8 +160,8 @@ namespace RR::Ecs
                     {// Todo delete tracked
                         for (size_t index = 0; index < chunkCapacity && entityIndex < entitiesCount; index++, entityIndex++)
                         {
-                            const auto& componentDataInfo = componentsDataInfo[componentIndex];
-                            componentInfo.destructor(componentDataInfo.chunks[chunkIndex] + index * componentDataInfo.size); //(chunk.componentChunks[i] + index * componentsOffsetSize[i].second);
+                            const auto& column = columns[componentIndex];
+                            componentInfo.destructor(column.chunks[chunkIndex] + index * column.size); //(chunk.componentChunks[i] + index * componentsOffsetSize[i].second);
                         }
                     }
                 }
@@ -183,13 +183,13 @@ namespace RR::Ecs
             {
                 ASSERT(componentIndex);
                 ASSERT(chunkIndex < chunks.size());
-                return componentsDataInfo[componentIndex.GetRaw()].chunks[chunkIndex];
+                return columns[componentIndex.GetRaw()].chunks[chunkIndex];
             }
 
             std::byte* const* GetComponentsData(ArchetypeComponentIndex componentIndex) const
             {
                 ASSERT(componentIndex);
-                return componentsDataInfo[componentIndex.GetRaw()].chunks.data();
+                return columns[componentIndex.GetRaw()].chunks.data();
             }
 
             std::byte* GetComponentData(ArchetypeComponentIndex componentIndex, ArchetypeEntityIndex index) const
@@ -202,7 +202,7 @@ namespace RR::Ecs
                 const auto chunk = index.GetChunkIndex();
 
                 ASSERT((chunk + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
-                return GetComponentChunkData(componentIndex, chunk) + indexInChunk * componentsDataInfo[componentIndex.GetRaw()].size;
+                return GetComponentChunkData(componentIndex, chunk) + indexInChunk * columns[componentIndex.GetRaw()].size;
             }
 
             ArchetypeEntityIndex Insert()
@@ -212,8 +212,8 @@ namespace RR::Ecs
                     totalCapacity += chunkCapacity;
                     const auto chunk = chunks.emplace_back(new std::byte[chunkSize]);
 
-                    for (auto& componentDataInfo : componentsDataInfo)
-                        componentDataInfo.chunks.emplace_back(chunk + componentDataInfo.offset);
+                    for (auto& column : columns)
+                        column.chunks.emplace_back(chunk + column.offset);
                 }
 
                 entitiesCount++;
@@ -236,7 +236,7 @@ namespace RR::Ecs
             size_t entitiesCount = 0;
             size_t entitySize = 0;
 
-            struct ComponentsDataInfo
+            struct Column
             {
                 size_t size;
                 size_t offset;
@@ -245,7 +245,7 @@ namespace RR::Ecs
 
             ComponentsSet components;
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
-            eastl::fixed_vector<ComponentsDataInfo, 32> componentsDataInfo;
+            eastl::fixed_vector<Column, 32> columns;
             eastl::vector<std::byte*> chunks;
         };
 
