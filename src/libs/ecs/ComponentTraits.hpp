@@ -138,17 +138,6 @@ namespace RR::Ecs
             return !(*this == other);
         }
 
-        template <bool Condition, typename T>
-        static constexpr T eval(T&& v)
-        {
-            if constexpr (Condition)
-            {
-                return nullptr;
-            }
-            else
-                return eastl::forward<T>(v);
-        }
-
         template <typename T>
         static constexpr ComponentInfo Create()
         {
@@ -157,8 +146,8 @@ namespace RR::Ecs
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
                 false,
                 alignof(T),
-                eval<eastl::is_trivially_default_constructible_v<T>>(&details::DefaultConstructor<T>),
-                eval<eastl::is_trivially_destructible_v<T>>(&details::Destructor<T>),
+                eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
+                eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,
                 [](void* dest, void* source) {
                     if constexpr (std::is_move_constructible_v<T>)
                     {
