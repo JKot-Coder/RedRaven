@@ -105,6 +105,28 @@ namespace RR::Ecs
         {
             ((T*)data)->~T();
         }
+
+        template <typename T>
+        void Move(void* dest, void* source)
+        {
+            if constexpr (std::is_move_constructible_v<T>)
+            {
+                new (dest) T(std::move(*static_cast<T*>(source)));
+            }
+            else
+                static_assert(sizeof(T) == 0, "Type T must be move constructible");
+        }
+
+        template <typename T>
+        void Copy(void* dest, void* source)
+        {
+            if constexpr (std::is_copy_constructible_v<T>)
+            {
+                new (dest) T(*static_cast<T*>(source));
+            }
+            else
+                static_assert(sizeof(T) == 0, "Type T must be copy constructible");
+        }
     }
 
     struct ComponentInfo
@@ -148,22 +170,8 @@ namespace RR::Ecs
                 alignof(T),
                 eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
                 eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,
-                [](void* dest, void* source) {
-                    if constexpr (std::is_move_constructible_v<T>)
-                    {
-                        new (dest) T(std::move(*static_cast<T*>(source)));
-                    }
-                    else
-                        static_assert(sizeof(T) == 0, "Type T must be move constructible");
-                },
-                [](void* dest, void* source) {
-                    if constexpr (std::is_copy_constructible_v<T>)
-                    {
-                        new (dest) T(*static_cast<T*>(source));
-                    }
-                    else
-                        static_assert(sizeof(T) == 0, "Type T must be copy constructible");
-                }
+                &details::Move<T>,
+                &details::Copy<T>,
                 };
         }
     };
