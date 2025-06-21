@@ -127,6 +127,22 @@ namespace RR::Ecs
             else
                 static_assert(sizeof(T) == 0, "Type T must be copy constructible");
         }
+
+        template <typename T>
+        bool CompareAndAssign(void* dest, void* source)
+        {
+            if (*static_cast<T*>(dest) == *static_cast<T*>(source))
+                return true;
+
+            if constexpr (std::is_copy_constructible_v<T>)
+            {
+                new (dest) T(*static_cast<T*>(source));
+            }
+            else
+                static_assert(sizeof(T) == 0, "Type T must be copy constructible");
+
+            return false;
+        };
     }
 
     struct ComponentInfo
@@ -134,6 +150,7 @@ namespace RR::Ecs
         using DefaultConstructor = void (*)(void* mem);
         using Destructor = void (*)(void* mem);
         using MoveOrCopy = void (*)(void* dest, void* src);
+        using CompareAndAssign = bool (*)(void* dest, void* src);
 
         ComponentId id;
         size_t size;
@@ -143,6 +160,7 @@ namespace RR::Ecs
         Destructor destructor;
         MoveOrCopy move;
         MoveOrCopy copy;
+        CompareAndAssign compareAndAssign;
 
         bool operator==(const ComponentInfo& other) const
         {
@@ -163,15 +181,18 @@ namespace RR::Ecs
         template <typename T>
         static constexpr ComponentInfo Create()
         {
+            constexpr bool isTrackable = false;
+
             return {
                 ComponentId(GetTypeId<T>.GetRaw()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
-                false,
+                isTrackable,
                 alignof(T),
                 eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
                 eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,
                 &details::Move<T>,
                 &details::Copy<T>,
+                isTrackable ? &details::CompareAndAssign<eastl::conditional_t<isTrackable, T, int>> : nullptr
                 };
         }
     };
