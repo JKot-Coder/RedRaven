@@ -53,6 +53,8 @@ Absolutely necessary:
 # checks for copy/move only
 # Protection of updating same archetype in subqueries. (borrow checker) (Ask GPT how other do that?)
 # do not allow add world entityid or event as components.
+# Optimize tracking
+# Refactor how interation works. Pass iterators and interate over them. Remove ForEntity use unified iterators instead.
 
 Nice to have:
 * Caching of components index in queries and systems
@@ -68,3 +70,4 @@ Probably:
 * Add names for entitites
 * Parrallel execution
 * Declare all subqueries in system declaration (to have 100% nice graph of dependecies)
+* Dirty masks for colums
