@@ -35,7 +35,7 @@ namespace RR::Ecs
            ComponentData src = from.componentsData.GetComponentData(fromComponentIndex, fromIndex);
            componentInfo.move(dst.data, src.data);
            if (componentInfo.isTrackable)
-               componentInfo.copy(dst.trackedData, src.trackedData);
+               componentInfo.move(dst.trackedData, src.trackedData);
         }
 
         entityStorage.Mutate(from.GetEntityIdData(fromIndex), *this, index);
