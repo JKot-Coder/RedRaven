@@ -155,6 +155,7 @@ namespace RR::Ecs
         friend struct SystemBuilder;
         friend struct CommmandProcessors;
         friend struct LockGuard;
+        friend struct Archetype;
 
     private:
         void destroyImpl(EntityId entityId);

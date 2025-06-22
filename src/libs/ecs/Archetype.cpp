@@ -1,6 +1,7 @@
 #include "Archetype.hpp"
 
 #include "ecs/EntityStorage.hpp"
+#include "ecs/World.hpp"
 
 namespace RR::Ecs
 {
@@ -81,21 +82,79 @@ namespace RR::Ecs
         componentsData.entitiesCount--;
     }
 
-    void Archetype::ProcessTrackedChanges()
+    void Archetype::UpdateTrackedCache(SystemId systemId, SortedComponentsView components)
     {
-        for (auto& trackedComponent : componentsData.trackedComponents)
-        {
-            auto& componentInfo = componentsData.componentsInfo[trackedComponent.columnIndex];
-            auto& column = componentsData.columns[trackedComponent.columnIndex];
-            auto& trackedColumn = componentsData.columns[trackedComponent.trackedColumnIndex];
+        if (componentsData.trackedComponents.empty())
+            return;
 
-            for (size_t chunkIndex = 0, chunkCount = column.chunks.size(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += componentsData.chunkCapacity)
+        if(changedComponentsMasks.empty())
+            changedComponentsMasks.resize(componentsData.chunkCapacity);
+
+        const auto componentsCount = static_cast<uint8_t>(componentsData.componentsInfo.size());
+        uint64_t trackedComponentsMask = 0;
+
+        for (auto& trackedComponent : components)
+        {
+            const auto componentIndex = GetComponentIndex(trackedComponent);
+            const uint8_t trackedColumnIndex = componentsData.columns[componentIndex.GetRaw()].trackedColumnIndex;
+            const uint8_t trackedComponentIndex = trackedColumnIndex - componentsCount;
+
+            trackedComponentsMask |= 1ULL << static_cast<uint64_t>(trackedComponentIndex);
+        }
+
+        trackedSystems.emplace_back(systemId, trackedComponentsMask);
+    }
+
+    void Archetype::ProcessTrackedChanges(World& world)
+    {
+        if (componentsData.trackedComponents.empty())
+            return;
+
+        // TODO it's could be optimized by adding dirty mask for chunks/columns.
+
+        const uint8_t componentsCount = static_cast<uint8_t>(componentsData.componentsInfo.size());
+        const size_t chunksCount = componentsData.chunks.size();
+        const size_t chunkCapacity = componentsData.chunkCapacity;
+        const size_t entitiesCount = componentsData.entitiesCount;
+
+        for (size_t chunkIndex = 0, entityOffset = 0; chunkIndex < chunksCount; chunkIndex++, entityOffset += chunkCapacity)
+        {
+            uint64_t changedChunkComponentsMask = 0;
+            const size_t entitiesInChunk = eastl::min(entitiesCount - entityOffset, chunkCapacity);
+            for (size_t indexInChunk = 0; indexInChunk < entitiesInChunk; indexInChunk++)
             {
-                const size_t entitiesCount = eastl::min(componentsData.entitiesCount - entityOffset, componentsData.chunkCapacity);
-                for(size_t indexInChunk = 0; indexInChunk < entitiesCount; indexInChunk++)
+                uint64_t changedComponentsMask = 0;
+                for (auto& trackedComponent : componentsData.trackedComponents)
                 {
+                    auto& componentInfo = componentsData.componentsInfo[trackedComponent.columnIndex];
+                    auto& column = componentsData.columns[trackedComponent.columnIndex];
+                    auto& trackedColumn = componentsData.columns[trackedComponent.trackedColumnIndex];
+
                     const size_t offset = indexInChunk * column.size;
-                    componentInfo.compareAndAssign(column.chunks[chunkIndex] + offset, trackedColumn.chunks[chunkIndex] + offset);
+                    if (!componentInfo.compareAndAssign(trackedColumn.chunks[chunkIndex] + offset, column.chunks[chunkIndex] + offset))
+                        changedComponentsMask |= 1ULL << static_cast<uint64_t>(trackedComponent.trackedColumnIndex - componentsCount);
+                }
+
+                changedChunkComponentsMask |= changedComponentsMask;
+                changedComponentsMasks[indexInChunk] = changedComponentsMask;
+            }
+
+            if(changedChunkComponentsMask == 0)
+                continue;
+
+            for (const auto [systemId, mask] : trackedSystems)
+            {
+                if ((changedChunkComponentsMask & mask) == 0)
+                    continue;
+
+                for (size_t indexInChunk = 0; indexInChunk < changedComponentsMasks.size(); indexInChunk++)
+                {
+                    uint64_t changedComponentsMask = changedComponentsMasks[indexInChunk];
+                    if ((mask & changedComponentsMask) == 0)
+                        continue;
+
+                    EntityId entityId = GetEntityIdData(ArchetypeEntityIndex(chunkIndex));
+                    world.dispatchEventImmediately(entityId, systemId, OnChange {});
                 }
             }
         }

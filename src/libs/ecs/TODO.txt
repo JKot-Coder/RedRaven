@@ -37,18 +37,18 @@
 + reorder functions in world
 
 Todo track:
-* Allocate additional memory
-* Initilizate on Appear
-* Implement process tracked
++ Allocate additional memory
++ Initilizate on Appear
++ Implement process tracked
 + Implement track api
-* Send events
++ Send events
 
 Absolutely necessary:
 + Order tokens
 # throw errors to make a tests
 # check all args present in required components.
 # check required and exluded do not overlap
-# Track
++ Track
 # singletons
 # checks for copy/move only
 # Protection of updating same archetype in subqueries. (borrow checker) (Ask GPT how other do that?)

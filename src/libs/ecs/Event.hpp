@@ -107,4 +107,9 @@ namespace RR::Ecs
     {
         OnDissapear() : Event(GetEventId<OnDissapear>, sizeof(OnDissapear)) { };
     };
+
+    struct OnChange : Event
+    {
+        OnChange() : Event(GetEventId<OnChange>, sizeof(OnChange)) { };
+    };
 }

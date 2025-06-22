@@ -119,7 +119,8 @@ namespace RR::Ecs
                 chunkCapacity = chunkSizeBytes / entitySizeBytes;
                 columns.resize(componentsInfo.size() + trackedComponentsCount);
                 trackedComponents.resize(trackedComponentsCount);
-                // Todo assert that trackedComponentsCount is not greater than uint8_t max value
+                // Todo assert total components count less than 256
+                // Todo assert trackedComponentsCount less than 64
                 for (;;)
                 {
                     size_t offset = 0;
@@ -382,10 +383,20 @@ namespace RR::Ecs
             }
         }
 
-        void ProcessTrackedChanges();
+        void UpdateTrackedCache(SystemId systemId, SortedComponentsView components);
+        void ProcessTrackedChanges(World& world);
 
     private:
         ComponentsData componentsData;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;
+        eastl::vector<uint64_t> changedComponentsMasks;
+
+        struct TrackedSystem
+        {
+            SystemId system;
+            uint64_t trackedComponentsMask;
+            TrackedSystem(SystemId system, uint64_t trackedComponentsMask) : system(system), trackedComponentsMask(trackedComponentsMask) { }
+        };
+        eastl::fixed_vector<TrackedSystem, 8> trackedSystems;
     };
 }

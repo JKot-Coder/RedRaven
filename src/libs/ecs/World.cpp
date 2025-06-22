@@ -268,7 +268,7 @@ namespace RR::Ecs
         ASSERT(!IsLocked());
 
         for (auto* archetype : archetypesCache)
-            archetype->ProcessTrackedChanges();
+            archetype->ProcessTrackedChanges(*this);
     }
 
     void World::Tick()
@@ -341,6 +341,9 @@ namespace RR::Ecs
                 cache.push_back(archetype);
                 for (const auto event : systemDesc.onEvents)
                     archetype->cache[event].push_back(id);
+
+                if (!systemDesc.tracks.empty())
+                    archetype->UpdateTrackedCache(id, systemDesc.tracks);
             }
 
             for (const auto event : systemDesc.onEvents)
