@@ -351,10 +351,23 @@ namespace RR::Ecs
                 return;
 
             ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
-            new (componentData.data) Component { std::forward<Args>(args)... };
+
+            if constexpr (std::is_aggregate_v<Component>)
+            {
+                new (componentData.data) Component {std::forward<Args>(args)...};
+            }
+            else
+                new (componentData.data) Component(std::forward<Args>(args)...);
 
             if constexpr (IsTrackable<Component>)
-                new (componentData.trackedData) Component { std::forward<Args>(args)... };
+            {
+                if constexpr (std::is_aggregate_v<Component>)
+                {
+                    new (componentData.trackedData) Component {std::forward<Args>(args)...};
+                }
+                else
+                    new (componentData.trackedData) Component(std::forward<Args>(args)...);
+            }
         }
 
         void MoveComponentFrom(ArchetypeEntityIndex index, ArchetypeComponentIndex componentIndex, void* src)

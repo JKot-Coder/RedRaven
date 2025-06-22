@@ -362,13 +362,13 @@ TEST_CASE("Remove and Move NonTrivial Components", "[Components]")
     REQUIRE(OpLog[index++] == eastl::pair {4, Op::Destuct});
 }
 
-TEST_CASE_METHOD(WorldFixture, "Moving NonTrivial Components", "[Components]")
+TEST_CASE("Moving NonTrivial Components", "[Components]")
 {
     auto test = [&](World& world) {
         using Vector = eastl::vector<int32_t>;
-        world.Entity().Add<Vector>(1).Apply();
-        Entity entt2 = world.Entity().Add<Vector>(2).Apply();
-        world.Entity().Add<Vector>(3).Apply();
+        world.Entity().Add<Vector>(Vector{1}).Apply();
+        Entity entt2 = world.Entity().Add<Vector>(Vector{2}).Apply();
+        world.Entity().Add<Vector>(Vector{3}).Apply();
 
         entt2.Edit().Remove<Vector>().Apply();
         REQUIRE(!entt2.Has<Vector>());
