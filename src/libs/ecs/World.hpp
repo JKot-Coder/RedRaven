@@ -137,6 +137,7 @@ namespace RR::Ecs
         void RunSystem(SystemId systemId) const;
         void OrderSystems();
         void ProcessDefferedEvents();
+        void ProcessTrackedChanges();
         void Tick();
 
         [[nodiscard]] bool IsLocked() const noexcept { return lockCounter > 0u; }

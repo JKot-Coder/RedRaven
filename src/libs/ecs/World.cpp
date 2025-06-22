@@ -262,6 +262,15 @@ namespace RR::Ecs
         });
     }
 
+    void World::ProcessTrackedChanges()
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!IsLocked());
+
+        for (auto* archetype : archetypesCache)
+            archetype->ProcessTrackedChanges();
+    }
+
     void World::Tick()
     {
         ASSERT_IS_CREATION_THREAD;

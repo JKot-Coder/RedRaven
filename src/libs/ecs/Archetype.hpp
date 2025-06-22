@@ -118,12 +118,14 @@ namespace RR::Ecs
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
                 chunkCapacity = chunkSizeBytes / entitySizeBytes;
                 columns.resize(componentsInfo.size() + trackedComponentsCount);
-
+                trackedComponents.resize(trackedComponentsCount);
+                // Todo assert that trackedComponentsCount is not greater than uint8_t max value
                 for (;;)
                 {
                     size_t offset = 0;
                     size_t componentIndex = 0;
-                    size_t trackedComponentIndex = componentsInfo.size();
+                    size_t trackedComponentIndex = 0;
+                    size_t trackedColumnIndex = componentsInfo.size();
 
                     for (const auto& componentInfo : componentsInfo)
                     {
@@ -136,9 +138,16 @@ namespace RR::Ecs
                             offset += chunkCapacity * componentInfo.size;
                         };
 
-                        initColumn(componentIndex++);
+                        columns[componentIndex].trackedColumnIndex = componentInfo.isTrackable ? trackedColumnIndex : InvalidColumnIndex;
                         if (componentInfo.isTrackable)
-                            initColumn(trackedComponentIndex++);
+                        {
+                            initColumn(trackedColumnIndex);
+                            trackedComponents[trackedComponentIndex].columnIndex = componentIndex;
+                            trackedComponents[trackedComponentIndex].trackedColumnIndex = trackedColumnIndex;
+                            trackedComponentIndex++;
+                            trackedColumnIndex++;
+                        }
+                        initColumn(componentIndex++);
                     }
 
                     if (UNLIKELY(offset > chunkSizeBytes))
@@ -171,7 +180,7 @@ namespace RR::Ecs
                     destroyComponent(componentsInfo[componentIndex], columns[componentIndex].chunks);
 
                     if (componentsInfo[componentIndex].isTrackable)
-                        destroyComponent(componentsInfo[componentIndex], columns[columns[componentIndex].trackedComponentIndex.GetRaw()].chunks);
+                        destroyComponent(componentsInfo[componentIndex], columns[columns[componentIndex].trackedColumnIndex].chunks);
                 }
 
                 chunks.clear();
@@ -211,7 +220,7 @@ namespace RR::Ecs
 
                 ASSERT((chunkIndex + 1 < chunks.size()) || (indexInChunk <= (entitiesCount - 1) % chunkCapacity));
                 return {column.chunks[chunkIndex] + indexInChunk * column.size,
-                        column.trackedComponentIndex.IsValid() ? columns[column.trackedComponentIndex.GetRaw()].chunks[chunkIndex] + indexInChunk * column.size : nullptr};
+                        (column.trackedColumnIndex != InvalidColumnIndex) ? columns[column.trackedColumnIndex].chunks[chunkIndex] + indexInChunk * column.size : nullptr};
             }
 
             ArchetypeEntityIndex Insert()
@@ -245,16 +254,25 @@ namespace RR::Ecs
             size_t entitiesCount = 0;
             size_t entitySize = 0;
 
+            static constexpr uint8_t InvalidColumnIndex = 0xff;
+
             struct Column
             {
-                ArchetypeComponentIndex trackedComponentIndex;
+                uint8_t trackedColumnIndex;
                 size_t size;
                 size_t offset : 32;
                 eastl::fixed_vector<std::byte*, 16> chunks;
             };
 
+            struct TrackedComponent
+            {
+                uint8_t columnIndex;
+                uint8_t trackedColumnIndex;
+            };
+
             ComponentsSet components;
             eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
+            eastl::fixed_vector<TrackedComponent, 32> trackedComponents;
             eastl::fixed_vector<Column, 32> columns;
             eastl::vector<eastl::unique_ptr<std::byte[]>> chunks;
         };
@@ -318,6 +336,7 @@ namespace RR::Ecs
         ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
         void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
 
+
         SortedComponentsView GetComponentsView() const { return SortedComponentsView(components()); }
         size_t GetEntitiesCount() const { return componentsData.entitiesCount; }
         size_t GetChunksCount() const { return componentsData.chunks.size(); }
@@ -349,6 +368,8 @@ namespace RR::Ecs
                 componentInfo.move(componentData.data, src);
             }
         }
+
+        void ProcessTrackedChanges();
 
     private:
         ComponentsData componentsData;

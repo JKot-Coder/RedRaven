@@ -80,4 +80,24 @@ namespace RR::Ecs
 
         componentsData.entitiesCount--;
     }
+
+    void Archetype::ProcessTrackedChanges()
+    {
+        for (auto& trackedComponent : componentsData.trackedComponents)
+        {
+            auto& componentInfo = componentsData.componentsInfo[trackedComponent.columnIndex];
+            auto& column = componentsData.columns[trackedComponent.columnIndex];
+            auto& trackedColumn = componentsData.columns[trackedComponent.trackedColumnIndex];
+
+            for (size_t chunkIndex = 0, chunkCount = column.chunks.size(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += componentsData.chunkCapacity)
+            {
+                const size_t entitiesCount = eastl::min(componentsData.entitiesCount - entityOffset, componentsData.chunkCapacity);
+                for(size_t indexInChunk = 0; indexInChunk < entitiesCount; indexInChunk++)
+                {
+                    const size_t offset = indexInChunk * column.size;
+                    componentInfo.compareAndAssign(column.chunks[chunkIndex] + offset, trackedColumn.chunks[chunkIndex] + offset);
+                }
+            }
+        }
+    }
 }
