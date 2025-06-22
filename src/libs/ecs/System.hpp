@@ -18,6 +18,7 @@ namespace RR::Ecs
         eastl::fixed_vector<EventId, 16> onEvents;
         eastl::fixed_vector<ComponentId, 8> require;
         eastl::fixed_vector<ComponentId, 8> produce;
+        ComponentsSet tracks;
     };
 
     struct System

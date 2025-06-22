@@ -40,7 +40,7 @@ Todo track:
 * Allocate additional memory
 * Initilizate on Appear
 * Implement process tracked
-* Implement track api
++ Implement track api
 * Send events
 
 Absolutely necessary:

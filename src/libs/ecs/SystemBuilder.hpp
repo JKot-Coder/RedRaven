@@ -47,6 +47,14 @@ namespace RR::Ecs
             return *this;
         }
 
+        template <typename... Components>
+        [[nodiscard]] SystemBuilder& Track()
+        {
+            (desc.tracks.insert(GetComponentId<Components>), ...);
+            // Since we track components, we should iterate over archetypes which have these components.
+            return With<Components...>();
+        }
+
         template <typename... EventTypes>
         [[nodiscard]] SystemBuilder& OnEvent()
         {
