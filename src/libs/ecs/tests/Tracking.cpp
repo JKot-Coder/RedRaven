@@ -25,5 +25,14 @@ using TrackableInt = TrackableType<int>;
 TEST_CASE_METHOD(WorldFixture, "Simple create", "[Tracking]")
 {
     world.Entity().Add<TrackableInt>(1).Apply();
+    world.System().Track<TrackableInt>().ForEach([&](TrackableInt& trackableInt) {
+        REQUIRE(trackableInt.x == 2);
+    });
 
+    world.View().With<TrackableInt>().ForEach([&](TrackableInt& trackableInt) {
+        trackableInt.x = 2;
+    });
+
+    world.OrderSystems();
+    world.ProcessTrackedChanges();
 }

@@ -660,6 +660,70 @@ TEST_CASE("Update entities", "[Entity]")
     }
 }
 
+template <typename T>
+struct TrackableType
+{
+    static constexpr bool Trackable = true;
+    T x;
+    bool operator==(const TrackableType& other) const
+    {
+        return x == other.x;
+    }
+};
+
+using TrackableInt = TrackableType<int>;
+using TrackableFloat = TrackableType<float>;
+using TrackableDouble = TrackableType<double>;
+
+TEST_CASE("Tracking", "[Tracking]")
+{
+    ankerl::nanobench::Bench bench;
+    bench.title("Tracking")
+        .warmup(1000)
+        .relative(true)
+        .performanceCounters(true);
+
+    for (auto batchSize : {128U, 1024U, 100000U})
+    {
+        bench.complexityN(batchSize);
+        bench.batch(batchSize);
+        bench.minEpochTime(std::chrono::milliseconds(100));
+        bench.epochs(100);
+        bench.relative(true);
+
+        {
+            bench.run("ECS", [&](ankerl::nanobench::Meter meter) {
+                World world;
+                for (uint32_t i = 0; i < batchSize; i++)
+                    world.Entity().Add<TrackableInt>(1).Add<TrackableFloat>(1.0f).Add<TrackableDouble>(1.0).Apply();
+
+                world.System().Track<TrackableInt>().ForEach([&](TrackableInt& trackableInt) {
+                    trackableInt.x = 0;
+                });
+                world.System().Track<TrackableFloat>().ForEach([&](TrackableFloat& trackableFloat) {
+                    trackableFloat.x = 0;
+                });
+                world.System().Track<TrackableDouble>().ForEach([&](TrackableDouble& trackableDouble) {
+                    trackableDouble.x = 0;
+                });
+
+                world.View().With<TrackableInt, TrackableFloat, TrackableDouble>().ForEach([&](TrackableInt& trackableInt, TrackableFloat& trackableFloat, TrackableDouble& trackableDouble) {
+                    trackableInt.x++;
+                    trackableFloat.x++;
+                    trackableDouble.x++;
+                });
+
+                world.OrderSystems();
+
+                return meter.measure([&world]() {
+                    world.ProcessTrackedChanges();
+                });
+                ankerl::nanobench::doNotOptimizeAway(&world);
+            });
+        }
+    }
+}
+
 /*
 TEST_CASE("hashmap", "[Entity]")
 {
