@@ -88,6 +88,21 @@ namespace RR::Ecs
 
     namespace details
     {
+        template<typename T, typename = void>
+        constexpr bool is_trackable_v = false;
+
+        template<typename T>
+        constexpr bool is_trackable_v<T, std::void_t<decltype(T::Trackable)>> = T::Trackable;
+
+        template <typename T, typename = void>
+        struct is_comparable : std::false_type {};
+
+        template <typename T>
+        struct is_comparable<T, std::void_t<decltype(std::declval<const T&>() == std::declval<const T&>())>>
+            : std::is_same<decltype(std::declval<const T&>() == std::declval<const T&>()), bool>
+        {
+        };
+
         template <typename T>
         void DefaultConstructor(void* data)
         {
@@ -131,8 +146,13 @@ namespace RR::Ecs
         template <typename T>
         bool CompareAndAssign(void* dest, void* source)
         {
-            if (*static_cast<T*>(dest) == *static_cast<T*>(source))
-                return true;
+            if constexpr (details::is_comparable<T>::value)
+            {
+                if (*static_cast<T*>(dest) == *static_cast<T*>(source))
+                    return true;
+            }
+            else
+                static_assert(sizeof(T) == 0, "Type T must be comparable");
 
             if constexpr (std::is_copy_constructible_v<T>)
             {
@@ -181,7 +201,7 @@ namespace RR::Ecs
         template <typename T>
         static constexpr ComponentInfo Create()
         {
-            constexpr bool isTrackable = false;
+            constexpr bool isTrackable = details::is_trackable_v<T>;
 
             return {
                 ComponentId(GetTypeId<T>.GetRaw()),
@@ -270,7 +290,7 @@ namespace RR::Ecs
         static constexpr ComponentInfo ComponentInfo = ComponentInfo::Create<T>();
         static constexpr bool IsComponent = eastl::is_same_v<RawType, T>;
         static constexpr bool IsTag = std::is_empty_v<T>;
-        static constexpr bool IsTrackable = ComponentInfo.isTrackable;
+        static constexpr bool IsTrackable = details::is_trackable_v<T>;
     };
 
     template <typename T>
