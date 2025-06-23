@@ -146,7 +146,8 @@ namespace RR::Ecs
     {
         ASSERT_IS_CREATION_THREAD;
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            desc.callback(world, nullptr, {}, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+            for (auto archetype : cache)
+                desc.callback(world, nullptr, {}, archetype);
         });
     }
 
@@ -497,7 +498,13 @@ namespace RR::Ecs
         ASSERT(!systemsOrderDirty);
 
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            desc.callback(world, &event, entity, RR::Ecs::MatchedArchetypeSpan(cache.begin(), cache.end()));
+            if(!entity) // Todo separate methods ?
+            {
+                for (auto archetype : cache)
+                    desc.callback(world, &event, entity, archetype);
+            }
+            else
+                desc.callback(world, &event, entity, nullptr);
         });
     }
 

@@ -197,7 +197,7 @@ namespace RR::Ecs
         [[nodiscard]] EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq);
 
         template <typename Callable>
-        void invokeForEntities(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable);
+        void invokeForEntities(const Archetype* archetype, const Ecs::Event* event, Callable&& callable);
         template <typename Callable>
         void invokeForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable);
 
@@ -298,15 +298,14 @@ namespace RR::Ecs
     }
 
     template <typename Callable>
-    inline void World::invokeForEntities(MatchedArchetypeSpan span, const Ecs::Event* event, Callable&& callable)
+    inline void World::invokeForEntities(const Archetype* archetype, const Ecs::Event* event, Callable&& callable)
     {
         ASSERT_IS_CREATION_THREAD;
         IterationContext context {*this, event};
 
         LockGuard lg(this);
         // Todo check all args in callable persist in archetype.
-        for (auto archetype : span)
-            ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
+        ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -354,7 +353,8 @@ namespace RR::Ecs
         #ifdef ENABLE_ASSERTS
             Debug::ValidateLambdaArgumentsAgainstView(*queryView, callable);
         #endif
-        this->invokeForEntities(MatchedArchetypeSpan(*archetypes), nullptr, eastl::forward<Callable>(callable));
+        for (auto archetype : *archetypes)
+            this->invokeForEntities(archetype, nullptr, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>

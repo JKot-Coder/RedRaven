@@ -14,7 +14,7 @@ namespace RR::Ecs
     struct SystemDescription
     {
         static constexpr size_t FunctionSize = 64;
-        eastl::fixed_function<FunctionSize, void(Ecs::World&, Ecs::Event const *, Ecs::EntityId, Ecs::MatchedArchetypeSpan)> callback;
+        eastl::fixed_function<FunctionSize, void(Ecs::World&, Ecs::Event const *, Ecs::EntityId, const Archetype* archetype)> callback;
         eastl::fixed_vector<EventId, 16> onEvents;
         eastl::fixed_vector<ComponentId, 8> require;
         eastl::fixed_vector<ComponentId, 8> produce;
