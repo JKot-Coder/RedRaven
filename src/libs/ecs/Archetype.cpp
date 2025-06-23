@@ -86,10 +86,6 @@ namespace RR::Ecs
     {
         if (componentsData.trackedComponents.empty())
             return;
-
-        if(changedComponentsMasks.empty())
-            changedComponentsMasks.resize(componentsData.chunkCapacity);
-
         const auto componentsCount = static_cast<uint8_t>(componentsData.componentsInfo.size());
         uint64_t trackedComponentsMask = 0;
 
@@ -110,33 +106,37 @@ namespace RR::Ecs
         if (componentsData.trackedComponents.empty())
             return;
 
-        // TODO it's could be optimized by adding dirty mask for chunks/columns.
-
         const uint8_t componentsCount = static_cast<uint8_t>(componentsData.componentsInfo.size());
         const size_t chunksCount = componentsData.chunks.size();
         const size_t chunkCapacity = componentsData.chunkCapacity;
         const size_t entitiesCount = componentsData.entitiesCount;
 
+        static thread_local eastl::vector<uint64_t> changedComponentsMasks;
+        changedComponentsMasks.reserve(chunkCapacity);
+
+        // TODO it's could be optimized by adding dirty mask for chunks/columns.
         for (size_t chunkIndex = 0, entityOffset = 0; chunkIndex < chunksCount; chunkIndex++, entityOffset += chunkCapacity)
         {
             uint64_t changedChunkComponentsMask = 0;
             const size_t entitiesInChunk = eastl::min(entitiesCount - entityOffset, chunkCapacity);
-            for (size_t indexInChunk = 0; indexInChunk < entitiesInChunk; indexInChunk++)
-            {
-                uint64_t changedComponentsMask = 0;
-                for (auto& trackedComponent : componentsData.trackedComponents)
-                {
-                    auto& componentInfo = componentsData.componentsInfo[trackedComponent.columnIndex];
-                    auto& column = componentsData.columns[trackedComponent.columnIndex];
-                    auto& trackedColumn = componentsData.columns[trackedComponent.trackedColumnIndex];
+            eastl::fill_n(changedComponentsMasks.data(), entitiesInChunk, 0);
 
+            for (auto& trackedComponent : componentsData.trackedComponents)
+            {
+                auto& componentInfo = componentsData.componentsInfo[trackedComponent.columnIndex];
+                auto& column = componentsData.columns[trackedComponent.columnIndex];
+                auto& trackedColumn = componentsData.columns[trackedComponent.trackedColumnIndex];
+
+                for (size_t indexInChunk = 0; indexInChunk < entitiesInChunk; indexInChunk++)
+                {
                     const size_t offset = indexInChunk * column.size;
                     if (!componentInfo.compareAndAssign(trackedColumn.chunks[chunkIndex] + offset, column.chunks[chunkIndex] + offset))
-                        changedComponentsMask |= 1ULL << static_cast<uint64_t>(trackedComponent.trackedColumnIndex - componentsCount);
+                    {
+                        uint64_t mask = 1ULL << static_cast<uint64_t>(trackedComponent.trackedColumnIndex - componentsCount);
+                        *(changedComponentsMasks.data() + indexInChunk) |= mask;
+                        changedChunkComponentsMask |= mask;
+                    }
                 }
-
-                changedChunkComponentsMask |= changedComponentsMask;
-                changedComponentsMasks[indexInChunk] = changedComponentsMask;
             }
 
             if(changedChunkComponentsMask == 0)
@@ -147,9 +147,9 @@ namespace RR::Ecs
                 if ((changedChunkComponentsMask & mask) == 0)
                     continue;
 
-                for (size_t indexInChunk = 0; indexInChunk < changedComponentsMasks.size(); indexInChunk++)
+                for (size_t indexInChunk = 0; indexInChunk < entitiesInChunk; indexInChunk++)
                 {
-                    uint64_t changedComponentsMask = changedComponentsMasks[indexInChunk];
+                    uint64_t changedComponentsMask = *(changedComponentsMasks.data() + indexInChunk);
                     if ((mask & changedComponentsMask) == 0)
                         continue;
 
