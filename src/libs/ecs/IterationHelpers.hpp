@@ -133,9 +133,9 @@ namespace RR::Ecs
         }
 
         template <typename Func, typename... ComponentAccessors>
-        static void invokeForEntity(ArchetypeEntityIndex entityIndex, Func&& func, ComponentAccessors... components)
+        static void invokeForEntity(size_t indexInChunk, Func&& func, ComponentAccessors&... components)
         {
-            func(castComponentPtrToArg<typename ComponentAccessors::Argument>(components.Get(entityIndex.GetIndexInChunk()))...);
+            func(castComponentPtrToArg<typename ComponentAccessors::Argument>(components.Get(indexInChunk))...);
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
@@ -146,7 +146,7 @@ namespace RR::Ecs
              auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
             (eastl::get<Index>(componentAccessors).SetChunkIndex(archetype, entityIndex.GetChunkIndex()), ...);
 
-            invokeForEntity(entityIndex, eastl::forward<Func>(func), eastl::get<Index>(componentAccessors)...);
+            invokeForEntity(entityIndex.GetIndexInChunk(), eastl::forward<Func>(func), eastl::get<Index>(componentAccessors)...);
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
