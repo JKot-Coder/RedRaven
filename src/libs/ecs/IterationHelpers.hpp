@@ -127,7 +127,7 @@ namespace RR::Ecs
         }
 
         template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
-        static void processChunk(Func&& func, size_t beginEntityIndex, size_t endEntityIndex, ComponentAccessors... components)
+        static void processChunk(Func&& func, uint32_t beginEntityIndex, uint32_t endEntityIndex, ComponentAccessors... components)
         {
             // clang-format off
             #if 0
@@ -137,12 +137,12 @@ namespace RR::Ecs
                 #endif
                 #pragma unroll UNROLL_N
             #endif // clang-format on
-            for (size_t i = beginEntityIndex; i < endEntityIndex; i++)
+            for (uint32_t i = beginEntityIndex; i < endEntityIndex; i++)
                 invoke<typename ComponentAccessors::Argument...>(eastl::forward<Func>(func), components.Get(i)...);
         }
 
         template <typename Func, typename... ComponentAccessors>
-        static void invokeForEntity(size_t indexInChunk, Func&& func, ComponentAccessors&... components)
+        static void invokeForEntity(uint32_t indexInChunk, Func&& func, ComponentAccessors&... components)
         {
             func(castComponentPtrToArg<typename ComponentAccessors::Argument>(components.Get(indexInChunk))...);
         }
@@ -169,13 +169,13 @@ namespace RR::Ecs
             // TODO componentIndexes could be cached.
             auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
 
-            size_t beginChunkIndex = static_cast<size_t>(span.begin.GetChunkIndex());
-            size_t endChunkIndex = static_cast<size_t>(span.end.GetChunkIndex());
+            uint32_t beginChunkIndex = static_cast<uint32_t>(span.begin.GetChunkIndex());
+            uint32_t endChunkIndex = static_cast<uint32_t>(span.end.GetChunkIndex());
 
-            size_t beginEntityIndex = span.begin.GetIndexInChunk();
-            size_t endEntityIndex = static_cast<size_t>(archetype.GetChunkCapacity());
+            uint32_t beginEntityIndex = span.begin.GetIndexInChunk();
+            uint32_t endEntityIndex = static_cast<uint32_t>(archetype.GetChunkCapacity());
 
-            for (size_t chunkIndex = beginChunkIndex; chunkIndex <= endChunkIndex; ++chunkIndex)
+            for (uint32_t chunkIndex = beginChunkIndex; chunkIndex <= endChunkIndex; ++chunkIndex)
             {
                 if (chunkIndex == endChunkIndex)
                     endEntityIndex = span.end.GetIndexInChunk();
