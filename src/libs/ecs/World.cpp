@@ -147,7 +147,10 @@ namespace RR::Ecs
         ASSERT_IS_CREATION_THREAD;
         systemsView.ForEntity(EntityId(systemId.GetRaw()), [](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
             for (auto archetype : cache)
-                desc.callback(world, nullptr, {}, archetype);
+            {
+                const ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
+                desc.callback(world, nullptr, span);
+            }
         });
     }
 
@@ -492,19 +495,37 @@ namespace RR::Ecs
             dispatchEventImmediately({}, systemId, event);
     }
 
-    void World::dispatchEventImmediately(EntityId entity, SystemId systemId, const Ecs::Event& event) const
+    void World::dispatchEventImmediately(EntityId entityId, SystemId systemId, const Ecs::Event& event) const
     {
         ASSERT_IS_CREATION_THREAD;
         ASSERT(!systemsOrderDirty);
 
-        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entity](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            if(!entity) // Todo separate methods ?
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entityId](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
+            if(!entityId) // Todo separate methods ?
             {
                 for (auto archetype : cache)
-                    desc.callback(world, &event, entity, archetype);
+                {
+                    const ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
+                    desc.callback(world, &event, span);
+                }
             }
             else
-                desc.callback(world, &event, entity, nullptr);
+            {
+                // Todo check entity are ok for  Args
+                EntityRecord record;
+                if (!world.ResolveEntityRecord(entityId, record))
+                {
+                    // Impossible
+                    ASSERT_MSG(false, "Broken entity id.");
+                    return;
+                }
+
+                const Archetype* archetype = record.GetArchetype(false);
+                ArchetypeEntityIndex index = record.GetIndex(false);
+
+                const ArchetypeEntitySpan span(*archetype, index, archetype->inc(index));
+                desc.callback(world, &event, span);
+            }
         });
     }
 

@@ -73,11 +73,8 @@ namespace RR::Ecs
 #ifdef ENABLE_ASSERTS
             Debug::ValidateLambdaArgumentsAgainstView(this->view, callback);
 #endif
-            desc.callback = [cb = std::forward<Callback>(callback)](Ecs::World& world, Ecs::Event const * event, Ecs::EntityId entityId, const Archetype* archetype) {
-                if (!entityId)
-                    world.invokeForEntities(archetype, event, eastl::move(cb));
-                else
-                    world.invokeForEntity(entityId, event, eastl::move(cb));
+            desc.callback = [cb = std::forward<Callback>(callback)](Ecs::World& world, Ecs::Event const* event, Ecs::ArchetypeEntitySpan span) {
+                world.invokeForEntities(span, event, eastl::move(cb));
             };
 
             return view.world.createSystem(eastl::move(desc), eastl::move(view), eastl::move(name));

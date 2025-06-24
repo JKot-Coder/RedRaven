@@ -197,9 +197,7 @@ namespace RR::Ecs
         [[nodiscard]] EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq);
 
         template <typename Callable>
-        void invokeForEntities(const Archetype* archetype, const Ecs::Event* event, Callable&& callable);
-        template <typename Callable>
-        void invokeForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable);
+        void invokeForEntities(ArchetypeEntitySpan span, const Ecs::Event* event, Callable&& callable);
 
         template <typename Callable>
         void query(QueryId queryId, Callable&& callable);
@@ -298,17 +296,16 @@ namespace RR::Ecs
     }
 
     template <typename Callable>
-    inline void World::invokeForEntities(const Archetype* archetype, const Ecs::Event* event, Callable&& callable)
+    inline void World::invokeForEntities(ArchetypeEntitySpan span, const Ecs::Event* event, Callable&& callable)
     {
         ASSERT_IS_CREATION_THREAD;
         IterationContext context {*this, event};
 
         LockGuard lg(this);
-        const ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
         // Todo check all args in callable persist in archetype.
         ArchetypeIterator::ForEach(span, context, eastl::forward<Callable>(callable));
     }
-
+/*
     template <typename Callable>
     inline void World::invokeForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable)
     {
@@ -337,7 +334,7 @@ namespace RR::Ecs
         ArchetypeEntityIndex index = record.GetIndex(false);
         ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
     }
-
+*/
     template <typename Callable>
     inline void World::query(QueryId queryId, Callable&& callable)
     {
@@ -357,7 +354,10 @@ namespace RR::Ecs
             Debug::ValidateLambdaArgumentsAgainstView(*queryView, callable);
         #endif
         for (auto archetype : *archetypes)
-            invokeForEntities(archetype, nullptr, eastl::forward<Callable>(callable));
+        {
+            ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
+            invokeForEntities(span, nullptr, eastl::forward<Callable>(callable));
+        }
     }
 
     template <typename Callable>
