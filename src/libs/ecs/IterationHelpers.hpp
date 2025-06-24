@@ -9,6 +9,15 @@
 
 namespace RR::Ecs
 {
+    struct ArchetypeEntitySpan
+    {
+        ArchetypeEntitySpan(const Archetype& archetype, ArchetypeEntityIndex begin, ArchetypeEntityIndex end)
+            : archetype(&archetype), begin(begin), end(end) { };
+        const Archetype* archetype;
+        ArchetypeEntityIndex begin;
+        ArchetypeEntityIndex end;
+    };
+
     struct IterationContext
     {
         IterationContext(World& world, const Event* event) : world(world), event(event) { };
@@ -118,7 +127,7 @@ namespace RR::Ecs
         }
 
         template <size_t UNROLL_N, typename Func, typename... ComponentAccessors>
-        static void processChunk(Func&& func, size_t entitiesCount, ComponentAccessors... components)
+        static void processChunk(Func&& func, size_t beginEntityIndex, size_t endEntityIndex, ComponentAccessors... components)
         {
             // clang-format off
             #if 0
@@ -128,7 +137,7 @@ namespace RR::Ecs
                 #endif
                 #pragma unroll UNROLL_N
             #endif // clang-format on
-            for (size_t i = 0; i < entitiesCount; i++)
+            for (size_t i = beginEntityIndex; i < endEntityIndex; i++)
                 invoke<typename ComponentAccessors::Argument...>(eastl::forward<Func>(func), components.Get(i)...);
         }
 
@@ -150,8 +159,9 @@ namespace RR::Ecs
         }
 
         template <typename ArgumentList, typename Func, size_t... Index>
-        static void processArchetype(const Archetype& archetype, const IterationContext& context, Func&& func, const eastl::index_sequence<Index...>&)
+        static void processEntities(const ArchetypeEntitySpan& span, const IterationContext& context, Func&& func, const eastl::index_sequence<Index...>&)
         {
+            const Archetype& archetype = *span.archetype;
             if (archetype.GetEntitiesCount() == 0)
                 return;
 
@@ -159,20 +169,31 @@ namespace RR::Ecs
             // TODO componentIndexes could be cached.
             auto componentAccessors = eastl::make_tuple(ComponentAccessor<typename ArgumentList::template Get<Index>>(archetype, context)...);
 
-            for (size_t chunkIndex = 0, chunkCount = archetype.GetChunksCount(), entityOffset = 0; chunkIndex < chunkCount; chunkIndex++, entityOffset += archetype.GetChunkCapacity())
+            size_t beginChunkIndex = static_cast<size_t>(span.begin.GetChunkIndex());
+            size_t endChunkIndex = static_cast<size_t>(span.end.GetChunkIndex());
+
+            size_t beginEntityIndex = span.begin.GetIndexInChunk();
+            size_t endEntityIndex = static_cast<size_t>(archetype.GetChunkCapacity());
+
+            for (size_t chunkIndex = beginChunkIndex; chunkIndex <= endChunkIndex; ++chunkIndex)
             {
+                if (chunkIndex == endChunkIndex)
+                    endEntityIndex = span.end.GetIndexInChunk();
+
                 (eastl::get<Index>(componentAccessors).SetChunkIndex(archetype, chunkIndex), ...);
-                size_t entitiesCount = eastl::min(archetype.GetEntitiesCount() - entityOffset, archetype.GetChunkCapacity());
-                processChunk<4>(eastl::forward<Func>(func), entitiesCount, eastl::get<Index>(componentAccessors)...);
+                processChunk<4>(eastl::forward<Func>(func), beginEntityIndex, endEntityIndex, eastl::get<Index>(componentAccessors)...);
+
+                if (chunkIndex == beginChunkIndex)
+                    beginEntityIndex = 0;
             }
         }
 
     public:
         template <typename Callable>
-        static void ForEach(const Archetype& archetype, const IterationContext& context, Callable&& callable)
+        static void ForEach(ArchetypeEntitySpan span, const IterationContext& context, Callable&& callable)
         {
             using ArgList = GetArgumentList<Callable>;
-            processArchetype<ArgList>(archetype, context, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
+            processEntities<ArgList>(span, context, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
 
         template <typename Callable>

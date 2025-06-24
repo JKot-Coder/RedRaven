@@ -246,6 +246,11 @@ namespace RR::Ecs
                 return ArchetypeEntityIndex((entitiesCount - 1) % chunkCapacity, (entitiesCount - 1) / chunkCapacity);
             }
 
+            ArchetypeEntityIndex End() const
+            {
+                return ArchetypeEntityIndex(entitiesCount % chunkCapacity, entitiesCount/ chunkCapacity);
+            }
+
         private:
             friend struct Archetype;
 
@@ -333,10 +338,25 @@ namespace RR::Ecs
             return componentsData.componentsInfo[index.GetRaw()];
         }
 
+        [[nodiscard]] ArchetypeEntityIndex begin() const { return ArchetypeEntityIndex(0, 0); }
+        [[nodiscard]] ArchetypeEntityIndex end() const { return componentsData.End(); }
+        [[nodiscard]] ArchetypeEntityIndex inc(ArchetypeEntityIndex index) const
+        {
+            size_t indexInChunk = index.GetIndexInChunk() + 1;
+            size_t chunkIndex = index.GetChunkIndex();
+
+            if (indexInChunk == componentsData.chunkCapacity)
+            {
+                indexInChunk = 0;
+                ++chunkIndex;
+            }
+
+            return ArchetypeEntityIndex(indexInChunk, chunkIndex);
+        }
+
         ArchetypeEntityIndex Insert(EntityId entityId);
         ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
         void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
-
 
         SortedComponentsView GetComponentsView() const { return SortedComponentsView(components()); }
         size_t GetEntitiesCount() const { return componentsData.entitiesCount; }

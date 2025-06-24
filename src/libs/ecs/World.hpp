@@ -304,8 +304,9 @@ namespace RR::Ecs
         IterationContext context {*this, event};
 
         LockGuard lg(this);
+        const ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
         // Todo check all args in callable persist in archetype.
-        ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
+        ArchetypeIterator::ForEach(span, context, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -332,7 +333,9 @@ namespace RR::Ecs
 
         // Todo check all args in callable persist in archetype.
         LockGuard lg(this);
-        ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), context, eastl::forward<Callable>(callable));
+        const Archetype* archetype = record.GetArchetype(false);
+        ArchetypeEntityIndex index = record.GetIndex(false);
+        ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -354,7 +357,7 @@ namespace RR::Ecs
             Debug::ValidateLambdaArgumentsAgainstView(*queryView, callable);
         #endif
         for (auto archetype : *archetypes)
-            this->invokeForEntities(archetype, nullptr, eastl::forward<Callable>(callable));
+            invokeForEntities(archetype, nullptr, eastl::forward<Callable>(callable));
     }
 
     template <typename Callable>
@@ -374,7 +377,8 @@ namespace RR::Ecs
             if LIKELY (!matches(*archetype, view))
                 continue;
 
-            ArchetypeIterator::ForEach(*archetype, context, eastl::forward<Callable>(callable));
+            const ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
+            ArchetypeIterator::ForEach(span, context, eastl::forward<Callable>(callable));
         }
     }
 
@@ -410,7 +414,8 @@ namespace RR::Ecs
         }
 
         LockGuard lg(this);
-        ArchetypeIterator::ForEntity(*record.GetArchetype(false), record.GetIndex(false), {*this, nullptr}, eastl::forward<Callable>(callable));
+        ArchetypeEntityIndex index = record.GetIndex(false);
+        ArchetypeIterator::ForEntity(*archetype, index, {*this, nullptr}, eastl::forward<Callable>(callable));
     }
 
     template <typename Components, typename ArgsTuple, size_t... Index>
