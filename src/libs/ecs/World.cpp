@@ -492,40 +492,35 @@ namespace RR::Ecs
             return;
 
         for (const auto systemId : it->second)
-            dispatchEventImmediately({}, systemId, event);
-    }
-
-    void World::dispatchEventImmediately(EntityId entityId, SystemId systemId, const Ecs::Event& event) const
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(!systemsOrderDirty);
-
-        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entityId](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
-            if(!entityId) // Todo separate methods ?
-            {
+        {
+            systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event](World& world, const SystemDescription& desc, MatchedArchetypeCache& cache) {
                 for (auto archetype : cache)
                 {
                     const ArchetypeEntitySpan span(*archetype, archetype->begin(), archetype->end());
                     desc.callback(world, &event, span);
                 }
-            }
-            else
-            {
-                // Todo check entity are ok for  Args
-                EntityRecord record;
-                if (!world.ResolveEntityRecord(entityId, record))
-                {
-                    // Impossible
-                    ASSERT_MSG(false, "Broken entity id.");
-                    return;
-                }
+            });
+        }
+    }
 
-                const Archetype* archetype = record.GetArchetype(false);
-                ArchetypeEntityIndex index = record.GetIndex(false);
+    void World::dispatchEventImmediately(EntityId entityId, SystemId systemId, const Ecs::Event& event) const
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(entityId);
+        ASSERT(!systemsOrderDirty);
 
-                const ArchetypeEntitySpan span(*archetype, index, archetype->inc(index));
-                desc.callback(world, &event, span);
-            }
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, entityId](World& world, const SystemDescription& desc) {
+            // Todo check entity are ok for  Args
+            EntityRecord record;
+            [[maybe_unused]] const bool resolved = world.ResolveEntityRecord(entityId, record);
+            ASSERT(resolved);
+
+            // TODO check entity archetype is valid for this system.
+            const Archetype* archetype = record.GetArchetype(false);
+            ArchetypeEntityIndex index = record.GetIndex(false);
+
+            const ArchetypeEntitySpan span(*archetype, index, archetype->inc(index));
+            desc.callback(world, &event, span);
         });
     }
 
