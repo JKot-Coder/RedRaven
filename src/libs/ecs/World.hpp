@@ -458,8 +458,7 @@ namespace RR::Ecs
         }
 
         auto addComponent = [&components](ComponentId id) -> int {
-            bool added = components.insert(id).second;
-            UNUSED(added);
+            [[maybe_unused]] bool added = components.insert(id).second;
             ASSERT_MSG(added, "Can't add component {}. Only new components can be added.", id.GetRaw());
             return 0;
         };
