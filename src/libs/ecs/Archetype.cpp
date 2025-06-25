@@ -106,6 +106,7 @@ namespace RR::Ecs
         if (componentsData.trackedComponents.empty())
             return;
 
+        OnChange event {};
         const uint8_t componentsCount = static_cast<uint8_t>(componentsData.componentsInfo.size());
         const size_t chunksCount = componentsData.chunks.size();
         const size_t chunkCapacity = componentsData.chunkCapacity;
@@ -147,15 +148,24 @@ namespace RR::Ecs
                 if ((changedChunkComponentsMask & mask) == 0)
                     continue;
 
+                const ArchetypeEntityIndex begin = ArchetypeEntityIndex(0, chunkIndex);
+                ArchetypeEntitySpan span(*this, begin, begin);
+
                 for (size_t indexInChunk = 0; indexInChunk < entitiesInChunk; indexInChunk++)
                 {
                     uint64_t changedComponentsMask = *(changedComponentsMasks.data() + indexInChunk);
                     if ((mask & changedComponentsMask) == 0)
+                    {
+                        span.begin = span.end;
+                        span.end = inc(span.end);
+                        world.dispatchEventImmediately(span, systemId, event);
                         continue;
+                    }
 
-                    EntityId entityId = GetEntityIdData(ArchetypeEntityIndex(chunkIndex));
-                    world.dispatchEventImmediately(entityId, systemId, OnChange {});
+                    span.end = inc(span.end);
                 }
+                if(span.begin != span.end)
+                    world.dispatchEventImmediately(span, systemId, event);
             }
         }
     }
