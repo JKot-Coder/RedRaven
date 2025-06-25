@@ -181,6 +181,9 @@ namespace RR::Ecs
         // Dispatch event to systems, that are subscribed to this event.
         // Systems would be queried for all matched entities.
         void broadcastEventImmediately(const Ecs::Event& event) const;
+        // Dispatch event to specific system and all entities in span.
+        // System would be called once for each entity in span with specific event.
+        void dispatchEventImmediately(ArchetypeEntitySpan span, SystemId systemId, const Ecs::Event& event) const;
         // Dispatch event to specific system and antity.
         // System would be called once for specific entity with specific event.
         void dispatchEventImmediately(EntityId entityId, SystemId systemId, const Ecs::Event& event) const;

@@ -503,6 +503,17 @@ namespace RR::Ecs
         }
     }
 
+    void World::dispatchEventImmediately(ArchetypeEntitySpan span, SystemId systemId, const Ecs::Event& event) const
+    {
+        ASSERT_IS_CREATION_THREAD;
+        ASSERT(!systemsOrderDirty);
+
+        systemsView.ForEntity(EntityId(systemId.GetRaw()), [&event, span](World& world, const SystemDescription& desc) {
+            // TODO check span is valid for this system.
+            desc.callback(world, &event, span);
+        });
+    }
+
     void World::dispatchEventImmediately(EntityId entityId, SystemId systemId, const Ecs::Event& event) const
     {
         ASSERT_IS_CREATION_THREAD;
