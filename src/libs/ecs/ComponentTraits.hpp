@@ -174,6 +174,7 @@ namespace RR::Ecs
 
         ComponentId id;
         size_t size;
+        std::string_view name;
         bool isTrackable : 1;
         size_t alignment : 15;
         DefaultConstructor constructDefault;
@@ -206,6 +207,7 @@ namespace RR::Ecs
             return {
                 ComponentId(GetTypeId<T>.GetRaw()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
+                GetTypeName<T>,
                 isTrackable,
                 alignof(T),
                 eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
