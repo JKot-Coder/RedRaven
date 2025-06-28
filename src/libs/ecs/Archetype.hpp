@@ -393,14 +393,16 @@ namespace RR::Ecs
 
         void MoveComponentFrom(ArchetypeEntityIndex index, ArchetypeComponentIndex componentIndex, void* src)
         {
-            ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
             const auto& componentInfo = GetComponentInfo(componentIndex);
-            if (componentInfo.size)
-            {
-                if(componentData.trackedData)
-                    componentInfo.copy(componentData.trackedData, src);
-                componentInfo.move(componentData.data, src);
-            }
+            if (!componentInfo.size)
+                return;
+
+            ASSERT(src);
+            ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
+
+            if (componentData.trackedData)
+                componentInfo.copy(componentData.trackedData, src);
+            componentInfo.move(componentData.data, src);
         }
 
         void UpdateTrackedCache(SystemId systemId, SortedComponentsView components);

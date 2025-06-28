@@ -120,6 +120,10 @@ namespace RR::Ecs
         {
             uint64_t changedChunkComponentsMask = 0;
             const size_t entitiesInChunk = eastl::min(entitiesCount - entityOffset, chunkCapacity);
+
+            if(entitiesInChunk == 0)
+                break;
+
             eastl::fill_n(changedComponentsMasks.data(), entitiesInChunk, 0);
 
             for (auto& trackedComponent : componentsData.trackedComponents)
