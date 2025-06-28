@@ -83,12 +83,13 @@ namespace RR::Ecs
             void ProcessCommands(World& world);
 
             template <typename Components, typename ArgsTuple, size_t... Index>
-            void Mutate(EntityId entity, Archetype* from, Archetype& to, UnsortedComponentsView addedComponents, ArgsTuple&& args, eastl::index_sequence<Index...>)
+            void Mutate(EntityId entity, Archetype* from, Archetype& to, ArgsTuple&& args, eastl::index_sequence<Index...>)
             {
                 ASSERT(entity);
                 ASSERT(!inProcess);
 
-                auto& command = makeMutateCommand(entity, from, to, addedComponents);
+                const eastl::array<ComponentId, Components::Count> componentIds = {GetComponentId<typename Components::template Get<Index>>...};
+                auto& command = makeMutateCommand(entity, from, to, UnsortedComponentsView(componentIds));
 
                 void** componentsPtrs = allocate<void*>(Components::Count);
                 (void( *(componentsPtrs + Index) = constructComponent<typename Components::template Get<Index>>(

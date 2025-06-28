@@ -498,7 +498,7 @@ namespace RR::Ecs
                 entityId = entityStorage.CreateAsync(to);
             else
                 entityStorage.PendingMutate(entityId, to);
-            commandBuffer.Mutate<Components>(entityId, from, to, UnsortedComponentsView(addedComponents), eastl::forward<ArgsTuple>(args), indexSeq);
+            commandBuffer.Mutate<Components>(entityId, from, to, eastl::forward<ArgsTuple>(args), indexSeq);
         }
 
         ASSERT(entityId);
