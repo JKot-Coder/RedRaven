@@ -35,6 +35,7 @@
 + more checks for apper dissapear
 + thread safity checks
 + reorder functions in world
++ refactor includes
 
 Todo track:
 + Allocate additional memory
@@ -43,32 +44,31 @@ Todo track:
 + Implement track api
 + Send events
 + Optimize tracking
-# Made a tests for tracking
++ Made a tests for tracking
 
-Absolutely necessary:
-+ Order tokens
+Checks:
 # throw errors to make a tests
 # check all args present in required components.
 # check required and exluded do not overlap
-+ Track
-# singletons
 # checks for copy/move only
 # Protection of updating same archetype in subqueries. (borrow checker) (Ask GPT how other do that?)
 # do not allow add world entityid or event as components.
+
+Absolutely necessary:
++ Order tokens
++ Track
+# singletons
 + Refactor how interation works. Pass iterators and interate over them. Remove ForEntity use unified iterators instead.
 
 Nice to have:
 * Caching of components index in queries and systems
-
-???:
-+ refactor includes
-# delete systems / queries
+* Parrallel execution
+* Dirty masks for colums to optimize tracking
 
 Probably:
 * parents
 * rework queries/view (uncached queries?)
 * world view?
 * Add names for entitites
-* Parrallel execution
 * Declare all subqueries in system declaration (to have 100% nice graph of dependecies)
-* Dirty masks for colums
+# delete systems / queries
