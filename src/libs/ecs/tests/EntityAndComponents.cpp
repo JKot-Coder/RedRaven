@@ -245,6 +245,43 @@ TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
     SECTION("Immediate") { immediateTest(test, check); }
     SECTION("Deffered") { defferedTest(test, check); }
 }
+
+TEST_CASE_METHOD(WorldFixture, "Complex", "[Components]")
+{
+    struct Tag{};
+
+    auto test = [&](World& world) {
+        world.Entity().Add<int>(123).Add<Tag>().Add<float>(60.0f).Apply();
+        Entity entt2 = world.Entity().Add<int>(124).Add<Tag>().Add<float>(70.0f).Apply();
+        world.Entity().Add<int>(125).Add<Tag>().Add<float>(80.0f).Apply();
+
+        entt2.Edit().Remove<Tag>().Apply();
+    };
+
+    auto check = [&](World& world) {
+        eastl::vector<int> intResults;
+        eastl::vector<float> floatResults;
+
+        const auto view = world.View().With<int, float>();
+        view.ForEach([&](int intValue, float floatValue) {
+            intResults.push_back(intValue);
+            floatResults.push_back(floatValue);
+        });
+
+        REQUIRE(intResults.size() == 3);
+        REQUIRE(floatResults.size() == 3);
+
+        REQUIRE(intResults[0] == 123);
+        REQUIRE(intResults[1] == 125);
+        REQUIRE(intResults[2] == 124);
+
+        REQUIRE(floatResults[0] == 60.0f);
+        REQUIRE(floatResults[1] == 80.0f);
+        REQUIRE(floatResults[2] == 70.0f);
+    };
+
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
