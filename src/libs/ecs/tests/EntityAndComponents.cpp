@@ -19,15 +19,16 @@ namespace {
         return *archetype;
     };
 
-    template<typename Callable>
-    void immediateTest(Callable&& call)
+    template<typename Callable, typename CallableCheck>
+    void immediateTest(Callable&& call, CallableCheck&& check)
     {
         World world;
         call(world);
+        check(world);
     }
 
-    template<typename Callable>
-    void defferedTest(Callable&& call)
+    template<typename Callable, typename CallableCheck>
+    void defferedTest(Callable&& call, CallableCheck&& check)
     {
         World world;
 
@@ -39,6 +40,9 @@ namespace {
             call(world);
             called = true;
         });
+
+        check(world);
+
         REQUIRE(called);
     }
 }
@@ -55,8 +59,9 @@ TEST_CASE("Create Entity", "[Entity]")
         REQUIRE(entt3.GetId().GetRawId() == entt2.GetId().GetRawId() + 1);
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE("Delete Entity", "[Entity]")
@@ -83,8 +88,10 @@ TEST_CASE("Delete Entity", "[Entity]")
             REQUIRE(entt3.GetId().GetIndex() == entt2.GetId().GetIndex() + 1);
         }
     };
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE("Delete deleted Entity", "[Entity]")
@@ -112,8 +119,9 @@ TEST_CASE("Delete deleted Entity", "[Entity]")
         }
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
@@ -130,8 +138,9 @@ TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
         REQUIRE(!entt1.IsAlive());
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
@@ -141,8 +150,10 @@ TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
         REQUIRE(world.EmptyEntity().Edit().Apply().IsAlive());
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
@@ -167,8 +178,9 @@ TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
         REQUIRE(entt2.Has<Foo, Bar>());
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
@@ -191,8 +203,9 @@ TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
         REQUIRE(!entt2.Has<Foo>());
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
@@ -205,8 +218,9 @@ TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
         REQUIRE(!entt1.Has<Vector>());
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 
 TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
@@ -227,8 +241,10 @@ TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
         REQUIRE(!entt2.Has<Tag>());
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}
 }
 
 TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
@@ -379,8 +395,9 @@ TEST_CASE("Moving NonTrivial Components", "[Components]")
         REQUIRE(summ == (world.IsLocked() ? 0 : 4));
     };
 
-    SECTION("Immediate") { immediateTest(test); }
-    SECTION("Deffered") { defferedTest(test); }
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
 /*
 #include <flecs.h>
