@@ -234,7 +234,11 @@ namespace RR::Ecs
         {
             for (auto& cache : archetype->cache)
                 eastl::sort(cache.second.begin(), cache.second.end(), [&systemsOrder](auto a, auto b) { return systemsOrder[a] < systemsOrder[b]; });
+
+            eastl::sort(archetype->trackedSystems.begin(), archetype->trackedSystems.end(), [&systemsOrder](auto a, auto b) {
+                    return systemsOrder[a.system] < systemsOrder[b.system]; });
         }
+
         {
             // clang-format off
             // This is a hacky way to sort systems in archetype storage.
@@ -388,10 +392,14 @@ namespace RR::Ecs
             if LIKELY (!matches(archetype, view))
                 return;
 
+            const SystemId systemId = SystemId(id.GetRawId());
             cache.push_back(&archetype);
 
             for (const auto event : systemDesc.onEvents)
-                archetype.cache[event].push_back(SystemId(id.GetRawId()));
+                archetype.cache[event].push_back(systemId);
+
+            if (!systemDesc.tracks.empty())
+                archetype.UpdateTrackedCache(systemId, systemDesc.tracks);
         });
     }
 
