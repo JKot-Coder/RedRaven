@@ -452,12 +452,15 @@ namespace RR::Ecs
                 components.push_back_unsorted(component); // Components already sorted
 
             for (auto component : removeComponents)
-                components.erase(component);
+            {
+                [[maybe_unused]] auto result = components.erase(component);
+                ASSERT_MSG(result == 1, "Can't remove component {}. Component is not present in the archetype.", (*componentStorage.find(component)).second.name);
+            }
         }
         else
         {
             components.push_back_unsorted(GetComponentId<EntityId>);
-            ASSERT(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0);
+            ASSERT_MSG(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0, "Can't remove components from empty entity.");
         }
 
         auto addComponent = [&components](ComponentId id) -> int {
