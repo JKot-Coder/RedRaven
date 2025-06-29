@@ -39,7 +39,7 @@ set (SRC
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
-target_link_libraries(${PROJECT_NAME} common flecs::flecs absl::flat_hash_map)
+target_link_libraries(${PROJECT_NAME} common absl::flat_hash_map)
 
 if(MSVC)
     target_compile_optDions(${PROJECT_NAME} PRIVATE /W4 /WX)

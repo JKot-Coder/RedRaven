@@ -8,6 +8,7 @@ source_group( "" FILES ${SRC} )
 set(LIBRARIES
     ecs
     common
+    flecs::flecs
     Catch2::Catch2
     nanobench::nanobench)
 
