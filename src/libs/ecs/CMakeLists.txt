@@ -1,42 +1,16 @@
 project (ecs)
 
+include(${CMAKE_CURRENT_LIST_DIR}/EcsSources.cmake)
+source_group( "" FILES ${ECS_SRC} )
+
 add_subdirectory(tests)
 add_subdirectory(benchmark)
 
-set( SRC
-    EntityId.hpp
-    Index.hpp
-    World.hpp
-    World.cpp
-    Archetype.hpp
-    Archetype.cpp
-    ArchetypeEntityIndex.hpp
-    CommandBuffer.hpp
-    CommandBuffer.cpp
-    ComponentStorage.hpp
-    EntityStorage.hpp
-    Query.hpp
-    Entity.hpp
-    EntityId.hpp
-    EntityBuilder.hpp
-    Event.hpp
-    System.hpp
-    SystemBuilder.hpp
-    View.hpp
-    Ecs.hpp
-    Hash.hpp
-    ForwardDeclarations.hpp
-    TypeTraits.hpp
-    FunctionTraits.hpp
-    ComponentTraits.hpp
-    IterationHelpers.hpp)
-source_group( "" FILES ${SRC} )
-
 set (SRC
-    ${SRC}
+    ${ECS_SRC}
 )
 
-add_library(${PROJECT_NAME} ${SRC})
+add_library(${PROJECT_NAME} STATIC ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} common absl::flat_hash_map)
