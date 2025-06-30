@@ -10,7 +10,7 @@
 #include <stdexcept>
 #define ECS_VERIFY(condition, ...) if (!(condition)) throw std::runtime_error(fmt::format(__VA_ARGS__))
 #else
-#define ECS_VERIFY(condition, ...) ASSERT_MSG(condition, __VA_ARGS__)
+#define ECS_VERIFY(condition, ...) if (!(condition)) { Log::Format::Error(__VA_ARGS__); ASSERT_MSG(condition, __VA_ARGS__); }
 #endif
 
 namespace RR::Ecs
