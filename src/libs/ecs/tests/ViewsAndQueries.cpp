@@ -151,6 +151,32 @@ TEST_CASE_METHOD(WorldFixture, "View special args", "[View]")
     REQUIRE(calls == 3);
 }
 
+TEST_CASE_METHOD(WorldFixture, "View unexisting entity", "[View]")
+{
+    Entity entt = world.Entity().Add<Foo>(1).Apply();
+    entt.Destroy();
+
+    REQUIRE_THROWS_WITH(world.View().ForEntity(entt, [&]() { }), "Deleted or non existing entity.");
+}
+
+TEST_CASE_METHOD(WorldFixture, "View entity with pending changes", "[View]")
+{
+    auto test = [&](World& world) {
+        const Entity entt = world.Entity().Add<Foo>(1).Apply();
+        REQUIRE_THROWS_WITH(world.View().ForEntity(entt, [&]() { }), "Can't query entity with pending changes.");
+    };
+
+    auto check = [&](World&) { };
+    defferedTest(test, check);
+}
+
+TEST_CASE_METHOD(WorldFixture, "View doesn't match with entity", "[View]")
+{
+    const Entity entt = world.Entity().Add<Foo>(1).Apply();
+    REQUIRE_THROWS_WITH(world.View().With<int>().ForEntity(entt, [&](int) { }), "View doesn't match with entity.");
+}
+
+
 TEST_CASE_METHOD(WorldFixture, "Query lock", "[Query]")
 {
     REQUIRE(!world.IsLocked());
