@@ -1,41 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <ecs/Ecs.hpp>
+#include "TestHelpers.hpp"
 
 using namespace RR::Ecs;
-
-struct WorldFixture
-{
-    World world;
-};
-
-namespace {
-    template<typename Callable, typename CallableCheck>
-    void immediateTest(Callable&& call, CallableCheck&& check)
-    {
-        World world;
-        call(world);
-        check(world);
-    }
-
-    template<typename Callable, typename CallableCheck>
-    void defferedTest(Callable&& call, CallableCheck&& check)
-    {
-        World world;
-
-        struct SingleExecutionToken{};
-        world.Entity().Add<SingleExecutionToken>().Apply();
-
-        bool called = false;
-        world.View().With<SingleExecutionToken>().ForEach([&] {
-            call(world);
-            called = true;
-        });
-
-        check(world);
-
-        REQUIRE(called);
-    }
-}
 
 template <typename T>
 struct TrackableType

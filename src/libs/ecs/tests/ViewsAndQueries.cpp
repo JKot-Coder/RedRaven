@@ -1,12 +1,8 @@
-#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_all.hpp>
 #include <ecs/Ecs.hpp>
+#include "TestHelpers.hpp"
 
 using namespace RR::Ecs;
-
-struct WorldFixture
-{
-    World world;
-};
 
 // clang-format off
 struct Foo { int x;};
@@ -143,9 +139,8 @@ TEST_CASE_METHOD(WorldFixture, "View query for entity", "[View]")
     REQUIRE(calls == 3);
 }
 
-TEST_CASE("View special args", "[View]")
+TEST_CASE_METHOD(WorldFixture, "View special args", "[View]")
 {
-    World world;
     const auto entt1 = world.Entity().Add<Foo>(1).Apply();
 
     const auto view = world.View().With<Foo>();

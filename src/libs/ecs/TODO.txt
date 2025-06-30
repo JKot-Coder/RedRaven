@@ -47,7 +47,8 @@ Todo track:
 + Made a tests for tracking
 
 Checks:
-# throw errors to make a tests
++ throw errors to make a tests
+# check all asserst and made logerr if it's critical.
 # check all args present in required components.
 # check required and exluded do not overlap
 # checks for copy/move only
