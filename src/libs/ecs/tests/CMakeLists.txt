@@ -30,6 +30,7 @@ set(LIBRARIES
 
 add_executable(${PROJECT_NAME} ${SRC} )
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/../..  ${PROJECT_SOURCE_DIR}/.. )
+target_compile_definitions(${PROJECT_NAME} PRIVATE ECS_USE_EXCEPTIONS)
 
 target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
 

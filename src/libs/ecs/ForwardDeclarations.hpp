@@ -6,6 +6,13 @@
 #include <cstddef>
 #include <cstdint>
 
+#ifdef ECS_USE_EXCEPTIONS
+#include <stdexcept>
+#define ECS_VERIFY(condition, ...) if (!(condition)) throw std::runtime_error(fmt::format(__VA_ARGS__))
+#else
+#define ECS_VERIFY(condition, ...) ASSERT_MSG(condition, __VA_ARGS__)
+#endif
+
 namespace RR::Ecs
 {
     template<int FixedSize>
