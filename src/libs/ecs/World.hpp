@@ -368,21 +368,20 @@ namespace RR::Ecs
         EntityRecord record;
         if (!ResolveEntityRecord(entityId, record))
         {
-            ASSERT_MSG(false, "Broken entity id.");
+            ECS_VERIFY(false, "Deleted or non existing entity.");
             return;
         }
 
         if (record.HasPendingChanges())
         {
-            ASSERT_MSG(false, "Can't query entity with pending changes.");
+            ECS_VERIFY(false, "Can't query entity with pending changes.");
             return;
         }
 
         Archetype *archetype = record.GetArchetype(IsLocked());
         if UNLIKELY (!matches(*archetype, view))
         {
-            // VODO view doesn't match with archetype. Propper logerr here
-            ASSERT(false);
+            ECS_VERIFY(false, "View doesn't match with entity.");
             return;
         }
 
@@ -447,7 +446,7 @@ namespace RR::Ecs
 
         auto addComponent = [&components, &getComponentName](ComponentId id) -> int {
             [[maybe_unused]] bool added = components.insert(id).second;
-             // We could silent this error, if it's would be a case reconsider this.
+            // We could silent this error, if it's would be a case reconsider this.
             ECS_VERIFY(added, "Can't add component {}. Only new components can be added.", getComponentName(id));
             return 0;
         };
