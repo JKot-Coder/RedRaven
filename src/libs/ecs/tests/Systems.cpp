@@ -1,4 +1,4 @@
-#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_all.hpp>
 #include <ecs/Ecs.hpp>
 
 using namespace RR::Ecs;
@@ -366,4 +366,25 @@ TEST_CASE("SystemOrder", "[System]")
         world.System("system5").Produce<System5>().With<Results>().OnEvent<TestEvent>().ForEach([&](Results& results) { results.push_back(0); });
         check(world);
     }
+}
+
+TEST_CASE_METHOD(WorldFixture, "Dependency cycle", "[System]")
+{
+    struct System1 { };
+    struct System2 { };
+    struct System3 { };
+
+    world.System("system1").Produce<System1>().Require<System2>().ForEach([&]() { });
+    world.System("system2").Produce<System2>().Require<System3>().ForEach([&]() { });
+    world.System("system3").Produce<System3>().Require<System1>().ForEach([&]() {  });
+    REQUIRE_THROWS_WITH(world.OrderSystems(), "ES <system3> in graph to become cyclic and was removed from sorting. ES order is non-deterministic.");
+}
+
+TEST_CASE_METHOD(WorldFixture, "Require token that is never produced by any system", "[System]")
+{
+    struct System1 { };
+    struct System2 { };
+
+    world.System("system1").Produce<System1>().Require<System2>().ForEach([&]() { });;
+    REQUIRE_THROWS_WITH(world.OrderSystems(), "ES <system1> is require token that is never produced by any system.");
 }

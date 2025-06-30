@@ -1,4 +1,4 @@
-#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_all.hpp>
 #include <ecs/Ecs.hpp>
 #include <ecs/Archetype.hpp>
 
@@ -201,6 +201,56 @@ TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
         entt2.Edit().Remove<Foo>().Add<Bar>(1).Apply();
         REQUIRE(entt2.Has<Bar>());
         REQUIRE(!entt2.Has<Foo>());
+    };
+
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}
+
+TEST_CASE("Remove components on creation of entity", "[Entity]")
+{
+    auto test = [&](World& world) {
+        REQUIRE_THROWS_WITH(world.Entity().Add<int>().Remove<int>().Apply(), "Can't remove components on creation of entity.");
+    };
+
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}
+
+TEST_CASE("Remove non existing components", "[Entity]")
+{
+    auto test = [&](World& world) {
+        world.Entity().Add<float>().Apply();
+        Entity entt = world.Entity().Add<int>().Apply();
+        REQUIRE_THROWS_WITH(entt.Edit().Remove<float>().Apply(), "Can't remove component float. Component is not present in the archetype.");
+        REQUIRE_THROWS_WITH(entt.Edit().Remove<uint32_t>().Apply(), "Can't remove component <0X96F5C785>. Component is not present in the archetype.");
+    };
+
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}
+
+TEST_CASE("Double add components", "[Entity]")
+{
+    auto test = [&](World& world) {
+        REQUIRE_THROWS_WITH(world.Entity().Add<float>().Add<float>().Apply(), "Can't add component float. Only new components can be added.");
+        Entity entt = world.Entity().Add<float>().Apply();
+        REQUIRE_THROWS_WITH(entt.Edit().Add<float>().Apply(), "Can't add component float. Only new components can be added.");
+    };
+
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}
+
+TEST_CASE("Add and remove components at the same time", "[Entity]")
+{
+    auto test = [&](World& world) {
+        Entity entt = world.Entity().Add<float>().Apply();
+        REQUIRE_THROWS_WITH(entt.Edit().Add<float>().Remove<float>().Apply(), "Can't add and remove components at the same time.");
     };
 
     auto check = [](World&) { };
