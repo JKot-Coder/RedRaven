@@ -307,36 +307,7 @@ namespace RR::Ecs
         // Todo check all args in callable persist in archetype.
         ArchetypeIterator::ForEach(span, context, eastl::forward<Callable>(callable));
     }
-/*
-    template <typename Callable>
-    inline void World::invokeForEntity(EntityId entityId, Ecs::Event const* event, Callable&& callable)
-    {
-        ASSERT_IS_CREATION_THREAD;
-        ASSERT(entityId);
 
-        // Todo check entity are ok for  Args
-        EntityRecord record;
-        if (!ResolveEntityRecord(entityId, record))
-        {
-            ASSERT_MSG(false, "Broken entity id.");
-            return;
-        }
-
-        if (record.HasPendingChanges())
-        {
-            ASSERT_MSG(false, "Can't query entity with pending changes.");
-            return;
-        }
-
-        IterationContext context {*this, event};
-
-        // Todo check all args in callable persist in archetype.
-        LockGuard lg(this);
-        const Archetype* archetype = record.GetArchetype(false);
-        ArchetypeEntityIndex index = record.GetIndex(false);
-        ArchetypeIterator::ForEntity(*archetype, index, context, eastl::forward<Callable>(callable));
-    }
-*/
     template <typename Callable>
     inline void World::query(QueryId queryId, Callable&& callable)
     {
