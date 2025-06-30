@@ -200,7 +200,7 @@ namespace RR::Ecs
 
             if UNLIKELY (range.first == range.second)
             {
-                Log::Format::Error("ES <{}> is require token that is never produced by any system", system.hashName.string.c_str());
+                ECS_VERIFY(false, "ES <{}> is require token that is never produced by any system.", system.hashName.string.c_str());
                 return;
             }
 
@@ -214,8 +214,7 @@ namespace RR::Ecs
 
         eastl::vector<uint32_t> sortedList;
         auto loopDetected = [&](size_t idx, auto&) {
-            Log::Format::Error("ES <{}> in graph to become cyclic and was removed from sorting. ES order is non-deterministic.",
-                               tmpSystemList[idx].hashName.string.c_str());
+            ECS_VERIFY(false, "ES <{}> in graph to become cyclic and was removed from sorting. ES order is non-deterministic.", tmpSystemList[idx].hashName.string.c_str());
         };
         topoSort(static_cast<uint32_t>(tmpSystemList.size()), edges, sortedList, loopDetected);
 

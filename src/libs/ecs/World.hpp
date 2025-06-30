@@ -443,8 +443,17 @@ namespace RR::Ecs
                 fromIndex = record.GetIndex(false);
         }
 
+        (RegisterComponent<typename Components::template Get<Index>>(), ...);
+
         ComponentsSet components;
         ComponentsSet added;
+
+        auto getComponentName = [this](ComponentId id) -> std::string {
+            auto it = componentStorage.find(id);
+            if (it == componentStorage.end())
+                return fmt::format("<{:#X}>", id.GetRaw());
+            return std::string(it->second.name);
+        };
 
         if (from)
         {
@@ -454,18 +463,21 @@ namespace RR::Ecs
             for (auto component : removeComponents)
             {
                 [[maybe_unused]] auto result = components.erase(component);
-                ASSERT_MSG(result == 1, "Can't remove component {}. Component is not present in the archetype.", (*componentStorage.find(component)).second.name);
+
+                // We could silent this error, if it's would be a case reconsider this.
+                ECS_VERIFY(result == 1, "Can't remove component {}. Component is not present in the archetype.", getComponentName(component));
             }
         }
         else
         {
             components.push_back_unsorted(GetComponentId<EntityId>);
-            ASSERT_MSG(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0, "Can't remove components from empty entity.");
+            ECS_VERIFY(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0, "Can't remove components on creation of entity.");
         }
 
-        auto addComponent = [&components](ComponentId id) -> int {
+        auto addComponent = [&components, &getComponentName](ComponentId id) -> int {
             [[maybe_unused]] bool added = components.insert(id).second;
-            ASSERT_MSG(added, "Can't add component {}. Only new components can be added.", id.GetRaw());
+             // We could silent this error, if it's would be a case reconsider this.
+            ECS_VERIFY(added, "Can't add component {}. Only new components can be added.", getComponentName(id));
             return 0;
         };
 
@@ -473,20 +485,18 @@ namespace RR::Ecs
         for (auto component : addedComponents)
             addComponent(component);
 
-        (RegisterComponent<typename Components::template Get<Index>>(), ...);
-
         ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
         Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
 
 #ifdef ENABLE_ASSERTS
         std::sort(addedComponents.begin(), addedComponents.end());
-        ASSERT_MSG(!SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time");
+        ECS_VERIFY(!SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time.");
 #endif
 
         if (!IsLocked())
         {
             if (!entityId)
-                entityId = entityStorage.Create(to); // TODO This is double initialization of archetype. Perf degrated :(
+                entityId = entityStorage.Create(to);
             mutateEntity(entityId, from, fromIndex, to, [&](Archetype& archetype, ArchetypeEntityIndex index) {
                 (
                     constructComponent<typename Components::template Get<Index>>(
