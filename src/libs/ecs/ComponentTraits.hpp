@@ -94,6 +94,12 @@ namespace RR::Ecs
         template<typename T>
         constexpr bool is_trackable_v<T, std::void_t<decltype(T::Trackable)>> = T::Trackable;
 
+        template<typename T, typename = void>
+        constexpr bool is_singleton_v = false;
+
+        template<typename T>
+        constexpr bool is_singleton_v<T, std::void_t<decltype(T::Singleton)>> = T::Singleton;
+
         template <typename T, typename = void>
         struct is_comparable : std::false_type {};
 
@@ -293,6 +299,7 @@ namespace RR::Ecs
         static constexpr bool IsComponent = eastl::is_same_v<RawType, T>;
         static constexpr bool IsTag = std::is_empty_v<T>;
         static constexpr bool IsTrackable = details::is_trackable_v<T>;
+        static constexpr bool IsSingleton = details::is_singleton_v<T>;
     };
 
     template <typename T>
@@ -315,4 +322,7 @@ namespace RR::Ecs
 
     template <typename T>
     static constexpr bool IsTrackable = ComponentTraits<T>::IsTrackable;
+
+    template <typename T>
+    static constexpr bool IsSingleton = ComponentTraits<T>::IsSingleton;
 }
