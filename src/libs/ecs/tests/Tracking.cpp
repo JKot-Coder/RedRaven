@@ -7,7 +7,7 @@ using namespace RR::Ecs;
 template <typename T>
 struct TrackableType
 {
-    static constexpr bool Trackable = true;
+    ECS_TRACKABLE;
     T x;
     bool operator==(const TrackableType& other) const
     {
