@@ -176,6 +176,10 @@ TEST_CASE_METHOD(WorldFixture, "View doesn't match with entity", "[View]")
     REQUIRE_THROWS_WITH(world.View().With<int>().ForEntity(entt, [&](int) { }), "View doesn't match with entity.");
 }
 
+TEST_CASE_METHOD(WorldFixture, "View have same components in with and without", "[View]")
+{
+    REQUIRE_THROWS_WITH(world.View().With<int>().Without<int>(), "Component int is already in with.");
+}
 
 TEST_CASE_METHOD(WorldFixture, "Query lock", "[Query]")
 {
