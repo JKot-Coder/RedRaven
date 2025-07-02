@@ -48,9 +48,9 @@ Todo track:
 
 Checks:
 + throw errors to make a tests
-# check all asserst and made logerr if it's critical.
++ check all asserst and made logerr if it's critical.
 # check all args present in required components.
-# check required and exluded do not overlap
++ check required and exluded do not overlap
 # checks for copy/move only
 # Protection of updating same archetype in subqueries. (borrow checker) (Ask GPT how other do that?)
 # do not allow add world entityid or event as components.
@@ -73,3 +73,4 @@ Probably:
 * Add names for entitites
 * Declare all subqueries in system declaration (to have 100% nice graph of dependecies)
 # delete systems / queries
+* Systems are not entities ?
