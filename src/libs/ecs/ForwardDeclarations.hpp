@@ -9,8 +9,12 @@
 #ifdef ECS_USE_EXCEPTIONS
 #include <stdexcept>
 #define ECS_VERIFY(condition, ...) if (!(condition)) throw std::runtime_error(fmt::format(__VA_ARGS__))
+#define ECS_ENSURE(condition, ...) if (!(condition)) throw std::runtime_error(fmt::format(__VA_ARGS__))
+#define ECS_ENABLE_CHEKS true
 #else
-#define ECS_VERIFY(condition, ...) if (!(condition)) { Log::Format::Error(__VA_ARGS__); ASSERT_MSG(condition, __VA_ARGS__); }
+#define ECS_VERIFY(condition, ...) ASSERT_MSG(condition, __VA_ARGS__)
+#define ECS_ENSURE(condition, ...) if (!(condition)) { Log::Format::Error(__VA_ARGS__); ASSERT_MSG(condition, __VA_ARGS__); }
+#define ECS_ENABLE_CHEKS ENABLE_ASSERTS
 #endif
 
 namespace RR::Ecs

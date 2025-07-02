@@ -446,6 +446,7 @@ namespace RR::Ecs
 
         auto addComponent = [&components, &getComponentName](ComponentId id) -> int {
             [[maybe_unused]] bool added = components.insert(id).second;
+            UNUSED(getComponentName);
             // We could silent this error, if it's would be a case reconsider this.
             ECS_VERIFY(added, "Can't add component {}. Only new components can be added.", getComponentName(id));
             return 0;
@@ -458,7 +459,7 @@ namespace RR::Ecs
         ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
         Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
 
-#ifdef ENABLE_ASSERTS
+#ifdef ECS_ENABLE_CHEKS
         std::sort(addedComponents.begin(), addedComponents.end());
         ECS_VERIFY(!SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time.");
 #endif
