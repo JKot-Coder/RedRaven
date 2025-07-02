@@ -440,7 +440,7 @@ namespace RR::Ecs
         }
         else
         {
-            components.push_back_unsorted(GetComponentId<EntityId>);
+            components.push_back_unsorted(GetComponentId<EntityId>); // Adding first component.
             ECS_VERIFY(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0, "Can't remove components on creation of entity.");
         }
 
