@@ -28,6 +28,9 @@ namespace RR::Ecs
         template <typename Callable>
         void ForEntity(Entity entity, Callable&& callable) const;
 
+        const ComponentsSet& GetWithSet() const { return with; }
+        const ComponentsSet& GetWithoutSet() const { return without; }
+
     private:
         friend struct World;
         friend struct SystemBuilder;

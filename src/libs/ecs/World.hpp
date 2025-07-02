@@ -44,7 +44,7 @@ namespace RR::Ecs
                 return true;
 
             constexpr ComponentId compId = GetComponentId<ComponentType>;
-            return view.with.find(compId) != view.with.end();
+            return view.GetWithSet().find(compId) != view.GetWithSet().end();
         }
 
         template<typename Arg>
