@@ -239,6 +239,7 @@ TEST_CASE("Double add components", "[Entity]")
         REQUIRE_THROWS_WITH(world.Entity().Add<float>().Add<float>().Apply(), "Can't add component float. Only new components can be added.");
         Entity entt = world.Entity().Add<float>().Apply();
         REQUIRE_THROWS_WITH(entt.Edit().Add<float>().Apply(), "Can't add component float. Only new components can be added.");
+        REQUIRE_THROWS_WITH(world.Entity().Add<EntityId>().Apply(), "Can't add component RR::Ecs::EntityId. Only new components can be added.");
     };
 
     auto check = [](World&) { };
