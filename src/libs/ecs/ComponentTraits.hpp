@@ -286,7 +286,7 @@ namespace RR::Ecs
         using RawType = typename ComponentType<T>::Type;
 
         static constexpr ComponentId Id = ComponentId(GetTypeId<RawType>.GetRaw());
-
+        static constexpr std::string_view Name = GetTypeName<RawType>;
         static constexpr size_t Size = sizeof(RawType);
         static constexpr size_t Alignment = alignof(RawType);
         static constexpr ComponentInfo ComponentInfo = ComponentInfo::Create<T>();
@@ -300,6 +300,9 @@ namespace RR::Ecs
 
     template <typename T>
     static constexpr ComponentId GetComponentId = ComponentTraits<T>::Id;
+
+    template <typename T>
+    static constexpr std::string_view GetComponentName = ComponentTraits<T>::Name;
 
     template <typename T>
     static constexpr ComponentInfo GetComponentInfo = ComponentTraits<T>::ComponentInfo;
