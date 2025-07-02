@@ -35,6 +35,14 @@ namespace RR::Ecs
         [[nodiscard]] SystemBuilder& Require()
         {
             static_assert((IsTag<Args> && ...), "All order tokens must be tags");
+
+            #ifdef ECS_ENABLE_CHEKS
+                auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
+                    ECS_VERIFY(std::find(desc.produce.begin(), desc.produce.end(), id)  == desc.produce.end(), "Token {} can't be produced and required at the same time.", name);
+                };
+                (check(GetComponentId<Args>, GetComponentName<Args>), ...);
+            #endif
+
             (desc.require.emplace_back(GetComponentId<Args>), ...);
             return *this;
         }
@@ -43,6 +51,13 @@ namespace RR::Ecs
         [[nodiscard]] SystemBuilder& Produce()
         {
             static_assert((IsTag<Args> && ...), "All order tokens must be tags");
+            #ifdef ECS_ENABLE_CHEKS
+                auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
+                    ECS_VERIFY(std::find(desc.require.begin(), desc.require.end(), id)  == desc.require.end(), "Token {} can't be produced and required at the same time.", name);
+                };
+                (check(GetComponentId<Args>, GetComponentName<Args>), ...);
+            #endif
+
             (desc.produce.emplace_back(GetComponentId<Args>), ...);
             return *this;
         }

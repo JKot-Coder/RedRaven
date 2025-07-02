@@ -388,3 +388,9 @@ TEST_CASE_METHOD(WorldFixture, "Require token that is never produced by any syst
     world.System("system1").Produce<System1>().Require<System2>().ForEach([&]() { });;
     REQUIRE_THROWS_WITH(world.OrderSystems(), "ES <system1> is require token that is never produced by any system.");
 }
+
+TEST_CASE_METHOD(WorldFixture, "Produce and require same token", "[System]")
+{
+    struct System1 { };
+    REQUIRE_THROWS_WITH(world.System("system1").Produce<System1>().Require<System1>().ForEach([&]() { }), "Token System1 can't be produced and required at the same time.");
+}
