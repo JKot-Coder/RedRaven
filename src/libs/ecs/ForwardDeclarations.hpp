@@ -6,6 +6,9 @@
 #include <cstddef>
 #include <cstdint>
 
+#define ECS_TRACKABLE static constexpr bool Trackable = true
+#define ECS_SINGLETON static constexpr bool Singleton = true
+
 #ifdef ECS_USE_EXCEPTIONS
 #include <stdexcept>
 #define ECS_VERIFY(condition, ...) if (!(condition)) throw std::runtime_error(fmt::format(__VA_ARGS__))
