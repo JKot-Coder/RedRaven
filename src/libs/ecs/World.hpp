@@ -460,7 +460,7 @@ namespace RR::Ecs
         Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
 
 #ifdef ECS_ENABLE_CHEKS
-        std::sort(addedComponents.begin(), addedComponents.end());
+        eastl::quick_sort(addedComponents.begin(), addedComponents.end());
         ECS_VERIFY(!SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time.");
 #endif
 
