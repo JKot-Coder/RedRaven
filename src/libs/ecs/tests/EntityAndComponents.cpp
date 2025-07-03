@@ -487,6 +487,19 @@ TEST_CASE("Moving NonTrivial Components", "[Components]")
     SECTION("Immediate") { immediateTest(test, check); }
     SECTION("Deffered") { defferedTest(test, check); }
 }
+
+struct SingletonComponent {
+    ECS_SINGLETON;
+};
+
+TEST_CASE_METHOD(WorldFixture, "Singleton create", "[Singleton]")
+{
+
+    world.AddSingleton<SingletonComponent>();
+
+    world.Entity().Add<int>().Apply();
+    world.View().WithSingleton<SingletonComponent>().With<int>().ForEach([&](SingletonComponent& singleton) { });
+}
 /*
 #include <flecs.h>
 
