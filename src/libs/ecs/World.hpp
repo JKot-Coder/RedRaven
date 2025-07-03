@@ -118,6 +118,9 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::SystemBuilder System(const HashName& name);
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
 
+        template <typename Component, typename... Args>
+        void AddSingleton(Args&&...);
+
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
@@ -487,6 +490,21 @@ namespace RR::Ecs
 
         ASSERT(entityId);
         return entityId;
+    }
+
+    template <typename Component, typename... Args>
+    void World::AddSingleton(Args&&... args)
+    {
+        struct SingletonTag
+        {
+        };
+        static_assert(IsSingleton<Component>, "Component should be a singleton");
+
+        auto argsTuple = std::make_tuple(eastl::forward<Args>(args)...);
+        auto tupleOfTuples = std::make_tuple(std::make_tuple(), eastl::move(argsTuple));
+
+        auto entity = commit<TypeList<SingletonTag, Component>>({}, {}, eastl::move(tupleOfTuples), eastl::make_index_sequence<2>());
+        UNUSED(entity);
     }
 
     template <typename EventType>
