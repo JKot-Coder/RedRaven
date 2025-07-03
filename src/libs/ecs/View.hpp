@@ -22,7 +22,6 @@ namespace RR::Ecs
         template <typename... Components>
         View Without()
         {
-            static_assert((!IsSingleton<Components>&&...), "Singleton components cannot be used in Without filtering");
             auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
                 ECS_VERIFY(with.find(id) == with.end(), "Component {} is already in with.", name);
             };

@@ -118,9 +118,6 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::SystemBuilder System(const HashName& name);
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
 
-        template <typename Component, typename... Args>
-        void AddSingleton(Args&&...);
-
         template <typename Component>
         ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
@@ -233,6 +230,7 @@ namespace RR::Ecs
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
         Ecs::QueryId systemsQuery;
+        absl::flat_hash_map<ComponentId, Archetype*> singletonsMap;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers;
         absl::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
         eastl::vector<Archetype*> archetypesCache;
@@ -416,10 +414,8 @@ namespace RR::Ecs
                 fromIndex = record.GetIndex(false);
         }
 
-        (RegisterComponent<typename Components::template Get<Index>>(), ...);
 
-        ComponentsSet components;
-        ComponentsSet added;
+        (RegisterComponent<typename Components::template Get<Index>>(), ...);
 
         auto getComponentName = [this](ComponentId id) -> std::string {
             auto it = componentStorage.find(id);
@@ -427,6 +423,32 @@ namespace RR::Ecs
                 return fmt::format("<{:#X}>", id.GetRaw());
             return std::string(it->second.name);
         };
+
+        bool onlyNewSingletons = ([&getComponentName, this]() -> bool {
+            UNUSED(this, getComponentName);
+
+            using T = typename Components::template Get<Index>;
+            if constexpr (IsSingleton<T>)
+            {
+                auto id = GetComponentId<T>;
+                if (singletonsMap.find(id) != singletonsMap.end())
+                {
+                    ECS_VERIFY(false, "Singleton component {} is already exists. Commit will be ignored.", getComponentName(id));
+                    return false;
+                }
+
+                singletonsMap.emplace(id, nullptr);
+                return true;
+            }
+
+            return true;
+        }() && ...);
+
+        if (!onlyNewSingletons)
+            return entityId;
+
+        ComponentsSet components;
+        ComponentsSet added;
 
         if (from)
         {
@@ -490,21 +512,6 @@ namespace RR::Ecs
 
         ASSERT(entityId);
         return entityId;
-    }
-
-    template <typename Component, typename... Args>
-    void World::AddSingleton(Args&&... args)
-    {
-        struct SingletonTag
-        {
-        };
-        static_assert(IsSingleton<Component>, "Component should be a singleton");
-
-        auto argsTuple = std::make_tuple(eastl::forward<Args>(args)...);
-        auto tupleOfTuples = std::make_tuple(std::make_tuple(), eastl::move(argsTuple));
-
-        auto entity = commit<TypeList<SingletonTag, Component>>({}, {}, eastl::move(tupleOfTuples), eastl::make_index_sequence<2>());
-        UNUSED(entity);
     }
 
     template <typename EventType>

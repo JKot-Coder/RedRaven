@@ -58,8 +58,9 @@ Checks:
 Absolutely necessary:
 + Order tokens
 + Track
-# singletons
++ singletons
 + Refactor how interation works. Pass iterators and interate over them. Remove ForEntity use unified iterators instead.
+# Optimize memory for singletons
 
 Nice to have:
 * Caching of components index in queries and systems
