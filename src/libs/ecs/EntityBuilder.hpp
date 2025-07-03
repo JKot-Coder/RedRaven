@@ -19,6 +19,7 @@ namespace RR::Ecs
         template <typename Component, typename... ARGS>
         [[nodiscard]] auto Add(ARGS&&... args)
         {
+            static_assert(!IsSingleton<Component>, "Singleton components cannot be added");
             auto argsTuple = std::make_tuple(eastl::forward<ARGS>(args)...);
             auto tupleOfTuples = std::make_tuple(eastl::move(argsTuple));
             return EntityBuilder<TypeList<Component>, decltype(tupleOfTuples)>(
