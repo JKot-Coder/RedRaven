@@ -24,6 +24,7 @@ namespace RR::Ecs
         constexpr ComponentsView(const T& containter) : begin_(containter.begin()), end_(containter.end()) { }
         constexpr ComponentsView(Iterator begin, size_t count) : begin_(begin), end_(begin + count) { }
         constexpr ComponentsView(Iterator begin, Iterator end) : begin_(begin), end_(end) { }
+        constexpr ComponentsView() : begin_(nullptr), end_(nullptr) { }
 
         constexpr Iterator begin() const { return begin_; }
         constexpr Iterator end() const { return end_; }
