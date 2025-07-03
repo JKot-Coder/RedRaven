@@ -498,7 +498,7 @@ TEST_CASE_METHOD(WorldFixture, "Singleton create", "[Singleton]")
     world.AddSingleton<SingletonComponent>();
 
     world.Entity().Add<int>().Apply();
-    world.View().WithSingleton<SingletonComponent>().With<int>().ForEach([&](SingletonComponent& singleton) { });
+    world.View().Singleton<SingletonComponent>().With<int>().ForEach([&]() { });
 }
 /*
 #include <flecs.h>
