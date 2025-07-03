@@ -65,6 +65,7 @@ Nice to have:
 * Caching of components index in queries and systems
 * Parrallel execution
 * Dirty masks for colums to optimize tracking
+* Optimize views with one vector of components and several views for with, without, singletons
 
 Probably:
 * parents
