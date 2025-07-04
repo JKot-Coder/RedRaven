@@ -100,5 +100,18 @@
         "scoped_allocator": "cpp",
         "valarray": "cpp",
         "*.rh": "cpp"
-    }
+    },
+    "terminal.integrated.profiles.windows": {
+        "Developer Command Prompt": {
+            "path": [
+            "C:\\Windows\\System32\\cmd.exe"
+            ],
+            "args": [
+            "/k",
+            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
+            ],
+            "icon": "terminal-cmd"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "Developer Command Prompt"
 }
