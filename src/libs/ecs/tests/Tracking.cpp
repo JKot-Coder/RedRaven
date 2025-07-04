@@ -18,7 +18,7 @@ struct TrackableType
 using TrackableInt = TrackableType<int>;
 using TrackableUInt = TrackableType<uint32_t>;
 
-TEST_CASE_METHOD(WorldFixture, "Simple tracking", "[Tracking]")
+TEST_CASE("Simple tracking", "[Tracking]")
 {
     auto test = [&](World& world) {
         world.Entity().Add<TrackableInt>(1).Apply();

@@ -159,7 +159,7 @@ TEST_CASE_METHOD(WorldFixture, "View unexisting entity", "[View]")
     REQUIRE_THROWS_WITH(world.View().ForEntity(entt, [&]() { }), "Deleted or non existing entity.");
 }
 
-TEST_CASE_METHOD(WorldFixture, "View entity with pending changes", "[View]")
+TEST_CASE("View entity with pending changes", "[View]")
 {
     auto test = [&](World& world) {
         const Entity entt = world.Entity().Add<Foo>(1).Apply();

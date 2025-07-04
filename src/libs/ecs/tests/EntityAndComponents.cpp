@@ -124,7 +124,7 @@ TEST_CASE("Delete deleted Entity", "[Entity]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
+TEST_CASE("Modify deleted Entity", "[Entity]")
 {
     auto test = [&](World& world) {
         Entity entt1 = world.EmptyEntity();
@@ -143,7 +143,7 @@ TEST_CASE_METHOD(WorldFixture, "Modify deleted Entity", "[Entity]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
+TEST_CASE("Add no components", "[Components]")
 {
     auto test = [&](World& world) {
         REQUIRE(world.Entity().Apply().IsAlive());
@@ -156,7 +156,7 @@ TEST_CASE_METHOD(WorldFixture, "Add no components", "[Components]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
+TEST_CASE("Add Components", "[Components]")
 {
     // clang-format off
     struct Foo { int x; int z; };
@@ -183,7 +183,7 @@ TEST_CASE_METHOD(WorldFixture, "Add Components", "[Components]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Remove Components", "[Components]")
+TEST_CASE("Remove Components", "[Components]")
 {
     // clang-format off
     struct Foo { int x; };
@@ -259,7 +259,7 @@ TEST_CASE("Add and remove components at the same time", "[Entity]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
+TEST_CASE("NonTrivial Components", "[Components]")
 {
     auto test = [&](World& world) {
         using Vector = eastl::vector<int32_t>;
@@ -274,7 +274,7 @@ TEST_CASE_METHOD(WorldFixture, "NonTrivial Components", "[Components]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
+TEST_CASE("Tags", "[Components]")
 {
     struct Tag{};
     struct Tag2{};
@@ -297,7 +297,7 @@ TEST_CASE_METHOD(WorldFixture, "Tags", "[Components]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Complex", "[Components]")
+TEST_CASE("Complex", "[Components]")
 {
     struct Tag{};
 
@@ -492,7 +492,7 @@ struct SingletonComponent {
     ECS_SINGLETON;
 };
 
-TEST_CASE_METHOD(WorldFixture, "Singleton create", "[Singleton]")
+TEST_CASE("Singleton create", "[Singleton]")
 {
 
     world.AddSingleton<SingletonComponent>();
