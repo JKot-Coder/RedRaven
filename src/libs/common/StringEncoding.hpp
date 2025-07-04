@@ -12,9 +12,11 @@ namespace RR::Common
         {
             static_assert(sizeof(typename std::iterator_traits<wchar_iterator>::value_type) == sizeof(wchar_t));
             if constexpr (sizeof(wchar_t) == 2)
+            {
                 return utf8::utf16to8(start, end, result);
-
-            return utf8::utf32to8(start, end, result);
+            }
+            else
+                return utf8::utf32to8(start, end, result);
         }
 
         inline std::string WideToUTF8(std::wstring_view view)
@@ -43,9 +45,11 @@ namespace RR::Common
         wchar_iterator UTF8ToWide(octet_iterator start, octet_iterator end, wchar_iterator result)
         {
             if constexpr (sizeof(wchar_t) == 2)
+            {
                 return utf8::utf8to16(start, end, result);
-
-            return utf8::utf8to32(start, end, result);
+            }
+            else
+                return utf8::utf8to32(start, end, result);
         }
 
         inline std::wstring UTF8ToWide(const std::string_view& view)
