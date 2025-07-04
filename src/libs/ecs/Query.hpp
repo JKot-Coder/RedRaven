@@ -6,7 +6,7 @@
 namespace RR::Ecs
 {
     struct World;
-    using QueryId = Index<struct QueryIdTag, size_t>;
+    using QueryId = Index<struct QueryIdTag, uint32_t>;
 
     struct Query final
     {
