@@ -99,7 +99,7 @@ namespace RR::Ecs
             // Manually create archetype for queries
             // This is required because of cyclic dependency: creating arhetype require queriesQuery and
             // creating queriesQuery query require creating archetype
-            constexpr eastl::array<ComponentId, 3> components = {GetComponentId<EntityId>, GetComponentId<Ecs::View>, GetComponentId<MatchedArchetypeCache>};
+            constexpr eastl::array<ComponentId, 3> components = {GetComponentId<EntityId>, GetComponentId<MatchedArchetypeCache>, GetComponentId<Ecs::View>};
             static_assert(components[0] < components[1]);
             static_assert(components[1] < components[2]);
 
