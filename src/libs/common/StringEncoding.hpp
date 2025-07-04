@@ -11,7 +11,7 @@ namespace RR::Common
         octet_iterator WideToUTF8(wchar_iterator start, wchar_iterator end, octet_iterator result)
         {
             static_assert(sizeof(typename std::iterator_traits<wchar_iterator>::value_type) == sizeof(wchar_t));
-            if constexpr (sizeof(wchar_t) == 16)
+            if constexpr (sizeof(wchar_t) == 2)
                 return utf8::utf16to8(start, end, result);
 
             return utf8::utf32to8(start, end, result);
@@ -42,7 +42,7 @@ namespace RR::Common
         template <typename octet_iterator, typename wchar_iterator>
         wchar_iterator UTF8ToWide(octet_iterator start, octet_iterator end, wchar_iterator result)
         {
-            if constexpr (sizeof(wchar_t) == 16)
+            if constexpr (sizeof(wchar_t) == 2)
                 return utf8::utf8to16(start, end, result);
 
             return utf8::utf8to32(start, end, result);
