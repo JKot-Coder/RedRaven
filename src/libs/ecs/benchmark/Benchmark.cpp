@@ -374,7 +374,7 @@ TEST_CASE("Update Entity", "[Entity]")
     for (auto batchSize :
          {1U, 8U, 16U, 128U, 1024U, 100000U}) {
 
-        const uint32_t numEntities = 10000;
+        static constexpr uint32_t numEntities = 10000;
 
         bench.complexityN(batchSize);
         bench.batch(batchSize);
@@ -454,7 +454,7 @@ TEST_CASE("Update Entity", "[Entity]")
                         auto pos =  *entity.get<PositionComponent>();
                         pos.x += entity.get<VelocityComponent>()->x;
                         pos.y += entity.get<VelocityComponent>()->y;
-                        entity.set(pos   );
+                        entity.set(pos);
                     }
                 });
                 ankerl::nanobench::doNotOptimizeAway(&flecsWorld);
@@ -604,8 +604,8 @@ TEST_CASE("Update entities", "[Entity]")
         }
         {
             bench.run("Chunks", [&](ankerl::nanobench::Meter meter) {
-                const size_t chunkSize = 16 * 1024;
-                const size_t chunkCapacity = 240;
+                static constexpr size_t chunkSize = 16 * 1024;
+                static constexpr size_t chunkCapacity = 240;
 
                 eastl::vector<std::byte*> chunks;
                 eastl::array<size_t, 4> offsets = {0, 960, 2880, 4800};
