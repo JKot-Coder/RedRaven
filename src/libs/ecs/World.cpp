@@ -40,6 +40,8 @@ namespace
         }
     }
 
+    #pragma warning(push)
+    #pragma warning(disable: 4702) // Unreachable code
     template <class MarkContainer, class ListContainer, class EdgeContainer, typename LoopDetectedCB>
     bool visitTopSort(uint32_t nodeIdx, const EdgeContainer& edges, MarkContainer& tempMark, MarkContainer& visitedMark, // NOLINT(misc-no-recursion)
                       ListContainer& sortedList, LoopDetectedCB cb)
@@ -67,6 +69,7 @@ namespace
         visitedMark.set(nodeIdx, true);
         return true;
     }
+    #pragma warning(pop)
 
     // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
     template <class ListContainer, class EdgeContainer, typename LoopDetectedCB>
