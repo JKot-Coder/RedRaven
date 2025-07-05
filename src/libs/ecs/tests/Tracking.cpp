@@ -48,7 +48,7 @@ TEST_CASE("Simple tracking", "[Tracking]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Delete tracked component", "[Tracking]")
+TEST_CASE("Delete tracked component", "[Tracking]")
 {
     auto test = [&](World& world) {
         auto entity = world.Entity().Add<TrackableInt>(1).Apply();
@@ -74,7 +74,7 @@ TEST_CASE_METHOD(WorldFixture, "Delete tracked component", "[Tracking]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Move tracked components", "[Tracking]")
+TEST_CASE("Move tracked components", "[Tracking]")
 {
     struct DummyTag
     {
@@ -112,7 +112,7 @@ TEST_CASE_METHOD(WorldFixture, "Move tracked components", "[Tracking]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-TEST_CASE_METHOD(WorldFixture, "Multiple tracked components", "[Tracking]")
+TEST_CASE("Multiple tracked components", "[Tracking]")
 {
     auto test = [&](World& world) {
         world.Entity().Add<TrackableInt>(1).Add<TrackableUInt>(1U).Apply();
