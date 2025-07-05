@@ -100,7 +100,6 @@ namespace RR::Ecs
             ComponentsData(Iterator compInfoBegin, Iterator compInfoEnd)
             {
                 ASSERT(IsPowerOfTwo(BaseChunkSize));
-                ASSERT(BaseChunkSize > 0);
 
                 size_t entitySizeBytes = 0;
                 size_t trackedComponentsCount = 0;
