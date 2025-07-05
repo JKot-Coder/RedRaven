@@ -51,18 +51,17 @@ namespace RR::Ecs
             }
         }
 
-        template<typename Arg>
+        template <typename Arg>
         void ValidateArgumentAgainstView(const Ecs::View& view)
         {
-            if constexpr (eastl::is_pointer_v<Arg>)
-                return;
-
-            using ComponentType = GetComponentType<Arg>;
-            ASSERT_MSG(
-                IsComponentInView<ComponentType>(view),
-                "Component {} used in lambda is not specified in the View's require set. Check component type and View definition.",
-                GetTypeName<ComponentType>
-            );
+            if constexpr (!eastl::is_pointer_v<Arg>)
+            {
+                using ComponentType = GetComponentType<Arg>;
+                ASSERT_MSG(
+                    IsComponentInView<ComponentType>(view),
+                    "Component {} used in lambda is not specified in the View's require set. Check component type and View definition.",
+                    GetTypeName<ComponentType>);
+            }
         }
 
         template<typename ArgumentList, size_t... Indices>

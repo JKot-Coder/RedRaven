@@ -46,8 +46,16 @@ namespace RR::Ecs
         void SetChunkIndex([[maybe_unused]] const Archetype& archetype, size_t chunkIndex)
         {
             ASSERT(chunkIndex < archetype.GetChunksCount());
-            data = (!eastl::is_pointer_v<Arg> || componentDataArray) ? *(componentDataArray + chunkIndex) : nullptr;
-            ASSERT(eastl::is_pointer_v<Arg> || data);
+            if constexpr (eastl::is_pointer_v<Arg>)
+            {
+                data = componentDataArray ? *(componentDataArray + chunkIndex) : nullptr;
+            }
+            else
+            {
+                data = *(componentDataArray + chunkIndex);
+                ASSERT(data);
+            }
+
         }
 
         void Prefetch(size_t chunkIndex)
@@ -55,14 +63,28 @@ namespace RR::Ecs
             UNUSED(chunkIndex);
 
 #if defined(__i386__) || defined(__x86_64__)
-            if (!(std::is_pointer_v<Arg>) || data)
+            if constexpr (std::is_pointer_v<Arg>)
+            {
+                if (data)
+                    _mm_prefetch(reinterpret_cast<const char*>(*(componentDataArray + chunkIndex)), _MM_HINT_T0);
+            }
+            else
+            {
                 _mm_prefetch(reinterpret_cast<const char*>(*(componentDataArray + chunkIndex)), _MM_HINT_T0);
+            }
 #endif
         }
 
         Component* Get(size_t entityIndex)
         {
-            return (!eastl::is_pointer_v<Arg> || data) ? reinterpret_cast<Component*>(data) + entityIndex : nullptr;
+            if constexpr (eastl::is_pointer_v<Arg>)
+            {
+                return data ? reinterpret_cast<Component*>(data) + entityIndex : nullptr;
+            }
+            else
+            {
+                return reinterpret_cast<Component*>(data) + entityIndex;
+            }
         }
 
     private:
