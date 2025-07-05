@@ -103,7 +103,7 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
     world.System().With<int>().OnEvent<FloatEvent>().ForEach(
         [&calls, &data](EntityId id, const FloatEvent& event) {
             REQUIRE(id);
-            data[calls++] = event.value;
+            data[calls++] = int(event.value);
         });
 
     world.OrderSystems();
@@ -160,7 +160,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
     world.System().With<float>().OnEvent<IntEvent>().ForEach([]() { REQUIRE(false); });
     world.System().With<int>().OnEvent<FloatEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
-            data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
+            data[calls++] = {id, event.Is<FloatEvent>() ? int(event.As<FloatEvent>().value) : -1};
         });
 
     world.OrderSystems();
@@ -198,7 +198,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
     world.System().With<float>().OnEvent<IntEvent>().ForEach([]() { REQUIRE(false); });
     world.System().With<int>().OnEvent<FloatEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
-            data[calls++] = {id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1};
+            data[calls++] = {id, event.Is<FloatEvent>() ? int(event.As<FloatEvent>().value) : -1};
         });
 
     world.OrderSystems();
