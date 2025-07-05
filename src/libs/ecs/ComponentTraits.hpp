@@ -209,19 +209,19 @@ namespace RR::Ecs
         template <typename T>
         static constexpr ComponentInfo Create()
         {
-            constexpr bool isTrackable = details::is_trackable_v<T>;
+            constexpr bool trackable = details::is_trackable_v<T>;
 
             return {
                 ComponentId(GetTypeId<T>.GetRaw()),
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
                 GetTypeName<T>,
-                isTrackable,
+                trackable,
                 alignof(T),
                 eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
                 eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,
                 &details::Move<T>,
                 &details::Copy<T>,
-                isTrackable ? &details::CompareAndAssign<eastl::conditional_t<isTrackable, T, int>> : nullptr
+                trackable ? &details::CompareAndAssign<eastl::conditional_t<trackable, T, int>> : nullptr
                 };
         }
     };
@@ -316,7 +316,7 @@ namespace RR::Ecs
     static constexpr ComponentInfo GetComponentInfo = ComponentTraits<T>::ComponentInfo;
 
     template <typename T>
-    static constexpr bool IsComponent = ComponentTraits<T>::IsComponent;
+    static constexpr bool IsComponent = eastl::is_same_v<GetComponentType<T>, T>;
 
     template <typename T>
     static constexpr bool IsTag = ComponentTraits<T>::IsTag;
