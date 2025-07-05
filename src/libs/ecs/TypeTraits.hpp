@@ -49,6 +49,8 @@ namespace RR::Ecs
 #ifdef MSVC
             funcName = trimPrefix(funcName, "RR::Ecs::TypeName<");
             auto end_pos = funcName.rfind(">::getTypeNameView(void) noexcept");
+            while (end_pos != 0 && funcName[end_pos - 1] == ' ')
+                end_pos--;
 #else
             funcName = trimPrefix(funcName, "T = ");
             auto end_pos = funcName.find(';');
