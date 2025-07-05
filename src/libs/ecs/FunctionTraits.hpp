@@ -46,6 +46,13 @@ namespace RR::Ecs
         {
         };
 
+        // Member function specialization
+        template <typename ClassType, typename ReturnType, typename... Args>
+        struct FunctionTraitsImpl<ReturnType (ClassType::*)(Args...)>
+            : FunctionTraitsBase<ReturnType, Args...>
+        {
+        };
+
 // Member function specializations with CV and ref qualifiers
 #define MAKE_MEMBER_FUNCTION_TRAITS(CV_REF_QUALIFIER)                              \
     template <typename ClassType, typename ReturnType, typename... Args>           \
@@ -54,7 +61,6 @@ namespace RR::Ecs
     {                                                                              \
     }
 
-        MAKE_MEMBER_FUNCTION_TRAITS();
         MAKE_MEMBER_FUNCTION_TRAITS(const);
         MAKE_MEMBER_FUNCTION_TRAITS(volatile);
         MAKE_MEMBER_FUNCTION_TRAITS(const volatile);
