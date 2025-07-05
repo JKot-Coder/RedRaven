@@ -4,6 +4,8 @@ namespace RR::Common
 {
     class ChunkAllocator
     {
+        NONCOPYABLE(ChunkAllocator)
+
     private:
         static constexpr inline size_t MAX_CHUNK_SIZE = 1 << 28;
 
@@ -13,15 +15,15 @@ namespace RR::Common
             std::size_t size;
 
             Chunk(std::size_t size) : buffer(new std::byte[size]), size(size) { }
+            Chunk(Chunk&& other) noexcept : buffer(std::move(other.buffer)), size(other.size) { }
+            Chunk(const Chunk&) = delete;
+            Chunk& operator=(const Chunk&) = delete;
         };
 
         std::size_t offset;
         std::vector<Chunk> chunks;
 
-        Chunk& getCurrentChunk()
-        {
-            return chunks.back();
-        }
+        const Chunk& getCurrentChunk() { return chunks.back(); }
 
         void addNewChunk(size_t size)
         {
@@ -62,7 +64,7 @@ namespace RR::Common
         {
             ASSERT(size < MAX_CHUNK_SIZE);
 
-            Chunk& chunk = getCurrentChunk();
+            const Chunk& chunk = getCurrentChunk();
             std::size_t alignedOffset = AlignTo(offset, alignment);
 
             if UNLIKELY (alignedOffset + size > chunk.size)
