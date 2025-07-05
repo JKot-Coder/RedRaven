@@ -143,7 +143,7 @@ namespace RR::Ecs
         }
 
         template <typename... Args, typename... ComponentDataPtrs, typename Func>
-        static void invoke(Func&& func, ComponentDataPtrs __restrict... ptrs)
+        static void invoke(Func&& func, ComponentDataPtrs* __restrict... ptrs)
         {
             func(castComponentPtrToArg<Args>(ptrs)...);
         }
