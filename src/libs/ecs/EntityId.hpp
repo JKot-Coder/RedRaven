@@ -33,7 +33,7 @@ namespace RR::Ecs
         bool operator!=(const EntityId& other) const { return rawId != other.rawId; }
 
     private:
-            struct IdFields
+        struct IdFields
         {
             uint32_t index : IndexBits;
             uint32_t generation : GenerationBits;
