@@ -25,6 +25,11 @@ struct FloatEvent : Event
     float value;
 };
 
+
+struct System1 { };
+struct System2 { };
+struct System3 { };
+
 TEST_CASE_METHOD(WorldFixture, "System create", "[System]")
 {
     world.System().ForEach([] { });
@@ -370,27 +375,19 @@ TEST_CASE("SystemOrder", "[System]")
 
 TEST_CASE_METHOD(WorldFixture, "Dependency cycle", "[System]")
 {
-    struct System1 { };
-    struct System2 { };
-    struct System3 { };
-
     world.System("system1").Produce<System1>().Require<System2>().ForEach([&]() { });
     world.System("system2").Produce<System2>().Require<System3>().ForEach([&]() { });
     world.System("system3").Produce<System3>().Require<System1>().ForEach([&]() {  });
-    REQUIRE_THROWS_WITH(world.OrderSystems(), "ES <system3> in graph to become cyclic and was removed from sorting. ES order is non-deterministic.");
+    REQUIRE_THROWS_WITH(world.OrderSystems(), "ES <system2> in graph to become cyclic and was removed from sorting. ES order is non-deterministic.");
 }
 
 TEST_CASE_METHOD(WorldFixture, "Require token that is never produced by any system", "[System]")
 {
-    struct System1 { };
-    struct System2 { };
-
     world.System("system1").Produce<System1>().Require<System2>().ForEach([&]() { });;
     REQUIRE_THROWS_WITH(world.OrderSystems(), "ES <system1> is require token that is never produced by any system.");
 }
 
 TEST_CASE_METHOD(WorldFixture, "Produce and require same token", "[System]")
 {
-    struct System1 { };
     REQUIRE_THROWS_WITH(world.System("system1").Produce<System1>().Require<System1>().ForEach([&]() { }), "Token System1 can't be produced and required at the same time.");
 }
