@@ -244,7 +244,7 @@ TEST_CASE("Create Entity", "[Entity]")
 
         {
             bench.run("SoA", [&](ankerl::nanobench::Meter meter) {
-                uint64_t index = 0;
+                uint32_t index = 0;
                 eastl::vector<uint32_t> ids;
                 eastl::vector<PositionComponent> positions;
                 eastl::vector<VelocityComponent> velocities;

@@ -173,7 +173,7 @@ namespace RR::Ecs
         public:
             const SystemDescription* desc;
             SystemId id;
-            uint32_t index = -1;
+            uint32_t index = 0xFFFFFFFF;
             HashName hashName;
         };
 

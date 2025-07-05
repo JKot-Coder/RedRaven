@@ -19,7 +19,7 @@ namespace
         {
             if (i < 8)
             { // Assuming the first 8 cores are P-cores
-                mask |= (1 << i);
+                mask |= (1ULL << i);
             }
         }
 
