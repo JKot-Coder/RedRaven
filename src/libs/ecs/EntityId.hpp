@@ -5,6 +5,7 @@ namespace RR::Ecs
     struct EntityId final
     {
     public:
+        using IndexType = uint32_t;
         static const uint32_t IndexBits = 24;
         static const uint32_t GenerationBits = 8;
         static_assert(IndexBits + GenerationBits == sizeof(uint32_t) * 8u);

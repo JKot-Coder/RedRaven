@@ -42,7 +42,7 @@ namespace RR::Ecs
         {
             if (freeId.empty())
             {
-                entityId = EntityId(entityRecords.size(), 0);
+                entityId = EntityId(EntityId::IndexType(entityRecords.size()), 0);
                 return entityRecords.emplace_back(0);
             }
             else

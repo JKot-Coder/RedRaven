@@ -192,7 +192,7 @@ namespace RR::Ecs
                 if (it == components.end())
                     return {};
 
-                return ArchetypeComponentIndex(eastl::distance(components.begin(), it));
+                return ArchetypeComponentIndex(uint8_t(eastl::distance(components.begin(), it)));
             }
 
             std::byte* GetComponentChunkData(ArchetypeComponentIndex componentIndex, size_t chunkIndex) const
@@ -242,12 +242,12 @@ namespace RR::Ecs
             {
                 ASSERT(entitiesCount);
                 ASSERT(!chunks.empty());
-                return ArchetypeEntityIndex((entitiesCount - 1) % chunkCapacity, (entitiesCount - 1) / chunkCapacity);
+                return ArchetypeEntityIndex(uint32_t((entitiesCount - 1) % chunkCapacity), uint32_t((entitiesCount - 1) / chunkCapacity));
             }
 
             ArchetypeEntityIndex End() const
             {
-                return ArchetypeEntityIndex(entitiesCount % chunkCapacity, entitiesCount/ chunkCapacity);
+                return ArchetypeEntityIndex(uint32_t(entitiesCount % chunkCapacity), uint32_t(entitiesCount / chunkCapacity));
             }
 
         private:
@@ -341,8 +341,8 @@ namespace RR::Ecs
         [[nodiscard]] ArchetypeEntityIndex end() const { return componentsData.End(); }
         [[nodiscard]] ArchetypeEntityIndex inc(ArchetypeEntityIndex index) const
         {
-            size_t indexInChunk = index.GetIndexInChunk() + 1;
-            size_t chunkIndex = index.GetChunkIndex();
+            uint32_t indexInChunk = index.GetIndexInChunk() + 1;
+            uint32_t chunkIndex = index.GetChunkIndex();
 
             if (indexInChunk == componentsData.chunkCapacity)
             {

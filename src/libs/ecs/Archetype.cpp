@@ -19,7 +19,7 @@ namespace RR::Ecs
 
         auto index = componentsData.Insert();
 
-        for (size_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
+        for (uint8_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
             const auto& componentInfo = componentsData.componentsInfo[componentIndex];
 
@@ -55,7 +55,7 @@ namespace RR::Ecs
         if (updateEntityRecord)
             entityStorage.Destroy(GetEntityIdData(index));
 
-        for (size_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
+        for (uint8_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
             const auto& componentInfo = componentsData.componentsInfo[componentIndex];
             if (componentInfo.size == 0)
@@ -116,7 +116,7 @@ namespace RR::Ecs
         changedComponentsMasks.reserve(chunkCapacity);
 
         // TODO it's could be optimized by adding dirty mask for chunks/columns.
-        for (size_t chunkIndex = 0, entityOffset = 0; chunkIndex < chunksCount; chunkIndex++, entityOffset += chunkCapacity)
+        for (uint32_t chunkIndex = 0, entityOffset = 0; chunkIndex < chunksCount; chunkIndex++, entityOffset += uint32_t(chunkCapacity))
         {
             uint64_t changedChunkComponentsMask = 0;
             const size_t entitiesInChunk = eastl::min(entitiesCount - entityOffset, chunkCapacity);
