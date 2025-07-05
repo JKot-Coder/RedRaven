@@ -123,9 +123,9 @@ namespace RR::Ecs
                 for (;;)
                 {
                     size_t offset = 0;
-                    size_t componentIndex = 0;
+                    uint8_t componentIndex = 0;
                     size_t trackedComponentIndex = 0;
-                    size_t trackedColumnIndex = componentsInfo.size();
+                    uint8_t trackedColumnIndex = uint8_t(componentsInfo.size());
 
                     for (const auto& componentInfo : componentsInfo)
                     {
