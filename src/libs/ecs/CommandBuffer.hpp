@@ -64,15 +64,15 @@ namespace RR::Ecs
             {
                 void* result = nullptr;
 
-                if constexpr (IsTag<Component>)
-                    return result;
-
-                std::apply(
-                    [&result, this](auto&&... unpackedArgs) {
-                        void* memory = allocator.allocate(sizeof(Component), alignof(Component));
-                        result = new (memory) Component {eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...};
-                    },
-                    eastl::forward<ArgsTuple>(args));
+                if constexpr (!IsTag<Component>)
+                {
+                    std::apply(
+                        [&result, this](auto&&... unpackedArgs) {
+                            void* memory = allocator.allocate(sizeof(Component), alignof(Component));
+                            result = new (memory) Component {eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...};
+                        },
+                        eastl::forward<ArgsTuple>(args));
+                }
 
                 return result;
             }

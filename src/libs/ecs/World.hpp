@@ -39,12 +39,16 @@ namespace RR::Ecs
 
             // Todo replace with methods to make it more clear.
             if constexpr (eastl::is_same_v<ComponentType, Ecs::World> ||
-                        eastl::is_base_of_v<Ecs::Event, ComponentType> ||
-                        eastl::is_same_v<ComponentType, Ecs::EntityId>)
+                          eastl::is_base_of_v<Ecs::Event, ComponentType> ||
+                          eastl::is_same_v<ComponentType, Ecs::EntityId>)
+            {
                 return true;
-
-            constexpr ComponentId compId = GetComponentId<ComponentType>;
-            return view.GetWithSet().find(compId) != view.GetWithSet().end();
+            }
+            else
+            {
+                constexpr ComponentId compId = GetComponentId<ComponentType>;
+                return view.GetWithSet().find(compId) != view.GetWithSet().end();
+            }
         }
 
         template<typename Arg>
@@ -262,15 +266,15 @@ namespace RR::Ecs
     template <typename Component, typename ArgsTuple>
     inline void World::constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args)
     {
-        if constexpr (IsTag<Component>)
-            return;
-
-        std::apply(
-            [&archetype, index](auto&&... unpackedArgs) {
-                const auto componentIndex = archetype.GetComponentIndex(GetComponentId<Component>);
-                archetype.ConstructComponent<Component>(index, componentIndex, eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...);
-            },
-            eastl::forward<ArgsTuple>(args));
+        if constexpr (!IsTag<Component>)
+        {
+            std::apply(
+                [&archetype, index](auto&&... unpackedArgs) {
+                    const auto componentIndex = archetype.GetComponentIndex(GetComponentId<Component>);
+                    archetype.ConstructComponent<Component>(index, componentIndex, eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+                },
+                eastl::forward<ArgsTuple>(args));
+        }
     }
 
     template <typename Callable>
@@ -440,8 +444,10 @@ namespace RR::Ecs
                 singletonsMap.emplace(id, nullptr);
                 return true;
             }
-
-            return true;
+            else
+            {
+                return true;
+            }
         }() && ...);
 
         if (!onlyNewSingletons)
