@@ -18,6 +18,7 @@
 #include "ecs/View.hpp"
 
 #include "absl/container/flat_hash_map.h" // IWYU pragma: export
+#include "absl/container/flat_hash_set.h" // IWYU pragma: export
 
 #include <thread>
 
@@ -233,7 +234,7 @@ namespace RR::Ecs
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
         Ecs::QueryId systemsQuery;
-        absl::flat_hash_map<ComponentId, Archetype*> singletonsMap;
+        absl::flat_hash_set<ComponentId> singletonsSet;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers;
         absl::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
         eastl::vector<Archetype*> archetypesCache;
@@ -434,13 +435,13 @@ namespace RR::Ecs
             if constexpr (IsSingleton<T>)
             {
                 auto id = GetComponentId<T>;
-                if (singletonsMap.find(id) != singletonsMap.end())
+                if (singletonsSet.find(id) != singletonsSet.end())
                 {
                     ECS_VERIFY(false, "Singleton component {} is already exists. Commit will be ignored.", getComponentName(id));
                     return false;
                 }
 
-                singletonsMap.emplace(id, nullptr);
+                singletonsSet.insert(id);
                 return true;
             }
             else
