@@ -9,9 +9,10 @@ namespace RR
     namespace Common
     {
         template <typename F>
-        class OnScopeExit final : private NonCopyable, NonMovable
+        class OnScopeExit final
         {
         public:
+            NONCOPYABLE_MOVABLE(OnScopeExit);
             explicit OnScopeExit(F&& function) : function_(function) { }
             ~OnScopeExit() { function_(); }
 

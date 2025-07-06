@@ -14,9 +14,10 @@ namespace RR::Common
         using UniqueLock = std::unique_lock<T>;
 
         template <class Lock>
-        class ReadWriteGuard final : NonCopyable
+        class ReadWriteGuard final
         {
         public:
+            NONCOPYABLE(ReadWriteGuard);
             ReadWriteGuard() = delete;
 
             ReadWriteGuard(Lock& lock) : lock_(&lock)

@@ -11,9 +11,10 @@ namespace RR
         {
             const uint32_t INFINITE_WAIT = 0xFFFFFFFF;
 
-            class Event final : private NonCopyable, NonMovable
+            class Event final
             {
             public:
+                NONCOPYABLE_MOVABLE(Event);
                 Event(bool manualReset = true, bool initialState = false) : state_(initialState), manualReset_(manualReset) { }
                 ~Event() = default;
 

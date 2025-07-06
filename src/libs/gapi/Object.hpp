@@ -2,9 +2,10 @@
 
 namespace RR::GAPI
 {
-    class Object : public std::enable_shared_from_this<Object>, private Common::NonCopyable
+    class Object : public std::enable_shared_from_this<Object>
     {
     public:
+        NONCOPYABLE(Object);
         enum class Type
         {
             CommandContext,
