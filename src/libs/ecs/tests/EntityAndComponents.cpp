@@ -499,6 +499,14 @@ TEST_CASE("Double singleton create", "[Singleton]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
+TEST_CASE_METHOD(WorldFixture, "Singleton size", "[Singleton]")
+{
+    auto entt = world.Entity().Add<SingletonComponent<int>>(1).Add<int>(2).Apply();
+    Archetype& arch = resolveArchetype(entt);
+    REQUIRE(arch.GetChunkCapacity() == 1);
+    REQUIRE(arch.GetEntitySize() == sizeof(EntityId) + sizeof(int) + sizeof(SingletonComponent<int>));
+}
+
 /*
 #include <flecs.h>
 
