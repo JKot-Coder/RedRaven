@@ -202,6 +202,9 @@ namespace RR::Ecs
                 if (chunkIndex == endChunkIndex)
                     endEntityIndex = span.end.GetIndexInChunk();
 
+                if (beginEntityIndex == endEntityIndex)
+                    break;
+
                 (eastl::get<Index>(componentAccessors).SetChunkIndex(archetype, chunkIndex), ...);
                 processChunk<4>(eastl::forward<Func>(func), beginEntityIndex, endEntityIndex, eastl::get<Index>(componentAccessors)...);
 
