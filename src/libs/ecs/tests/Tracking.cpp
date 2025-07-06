@@ -159,3 +159,33 @@ TEST_CASE("Multiple tracked components", "[Tracking]")
     SECTION("Immediate") { immediateTest(test, check); }
     SECTION("Deffered") { defferedTest(test, check); }
 }
+
+TEST_CASE("Trackable singleton", "[Singleton][Tracking]")
+{
+    auto test = [&](World& world) {
+        world.Entity().Add<TrackableSingleton<int>>(1).Apply();
+    };
+
+    auto check = [&](World& world) {
+        world.View().With<TrackableSingleton<int>>().ForEach([&](TrackableSingleton<int>& singleton) {
+            singleton.x = 2;
+        });
+
+        world.View().With<TrackableSingleton<int>>().ForEach([&](TrackableSingleton<int>& singleton) {
+            singleton.x = 3;
+        });
+
+        eastl::vector<int> results;
+        world.System().Track<TrackableSingleton<int>>().ForEach([&](TrackableSingleton<int>& singleton) {
+            results.push_back(singleton.x);
+        });
+
+        world.OrderSystems();
+        world.ProcessTrackedChanges();
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0] == 3);
+    };
+
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}

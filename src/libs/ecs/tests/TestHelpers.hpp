@@ -41,3 +41,16 @@ struct SingletonComponent {
     ECS_SINGLETON;
     T x;
 };
+
+template <typename T>
+struct TrackableSingleton
+{
+    ECS_SINGLETON;
+    ECS_TRACKABLE;
+    T x;
+
+    bool operator==(const TrackableSingleton & other) const
+    {
+        return x == other.x;
+    }
+};

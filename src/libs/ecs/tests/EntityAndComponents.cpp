@@ -507,6 +507,13 @@ TEST_CASE_METHOD(WorldFixture, "Singleton size", "[Singleton]")
     REQUIRE(arch.GetEntitySize() == sizeof(EntityId) + sizeof(int) + sizeof(SingletonComponent<int>));
 }
 
+TEST_CASE_METHOD(WorldFixture, "Trackable singleton size", "[Singleton]")
+{
+    auto entt = world.Entity().Add<TrackableSingleton<int>>(1).Add<int>(2).Apply();
+    Archetype& arch = resolveArchetype(entt);
+    REQUIRE(arch.GetChunkCapacity() == 1);
+    REQUIRE(arch.GetEntitySize() == sizeof(EntityId) + sizeof(int) + sizeof(TrackableSingleton<int>) + sizeof(TrackableSingleton<int>));
+}
 /*
 #include <flecs.h>
 
