@@ -183,7 +183,8 @@ namespace RR::Ecs
         size_t size;
         std::string_view name;
         bool isTrackable : 1;
-        size_t alignment : 15;
+        bool isSingleton : 1;
+        size_t alignment : 14;
         DefaultConstructor constructDefault;
         Destructor destructor;
         MoveOrCopy move;
@@ -194,6 +195,7 @@ namespace RR::Ecs
         {
             return id == other.id &&
                    isTrackable == other.isTrackable &&
+                   isSingleton == other.isSingleton &&
                    size == other.size &&
                    alignment == other.alignment &&
                    constructDefault == other.constructDefault &&
@@ -216,6 +218,7 @@ namespace RR::Ecs
                 eastl::is_empty_v<T> ? 0 : sizeof(T),
                 GetTypeName<T>,
                 trackable,
+                details::is_singleton_v<T>,
                 alignof(T),
                 eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
                 eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,

@@ -103,9 +103,11 @@ namespace RR::Ecs
 
                 size_t entitySizeBytes = 0;
                 size_t trackedComponentsCount = 0;
+
                 for (Iterator it = compInfoBegin; it != compInfoEnd; ++it)
                 {
                     ComponentInfo& componentInfo = *it;
+                    isSingleton = isSingleton || componentInfo.isSingleton;
                     componentsInfo.push_back(componentInfo);
                     components.push_back_unsorted(componentInfo.id);
                     entitySizeBytes += componentInfo.isTrackable ? componentInfo.size * 2 : componentInfo.size;
@@ -115,7 +117,9 @@ namespace RR::Ecs
 
                 size_t chunkSizeBytes = entitySizeBytes * BaseChunkEntityCount;
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
-                chunkCapacity = chunkSizeBytes / entitySizeBytes;
+                chunkCapacity = !isSingleton ? chunkSizeBytes / entitySizeBytes : 1;
+
+                size_t realChunkSize = 0;
                 columns.resize(componentsInfo.size() + trackedComponentsCount);
                 trackedComponents.resize(trackedComponentsCount);
                 // Todo assert total components count less than 256
@@ -129,13 +133,14 @@ namespace RR::Ecs
 
                     for (const auto& componentInfo : componentsInfo)
                     {
-                        auto initColumn = [this, &offset, &componentInfo](size_t componentIndex) {
+                        auto initColumn = [this, &offset, &componentInfo, &realChunkSize](size_t componentIndex) {
                             auto& column = columns[componentIndex];
 
                             column.size = componentInfo.size;
                             offset = AlignTo(offset, componentInfo.alignment);
                             column.offset = offset;
                             offset += chunkCapacity * componentInfo.size;
+                            realChunkSize = offset;
                         };
 
                         columns[componentIndex].trackedColumnIndex = componentInfo.isTrackable ? trackedColumnIndex : InvalidColumnIndex;
@@ -150,7 +155,7 @@ namespace RR::Ecs
                         initColumn(componentIndex++);
                     }
 
-                    if (UNLIKELY(offset > chunkSizeBytes))
+                    if (UNLIKELY(offset > chunkSizeBytes) && !isSingleton)
                     {
                         --chunkCapacity;
                         continue;
@@ -159,8 +164,8 @@ namespace RR::Ecs
                     break;
                 }
 
-                entitySize = entitySizeBytes;
-                chunkSize = chunkSizeBytes;
+                entitySize = !isSingleton ? entitySizeBytes : realChunkSize;
+                chunkSize = !isSingleton ? chunkSizeBytes : realChunkSize;
             }
 
             ~ComponentsData()
@@ -252,6 +257,8 @@ namespace RR::Ecs
 
         private:
             friend struct Archetype;
+
+            bool isSingleton = false;
 
             size_t chunkSize; // In bytes
             size_t chunkCapacity; // In entities
