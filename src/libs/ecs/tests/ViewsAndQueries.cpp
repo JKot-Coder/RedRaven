@@ -312,3 +312,22 @@ TEST_CASE_METHOD(WorldFixture, "Query empty archetype", "[Query]")
     const auto queryFoo = world.Query().With<Foo>().Build();
     queryFoo.ForEach([&]() { REQUIRE(false); });
 }
+
+TEST_CASE_METHOD(WorldFixture, "Query singleton", "[Query]")
+{
+    world.Entity().Add<SingletonComponent<int>>(565).Apply();
+    const auto query = world.Query().With<SingletonComponent<int>>().Build();
+    int result = 0;
+    query.ForEach([&](SingletonComponent<int>& singleton) { result = singleton.x; });
+    REQUIRE(result == 565);
+}
+
+TEST_CASE_METHOD(WorldFixture, "Mixed components and singleton", "[Query]")
+{
+    world.Entity().Add<SingletonComponent<int>>(123).Add<int>(23).Apply();
+    world.Entity().Add<int>(5243).Apply();
+    const auto query = world.Query().With<SingletonComponent<int>, int>().Build();
+    int result = 0;
+    query.ForEach([&](SingletonComponent<int>& singleton, int i) { result = singleton.x + i; });
+    REQUIRE(result == 146);
+}

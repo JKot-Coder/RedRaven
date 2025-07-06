@@ -2,6 +2,8 @@
 #include <ecs/Ecs.hpp>
 #include <ecs/Archetype.hpp>
 
+#include "TestHelpers.hpp"
+
 using namespace RR::Ecs;
 
 struct WorldFixture
@@ -18,33 +20,6 @@ namespace {
         REQUIRE(archetype);
         return *archetype;
     };
-
-    template<typename Callable, typename CallableCheck>
-    void immediateTest(Callable&& call, CallableCheck&& check)
-    {
-        World world;
-        call(world);
-        check(world);
-    }
-
-    template<typename Callable, typename CallableCheck>
-    void defferedTest(Callable&& call, CallableCheck&& check)
-    {
-        World world;
-
-        struct SingleExecutionToken{};
-        world.Entity().Add<SingleExecutionToken>().Apply();
-
-        bool called = false;
-        world.View().With<SingleExecutionToken>().ForEach([&] {
-            call(world);
-            called = true;
-        });
-
-        check(world);
-
-        REQUIRE(called);
-    }
 }
 
 TEST_CASE("Create Entity", "[Entity]")
@@ -257,6 +232,15 @@ TEST_CASE("Add and remove components at the same time", "[Entity]")
     auto check = [](World&) { };
     SECTION("Immediate") { immediateTest(test, check); }
     SECTION("Deffered") { defferedTest(test, check); }
+}
+
+struct SingletonComponent2 {
+    int x;
+};
+
+TEST_CASE_METHOD(WorldFixture, "Sturct", "[Components]")
+{
+    world.Entity().Add<SingletonComponent2>(565).Apply();
 }
 
 TEST_CASE("NonTrivial Components", "[Components]")
@@ -488,18 +472,33 @@ TEST_CASE("Moving NonTrivial Components", "[Components]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-struct SingletonComponent {
-    ECS_SINGLETON;
-};
-
 TEST_CASE("Singleton create", "[Singleton]")
 {
+    auto test = [&](World& world) {
+        world.Entity().Add<SingletonComponent<int>>(1).Apply();
+    };
 
-    world.AddSingleton<SingletonComponent>();
-
-    world.Entity().Add<int>().Apply();
-    world.View().Singleton<SingletonComponent>().With<int>().ForEach([&]() { });
+    auto check = [](World&) { };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
 }
+
+TEST_CASE("Double singleton create", "[Singleton]")
+{
+    auto test = [&](World& world) {
+        world.Entity().Add<SingletonComponent<int>>(1).Apply();
+        REQUIRE_THROWS_WITH(world.Entity().Add<SingletonComponent<int>>(2).Apply(), "Singleton component SingletonComponent<int> is already exists. Commit will be ignored.");
+    };
+
+    auto check = [](World& world) {
+        int result = 0;
+        world.View().With<SingletonComponent<int>>().ForEach([&result](SingletonComponent<int>& component) { result = component.x; });
+        REQUIRE(result == 1);
+    };
+    SECTION("Immediate") { immediateTest(test, check); }
+    SECTION("Deffered") { defferedTest(test, check); }
+}
+
 /*
 #include <flecs.h>
 

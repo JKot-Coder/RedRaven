@@ -1,3 +1,4 @@
+#include "ecs/Ecs.hpp"
 
 namespace
 {
@@ -34,3 +35,9 @@ namespace
         REQUIRE(called);
     }
 }
+
+template <typename T>
+struct SingletonComponent {
+    ECS_SINGLETON;
+    T x;
+};
