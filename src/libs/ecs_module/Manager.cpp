@@ -2,7 +2,6 @@
 
 #include "common\Result.hpp"
 #include "cr.h"
-#include "flecs.h"
 
 namespace RR::EcsModule
 {
