@@ -62,6 +62,7 @@ namespace RR::Platform
         };
 
     public:
+        Window() = default;
         virtual ~Window() = default;
 
         virtual Vector2i GetSize() const = 0;
