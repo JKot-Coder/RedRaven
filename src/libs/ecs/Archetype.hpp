@@ -230,6 +230,8 @@ namespace RR::Ecs
 
             ArchetypeEntityIndex Insert()
             {
+                ASSERT(!isSingleton || entitiesCount == 0);
+
                 if (entitiesCount == totalCapacity)
                 {
                     totalCapacity += chunkCapacity;
