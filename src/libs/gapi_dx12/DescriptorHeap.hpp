@@ -43,7 +43,7 @@ namespace RR
                     if (currentChunk->GetNumAvailable() == 0)
                         freeChunks_.pop_front();
 
-                    descriptor = Descriptor(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap), getGpuHandle(indexInHeap));
+                    descriptor = Descriptor(shared_from_this(), indexInHeap, getCpuHandle(indexInHeap), isGpuHeap_ ? getGpuHandle(indexInHeap) : CD3DX12_GPU_DESCRIPTOR_HANDLE() );
                     allocated_++;
                 }
 
@@ -200,6 +200,7 @@ namespace RR
             private:
                 std::string name_;
 
+                bool isGpuHeap_ = false;
                 uint32_t numDescriptors_ = 0;
                 uint32_t descriptorSize_ = 0;
                 uint32_t allocated_ = 0;

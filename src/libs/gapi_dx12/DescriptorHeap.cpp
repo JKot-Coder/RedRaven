@@ -32,6 +32,7 @@ namespace RR
                 descriptorHeapDesc.NumDescriptors = chunkCount * Chunk::SIZE;
                 descriptorHeapDesc.Type = desc.type;
                 descriptorHeapDesc.Flags = desc.flags;
+                isGpuHeap_ = (desc.flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0;
 
                 D3DCall(device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(d3d12Heap_.put())));
 
