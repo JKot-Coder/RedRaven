@@ -257,9 +257,11 @@ namespace RR
                 // If the device was reset we must completely reinitialize the renderer.
                 if (result == DXGI_ERROR_DEVICE_REMOVED || result == DXGI_ERROR_DEVICE_RESET)
                 {
-                    result = (result == DXGI_ERROR_DEVICE_REMOVED) ? d3dDevice_->GetDeviceRemovedReason() : result;
-
-                    LOG_FATAL("Device Lost on Present. Error: {}", D3DUtils::HResultToString(result));
+                    if(result == DXGI_ERROR_DEVICE_REMOVED)
+                    {
+                        HRESULT undelayedError = d3dDevice_->GetDeviceRemovedReason();
+                        LOG_FATAL("Device Lost on Present. Error: {}", D3DUtils::HResultToString(undelayedError));
+                    }
                     // Todo error check
                     // handleDeviceLost();
                     ASSERT(false);
