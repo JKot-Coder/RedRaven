@@ -15,6 +15,7 @@ set( ECS_SRC
     ${CMAKE_CURRENT_LIST_DIR}/EntityId.hpp
     ${CMAKE_CURRENT_LIST_DIR}/EntityBuilder.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Event.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/EventStorage.hpp
     ${CMAKE_CURRENT_LIST_DIR}/System.hpp
     ${CMAKE_CURRENT_LIST_DIR}/SystemBuilder.hpp
     ${CMAKE_CURRENT_LIST_DIR}/View.hpp

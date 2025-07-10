@@ -11,6 +11,7 @@
 #include "ecs/EntityId.hpp"
 #include "ecs/EntityStorage.hpp"
 #include "ecs/Event.hpp"
+#include "ecs/EventStorage.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/IterationHelpers.hpp"
 #include "ecs/Query.hpp"
