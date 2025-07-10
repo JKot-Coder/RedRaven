@@ -75,7 +75,8 @@ namespace RR
                 pushCommandList(commandList);
 
                 D3DCommandQueue_->ExecuteCommandLists(numCommandLists, commandLists.data());
-                commandList.ResetAfterSubmit(*this);
+
+                Signal(commandList.GetSubmissionFence());
             }
 
             void CommandQueueImpl::Submit(const std::shared_ptr<CommandList>& commandList)

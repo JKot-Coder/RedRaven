@@ -28,6 +28,8 @@ namespace RR
             void Init(const std::string& name, int32_t index = -1);
             std::any GetNativeHandle() const override { return D3DCommandList_.get(); }
             D3D12_COMMAND_LIST_TYPE GetType() const { return type_; }
+
+            void Reset() override;
             void Close() override;
 
             // ---------------------------------------------------------------------------------------------
@@ -61,7 +63,7 @@ namespace RR
 
             // ---------------------------------------------------------------------------------------------
 
-            void ResetAfterSubmit(CommandQueueImpl& commandQueue);
+            FenceImpl& GetSubmissionFence() const;
 
             const ComSharedPtr<ID3D12GraphicsCommandList4>& GetD3DObject() const { return D3DCommandList_; }
 
@@ -74,7 +76,7 @@ namespace RR
                 void Init(D3D12_COMMAND_LIST_TYPE type, const std::string& name);
 
                 ComSharedPtr<ID3D12CommandAllocator> GetNextAllocator();
-                void ResetAfterSubmit(CommandQueueImpl& commandQueue);
+                FenceImpl& GetSubmissionFence() const { return *fence_; }
 
             private:
                 using AllocatorFecnceValuePair = std::pair<ComSharedPtr<ID3D12CommandAllocator>, uint64_t>;

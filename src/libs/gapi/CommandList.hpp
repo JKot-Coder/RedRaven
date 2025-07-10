@@ -24,6 +24,7 @@ namespace RR
         {
         public:
             virtual ~ICommandList() = default;
+            virtual void Reset() = 0;
             virtual void Close() = 0;
 
             // TODO temporary
@@ -65,6 +66,8 @@ namespace RR
 
             inline CommandListType GetCommandListType() const { return type_; };
             inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
+
+            inline void Reset() { return GetPrivateImpl()->Reset(); }
             inline void Close() { return GetPrivateImpl()->Close(); }
 
         protected:

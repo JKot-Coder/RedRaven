@@ -88,7 +88,7 @@ namespace RR::GAPI::DX12
     {
         auto allocator = allocators_.front();
 
-        if (allocator.second >= fence_->GetGpuValue())
+        if (fence_->GetGpuValue() >= allocator.second)
         {
             // The oldest allocator doesn't executed yet, create new one
             return allocators_.emplace(createAllocator(), fence_->GetCpuValue()).first;
@@ -101,12 +101,6 @@ namespace RR::GAPI::DX12
         allocators_.push(allocator); // Place in the end
 
         return allocator.first;
-    }
-
-    void CommandListImpl::CommandAllocatorsPool::ResetAfterSubmit(CommandQueueImpl& commandQueue)
-    {
-        ASSERT(fence_);
-        return commandQueue.Signal(*fence_);
     }
 
     CommandListImpl::CommandListImpl(const CommandListType commandListType)
@@ -136,13 +130,17 @@ namespace RR::GAPI::DX12
         D3DUtils::SetAPIName(D3DCommandList_.get(), name, index);
     }
 
-    void CommandListImpl::ResetAfterSubmit(CommandQueueImpl& commandQueue)
+    void CommandListImpl::Reset()
     {
         ASSERT(D3DCommandList_);
 
-        commandAllocatorsPool_.ResetAfterSubmit(commandQueue);
         const auto& allocator = commandAllocatorsPool_.GetNextAllocator();
         D3DCall(D3DCommandList_->Reset(allocator.get(), nullptr));
+    }
+
+    FenceImpl& CommandListImpl::GetSubmissionFence() const
+    {
+        return commandAllocatorsPool_.GetSubmissionFence();
     }
 
     // ---------------------------------------------------------------------------------------------

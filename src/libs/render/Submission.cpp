@@ -109,6 +109,7 @@ namespace RR
         inline void Submission::doTask(const Task::Submit& task)
         {
             task.commandQueue->Submit(task.commandList);
+            task.commandList->Reset();
         }
 
         template <>
