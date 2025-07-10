@@ -13,23 +13,24 @@ namespace RR::Common
         typedef typename std::array<T, SIZE>::const_reference const_reference;
         typedef typename std::array<T, SIZE>::size_type size_type;
 
+        RingBuffer() = default;
+
         template <typename... Args>
         RingBuffer(Args&&... args) : buffer_ {{std::forward<Args>(args)...}} {};
+
+        size_t size() const { return buffer_.size(); }
+        size_t capacity() const { return buffer_.capacity(); }
+        auto begin() { return buffer_.begin(); }
+        auto end()   { return buffer_.end(); }
 
         const T& Peek() const { return buffer_[currentIndex_]; }
         T& Peek() { return buffer_[currentIndex_]; }
 
         T& Advance()
         {
-            currentIndex_++;
-
-            if (currentIndex_ == buffer_.size())
-                currentIndex_ = 0;
-
+            currentIndex_ = (++currentIndex_) % buffer_.size();
             return buffer_[currentIndex_];
         }
-
-        std::array<T, SIZE>& GetBuffer() { return buffer_; }
 
     private:
         std::array<T, SIZE> buffer_;
