@@ -8,7 +8,7 @@
             "type": "cppvsdbg",
             "console": "internalConsole",
             "program": "${workspaceFolder}/bin/editor.exe",
-            "args": [],
+            "args": [""],
             "preLaunchTask": "CMake: build Editor",
             "cwd": "${workspaceFolder}/bin",
             "osx": {"type": "cppdbg", "MIMode": "lldb", "program": "${workspaceFolder}/bin/editor"},
@@ -19,7 +19,7 @@
             "type": "cppvsdbg",
             "console": "internalConsole",
             "program": "${workspaceFolder}/bin/ecs_tests.exe",
-            "args": [],
+            "args": [""],
             "preLaunchTask": "CMake: build ECS tests",
             "cwd": "${workspaceFolder}/bin",
             "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
@@ -36,6 +36,16 @@
             "cwd": "${workspaceFolder}/bin",
             "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
             "osx": {"type": "cppdbg", "MIMode": "lldb","program": "${workspaceFolder}/bin/ecs_benchmark"},
+        },
+        {
+            "name": "Editor",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "console": "internalConsole",
+            "program": "${workspaceFolder}/bin/editor.exe",
+            "args": [""],
+            "cwd": "${workspaceFolder}/bin/",
+            "preLaunchTask": "CMake: build Editor",
         }
     ]
 }
