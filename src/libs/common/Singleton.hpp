@@ -4,10 +4,9 @@
 namespace RR::Common
 {
     template <class T>
-    class Singleton
+    class Singleton : public NonCopyableMovable
     {
     public:
-        NONCOPYABLE_MOVABLE(Singleton)
 
         static T& Instance()
         {

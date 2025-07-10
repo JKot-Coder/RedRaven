@@ -2,10 +2,8 @@
 
 namespace RR::Common
 {
-    class ChunkAllocator
+    class ChunkAllocator final : public Common::NonCopyable
     {
-        NONCOPYABLE(ChunkAllocator)
-
     private:
         static constexpr inline size_t MAX_CHUNK_SIZE = 1 << 28;
 

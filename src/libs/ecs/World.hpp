@@ -87,9 +87,8 @@ namespace RR::Ecs
     private:
         using MatchedArchetypeCache = eastl::fixed_vector<const Archetype*, 16>;
 
-        struct LockGuard
+        struct LockGuard : public Common::NonCopyableMovable
         {
-            NONCOPYABLE_MOVABLE(LockGuard)
             explicit LockGuard(World* world) : world(world) { world->lock(); }
             ~LockGuard() { world->unlock(); }
 

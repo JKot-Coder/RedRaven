@@ -9,10 +9,9 @@ namespace RR
     {
         namespace Threading
         {
-            class SpinLock final
+            class SpinLock final : public Common::NonCopyable
             {
             public:
-                NONCOPYABLE_MOVABLE(SpinLock);
                 SpinLock();
                 ~SpinLock();
 

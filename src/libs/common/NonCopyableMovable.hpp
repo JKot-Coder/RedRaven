@@ -1,13 +1,32 @@
 #pragma once
 
-#define NONCOPYABLE(Type)       \
-    Type(const Type&) = delete; \
-    Type& operator=(const Type&) = delete;
+namespace RR::Common
+{
+    class NonCopyable
+    {
+    protected:
+        NonCopyable() = default;
+        ~NonCopyable() = default;
+    public:
+        NonCopyable(const NonCopyable&) = delete;
+        NonCopyable& operator=(const NonCopyable&) = delete;
+        NonCopyable(NonCopyable&&) = default;
+        NonCopyable& operator=(NonCopyable&&) = default;
+    };
 
-#define NONMOVABLE(Type)   \
-    Type(Type&&) = delete; \
-    Type& operator=(Type&&) = delete;
+    class NonMovable
+    {
+    protected:
+        NonMovable() = default;
+        ~NonMovable() = default;
+    public:
+        NonMovable(const NonMovable&) = default;
+        NonMovable& operator=(const NonMovable&) = default;
+        NonMovable(NonMovable&&) = delete;
+        NonMovable& operator=(NonMovable&&) = delete;
+    };
 
-#define NONCOPYABLE_MOVABLE(Type) \
-    NONCOPYABLE(Type)             \
-    NONMOVABLE(Type)
+    class NonCopyableMovable : public NonCopyable, public NonMovable
+    {
+    };
+}

@@ -14,10 +14,9 @@ namespace RR
     {
         namespace Threading
         {
-            class Thread
+            class Thread : public Common::NonCopyable
             {
             public:
-                NONCOPYABLE(Thread);
                 Thread() = default;
                 ~Thread() = default;
                 Thread(Thread&& other) noexcept : thread_(std::move(other.thread_)) {};

@@ -18,11 +18,9 @@ namespace RR::Platform
         enum class Key : uint32_t;
     }
 
-    class Window : public std::enable_shared_from_this<Window>
+    class Window : public std::enable_shared_from_this<Window>, public Common::NonCopyable
     {
     public:
-        NONCOPYABLE(Window);
-
         using SharedPtr = std::shared_ptr<Window>;
         using SharedConstPtr = std::shared_ptr<const Window>;
 
