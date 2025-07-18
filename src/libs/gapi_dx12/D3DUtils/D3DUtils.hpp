@@ -24,6 +24,7 @@ namespace RR
         if (FAILED(result))                                                  \
         {                                                                    \
             LOG_FATAL(#exp " Error: {}", D3DUtils::HResultToString(result)); \
+            ASSERT(SUCCEEDED(result));                                       \
         }                                                                    \
     }
 
