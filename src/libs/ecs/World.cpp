@@ -221,7 +221,7 @@ namespace RR::Ecs
         };
         topoSort(static_cast<uint32_t>(tmpSystemList.size()), edges, sortedList, loopDetected);
 
-        absl::flat_hash_map<SystemId, uint32_t> systemsOrder;
+        absl::flat_hash_map<SystemId, uint32_t, Ecs::DummyHasher<SystemId>> systemsOrder;
         systemsOrder.reserve(tmpSystemList.size());
         for (size_t i = 0; i < sortedList.size(); ++i)
         {

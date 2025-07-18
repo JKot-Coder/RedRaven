@@ -234,9 +234,9 @@ namespace RR::Ecs
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
         Ecs::QueryId systemsQuery;
-        absl::flat_hash_set<ComponentId> singletonsSet;
-        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>> eventSubscribers;
-        absl::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>> archetypesMap;
+        absl::flat_hash_set<ComponentId, Ecs::DummyHasher<ComponentId>> singletonsSet;
+        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>, Ecs::DummyHasher<EventId>> eventSubscribers;
+        absl::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>, Ecs::DummyHasher<ArchetypeId>> archetypesMap;
         eastl::vector<Archetype*> archetypesCache;
     };
 

@@ -44,4 +44,14 @@ namespace RR::Ecs
         eastl::fixed_string<char, FixedSize> string;
         HashType hash;
     };
+
+    template <typename T>
+    struct DummyHasher
+    {
+        size_t operator()(T val) const noexcept
+        {
+            // TODO not all type are 64 b, it's could be a problem
+            return val.GetRaw();
+        }
+    };
 }

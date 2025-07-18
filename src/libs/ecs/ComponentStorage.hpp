@@ -34,6 +34,6 @@ namespace RR::Ecs
             return it->second == componentInfo;
         }
     private:
-        absl::flat_hash_map<ComponentId, ComponentInfo> componentsInfo;
+        absl::flat_hash_map<ComponentId, ComponentInfo, Ecs::DummyHasher<ComponentId>> componentsInfo;
     };
 }

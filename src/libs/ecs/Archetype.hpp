@@ -418,7 +418,7 @@ namespace RR::Ecs
 
     private:
         ComponentsData componentsData;
-        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>> cache;
+        absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 8>, Ecs::DummyHasher<EventId>> cache;
 
         struct TrackedSystem
         {
