@@ -93,6 +93,7 @@ namespace RR
         private:
             // One frame executing on GPU
             static constexpr int InitialAllocatorsCount = MAX_GPU_FRAMES_BUFFERED + 1;
+            static constexpr int MaxAllocatorsCount = 16;
 
         private:
             D3D12_COMMAND_LIST_TYPE type_;

@@ -90,6 +90,9 @@ namespace RR::GAPI::DX12
 
         if (fence_->GetGpuValue() < allocator.second)
         {
+            ASSERT_MSG(allocators_.size() < MaxAllocatorsCount,
+                       "Too many allocators. Fence value: {}, Alocator fence value: {}, Allocator count: {}",
+                       fence_->GetGpuValue(), allocator.second, allocators_.size());
             // The oldest allocator doesn't executed yet, create new one
             return allocators_.emplace(createAllocator(), fence_->GetCpuValue()).first;
         }
