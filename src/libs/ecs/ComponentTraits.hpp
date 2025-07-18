@@ -197,10 +197,7 @@ namespace RR::Ecs
                    isTrackable == other.isTrackable &&
                    isSingleton == other.isSingleton &&
                    size == other.size &&
-                   alignment == other.alignment &&
-                   constructDefault == other.constructDefault &&
-                   destructor == other.destructor &&
-                   move == other.move;
+                   alignment == other.alignment;
         }
 
         bool operator!=(const ComponentInfo& other) const
