@@ -106,7 +106,7 @@ namespace RR::Ecs
 
                 for (Iterator it = compInfoBegin; it != compInfoEnd; ++it)
                 {
-                    ComponentInfo& componentInfo = *it;
+                    const ComponentInfo& componentInfo = *it;
                     isSingleton = isSingleton || componentInfo.isSingleton;
                     componentsInfo.push_back(componentInfo);
                     components.push_back_unsorted(componentInfo.id);

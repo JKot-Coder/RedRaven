@@ -236,25 +236,25 @@ namespace RR::Ecs
 
         using value_type = ComponentInfo;
         using difference_type = std::ptrdiff_t;
-        using pointer = ComponentInfo*;
-        using reference = ComponentInfo&;
+        using const_pointer = const ComponentInfo*;
+        using const_reference = const ComponentInfo&;
         using iterator_category = std::forward_iterator_tag;
 
-        explicit ComponentInfoIterator(Storage& storage, ComponentIdIterator iterator) : storage(storage), iter(iterator) { }
+        explicit ComponentInfoIterator(Storage& storage, ComponentIdIterator iterator) : storage(&storage), iter(iterator) { }
 
-        reference operator*() const
+        const_reference operator*() const
         {
             ComponentId id = *iter;
-            auto it = storage.find(id);
-            ASSERT(it != storage.end());
+            auto it = storage->find(id);
+            ASSERT(it != storage->end());
             return it->second;
         }
 
-        pointer operator->() const
+        const_pointer operator->() const
         {
             ComponentId id = *iter;
-            auto it = storage.find(id);
-            ASSERT(it != storage.end());
+            auto it = storage->find(id);
+            ASSERT(it != storage->end());
             return it->second;
         }
 
@@ -275,7 +275,7 @@ namespace RR::Ecs
         bool operator!=(const ComponentInfoIterator& other) const { return iter != other.iter; }
 
     private:
-        Storage& storage;
+        const Storage* storage;
         ComponentIdIterator iter;
     };
 
