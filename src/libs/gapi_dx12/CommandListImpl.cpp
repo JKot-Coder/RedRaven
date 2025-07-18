@@ -88,7 +88,7 @@ namespace RR::GAPI::DX12
     {
         auto allocator = allocators_.front();
 
-        if (fence_->GetGpuValue() >= allocator.second)
+        if (fence_->GetGpuValue() < allocator.second)
         {
             // The oldest allocator doesn't executed yet, create new one
             return allocators_.emplace(createAllocator(), fence_->GetCpuValue()).first;
