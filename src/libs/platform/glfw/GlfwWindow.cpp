@@ -302,6 +302,10 @@ namespace RR::Platform
         ASSERT(width >= 0);
         ASSERT(height >= 0);
 
+        // We also get here in case the window was minimized, so we need to ignore it
+        if (width == 0 || height == 0)
+            return;
+
         const auto windowImpl = static_cast<GlfwWindowImpl*>(glfwGetWindowUserPointer(glfwWindow));
         ASSERT(windowImpl);
 
