@@ -46,6 +46,16 @@
             "args": [""],
             "cwd": "${workspaceFolder}/bin/",
             "preLaunchTask": "CMake: build Editor",
+        },
+        {
+            "name": "ecs_codegen",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "console": "internalConsole",
+            "program": "${workspaceFolder}/bin/ecs_codegen.exe",
+            "args": [""],
+            "cwd": "${workspaceFolder}/bin/",
+            "preLaunchTask": "CMake: build ecs_codegen",
         }
     ]
 }
