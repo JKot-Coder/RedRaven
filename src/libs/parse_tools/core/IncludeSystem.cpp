@@ -22,7 +22,7 @@ namespace RR
             {
                 // We pass in "" as the from path, so ensure no from path is taken into account
                 // and to allow easy identification that this is in effect absolute
-                return findFileImpl("", pathToInclude, outPathInfo);
+                return findFileImpl(pathToInclude, "", outPathInfo);
             }
 
             const auto includedFromStatus = fs::status(pathIncludedFrom);
