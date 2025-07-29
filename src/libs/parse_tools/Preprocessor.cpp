@@ -2360,11 +2360,32 @@ namespace RR
         // Handle a `#include` directive
         void PreprocessorImpl::handleIncludeDirective(DirectiveContext& directiveContext)
         {
+            std::string path;
             Token pathToken;
-            if (!expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
-                return;
 
-            std::string path = getFileNameTokenValue(pathToken);
+            if (peekTokenType() == Token::Type::OpLess)
+            {
+                advanceToken();
+                pathToken = peekToken();
+
+                while (true)
+                {
+                    if (peekTokenType() == Token::Type::OpGreater || peekTokenType() == Token::Type::EndOfFile)
+                        break;
+
+                    path += getFileNameTokenValue(advanceToken());
+                }
+
+                if (!expect(directiveContext, Token::Type::OpGreater, Diagnostics::expectedTokenInPreprocessorDirective))
+                    return;
+            }
+            else
+            {
+                if (!expect(directiveContext, Token::Type::StringLiteral, Diagnostics::expectedTokenInPreprocessorDirective, pathToken))
+                    return;
+
+                path = getFileNameTokenValue(pathToken);
+            }
 
             const auto& sourceLocation = directiveContext.token.sourceLocation;
             const auto& includedFromPathInfo = sourceLocation.GetSourceView()->GetSourceFile();
