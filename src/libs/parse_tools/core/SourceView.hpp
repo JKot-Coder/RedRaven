@@ -77,7 +77,7 @@ namespace RR::ParseTools
             auto begin = content_.begin();
             const auto end = content_.end();
 
-            if (utf8::starts_with_bom(begin))
+            if (utf8::starts_with_bom(begin, end))
                 utf8::next(begin, end);
 
             content_ = UnownedStringSlice(begin, end);

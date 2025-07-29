@@ -11,7 +11,7 @@ namespace RR
                 auto begin = stringSlice.begin();
                 const auto end = stringSlice.end();
 
-                if (utf8::starts_with_bom(begin))
+                if (utf8::starts_with_bom(begin, end))
                     utf8::next(begin, end);
 
                 return UnownedStringSlice(begin, end);
