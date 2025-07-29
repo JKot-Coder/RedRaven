@@ -66,19 +66,6 @@
                 "kind": "build"
             },
             "problemMatcher": [],
-        },
-        {
-            "type": "cmake",
-            "label": "CMake: build ecs_codegen",
-            "command": "build",
-            "targets": [
-                "ecs_codegen"
-            ],
-            "preset": "${command:cmake.activeBuildPresetName}",
-            "group": {
-                "kind": "build"
-            },
-            "problemMatcher": [],
         }
     ],
     "version": "2.0.0"
