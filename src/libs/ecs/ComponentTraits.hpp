@@ -2,7 +2,7 @@
 
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
-#include "ecs/TypeTraits.hpp"
+#include "TypeTraits.hpp"
 #include <EASTL/fixed_vector.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/vector_set.h>

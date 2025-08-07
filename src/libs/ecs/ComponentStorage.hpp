@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/ComponentTraits.hpp"
+#include "ComponentTraits.hpp"
 
 #include "absl/container/flat_hash_map.h"
 
