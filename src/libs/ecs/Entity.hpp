@@ -2,7 +2,7 @@
 
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/EntityId.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 
 #include <EASTL/sort.h>
 

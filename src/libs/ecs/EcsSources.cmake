@@ -8,7 +8,6 @@ set( ECS_SRC
     ${CMAKE_CURRENT_LIST_DIR}/ArchetypeEntityIndex.hpp
     ${CMAKE_CURRENT_LIST_DIR}/CommandBuffer.hpp
     ${CMAKE_CURRENT_LIST_DIR}/CommandBuffer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ComponentStorage.hpp
     ${CMAKE_CURRENT_LIST_DIR}/EntityStorage.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Query.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Entity.hpp
@@ -22,8 +21,9 @@ set( ECS_SRC
     ${CMAKE_CURRENT_LIST_DIR}/Ecs.hpp
     ${CMAKE_CURRENT_LIST_DIR}/Hash.hpp
     ${CMAKE_CURRENT_LIST_DIR}/ForwardDeclarations.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/TypeTraits.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/FunctionTraits.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/ComponentTraits.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/meta/TypeTraits.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/meta/FunctionTraits.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/meta/ComponentTraits.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/meta/ComponentStorage.hpp
     ${CMAKE_CURRENT_LIST_DIR}/IterationHelpers.hpp
 )

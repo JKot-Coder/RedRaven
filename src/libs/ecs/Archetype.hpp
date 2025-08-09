@@ -2,11 +2,11 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "ecs/ArchetypeEntityIndex.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
-#include "ecs/TypeTraits.hpp"
+#include "ecs/meta/TypeTraits.hpp"
 #include <EASTL/fixed_vector.h>
 #include <EASTL/vector_set.h>
 #include <cstddef>

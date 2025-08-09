@@ -1,5 +1,5 @@
-#include "ecs/TypeTraits.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/TypeTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 namespace Test
 {
     struct Foo

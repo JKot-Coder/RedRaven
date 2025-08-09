@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/FunctionTraits.hpp"
+#include "ecs/meta/FunctionTraits.hpp"
 #include "ecs/IterationHelpers.hpp"
 #include "ecs/System.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 
 namespace RR::Ecs
 {

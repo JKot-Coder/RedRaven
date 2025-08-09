@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/ForwardDeclarations.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 
 namespace RR::Ecs
 {

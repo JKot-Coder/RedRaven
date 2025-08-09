@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 

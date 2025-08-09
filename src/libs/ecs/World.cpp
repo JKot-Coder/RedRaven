@@ -1,5 +1,5 @@
 #include "World.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 #include "ecs/EntityBuilder.hpp"
 #include "ecs/SystemBuilder.hpp"
 #include <EASTL/bitvector.h>

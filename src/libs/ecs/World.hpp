@@ -6,7 +6,7 @@
 #include "ecs/Archetype.hpp"
 #include "ecs/CommandBuffer.hpp"
 #include "ecs/ComponentStorage.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/EntityStorage.hpp"

@@ -1,7 +1,7 @@
 #include "CommandBuffer.hpp"
 
 #include "ecs/World.hpp"
-#include "ecs/ComponentTraits.hpp"
+#include "ecs/meta/ComponentTraits.hpp"
 
 namespace RR::Ecs
 {

@@ -2,7 +2,7 @@
 
 #include "EASTL/algorithm.h"
 #include "ecs/Archetype.hpp"
-#include <ecs/FunctionTraits.hpp>
+#include <ecs/meta/FunctionTraits.hpp>
 #if defined(__i386__) || defined(__x86_64__)
 #include <immintrin.h>
 #endif
