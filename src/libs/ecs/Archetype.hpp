@@ -113,7 +113,7 @@ namespace RR::Ecs
                     entitySizeBytes += componentInfo.isTrackable ? componentInfo.size * 2 : componentInfo.size;
                     trackedComponentsCount += componentInfo.isTrackable ? 1 : 0;
                 }
-                ASSERT(componentsInfo[0].id == Meta::GetComponentId<EntityId>);
+                ASSERT(componentsInfo[0]->id == Meta::GetComponentId<EntityId>);
 
                 size_t chunkSizeBytes = entitySizeBytes * BaseChunkEntityCount;
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
