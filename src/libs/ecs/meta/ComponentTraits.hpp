@@ -237,21 +237,21 @@ namespace RR::Ecs::Meta
         using const_reference = const ComponentInfo&;
         using iterator_category = std::forward_iterator_tag;
 
-        explicit ComponentInfoIterator(Storage& storage, ComponentIdIterator iterator) : storage(&storage), iter(iterator) { }
+        explicit ComponentInfoIterator(Storage& metaStorage, ComponentIdIterator iterator) : metaStorage(&metaStorage), iter(iterator) { }
 
         const_reference operator*() const
         {
             ComponentId id = *iter;
-            auto it = storage->find(id);
-            ASSERT(it != storage->end());
+            auto it = metaStorage->find(id);
+            ASSERT(it != metaStorage->end());
             return *it->second;
         }
 
         const_pointer operator->() const
         {
             ComponentId id = *iter;
-            auto it = storage->find(id);
-            ASSERT(it != storage->end());
+            auto it = metaStorage->find(id);
+            ASSERT(it != metaStorage->end());
             return it->second;
         }
 
@@ -272,7 +272,7 @@ namespace RR::Ecs::Meta
         bool operator!=(const ComponentInfoIterator& other) const { return iter != other.iter; }
 
     private:
-        const Storage* storage;
+        const Storage* metaStorage;
         ComponentIdIterator iter;
     };
 

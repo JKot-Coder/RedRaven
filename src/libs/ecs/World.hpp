@@ -123,7 +123,7 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
 
         template <typename Component>
-        Meta::ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
+        Meta::ComponentId RegisterComponent() { return metaStorage.Register<Component>(); }
 
         template <typename EventType>
         void Emit(EventType&& event);
@@ -228,7 +228,7 @@ namespace RR::Ecs
         std::thread::id creationThreadID;
         EntityStorage entityStorage;
         EventStorage eventStorage;
-        Meta::ComponentStorage componentStorage;
+        Meta::Storage metaStorage;
         CommandBuffer commandBuffer;
         Ecs::View queriesView;
         Ecs::View systemsView;
@@ -422,8 +422,8 @@ namespace RR::Ecs
         (RegisterComponent<typename Components::template Get<Index>>(), ...);
 
         auto getComponentName = [this](Meta::ComponentId id) -> std::string {
-            auto it = componentStorage.find(id);
-            if (it == componentStorage.end())
+            auto it = metaStorage.find(id);
+            if (it == metaStorage.end())
                 return fmt::format("<{:#X}>", id.GetRaw());
             return std::string(it->second->name);
         };

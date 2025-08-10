@@ -411,8 +411,8 @@ namespace RR::Ecs
 
         auto* archetype = archetypesMap.emplace(archetypeId,
                                                 eastl::make_unique<Archetype>(
-                                                    Meta::ComponentInfoIterator(componentStorage, components.begin()),
-                                                    Meta::ComponentInfoIterator(componentStorage, components.end())))
+                                                    Meta::ComponentInfoIterator(metaStorage, components.begin()),
+                                                    Meta::ComponentInfoIterator(metaStorage, components.end())))
                               .first->second.get();
 
         return *archetype;

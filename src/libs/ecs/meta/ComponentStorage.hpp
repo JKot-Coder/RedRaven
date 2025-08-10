@@ -6,7 +6,7 @@
 
 namespace RR::Ecs::Meta
 {
-    class ComponentStorage
+    class Storage
     {
     public:
         template <typename T>
