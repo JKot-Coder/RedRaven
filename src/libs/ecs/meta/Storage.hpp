@@ -6,16 +6,28 @@
 
 namespace RR::Ecs::Meta
 {
+    class Storage;
+    struct ComponentInfoBuilder
+    {
+        ComponentInfoBuilder(Storage& storage, ComponentInfo& componentInfo) : storage(&storage), componentInfo(&componentInfo) { }
+
+        [[nodiscard]] ComponentId id() const { return componentInfo->id; }
+
+    private:
+        [[maybe_unused]] Storage* storage;
+        ComponentInfo* componentInfo;
+    };
+
     class Storage
     {
     public:
         template <typename T>
-        ComponentId Register()
+        ComponentInfoBuilder Register()
         {
             static auto componentInfo = ComponentInfo::Create<T>();
             ASSERT_MSG(isValid(componentInfo), "Component differs from previous registration!");
             componentsInfo.emplace(componentInfo.id, &componentInfo);
-            return componentInfo.id;
+            return ComponentInfoBuilder(*this, componentInfo);
         }
 
         ComponentInfo& operator[](ComponentId id) { ASSERT(componentsInfo[id]); return *componentsInfo[id]; }
