@@ -29,7 +29,7 @@ namespace RR::Ecs
     struct ComponentAccessor
     {
         using Argument = Arg;
-        using Component = GetComponentType<Arg>;
+        using Component = Meta::GetComponentType<Arg>;
 
         ComponentAccessor(const Archetype& archetype, const IterationContext&)
         {
@@ -93,10 +93,10 @@ namespace RR::Ecs
     };
 
     template <typename Arg>
-    struct ComponentAccessor<Arg, eastl::enable_if_t<eastl::is_same_v<Ecs::World, GetComponentType<Arg>>>>
+    struct ComponentAccessor<Arg, eastl::enable_if_t<eastl::is_same_v<Ecs::World, Meta::GetComponentType<Arg>>>>
     {
         using Argument = Arg;
-        using Component = GetComponentType<Arg>;
+        using Component = Meta::GetComponentType<Arg>;
 
         ComponentAccessor(const Archetype&, const IterationContext& context) : world(context.world) { };
         void SetChunkIndex([[maybe_unused]] const Archetype& archetype,[[maybe_unused]] size_t chunkIndex) { ASSERT(chunkIndex < archetype.GetChunksCount()); };
@@ -107,10 +107,10 @@ namespace RR::Ecs
     };
 
     template <typename Arg>
-    struct ComponentAccessor<Arg, eastl::enable_if_t<eastl::is_base_of_v<Ecs::Event, GetComponentType<Arg>>>>
+    struct ComponentAccessor<Arg, eastl::enable_if_t<eastl::is_base_of_v<Ecs::Event, Meta::GetComponentType<Arg>>>>
     {
         using Argument = Arg;
-        using Component = GetComponentType<Arg>;
+        using Component = Meta::GetComponentType<Arg>;
 
         ComponentAccessor(const Archetype&, const IterationContext& context) : event(context.event) {
             static_assert(eastl::is_pointer_v<Argument> || eastl::is_reference_v<Argument>, "Event component should be accessed as pointer or reference");
@@ -217,14 +217,14 @@ namespace RR::Ecs
         template <typename Callable>
         static void ForEach(ArchetypeEntitySpan span, const IterationContext& context, Callable&& callable)
         {
-            using ArgList = GetArgumentList<Callable>;
+            using ArgList = Meta::GetArgumentList<Callable>;
             processEntities<ArgList>(span, context, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
 
         template <typename Callable>
         static void ForEntity(const Archetype& archetype, ArchetypeEntityIndex entityId, const IterationContext& context, Callable&& callable)
         {
-            using ArgList = GetArgumentList<Callable>;
+            using ArgList = Meta::GetArgumentList<Callable>;
             processEntity<ArgList>(archetype, entityId, context, eastl::forward<Callable>(callable), eastl::make_index_sequence<ArgList::Count>());
         }
     };

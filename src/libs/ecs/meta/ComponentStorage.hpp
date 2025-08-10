@@ -4,7 +4,7 @@
 
 #include "absl/container/flat_hash_map.h"
 
-namespace RR::Ecs
+namespace RR::Ecs::Meta
 {
     class ComponentStorage
     {

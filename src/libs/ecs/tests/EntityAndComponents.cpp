@@ -330,7 +330,7 @@ TEST_CASE_METHOD(WorldFixture, "Tag size", "[Components]")
     REQUIRE(entt2.ResolveArhetype(archetype, index));
     REQUIRE(archetype);
     REQUIRE(index.GetRaw() == 0);
-    const auto componentIndex = archetype->GetComponentIndex(GetComponentId<Tag>);
+    const auto componentIndex = archetype->GetComponentIndex(Meta::GetComponentId<Tag>);
     REQUIRE(componentIndex);
     REQUIRE(archetype->GetComponentInfo(componentIndex).size == 0);
 }

@@ -51,7 +51,7 @@ namespace RR::Ecs
             static constexpr size_t InitialCommandQueueSize = 1024*1024;
 
         private:
-            MutateEntityCommand& makeMutateCommand(EntityId entity, Archetype* from, Archetype& to, UnsortedComponentsView addedComponents);
+            MutateEntityCommand& makeMutateCommand(EntityId entity, Archetype* from, Archetype& to, Meta::UnsortedComponentsView addedComponents);
 
             template <typename T>
             T* allocate(size_t count)
@@ -64,7 +64,7 @@ namespace RR::Ecs
             {
                 void* result = nullptr;
 
-                if constexpr (!IsTag<Component>)
+                if constexpr (!Meta::IsTag<Component>)
                 {
                     std::apply(
                         [&result, this](auto&&... unpackedArgs) {
@@ -88,8 +88,8 @@ namespace RR::Ecs
                 ASSERT(entity);
                 ASSERT(!inProcess);
 
-                const eastl::array<ComponentId, Components::Count> componentIds = {GetComponentId<typename Components::template Get<Index>>...};
-                auto& command = makeMutateCommand(entity, from, to, UnsortedComponentsView(componentIds));
+                const eastl::array<Meta::ComponentId, Components::Count> componentIds = {Meta::GetComponentId<typename Components::template Get<Index>>...};
+                auto& command = makeMutateCommand(entity, from, to, Meta::UnsortedComponentsView(componentIds));
 
                 void** componentsPtrs = allocate<void*>(Components::Count);
                 (void( *(componentsPtrs + Index) = constructComponent<typename Components::template Get<Index>>(

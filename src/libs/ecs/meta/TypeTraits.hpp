@@ -16,7 +16,7 @@
 #include <EASTL/array.h>
 #include <EASTL/string_view.h>
 
-namespace RR::Ecs
+namespace RR::Ecs::Meta
 {
     using TypeId = Index<struct TypeIdTag, HashType>;
 

@@ -21,15 +21,15 @@ namespace RR::Ecs
 
         [[nodiscard]] EntityId GetId() const { return id; }
         [[nodiscard]] bool IsAlive() const;
-        [[nodiscard]] bool Has(SortedComponentsView componentsView) const;
+        [[nodiscard]] bool Has(Meta::SortedComponentsView componentsView) const;
         [[nodiscard]] bool ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const;
 
         template <typename... Components>
         [[nodiscard]] bool Has() const
         {
-            eastl::array<ComponentId, sizeof...(Components)> components = {GetComponentId<Components>...};
+            eastl::array<Meta::ComponentId, sizeof...(Components)> components = {Meta::GetComponentId<Components>...};
             eastl::sort(components.begin(), components.end());
-            return Has(SortedComponentsView(components));
+            return Has(Meta::SortedComponentsView(components));
         }
 
         EntityBuilder<void, void> Edit() const;

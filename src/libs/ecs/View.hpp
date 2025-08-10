@@ -13,9 +13,9 @@ namespace RR::Ecs
             auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
                 ECS_VERIFY(without.find(id) == without.end(), "Component {} is already in without.", name);
             };
-            (check(GetComponentId<Components>, GetComponentName<Components>), ...);
+            (check(Meta::GetComponentId<Components>, Meta::GetComponentName<Components>), ...);
 
-            (with.insert(GetComponentId<Components>), ...);
+            (with.insert(Meta::GetComponentId<Components>), ...);
             return *this;
         }
 
@@ -25,9 +25,9 @@ namespace RR::Ecs
             auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
                 ECS_VERIFY(with.find(id) == with.end(), "Component {} is already in with.", name);
             };
-            (check(GetComponentId<Components>, GetComponentName<Components>), ...);
+            (check(Meta::GetComponentId<Components>, Meta::GetComponentName<Components>), ...);
 
-            (without.insert(GetComponentId<Components>), ...);
+            (without.insert(Meta::GetComponentId<Components>), ...);
             return *this;
         }
 
@@ -38,8 +38,8 @@ namespace RR::Ecs
         template <typename Callable>
         void ForEntity(Entity entity, Callable&& callable) const;
 
-        const ComponentsSet& GetWithSet() const { return with; }
-        const ComponentsSet& GetWithoutSet() const { return without; }
+        const Meta::ComponentsSet& GetWithSet() const { return with; }
+        const Meta::ComponentsSet& GetWithoutSet() const { return without; }
 
     private:
         friend struct World;
@@ -49,7 +49,7 @@ namespace RR::Ecs
         View(World& world) : world(world) { };
 
         World& world;
-        ComponentsSet with;
-        ComponentsSet without;
+        Meta::ComponentsSet with;
+        Meta::ComponentsSet without;
     };
 }

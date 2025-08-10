@@ -3,7 +3,7 @@
 #include <EASTL/tuple.h>
 #include <EASTL/type_traits.h>
 
-namespace RR::Ecs
+namespace RR::Ecs::Meta
 {
     /**
      * @brief Base traits for function types

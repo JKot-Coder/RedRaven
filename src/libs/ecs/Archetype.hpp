@@ -29,7 +29,7 @@ namespace RR::Ecs
                     hash *= prime;
                 };
 
-                (fnv1a(GetTypeHash<Components>), ...);
+                (fnv1a(Meta::GetTypeHash<Components>), ...);
                 return hash;
             }
             else
@@ -42,7 +42,7 @@ namespace RR::Ecs
                     hash *= prime;
                 };
 
-                (fnv1a(GetTypeHash<Components>), ...);
+                (fnv1a(Meta::GetTypeHash<Components>), ...);
                 return hash;
             }
         }
@@ -51,9 +51,9 @@ namespace RR::Ecs
         static constexpr ArchetypeId Id = ArchetypeId::FromValue(getArchetypeHash());
     };
 
-    static constexpr ArchetypeId GetArchetypeIdForComponents(SortedComponentsView components)
+    static constexpr ArchetypeId GetArchetypeIdForComponents(Meta::SortedComponentsView components)
     {
-        auto fnv1a = [&](SortedComponentsView components) {
+        auto fnv1a = [&](Meta::SortedComponentsView components) {
             if constexpr (eastl::is_same_v<HashType, uint64_t>)
             {
                 uint64_t hash = 0xcbf29ce484222325;
@@ -106,14 +106,14 @@ namespace RR::Ecs
 
                 for (Iterator it = compInfoBegin; it != compInfoEnd; ++it)
                 {
-                    const ComponentInfo& componentInfo = *it;
+                    const Meta::ComponentInfo& componentInfo = *it;
                     isSingleton = isSingleton || componentInfo.isSingleton;
                     componentsInfo.push_back(componentInfo);
                     components.push_back_unsorted(componentInfo.id);
                     entitySizeBytes += componentInfo.isTrackable ? componentInfo.size * 2 : componentInfo.size;
                     trackedComponentsCount += componentInfo.isTrackable ? 1 : 0;
                 }
-                ASSERT(componentsInfo[0].id == GetComponentId<EntityId>);
+                ASSERT(componentsInfo[0].id == Meta::GetComponentId<EntityId>);
 
                 size_t chunkSizeBytes = entitySizeBytes * BaseChunkEntityCount;
                 chunkSizeBytes = ((chunkSizeBytes / BaseChunkSize) + 1) * BaseChunkSize;
@@ -170,7 +170,7 @@ namespace RR::Ecs
 
             ~ComponentsData()
             {
-                auto destroyComponent = [this](const ComponentInfo& componentInfo, eastl::span<std::byte*> chunks) {
+                auto destroyComponent = [this](const Meta::ComponentInfo& componentInfo, eastl::span<std::byte*> chunks) {
                     if (!componentInfo.destructor)
                         return;
 
@@ -191,7 +191,7 @@ namespace RR::Ecs
                 chunks.clear();
             }
 
-            ArchetypeComponentIndex GetComponentIndex(ComponentId componentId) const
+            ArchetypeComponentIndex GetComponentIndex(Meta::ComponentId componentId) const
             {
                 auto it = components.find(componentId);
                 if (it == components.end())
@@ -284,8 +284,8 @@ namespace RR::Ecs
                 uint8_t trackedColumnIndex;
             };
 
-            ComponentsSet components;
-            eastl::fixed_vector<ComponentInfo, 32> componentsInfo;
+            Meta::ComponentsSet components;
+            eastl::fixed_vector<Meta::ComponentInfo, 32> componentsInfo;
             eastl::fixed_vector<TrackedComponent, 32> trackedComponents;
             eastl::fixed_vector<Column, 32> columns;
             eastl::vector<eastl::unique_ptr<std::byte[]>> chunks;
@@ -304,14 +304,14 @@ namespace RR::Ecs
         {
         }
 
-        bool HasAll(SortedComponentsView components_) const
+        bool HasAll(Meta::SortedComponentsView components_) const
         {
-            return SortedComponentsView(components()).IsIncludes(components_);
+            return Meta::SortedComponentsView(components()).IsIncludes(components_);
         }
 
-        bool HasAny(SortedComponentsView components_) const
+        bool HasAny(Meta::SortedComponentsView components_) const
         {
-            return SortedComponentsView(components()).IsIntersects(components_);
+            return Meta::SortedComponentsView(components()).IsIntersects(components_);
         }
 
         EntityId& GetEntityIdData(ArchetypeEntityIndex index) const
@@ -331,7 +331,7 @@ namespace RR::Ecs
             if constexpr (eastl::is_same_v<Component, EntityId>)
                 return ArchetypeComponentIndex(0);
 
-            return componentsData.GetComponentIndex(GetComponentId<Component>);
+            return componentsData.GetComponentIndex(Meta::GetComponentId<Component>);
         }
 
         template <typename ComponentId>
@@ -340,7 +340,7 @@ namespace RR::Ecs
             return componentsData.GetComponentIndex(componentId);
         }
 
-        const ComponentInfo& GetComponentInfo(ArchetypeComponentIndex index) const
+        const Meta::ComponentInfo& GetComponentInfo(ArchetypeComponentIndex index) const
         {
             ASSERT(index);
             return componentsData.componentsInfo[index.GetRaw()];
@@ -366,7 +366,7 @@ namespace RR::Ecs
         ArchetypeEntityIndex Mutate(EntityStorage& entityStorage, Archetype& from, ArchetypeEntityIndex fromIndex);
         void Delete(EntityStorage& entityStorage, ArchetypeEntityIndex index, bool updateEntityRecord = true);
 
-        SortedComponentsView GetComponentsView() const { return SortedComponentsView(components()); }
+        Meta::SortedComponentsView GetComponentsView() const { return Meta::SortedComponentsView(components()); }
         size_t GetEntitiesCount() const { return componentsData.entitiesCount; }
         size_t GetChunksCount() const { return componentsData.chunks.size(); }
         size_t GetChunkCapacity() const { return componentsData.chunkCapacity; }
@@ -376,7 +376,7 @@ namespace RR::Ecs
         template <typename Component, typename... Args>
         void ConstructComponent(ArchetypeEntityIndex index, ArchetypeComponentIndex componentIndex, Args&&... args)
         {
-            if constexpr (IsTag<Component>)
+            if constexpr (Meta::IsTag<Component>)
                 return;
 
             ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
@@ -388,7 +388,7 @@ namespace RR::Ecs
             else
                 new (componentData.data) Component(std::forward<Args>(args)...);
 
-            if constexpr (IsTrackable<Component>)
+            if constexpr (Meta::IsTrackable<Component>)
             {
                 if constexpr (std::is_aggregate_v<Component>)
                 {
@@ -413,7 +413,7 @@ namespace RR::Ecs
             componentInfo.move(componentData.data, src);
         }
 
-        void UpdateTrackedCache(SystemId systemId, SortedComponentsView components);
+        void UpdateTrackedCache(SystemId systemId, Meta::SortedComponentsView components);
         void ProcessTrackedChanges(World& world);
 
     private:

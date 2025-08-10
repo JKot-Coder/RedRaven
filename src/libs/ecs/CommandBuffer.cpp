@@ -21,7 +21,7 @@ namespace RR::Ecs
         Archetype* archetype;
     };
 
-    MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, Archetype& to, UnsortedComponentsView addedComponents)
+    MutateEntityCommand& CommandBuffer::makeMutateCommand(EntityId entity, Archetype* from, Archetype& to, Meta::UnsortedComponentsView addedComponents)
     {
         MutateEntityCommand& command = *allocator.create<MutateEntityCommand>(
             entity, from, to);

@@ -82,7 +82,7 @@ namespace RR::Ecs
         componentsData.entitiesCount--;
     }
 
-    void Archetype::UpdateTrackedCache(SystemId systemId, SortedComponentsView components)
+    void Archetype::UpdateTrackedCache(SystemId systemId, Meta::SortedComponentsView components)
     {
         if (componentsData.trackedComponents.empty())
             return;

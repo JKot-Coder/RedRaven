@@ -8,7 +8,7 @@ namespace RR::Ecs
     using EventId = Index<struct EventIdTag, HashType>;
 
     template <typename T>
-    inline constexpr EventId GetEventId = EventId(GetComponentId<T>.GetRaw());
+    inline constexpr EventId GetEventId = EventId(Meta::GetComponentId<T>.GetRaw());
 
     struct Event
     {

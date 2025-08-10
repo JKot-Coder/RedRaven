@@ -7,7 +7,7 @@
 #include <EASTL/type_traits.h>
 #include <EASTL/vector_set.h>
 
-namespace RR::Ecs
+namespace RR::Ecs::Meta
 {
     using ComponentId = Index<struct ComponentIdTag, HashType>;
     template <typename Key, size_t ElementsCount, bool EnableOverflow = true>

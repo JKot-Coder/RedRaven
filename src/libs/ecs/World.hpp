@@ -5,7 +5,7 @@
 
 #include "ecs/Archetype.hpp"
 #include "ecs/CommandBuffer.hpp"
-#include "ecs/ComponentStorage.hpp"
+#include "ecs/meta/ComponentStorage.hpp"
 #include "ecs/meta/ComponentTraits.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/EntityId.hpp"
@@ -37,7 +37,7 @@ namespace RR::Ecs
         template <typename ComponentType>
         bool IsComponentInView(const Ecs::View& view)
         {
-            static_assert(IsComponent<ComponentType>, "ComponentType must be a component type");
+            static_assert(Meta::IsComponent<ComponentType>, "ComponentType must be a component type");
 
             // Todo replace with methods to make it more clear.
             if constexpr (eastl::is_same_v<ComponentType, Ecs::World> ||
@@ -48,7 +48,7 @@ namespace RR::Ecs
             }
             else
             {
-                constexpr ComponentId compId = GetComponentId<ComponentType>;
+                constexpr Meta::ComponentId compId = Meta::GetComponentId<ComponentType>;
                 return view.GetWithSet().find(compId) != view.GetWithSet().end();
             }
         }
@@ -58,11 +58,11 @@ namespace RR::Ecs
         {
             if constexpr (!eastl::is_pointer_v<Arg>)
             {
-                using ComponentType = GetComponentType<Arg>;
+                using ComponentType = Meta::GetComponentType<Arg>;
                 ASSERT_MSG(
                     IsComponentInView<ComponentType>(view),
                     "Component {} used in lambda is not specified in the View's require set. Check component type and View definition.",
-                    GetTypeName<ComponentType>);
+                    Meta::GetTypeName<ComponentType>);
             }
         }
 
@@ -75,7 +75,7 @@ namespace RR::Ecs
         template<typename Callable>
         void ValidateLambdaArgumentsAgainstView(const Ecs::View& view, Callable&& /*callable*/)
         {
-            using ArgList = GetArgumentList<Callable>;
+            using ArgList = Meta::GetArgumentList<Callable>;
 
             if constexpr (ArgList::Count > 0)
                 ValidateArgumentsAgainstView<ArgList>(view, eastl::make_index_sequence<ArgList::Count>());
@@ -107,7 +107,7 @@ namespace RR::Ecs
         }
 
         [[nodiscard]] bool IsAlive(EntityId entityId) const;
-        [[nodiscard]] bool Has(EntityId entityId, SortedComponentsView components) const;
+        [[nodiscard]] bool Has(EntityId entityId, Meta::SortedComponentsView components) const;
         void Destroy(EntityId entityId);
 
         [[nodiscard]] Ecs::EntityBuilder<void, void> Entity();
@@ -123,7 +123,7 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
 
         template <typename Component>
-        ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
+        Meta::ComponentId RegisterComponent() { return componentStorage.Register<Component>(); }
 
         template <typename EventType>
         void Emit(EventType&& event);
@@ -173,12 +173,12 @@ namespace RR::Ecs
 
         static bool matches(const Archetype& archetype, const Ecs::View& view)
         {
-            return !(!archetype.HasAll(SortedComponentsView(view.with)) ||
-                    archetype.HasAny(SortedComponentsView(view.without)));
+            return !(!archetype.HasAll(Meta::SortedComponentsView(view.with)) ||
+                    archetype.HasAny(Meta::SortedComponentsView(view.without)));
         }
 
-        Archetype& createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components);
-        Archetype& getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components);
+        Archetype& createArchetypeNoCache(ArchetypeId archetypeId, Meta::SortedComponentsView components);
+        Archetype& getOrCreateArchetype(ArchetypeId archetypeId, Meta::SortedComponentsView components);
 
         void handleDisappearEvent(EntityId entity, const Archetype& from, const Archetype& to);
         void handleAppearEvent(EntityId entity, const Archetype* from, const Archetype& to);
@@ -200,7 +200,7 @@ namespace RR::Ecs
         template <typename Callable>
         void mutateEntity(EntityId entityId, Archetype* from, ArchetypeEntityIndex fromIndex, Archetype& to, Callable&& constructComponents);
         template <typename Components, typename ArgsTuple, size_t... Index>
-        [[nodiscard]] EntityId commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq);
+        [[nodiscard]] EntityId commit(EntityId entityId, Meta::SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq);
 
         template <typename Callable>
         void invokeForEntities(ArchetypeEntitySpan span, const Ecs::Event* event, Callable&& callable);
@@ -228,13 +228,13 @@ namespace RR::Ecs
         std::thread::id creationThreadID;
         EntityStorage entityStorage;
         EventStorage eventStorage;
-        ComponentStorage componentStorage;
+        Meta::ComponentStorage componentStorage;
         CommandBuffer commandBuffer;
         Ecs::View queriesView;
         Ecs::View systemsView;
         Ecs::QueryId queriesQuery;
         Ecs::QueryId systemsQuery;
-        absl::flat_hash_set<ComponentId, Ecs::DummyHasher<ComponentId>> singletonsSet;
+        absl::flat_hash_set<Meta::ComponentId, Ecs::DummyHasher<Meta::ComponentId>> singletonsSet;
         absl::flat_hash_map<EventId, eastl::fixed_vector<SystemId, 16>, Ecs::DummyHasher<EventId>> eventSubscribers;
         absl::flat_hash_map<ArchetypeId, eastl::unique_ptr<Archetype>, Ecs::DummyHasher<ArchetypeId>> archetypesMap;
         eastl::vector<Archetype*> archetypesCache;
@@ -251,7 +251,7 @@ namespace RR::Ecs
         return record.IsAlive(IsLocked());
     }
 
-    inline bool World::Has(EntityId entityId, SortedComponentsView components) const
+    inline bool World::Has(EntityId entityId, Meta::SortedComponentsView components) const
     {
         ASSERT_IS_CREATION_THREAD;
         EntityRecord record;
@@ -266,11 +266,11 @@ namespace RR::Ecs
     template <typename Component, typename ArgsTuple>
     inline void World::constructComponent(Archetype& archetype, ArchetypeEntityIndex index, ArgsTuple&& args)
     {
-        if constexpr (!IsTag<Component>)
+        if constexpr (!Meta::IsTag<Component>)
         {
             std::apply(
                 [&archetype, index](auto&&... unpackedArgs) {
-                    const auto componentIndex = archetype.GetComponentIndex(GetComponentId<Component>);
+                    const auto componentIndex = archetype.GetComponentIndex(Meta::GetComponentId<Component>);
                     archetype.ConstructComponent<Component>(index, componentIndex, eastl::forward<decltype(unpackedArgs)>(unpackedArgs)...);
                 },
                 eastl::forward<ArgsTuple>(args));
@@ -396,7 +396,7 @@ namespace RR::Ecs
     }
 
     template <typename Components, typename ArgsTuple, size_t... Index>
-    EntityId World::commit(EntityId entityId, SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq)
+    EntityId World::commit(EntityId entityId, Meta::SortedComponentsView removeComponents, ArgsTuple&& args, eastl::index_sequence<Index...> indexSeq)
     {
         Archetype* from = nullptr;
         ArchetypeEntityIndex fromIndex;
@@ -421,7 +421,7 @@ namespace RR::Ecs
 
         (RegisterComponent<typename Components::template Get<Index>>(), ...);
 
-        auto getComponentName = [this](ComponentId id) -> std::string {
+        auto getComponentName = [this](Meta::ComponentId id) -> std::string {
             auto it = componentStorage.find(id);
             if (it == componentStorage.end())
                 return fmt::format("<{:#X}>", id.GetRaw());
@@ -432,9 +432,9 @@ namespace RR::Ecs
             UNUSED(this, getComponentName);
 
             using T = typename Components::template Get<Index>;
-            if constexpr (IsSingleton<T>)
+            if constexpr (Meta::IsSingleton<T>)
             {
-                auto id = GetComponentId<T>;
+                auto id = Meta::GetComponentId<T>;
                 if (singletonsSet.find(id) != singletonsSet.end())
                 {
                     ECS_VERIFY(false, "Singleton component {} is already exists. Commit will be ignored.", getComponentName(id));
@@ -453,8 +453,8 @@ namespace RR::Ecs
         if (!onlyNewSingletons)
             return entityId;
 
-        ComponentsSet components;
-        ComponentsSet added;
+        Meta::ComponentsSet components;
+        Meta::ComponentsSet added;
 
         if (from)
         {
@@ -471,11 +471,11 @@ namespace RR::Ecs
         }
         else
         {
-            components.push_back_unsorted(GetComponentId<EntityId>); // Adding first component.
+            components.push_back_unsorted(Meta::GetComponentId<EntityId>); // Adding first component.
             ECS_VERIFY(eastl::distance(removeComponents.begin(), removeComponents.end()) == 0, "Can't remove components on creation of entity.");
         }
 
-        auto addComponent = [&components, &getComponentName](ComponentId id) -> int {
+        auto addComponent = [&components, &getComponentName](Meta::ComponentId id) -> int {
             [[maybe_unused]] bool added = components.insert(id).second;
             UNUSED(getComponentName);
             // We could silent this error, if it's would be a case reconsider this.
@@ -483,16 +483,16 @@ namespace RR::Ecs
             return 0;
         };
 
-        eastl::array<ComponentId, Components::Count> addedComponents = {GetComponentId<typename Components::template Get<Index>>...};
+        eastl::array<Meta::ComponentId, Components::Count> addedComponents = {Meta::GetComponentId<typename Components::template Get<Index>>...};
         for (auto component : addedComponents)
             addComponent(component);
 
-        ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
-        Archetype& to = getOrCreateArchetype(archetypeId, SortedComponentsView(components));
+        ArchetypeId archetypeId = GetArchetypeIdForComponents(Meta::SortedComponentsView(components));
+        Archetype& to = getOrCreateArchetype(archetypeId, Meta::SortedComponentsView(components));
 
 #ifdef ECS_ENABLE_CHEKS
         eastl::quick_sort(addedComponents.begin(), addedComponents.end());
-        ECS_VERIFY(!SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time.");
+        ECS_VERIFY(!Meta::SortedComponentsView(addedComponents).IsIntersects(removeComponents), "Can't add and remove components at the same time.");
 #endif
 
         if (!IsLocked())
@@ -568,7 +568,7 @@ namespace RR::Ecs
 
     inline void Entity::Destroy() const { world->Destroy(id); }
     inline bool Entity::IsAlive() const { return world->IsAlive(id); }
-    inline bool Entity::Has(SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
+    inline bool Entity::Has(Meta::SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
     inline bool Entity::ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const
     {
         EntityRecord record;

@@ -34,38 +34,38 @@ namespace RR::Ecs
         template <typename... Args>
         [[nodiscard]] SystemBuilder& Require()
         {
-            static_assert((IsTag<Args> && ...), "All order tokens must be tags");
+            static_assert((Meta::IsTag<Args> && ...), "All order tokens must be tags");
 
             #ifdef ECS_ENABLE_CHEKS
                 auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
                     ECS_VERIFY(std::find(desc.produce.begin(), desc.produce.end(), id)  == desc.produce.end(), "Token {} can't be produced and required at the same time.", name);
                 };
-                (check(GetComponentId<Args>, GetComponentName<Args>), ...);
+                (check(Meta::GetComponentId<Args>, Meta::GetComponentName<Args>), ...);
             #endif
 
-            (desc.require.emplace_back(GetComponentId<Args>), ...);
+            (desc.require.emplace_back(Meta::GetComponentId<Args>), ...);
             return *this;
         }
 
         template <typename... Args>
         [[nodiscard]] SystemBuilder& Produce()
         {
-            static_assert((IsTag<Args> && ...), "All order tokens must be tags");
+            static_assert((Meta::IsTag<Args> && ...), "All order tokens must be tags");
             #ifdef ECS_ENABLE_CHEKS
                 auto check = [&]([[maybe_unused]] auto id, [[maybe_unused]] auto name) {
                     ECS_VERIFY(std::find(desc.require.begin(), desc.require.end(), id)  == desc.require.end(), "Token {} can't be produced and required at the same time.", name);
                 };
-                (check(GetComponentId<Args>, GetComponentName<Args>), ...);
+                (check(Meta::GetComponentId<Args>, Meta::GetComponentName<Args>), ...);
             #endif
 
-            (desc.produce.emplace_back(GetComponentId<Args>), ...);
+            (desc.produce.emplace_back(Meta::GetComponentId<Args>), ...);
             return *this;
         }
 
         template <typename... Components>
         [[nodiscard]] SystemBuilder& Track()
         {
-            (desc.tracks.insert(GetComponentId<Components>), ...);
+            (desc.tracks.insert(Meta::GetComponentId<Components>), ...);
             // Since we track components, we should iterate over archetypes which have these components.
             return With<Components...>();
         }

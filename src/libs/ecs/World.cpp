@@ -102,12 +102,12 @@ namespace RR::Ecs
             // Manually create archetype for queries
             // This is required because of cyclic dependency: creating arhetype require queriesQuery and
             // creating queriesQuery query require creating archetype
-            constexpr eastl::array<ComponentId, 3> components = {GetComponentId<EntityId>, GetComponentId<MatchedArchetypeCache>, GetComponentId<Ecs::View>};
+            constexpr eastl::array<Meta::ComponentId, 3> components = {Meta::GetComponentId<EntityId>, Meta::GetComponentId<MatchedArchetypeCache>, Meta::GetComponentId<Ecs::View>};
             static_assert(components[0] < components[1]);
             static_assert(components[1] < components[2]);
 
-            ArchetypeId archetypeId = GetArchetypeIdForComponents(SortedComponentsView(components));
-            Archetype& archetype = createArchetypeNoCache(archetypeId, SortedComponentsView(components));
+            ArchetypeId archetypeId = GetArchetypeIdForComponents(Meta::SortedComponentsView(components));
+            Archetype& archetype = createArchetypeNoCache(archetypeId, Meta::SortedComponentsView(components));
             archetypesCache.push_back(&archetype);
         }
 
@@ -191,14 +191,14 @@ namespace RR::Ecs
             handle.index = static_cast<uint32_t>(index++);
 
         eastl::vector_multimap<uint32_t, uint32_t> edges;
-        eastl::vector_multimap<ComponentId, uint32_t> producersMap;
+        eastl::vector_multimap<Meta::ComponentId, uint32_t> producersMap;
 
         for (const SystemHandle& handle : tmpSystemList)
             for(const auto& produce : handle.desc->produce)
                 producersMap.emplace(produce, handle.index);
 
         auto makeEdge = [&](uint32_t fromIdx, uint32_t toIdx) { edges.emplace(fromIdx, toIdx); };
-        auto insertOrderEdge = [&](const SystemHandle& system, ComponentId require) {
+        auto insertOrderEdge = [&](const SystemHandle& system, Meta::ComponentId require) {
             const auto range = producersMap.equal_range(require);
 
             if UNLIKELY (range.first == range.second)
@@ -405,20 +405,20 @@ namespace RR::Ecs
         });
     }
 
-    Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, SortedComponentsView components)
+    Archetype& World::createArchetypeNoCache(ArchetypeId archetypeId, Meta::SortedComponentsView components)
     {
         ASSERT_IS_CREATION_THREAD;
 
         auto* archetype = archetypesMap.emplace(archetypeId,
                                                 eastl::make_unique<Archetype>(
-                                                    ComponentInfoIterator(componentStorage, components.begin()),
-                                                    ComponentInfoIterator(componentStorage, components.end())))
+                                                    Meta::ComponentInfoIterator(componentStorage, components.begin()),
+                                                    Meta::ComponentInfoIterator(componentStorage, components.end())))
                               .first->second.get();
 
         return *archetype;
     }
 
-    Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, SortedComponentsView components)
+    Archetype& World::getOrCreateArchetype(ArchetypeId archetypeId, Meta::SortedComponentsView components)
     {
         ASSERT_IS_CREATION_THREAD;
         Archetype* archetype = nullptr;

@@ -28,7 +28,7 @@ namespace RR::Ecs
         template <typename Component>
         [[nodiscard]] auto& Remove()
         {
-            remove_.push_back_unsorted(GetComponentId<Component>);
+            remove_.push_back_unsorted(Meta::GetComponentId<Component>);
             return *this;
         }
 
@@ -47,7 +47,7 @@ namespace RR::Ecs
     private:
         World& world_;
         EntityId entity_;
-        ComponentsSet remove_;
+        Meta::ComponentsSet remove_;
     };
 
     template <typename ComponentList, typename ArgsTuple>
@@ -66,7 +66,7 @@ namespace RR::Ecs
         template <typename Component>
         [[nodiscard]] auto& Remove()
         {
-            remove_.push_back_unsorted(GetComponentId<Component>);
+            remove_.push_back_unsorted(Meta::GetComponentId<Component>);
             return *this;
         }
 
@@ -80,12 +80,12 @@ namespace RR::Ecs
         template <typename C, typename T>
         friend struct EntityBuilder;
 
-        explicit EntityBuilder(World& world, EntityId entity, ComponentsSet&& remove, ArgsTuple&& args) : world_(world), entity_(entity), remove_(eastl::move(remove)), args_(eastl::move(args)) { };
+        explicit EntityBuilder(World& world, EntityId entity, Meta::ComponentsSet&& remove, ArgsTuple&& args) : world_(world), entity_(entity), remove_(eastl::move(remove)), args_(eastl::move(args)) { };
 
     private:
         World& world_;
         EntityId entity_;
-        ComponentsSet remove_;
+        Meta::ComponentsSet remove_;
         ArgsTuple args_;
     };
 
