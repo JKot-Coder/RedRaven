@@ -108,7 +108,7 @@ namespace RR::Ecs
                 {
                     const Meta::ComponentInfo& componentInfo = *it;
                     isSingleton = isSingleton || componentInfo.isSingleton;
-                    componentsInfo.push_back(componentInfo);
+                    componentsInfo.push_back(&componentInfo);
                     components.push_back_unsorted(componentInfo.id);
                     entitySizeBytes += componentInfo.isTrackable ? componentInfo.size * 2 : componentInfo.size;
                     trackedComponentsCount += componentInfo.isTrackable ? 1 : 0;
@@ -131,8 +131,9 @@ namespace RR::Ecs
                     size_t trackedComponentIndex = 0;
                     uint8_t trackedColumnIndex = uint8_t(componentsInfo.size());
 
-                    for (const auto& componentInfo : componentsInfo)
+                    for (const auto* componentInfoPtr : componentsInfo)
                     {
+                        const auto& componentInfo = *componentInfoPtr;
                         auto initColumn = [this, &offset, &componentInfo, &realChunkSize](size_t componentIndex) {
                             auto& column = columns[componentIndex];
 
@@ -182,10 +183,11 @@ namespace RR::Ecs
 
                 for (size_t componentIndex = 0; componentIndex < componentsInfo.size(); componentIndex++)
                 {
-                    destroyComponent(componentsInfo[componentIndex], columns[componentIndex].chunks);
+                    const auto& componentInfo = *componentsInfo[componentIndex];
+                    destroyComponent(componentInfo, columns[componentIndex].chunks);
 
-                    if (componentsInfo[componentIndex].isTrackable)
-                        destroyComponent(componentsInfo[componentIndex], columns[columns[componentIndex].trackedColumnIndex].chunks);
+                    if (componentInfo.isTrackable)
+                        destroyComponent(componentInfo, columns[columns[componentIndex].trackedColumnIndex].chunks);
                 }
 
                 chunks.clear();
@@ -285,7 +287,8 @@ namespace RR::Ecs
             };
 
             Meta::ComponentsSet components;
-            eastl::fixed_vector<Meta::ComponentInfo, 32> componentsInfo;
+             // It's have an idirection for prerfomance reasons do not use it in perf critical places
+            eastl::fixed_vector<const Meta::ComponentInfo*, 32> componentsInfo;
             eastl::fixed_vector<TrackedComponent, 32> trackedComponents;
             eastl::fixed_vector<Column, 32> columns;
             eastl::vector<eastl::unique_ptr<std::byte[]>> chunks;
@@ -343,7 +346,7 @@ namespace RR::Ecs
         const Meta::ComponentInfo& GetComponentInfo(ArchetypeComponentIndex index) const
         {
             ASSERT(index);
-            return componentsData.componentsInfo[index.GetRaw()];
+            return *componentsData.componentsInfo[index.GetRaw()];
         }
 
         [[nodiscard]] ArchetypeEntityIndex begin() const { return ArchetypeEntityIndex(0, 0); }

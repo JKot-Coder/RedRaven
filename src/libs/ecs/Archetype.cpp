@@ -21,7 +21,7 @@ namespace RR::Ecs
 
         for (uint8_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
-            const auto& componentInfo = componentsData.componentsInfo[componentIndex];
+            const auto& componentInfo = *componentsData.componentsInfo[componentIndex];
 
            if (componentInfo.size == 0)
                 continue;
@@ -57,7 +57,7 @@ namespace RR::Ecs
 
         for (uint8_t componentIndex = 0; componentIndex < componentsData.componentsInfo.size(); componentIndex++)
         {
-            const auto& componentInfo = componentsData.componentsInfo[componentIndex];
+            const auto& componentInfo = *componentsData.componentsInfo[componentIndex];
             if (componentInfo.size == 0)
                 continue;
 
@@ -128,7 +128,7 @@ namespace RR::Ecs
 
             for (auto& trackedComponent : componentsData.trackedComponents)
             {
-                auto& componentInfo = componentsData.componentsInfo[trackedComponent.columnIndex];
+                const auto& componentInfo = *componentsData.componentsInfo[trackedComponent.columnIndex];
                 auto& column = componentsData.columns[trackedComponent.columnIndex];
                 auto& trackedColumn = componentsData.columns[trackedComponent.trackedColumnIndex];
 

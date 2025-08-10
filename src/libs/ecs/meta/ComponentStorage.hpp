@@ -12,13 +12,13 @@ namespace RR::Ecs::Meta
         template <typename T>
         ComponentId Register()
         {
-            constexpr auto componentInfo = ComponentInfo::Create<T>();
+            static auto componentInfo = ComponentInfo::Create<T>();
             ASSERT_MSG(isValid(componentInfo), "Component differs from previous registration!");
-            componentsInfo.emplace(componentInfo.id, componentInfo);
+            componentsInfo.emplace(componentInfo.id, &componentInfo);
             return componentInfo.id;
         }
 
-        ComponentInfo& operator[](ComponentId id) { return componentsInfo[id]; }
+        ComponentInfo& operator[](ComponentId id) { ASSERT(componentsInfo[id]); return *componentsInfo[id]; }
         auto find(ComponentId id) { return componentsInfo.find(id); }
         auto find(ComponentId id) const { return componentsInfo.find(id); }
         auto begin() const { return componentsInfo.begin(); }
@@ -31,9 +31,9 @@ namespace RR::Ecs::Meta
             if (it == componentsInfo.end())
                 return true;
 
-            return it->second == componentInfo;
+            return *(it->second) == componentInfo;
         }
     private:
-        absl::flat_hash_map<ComponentId, ComponentInfo, Ecs::DummyHasher<ComponentId>> componentsInfo;
+        absl::flat_hash_map<ComponentId, ComponentInfo*, Ecs::DummyHasher<ComponentId>> componentsInfo;
     };
 }

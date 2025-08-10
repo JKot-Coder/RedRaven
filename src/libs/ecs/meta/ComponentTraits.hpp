@@ -244,7 +244,7 @@ namespace RR::Ecs::Meta
             ComponentId id = *iter;
             auto it = storage->find(id);
             ASSERT(it != storage->end());
-            return it->second;
+            return *it->second;
         }
 
         const_pointer operator->() const

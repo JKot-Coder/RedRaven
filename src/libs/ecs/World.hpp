@@ -425,7 +425,7 @@ namespace RR::Ecs
             auto it = componentStorage.find(id);
             if (it == componentStorage.end())
                 return fmt::format("<{:#X}>", id.GetRaw());
-            return std::string(it->second.name);
+            return std::string(it->second->name);
         };
 
         bool onlyNewSingletons = ([&getComponentName, this]() -> bool {
