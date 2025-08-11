@@ -45,3 +45,38 @@ TEST_CASE_METHOD(WorldFixture, "Struct with properties", "[Meta]")
     REQUIRE(results[1] == 244);
     REQUIRE(results[2] == 3);
 }
+
+TEST_CASE_METHOD(WorldFixture, "Components", "[Meta]")
+{
+    world.RegisterComponent<Foo>()
+    .Element("x", &Foo::x)
+    .Element("y", &Foo::y)
+    .Element("z", &Foo::z);
+
+    eastl::vector<uint32_t> results;
+    auto entity = world.Entity().Add<Foo>(123, 234, 345).Apply();
+
+    world.View().With<Foo>().ForEach([&results](World& world, EntityId entityid) {
+        Entity entity = world.GetEntity(entityid); // Todo optimize it
+        for (auto element : entity.Elements())
+        {
+            if (element.GetComponentId() == Meta::GetComponentId<EntityId>)
+            {
+                results.push_back(element.Cast<EntityId>().GetRawId());
+            }
+            else if (element.GetComponentId() == Meta::GetComponentId<Foo>)
+            {
+                for (auto property : element.Elements())
+                    results.push_back(property.Cast<int>());
+            }
+            else
+                ASSERT_MSG(false, fmt::format("Unknown component id for type:{}", element.GetComponentName()));
+        }
+    });
+
+    REQUIRE(results.size() == 4);
+    REQUIRE(results[0] == entity.GetId().GetRawId());
+    REQUIRE(results[1] == 123);
+    REQUIRE(results[2] == 234);
+    REQUIRE(results[3] == 345);
+}
