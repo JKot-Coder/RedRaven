@@ -22,6 +22,7 @@ namespace RR::Ecs
         [[nodiscard]] EntityId GetId() const { return id; }
         [[nodiscard]] bool IsAlive() const;
         [[nodiscard]] bool Has(Meta::SortedComponentsView componentsView) const;
+        [[nodiscard]] Meta::ElementsSpan Elements() const;
         [[nodiscard]] bool ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const;
 
         template <typename... Components>

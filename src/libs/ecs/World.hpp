@@ -569,6 +569,15 @@ namespace RR::Ecs
     inline void Entity::Destroy() const { world->Destroy(id); }
     inline bool Entity::IsAlive() const { return world->IsAlive(id); }
     inline bool Entity::Has(Meta::SortedComponentsView componentsView) const { return world->Has(id, componentsView); }
+    inline Meta::ElementsSpan Entity::Elements() const
+    {
+        Archetype* archetype = nullptr;
+        ArchetypeEntityIndex index;
+        if UNLIKELY (!ResolveArhetype(archetype, index))
+            return {};
+
+        return archetype->GetElements(index);
+    }
     inline bool Entity::ResolveArhetype(Archetype*& archetype, ArchetypeEntityIndex& index) const
     {
         EntityRecord record;
