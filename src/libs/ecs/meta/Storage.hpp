@@ -33,6 +33,12 @@ namespace RR::Ecs::Meta
         template <typename Field>
         ComponentInfoBuilder<Class> Element(const char* name, Field Class::* member)
         {
+            if (clearElementsNeeded)
+            {
+                componentInfo->elements.clear();
+                clearElementsNeeded = false;
+            }
+
             uint16_t offset = reinterpret_cast<std::size_t>(
                 &(reinterpret_cast<Class*>(0)->*member)
             );
@@ -43,6 +49,7 @@ namespace RR::Ecs::Meta
         }
 
     protected:
+        bool clearElementsNeeded = true;
         Storage* storage;
         ComponentInfo* componentInfo;
     };
