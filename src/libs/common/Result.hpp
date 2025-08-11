@@ -21,21 +21,21 @@ It can be useful to have a consistent short name for a facility, as used in the 
 
 /* !!!!!!!!!!!!!!!!!!!!! Macros to help checking RResult !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 //! Helper macro, that makes it easy to add result checking to calls in functions/methods that themselves return Result.
-#define RR_RETURN_ON_FAIL(x)            \
-    do                                  \
-    {                                   \
-        RR::Common::RResult _res = (x); \
-        if (RR_FAILED(_res))            \
-            return _res;                \
+#define RR_RETURN_ON_FAIL(x)                  \
+    do                                        \
+    {                                         \
+        const RR::Common::RResult _res = (x); \
+        if (RR_FAILED(_res))                  \
+            return _res;                      \
     } while (0)
 
 //! Helper macro that can be used to return sucessed result.
-#define RR_RETURN_ON_SUCESS(x)          \
-    do                                  \
-    {                                   \
-        RR::Common::RResult _res = (x); \
-        if (RR_SUCCEEDED(_res))         \
-            return _res;                \
+#define RR_RETURN_ON_SUCESS(x)                \
+    do                                        \
+    {                                         \
+        const RR::Common::RResult _res = (x); \
+        if (RR_SUCCEEDED(_res))               \
+            return _res;                      \
     } while (0)
 
 //! Helper macro that can be used to test the return value from a call, and will return in a void method/function
@@ -70,27 +70,27 @@ It can be useful to have a consistent short name for a facility, as used in the 
     }
 
 //! Helper macro that will assert if the return code from a call is failure, also returns the failure.
-#define RR_ASSERT_ON_FAIL(x)            \
-    do                                  \
-    {                                   \
-        RR::Common::RResult _res = (x); \
-        if (RR_FAILED(_res))            \
-        {                               \
-            ASSERT(false);              \
-            return _res;                \
-        }                               \
+#define RR_ASSERT_ON_FAIL(x)                  \
+    do                                        \
+    {                                         \
+        const RR::Common::RResult _res = (x); \
+        if (RR_FAILED(_res))                  \
+        {                                     \
+            ASSERT(false);                    \
+            return _res;                      \
+        }                                     \
     } while (0)
 
 //! Helper macro that will assert if the result from a call is a failure, also returns.
-#define RR_ASSERT_VOID_ON_FAIL(x)       \
-    do                                  \
-    {                                   \
-        RR::Common::RResult _res = (x); \
-        if (RR_FAILED(_res))            \
-        {                               \
-            ASSERT(false);              \
-            return;                     \
-        }                               \
+#define RR_ASSERT_VOID_ON_FAIL(x)             \
+    do                                        \
+    {                                         \
+        const RR::Common::RResult _res = (x); \
+        if (RR_FAILED(_res))                  \
+        {                                     \
+            ASSERT(false);                    \
+            return;                           \
+        }                                     \
     } while (0)
 
 namespace RR::Common
