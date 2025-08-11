@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ForwardDeclarations.hpp"
+
 namespace RR::Ecs::Meta
 {
     struct ComponentInfo;
@@ -7,18 +9,22 @@ namespace RR::Ecs::Meta
 
     struct Any
     {
-        Any(void* data, ComponentInfo& componentInfo) : data(data), componentInfo(&componentInfo) { ASSERT(data); }
+        Any() = delete;
+        Any(void* data, const ComponentInfo& componentInfo) : data(data), componentInfo(&componentInfo) { ASSERT(data); }
         template <typename T>
         T& Cast()
         {
-            ASSERT(componentInfo->id == GetComponentId<T>);
+            ASSERT(componentInfo->id == Meta::GetComponentId<T>);
             return *reinterpret_cast<T*>(data);
         }
 
         ElementsSpan Elements() const;
+        ComponentId GetComponentId() const;
+        std::string_view GetComponentName() const;
+        const ComponentInfo* GetComponentInfo() const { return componentInfo; }
 
     private:
         void* data;
-        ComponentInfo* componentInfo;
+        const ComponentInfo* componentInfo;
     };
 }
