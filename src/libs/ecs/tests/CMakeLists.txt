@@ -11,6 +11,7 @@ set(TESTS_SRC
     "Tracking.cpp"
     "Traits.cpp"
     "TestHelpers.hpp"
+    "Meta.cpp"
 )
 source_group( "Tests" FILES ${TESTS_SRC} )
 
