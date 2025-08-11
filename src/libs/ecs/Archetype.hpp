@@ -139,6 +139,7 @@ namespace RR::Ecs
 
                             column.size = componentInfo.size;
                             offset = AlignTo(offset, componentInfo.alignment);
+                            ASSERT(offset < eastl::numeric_limits<decltype(column.offset)>::max());
                             column.offset = offset;
                             offset += chunkCapacity * componentInfo.size;
                             realChunkSize = offset;
