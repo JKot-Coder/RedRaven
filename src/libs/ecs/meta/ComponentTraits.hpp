@@ -176,11 +176,12 @@ namespace RR::Ecs::Meta
 
     struct ElementInfo
     {
+        ElementInfo() = default;
         ElementInfo(const char* name, uint32_t offset, const ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
 
-        const char* name;
-        const ComponentInfo* componentInfo;
-        uint32_t offset;
+        const char* name = nullptr;
+        uint32_t offset = 0;
+        const ComponentInfo* componentInfo = nullptr;
     };
 
     struct ElementIterator
@@ -191,6 +192,7 @@ namespace RR::Ecs::Meta
         using pointer = Any*;
         using reference = Any&;
 
+        ElementIterator() = default;
         ElementIterator(void* data, const ElementInfo* info) : data(data), info(info)
         {
             ASSERT(data);
@@ -213,13 +215,13 @@ namespace RR::Ecs::Meta
         }
 
     private:
-        void* data;
-        ElementInfo* info;
-        const ElementInfo* info;
+        void* data = nullptr;
+        const ElementInfo* info = nullptr;
     };
 
     struct ElementsSpan
     {
+        ElementsSpan() = default;
         ElementsSpan(ElementIterator begin, ElementIterator end) : begin_(begin), end_(end) { }
         ElementIterator begin() const { return begin_; }
         ElementIterator end() const { return end_; }
