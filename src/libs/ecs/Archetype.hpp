@@ -121,6 +121,7 @@ namespace RR::Ecs
 
                 size_t realChunkSize = 0;
                 columns.resize(componentsInfo.size() + trackedComponentsCount);
+                elementsInfo.resize(componentsInfo.size());
                 trackedComponents.resize(trackedComponentsCount);
                 // Todo assert total components count less than 256
                 // Todo assert trackedComponentsCount less than 64
@@ -135,12 +136,22 @@ namespace RR::Ecs
                     {
                         const auto& componentInfo = *componentInfoPtr;
                         auto initColumn = [this, &offset, &componentInfo, &realChunkSize](size_t componentIndex) {
-                            auto& column = columns[componentIndex];
-
-                            column.size = componentInfo.size;
                             offset = AlignTo(offset, componentInfo.alignment);
+
+                            auto& column = columns[componentIndex];
                             ASSERT(offset < eastl::numeric_limits<decltype(column.offset)>::max());
                             column.offset = offset;
+                            column.size = componentInfo.size;
+
+                            if (!componentInfo.isTrackable)
+                            {
+                                auto& elementInfo = elementsInfo[componentIndex];
+                                ASSERT(offset < eastl::numeric_limits<decltype(elementInfo.offset)>::max());
+
+                                elementInfo.offset = offset;
+                                elementInfo.componentInfo = &componentInfo;
+                            }
+
                             offset += chunkCapacity * componentInfo.size;
                             realChunkSize = offset;
                         };
@@ -231,6 +242,14 @@ namespace RR::Ecs
                         (column.trackedColumnIndex != InvalidColumnIndex) ? columns[column.trackedColumnIndex].chunks[chunkIndex] + indexInChunk * column.size : nullptr};
             }
 
+            Meta::ElementsSpan GetElements(ArchetypeEntityIndex index) const
+            {
+                const ComponentData componentData = GetComponentData(ArchetypeComponentIndex(0), index);
+                const Meta::ElementIterator begin(static_cast<void*>(componentData.data), elementsInfo.begin());
+                const Meta::ElementIterator end(static_cast<void*>(componentData.data), elementsInfo.end());
+                return Meta::ElementsSpan(begin, end);
+            }
+
             ArchetypeEntityIndex Insert()
             {
                 ASSERT(!isSingleton || entitiesCount == 0);
@@ -292,6 +311,7 @@ namespace RR::Ecs
             eastl::fixed_vector<const Meta::ComponentInfo*, 32> componentsInfo;
             eastl::fixed_vector<TrackedComponent, 32> trackedComponents;
             eastl::fixed_vector<Column, 32> columns;
+            eastl::fixed_vector<Meta::ElementInfo, 32> elementsInfo;
             eastl::vector<eastl::unique_ptr<std::byte[]>> chunks;
         };
 
@@ -348,6 +368,12 @@ namespace RR::Ecs
         {
             ASSERT(index);
             return *componentsData.componentsInfo[index.GetRaw()];
+        }
+
+        Meta::ElementsSpan GetElements(ArchetypeEntityIndex index) const
+        {
+            ASSERT(index);
+            return componentsData.GetElements(index);
         }
 
         [[nodiscard]] ArchetypeEntityIndex begin() const { return ArchetypeEntityIndex(0, 0); }
