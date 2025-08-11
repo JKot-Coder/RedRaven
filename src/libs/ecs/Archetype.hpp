@@ -276,7 +276,7 @@ namespace RR::Ecs
             {
                 uint8_t trackedColumnIndex;
                 size_t size;
-                size_t offset : 32;
+                uint32_t offset;
                 eastl::fixed_vector<std::byte*, 16> chunks;
             };
 
