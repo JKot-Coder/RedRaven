@@ -190,6 +190,7 @@ namespace RR::Ecs::Meta
         MoveOrCopy move;
         MoveOrCopy copy;
         CompareAndAssign compareAndAssign;
+        eastl::fixed_vector<ComponentInfo*, 16> properties;
 
         bool operator==(const ComponentInfo& other) const
         {
@@ -221,7 +222,8 @@ namespace RR::Ecs::Meta
                 eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,
                 &details::Move<T>,
                 &details::Copy<T>,
-                trackable ? &details::CompareAndAssign<eastl::conditional_t<trackable, T, int>> : nullptr
+                trackable ? &details::CompareAndAssign<eastl::conditional_t<trackable, T, int>> : nullptr,
+                {}
                 };
         }
     };
