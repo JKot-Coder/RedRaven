@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Any.hpp"
+#include "TypeTraits.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
-#include "TypeTraits.hpp"
-#include "Any.hpp"
 #include <EASTL/fixed_vector.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/vector_set.h>
@@ -89,20 +89,22 @@ namespace RR::Ecs::Meta
 
     namespace details
     {
-        template<typename T, typename = void>
+        template <typename T, typename = void>
         constexpr bool is_trackable_v = false;
 
-        template<typename T>
+        template <typename T>
         constexpr bool is_trackable_v<T, std::void_t<decltype(T::Trackable)>> = T::Trackable;
 
-        template<typename T, typename = void>
+        template <typename T, typename = void>
         constexpr bool is_singleton_v = false;
 
-        template<typename T>
+        template <typename T>
         constexpr bool is_singleton_v<T, std::void_t<decltype(T::Singleton)>> = T::Singleton;
 
         template <typename T, typename = void>
-        struct is_comparable : std::false_type {};
+        struct is_comparable : std::false_type
+        {
+        };
 
         template <typename T>
         struct is_comparable<T, std::void_t<decltype(std::declval<const T&>() == std::declval<const T&>())>>
@@ -189,8 +191,16 @@ namespace RR::Ecs::Meta
         using pointer = Any*;
         using reference = Any&;
 
-        ElementIterator(void* data, ElementInfo* info ) : data(data), info(info) { ASSERT(data); ASSERT(info); }
-        ElementIterator& operator++() { ++info; return *this; }
+        ElementIterator(void* data, ElementInfo* info) : data(data), info(info)
+        {
+            ASSERT(data);
+            ASSERT(info);
+        }
+        ElementIterator& operator++()
+        {
+            ++info;
+            return *this;
+        }
         value_type operator*() const { return Any(static_cast<std::byte*>(data) + info->offset, *info->componentInfo); }
 
         bool operator==(const ElementIterator& other) const { return info == other.info && data == other.data; }
@@ -266,8 +276,7 @@ namespace RR::Ecs::Meta
                 &details::Move<T>,
                 &details::Copy<T>,
                 trackable ? &details::CompareAndAssign<eastl::conditional_t<trackable, T, int>> : nullptr,
-                {}
-                };
+                {}};
         }
 
         Any Get(void* data) { return Any(data, *this); }
