@@ -174,16 +174,16 @@ namespace RR::Ecs::Meta
     }
 
 
-    struct PropertyInfo
+    struct ElementInfo
     {
-        PropertyInfo(const char* name, uint16_t offset, ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
+        ElementInfo(const char* name, uint16_t offset, ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
 
         const char* name;
         uint16_t offset;
         ComponentInfo* componentInfo;
     };
 
-    struct PropertyIterator
+    struct ElementIterator
     {
         using iterator_category = eastl::random_access_iterator_tag;
         using value_type = Any;
@@ -191,14 +191,14 @@ namespace RR::Ecs::Meta
         using pointer = Any*;
         using reference = Any&;
 
-        PropertyIterator(void* data, PropertyInfo* info ) : data(data), info(info) { ASSERT(data); ASSERT(info); }
-        PropertyIterator& operator++() { ++info; return *this; }
+        ElementIterator(void* data, ElementInfo* info ) : data(data), info(info) { ASSERT(data); ASSERT(info); }
+        ElementIterator& operator++() { ++info; return *this; }
         value_type operator*() const { return Any(static_cast<std::byte*>(data) + info->offset, *info->componentInfo); }
 
-        bool operator==(const PropertyIterator& other) const { return info == other.info && data == other.data; }
-        bool operator!=(const PropertyIterator& other) const { return info != other.info || data != other.data; }
+        bool operator==(const ElementIterator& other) const { return info == other.info && data == other.data; }
+        bool operator!=(const ElementIterator& other) const { return info != other.info || data != other.data; }
 
-        difference_type operator-(const PropertyIterator& other) const
+        difference_type operator-(const ElementIterator& other) const
         {
             ASSERT(data == other.data);
             return info - other.info;
@@ -206,19 +206,19 @@ namespace RR::Ecs::Meta
 
     private:
         void* data;
-        PropertyInfo* info;
+        ElementInfo* info;
     };
 
-    struct PropertiesSpan
+    struct ElementsSpan
     {
-        PropertiesSpan(PropertyIterator begin, PropertyIterator end) : begin_(begin), end_(end) { }
-        PropertyIterator begin() const { return begin_; }
-        PropertyIterator end() const { return end_; }
+        ElementsSpan(ElementIterator begin, ElementIterator end) : begin_(begin), end_(end) { }
+        ElementIterator begin() const { return begin_; }
+        ElementIterator end() const { return end_; }
         size_t size() const { return eastl::distance(begin_, end_); }
 
     private:
-        PropertyIterator begin_;
-        PropertyIterator end_;
+        ElementIterator begin_;
+        ElementIterator end_;
     };
 
     struct ComponentInfo
@@ -239,7 +239,7 @@ namespace RR::Ecs::Meta
         MoveOrCopy move;
         MoveOrCopy copy;
         CompareAndAssign compareAndAssign;
-        eastl::fixed_vector<PropertyInfo, 16> properties;
+        eastl::fixed_vector<ElementInfo, 16> elements;
 
         bool operator==(const ComponentInfo& other) const
         {

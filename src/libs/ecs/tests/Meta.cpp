@@ -21,9 +21,9 @@ TEST_CASE_METHOD(WorldFixture, "Trivial type", "[Meta]")
 TEST_CASE_METHOD(WorldFixture, "Struct with properties", "[Meta]")
 {
     auto fooInfo = world.RegisterComponent<Foo>()
-                       .Property("x", &Foo::x)
-                       .Property("y", &Foo::y)
-                       .Property("z", &Foo::z)
+                       .Element("x", &Foo::x)
+                       .Element("y", &Foo::y)
+                       .Element("z", &Foo::z)
                        .Info();
 
     Foo foo = {1241, 244, 3};
@@ -33,9 +33,9 @@ TEST_CASE_METHOD(WorldFixture, "Struct with properties", "[Meta]")
     REQUIRE(any.Cast<Foo>().y == 244);
     REQUIRE(any.Cast<Foo>().z == 3);
 
-    REQUIRE(any.Properties().size() == 3);
+    REQUIRE(any.Elements().size() == 3);
     eastl::vector<int> results;
-    for (auto property : any.Properties())
+    for (auto property : any.Elements())
     {
         results.push_back(property.Cast<int>());
     }

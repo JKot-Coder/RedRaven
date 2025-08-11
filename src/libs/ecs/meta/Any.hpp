@@ -3,7 +3,7 @@
 namespace RR::Ecs::Meta
 {
     struct ComponentInfo;
-    struct PropertiesSpan;
+    struct ElementsSpan;
 
     struct Any
     {
@@ -15,7 +15,7 @@ namespace RR::Ecs::Meta
             return *reinterpret_cast<T*>(data);
         }
 
-        PropertiesSpan Properties() const;
+        ElementsSpan Elements() const;
 
     private:
         void* data;

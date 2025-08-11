@@ -4,8 +4,8 @@
 
 namespace RR::Ecs::Meta
 {
-    PropertiesSpan Any::Properties() const
+    ElementsSpan Any::Elements() const
     {
-        return PropertiesSpan(PropertyIterator(data, componentInfo->properties.begin()), PropertyIterator(data, componentInfo->properties.end()));
+        return ElementsSpan(ElementIterator(data, componentInfo->elements.begin()), ElementIterator(data, componentInfo->elements.end()));
     }
 }
