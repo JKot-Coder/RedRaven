@@ -176,11 +176,11 @@ namespace RR::Ecs::Meta
 
     struct ElementInfo
     {
-        ElementInfo(const char* name, uint16_t offset, ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
+        ElementInfo(const char* name, uint16_t offset, const ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
 
         const char* name;
         uint16_t offset;
-        ComponentInfo* componentInfo;
+        const ComponentInfo* componentInfo;
     };
 
     struct ElementIterator
@@ -191,7 +191,7 @@ namespace RR::Ecs::Meta
         using pointer = Any*;
         using reference = Any&;
 
-        ElementIterator(void* data, ElementInfo* info) : data(data), info(info)
+        ElementIterator(void* data, const ElementInfo* info) : data(data), info(info)
         {
             ASSERT(data);
             ASSERT(info);
@@ -215,6 +215,7 @@ namespace RR::Ecs::Meta
     private:
         void* data;
         ElementInfo* info;
+        const ElementInfo* info;
     };
 
     struct ElementsSpan
