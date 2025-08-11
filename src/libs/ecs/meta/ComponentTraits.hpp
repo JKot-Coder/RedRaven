@@ -176,11 +176,11 @@ namespace RR::Ecs::Meta
 
     struct ElementInfo
     {
-        ElementInfo(const char* name, uint16_t offset, const ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
+        ElementInfo(const char* name, uint32_t offset, const ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
 
         const char* name;
-        uint16_t offset;
         const ComponentInfo* componentInfo;
+        uint32_t offset;
     };
 
     struct ElementIterator
