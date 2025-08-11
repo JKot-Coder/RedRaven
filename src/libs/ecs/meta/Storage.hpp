@@ -7,27 +7,60 @@
 namespace RR::Ecs::Meta
 {
     class Storage;
-    struct ComponentInfoBuilder
+
+
+    template <typename T, bool = std::is_class_v<T>>
+    struct ComponentInfoBuilderImpl;
+
+    template <typename T>
+    struct ComponentInfoBuilderImpl<T, false>
     {
-        ComponentInfoBuilder(Storage& storage, ComponentInfo& componentInfo) : storage(&storage), componentInfo(&componentInfo) { }
+    public:
+        ComponentInfoBuilderImpl(Storage& storage, ComponentInfo& componentInfo) : storage(&storage), componentInfo(&componentInfo) { }
 
-        [[nodiscard]] ComponentId id() const { return componentInfo->id; }
-
-    private:
-        [[maybe_unused]] Storage* storage;
+    protected:
+        Storage* storage;
         ComponentInfo* componentInfo;
+    };
+
+    template <typename Class>
+    struct ComponentInfoBuilderImpl<Class, true>
+    {
+    public:
+        ComponentInfoBuilderImpl(Storage& storage, ComponentInfo& componentInfo) : storage(&storage), componentInfo(&componentInfo) { }
+        template <typename Field>
+        ComponentInfoBuilderImpl<Class, true> Property(const char* name, Field Class::* member)
+        {
+            ComponentInfo& fieldInfo = storage->Register<Field>();
+            componentInfo->properties.emplace_back(&fieldInfo);
+            UNUSED(name);
+            return *this;
+        }
+
+    protected:
+        Storage* storage;
+        ComponentInfo* componentInfo;
+    };
+
+    template <typename T>
+    struct ComponentInfoBuilder : public ComponentInfoBuilderImpl<T>
+    {
+        ComponentInfoBuilder(Storage& storage, ComponentInfo& componentInfo) : ComponentInfoBuilderImpl<T>(storage, componentInfo) { }
+
+        [[nodiscard]] ComponentId Id() const { return this->componentInfo->id; }
+        [[nodiscard]] ComponentInfo& Info() const { return *this->componentInfo; }
     };
 
     class Storage
     {
     public:
         template <typename T>
-        ComponentInfoBuilder Register()
+        ComponentInfoBuilder<T> Register()
         {
             static auto componentInfo = ComponentInfo::Create<T>();
             ASSERT_MSG(isValid(componentInfo), "Component differs from previous registration!");
             componentsInfo.emplace(componentInfo.id, &componentInfo);
-            return ComponentInfoBuilder(*this, componentInfo);
+            return ComponentInfoBuilder<T>(*this, componentInfo);
         }
 
         ComponentInfo& operator[](ComponentId id) { ASSERT(componentsInfo[id]); return *componentsInfo[id]; }
