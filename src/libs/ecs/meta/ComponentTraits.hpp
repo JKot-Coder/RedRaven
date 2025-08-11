@@ -206,7 +206,7 @@ namespace RR::Ecs::Meta
         }
 
         template <typename T>
-        static constexpr ComponentInfo Create()
+        static ComponentInfo Create()
         {
             constexpr bool trackable = details::is_trackable_v<T>;
 
@@ -296,7 +296,6 @@ namespace RR::Ecs::Meta
         static constexpr std::string_view Name = GetTypeName<RawType>;
         static constexpr size_t Size = sizeof(RawType);
         static constexpr size_t Alignment = alignof(RawType);
-        static constexpr ComponentInfo ComponentInfo = ComponentInfo::Create<T>();
         static constexpr bool IsComponent = eastl::is_same_v<RawType, T>;
         static constexpr bool IsTag = std::is_empty_v<T>;
         static constexpr bool IsTrackable = details::is_trackable_v<T>;
@@ -311,9 +310,6 @@ namespace RR::Ecs::Meta
 
     template <typename T>
     static constexpr std::string_view GetComponentName = ComponentTraits<T>::Name;
-
-    template <typename T>
-    static constexpr ComponentInfo GetComponentInfo = ComponentTraits<T>::ComponentInfo;
 
     template <typename T>
     static constexpr bool IsComponent = eastl::is_same_v<GetComponentType<T>, T>;
