@@ -3,6 +3,7 @@
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
 #include "TypeTraits.hpp"
+#include "Any.hpp"
 #include <EASTL/fixed_vector.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/vector_set.h>
@@ -172,6 +173,54 @@ namespace RR::Ecs::Meta
         };
     }
 
+
+    struct PropertyInfo
+    {
+        PropertyInfo(const char* name, uint16_t offset, ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
+
+        const char* name;
+        uint16_t offset;
+        ComponentInfo* componentInfo;
+    };
+
+    struct PropertyIterator
+    {
+        using iterator_category = eastl::random_access_iterator_tag;
+        using value_type = Any;
+        using difference_type = std::ptrdiff_t;
+        using pointer = Any*;
+        using reference = Any&;
+
+        PropertyIterator(void* data, PropertyInfo* info ) : data(data), info(info) { ASSERT(data); ASSERT(info); }
+        PropertyIterator& operator++() { ++info; return *this; }
+        value_type operator*() const { return Any(static_cast<std::byte*>(data) + info->offset, *info->componentInfo); }
+
+        bool operator==(const PropertyIterator& other) const { return info == other.info && data == other.data; }
+        bool operator!=(const PropertyIterator& other) const { return info != other.info || data != other.data; }
+
+        difference_type operator-(const PropertyIterator& other) const
+        {
+            ASSERT(data == other.data);
+            return info - other.info;
+        }
+
+    private:
+        void* data;
+        PropertyInfo* info;
+    };
+
+    struct PropertiesSpan
+    {
+        PropertiesSpan(PropertyIterator begin, PropertyIterator end) : begin_(begin), end_(end) { }
+        PropertyIterator begin() const { return begin_; }
+        PropertyIterator end() const { return end_; }
+        size_t size() const { return eastl::distance(begin_, end_); }
+
+    private:
+        PropertyIterator begin_;
+        PropertyIterator end_;
+    };
+
     struct ComponentInfo
     {
         using DefaultConstructor = void (*)(void* mem);
@@ -190,7 +239,7 @@ namespace RR::Ecs::Meta
         MoveOrCopy move;
         MoveOrCopy copy;
         CompareAndAssign compareAndAssign;
-        eastl::fixed_vector<ComponentInfo*, 16> properties;
+        eastl::fixed_vector<PropertyInfo, 16> properties;
 
         bool operator==(const ComponentInfo& other) const
         {
@@ -200,11 +249,7 @@ namespace RR::Ecs::Meta
                    size == other.size &&
                    alignment == other.alignment;
         }
-
-        bool operator!=(const ComponentInfo& other) const
-        {
-            return !(*this == other);
-        }
+        bool operator!=(const ComponentInfo& other) const { return !(*this == other); }
 
         template <typename T>
         static ComponentInfo Create()
@@ -226,6 +271,8 @@ namespace RR::Ecs::Meta
                 {}
                 };
         }
+
+        Any Get(void* data) { return Any(data, *this); }
     };
 
     template <typename Storage>

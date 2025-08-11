@@ -23,18 +23,24 @@ namespace RR::Ecs::Meta
         ComponentInfo* componentInfo;
     };
 
+    template <typename T>
+    struct ComponentInfoBuilder;
+
     template <typename Class>
     struct ComponentInfoBuilderImpl<Class, true>
     {
     public:
         ComponentInfoBuilderImpl(Storage& storage, ComponentInfo& componentInfo) : storage(&storage), componentInfo(&componentInfo) { }
         template <typename Field>
-        ComponentInfoBuilderImpl<Class, true> Property(const char* name, Field Class::* member)
+        ComponentInfoBuilder<Class> Property(const char* name, Field Class::* member)
         {
-            ComponentInfo& fieldInfo = storage->Register<Field>();
-            componentInfo->properties.emplace_back(&fieldInfo);
-            UNUSED(name);
-            return *this;
+            uint16_t offset = reinterpret_cast<std::size_t>(
+                &(reinterpret_cast<Class*>(0)->*member)
+            );
+
+            auto fieldInfo = storage->Register<Field>();
+            componentInfo->properties.emplace_back(name, offset, fieldInfo.Info());
+            return static_cast<ComponentInfoBuilder<Class>&>(*this);
         }
 
     protected:

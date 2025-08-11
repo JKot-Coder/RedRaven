@@ -123,7 +123,7 @@ namespace RR::Ecs
         [[nodiscard]] Ecs::System GetSystem(SystemId systemId) { return Ecs::System(*this, systemId); }
 
         template <typename Component>
-        Meta::ComponentId RegisterComponent() { return metaStorage.Register<Component>().Id(); }
+        auto RegisterComponent() { return metaStorage.Register<Component>(); }
 
         template <typename EventType>
         void Emit(EventType&& event);
