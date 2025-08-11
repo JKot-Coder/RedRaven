@@ -10,7 +10,6 @@
 
 namespace RR::Ecs::Meta
 {
-    using ComponentId = Index<struct ComponentIdTag, HashType>;
     template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
     constexpr size_t PreallocatedComponentsCount = 32;

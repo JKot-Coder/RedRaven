@@ -43,6 +43,10 @@ namespace RR::Ecs
     template <typename Tag, typename IndexType = uint32_t>
     struct Index;
 
+    namespace Meta
+    {
+        using ComponentId = Index<struct ComponentIdTag, HashType>;
+    }
     using ArchetypeId = Index<struct ArchetypeIdTag, HashType>;
     using ArchetypeComponentIndex = Index<struct ArchetypeComponentIndexTag, uint8_t>;
     using EventId = Index<struct EventIdTag, HashType>;
