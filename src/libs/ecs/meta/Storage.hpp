@@ -31,22 +31,7 @@ namespace RR::Ecs::Meta
     public:
         ComponentInfoBuilderImpl(Storage& storage, ComponentInfo& componentInfo) : storage(&storage), componentInfo(&componentInfo) { }
         template <typename Field>
-        ComponentInfoBuilder<Class> Element(const char* name, Field Class::* member)
-        {
-            if (clearElementsNeeded)
-            {
-                componentInfo->elements.clear();
-                clearElementsNeeded = false;
-            }
-
-            uint16_t offset = reinterpret_cast<std::size_t>(
-                &(reinterpret_cast<Class*>(0)->*member)
-            );
-
-            auto fieldInfo = storage->Register<Field>();
-            componentInfo->elements.emplace_back(name, offset, fieldInfo.Info());
-            return static_cast<ComponentInfoBuilder<Class>&>(*this);
-        }
+        ComponentInfoBuilder<Class> Element(const char* name, Field Class::* member);
 
     protected:
         bool clearElementsNeeded = true;
@@ -93,4 +78,22 @@ namespace RR::Ecs::Meta
     private:
         absl::flat_hash_map<ComponentId, ComponentInfo*, Ecs::DummyHasher<ComponentId>> componentsInfo;
     };
+
+    template <typename Class>
+    template <typename Field>
+    inline ComponentInfoBuilder<Class> ComponentInfoBuilderImpl<Class, true>::Element(const char* name, Field Class::* member)
+    {
+        if (clearElementsNeeded)
+        {
+            componentInfo->elements.clear();
+            clearElementsNeeded = false;
+        }
+
+        uint16_t offset = reinterpret_cast<std::size_t>(
+            &(reinterpret_cast<Class*>(0)->*member));
+
+        auto fieldInfo = storage->Register<Field>();
+        componentInfo->elements.emplace_back(name, offset, fieldInfo.Info());
+        return static_cast<ComponentInfoBuilder<Class>&>(*this);
+    }
 }

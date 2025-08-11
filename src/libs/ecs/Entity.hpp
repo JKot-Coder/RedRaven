@@ -3,6 +3,7 @@
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/EntityId.hpp"
 #include "ecs/meta/ComponentTraits.hpp"
+#include "ecs/meta/ElementsIterator.hpp"
 
 #include <EASTL/sort.h>
 

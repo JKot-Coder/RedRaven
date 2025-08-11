@@ -3,6 +3,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "ecs/ArchetypeEntityIndex.hpp"
 #include "ecs/meta/ComponentTraits.hpp"
+#include "ecs/meta/ElementsIterator.hpp"
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"

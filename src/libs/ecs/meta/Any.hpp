@@ -1,10 +1,9 @@
 #pragma once
 
-#include "ForwardDeclarations.hpp"
+#include "ComponentTraits.hpp"
 
 namespace RR::Ecs::Meta
 {
-    struct ComponentInfo;
     struct ElementsSpan;
 
     struct Any
@@ -27,4 +26,6 @@ namespace RR::Ecs::Meta
         void* data;
         const ComponentInfo* componentInfo;
     };
+
+    inline Any ComponentInfo::Get(void* data) const { return Any(data, *this); }
 }

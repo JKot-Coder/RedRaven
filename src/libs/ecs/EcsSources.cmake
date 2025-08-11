@@ -27,5 +27,6 @@ set( ECS_SRC
     ${CMAKE_CURRENT_LIST_DIR}/meta/FunctionTraits.hpp
     ${CMAKE_CURRENT_LIST_DIR}/meta/ComponentTraits.hpp
     ${CMAKE_CURRENT_LIST_DIR}/meta/Storage.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/meta/ElementsIterator.hpp
     ${CMAKE_CURRENT_LIST_DIR}/IterationHelpers.hpp
 )

@@ -1,15 +1,17 @@
 #pragma once
 
-#include "Any.hpp"
 #include "TypeTraits.hpp"
 #include "ecs/Hash.hpp"
 #include "ecs/Index.hpp"
+#include "ecs/ForwardDeclarations.hpp"
 #include <EASTL/fixed_vector.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/vector_set.h>
 
 namespace RR::Ecs::Meta
 {
+    struct Any;
+
     template <typename Key, size_t ElementsCount, bool EnableOverflow = true>
     using FixedVectorSet = eastl::vector_set<Key, eastl::less<Key>, EASTLAllocatorType, eastl::fixed_vector<Key, ElementsCount, EnableOverflow>>;
     constexpr size_t PreallocatedComponentsCount = 32;
@@ -174,6 +176,8 @@ namespace RR::Ecs::Meta
         };
     }
 
+    struct ComponentInfo;
+
     struct ElementInfo
     {
         ElementInfo() = default;
@@ -182,54 +186,6 @@ namespace RR::Ecs::Meta
         const char* name = nullptr;
         uint32_t offset = 0;
         const ComponentInfo* componentInfo = nullptr;
-    };
-
-    struct ElementIterator
-    {
-        using iterator_category = eastl::random_access_iterator_tag;
-        using value_type = Any;
-        using difference_type = std::ptrdiff_t;
-        using pointer = Any*;
-        using reference = Any&;
-
-        ElementIterator() = default;
-        ElementIterator(void* data, const ElementInfo* info) : data(data), info(info)
-        {
-            ASSERT(data);
-            ASSERT(info);
-        }
-        ElementIterator& operator++()
-        {
-            ++info;
-            return *this;
-        }
-        value_type operator*() const { return Any(static_cast<std::byte*>(data) + info->offset, *info->componentInfo); }
-
-        bool operator==(const ElementIterator& other) const { return info == other.info && data == other.data; }
-        bool operator!=(const ElementIterator& other) const { return info != other.info || data != other.data; }
-
-        difference_type operator-(const ElementIterator& other) const
-        {
-            ASSERT(data == other.data);
-            return info - other.info;
-        }
-
-    private:
-        void* data = nullptr;
-        const ElementInfo* info = nullptr;
-    };
-
-    struct ElementsSpan
-    {
-        ElementsSpan() = default;
-        ElementsSpan(ElementIterator begin, ElementIterator end) : begin_(begin), end_(end) { }
-        ElementIterator begin() const { return begin_; }
-        ElementIterator end() const { return end_; }
-        size_t size() const { return eastl::distance(begin_, end_); }
-
-    private:
-        ElementIterator begin_;
-        ElementIterator end_;
     };
 
     struct ComponentInfo
@@ -282,7 +238,7 @@ namespace RR::Ecs::Meta
                 {}};
         }
 
-        Any Get(void* data) { return Any(data, *this); }
+        Any Get(void* data) const;
     };
 
     template <typename Storage>

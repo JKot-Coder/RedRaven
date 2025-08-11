@@ -1,5 +1,6 @@
 #include "Any.hpp"
 
+#include "ElementsIterator.hpp"
 #include "ComponentTraits.hpp"
 
 namespace RR::Ecs::Meta
