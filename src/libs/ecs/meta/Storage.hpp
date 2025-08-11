@@ -8,7 +8,6 @@ namespace RR::Ecs::Meta
 {
     class Storage;
 
-
     template <typename T, bool = std::is_class_v<T>>
     struct ComponentInfoBuilderImpl;
 

@@ -173,7 +173,6 @@ namespace RR::Ecs::Meta
         };
     }
 
-
     struct ElementInfo
     {
         ElementInfo(const char* name, uint16_t offset, ComponentInfo& componentInfo) : name(name), offset(offset), componentInfo(&componentInfo) { }
