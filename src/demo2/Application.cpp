@@ -12,8 +12,13 @@ namespace RR::App
 
         Ecs::WindowModule::Init(world);
 
+        world.OrderSystems();
+
+        world.Entity().Add<Ecs::WindowModule::Window>().Apply();
+
         while (true)
         {
+            world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
         }
 
