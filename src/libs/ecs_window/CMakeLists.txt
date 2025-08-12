@@ -1,6 +1,8 @@
 project (ecs_window)
 
 set(SRC
+    Window.hpp
+    Window.cpp
     empty.cpp)
 source_group( "" FILES ${SRC} )
 
