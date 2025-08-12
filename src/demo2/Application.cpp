@@ -6,7 +6,7 @@
 
 namespace RR::App
 {
-    int Application::Run()
+    int RunApplication()
     {
         Ecs::World world;
 

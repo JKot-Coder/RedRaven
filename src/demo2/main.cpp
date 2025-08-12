@@ -5,8 +5,7 @@ int entryPoint(int argc, char** argv)
     UNUSED(argc);
     UNUSED(argv);
 
-    RR::App::Application app;
-    return app.Run();
+    return RR::App::RunApplication();
 }
 
 #if defined(OS_WINDOWS) && defined(UNICODE)
