@@ -5,7 +5,8 @@ set(SRC
     Manager.cpp
     Module.hpp
     Module.cpp
-    Context.hpp)
+    Context.hpp
+    FeatureRegistry.hpp)
 source_group( "" FILES ${SRC} )
 
 add_library(${PROJECT_NAME} ${SRC})
