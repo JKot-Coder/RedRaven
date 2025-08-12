@@ -36,6 +36,12 @@ namespace RR::Ecs::WindowModule
 
         return handler->windowEntity;
     }
+
+    void windowCloseCallback(GLFWwindow* glfwWindow)
+    {
+        GetWindowEntity(glfwWindow).Emit<Window::Close>({});
+    }
+
     void InitWindow(World& world)
     {
         world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window) {
@@ -44,6 +50,8 @@ namespace RR::Ecs::WindowModule
             GLFWwindow* glfwWindow = glfwCreateWindow(800, 600, "", nullptr, nullptr);
 
             glfwSetWindowUserPointer(glfwWindow, new GlfwHandler {windowEntity});
+            glfwSetWindowCloseCallback(glfwWindow, &windowCloseCallback);
+
             window.glfwWindow = glfwWindow;
         });
 

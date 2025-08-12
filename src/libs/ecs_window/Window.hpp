@@ -12,6 +12,11 @@ namespace RR::Ecs::WindowModule
     };
     struct Window
     {
+        struct Close : public Event
+        {
+            Close() : Event(GetEventId<Close>, sizeof(Close)) { }
+        };
+
         GLFWwindow* glfwWindow = nullptr;
     };
 
