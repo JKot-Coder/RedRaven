@@ -141,7 +141,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate simple", "[Event]")
     world.System().With<int>().OnEvent<TestEvent>().ForEach([&](EntityId id) { entities.push_back(id); });
     world.OrderSystems();
     world.EmitImmediately<TestEvent>(entt3, {});
-    world.EmitImmediately<TestEvent>(entt2, {});
+    entt2.EmitImmediately<TestEvent>({});
 
     // system created first
     world.System().With<float>().OnEvent<TestEvent>().ForEach([&](EntityId id) { entities.push_back(id); });
@@ -149,7 +149,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate simple", "[Event]")
     const auto entt4 = world.Entity().Add<float>(1.0f).Apply();
     const auto entt5 = world.Entity().Add<float>(1.0f).Apply();;
     world.EmitImmediately<TestEvent>(entt4, {});
-    world.EmitImmediately<TestEvent>(entt1, {});
+    entt1.EmitImmediately<TestEvent>({});
     world.EmitImmediately<TestEvent>(entt5, {});
 
     REQUIRE(entities.size() == 5);
@@ -180,9 +180,9 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
 
     world.OrderSystems();
     world.EmitImmediately<IntEvent>(entt3, {1});
-    world.EmitImmediately<IntEvent>(entt2, {2});
+    entt2.EmitImmediately<IntEvent>({2});
     world.EmitImmediately<TestEvent>(entt4, {});
-    world.EmitImmediately<FloatEvent>(entt1, {3});
+    entt1.EmitImmediately<FloatEvent>({3});
 
     REQUIRE(data.size() == 5);
     REQUIRE(data[0].first == entt3.GetId());
@@ -204,7 +204,6 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
     const auto entt3 = world.Entity().Add<int>(3).Apply();
     const auto entt4 = world.Entity().Add<int>(4).Apply();
 
-
     eastl::vector<std::pair<EntityId, int>> data;
     world.System().With<int>().OnEvent<IntEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
@@ -218,9 +217,9 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
 
     world.OrderSystems();
     world.Emit<IntEvent>(entt3, {1});
-    world.Emit<IntEvent>(entt2, {2});
+    entt2.Emit<IntEvent>({2});
     world.Emit<TestEvent>(entt4, {});
-    world.Emit<FloatEvent>(entt1, {3});
+    entt1.Emit<FloatEvent>({3});
 
     REQUIRE(data.size() == 0);
 

@@ -590,6 +590,12 @@ namespace RR::Ecs
         return true;
     }
 
+    template <typename Event>
+    inline void Entity::Emit(Event&& event) const { world->Emit(id, std::forward<Event>(event)); }
+
+    template <typename Event>
+    inline void Entity::EmitImmediately(Event&& event) const { world->EmitImmediately(id, std::forward<Event>(event)); }
+
     template <typename Callable>
     inline void View::ForEach(Callable&& callable) const
     {

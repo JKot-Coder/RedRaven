@@ -34,6 +34,12 @@ namespace RR::Ecs
             return Has(Meta::SortedComponentsView(components));
         }
 
+        template <typename Event>
+        void Emit(Event&& event) const;
+
+        template <typename Event>
+        void EmitImmediately(Event&& event) const;
+
         EntityBuilder<void, void> Edit() const;
 
     private:
