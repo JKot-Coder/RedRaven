@@ -197,6 +197,51 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
     REQUIRE(data[4].second == 3);
 }
 
+TEST_CASE_METHOD(WorldFixture, "Recursive unicast event", "[Event]")
+{
+    eastl::vector<Entity> entities;
+    entities.push_back(world.Entity().Add<int>(1).Apply());
+    entities.push_back(world.Entity().Add<int>(2).Apply());
+    entities.push_back(world.Entity().Add<int>(3).Apply());
+    entities.push_back(world.Entity().Add<int>(4).Apply());
+
+    auto test = [&](bool immediate) {
+        eastl::vector<EntityId> results;
+
+        auto recursiveSendEvent = [&](int index) {
+            if (size_t(index) < entities.size())
+                immediate ? entities[index].EmitImmediately<IntEvent>({index + 1})
+                          : entities[index].Emit<IntEvent>({index + 1});
+        };
+
+        world.System().With<int>().OnEvent<IntEvent>().ForEach([&](const IntEvent& event, EntityId id) {
+            results.push_back(id);
+            recursiveSendEvent(event.value);
+        });
+
+        world.OrderSystems();
+        recursiveSendEvent(0);
+
+        if (!immediate)
+        {
+            for(int i = 1; i <= 4; i++)
+            {
+                world.ProcessDefferedEvents();
+                REQUIRE(results.size() == i);
+            }
+        }
+
+        REQUIRE(results.size() == 4);
+        REQUIRE(results[0] == entities[0].GetId());
+        REQUIRE(results[1] == entities[1].GetId());
+        REQUIRE(results[2] == entities[2].GetId());
+        REQUIRE(results[3] == entities[3].GetId());
+    };
+
+    SECTION("Immediate") { test(true); }
+    SECTION("Deffered") { test(false); }
+}
+
 TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
 {
     const auto entt1 = world.Entity().Add<int>(1).Apply();
