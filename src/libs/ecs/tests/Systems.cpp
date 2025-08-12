@@ -156,16 +156,15 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
     const auto entt3 = world.Entity().Add<int>(3).Apply();
     const auto entt4 = world.Entity().Add<int>(4).Apply();
 
-    int calls = 0;
-    eastl::array<std::pair<EntityId, int>, 5> data;
+    eastl::vector<std::pair<EntityId, int>> data;
     world.System().With<int>().OnEvent<IntEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
-            data[calls++] = {id, event.Is<IntEvent>() ? event.As<IntEvent>().value : -1};
+            data.emplace_back(id, event.Is<IntEvent>() ? event.As<IntEvent>().value : -1);
         });
     world.System().With<float>().OnEvent<IntEvent>().ForEach([]() { REQUIRE(false); });
     world.System().With<int>().OnEvent<FloatEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
-            data[calls++] = {id, event.Is<FloatEvent>() ? int(event.As<FloatEvent>().value) : -1};
+            data.emplace_back(id, event.Is<FloatEvent>() ? event.As<FloatEvent>().value : -1);
         });
 
     world.OrderSystems();
@@ -174,7 +173,7 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
     world.EmitImmediately<TestEvent>(entt4, {});
     world.EmitImmediately<FloatEvent>(entt1, {3});
 
-    REQUIRE(calls == 5);
+    REQUIRE(data.size() == 5);
     REQUIRE(data[0].first == entt3.GetId());
     REQUIRE(data[0].second == 1);
     REQUIRE(data[1].first == entt2.GetId());
@@ -194,16 +193,16 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
     const auto entt3 = world.Entity().Add<int>(3).Apply();
     const auto entt4 = world.Entity().Add<int>(4).Apply();
 
-    int calls = 0;
-    eastl::array<std::pair<EntityId, int>, 5> data;
+
+    eastl::vector<std::pair<EntityId, int>> data;
     world.System().With<int>().OnEvent<IntEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
-            data[calls++] = {id, event.Is<IntEvent>() ? event.As<IntEvent>().value : -1};
+            data.emplace_back(id, event.Is<IntEvent>() ? event.As<IntEvent>().value : -1);
         });
     world.System().With<float>().OnEvent<IntEvent>().ForEach([]() { REQUIRE(false); });
     world.System().With<int>().OnEvent<FloatEvent, TestEvent>().ForEach(
         [&](EntityId id, const Event& event) {
-            data[calls++] = {id, event.Is<FloatEvent>() ? int(event.As<FloatEvent>().value) : -1};
+            data.emplace_back(id, event.Is<FloatEvent>() ? int(event.As<FloatEvent>().value) : -1);
         });
 
     world.OrderSystems();
@@ -212,11 +211,11 @@ TEST_CASE_METHOD(WorldFixture, "Unicast event deffered", "[Event]")
     world.Emit<TestEvent>(entt4, {});
     world.Emit<FloatEvent>(entt1, {3});
 
-    REQUIRE(calls == 0);
+    REQUIRE(data.size() == 0);
 
     world.ProcessDefferedEvents();
 
-    REQUIRE(calls == 5);
+    REQUIRE(data.size() == 5);
     REQUIRE(data[0].first == entt3.GetId());
     REQUIRE(data[0].second == 1);
     REQUIRE(data[1].first == entt2.GetId());
