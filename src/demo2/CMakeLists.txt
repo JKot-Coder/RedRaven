@@ -7,7 +7,8 @@ set(SRC
 source_group("" FILES ${SRC})
 
 set(LIBRARIES
-    common)
+    common
+    ecs)
 
 #=============================== Target ===============================#
 
