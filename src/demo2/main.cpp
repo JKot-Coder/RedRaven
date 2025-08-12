@@ -1,8 +1,12 @@
+#include "Application.hpp"
+
 int entryPoint(int argc, char** argv)
 {
     UNUSED(argc);
     UNUSED(argv);
-    return 0;
+
+    RR::App::Application app;
+    return app.Run();
 }
 
 #if defined(OS_WINDOWS) && defined(UNICODE)

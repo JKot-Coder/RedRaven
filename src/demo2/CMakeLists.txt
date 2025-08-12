@@ -1,6 +1,8 @@
 project(demo2)
 
 set(SRC
+    Application.cpp
+    Application.hpp
     main.cpp)
 source_group("" FILES ${SRC})
 
