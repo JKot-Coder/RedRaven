@@ -559,7 +559,8 @@ namespace RR::Ecs
         if (it == record.GetArchetype(false)->cache.end())
             return;
 
-        for (const auto systemId : it->second)
+        auto& subscribers = it->second;
+        for (const auto systemId : subscribers)
             dispatchEventImmediately(entity, systemId, event);
     }
 }
