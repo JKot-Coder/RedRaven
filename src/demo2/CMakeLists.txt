@@ -8,7 +8,8 @@ source_group("" FILES ${SRC})
 
 set(LIBRARIES
     common
-    ecs)
+    ecs
+    ecs_window)
 
 #=============================== Target ===============================#
 
