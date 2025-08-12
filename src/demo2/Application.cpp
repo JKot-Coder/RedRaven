@@ -22,6 +22,14 @@ namespace RR::App
 
     void Init(Ecs::World& world)
     {
+        world.System()
+            .OnEvent<Ecs::WindowModule::Window::Close>()
+            .With<Ecs::WindowModule::Window>()
+            .With<MainWindow>()
+            .ForEach([](Ecs::World& world) {
+                world.Emit<Quit>({});
+            });
+
         world.System().OnEvent<Quit>().With<Application>().ForEach([]() {
             Application::quit = true;
         });
