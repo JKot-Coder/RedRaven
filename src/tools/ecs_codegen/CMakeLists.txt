@@ -1,7 +1,7 @@
 project(ecs_codegen)
 
 set(SRC main.cpp)
-set(ECS_CPP_FILES test.ecs.cpp)
+set(ECS_CPP_FILES)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
@@ -24,3 +24,4 @@ foreach(ECS_CPP ${ECS_CPP_FILES})
 endforeach()
 
 add_executable(${PROJECT_NAME} ${SRC} ${GEN_CPP_FILES})
+target_link_libraries(${PROJECT_NAME} meta)
