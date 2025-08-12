@@ -128,25 +128,36 @@ TEST_CASE_METHOD(WorldFixture, "Broadcast event deffered", "[Event]")
     REQUIRE(data[3] == 4);
 }
 
-TEST_CASE_METHOD(WorldFixture, "Unicast event", "[Event]")
+TEST_CASE_METHOD(WorldFixture, "Unicast event immediate simple", "[Event]")
 {
-    int calls = 0;
-
     // Test cache
+    eastl::vector<EntityId> entities;
 
     // archetype created first
     const auto entt1 = world.Entity().Add<int>(1).Apply();
-    world.System().With<int>().OnEvent<TestEvent>().ForEach([&]() { calls++; });
-    world.OrderSystems();
-    world.EmitImmediately<TestEvent>(entt1, {});
+    const auto entt2 = world.Entity().Add<int>(1).Apply();
+    const auto entt3 = world.Entity().Add<int>(1).Apply();
 
-    // system created first
-    world.System().With<float>().OnEvent<TestEvent>().ForEach([&]() { calls++; });
+    world.System().With<int>().OnEvent<TestEvent>().ForEach([&](EntityId id) { entities.push_back(id); });
     world.OrderSystems();
-    const auto entt2 = world.Entity().Add<float>(1.0f).Apply();
+    world.EmitImmediately<TestEvent>(entt3, {});
     world.EmitImmediately<TestEvent>(entt2, {});
 
-    REQUIRE(calls == 2);
+    // system created first
+    world.System().With<float>().OnEvent<TestEvent>().ForEach([&](EntityId id) { entities.push_back(id); });
+    world.OrderSystems();
+    const auto entt4 = world.Entity().Add<float>(1.0f).Apply();
+    const auto entt5 = world.Entity().Add<float>(1.0f).Apply();;
+    world.EmitImmediately<TestEvent>(entt4, {});
+    world.EmitImmediately<TestEvent>(entt1, {});
+    world.EmitImmediately<TestEvent>(entt5, {});
+
+    REQUIRE(entities.size() == 5);
+    REQUIRE(entities[0] == entt3.GetId());
+    REQUIRE(entities[1] == entt2.GetId());
+    REQUIRE(entities[2] == entt4.GetId());
+    REQUIRE(entities[3] == entt1.GetId());
+    REQUIRE(entities[4] == entt5.GetId());
 }
 
 TEST_CASE_METHOD(WorldFixture, "Unicast event immediate", "[Event]")
