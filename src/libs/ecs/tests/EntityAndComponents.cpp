@@ -30,8 +30,8 @@ TEST_CASE("Create Entity", "[Entity]")
         Entity entt2 = world.EmptyEntity();
         Entity entt3 = world.EmptyEntity();
         REQUIRE(entt1.GetId());
-        REQUIRE(entt2.GetId().GetRawId() == entt1.GetId().GetRawId() + 1);
-        REQUIRE(entt3.GetId().GetRawId() == entt2.GetId().GetRawId() + 1);
+        REQUIRE(entt2.GetId().GetRaw() == entt1.GetId().GetRaw() + 1);
+        REQUIRE(entt3.GetId().GetRaw() == entt2.GetId().GetRaw() + 1);
     };
 
     auto check = [](World&) { };

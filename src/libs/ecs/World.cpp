@@ -179,7 +179,7 @@ namespace RR::Ecs
 
         eastl::vector<SystemHandle> tmpSystemList;
         Ecs::Query(*this, systemsQuery).ForEach([&tmpSystemList](EntityId id, const SystemDescription& desc, const HashName& hashName) {
-            tmpSystemList.emplace_back(desc, SystemId(id.GetRawId()), hashName);
+            tmpSystemList.emplace_back(desc, SystemId(id.GetRaw()), hashName);
         });
 
         // Sort by id to avoid depending on native ES registration order
@@ -316,7 +316,7 @@ namespace RR::Ecs
                                .Add<HashName>(eastl::forward<HashName>(name))
                                .Apply();
 
-        const auto systemId = SystemId(entt.GetId().GetRawId());
+        const auto systemId = SystemId(entt.GetId().GetRaw());
         initCache(systemId);
 
         systemsOrderDirty = true;
@@ -332,7 +332,7 @@ namespace RR::Ecs
                                .Add<MatchedArchetypeCache>()
                                .Apply();
 
-        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().GetRawId()));
+        const auto queryId = QueryId(QueryId::FromValue(entt.GetId().GetRaw()));
         initCache(queryId);
 
         return Ecs::Query(*this, queryId);
@@ -394,7 +394,7 @@ namespace RR::Ecs
             if LIKELY (!matches(archetype, view))
                 return;
 
-            const SystemId systemId = SystemId(id.GetRawId());
+            const SystemId systemId = SystemId(id.GetRaw());
             cache.push_back(&archetype);
 
             for (const auto event : systemDesc.onEvents)

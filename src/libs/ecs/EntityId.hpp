@@ -26,7 +26,7 @@ namespace RR::Ecs
 
         [[nodiscard]] uint32_t GetGeneration() const { return fields.generation; }
         [[nodiscard]] uint32_t GetIndex() const { return fields.index; }
-        [[nodiscard]] uint32_t GetRawId() const { return rawId; }
+        [[nodiscard]] uint32_t GetRaw() const { return rawId; }
         [[nodiscard]] explicit operator bool() const { return rawId != InvalidRawId; }
 
         bool operator==(const EntityId& other) const { return rawId == other.rawId; }

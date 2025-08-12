@@ -62,7 +62,7 @@ TEST_CASE_METHOD(WorldFixture, "Components", "[Meta]")
         {
             if (element.GetComponentId() == Meta::GetComponentId<EntityId>)
             {
-                results.push_back(element.Cast<EntityId>().GetRawId());
+                results.push_back(element.Cast<EntityId>().GetRaw());
             }
             else if (element.GetComponentId() == Meta::GetComponentId<Foo>)
             {
@@ -75,7 +75,7 @@ TEST_CASE_METHOD(WorldFixture, "Components", "[Meta]")
     });
 
     REQUIRE(results.size() == 4);
-    REQUIRE(results[0] == entity.GetId().GetRawId());
+    REQUIRE(results[0] == entity.GetId().GetRaw());
     REQUIRE(results[1] == 123);
     REQUIRE(results[2] == 234);
     REQUIRE(results[3] == 345);

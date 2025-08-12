@@ -108,10 +108,10 @@ namespace RR::Ecs
             switch (command->type)
             {
                 case CommandType::DestroyEntity:
-                Log::Format::Info("Destroy {} \n", static_cast<DestroyEntityCommand*>(command)->entityId.GetRawId());
+                Log::Format::Info("Destroy {} \n", static_cast<DestroyEntityCommand*>(command)->entityId.GetRaw());
                break;
                 case CommandType::MutateEntity:
-            Log::Format::Info("Mutate {} \n", static_cast<MutateEntityCommand*>(command)->entityId.GetRawId());
+            Log::Format::Info("Mutate {} \n", static_cast<MutateEntityCommand*>(command)->entityId.GetRaw());
                 break;
             }
 */
