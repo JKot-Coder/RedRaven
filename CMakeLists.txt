@@ -11,6 +11,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/MP>")
 message(warning ${CMAKE_BINARY_DIR})
 
 include(FetchContent)
+include(cmake/CPM.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
