@@ -12,7 +12,7 @@ namespace RR::Ecs::WindowModule
     };
     struct Window
     {
-        GLFWwindow* window_ = nullptr;
+        GLFWwindow* glfwWindow = nullptr;
     };
 
     void Init(World& world);

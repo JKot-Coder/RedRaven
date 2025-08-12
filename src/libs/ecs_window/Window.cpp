@@ -28,11 +28,12 @@ namespace RR::Ecs::WindowModule
     void InitWindow(World& world)
     {
         world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Window& window) {
-            window.window_ = glfwCreateWindow(800, 600, "", nullptr, nullptr);
+            GLFWwindow* glfwWindow = glfwCreateWindow(800, 600, "", nullptr, nullptr);
+            window.glfwWindow = glfwWindow;
         });
 
         world.System().OnEvent<OnDissapear>().With<Window>().ForEach([](Window& window) {
-            glfwDestroyWindow(window.window_);
+            glfwDestroyWindow(window.glfwWindow);
         });
     }
 
