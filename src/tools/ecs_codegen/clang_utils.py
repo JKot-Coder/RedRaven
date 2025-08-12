@@ -15,7 +15,7 @@ clang_options = (TU.PARSE_DETAILED_PROCESSING_RECORD
 debug_mode = True
 def dbg(*args, **kwargs):
     if debug_mode:
-        print(*args, **kwargs, file=sys.stderr)
+        print(*args, **kwargs, file=sys.stderr, flush=True)
 
 def get_output(cmd):
     status, output = subprocess.getstatusoutput(cmd)
@@ -145,27 +145,24 @@ def parse_file(filename, args=[], options=clang_options):
     def _e(diags=None):
         msg = "{}: parse error: {}"
         msg = msg.format(filename, get_diagnostics_string(diags))
-        if args:
-            msg += "{}: args={}".format(filename, args)
         return msg
 
-    _dbg("creating index...")
+    dbg("creating index...")
     idx = clang.cindex.Index.create()
-    _dbg("successfully created index.")
+    dbg("successfully created index.")
     tu = None
     try:
        # if util.is_hdr(filename):
        #     options |= TU.PARSE_INCOMPLETE
-        _dbg("starting parse")
+        dbg("starting parse")
         tu = idx.parse(path=filename, args=args, options=options)
-        _dbg("finished parse")
+        dbg("finished parse")
         if tu.diagnostics:
-            logerr(_e(tu.diagnostics))
+            dbg(_e(tu.diagnostics))
     except Exception as e:
         if tu:
-            raise Exception(_e(tu.diagnostics))
-        raise Exception(e)
+            dbg(_e(tu.diagnostics))
+        dbg(e)
     if not tu:
         raise Exception("Unknown error")
     return tu
-
