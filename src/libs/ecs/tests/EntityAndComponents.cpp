@@ -234,13 +234,10 @@ TEST_CASE("Add and remove components at the same time", "[Entity]")
     SECTION("Deffered") { defferedTest(test, check); }
 }
 
-struct SingletonComponent2 {
-    int x;
-};
-
-TEST_CASE_METHOD(WorldFixture, "Sturct", "[Components]")
+TEST_CASE_METHOD(WorldFixture, "Create entity with struct", "[Components]")
 {
-    world.Entity().Add<SingletonComponent2>(565).Apply();
+    struct Foo { int x; };
+    world.Entity().Add<Foo>(565).Apply();
 }
 
 TEST_CASE("NonTrivial Components", "[Components]")
