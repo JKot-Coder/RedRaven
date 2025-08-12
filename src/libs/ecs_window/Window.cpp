@@ -2,16 +2,46 @@
 
 #include "ecs/Ecs.hpp"
 #include <GLFW/glfw3.h>
-namespace RR::Ecs
+namespace RR::Ecs::WindowModule
 {
-    void InitWindowModule(World& world)
+
+    struct Glfw
+    {
+        ECS_SINGLETON;
+    };
+
+    void InitGlfw(World& world)
+    {
+        world.System().OnEvent<OnAppear>().With<Glfw>().ForEach([]() {
+            glfwInit();
+        });
+
+        world.System().OnEvent<OnDissapear>().With<Glfw>().ForEach([]() {
+            glfwTerminate();
+        });
+
+        world.System().OnEvent<Tick>().With<Glfw>().ForEach([]() {
+            glfwPollEvents();
+        });
+    }
+
+    void InitWindow(World& world)
     {
         world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Window& window) {
-            window.window_ = glfwCreateWindow(100, 100, "Hello", nullptr, nullptr);
+            window.window_ = glfwCreateWindow(800, 600, "", nullptr, nullptr);
         });
 
         world.System().OnEvent<OnDissapear>().With<Window>().ForEach([](Window& window) {
             glfwDestroyWindow(window.window_);
         });
+    }
+
+    void Init(World& world)
+    {
+        InitGlfw(world);
+        InitWindow(world);
+
+        world.OrderSystems();
+        world.Entity().Add<Glfw>().Apply();
     }
 }
