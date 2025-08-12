@@ -21,6 +21,7 @@ set(LIBRARIES
     render
     imgui::imgui
     ecs_module
+    ecs_imgui
     )
 
 if (WIN32)
