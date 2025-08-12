@@ -79,6 +79,19 @@
                 "kind": "build"
             },
             "problemMatcher": [],
+        },
+        {
+            "type": "cmake",
+            "label": "CMake: build demo2",
+            "command": "build",
+            "targets": [
+                "demo2"
+            ],
+            "preset": "${command:cmake.activeBuildPresetName}",
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": [],
         }
     ],
     "version": "2.0.0"
