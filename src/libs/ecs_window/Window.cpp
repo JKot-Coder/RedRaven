@@ -4,10 +4,14 @@
 #include <GLFW/glfw3.h>
 namespace RR::Ecs::WindowModule
 {
-
     struct Glfw
     {
         ECS_SINGLETON;
+    };
+
+    struct GlfwHandler
+    {
+        Ecs::Entity windowEntity;
     };
 
     void InitGlfw(World& world)
@@ -25,14 +29,30 @@ namespace RR::Ecs::WindowModule
         });
     }
 
+    Ecs::Entity GetWindowEntity(GLFWwindow* glfwWindow)
+    {
+        const auto handler = static_cast<GlfwHandler*>(glfwGetWindowUserPointer(glfwWindow));
+        ASSERT(handler);
+
+        return handler->windowEntity;
+    }
     void InitWindow(World& world)
     {
-        world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Window& window) {
+        world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window) {
+            Ecs::Entity windowEntity = world.GetEntity(id); // Todo remove this boilerplate
+
             GLFWwindow* glfwWindow = glfwCreateWindow(800, 600, "", nullptr, nullptr);
+
+            glfwSetWindowUserPointer(glfwWindow, new GlfwHandler {windowEntity});
             window.glfwWindow = glfwWindow;
         });
 
         world.System().OnEvent<OnDissapear>().With<Window>().ForEach([](Window& window) {
+            const auto handler = static_cast<GlfwHandler*>(glfwGetWindowUserPointer(window.glfwWindow));
+            ASSERT(handler);
+
+            delete handler;
+
             glfwDestroyWindow(window.glfwWindow);
         });
     }
