@@ -113,5 +113,6 @@
             "icon": "terminal-cmd"
         }
     },
-    "terminal.integrated.defaultProfile.windows": "Developer Command Prompt"
+    "terminal.integrated.defaultProfile.windows": "Developer Command Prompt",
+    "cmake.buildArgs": ["-j"]
 }
