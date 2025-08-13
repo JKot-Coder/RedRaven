@@ -18,7 +18,7 @@ namespace RR
             ASSERT(description.isStereo == false);
             ASSERT(description.bufferCount <= MAX_BACK_BUFFER_COUNT);
             ASSERT(description.gpuResourceFormat != GpuResourceFormat::Unknown);
-            ASSERT(description.window);
+            ASSERT(description.windowNativeHandle.has_value());
         }
 
         // Todo comment about multhreading
@@ -28,7 +28,11 @@ namespace RR
             ASSERT(description.isStereo == description_.isStereo);
             ASSERT(description.bufferCount == description_.bufferCount);
             ASSERT(description.gpuResourceFormat == description_.gpuResourceFormat);
-            ASSERT(description.window == description_.window);
+#if OS_WINDOWS
+            ASSERT(eastl::any_cast<HWND>(description.windowNativeHandle) == eastl::any_cast<HWND>(description_.windowNativeHandle));
+#else
+            static_assert(false, "Unsupported platform");
+#endif
 
             GetPrivateImpl()->Reset(description, backBuffers_);
 
