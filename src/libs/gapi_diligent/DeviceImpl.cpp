@@ -47,11 +47,11 @@ namespace RR::GAPI::Diligent
             EngineCI.SetValidationLevel(static_cast<DL::VALIDATION_LEVEL>(m_ValidationLevel));
 
         EngineCI.AdapterId = DL::DEFAULT_ADAPTER_ID;
-        EngineCI.NumImmediateContexts = 1;
+        EngineCI.NumImmediateContexts = 0;
         EngineCI.NumDeferredContexts = 0;
 
-        std::vector<DL::IDeviceContext*> ppContexts;
-        ppContexts.resize(EngineCI.NumImmediateContexts + EngineCI.NumDeferredContexts);
+        eastl::vector<DL::IDeviceContext*> ppContexts;
+        ppContexts.resize(RR::Max(1u, EngineCI.NumImmediateContexts) + EngineCI.NumDeferredContexts);
         pFactoryD3D12->CreateDeviceAndContextsD3D12(EngineCI, &device, ppContexts.data());
 
         if (!device)
