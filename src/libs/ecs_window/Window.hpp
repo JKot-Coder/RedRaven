@@ -3,6 +3,8 @@
 #include "ecs/ForwardDeclarations.hpp"
 #include "ecs/Event.hpp"
 
+#include "EASTL/any.h"
+
 struct GLFWwindow;
 namespace RR::Ecs::WindowModule
 {
@@ -18,6 +20,7 @@ namespace RR::Ecs::WindowModule
         };
 
         GLFWwindow* glfwWindow = nullptr;
+        eastl::any nativeHandle;
     };
 
     void Init(World& world);

@@ -1,7 +1,16 @@
 #include "Window.hpp"
 
 #include "ecs/Ecs.hpp"
+
+
+#ifdef OS_WINDOWS
+#define GLFW_EXPOSE_NATIVE_WIN32
+#elif OS_APPLE
+#define GLFW_EXPOSE_NATIVE_COCOA
+#endif
+
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 namespace RR::Ecs::WindowModule
 {
     struct Glfw
@@ -42,6 +51,17 @@ namespace RR::Ecs::WindowModule
         GetWindowEntity(glfwWindow).Emit<Window::Close>({});
     }
 
+    eastl::any getNativeHandle(GLFWwindow* glfwWindow)
+    {
+#if OS_WINDOWS
+        return glfwGetWin32Window(glfwWindow);
+#elif OS_APPLE
+        return glfwGetCocoaWindow(glfwWindow);
+#else
+        return nullptr;
+#endif
+    }
+
     void InitWindow(World& world)
     {
         world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window) {
@@ -53,6 +73,7 @@ namespace RR::Ecs::WindowModule
             glfwSetWindowCloseCallback(glfwWindow, &windowCloseCallback);
 
             window.glfwWindow = glfwWindow;
+            window.nativeHandle = getNativeHandle(glfwWindow);
         });
 
         world.System().OnEvent<OnDissapear>().With<Window>().ForEach([](Window& window) {
