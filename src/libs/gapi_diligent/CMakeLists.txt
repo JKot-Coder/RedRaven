@@ -5,6 +5,8 @@ set(SRC
     Device.hpp
     DeviceImpl.cpp
     DeviceImpl.hpp
+    SwapChainImpl.cpp
+    SwapChainImpl.hpp
     empty.cpp)
 source_group( "" FILES ${SRC} )
 

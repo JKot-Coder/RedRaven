@@ -1,4 +1,5 @@
 #include "DeviceImpl.hpp"
+#include "SwapChainImpl.hpp"
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
@@ -125,8 +126,9 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::InitSwapChain(SwapChain& resource) const
     {
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<SwapChainImpl>();
+        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), resource.GetName());
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitTexture(const eastl::shared_ptr<Texture>& resource) const

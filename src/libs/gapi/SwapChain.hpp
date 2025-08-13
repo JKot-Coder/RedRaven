@@ -83,6 +83,7 @@ namespace RR
             std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
 
             friend class Render::DeviceContext;
+            friend class RenderLoom::DeviceContext;
         };
     }
 }
