@@ -7,8 +7,8 @@ namespace RR
 {
     namespace GAPI
     {
-        INLINE void CopyCommandList::CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
-                                                      const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes)
+        INLINE void CopyCommandList::CopyBufferRegion(const eastl::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                                      const eastl::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes)
         {
             ASSERT(sourceBuffer);
             ASSERT(destBuffer);
@@ -16,7 +16,7 @@ namespace RR
             GetPrivateImpl()->CopyBufferRegion(sourceBuffer, sourceOffset, destBuffer, destOffset, numBytes);
         }
 
-        INLINE void CopyCommandList::CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest)
+        INLINE void CopyCommandList::CopyGpuResource(const eastl::shared_ptr<GpuResource>& source, const eastl::shared_ptr<GpuResource>& dest)
         {
             ASSERT(source);
             ASSERT(dest);
@@ -24,8 +24,8 @@ namespace RR
             GetPrivateImpl()->CopyGpuResource(source, dest);
         }
 
-        INLINE void CopyCommandList::CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
-                                                            const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx)
+        INLINE void CopyCommandList::CopyTextureSubresource(const eastl::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                                            const eastl::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx)
         {
 #ifdef ENABLE_ASSERTS
             ASSERT(sourceTexture);
@@ -69,8 +69,8 @@ namespace RR
 #endif
         }
 
-        INLINE void CopyCommandList::CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
-                                                                  const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
+        INLINE void CopyCommandList::CopyTextureSubresourceRegion(const eastl::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                                                  const eastl::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint)
         {
             ASSERT(sourceTexture);
             ASSERT(destTexture);

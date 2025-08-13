@@ -471,13 +471,13 @@ namespace RR
         class GpuResource : public Resource<IGpuResource>
         {
         public:
-            using SharedPtr = std::shared_ptr<GpuResource>;
-            using SharedConstPtr = std::shared_ptr<const GpuResource>;
-            using WeakPtr = std::weak_ptr<GpuResource>;
+            using SharedPtr = eastl::shared_ptr<GpuResource>;
+            using SharedConstPtr = eastl::shared_ptr<const GpuResource>;
+            using WeakPtr = eastl::weak_ptr<GpuResource>;
 
         public:
             template <typename Type>
-            std::shared_ptr<Type> GetTyped();
+            eastl::shared_ptr<Type> GetTyped();
 
             inline const GpuResourceDescription& GetDescription() const { return description_; }
             inline IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
@@ -507,17 +507,17 @@ namespace RR
             GpuResourceDescription description_;
             IDataBuffer::SharedPtr initialData_;
 
-            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
-            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;
-            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<DepthStencilView>, GpuResourceViewDescription::HashFunc> dsvs_;
-            std::unordered_map<GpuResourceViewDescription, std::shared_ptr<UnorderedAccessView>, GpuResourceViewDescription::HashFunc> uavs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<DepthStencilView>, GpuResourceViewDescription::HashFunc> dsvs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<UnorderedAccessView>, GpuResourceViewDescription::HashFunc> uavs_;
         };
 
         template <>
-        std::shared_ptr<Texture> GpuResource::GetTyped<Texture>();
+        eastl::shared_ptr<Texture> GpuResource::GetTyped<Texture>();
 
         template <>
-        std::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>();
+        eastl::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>();
 
         class GpuResourceDataGuard : public IDataBuffer
         {

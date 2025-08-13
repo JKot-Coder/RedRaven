@@ -18,7 +18,7 @@ namespace RR
     {
         struct SwapChainDescription
         {
-            std::shared_ptr<Platform::Window> window;
+            eastl::shared_ptr<Platform::Window> window;
 
             uint32_t width;
             uint32_t height;
@@ -29,7 +29,7 @@ namespace RR
 
         public:
             SwapChainDescription() = default;
-            SwapChainDescription(const std::shared_ptr<Platform::Window>& window, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
+            SwapChainDescription(const eastl::shared_ptr<Platform::Window>& window, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
                 : window(window),
                   width(width),
                   height(height),
@@ -48,17 +48,17 @@ namespace RR
             virtual uint32_t GetCurrentBackBufferIndex() const = 0;
             virtual std::any GetWaitableObject() const = 0;
 
-            virtual void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) = 0;
-            virtual void Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
+            virtual void InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource) = 0;
+            virtual void Reset(const SwapChainDescription& description, const std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain>
         {
         public:
-            using SharedPtr = std::shared_ptr<SwapChain>;
-            using SharedConstPtr = std::shared_ptr<const SwapChain>;
+            using SharedPtr = eastl::shared_ptr<SwapChain>;
+            using SharedConstPtr = eastl::shared_ptr<const SwapChain>;
 
-            std::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
+            eastl::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
 
             const SwapChainDescription& GetDescription() const { return description_; }
             uint32_t GetCurrentBackBufferIndex() const { return GetPrivateImpl()->GetCurrentBackBufferIndex(); }
@@ -76,11 +76,11 @@ namespace RR
 
             void Reset(const SwapChainDescription& description);
 
-            inline void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
+            inline void InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource) { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
 
         private:
             SwapChainDescription description_;
-            std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
+            std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
 
             friend class Render::DeviceContext;
         };

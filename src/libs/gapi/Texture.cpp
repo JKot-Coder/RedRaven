@@ -54,7 +54,7 @@ namespace RR::GAPI
         {
             auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            srvs_[viewDesc] = deviceContext.CreateShaderResourceView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            srvs_[viewDesc] = deviceContext.CreateShaderResourceView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return srvs_[viewDesc];
@@ -69,7 +69,7 @@ namespace RR::GAPI
         {
             auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            dsvs_[viewDesc] = deviceContext.CreateDepthStencilView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            dsvs_[viewDesc] = deviceContext.CreateDepthStencilView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return dsvs_[viewDesc];
@@ -83,7 +83,7 @@ namespace RR::GAPI
         {
             auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            rtvs_[viewDesc] = deviceContext.CreateRenderTargetView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            rtvs_[viewDesc] = deviceContext.CreateRenderTargetView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return rtvs_[viewDesc];
@@ -97,7 +97,7 @@ namespace RR::GAPI
         {
             auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(std::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return uavs_[viewDesc];

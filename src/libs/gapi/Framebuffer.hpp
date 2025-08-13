@@ -126,7 +126,7 @@ namespace RR::GAPI
     class Framebuffer final : public Resource<IFramebuffer, false>
     {
     public:
-        using SharedPtr = std::shared_ptr<Framebuffer>;
+        using SharedPtr = eastl::shared_ptr<Framebuffer>;
 
         static constexpr uint32_t MaxRenderTargets = FramebufferDesc::MaxRenderTargets;
 

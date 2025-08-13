@@ -330,18 +330,18 @@ namespace RR
             return true;
         }
 
-        template <> std::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
+        template <> eastl::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
         {
             ASSERT(description_.IsTexture());
             // TODO inherit_shared_from_this
-            return std::static_pointer_cast<Texture>(shared_from_this());
+            return eastl::static_pointer_cast<Texture>(shared_from_this());
         }
 
-        template <> std::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>()
+        template <> eastl::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>()
         {
             ASSERT(description_.IsBuffer());
             // TODO inherit_shared_from_this
-            return std::static_pointer_cast<Buffer>(shared_from_this());
+            return eastl::static_pointer_cast<Buffer>(shared_from_this());
         }
     }
 }

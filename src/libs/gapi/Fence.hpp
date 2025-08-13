@@ -23,8 +23,8 @@ namespace RR
         class Fence final : public Resource<IFence>
         {
         public:
-            using SharedPtr = std::shared_ptr<Fence>;
-            using SharedConstPtr = std::shared_ptr<const Fence>;
+            using SharedPtr = eastl::shared_ptr<Fence>;
+            using SharedConstPtr = eastl::shared_ptr<const Fence>;
 
             inline void Wait(std::optional<uint64_t> value, uint32_t timeout = GAPI::INFINITY_WAIT) const { return GetPrivateImpl()->Wait(value, timeout); }
 

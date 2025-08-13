@@ -27,7 +27,7 @@ namespace RR
                 return result;
             }
 
-            void check(const GpuResourceViewDescription& desc, const std::weak_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
+            void check(const GpuResourceViewDescription& desc, const eastl::weak_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
             {
                 #if ENABLE_ASSERTS
                     ASSERT(!gpuResource.expired());
@@ -58,7 +58,7 @@ namespace RR
         }
 
         ShaderResourceView::ShaderResourceView(
-            const std::weak_ptr<GpuResource>& gpuResource,
+            const eastl::weak_ptr<GpuResource>& gpuResource,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
@@ -67,7 +67,7 @@ namespace RR
         }
 
         DepthStencilView::DepthStencilView(
-            const std::weak_ptr<Texture>& texture,
+            const eastl::weak_ptr<Texture>& texture,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
@@ -76,7 +76,7 @@ namespace RR
         }
 
         RenderTargetView::RenderTargetView(
-            const std::weak_ptr<Texture>& texture,
+            const eastl::weak_ptr<Texture>& texture,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
         {
@@ -85,7 +85,7 @@ namespace RR
         }
 
         UnorderedAccessView::UnorderedAccessView(
-            const std::weak_ptr<GpuResource>& gpuResource,
+            const eastl::weak_ptr<GpuResource>& gpuResource,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {

@@ -2,7 +2,7 @@
 
 namespace RR::GAPI
 {
-    class Object : public std::enable_shared_from_this<Object>, public Common::NonCopyable
+    class Object : public eastl::enable_shared_from_this<Object>, public Common::NonCopyable
     {
     public:
         enum class Type
@@ -20,8 +20,8 @@ namespace RR::GAPI
         };
 
     public:
-        using SharedPtr = std::shared_ptr<Object>;
-        using SharedConstPtr = std::shared_ptr<const Object>;
+        using SharedPtr = eastl::shared_ptr<Object>;
+        using SharedConstPtr = eastl::shared_ptr<const Object>;
 
         Object() = delete;
         virtual ~Object() = default;

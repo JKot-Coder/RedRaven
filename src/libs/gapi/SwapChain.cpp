@@ -53,7 +53,7 @@ namespace RR
             auto& deviceContext = Render::DeviceContext::Instance();
 
             backBuffers_[index] = deviceContext.CreateSwapChainBackBuffer(
-                std::static_pointer_cast<SwapChain>(shared_from_this()),
+                eastl::static_pointer_cast<SwapChain>(shared_from_this()),
                 index,
                 desc,
                 fmt::sprintf("%s BackBufferTexture:%d", GetName(), index)); // TODO move it

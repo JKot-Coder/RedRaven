@@ -34,35 +34,35 @@ namespace RR
             // Copy command list
             // ---------------------------------------------------------------------------------------------
 
-            virtual void CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest) = 0;
-            virtual void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
-                                          const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes) = 0;
-            virtual void CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
-                                                const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) = 0;
-            virtual void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
-                                                      const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
+            virtual void CopyGpuResource(const eastl::shared_ptr<GpuResource>& source, const eastl::shared_ptr<GpuResource>& dest) = 0;
+            virtual void CopyBufferRegion(const eastl::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                          const eastl::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes) = 0;
+            virtual void CopyTextureSubresource(const eastl::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                                const eastl::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx) = 0;
+            virtual void CopyTextureSubresourceRegion(const eastl::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                                      const eastl::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint) = 0;
 
             // ---------------------------------------------------------------------------------------------
             // Compute command list
             // ---------------------------------------------------------------------------------------------
 
-            virtual void ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) = 0;
-            virtual void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) = 0;
+            virtual void ClearUnorderedAccessViewUint(const eastl::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) = 0;
+            virtual void ClearUnorderedAccessViewFloat(const eastl::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) = 0;
 
             // ---------------------------------------------------------------------------------------------
             // Graphics command list
             // ---------------------------------------------------------------------------------------------
 
-            virtual void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) = 0;
-            virtual void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer, size_t offset = 0) = 0;
-            virtual void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
+            virtual void SetFrameBuffer(const eastl::shared_ptr<Framebuffer>& framebuffer) = 0;
+            virtual void SetIndexBuffer(const eastl::shared_ptr<Buffer>& buffer, size_t offset = 0) = 0;
+            virtual void ClearRenderTargetView(const eastl::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
 
         class CommandList : public Resource<ICommandList>
         {
         public:
-            using SharedPtr = std::shared_ptr<CommandList>;
-            using SharedConstPtr = std::shared_ptr<const CommandList>;
+            using SharedPtr = eastl::shared_ptr<CommandList>;
+            using SharedConstPtr = eastl::shared_ptr<const CommandList>;
 
             inline CommandListType GetCommandListType() const { return type_; };
             inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
@@ -83,17 +83,17 @@ namespace RR
         class CopyCommandList : public CommandList
         {
         public:
-            using SharedPtr = std::shared_ptr<CopyCommandList>;
-            using SharedConstPtr = std::shared_ptr<const CopyCommandList>;
+            using SharedPtr = eastl::shared_ptr<CopyCommandList>;
+            using SharedConstPtr = eastl::shared_ptr<const CopyCommandList>;
 
-            void CopyGpuResource(const std::shared_ptr<GpuResource>& source, const std::shared_ptr<GpuResource>& dest);
+            void CopyGpuResource(const eastl::shared_ptr<GpuResource>& source, const eastl::shared_ptr<GpuResource>& dest);
 
-            void CopyBufferRegion(const std::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
-                                  const std::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes);
-            void CopyTextureSubresource(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
-                                        const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx);
-            void CopyTextureSubresourceRegion(const std::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
-                                              const std::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint);
+            void CopyBufferRegion(const eastl::shared_ptr<Buffer>& sourceBuffer, uint32_t sourceOffset,
+                                  const eastl::shared_ptr<Buffer>& destBuffer, uint32_t destOffset, uint32_t numBytes);
+            void CopyTextureSubresource(const eastl::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx,
+                                        const eastl::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx);
+            void CopyTextureSubresourceRegion(const eastl::shared_ptr<Texture>& sourceTexture, uint32_t sourceSubresourceIdx, const Box3u& sourceBox,
+                                              const eastl::shared_ptr<Texture>& destTexture, uint32_t destSubresourceIdx, const Vector3u& destPoint);
 
         private:
             static SharedPtr Create(const std::string& name)
@@ -114,11 +114,11 @@ namespace RR
         class ComputeCommandList : public CopyCommandList
         {
         public:
-            using SharedPtr = std::shared_ptr<ComputeCommandList>;
-            using SharedConstPtr = std::shared_ptr<const ComputeCommandList>;
+            using SharedPtr = eastl::shared_ptr<ComputeCommandList>;
+            using SharedConstPtr = eastl::shared_ptr<const ComputeCommandList>;
 
-            inline void ClearUnorderedAccessViewUint(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewUint(unorderedAcessView, clearValue); }
-            inline void ClearUnorderedAccessViewFloat(const std::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewFloat(unorderedAcessView, clearValue); };
+            inline void ClearUnorderedAccessViewUint(const eastl::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4u& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewUint(unorderedAcessView, clearValue); }
+            inline void ClearUnorderedAccessViewFloat(const eastl::shared_ptr<UnorderedAccessView>& unorderedAcessView, const Vector4& clearValue) { GetPrivateImpl()->ClearUnorderedAccessViewFloat(unorderedAcessView, clearValue); };
 
         private:
             static SharedPtr Create(const std::string& name)
@@ -139,12 +139,12 @@ namespace RR
         class GraphicsCommandList final : public ComputeCommandList
         {
         public:
-            using SharedPtr = std::shared_ptr<GraphicsCommandList>;
-            using SharedConstPtr = std::shared_ptr<const GraphicsCommandList>;
+            using SharedPtr = eastl::shared_ptr<GraphicsCommandList>;
+            using SharedConstPtr = eastl::shared_ptr<const GraphicsCommandList>;
 
-            inline void SetFrameBuffer(const std::shared_ptr<Framebuffer>& framebuffer) { GetPrivateImpl()->SetFrameBuffer(framebuffer); }
-            inline void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer, size_t offset = 0) { GetPrivateImpl()->SetIndexBuffer(buffer, offset); }
-            inline void ClearRenderTargetView(const std::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
+            inline void SetFrameBuffer(const eastl::shared_ptr<Framebuffer>& framebuffer) { GetPrivateImpl()->SetFrameBuffer(framebuffer); }
+            inline void SetIndexBuffer(const eastl::shared_ptr<Buffer>& buffer, size_t offset = 0) { GetPrivateImpl()->SetIndexBuffer(buffer, offset); }
+            inline void ClearRenderTargetView(const eastl::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 
         private:
             static SharedPtr Create(const std::string& name)

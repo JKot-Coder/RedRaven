@@ -238,7 +238,7 @@ namespace RR
         }
 
         GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(
-            const std::shared_ptr<GAPI::SwapChain>& swapchain,
+            const eastl::shared_ptr<GAPI::SwapChain>& swapchain,
             uint32_t backBufferIndex,
             const GAPI::GpuResourceDescription& desc,
             const std::string& name) const
