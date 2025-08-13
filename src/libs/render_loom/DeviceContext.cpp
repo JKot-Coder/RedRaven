@@ -17,7 +17,12 @@ namespace RR::RenderLoom
 
         // Todo: select device based on description
         // Todo: do it in submission thread
-        GAPI::Diligent::InitDevice(device);
+        if(!GAPI::Diligent::InitDevice(device))
+        {
+            Log::Format::Error("Failed to initialize device");
+            return;
+        }
+
         inited = true;
     }
 
