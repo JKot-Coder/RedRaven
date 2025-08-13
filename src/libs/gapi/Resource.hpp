@@ -2,7 +2,7 @@
 
 #include "gapi/Object.hpp"
 
-#include <condition_variable>
+#include "EASTL/type_traits.h"
 
 namespace RR
 {
@@ -32,14 +32,14 @@ namespace RR
             }
             void SetPrivateImpl(T* impl) { privateImpl_.reset(impl); }
 
-            template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
+            template <bool isNamed = IsNamed, typename = eastl::enable_if_t<isNamed>>
             const std::string& GetName() const { return name_; }
 
         protected:
-            template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
+            template <bool isNamed = IsNamed, typename = eastl::enable_if_t<isNamed>>
             Resource(Type type, const std::string& name) : Object(type), name_(name) { }
 
-            template <bool isNamed = IsNamed, typename = std::enable_if_t<!isNamed>>
+            template <bool isNamed = IsNamed, typename = eastl::enable_if_t<!isNamed>>
             explicit Resource(Type type) : Object(type) { }
 
         private:
@@ -47,8 +47,8 @@ namespace RR
             struct monostate{};
             // clang-format on
 
-            std::unique_ptr<T> privateImpl_ = nullptr;
-            std::conditional_t<IsNamed, std::string, monostate> name_;
+            eastl::unique_ptr<T> privateImpl_ = nullptr;
+            eastl::conditional_t<IsNamed, std::string, monostate> name_;
         };
     }
 }
