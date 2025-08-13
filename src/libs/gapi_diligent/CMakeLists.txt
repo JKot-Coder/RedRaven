@@ -1,6 +1,10 @@
 project (gapi_diligent)
 
 set(SRC
+    Device.cpp
+    Device.hpp
+    DeviceImpl.cpp
+    DeviceImpl.hpp
     empty.cpp)
 source_group( "" FILES ${SRC} )
 
