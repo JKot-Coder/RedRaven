@@ -12,7 +12,7 @@ namespace RR
 {
     namespace GAPI
     {
-        class ISingleThreadDevice
+        struct DeviceDescription final
         {
         public:
             enum class DebugMode : uint32_t
@@ -22,15 +22,17 @@ namespace RR
                 Debug
             };
 
-            struct Description final
-            {
-            public:
-                Description() = default;
-                Description(DebugMode debugMode) : debugMode(debugMode) { }
+        public:
+            DeviceDescription() = default;
+            DeviceDescription(DebugMode debugMode) : debugMode(debugMode) { }
 
-            public:
-                DebugMode debugMode = DebugMode::Retail;
-            };
+        public:
+            DebugMode debugMode = DebugMode::Retail;
+        };
+
+        class ISingleThreadDevice
+        {
+        public:
 
         public:
             //   virtual void Submit(const eastl::shared_ptr<CommandList>& CommandList) = 0;
@@ -72,7 +74,7 @@ namespace RR
         public:
             virtual ~Device() = default;
 
-            const Description& GetDescription() const { return description_; }
+            const DeviceDescription& GetDescription() const { return description_; }
 
             //   virtual void Submit(const eastl::shared_ptr<CommandList>& CommandList) = 0;
             void Present(const eastl::shared_ptr<SwapChain>& swapChain) override { GetPrivateImpl()->Present(swapChain); }
@@ -94,12 +96,12 @@ namespace RR
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
         private:
-            static SharedPtr Create(const Description& description, const std::string& name)
+            static SharedPtr Create(const DeviceDescription& description, const std::string& name)
             {
                 return eastl::shared_ptr<Device>(new Device(description, name));
             }
 
-            Device(const Description& description, const std::string& name)
+            Device(const DeviceDescription& description, const std::string& name)
                 : Resource(Object::Type::Device, name),
                   description_(description)
             {
@@ -109,7 +111,7 @@ namespace RR
             friend class RenderLoom::DeviceContext;
 
         private:
-            Description description_;
+            DeviceDescription description_;
         };
     }
 }

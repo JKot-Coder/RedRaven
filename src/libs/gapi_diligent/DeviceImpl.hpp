@@ -10,7 +10,7 @@ namespace RR::GAPI::Diligent
         DeviceImpl();
         ~DeviceImpl() override;
 
-        bool Init(const IDevice::Description& description);
+        bool Init(const GAPI::DeviceDescription& description);
         void Present(const eastl::shared_ptr<SwapChain>& swapChain) override;
         void MoveToNextFrame(uint64_t frameIndex) override;
 

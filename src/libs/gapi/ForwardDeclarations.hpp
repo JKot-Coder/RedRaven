@@ -5,6 +5,8 @@ namespace RR
     namespace GAPI
     {
         class Object;
+        class Device;
+        class DeviceDescription;
 
         class Fence;
         class Texture;

@@ -7,7 +7,7 @@ namespace RR::GAPI::Diligent
     DeviceImpl::DeviceImpl() { }
     DeviceImpl::~DeviceImpl() { }
 
-    bool DeviceImpl::Init(const IDevice::Description& description)
+    bool DeviceImpl::Init(const DeviceDescription& description)
     {
         UNUSED(description);
         NOT_IMPLEMENTED();
