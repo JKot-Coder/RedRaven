@@ -2,6 +2,8 @@
 
 #include "gapi/Object.hpp"
 
+#include <condition_variable>
+
 namespace RR
 {
     namespace GAPI
