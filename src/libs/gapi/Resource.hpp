@@ -10,7 +10,7 @@ namespace RR
         class Resource : public Object
         {
         public:
-            virtual ~Resource() = default;
+            ~Resource() override = default;
 
             inline T* GetPrivateImpl()
             {
