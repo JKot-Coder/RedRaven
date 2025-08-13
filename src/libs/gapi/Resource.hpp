@@ -33,7 +33,7 @@ namespace RR
             void SetPrivateImpl(T* impl) { privateImpl_.reset(impl); }
 
             template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
-            std::string GetName() const { return name_; }
+            const std::string& GetName() const { return name_; }
 
         protected:
             template <bool isNamed = IsNamed, typename = std::enable_if_t<isNamed>>
