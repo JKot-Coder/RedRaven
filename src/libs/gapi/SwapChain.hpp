@@ -59,6 +59,7 @@ namespace RR
             using SharedPtr = eastl::shared_ptr<SwapChain>;
             using SharedConstPtr = eastl::shared_ptr<const SwapChain>;
 
+           // eastl::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
 
             const SwapChainDescription& GetDescription() const { return description_; }
             uint32_t GetCurrentBackBufferIndex() const { return GetPrivateImpl()->GetCurrentBackBufferIndex(); }

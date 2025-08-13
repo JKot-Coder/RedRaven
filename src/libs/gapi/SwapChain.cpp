@@ -43,7 +43,7 @@ namespace RR
                 backBuffer = nullptr;
             }
         }
-
+/*
         Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
         {
             ASSERT(index < description_.bufferCount);
@@ -63,6 +63,6 @@ namespace RR
                 fmt::sprintf("%s BackBufferTexture:%d", GetName(), index)); // TODO move it
 
             return backBuffers_[index];
-        }
+        }*/
     }
 }
