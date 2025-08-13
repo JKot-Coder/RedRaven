@@ -36,8 +36,6 @@ if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
 
-set(CMAKE_DEBUG_POSTFIX "_d")
-
 # if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 # set(CMAKE_CXX_FLAGS_HYBRID "/O2 /Zi /Zo")
 # set(CMAKE_C_FLAGS_HYBRID "/O2 /Zi /Zo")
@@ -272,7 +270,7 @@ target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 # )
 # find_package(flecs CONFIG REQUIRED)
 
-#==================================== efsw ===================================#
+#=================================== efsw ====================================#
 # CPMAddPackage(
 #   NAME efsw
 #   GIT_REPOSITORY https://github.com/SpartanJ/efsw
@@ -280,6 +278,21 @@ target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 # )
 # set(BuildTests OFF CACHE BOOL "" FORCE)
 
+#================================= dilligent =================================#
+CPMAddPackage(
+  NAME dilligent
+  GIT_REPOSITORY https://github.com/DiligentGraphics/DiligentCore.git
+  GIT_TAG        v2.5.6
+)
+set(DILIGENT_BUILD_TOOLS       OFF CACHE BOOL "" FORCE)
+set(DILIGENT_BUILD_FX          OFF CACHE BOOL "" FORCE)
+set(DILIGENT_BUILD_SAMPLES     OFF CACHE BOOL "" FORCE)
+set(D3D11_SUPPORTED            OFF CACHE BOOL "" FORCE)
+set(GL_SUPPORTED               OFF CACHE BOOL "" FORCE)
+set(GLES_SUPPORTED             OFF CACHE BOOL "" FORCE)
+set(VULKAN_SUPPORTED           OFF CACHE BOOL "" FORCE)
+set(METAL_SUPPORTED            OFF CACHE BOOL "" FORCE)
+set(WEBGPU_SUPPORTED           OFF CACHE BOOL "" FORCE)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
@@ -295,5 +308,8 @@ set_property(TARGET imgui::imgui PROPERTY FOLDER "Dependencies")
 # set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
 # set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
 # set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
+
+# After dependencies since it's broke Diligent engine build
+set(CMAKE_DEBUG_POSTFIX "_d")
 
 add_subdirectory(src)
