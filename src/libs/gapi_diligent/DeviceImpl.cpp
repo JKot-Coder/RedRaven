@@ -2,6 +2,16 @@
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
+#include "RenderDevice.h"
+
+#if D3D12_SUPPORTED
+#include "EngineFactoryD3D12.h"
+#endif
+
+#include "gapi_diligent/Device.hpp"
+
+namespace DL = ::Diligent;
+
 namespace RR::GAPI::Diligent
 {
     DeviceImpl::DeviceImpl() { }
@@ -9,9 +19,53 @@ namespace RR::GAPI::Diligent
 
     bool DeviceImpl::Init(const DeviceDescription& description)
     {
-        UNUSED(description);
-        NOT_IMPLEMENTED();
+        int m_ValidationLevel = -1;
+
+        // Todo support other APIs
+#if D3D12_SUPPORTED
+#if ENGINE_DLL
+        // Load the dll and import GetEngineFactoryD3D12() function
+        DL::GetEngineFactoryD3D12Type GetEngineFactoryD3D12 = DL::LoadGraphicsEngineD3D12();
+        if (!GetEngineFactoryD3D12)
+        {
+            Log::Format::Error("Failed to load GraphicsEngineD3D12");
+            return false;
+        }
+#endif
+        DL::IEngineFactoryD3D12* pFactoryD3D12 = GetEngineFactoryD3D12();
+        if (!pFactoryD3D12->LoadD3D12())
+        {
+            Log::Format::Error("Failed to load Direct3D12");
+            return false;
+        }
+        engineFactory = static_cast<DL::IEngineFactory*>(pFactoryD3D12);
+
+        DL::EngineD3D12CreateInfo EngineCI;
+        EngineCI.GraphicsAPIVersion = {11, 0};
+        if (m_ValidationLevel >= 0)
+            EngineCI.SetValidationLevel(static_cast<DL::VALIDATION_LEVEL>(m_ValidationLevel));
+
+        EngineCI.AdapterId = DL::DEFAULT_ADAPTER_ID;
+        EngineCI.NumImmediateContexts = 1;
+        EngineCI.NumDeferredContexts = 0;
+
+        std::vector<DL::IDeviceContext*> ppContexts;
+        ppContexts.resize(EngineCI.NumImmediateContexts + EngineCI.NumDeferredContexts);
+        pFactoryD3D12->CreateDeviceAndContextsD3D12(EngineCI, &device, ppContexts.data());
+
+        if (!device)
+        {
+            Log::Format::Error("Unable to initialize Diligent Engine in Direct3D12 mode. The API may not be available, "
+                               "or required features may not be supported by this GPU/driver/OS version.");
+            return false;
+        }
+
+        immediateContext = ppContexts[0];
+        inited = true;
+        deviceType = DL::RENDER_DEVICE_TYPE_D3D12;
         return true;
+#endif
+        return false;
     }
 
     void DeviceImpl::Present(const eastl::shared_ptr<SwapChain>& swapChain)

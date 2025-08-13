@@ -2,6 +2,18 @@
 
 #include "gapi/Device.hpp"
 
+#include "RefCntAutoPtr.hpp"
+#include "GraphicsTypes.h"
+
+namespace DL = ::Diligent;
+
+namespace Diligent
+{
+    class IDeviceContext;
+    class IRenderDevice;
+    class IEngineFactory;
+}
+
 namespace RR::GAPI::Diligent
 {
     class DeviceImpl final : public IDevice
@@ -26,5 +38,12 @@ namespace RR::GAPI::Diligent
         void InitTexture(const eastl::shared_ptr<Texture>& resource) const override;
 
         std::any GetRawDevice() const override { ASSERT_MSG(false, "Not implemented"); return nullptr; }
+
+    private:
+        bool inited = false;
+        DL::RENDER_DEVICE_TYPE deviceType = DL::RENDER_DEVICE_TYPE_UNDEFINED;
+        DL::IDeviceContext* immediateContext = nullptr;
+        DL::RefCntAutoPtr<DL::IRenderDevice> device;
+        DL::RefCntAutoPtr<DL::IEngineFactory> engineFactory;
     };
 }
