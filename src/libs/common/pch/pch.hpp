@@ -18,11 +18,13 @@
 #include <string_view>
 
 #include <EASTL/array.h>
-#include <EASTL/vector.h>
 #include <EASTL/memory.h>
 #include <EASTL/shared_ptr.h>
-#include <EASTL/unique_ptr.h>
+#include <EASTL/string.h>
 #include <EASTL/string_view.h>
+#include <EASTL/unique_ptr.h>
+#include <EASTL/vector.h>
+#include <EASTL/weak_ptr.h>
 
 using namespace RR::Common::Debug;
 
