@@ -12,6 +12,8 @@ namespace RR::RenderLoom
 
         void Init(const GAPI::DeviceDescription& description);
 
+        eastl::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const std::string& name = "") const;
+
     private:
         bool inited = false;
         eastl::shared_ptr<GAPI::Device> device;

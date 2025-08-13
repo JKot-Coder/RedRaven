@@ -21,4 +21,13 @@ namespace RR::RenderLoom
         inited = true;
     }
 
+    GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const std::string& name) const
+    {
+        ASSERT(inited);
+
+        auto resource = GAPI::SwapChain::Create(description, name);
+        device->InitSwapChain(*resource.get());
+
+        return resource;
+    }
 }
