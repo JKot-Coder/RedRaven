@@ -40,7 +40,7 @@ namespace RR
             Resource(Type type, const std::string& name) : Object(type), name_(name) { }
 
             template <bool isNamed = IsNamed, typename = std::enable_if_t<!isNamed>>
-            Resource(Type type) : Object(type) { }
+            explicit Resource(Type type) : Object(type) { }
 
         private:
             // clang-format off
