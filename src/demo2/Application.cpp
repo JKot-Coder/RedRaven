@@ -81,6 +81,7 @@ namespace RR::App
             world.Tick();
 
             deviceContext.Present(swapChain);
+            deviceContext.MoveToNextFrame(0);
         }
 
         return 0;
