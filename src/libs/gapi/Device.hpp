@@ -28,6 +28,7 @@ namespace RR
 
         public:
             DebugMode debugMode = DebugMode::Retail;
+            uint32_t maxFramesInFlight = 2;
         };
 
         class ISingleThreadDevice

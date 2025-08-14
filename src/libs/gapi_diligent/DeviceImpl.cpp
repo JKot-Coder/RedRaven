@@ -25,6 +25,7 @@ namespace RR::GAPI::Diligent
     bool DeviceImpl::Init(const DeviceDescription& description)
     {
         int m_ValidationLevel = -1;
+        this->description = description;
 
         // Todo support other APIs
 #if D3D12_SUPPORTED
@@ -78,13 +79,17 @@ namespace RR::GAPI::Diligent
     {
         ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
         auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
+
+        // Diligent Engine waits for gpu on Present()
         swapChainImpl->Present();
     }
 
     void DeviceImpl::MoveToNextFrame(uint64_t frameIndex)
     {
         UNUSED(frameIndex);
-        NOT_IMPLEMENTED();
+
+        // Nothing to do here. Diligent Engine handles frame waiting on swapChain->Preset();
+        // SEE swapChain->SetMaximumFrameLatency
     }
 
     GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDescription& description) const
@@ -133,7 +138,7 @@ namespace RR::GAPI::Diligent
     void DeviceImpl::InitSwapChain(SwapChain& resource) const
     {
         auto impl = eastl::make_unique<SwapChainImpl>();
-        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), resource.GetName());
+        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), description.maxFramesInFlight, resource.GetName());
         resource.SetPrivateImpl(impl.release());
     }
 

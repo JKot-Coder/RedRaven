@@ -24,7 +24,9 @@ namespace RR::GAPI::Diligent
                   const DL::RefCntAutoPtr<DL::IRenderDevice>& device,
                   const DL::RefCntAutoPtr<DL::IEngineFactory>& engineFactory,
                   DL::IDeviceContext* immediateContext,
-                  const SwapChainDescription& description, const std::string& name);
+                  const SwapChainDescription& description,
+                  uint32_t frameLatency,
+                  const std::string& name);
 
         void Reset(const SwapChainDescription& description, const std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) override;
 

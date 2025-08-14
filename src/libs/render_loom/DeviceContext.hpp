@@ -13,6 +13,8 @@ namespace RR::RenderLoom
         void Init(const GAPI::DeviceDescription& description);
 
         void Present(const eastl::shared_ptr<GAPI::SwapChain>& swapChain);
+        void MoveToNextFrame(uint64_t frameIndex);
+
         eastl::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description, const std::string& name = "") const;
 
     private:

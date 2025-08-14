@@ -31,6 +31,11 @@ namespace RR::RenderLoom
         device->Present(swapChain);
     }
 
+    void DeviceContext::MoveToNextFrame(uint64_t frameIndex)
+    {
+        device->MoveToNextFrame(frameIndex);
+    }
+
     GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const std::string& name) const
     {
         ASSERT(inited);
