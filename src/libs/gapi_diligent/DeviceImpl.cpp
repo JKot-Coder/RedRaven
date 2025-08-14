@@ -16,7 +16,11 @@ namespace DL = ::Diligent;
 namespace RR::GAPI::Diligent
 {
     DeviceImpl::DeviceImpl() { }
-    DeviceImpl::~DeviceImpl() { }
+    DeviceImpl::~DeviceImpl()
+    {
+        if (!inited)
+            return;
+    }
 
     bool DeviceImpl::Init(const DeviceDescription& description)
     {
@@ -39,7 +43,7 @@ namespace RR::GAPI::Diligent
             Log::Format::Error("Failed to load Direct3D12");
             return false;
         }
-        engineFactory = static_cast<DL::IEngineFactory*>(pFactoryD3D12);
+        engineFactory.Attach(pFactoryD3D12);
 
         DL::EngineD3D12CreateInfo EngineCI;
         EngineCI.GraphicsAPIVersion = {11, 0};
@@ -61,7 +65,8 @@ namespace RR::GAPI::Diligent
             return false;
         }
 
-        immediateContext = ppContexts[0];
+        immediateContext.Attach(ppContexts[0]);
+
         inited = true;
         deviceType = DL::RENDER_DEVICE_TYPE_D3D12;
         return true;

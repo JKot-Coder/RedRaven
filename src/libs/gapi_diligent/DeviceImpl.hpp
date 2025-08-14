@@ -42,7 +42,7 @@ namespace RR::GAPI::Diligent
     private:
         bool inited = false;
         DL::RENDER_DEVICE_TYPE deviceType = DL::RENDER_DEVICE_TYPE_UNDEFINED;
-        DL::IDeviceContext* immediateContext = nullptr;
+        DL::RefCntAutoPtr<DL::IDeviceContext> immediateContext;
         DL::RefCntAutoPtr<DL::IRenderDevice> device;
         DL::RefCntAutoPtr<DL::IEngineFactory> engineFactory;
     };
