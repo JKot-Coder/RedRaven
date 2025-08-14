@@ -76,8 +76,9 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::Present(const eastl::shared_ptr<SwapChain>& swapChain)
     {
-        UNUSED(swapChain);
-        NOT_IMPLEMENTED();
+        ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
+        auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
+        swapChainImpl->Present();
     }
 
     void DeviceImpl::MoveToNextFrame(uint64_t frameIndex)

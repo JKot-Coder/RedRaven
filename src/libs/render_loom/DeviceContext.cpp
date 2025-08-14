@@ -26,6 +26,11 @@ namespace RR::RenderLoom
         inited = true;
     }
 
+    void DeviceContext::Present(const GAPI::SwapChain::SharedPtr& swapChain)
+    {
+        device->Present(swapChain);
+    }
+
     GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description, const std::string& name) const
     {
         ASSERT(inited);

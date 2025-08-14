@@ -84,4 +84,9 @@ namespace RR::GAPI::Diligent
         UNUSED(resource);
         NOT_IMPLEMENTED();
     }
+
+    void SwapChainImpl::Present()
+    {
+        swapChain->Present(0);
+    }
 }

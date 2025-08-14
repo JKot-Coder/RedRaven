@@ -33,6 +33,8 @@ namespace RR::GAPI::Diligent
 
         void InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource) override;
 
+        void Present();
+
     private:
         DL::RefCntAutoPtr<DL::ISwapChain> swapChain;
     };
