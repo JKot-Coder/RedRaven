@@ -39,6 +39,19 @@ namespace RR::App
         });
     }
 
+    GAPI::SwapChain::SharedPtr CreateSwapChain(const RenderLoom::DeviceContext& deviceContext, Ecs::WindowModule::Window& window)
+    {
+        GAPI::SwapChainDescription swapChainDescription;
+        swapChainDescription.windowNativeHandle = window.nativeHandle;
+        // TODO: get window size
+        swapChainDescription.width = 1920;
+        swapChainDescription.height = 1080;
+        swapChainDescription.bufferCount = 2;
+        swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+
+        return deviceContext.CreateSwapchain(swapChainDescription);
+    }
+
     int RunApplication()
     {
         Ecs::World world;
@@ -49,21 +62,17 @@ namespace RR::App
 
         world.Entity().Add<Application>().Apply();
 
+
+        GAPI::DeviceDescription description;
+        RenderLoom::DeviceContext deviceContext;
+        deviceContext.Init(description);
+
+        GAPI::SwapChain::SharedPtr swapChain;
+
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<MainWindow>().Apply();
-        world.View().With<Ecs::WindowModule::Window>().ForEntity(windowEntity, [](Ecs::WindowModule::Window& window) {
-            GAPI::DeviceDescription description;
-            RenderLoom::DeviceContext deviceContext;
-            deviceContext.Init(description);
 
-            GAPI::SwapChainDescription swapChainDescription;
-            swapChainDescription.windowNativeHandle = window.nativeHandle;
-            // TODO: get window size
-            swapChainDescription.width = 1920;
-            swapChainDescription.height = 1080;
-            swapChainDescription.bufferCount = 2;
-            swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
-
-            auto swapChain = deviceContext.CreateSwapchain(swapChainDescription);
+        world.View().With<Ecs::WindowModule::Window>().ForEntity(windowEntity, [&deviceContext, &swapChain](Ecs::WindowModule::Window& window) {
+            swapChain = CreateSwapChain(deviceContext, window);
         });
 
         while (!Application::quit)
