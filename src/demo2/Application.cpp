@@ -4,6 +4,10 @@
 
 #include "ecs_window/Window.hpp"
 
+#include "gapi/Device.hpp"
+#include "gapi/SwapChain.hpp"
+#include "render_loom/DeviceContext.hpp"
+
 namespace RR::App
 {
     struct Application
@@ -43,8 +47,24 @@ namespace RR::App
 
         world.OrderSystems();
 
-        world.Entity().Add<Ecs::WindowModule::Window>().Add<MainWindow>().Apply();
         world.Entity().Add<Application>().Apply();
+
+        auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<MainWindow>().Apply();
+        world.View().With<Ecs::WindowModule::Window>().ForEntity(windowEntity, [](Ecs::WindowModule::Window& window) {
+            GAPI::DeviceDescription description;
+            RenderLoom::DeviceContext deviceContext;
+            deviceContext.Init(description);
+
+            GAPI::SwapChainDescription swapChainDescription;
+            swapChainDescription.windowNativeHandle = window.nativeHandle;
+            // TODO: get window size
+            swapChainDescription.width = 1920;
+            swapChainDescription.height = 1080;
+            swapChainDescription.bufferCount = 2;
+            swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+
+            auto swapChain = deviceContext.CreateSwapchain(swapChainDescription);
+        });
 
         while (!Application::quit)
         {

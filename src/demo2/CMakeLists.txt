@@ -9,7 +9,9 @@ source_group("" FILES ${SRC})
 set(LIBRARIES
     common
     ecs
-    ecs_window)
+    ecs_window
+    render_loom
+)
 
 #=============================== Target ===============================#
 
@@ -22,3 +24,5 @@ if(MSVC)
 else(MSVC)
     target_compile_options(${PROJECT_NAME} BEFORE PRIVATE -Wall -Wextra -pedantic -Werror)
 endif(MSVC)
+
+copy_required_dlls(demo2)
