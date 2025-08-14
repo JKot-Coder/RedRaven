@@ -79,6 +79,8 @@ namespace RR::App
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
+
+            deviceContext.Present(swapChain);
         }
 
         return 0;
