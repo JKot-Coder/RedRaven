@@ -78,6 +78,8 @@ namespace RR::App
             swapChain = CreateSwapChain(deviceContext, window);
         });
 
+        auto texture = deviceContext->CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm), nullptr, "test");
+        texture->GetSRV();
         while (!Application::quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
