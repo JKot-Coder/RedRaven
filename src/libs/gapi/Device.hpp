@@ -85,14 +85,14 @@ namespace RR
                 override { return GetPrivateImpl()->GetResourceFootprint(description); };
 
             // Todo init resource?
-            void InitBuffer(const eastl::shared_ptr<Buffer>& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
+            void InitBuffer(const eastl::shared_ptr<Buffer>& resource) const override { GetPrivateImpl()->InitBuffer(resource); }; // TODO: Why pointer in this case?
             void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
             void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };
             void InitFence(Fence& resource) const override { GetPrivateImpl()->InitFence(resource); };
             void InitFramebuffer(Framebuffer& resource) const override { GetPrivateImpl()->InitFramebuffer(resource); };
             void InitGpuResourceView(GpuResourceView& view) const override { GetPrivateImpl()->InitGpuResourceView(view); };
             void InitSwapChain(SwapChain& resource) const override { GetPrivateImpl()->InitSwapChain(resource); };
-            void InitTexture(const eastl::shared_ptr<Texture>& resource) const override { GetPrivateImpl()->InitTexture(resource); };
+            void InitTexture(const eastl::shared_ptr<Texture>& resource) const override { GetPrivateImpl()->InitTexture(resource); }; // TODO: Why pointer in this case?
 
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
