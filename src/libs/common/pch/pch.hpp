@@ -26,6 +26,8 @@
 #include <EASTL/vector.h>
 #include <EASTL/weak_ptr.h>
 
+#define EASTL_FRIEND_MAKE_SHARED template <typename, typename> friend class eastl::ref_count_sp_t_inst
+
 using namespace RR::Common::Debug;
 
 #include "math/Base.hpp"
