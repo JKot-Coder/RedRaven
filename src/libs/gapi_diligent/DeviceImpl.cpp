@@ -3,6 +3,7 @@
 #include "GpuResourceImpl.hpp"
 #include "GpuResourceViewImpl.hpp"
 
+#define ASSERT_IS_DEVICE_INITED ASSERT(inited)
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "RenderDevice.h"
@@ -26,6 +27,8 @@ namespace RR::GAPI::Diligent
 
     bool DeviceImpl::Init(const DeviceDescription& description)
     {
+        ASSERT(!inited);
+
         int m_ValidationLevel = -1;
         this->description = description;
 
@@ -79,6 +82,8 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::Present(const eastl::shared_ptr<SwapChain>& swapChain)
     {
+        ASSERT_IS_DEVICE_INITED;
+
         ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
         auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
 
@@ -88,6 +93,8 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::MoveToNextFrame(uint64_t frameIndex)
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(frameIndex);
 
         // Nothing to do here. Diligent Engine handles frame waiting on swapChain->Preset();
@@ -96,6 +103,8 @@ namespace RR::GAPI::Diligent
 
     GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDescription& description) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(description);
         NOT_IMPLEMENTED();
         return {};
@@ -103,36 +112,48 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::InitBuffer(const eastl::shared_ptr<Buffer>& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(resource);
         NOT_IMPLEMENTED();
     }
 
     void DeviceImpl::InitCommandList(CommandList& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(resource);
         NOT_IMPLEMENTED();
     }
 
     void DeviceImpl::InitCommandQueue(CommandQueue& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(resource);
         NOT_IMPLEMENTED();
     }
 
     void DeviceImpl::InitFence(Fence& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(resource);
         NOT_IMPLEMENTED();
     }
 
     void DeviceImpl::InitFramebuffer(Framebuffer& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         UNUSED(resource);
         NOT_IMPLEMENTED();
     }
 
     void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         const auto& resourceSharedPtr = view.GetGpuResource().lock();
         auto viewImpl = std::make_unique<GpuResourceViewImpl>();
         viewImpl->Init(view);
@@ -141,6 +162,8 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::InitSwapChain(SwapChain& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
+
         auto impl = eastl::make_unique<SwapChainImpl>();
         impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), description.maxFramesInFlight);
         resource.SetPrivateImpl(impl.release());
@@ -149,6 +172,7 @@ namespace RR::GAPI::Diligent
     // TODO ASSERT INITED everywhere
     void DeviceImpl::InitTexture(const eastl::shared_ptr<Texture>& resource) const
     {
+        ASSERT_IS_DEVICE_INITED;
         ASSERT(resource);
 
         auto impl = std::make_unique<GpuResourceImpl>();
