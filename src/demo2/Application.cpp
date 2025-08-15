@@ -6,6 +6,9 @@
 
 #include "gapi/Device.hpp"
 #include "gapi/SwapChain.hpp"
+#include "gapi/Texture.hpp"
+#include "gapi/GpuResourceViews.hpp"
+
 #include "render_loom/DeviceContext.hpp"
 
 namespace RR::App
@@ -39,7 +42,7 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::SharedPtr CreateSwapChain(const RenderLoom::DeviceContext& deviceContext, Ecs::WindowModule::Window& window)
+    GAPI::SwapChain::SharedPtr CreateSwapChain(const RenderLoom::DeviceContext::SharedPtr& deviceContext, Ecs::WindowModule::Window& window)
     {
         GAPI::SwapChainDescription swapChainDescription;
         swapChainDescription.windowNativeHandle = window.nativeHandle;
@@ -49,7 +52,7 @@ namespace RR::App
         swapChainDescription.bufferCount = 2;
         swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
 
-        return deviceContext.CreateSwapchain(swapChainDescription);
+        return deviceContext->CreateSwapchain(swapChainDescription);
     }
 
     int RunApplication()
@@ -64,8 +67,8 @@ namespace RR::App
 
 
         GAPI::DeviceDescription description;
-        RenderLoom::DeviceContext deviceContext;
-        deviceContext.Init(description);
+        auto deviceContext = RenderLoom::DeviceContext::Create();
+        deviceContext->Init(description);
 
         GAPI::SwapChain::SharedPtr swapChain;
 
@@ -80,8 +83,8 @@ namespace RR::App
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
 
-            deviceContext.Present(swapChain);
-            deviceContext.MoveToNextFrame(0);
+            deviceContext->Present(swapChain);
+            deviceContext->MoveToNextFrame(0);
         }
 
         return 0;
