@@ -114,11 +114,11 @@ namespace RR
             BC7Unorm,
             BC7UnormSrgb,
 
-            RGB16Float,
-            RGB16Unorm,
-            RGB16Uint,
-            RGB16Snorm,
-            RGB16Sint,
+            RGB16Float, // Unsuported on most GAPI
+            RGB16Unorm, // Unsuported on most GAPI
+            RGB16Uint, // Unsuported on most GAPI
+            RGB16Snorm, // Unsuported on most GAPI
+            RGB16Sint, // Unsuported on most GAPI
 
             RGB5A1Unorm,
             RGB9E5Float,
