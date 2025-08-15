@@ -30,6 +30,7 @@ namespace RR
             UnorderedAccess = 1 << 1,
             RenderTarget = 1 << 2,
             DepthStencil = 1 << 3,
+            Count = 4,
         };
         ENUM_CLASS_BITWISE_OPS(GpuResourceBindFlags)
 
