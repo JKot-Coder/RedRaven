@@ -1,5 +1,7 @@
 #include "DeviceImpl.hpp"
 #include "SwapChainImpl.hpp"
+#include "GpuResourceImpl.hpp"
+#include "GpuResourceViewImpl.hpp"
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
@@ -131,8 +133,10 @@ namespace RR::GAPI::Diligent
 
     void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
     {
-        UNUSED(view);
-        NOT_IMPLEMENTED();
+        const auto& resourceSharedPtr = view.GetGpuResource().lock();
+        auto viewImpl = std::make_unique<GpuResourceViewImpl>();
+        viewImpl->Init(view);
+        view.SetPrivateImpl(viewImpl.release());
     }
 
     void DeviceImpl::InitSwapChain(SwapChain& resource) const
@@ -142,10 +146,14 @@ namespace RR::GAPI::Diligent
         resource.SetPrivateImpl(impl.release());
     }
 
+    // TODO ASSERT INITED everywhere
     void DeviceImpl::InitTexture(const eastl::shared_ptr<Texture>& resource) const
     {
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        ASSERT(resource);
+
+        auto impl = std::make_unique<GpuResourceImpl>();
+        impl->Init(device, resource);
+        resource->SetPrivateImpl(impl.release());
     }
 
 }

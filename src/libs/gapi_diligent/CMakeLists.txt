@@ -9,6 +9,10 @@ set(SRC
     DeviceImpl.hpp
     SwapChainImpl.cpp
     SwapChainImpl.hpp
+    GpuResourceImpl.cpp
+    GpuResourceImpl.hpp
+    GpuResourceViewImpl.cpp
+    GpuResourceViewImpl.hpp
     empty.cpp)
 source_group( "" FILES ${SRC} )
 

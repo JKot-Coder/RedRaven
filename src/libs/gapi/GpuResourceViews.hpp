@@ -124,7 +124,9 @@ namespace RR
             };
 
             ShaderResourceView(const eastl::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
+
             friend class Render::DeviceContext;
+            friend class RenderLoom::DeviceContext;
         };
 
         class DepthStencilView final : public GpuResourceView
@@ -144,6 +146,7 @@ namespace RR
             DepthStencilView(const eastl::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
+            friend class RenderLoom::DeviceContext;
         };
 
         class RenderTargetView final : public GpuResourceView
@@ -163,6 +166,7 @@ namespace RR
             RenderTargetView(const eastl::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
+            friend class RenderLoom::DeviceContext;
         };
 
         class UnorderedAccessView final : public GpuResourceView
@@ -182,6 +186,7 @@ namespace RR
             UnorderedAccessView(const eastl::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
+            friend class RenderLoom::DeviceContext;
         };
     }
 }

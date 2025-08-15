@@ -2,7 +2,7 @@
 
 #include "gapi/GpuResourceViews.hpp"
 
-#include "render/DeviceContext.hpp"
+#include "render_loom/DeviceContext.hpp"
 
 #include "math/Math.hpp"
 #include "common/OnScopeExit.hpp"
@@ -50,9 +50,8 @@ namespace RR::GAPI
 
         if (srvs_.find(viewDesc) == srvs_.end())
         {
-            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            srvs_[viewDesc] = deviceContext.CreateShaderResourceView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            srvs_[viewDesc] = getDeviceContext()->CreateShaderResourceView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return srvs_[viewDesc];
@@ -65,9 +64,8 @@ namespace RR::GAPI
 
         if (dsvs_.find(viewDesc) == dsvs_.end())
         {
-            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            dsvs_[viewDesc] = deviceContext.CreateDepthStencilView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            dsvs_[viewDesc] = getDeviceContext()->CreateDepthStencilView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return dsvs_[viewDesc];
@@ -79,9 +77,8 @@ namespace RR::GAPI
 
         if (rtvs_.find(viewDesc) == rtvs_.end())
         {
-            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            rtvs_[viewDesc] = deviceContext.CreateRenderTargetView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            rtvs_[viewDesc] = getDeviceContext()->CreateRenderTargetView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return rtvs_[viewDesc];
@@ -93,9 +90,8 @@ namespace RR::GAPI
 
         if (uavs_.find(viewDesc) == uavs_.end())
         {
-            auto& deviceContext = Render::DeviceContext::Instance();
             // TODO static_pointer_cast; name_
-            uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            uavs_[viewDesc] = getDeviceContext()->CreateUnorderedAccessView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return uavs_[viewDesc];
