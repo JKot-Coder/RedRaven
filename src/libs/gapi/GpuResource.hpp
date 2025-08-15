@@ -249,6 +249,8 @@ namespace RR
             bool IsBuffer() const { return dimension == GpuResourceDimension::Buffer; }
             bool IsTexture() const { return dimension != GpuResourceDimension::Buffer; }
 
+            GpuResourceDimension GetDimension() const { return dimension; }
+
             uint32_t GetWidth(uint32_t mipLevel = 0) const
             {
                 ASSERT(dimension != GpuResourceDimension::Buffer);
