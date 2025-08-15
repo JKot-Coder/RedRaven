@@ -2,6 +2,11 @@
 
 #include "gapi/GpuResource.hpp"
 
+namespace RR::RenderLoom
+{
+    class DeviceContext;
+}
+
 namespace RR
 {
     namespace GAPI
@@ -20,15 +25,19 @@ namespace RR
 
         private:
             static SharedPtr Create(
+                const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
                 const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
             {
-                return SharedPtr(new Buffer(description, initialData, name));
+                return SharedPtr(new Buffer(deviceContext, description, initialData, name));
             }
 
-            Buffer(const GpuResourceDescription& description, IDataBuffer::SharedPtr initialData, const std::string& name)
-                : GpuResource(description, initialData, name)
+            Buffer(const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
+                   const GpuResourceDescription& description,
+                   IDataBuffer::SharedPtr initialData,
+                   const std::string& name)
+                : GpuResource(deviceContext, description, initialData, name)
             {
                 if (!description.IsBuffer())
                     LOG_FATAL("Wrong Description");

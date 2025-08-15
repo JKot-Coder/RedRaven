@@ -12,6 +12,11 @@
 // TODO Temporary
 #include <any>
 
+namespace RR::RenderLoom
+{
+    class DeviceContext;
+}
+
 namespace RR
 {
     using namespace Common;
@@ -499,11 +504,23 @@ namespace RR
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
-            GpuResource(GpuResourceDescription description, IDataBuffer::SharedPtr initialData, const std::string& name)
+            GpuResource(const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
+                        GpuResourceDescription description,
+                        IDataBuffer::SharedPtr initialData,
+                        const std::string& name)
                 : Resource(Object::Type::GpuResource, name),
+                  deviceContext_(deviceContext),
                   description_(description),
-                  initialData_(initialData) {};
+                  initialData_(initialData) { };
 
+            eastl::shared_ptr<RenderLoom::DeviceContext> getDeviceContext() const
+            {
+                ASSERT(!deviceContext_.expired());
+                return deviceContext_.lock();
+            }
+
+        protected:
+            eastl::weak_ptr<RenderLoom::DeviceContext> deviceContext_;
             GpuResourceDescription description_;
             IDataBuffer::SharedPtr initialData_;
 
