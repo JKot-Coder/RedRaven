@@ -5,7 +5,7 @@ namespace RR::Common
     class IDataBuffer
     {
     public:
-        using SharedPtr = std::shared_ptr<IDataBuffer>;
+        using SharedPtr = eastl::shared_ptr<IDataBuffer>;
 
     public:
         virtual ~IDataBuffer() = default;
