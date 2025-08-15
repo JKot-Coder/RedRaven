@@ -1,6 +1,8 @@
 project (gapi_diligent)
 
 set(SRC
+    Utils.cpp
+    Utils.hpp
     Device.cpp
     Device.hpp
     DeviceImpl.cpp
