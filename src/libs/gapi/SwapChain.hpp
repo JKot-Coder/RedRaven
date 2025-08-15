@@ -53,7 +53,7 @@ namespace RR
             virtual void Reset(const SwapChainDescription& description, const std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
-        class SwapChain final : public Resource<ISwapChain>
+        class SwapChain final : public Resource<ISwapChain, false>
         {
         public:
             using SharedPtr = eastl::shared_ptr<SwapChain>;
@@ -68,12 +68,12 @@ namespace RR
             eastl::any GetWaitableObject() const { return GetPrivateImpl()->GetWaitableObject(); }
 
         private:
-            static SharedPtr Create(const SwapChainDescription& description, const std::string& name)
+            static SharedPtr Create(const SwapChainDescription& description)
             {
-                return SharedPtr(new SwapChain(description, name));
+                return SharedPtr(new SwapChain(description));
             }
 
-            SwapChain(const SwapChainDescription& description, const std::string& name);
+            SwapChain(const SwapChainDescription& description);
 
             void Reset(const SwapChainDescription& description);
 

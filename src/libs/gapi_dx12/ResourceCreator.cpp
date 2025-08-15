@@ -33,7 +33,7 @@ namespace RR::GAPI::DX12
     void ResourceCreator::InitSwapChain(SwapChain& resource)
     {
         auto impl = std::make_unique<SwapChainImpl>();
-        impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription(), resource.GetName());
+        impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription());
 
         resource.SetPrivateImpl(impl.release());
     }

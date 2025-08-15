@@ -30,12 +30,8 @@ namespace RR::GAPI::Diligent
                              const DL::RefCntAutoPtr<DL::IRenderDevice>& device,
                              const DL::RefCntAutoPtr<DL::IEngineFactory>& engineFactory,
                              DL::IDeviceContext* immediateContext,
-                             const SwapChainDescription& description, uint32_t frameLatency, const std::string& name)
+                             const SwapChainDescription& description, uint32_t frameLatency)
     {
-
-        UNUSED(name);
-
-
         DL::SwapChainDesc swapChainInitDesc = getSwapChainInitDesc(description);
 #if OS_WINDOWS
         DL::Win32NativeWindow nativeWindow {eastl::any_cast<HWND>(description.windowNativeHandle)};

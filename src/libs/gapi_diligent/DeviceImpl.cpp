@@ -138,7 +138,7 @@ namespace RR::GAPI::Diligent
     void DeviceImpl::InitSwapChain(SwapChain& resource) const
     {
         auto impl = eastl::make_unique<SwapChainImpl>();
-        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), description.maxFramesInFlight, resource.GetName());
+        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), description.maxFramesInFlight);
         resource.SetPrivateImpl(impl.release());
     }
 
