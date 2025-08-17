@@ -56,8 +56,7 @@ namespace RR
         class SwapChain final : public Resource<ISwapChain, false>
         {
         public:
-            using SharedPtr = eastl::shared_ptr<SwapChain>;
-            using SharedConstPtr = eastl::shared_ptr<const SwapChain>;
+            using UniquePtr = eastl::unique_ptr<SwapChain>;
 
            // eastl::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
 
@@ -68,9 +67,9 @@ namespace RR
             eastl::any GetWaitableObject() const { return GetPrivateImpl()->GetWaitableObject(); }
 
         private:
-            static SharedPtr Create(const SwapChainDescription& description)
+            static UniquePtr Create(const SwapChainDescription& description)
             {
-                return SharedPtr(new SwapChain(description));
+                return UniquePtr(new SwapChain(description));
             }
 
             SwapChain(const SwapChainDescription& description);

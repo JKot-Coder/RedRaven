@@ -42,7 +42,7 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::SharedPtr CreateSwapChain(const RenderLoom::DeviceContext::SharedPtr& deviceContext, Ecs::WindowModule::Window& window)
+    GAPI::SwapChain::UniquePtr CreateSwapChain(const RenderLoom::DeviceContext::SharedPtr& deviceContext, Ecs::WindowModule::Window& window)
     {
         GAPI::SwapChainDescription swapChainDescription;
         swapChainDescription.windowNativeHandle = window.nativeHandle;
@@ -70,7 +70,7 @@ namespace RR::App
         auto deviceContext = RenderLoom::DeviceContext::Create();
         deviceContext->Init(description);
 
-        GAPI::SwapChain::SharedPtr swapChain;
+        GAPI::SwapChain::UniquePtr swapChain;
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<MainWindow>().Apply();
 
@@ -85,7 +85,7 @@ namespace RR::App
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
 
-            deviceContext->Present(swapChain);
+            deviceContext->Present(swapChain.get());
             deviceContext->MoveToNextFrame(0);
         }
 

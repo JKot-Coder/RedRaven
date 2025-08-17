@@ -72,7 +72,7 @@ namespace RR
 
         protected:
             CommandList(CommandListType type, const std::string& name)
-                : Resource(Object::Type::CommandList, name),
+                : Resource(Type::CommandList, name),
                   type_(type)
             {
             }

@@ -27,12 +27,10 @@ namespace RR
                 return result;
             }
 
-            void check(const GpuResourceViewDescription& desc, const eastl::weak_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
+            void check(const GpuResourceViewDescription& desc, const GpuResource& gpuResource, GpuResourceBindFlags requiredBindFlags)
             {
                 #if ENABLE_ASSERTS
-                    ASSERT(!gpuResource.expired());
-                    const auto sharedGpuResource = gpuResource.lock();
-                    const auto& resourceDescription = sharedGpuResource->GetDescription();
+                    const auto& resourceDescription = gpuResource.GetDescription();
 
                     ASSERT(isCompatable(desc, resourceDescription));
                     ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
@@ -58,38 +56,34 @@ namespace RR
         }
 
         ShaderResourceView::ShaderResourceView(
-            const eastl::weak_ptr<GpuResource>& gpuResource,
+            const GpuResource& gpuResource,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
-            ASSERT(!gpuResource.expired());
             check(desc, gpuResource, GpuResourceBindFlags::ShaderResource);
         }
 
         DepthStencilView::DepthStencilView(
-            const eastl::weak_ptr<Texture>& texture,
+            const Texture& texture,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
-            ASSERT(!texture.expired());
             check(desc, texture, GpuResourceBindFlags::RenderTarget);
         }
 
         RenderTargetView::RenderTargetView(
-            const eastl::weak_ptr<Texture>& texture,
+            const Texture& texture,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
-        {
-            ASSERT(!texture.expired());
+        {;
             check(desc, texture, GpuResourceBindFlags::RenderTarget);
         }
 
         UnorderedAccessView::UnorderedAccessView(
-            const eastl::weak_ptr<GpuResource>& gpuResource,
+            const GpuResource& gpuResource,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {
-            ASSERT(!gpuResource.expired());
             check(desc, gpuResource, GpuResourceBindFlags::UnorderedAccess);
         }
     }

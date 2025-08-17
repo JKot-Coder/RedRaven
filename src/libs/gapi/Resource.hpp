@@ -9,10 +9,25 @@ namespace RR
     namespace GAPI
     {
         template <typename T, bool IsNamed = true>
-        class Resource : public Object
+        class Resource
         {
         public:
-            ~Resource() override = default;
+            enum class Type
+            {
+                CommandContext,
+                CommandList,
+                CommandQueue,
+                Device,
+                Fence,
+                Framebuffer,
+                GpuResource,
+                GpuResourceView,
+                MemoryAllocation,
+                SwapChain,
+            };
+
+        public:
+            virtual ~Resource() = default;
 
             T* GetPrivateImpl() { return privateImpl_.get(); }
             const T* GetPrivateImpl() const { return privateImpl_.get(); }
@@ -37,16 +52,17 @@ namespace RR
 
         protected:
             template <bool isNamed = IsNamed, typename = eastl::enable_if_t<isNamed>>
-            Resource(Type type, const std::string& name) : Object(type), name_(name) { }
+            Resource(Type type, const std::string& name) : type_(type), name_(name) { }
 
             template <bool isNamed = IsNamed, typename = eastl::enable_if_t<!isNamed>>
-            explicit Resource(Type type) : Object(type) { }
+            explicit Resource(Type type) : type_(type) { }
 
         private:
             // clang-format off
             struct monostate{};
             // clang-format on
 
+            Type type_;
             eastl::unique_ptr<T> privateImpl_ = nullptr;
             eastl::conditional_t<IsNamed, std::string, monostate> name_;
         };

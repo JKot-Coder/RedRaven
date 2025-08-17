@@ -105,14 +105,13 @@ namespace RR::GAPI::Diligent
         }
     }
 
-    void GpuResourceImpl::Init(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource::SharedPtr& resource)
+    void GpuResourceImpl::Init(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource& resource)
     {
-        ASSERT(resource);
-        ASSERT_MSG(!resource->GetInitialData(), "Initial data isn't supported");
+        ASSERT_MSG(!resource.GetInitialData(), "Initial data isn't supported");
 
-        const auto desc = getTextureDesc(resource->GetDescription(), resource->GetName());
+        const auto desc = getTextureDesc(resource.GetDescription(), resource.GetName());
         device->CreateTexture(desc, nullptr, &texture);
-        dimension = getDLResourceDimension(resource->GetDescription().GetDimension());
+        dimension = getDLResourceDimension(resource.GetDescription().GetDimension());
     }
 
     void GpuResourceImpl::DestroyImmediatly() { NOT_IMPLEMENTED(); }

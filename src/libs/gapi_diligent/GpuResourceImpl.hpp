@@ -21,7 +21,7 @@ namespace RR::GAPI::Diligent
         GpuResourceImpl() = default;
         ~GpuResourceImpl() override;
 
-        void Init(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource::SharedPtr& resource);
+        void Init(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource& resource);
 
         void DestroyImmediatly() override;
         std::any GetRawHandle() const override;

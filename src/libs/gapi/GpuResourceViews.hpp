@@ -78,8 +78,7 @@ namespace RR
         class GpuResourceView : public Resource<IGpuResourceView, false>
         {
         public:
-            using SharedPtr = eastl::shared_ptr<GpuResourceView>;
-            using SharedConstPtr = eastl::shared_ptr<const GpuResourceView>;
+            using UniquePtr = eastl::unique_ptr<GpuResourceView>;
 
             enum class ViewType
             {
@@ -91,39 +90,37 @@ namespace RR
 
             ViewType GetViewType() const { return viewType_; }
             const GpuResourceViewDescription& GetDescription() const { return description_; }
-            eastl::weak_ptr<GpuResource> GetGpuResource() const { return gpuResource_; }
+            const GpuResource* GetGpuResource() const { return gpuResource_; }
 
         protected:
-            GpuResourceView(ViewType viewType, const eastl::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& description)
-                : Resource<IGpuResourceView, false>(Object::Type::GpuResourceView),
+            GpuResourceView(ViewType viewType, const GpuResource& gpuResource, const GpuResourceViewDescription& description)
+                : Resource<IGpuResourceView, false>(Type::GpuResourceView),
                   viewType_(viewType),
                   description_(description),
-                  gpuResource_(gpuResource)
+                  gpuResource_(&gpuResource)
             {
-                ASSERT(!gpuResource_.expired());
             }
 
         private:
             ViewType viewType_;
             GpuResourceViewDescription description_;
-            eastl::weak_ptr<GpuResource> gpuResource_;
+            const GpuResource* gpuResource_;
         };
 
         class ShaderResourceView final : public GpuResourceView
         {
         public:
-            using SharedPtr = eastl::shared_ptr<ShaderResourceView>;
-            using SharedConstPtr = eastl::shared_ptr<ShaderResourceView>;
+            using UniquePtr = eastl::unique_ptr<ShaderResourceView>;
 
         private:
-            static SharedPtr Create(
-                const eastl::weak_ptr<GpuResource>& gpuResource,
+            static UniquePtr Create(
+                const GpuResource& gpuResource,
                 const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new ShaderResourceView(gpuResource, desc));
+                return UniquePtr(new ShaderResourceView(gpuResource, desc));
             };
 
-            ShaderResourceView(const eastl::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
+            ShaderResourceView(const GpuResource& gpuResource, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
             friend class RenderLoom::DeviceContext;
@@ -132,18 +129,17 @@ namespace RR
         class DepthStencilView final : public GpuResourceView
         {
         public:
-            using SharedPtr = eastl::shared_ptr<DepthStencilView>;
-            using SharedConstPtr = eastl::shared_ptr<DepthStencilView>;
+            using UniquePtr = eastl::unique_ptr<DepthStencilView>;
 
         private:
-            static SharedPtr Create(
-                const eastl::weak_ptr<Texture>& texture,
+            static UniquePtr Create(
+                const Texture& texture,
                 const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new DepthStencilView(texture, desc));
+                return UniquePtr(new DepthStencilView(texture, desc));
             };
 
-            DepthStencilView(const eastl::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
+            DepthStencilView(const Texture& texture, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
             friend class RenderLoom::DeviceContext;
@@ -152,18 +148,17 @@ namespace RR
         class RenderTargetView final : public GpuResourceView
         {
         public:
-            using SharedPtr = eastl::shared_ptr<RenderTargetView>;
-            using SharedConstPtr = eastl::shared_ptr<RenderTargetView>;
+            using UniquePtr = eastl::unique_ptr<RenderTargetView>;
 
         private:
-            static SharedPtr Create(
-                const eastl::shared_ptr<Texture>& texture,
+            static UniquePtr Create(
+                const Texture& texture,
                 const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new RenderTargetView(texture, desc));
+                return UniquePtr(new RenderTargetView(texture, desc));
             };
 
-            RenderTargetView(const eastl::weak_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
+            RenderTargetView(const Texture& texture, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
             friend class RenderLoom::DeviceContext;
@@ -172,18 +167,17 @@ namespace RR
         class UnorderedAccessView final : public GpuResourceView
         {
         public:
-            using SharedPtr = eastl::shared_ptr<UnorderedAccessView>;
-            using SharedConstPtr = eastl::shared_ptr<UnorderedAccessView>;
+            using UniquePtr = eastl::unique_ptr<UnorderedAccessView>;
 
         private:
-            static SharedPtr Create(
-                const eastl::shared_ptr<GpuResource>& gpuResource,
+            static UniquePtr Create(
+                const GpuResource& gpuResource,
                 const GpuResourceViewDescription& desc)
             {
-                return SharedPtr(new UnorderedAccessView(gpuResource, desc));
+                return UniquePtr(new UnorderedAccessView(gpuResource, desc));
             };
 
-            UnorderedAccessView(const eastl::weak_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
+            UnorderedAccessView(const GpuResource& gpuResource, const GpuResourceViewDescription& desc);
 
             friend class Render::DeviceContext;
             friend class RenderLoom::DeviceContext;

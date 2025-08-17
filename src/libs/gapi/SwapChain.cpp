@@ -10,7 +10,7 @@ namespace RR
     namespace GAPI
     {
         SwapChain::SwapChain(const SwapChainDescription& description)
-            : Resource(Object::Type::SwapChain),
+            : Resource(Type::SwapChain),
               description_(description)
         {
             ASSERT(description.width > 0);

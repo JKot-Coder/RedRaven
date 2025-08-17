@@ -28,7 +28,7 @@ namespace RR::RenderLoom
         inited = true;
     }
 
-    void DeviceContext::Present(const GAPI::SwapChain::SharedPtr& swapChain)
+    void DeviceContext::Present(GAPI::SwapChain* swapChain)
     {
         device->Present(swapChain);
     }
@@ -38,7 +38,7 @@ namespace RR::RenderLoom
         device->MoveToNextFrame(frameIndex);
     }
 
-    GAPI::Texture::SharedPtr DeviceContext::CreateTexture(
+    GAPI::Texture::UniquePtr DeviceContext::CreateTexture(
         const GAPI::GpuResourceDescription& desc,
         const Common::IDataBuffer::SharedPtr& initialData,
         const std::string& name)
@@ -46,60 +46,64 @@ namespace RR::RenderLoom
         ASSERT(inited);
 
         auto resource = GAPI::Texture::Create(shared_from_this(), desc, initialData, name);
-        device->InitTexture(resource);
+        device->InitTexture(*static_cast<GAPI::Texture*>(resource.get()));
 
         return resource;
     }
 
-    GAPI::RenderTargetView::SharedPtr DeviceContext::CreateRenderTargetView(
-        const GAPI::Texture::SharedPtr& texture,
+    GAPI::RenderTargetView::UniquePtr DeviceContext::CreateRenderTargetView(
+        const GAPI::Texture* texture,
         const GAPI::GpuResourceViewDescription& desc) const
     {
         ASSERT(inited);
+        ASSERT(texture);
 
-        auto resource = GAPI::RenderTargetView::Create(texture, desc);
+        auto resource = GAPI::RenderTargetView::Create(*texture, desc);
         device->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::DepthStencilView::SharedPtr DeviceContext::CreateDepthStencilView(
-        const eastl::shared_ptr<GAPI::Texture>& texture,
+    GAPI::DepthStencilView::UniquePtr DeviceContext::CreateDepthStencilView(
+        const GAPI::Texture* texture,
         const GAPI::GpuResourceViewDescription& desc) const
     {
         ASSERT(inited);
+        ASSERT(texture);
 
-        auto resource = GAPI::DepthStencilView::Create(texture, desc);
+        auto resource = GAPI::DepthStencilView::Create(*texture, desc);
         device->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::ShaderResourceView::SharedPtr DeviceContext::CreateShaderResourceView(
-        const GAPI::GpuResource::SharedPtr& gpuResource,
+    GAPI::ShaderResourceView::UniquePtr DeviceContext::CreateShaderResourceView(
+        const GAPI::GpuResource* gpuResource,
         const GAPI::GpuResourceViewDescription& desc) const
     {
         ASSERT(inited);
+        ASSERT(gpuResource);
 
-        auto resource = GAPI::ShaderResourceView::Create(gpuResource, desc);
+        auto resource = GAPI::ShaderResourceView::Create(*gpuResource, desc);
         device->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::UnorderedAccessView::SharedPtr DeviceContext::CreateUnorderedAccessView(
-        const GAPI::GpuResource::SharedPtr& gpuResource,
+    GAPI::UnorderedAccessView::UniquePtr DeviceContext::CreateUnorderedAccessView(
+        const GAPI::GpuResource* gpuResource,
         const GAPI::GpuResourceViewDescription& desc) const
     {
         ASSERT(inited);
+        ASSERT(gpuResource);
 
-        auto resource = GAPI::UnorderedAccessView::Create(gpuResource, desc);
+        auto resource = GAPI::UnorderedAccessView::Create(*gpuResource, desc);
         device->InitGpuResourceView(*resource.get());
 
-        return resource;;
+        return resource;
     }
 
-    GAPI::SwapChain::SharedPtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description) const
+    GAPI::SwapChain::UniquePtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description) const
     {
         ASSERT(inited);
 

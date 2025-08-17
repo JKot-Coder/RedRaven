@@ -14,23 +14,22 @@ namespace RR
         class Buffer final : public GpuResource
         {
         public:
-            using SharedPtr = eastl::shared_ptr<Buffer>;
-            using SharedConstPtr = eastl::shared_ptr<const Buffer>;
+            using UniquePtr = eastl::unique_ptr<Buffer>;
 
             static constexpr size_t MaxPossible = std::numeric_limits<size_t>::max();
 
         public:
-            eastl::shared_ptr<ShaderResourceView> GetSRV(GpuResourceFormat format, size_t firstElement = 0, size_t numElements = MaxPossible);
-            eastl::shared_ptr<UnorderedAccessView> GetUAV(GpuResourceFormat format, size_t firstElement = 0, size_t numElements = MaxPossible);
+            const ShaderResourceView* GetSRV(GpuResourceFormat format, size_t firstElement = 0, size_t numElements = MaxPossible);
+            const UnorderedAccessView* GetUAV(GpuResourceFormat format, size_t firstElement = 0, size_t numElements = MaxPossible);
 
         private:
-            static SharedPtr Create(
+            static UniquePtr Create(
                 const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
                 const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
             {
-                return SharedPtr(new Buffer(deviceContext, description, initialData, name));
+                return UniquePtr(new Buffer(deviceContext, description, initialData, name));
             }
 
             Buffer(const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,

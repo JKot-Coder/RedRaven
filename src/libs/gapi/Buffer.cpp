@@ -35,21 +35,21 @@ namespace RR
             }
         }
 
-        ShaderResourceView::SharedPtr Buffer::GetSRV(GpuResourceFormat format, size_t firstElement, size_t numElements)
+        const ShaderResourceView* Buffer::GetSRV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
             const auto viewDesc = createViewDescription(description_, format, firstElement, numElements);
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
                 auto& deviceContext = Render::DeviceContext::Instance();
-                // TODO static_pointer_cast; name_
-                srvs_[viewDesc] = deviceContext.CreateShaderResourceView(eastl::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
+                // TODO static_pointer_cast; name_ !!!!!!!!!!!
+                ///srvs_[viewDesc] = deviceContext.CreateShaderResourceView(eastl::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
 
-            return srvs_[viewDesc];
+            return srvs_[viewDesc].get();
         }
 
-        UnorderedAccessView::SharedPtr Buffer::GetUAV(GpuResourceFormat format, size_t firstElement, size_t numElements)
+        const UnorderedAccessView* Buffer::GetUAV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
             const auto& viewDesc = createViewDescription(description_, format, firstElement, numElements);
 
@@ -57,10 +57,10 @@ namespace RR
             {
                 auto& deviceContext = Render::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_
-                uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(eastl::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
+               // uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(eastl::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
 
-            return uavs_[viewDesc];
+            return uavs_[viewDesc].get();
         }
     }
 }

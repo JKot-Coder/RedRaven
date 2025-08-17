@@ -56,8 +56,9 @@ namespace RR::GAPI::Diligent
     DL::ITextureView* createTextureView(
         GAPI::GpuResourceView::ViewType viewType,
         const GpuResourceViewDescription& desc,
-        GpuResourceImpl* gpuResourceImpl)
+        const GpuResourceImpl* gpuResourceImpl)
     {
+        ASSERT(gpuResourceImpl);
         DL::TextureViewDesc viewDesc = getTextureViewDesc(viewType, gpuResourceImpl->GetResourceDimension(), desc);
         DL::ITextureView* textureView = nullptr;
         gpuResourceImpl->GetAsTexture()->CreateView(viewDesc, &textureView);
@@ -66,9 +67,9 @@ namespace RR::GAPI::Diligent
 
     void GpuResourceViewImpl::Init(GAPI::GpuResourceView& view)
     {
-        ASSERT(!view.GetGpuResource().expired());
-        const auto& gpuResource = view.GetGpuResource().lock();
-        GpuResourceImpl* gpuResourceImpl = gpuResource->GetPrivateImpl<GpuResourceImpl>();
+        ASSERT(view.GetGpuResource());
+        const auto& gpuResource = *view.GetGpuResource();
+        const GpuResourceImpl* gpuResourceImpl = gpuResource.GetPrivateImpl<GpuResourceImpl>();
 
         switch (gpuResourceImpl->GetResourceDimension())
         {

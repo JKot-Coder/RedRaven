@@ -80,9 +80,10 @@ namespace RR::GAPI::Diligent
         return false;
     }
 
-    void DeviceImpl::Present(const eastl::shared_ptr<SwapChain>& swapChain)
+    void DeviceImpl::Present(SwapChain* swapChain)
     {
         ASSERT_IS_DEVICE_INITED;
+        ASSERT(swapChain);
 
         ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
         auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
@@ -110,7 +111,7 @@ namespace RR::GAPI::Diligent
         return {};
     }
 
-    void DeviceImpl::InitBuffer(const eastl::shared_ptr<Buffer>& resource) const
+    void DeviceImpl::InitBuffer(Buffer& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
 
@@ -154,7 +155,8 @@ namespace RR::GAPI::Diligent
     {
         ASSERT_IS_DEVICE_INITED;
 
-        const auto& resourceSharedPtr = view.GetGpuResource().lock();
+        ASSERT(view.GetGpuResource());
+        const auto& resourceSharedPtr = *view.GetGpuResource();
         auto viewImpl = std::make_unique<GpuResourceViewImpl>();
         viewImpl->Init(view);
         view.SetPrivateImpl(viewImpl.release());
@@ -170,14 +172,13 @@ namespace RR::GAPI::Diligent
     }
 
     // TODO ASSERT INITED everywhere
-    void DeviceImpl::InitTexture(const eastl::shared_ptr<Texture>& resource) const
+    void DeviceImpl::InitTexture(Texture& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
-        ASSERT(resource);
 
         auto impl = std::make_unique<GpuResourceImpl>();
         impl->Init(device, resource);
-        resource->SetPrivateImpl(impl.release());
+        resource.SetPrivateImpl(impl.release());
     }
 
 }

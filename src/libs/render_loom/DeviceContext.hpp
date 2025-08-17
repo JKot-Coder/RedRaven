@@ -26,16 +26,15 @@ namespace RR::RenderLoom
 
         void Init(const GAPI::DeviceDescription& description);
 
-        void Present(const eastl::shared_ptr<GAPI::SwapChain>& swapChain);
+        void Present(GAPI::SwapChain* swapChain);
         void MoveToNextFrame(uint64_t frameIndex);
 
-        eastl::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
-        eastl::shared_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const eastl::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::shared_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const eastl::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::shared_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const eastl::shared_ptr<GAPI::GpuResource>& gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::shared_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const eastl::shared_ptr<GAPI::GpuResource>& gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::shared_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description) const;
-
+        eastl::unique_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
+        eastl::unique_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const GAPI::Texture* texture, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const GAPI::Texture* texture, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const GAPI::GpuResource* gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const GAPI::GpuResource* gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description) const;
 
     public:
         static SharedPtr Create()

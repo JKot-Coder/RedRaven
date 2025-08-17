@@ -44,56 +44,56 @@ namespace RR::GAPI
         }
     }
 
-    ShaderResourceView::SharedPtr Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const ShaderResourceView* Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
         const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, mipCount, firstArraySlice, numArraySlices);
 
         if (srvs_.find(viewDesc) == srvs_.end())
         {
-            // TODO static_pointer_cast; name_
-            srvs_[viewDesc] = getDeviceContext()->CreateShaderResourceView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            // name_ !!!!!!!!!!
+            srvs_[viewDesc] = getDeviceContext()->CreateShaderResourceView(static_cast<const GpuResource*>(this), viewDesc);
         }
 
-        return srvs_[viewDesc];
+        return srvs_[viewDesc].get();
     }
 
-    DepthStencilView::SharedPtr Texture::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const DepthStencilView* Texture::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
         const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
         // TODO VALIDATION VIEW DESC FORMAT
 
         if (dsvs_.find(viewDesc) == dsvs_.end())
         {
-            // TODO static_pointer_cast; name_
-            dsvs_[viewDesc] = getDeviceContext()->CreateDepthStencilView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            //  name_ !!!!!!!!
+            dsvs_[viewDesc] = getDeviceContext()->CreateDepthStencilView(static_cast<const Texture*>(this), viewDesc);
         }
 
-        return dsvs_[viewDesc];
+        return dsvs_[viewDesc].get();
     }
 
-    RenderTargetView::SharedPtr Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const RenderTargetView* Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
         const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (rtvs_.find(viewDesc) == rtvs_.end())
         {
-            // TODO static_pointer_cast; name_
-            rtvs_[viewDesc] = getDeviceContext()->CreateRenderTargetView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            // name_ !!!!!!
+           rtvs_[viewDesc] = getDeviceContext()->CreateRenderTargetView(static_cast<const Texture*>(this), viewDesc);
         }
 
-        return rtvs_[viewDesc];
+        return rtvs_[viewDesc].get();
     }
 
-    UnorderedAccessView::SharedPtr Texture::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const UnorderedAccessView* Texture::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
         const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (uavs_.find(viewDesc) == uavs_.end())
         {
-            // TODO static_pointer_cast; name_
-            uavs_[viewDesc] = getDeviceContext()->CreateUnorderedAccessView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
+            //  name_ !!!!!!!!!
+           uavs_[viewDesc] = getDeviceContext()->CreateUnorderedAccessView(static_cast<const GpuResource*>(this), viewDesc);
         }
 
-        return uavs_[viewDesc];
+        return uavs_[viewDesc].get();
     }
 }

@@ -479,11 +479,6 @@ namespace RR
         class GpuResource : public Resource<IGpuResource>
         {
         public:
-            using SharedPtr = eastl::shared_ptr<GpuResource>;
-            using SharedConstPtr = eastl::shared_ptr<const GpuResource>;
-            using WeakPtr = eastl::weak_ptr<GpuResource>;
-
-        public:
             template <typename Type>
             eastl::shared_ptr<Type> GetTyped();
 
@@ -511,7 +506,7 @@ namespace RR
                         GpuResourceDescription description,
                         IDataBuffer::SharedPtr initialData,
                         const std::string& name)
-                : Resource(Object::Type::GpuResource, name),
+                : Resource(Type::GpuResource, name),
                   deviceContext_(deviceContext),
                   description_(description),
                   initialData_(initialData) { };
@@ -527,10 +522,11 @@ namespace RR
             GpuResourceDescription description_;
             IDataBuffer::SharedPtr initialData_;
 
-            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
-            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;
-            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<DepthStencilView>, GpuResourceViewDescription::HashFunc> dsvs_;
-            std::unordered_map<GpuResourceViewDescription, eastl::shared_ptr<UnorderedAccessView>, GpuResourceViewDescription::HashFunc> uavs_;
+            // TODO NOT UNORDERD MAP NEVER EVER USE IT!!!!!
+            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDescription::HashFunc> dsvs_;
+            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDescription::HashFunc> uavs_;
         };
 
         template <>
@@ -538,7 +534,7 @@ namespace RR
 
         template <>
         eastl::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>();
-
+/*
         class GpuResourceDataGuard : public IDataBuffer
         {
         public:
@@ -557,6 +553,6 @@ namespace RR
             size_t size_;
             void* data_;
             GpuResource::SharedPtr resource_;
-        };
+        };*/
     }
 }
