@@ -12,7 +12,7 @@ namespace RR::Common
             std::unique_ptr<std::byte[]> buffer;
             std::size_t size;
 
-            Chunk(std::size_t size) : buffer(new std::byte[size]), size(size) { }
+            Chunk(std::size_t size) : buffer(new std::byte[size]), size(size) { ASSERT(IsAlignedTo(buffer.get(), alignof(std::max_align_t))); }
             Chunk(Chunk&& other) noexcept : buffer(std::move(other.buffer)), size(other.size) { }
             Chunk(const Chunk&) = delete;
             Chunk& operator=(const Chunk&) = delete;
@@ -43,8 +43,8 @@ namespace RR::Common
         {
             size_t totalCapasity = 0;
 
-            for (const auto& page : chunks)
-                totalCapasity += page.size;
+            for (const auto& chunk : chunks)
+                totalCapasity += chunk.size;
 
             totalCapasity = RoundUpToPowerOfTwo(totalCapasity);
 
@@ -73,7 +73,7 @@ namespace RR::Common
                 chunks.emplace_back(nextSize);
                 return allocate(size, alignment);
             }
-            void* ptr = chunk.buffer.get() + alignedOffset;
+            std::byte* ptr = chunk.buffer.get() + alignedOffset;
             offset = alignedOffset + size;
             return ptr;
         }
