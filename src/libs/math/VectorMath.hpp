@@ -322,7 +322,7 @@ namespace RR
 
         Radian AngleBetween(const Vector<SIZE, T>& dest) const
         {
-            float lenProduct = static_cast<float>(Length() * dest.length());
+            float lenProduct = static_cast<float>(Length() * dest.Length());
 
             // Divide by zero check
             if (lenProduct < std::numeric_limits<float>::epsilon())
