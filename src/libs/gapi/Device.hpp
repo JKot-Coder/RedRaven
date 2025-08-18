@@ -48,6 +48,8 @@ namespace RR
 
             virtual GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const = 0;
 
+            virtual void Compile(CommandContext* commandContext) = 0;
+
             virtual void InitBuffer(Buffer& resource) const = 0;
             virtual void InitCommandList(CommandList& resource) const = 0;
             virtual void InitCommandContext(CommandContext& resource) const = 0;
@@ -81,6 +83,7 @@ namespace RR
             //   virtual void Submit(const eastl::shared_ptr<CommandList>& CommandList) = 0;
             void Present(SwapChain* swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
+            void Compile(CommandContext* commandContext) override { GetPrivateImpl()->Compile(commandContext); }
 
             GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const
                 override { return GetPrivateImpl()->GetResourceFootprint(description); };

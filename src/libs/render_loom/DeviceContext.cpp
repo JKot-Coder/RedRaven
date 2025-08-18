@@ -50,6 +50,13 @@ namespace RR::RenderLoom
         return resource;
     }
 
+    void DeviceContext::Compile(GAPI::GraphicsCommandContext* commandContext)
+    {
+        ASSERT(inited);
+
+        device->Compile(commandContext);
+    }
+
     GAPI::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
     {
         ASSERT(inited);

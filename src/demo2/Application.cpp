@@ -82,18 +82,18 @@ namespace RR::App
             swapChain = CreateSwapChain(window);
         });
 
-
-        auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "test");
-
-
+        auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
-        ctx->ClearRenderTargetView(texture->GetRTV(), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 
         while (!Application::quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
+
+            ctx->ClearRenderTargetView(texture->GetRTV(), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+            deviceContext.Compile(ctx.get());
+            commandQueue->Submit(ctx.get());
 
             deviceContext.Present(swapChain.get());
             deviceContext.MoveToNextFrame(0);

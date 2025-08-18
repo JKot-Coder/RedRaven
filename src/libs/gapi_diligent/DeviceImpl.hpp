@@ -28,6 +28,8 @@ namespace RR::GAPI::Diligent
 
         GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const override;
 
+        void Compile(CommandContext* commandContext) override;
+
         void InitBuffer(Buffer& resource) const override;
         void InitCommandList(CommandList& resource) const override;
         void InitCommandContext(CommandContext& resource) const override;
@@ -45,6 +47,7 @@ namespace RR::GAPI::Diligent
         GAPI::DeviceDescription description = {};
         DL::RENDER_DEVICE_TYPE deviceType = DL::RENDER_DEVICE_TYPE_UNDEFINED;
         DL::RefCntAutoPtr<DL::IDeviceContext> immediateContext;
+        DL::RefCntAutoPtr<DL::IDeviceContext> deferredContext;
         DL::RefCntAutoPtr<DL::IRenderDevice> device;
         DL::RefCntAutoPtr<DL::IEngineFactory> engineFactory;
     };

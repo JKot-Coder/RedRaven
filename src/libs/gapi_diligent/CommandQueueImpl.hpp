@@ -30,6 +30,7 @@ namespace RR
             void Signal(const eastl::shared_ptr<Fence>& fence) override;
             void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) override;
             void Submit(const eastl::shared_ptr<CommandList>& commandList) override;
+            void Submit(CommandContext* commandContext) override;
             void WaitForGpu() override;
 
         private:

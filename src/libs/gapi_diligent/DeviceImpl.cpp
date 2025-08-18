@@ -3,6 +3,7 @@
 #include "GpuResourceImpl.hpp"
 #include "GpuResourceViewImpl.hpp"
 #include "CommandQueueImpl.hpp"
+#include "CommandContextImpl.hpp"
 
 #define ASSERT_IS_DEVICE_INITED ASSERT(inited)
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
@@ -59,7 +60,7 @@ namespace RR::GAPI::Diligent
 
         EngineCI.AdapterId = DL::DEFAULT_ADAPTER_ID;
         EngineCI.NumImmediateContexts = 0;
-        EngineCI.NumDeferredContexts = 0;
+        EngineCI.NumDeferredContexts = 1;
 
         eastl::vector<DL::IDeviceContext*> ppContexts;
         ppContexts.resize(RR::Max(1u, EngineCI.NumImmediateContexts) + EngineCI.NumDeferredContexts);
@@ -73,6 +74,7 @@ namespace RR::GAPI::Diligent
         }
 
         immediateContext.Attach(ppContexts[0]);
+        deferredContext.Attach(ppContexts[1]);
 
         inited = true;
         deviceType = DL::RENDER_DEVICE_TYPE_D3D12;
@@ -88,6 +90,8 @@ namespace RR::GAPI::Diligent
 
         ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
         auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
+
+        immediateContext->Flush();
 
         // Diligent Engine waits for gpu on Present()
         swapChainImpl->Present();
@@ -112,6 +116,18 @@ namespace RR::GAPI::Diligent
         return {};
     }
 
+    void DeviceImpl::Compile(CommandContext* commandContext)
+    {
+        ASSERT_IS_DEVICE_INITED;
+        ASSERT(commandContext);
+
+        ASSERT(dynamic_cast<CommandContextImpl*>(commandContext->GetPrivateImpl()));
+        auto commandContextImpl = static_cast<CommandContextImpl*>(commandContext->GetPrivateImpl());
+
+        // MUTEX HERE AND DEFFERED CONTEXT
+        commandContextImpl->Compile(commandContext->GetCommandList(), deferredContext);
+    }
+
     void DeviceImpl::InitBuffer(Buffer& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
@@ -133,8 +149,9 @@ namespace RR::GAPI::Diligent
         ASSERT_IS_DEVICE_INITED;
         UNUSED(resource);
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<CommandContextImpl>();
+        impl->Init();
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitCommandQueue(CommandQueue& resource) const

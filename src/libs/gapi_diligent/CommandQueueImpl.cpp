@@ -23,7 +23,16 @@ namespace RR
         void CommandQueueImpl::Signal(const eastl::shared_ptr<Fence>& fence) { NOT_IMPLEMENTED(); }
         void CommandQueueImpl::Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { NOT_IMPLEMENTED(); }
         void CommandQueueImpl::Submit(const eastl::shared_ptr<CommandList>& commandList) { NOT_IMPLEMENTED(); }
+        void CommandQueueImpl::Submit(CommandContext* commandContext)
+        {
+            auto* commandContextImpl = static_cast<CommandContextImpl*>(commandContext->GetPrivateImpl());
+            ASSERT(commandContextImpl);
 
+            const eastl::array<DL::ICommandList*, 1> commandLists{ commandContextImpl->GetCommandList() };
+            deviceContext->ExecuteCommandLists(1, commandLists.data());
+
+            commandContextImpl->Reset();
+        }
         void CommandQueueImpl::WaitForGpu() { NOT_IMPLEMENTED(); }
     }
 }

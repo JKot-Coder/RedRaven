@@ -14,6 +14,7 @@ namespace RR
     namespace GAPI
     {
         class CommandList;
+        class CommandContext;
 
         enum class CommandQueueType : uint32_t
         {
@@ -33,6 +34,7 @@ namespace RR
             virtual void Signal(const eastl::shared_ptr<Fence>& fence) = 0;
             virtual void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) = 0;
             virtual void Submit(const eastl::shared_ptr<CommandList>& commandList) = 0;
+            virtual void Submit(CommandContext* commandContext) = 0;
             virtual void WaitForGpu() = 0;
         };
 
@@ -47,6 +49,7 @@ namespace RR
             inline void Signal(const eastl::shared_ptr<Fence>& fence) { return GetPrivateImpl()->Signal(fence); }
             inline void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { return GetPrivateImpl()->Signal(fence, value); }
             inline void Submit(const eastl::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
+            inline void Submit(CommandContext* commandContext) { return GetPrivateImpl()->Submit(commandContext); }
 
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 

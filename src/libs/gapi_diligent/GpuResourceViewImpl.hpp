@@ -19,6 +19,9 @@ namespace RR::GAPI::Diligent
 
         void Init(GAPI::GpuResourceView& resource);
 
+        DL::ITextureView* GetTextureView() const { return textureView; }
+        DL::IBufferView* GetBufferView() const { return bufferView; }
+
     private:
         union
         {
