@@ -24,19 +24,18 @@ namespace RR
 
         private:
             static UniquePtr Create(
-                const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
                 const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
             {
-                return UniquePtr(new Buffer(deviceContext, description, initialData, name));
+                return UniquePtr(new Buffer(description, initialData, name));
             }
 
-            Buffer(const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
-                   const GpuResourceDescription& description,
-                   IDataBuffer::SharedPtr initialData,
-                   const std::string& name)
-                : GpuResource(deviceContext, description, initialData, name)
+            Buffer(
+                const GpuResourceDescription& description,
+                IDataBuffer::SharedPtr initialData,
+                const std::string& name)
+                : GpuResource(description, initialData, name)
             {
                 if (!description.IsBuffer())
                     LOG_FATAL("Wrong Description");

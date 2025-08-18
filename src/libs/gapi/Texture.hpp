@@ -23,22 +23,18 @@ namespace RR::GAPI
         const UnorderedAccessView* GetUAV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
 
     private:
-
-
         static UniquePtr Create(
-            const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
             const GpuResourceDescription& description,
             IDataBuffer::SharedPtr initialData,
             const std::string& name)
         {
-            return UniquePtr(new Texture(deviceContext, description, initialData, name));
+            return UniquePtr(new Texture(description, initialData, name));
         }
 
-        Texture(const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
-                const GpuResourceDescription& description,
+        Texture(const GpuResourceDescription& description,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
-            : GpuResource(deviceContext, description, initialData, name)
+            : GpuResource(description, initialData, name)
         {
             if (!description.IsTexture())
                 LOG_FATAL("Wrong Description");

@@ -8,6 +8,9 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/CommandList2.hpp"
+
+#include "math/VectorMath.hpp"
 
 #include "render_loom/DeviceContext.hpp"
 
@@ -42,7 +45,7 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::UniquePtr CreateSwapChain(const RenderLoom::DeviceContext::SharedPtr& deviceContext, Ecs::WindowModule::Window& window)
+    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window)
     {
         GAPI::SwapChainDescription swapChainDescription;
         swapChainDescription.windowNativeHandle = window.nativeHandle;
@@ -52,7 +55,7 @@ namespace RR::App
         swapChainDescription.bufferCount = 2;
         swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
 
-        return deviceContext->CreateSwapchain(swapChainDescription);
+        return RenderLoom::DeviceContext::Instance().CreateSwapchain(swapChainDescription);
     }
 
     int RunApplication()
@@ -67,26 +70,31 @@ namespace RR::App
 
 
         GAPI::DeviceDescription description;
-        auto deviceContext = RenderLoom::DeviceContext::Create();
-        deviceContext->Init(description);
+        auto& deviceContext = RenderLoom::DeviceContext::Instance();
+        deviceContext.Init(description);
 
         GAPI::SwapChain::UniquePtr swapChain;
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<MainWindow>().Apply();
 
-        world.View().With<Ecs::WindowModule::Window>().ForEntity(windowEntity, [&deviceContext, &swapChain](Ecs::WindowModule::Window& window) {
-            swapChain = CreateSwapChain(deviceContext, window);
+        world.View().With<Ecs::WindowModule::Window>().ForEntity(windowEntity, [&swapChain](Ecs::WindowModule::Window& window) {
+            swapChain = CreateSwapChain(window);
         });
 
-        auto texture = deviceContext->CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm), nullptr, "test");
-        texture->GetSRV();
+
+        auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "test");
+
+
+        auto ctx = deviceContext.CreateGraphicsCommandContext("test");
+        ctx->ClearRenderTargetView(texture->GetRTV(), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+
         while (!Application::quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
 
-            deviceContext->Present(swapChain.get());
-            deviceContext->MoveToNextFrame(0);
+            deviceContext.Present(swapChain.get());
+            deviceContext.MoveToNextFrame(0);
         }
 
         return 0;

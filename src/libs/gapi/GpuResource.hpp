@@ -502,23 +502,14 @@ namespace RR
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
-            GpuResource(const eastl::shared_ptr<RenderLoom::DeviceContext>& deviceContext,
-                        GpuResourceDescription description,
+            GpuResource(GpuResourceDescription description,
                         IDataBuffer::SharedPtr initialData,
                         const std::string& name)
                 : Resource(Type::GpuResource, name),
-                  deviceContext_(deviceContext),
                   description_(description),
                   initialData_(initialData) { };
 
-            eastl::shared_ptr<RenderLoom::DeviceContext> getDeviceContext() const
-            {
-                ASSERT(!deviceContext_.expired());
-                return deviceContext_.lock();
-            }
-
         protected:
-            eastl::weak_ptr<RenderLoom::DeviceContext> deviceContext_;
             GpuResourceDescription description_;
             IDataBuffer::SharedPtr initialData_;
 

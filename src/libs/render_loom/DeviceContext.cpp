@@ -56,7 +56,7 @@ namespace RR::RenderLoom
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Texture::Create(shared_from_this(), desc, initialData, name);
+        auto resource = GAPI::Texture::Create(desc, initialData, name);
         device->InitTexture(*static_cast<GAPI::Texture*>(resource.get()));
 
         return resource;
