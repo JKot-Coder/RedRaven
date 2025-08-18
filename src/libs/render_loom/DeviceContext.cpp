@@ -5,6 +5,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 #include "gapi/CommandList2.hpp"
+#include "gapi/CommandQueue.hpp"
 
 #include "gapi_diligent/Device.hpp"
 
@@ -37,6 +38,16 @@ namespace RR::RenderLoom
     void DeviceContext::MoveToNextFrame(uint64_t frameIndex)
     {
         device->MoveToNextFrame(frameIndex);
+    }
+
+    GAPI::CommandQueue::UniquePtr DeviceContext::CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const
+    {
+        ASSERT(inited);
+
+        auto resource = GAPI::CommandQueue::Create(type, name);
+        device->InitCommandQueue(*resource.get());
+
+        return resource;
     }
 
     GAPI::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const

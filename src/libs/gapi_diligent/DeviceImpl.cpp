@@ -2,6 +2,7 @@
 #include "SwapChainImpl.hpp"
 #include "GpuResourceImpl.hpp"
 #include "GpuResourceViewImpl.hpp"
+#include "CommandQueueImpl.hpp"
 
 #define ASSERT_IS_DEVICE_INITED ASSERT(inited)
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
@@ -132,15 +133,17 @@ namespace RR::GAPI::Diligent
         ASSERT_IS_DEVICE_INITED;
         UNUSED(resource);
 
-        // Nothing to do here. It's pure sorftware command list.
+        UNUSED(resource);
+        NOT_IMPLEMENTED();
     }
 
     void DeviceImpl::InitCommandQueue(CommandQueue& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<CommandQueueImpl>();
+        impl->Init(immediateContext);  // TODO pick based on queue type!
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitFence(Fence& resource) const

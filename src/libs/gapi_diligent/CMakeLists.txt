@@ -13,6 +13,8 @@ set(SRC
     GpuResourceImpl.hpp
     GpuResourceViewImpl.cpp
     GpuResourceViewImpl.hpp
+    CommandQueueImpl.cpp
+    CommandQueueImpl.hpp
     empty.cpp)
 source_group( "" FILES ${SRC} )
 

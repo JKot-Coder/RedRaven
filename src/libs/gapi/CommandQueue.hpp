@@ -39,8 +39,7 @@ namespace RR
         class CommandQueue final : public Resource<ICommandQueue>
         {
         public:
-            using SharedPtr = eastl::shared_ptr<CommandQueue>;
-            using SharedConstPtr = eastl::shared_ptr<const CommandQueue>;
+            using UniquePtr = eastl::unique_ptr<CommandQueue>;
 
             CommandQueue() = delete;
 
@@ -52,13 +51,13 @@ namespace RR
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 
         private:
-            static SharedPtr Create(CommandQueueType type, const std::string& name)
+            static UniquePtr Create(CommandQueueType type, const std::string& name)
             {
-                return SharedPtr(new CommandQueue(type, name));
+                return UniquePtr(new CommandQueue(type, name));
             }
 
             CommandQueue(CommandQueueType type, const std::string& name)
-                : Resource(Object::Type::CommandQueue, name),
+                : Resource(Type::CommandQueue, name),
                   type_(type)
             {
             }
@@ -69,6 +68,7 @@ namespace RR
             CommandQueueType type_;
 
             friend class Render::DeviceContext;
+            friend class RenderLoom::DeviceContext;
         };
     }
 }

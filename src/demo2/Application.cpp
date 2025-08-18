@@ -8,6 +8,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 #include "gapi/GpuResourceViews.hpp"
+#include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList2.hpp"
 
 #include "math/VectorMath.hpp"
@@ -87,6 +88,7 @@ namespace RR::App
 
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         ctx->ClearRenderTargetView(texture->GetRTV(), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+        auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 
         while (!Application::quit)
         {
