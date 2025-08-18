@@ -4,6 +4,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
+#include "gapi/CommandList2.hpp"
 
 #include "gapi_diligent/Device.hpp"
 
@@ -36,6 +37,16 @@ namespace RR::RenderLoom
     void DeviceContext::MoveToNextFrame(uint64_t frameIndex)
     {
         device->MoveToNextFrame(frameIndex);
+    }
+
+    GAPI::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
+    {
+        ASSERT(inited);
+
+        auto resource = GAPI::GraphicsCommandContext::Create(name);
+        device->InitCommandContext(*resource.get());
+
+        return resource;
     }
 
     GAPI::Texture::UniquePtr DeviceContext::CreateTexture(

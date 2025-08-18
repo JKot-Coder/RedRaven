@@ -6,6 +6,8 @@ set(SRC
     CommandList.cpp
     CommandList.hpp
     CommandList.inl
+    CommandList2.cpp
+    CommandList2.hpp
     CommandQueue.hpp
     Device.hpp
     Fence.hpp
@@ -25,7 +27,13 @@ set(SRC
     SwapChain.hpp
     Texture.cpp
     Texture.hpp)
-source_group( "" FILES ${SRC} )
+
+set(COMMANDS
+    Commands/Command.hpp
+    Commands/ClearRTV.hpp
+)
+
+source_group( "" FILES ${SRC} ${COMMANDS} )
 
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")

@@ -30,6 +30,7 @@ namespace RR::GAPI::Diligent
 
         void InitBuffer(Buffer& resource) const override;
         void InitCommandList(CommandList& resource) const override;
+        void InitCommandContext(CommandContext& resource) const override;
         void InitCommandQueue(CommandQueue& resource) const override;
         void InitFence(Fence& resource) const override;
         void InitFramebuffer(Framebuffer& resource) const override;

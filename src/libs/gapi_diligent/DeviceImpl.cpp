@@ -127,6 +127,14 @@ namespace RR::GAPI::Diligent
         NOT_IMPLEMENTED();
     }
 
+    void DeviceImpl::InitCommandContext(CommandContext& resource) const
+    {
+        ASSERT_IS_DEVICE_INITED;
+        UNUSED(resource);
+
+        // Nothing to do here. It's pure sorftware command list.
+    }
+
     void DeviceImpl::InitCommandQueue(CommandQueue& resource) const
     {
         ASSERT_IS_DEVICE_INITED;

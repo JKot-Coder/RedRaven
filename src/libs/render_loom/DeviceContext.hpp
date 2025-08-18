@@ -29,6 +29,7 @@ namespace RR::RenderLoom
         void Present(GAPI::SwapChain* swapChain);
         void MoveToNextFrame(uint64_t frameIndex);
 
+        eastl::unique_ptr<GAPI::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;
         eastl::unique_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
         eastl::unique_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const GAPI::Texture* texture, const GAPI::GpuResourceViewDescription& desc) const;
         eastl::unique_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const GAPI::Texture* texture, const GAPI::GpuResourceViewDescription& desc) const;

@@ -4,6 +4,7 @@
 #include "gapi/Resource.hpp"
 
 #include "math/ForwardDeclarations.hpp"
+#include "gapi/commands/Command.hpp"
 
 // TODO temporary
 #include <any>

@@ -81,6 +81,7 @@ namespace RR::GAPI::Diligent
         UNUSED(backBufferIndex);
         UNUSED(resource);
         NOT_IMPLEMENTED();
+        swapChain->GetCurrentBackBufferRTV();
     }
 
     void SwapChainImpl::Present()
