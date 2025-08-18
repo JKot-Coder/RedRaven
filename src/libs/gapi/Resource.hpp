@@ -45,7 +45,7 @@ namespace RR
                 ASSERT(dynamic_cast<T1*>(privateImpl_.get()));
                 return static_cast<const T1*>(privateImpl_.get());
             }
-            void SetPrivateImpl(T* impl) { privateImpl_.reset(impl); }
+            void SetPrivateImpl(T* impl) { ASSERT(!privateImpl_); privateImpl_.reset(impl); }
 
             template <bool isNamed = IsNamed, typename = eastl::enable_if_t<isNamed>>
             const std::string& GetName() const { return name_; }
