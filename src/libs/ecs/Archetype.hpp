@@ -440,7 +440,10 @@ namespace RR::Ecs
             ComponentData componentData = componentsData.GetComponentData(componentIndex, index);
 
             if (componentData.trackedData)
+            {
+                ASSERT(componentInfo.copy);
                 componentInfo.copy(componentData.trackedData, src);
+            }
             componentInfo.move(componentData.data, src);
         }
 

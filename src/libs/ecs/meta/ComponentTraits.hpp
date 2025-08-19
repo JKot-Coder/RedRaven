@@ -149,9 +149,17 @@ namespace RR::Ecs::Meta
             if constexpr (std::is_copy_constructible_v<T>)
             {
                 new (dest) T(*static_cast<T*>(source));
+            } else
+            {
+                if constexpr (details::is_trackable_v<T>)
+                {
+                    static_assert(sizeof(T) == 0, "Trackable type T must be copy constructible");
+                }
+                else
+                {
+                    // Non trackable type could be non copyable, this is fine.
+                }
             }
-            else
-                static_assert(sizeof(T) == 0, "Type T must be copy constructible");
         }
 
         template <typename T>
@@ -233,7 +241,7 @@ namespace RR::Ecs::Meta
                 eastl::is_trivially_default_constructible_v<T> ? nullptr : &details::DefaultConstructor<T>,
                 eastl::is_trivially_destructible_v<T> ? nullptr : &details::Destructor<T>,
                 &details::Move<T>,
-                &details::Copy<T>,
+                std::is_copy_constructible_v<T> ? &details::Copy<T> : nullptr,
                 trackable ? &details::CompareAndAssign<eastl::conditional_t<trackable, T, int>> : nullptr,
                 {}};
         }
