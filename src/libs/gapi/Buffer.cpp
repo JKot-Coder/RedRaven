@@ -2,7 +2,7 @@
 
 #include "gapi/GpuResourceViews.hpp"
 
-#include "render_loom/DeviceContext.hpp"
+#include "render/DeviceContext.hpp"
 
 #include "math/Math.hpp"
 

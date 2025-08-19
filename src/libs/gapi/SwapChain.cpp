@@ -3,7 +3,7 @@
 #include "gapi/GpuResource.hpp"
 #include "gapi/Texture.hpp"
 
-#include "render_loom/DeviceContext.hpp"
+#include "render/DeviceContext.hpp"
 
 namespace RR
 {
