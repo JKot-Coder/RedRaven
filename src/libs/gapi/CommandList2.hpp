@@ -116,7 +116,7 @@ namespace RR::GAPI
         friend class Render::DeviceContext;
 
         explicit CopyCommandContext(const std::string& name)
-            : CommandContext(Type::Copy, name), CommandContextMixin(&commandList), CopyCommandContextMixin()
+            : CommandContextMixin(&commandList), CommandContext(Type::Copy, name), CopyCommandContextMixin()
         {
         }
     };
@@ -132,7 +132,7 @@ namespace RR::GAPI
         friend class Render::DeviceContext;
 
         explicit ComputeCommandContext(const std::string& name)
-            : CommandContext(Type::Compute, name), CommandContextMixin(&commandList), CopyCommandContextMixin(), ComputeCommandContextMixin()
+            : CommandContextMixin(&commandList), CommandContext(Type::Compute, name), CopyCommandContextMixin(), ComputeCommandContextMixin()
         {
         }
     };
@@ -149,7 +149,7 @@ namespace RR::GAPI
         friend class Render::DeviceContext;
 
         explicit GraphicsCommandContext(const std::string& name)
-            : CommandContext(Type::Graphics, name), CommandContextMixin(&commandList), GraphicsOperationsMixin(), CopyCommandContextMixin(), ComputeCommandContextMixin()
+            : CommandContextMixin(&commandList), CommandContext(Type::Graphics, name), GraphicsOperationsMixin(), CopyCommandContextMixin(), ComputeCommandContextMixin()
         {
         }
 

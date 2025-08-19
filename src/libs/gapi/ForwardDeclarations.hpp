@@ -5,7 +5,7 @@ namespace RR
     namespace GAPI
     {
         class Device;
-        class DeviceDescription;
+        struct DeviceDescription;
 
         class Fence;
         class Texture;
