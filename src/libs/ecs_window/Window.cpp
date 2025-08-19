@@ -51,6 +51,19 @@ namespace RR::Ecs::WindowModule
         GetWindowEntity(glfwWindow).Emit<Window::Close>({});
     }
 
+    void windowSizeCallback(GLFWwindow* glfwWindow, int width, int height)
+    {
+        auto windowEntity = GetWindowEntity(glfwWindow);
+        auto& world = windowEntity.GetWorld();
+
+        world.View().With<WindowDescription>().ForEntity(GetWindowEntity(glfwWindow), [width, height](WindowDescription& description) {
+            description.width = width;
+            description.height = height;
+        });
+
+        world.EmitImmediately<Window::Resize>({width, height});
+    }
+
     eastl::any getNativeHandle(GLFWwindow* glfwWindow)
     {
 #if OS_WINDOWS
@@ -64,12 +77,19 @@ namespace RR::Ecs::WindowModule
 
     void InitWindow(World& world)
     {
-        world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window) {
+        world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window, WindowDescription* description) {
             Ecs::Entity windowEntity = world.GetEntity(id); // Todo remove this boilerplate
 
-            GLFWwindow* glfwWindow = glfwCreateWindow(800, 600, "", nullptr, nullptr);
+            WindowDescription defaultDescription = {800, 600};
+            if(!description)
+            {
+                description = &defaultDescription;
+                windowEntity.Edit().Add<WindowDescription>(defaultDescription).Apply();
+            }
+            GLFWwindow* glfwWindow = glfwCreateWindow(description->width, description->height, "", nullptr, nullptr);
 
             glfwSetWindowUserPointer(glfwWindow, new GlfwHandler {windowEntity});
+            glfwSetWindowSizeCallback(glfwWindow, &windowSizeCallback);
             glfwSetWindowCloseCallback(glfwWindow, &windowCloseCallback);
 
             window.glfwWindow = glfwWindow;

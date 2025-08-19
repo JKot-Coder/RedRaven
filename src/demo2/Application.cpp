@@ -46,13 +46,13 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window)
+    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window,  Ecs::WindowModule::WindowDescription& description)
     {
         GAPI::SwapChainDescription swapChainDescription;
         swapChainDescription.windowNativeHandle = window.nativeHandle;
-        // TODO: get window size
-        swapChainDescription.width = 1920;
-        swapChainDescription.height = 1080;
+
+        swapChainDescription.width = description.width;
+        swapChainDescription.height = description.height;
         swapChainDescription.bufferCount = 2;
         swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
 
@@ -76,11 +76,15 @@ namespace RR::App
 
         GAPI::SwapChain::UniquePtr swapChain;
 
-        auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<MainWindow>().Apply();
+        auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDescription>(800, 600).Add<MainWindow>().Apply();
 
-        world.View().With<Ecs::WindowModule::Window>().ForEntity(windowEntity, [&swapChain](Ecs::WindowModule::Window& window) {
-            swapChain = CreateSwapChain(window);
-        });
+        world.View()
+            .With<Ecs::WindowModule::Window>()
+            .With<Ecs::WindowModule::WindowDescription>()
+            .ForEntity(windowEntity,
+                       [&swapChain](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description) {
+                           swapChain = CreateSwapChain(window, description);
+                       });
 
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");

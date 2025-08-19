@@ -12,6 +12,7 @@ namespace RR::Ecs::WindowModule
     {
         Tick() : Event(GetEventId<Tick>, sizeof(Tick)) { }
     };
+
     struct Window
     {
         struct Close : public Event
@@ -19,8 +20,22 @@ namespace RR::Ecs::WindowModule
             Close() : Event(GetEventId<Close>, sizeof(Close)) { }
         };
 
+        struct Resize : public Event
+        {
+            Resize(int32_t width, int32_t height) : Event(GetEventId<Resize>, sizeof(Resize)), width(width), height(height) { }
+
+            int32_t width;
+            int32_t height;
+        };
+
         GLFWwindow* glfwWindow = nullptr;
         eastl::any nativeHandle;
+    };
+
+    struct WindowDescription
+    {
+        int32_t width;
+        int32_t height;
     };
 
     void Init(World& world);
