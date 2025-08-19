@@ -27,6 +27,5 @@ target_link_libraries(${PROJECT_NAME}
     common
     gapi
     Diligent-Common
-    Diligent-BuildSettings
     Diligent-GraphicsEngineD3D12-shared
 )
