@@ -1,4 +1,4 @@
-project (render_loom)
+project (render)
 
 set(SRC
     DeviceContext.cpp

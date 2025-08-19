@@ -10,7 +10,7 @@ set(LIBRARIES
     common
     ecs
     ecs_window
-    render_loom
+    render
 )
 
 #=============================== Target ===============================#
