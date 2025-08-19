@@ -5,6 +5,9 @@
 
 #include "RefCntAutoPtr.hpp"
 #include "RenderDevice.h"
+
+#include "EASTL/fixed_vector.h"
+
 namespace DL = ::Diligent;
 
 namespace Diligent
@@ -27,16 +30,16 @@ namespace RR::GAPI::Diligent
                   const SwapChainDescription& description,
                   uint32_t frameLatency);
 
-        void Reset(const SwapChainDescription& description, const std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) override;
+        void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const override;
+        void Reset(const SwapChainDescription& description, const Texture** backBuffers) override;
 
         virtual eastl::any GetWaitableObject() const override;
         uint32_t GetCurrentBackBufferIndex() const override;
 
-        void InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource) override;
-
         void Present();
 
     private:
+        eastl::fixed_vector<DL::ITextureView*, 4> rtvs;
         DL::RefCntAutoPtr<DL::ISwapChain> swapChain;
     };
 }

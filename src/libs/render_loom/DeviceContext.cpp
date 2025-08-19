@@ -141,4 +141,20 @@ namespace RR::RenderLoom
 
         return resource;
     }
+
+    GAPI::Texture::UniquePtr DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const std::string& name) const
+    {
+        ASSERT(inited);
+
+        ASSERT(swapchain);
+        ASSERT(desc.dimension == GAPI::GpuResourceDimension::Texture2D);
+        ASSERT(desc.usage == GAPI::GpuResourceUsage::Default);
+        ASSERT(desc.GetNumSubresources() == 1);
+
+        auto resource = GAPI::Texture::Create(desc, nullptr, name);
+        swapchain->InitBackBufferTexture(backBufferIndex, *resource.get());
+
+        return resource;
+    }
+
 }

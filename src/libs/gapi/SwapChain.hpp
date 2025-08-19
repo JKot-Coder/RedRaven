@@ -49,8 +49,8 @@ namespace RR
             virtual uint32_t GetCurrentBackBufferIndex() const = 0;
             virtual eastl::any GetWaitableObject() const = 0;
 
-            virtual void InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource) = 0;
-            virtual void Reset(const SwapChainDescription& description, const std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
+            virtual void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const = 0;
+            virtual void Reset(const SwapChainDescription& description, const RR::GAPI::Texture** backBuffers) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain, false>
@@ -58,7 +58,10 @@ namespace RR
         public:
             using UniquePtr = eastl::unique_ptr<SwapChain>;
 
-           // eastl::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
+            ~SwapChain();
+
+            Texture* GetBackBufferTexture(uint32_t index);
+            Texture* GetCurrentBackBufferTexture() { return GetBackBufferTexture(GetCurrentBackBufferIndex()); }
 
             const SwapChainDescription& GetDescription() const { return description_; }
             uint32_t GetCurrentBackBufferIndex() const { return GetPrivateImpl()->GetCurrentBackBufferIndex(); }
@@ -76,11 +79,11 @@ namespace RR
 
             void Reset(const SwapChainDescription& description);
 
-            inline void InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource) { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
+            inline void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
 
         private:
             SwapChainDescription description_;
-            std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
+            eastl::array<eastl::unique_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
 
             friend class Render::DeviceContext;
             friend class RenderLoom::DeviceContext;

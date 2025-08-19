@@ -57,7 +57,7 @@ namespace RR
                 D3DSwapChain_->SetMaximumFrameLatency(description.bufferCount);
             }
 
-            void SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<std::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
+            void SwapChainImpl::Reset(const SwapChainDescription& description, const Texture** backBuffers)
             {
                 ASSERT(D3DSwapChain_);
                 ASSERT(CheckSwapchainDescription(description));

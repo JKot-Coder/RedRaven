@@ -114,6 +114,15 @@ namespace RR::GAPI::Diligent
         dimension = getDLResourceDimension(resource.GetDescription().GetDimension());
     }
 
+    void GpuResourceImpl::Init(DL::ITexture* texture, const GpuResource& resource)
+    {
+        ASSERT(texture);
+        ASSERT(!this->texture);
+
+        this->texture = texture;
+        dimension = getDLResourceDimension(resource.GetDescription().GetDimension());
+    }
+
     void GpuResourceImpl::DestroyImmediatly() { NOT_IMPLEMENTED(); }
 
     std::any GpuResourceImpl::GetRawHandle() const

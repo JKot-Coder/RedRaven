@@ -4,7 +4,10 @@
 #include "EngineFactoryD3D12.h"
 #endif
 
+#include "gapi_diligent/GpuResourceImpl.hpp"
+
 #include "gapi/GpuResource.hpp"
+#include "gapi/Texture.hpp"
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
@@ -32,6 +35,8 @@ namespace RR::GAPI::Diligent
                              DL::IDeviceContext* immediateContext,
                              const SwapChainDescription& description, uint32_t frameLatency)
     {
+        ASSERT(!swapChain);
+
         DL::SwapChainDesc swapChainInitDesc = getSwapChainInitDesc(description);
 #if OS_WINDOWS
         DL::Win32NativeWindow nativeWindow {eastl::any_cast<HWND>(description.windowNativeHandle)};
@@ -54,11 +59,26 @@ namespace RR::GAPI::Diligent
                 ASSERT_MSG(false, "Unsupported device type");
         }
 
+        rtvs.reserve(swapChainInitDesc.BufferCount);
+        for (uint32_t i = 0; i < swapChainInitDesc.BufferCount; i++)
+        {
+            auto* rtv = swapChain->GetCurrentBackBufferRTV();
+            ASSERT(rtv);
+
+            // Due horoble impelemntation of swapchain in Diligent we need a hacky way
+            // to get all RTV from the swapchain
+            rtvs.push_back(rtv);
+
+            swapChain->Present(0);
+        }
+        ASSERT(rtvs[0] == swapChain->GetCurrentBackBufferRTV());
+
         swapChain->SetMaximumFrameLatency(frameLatency);
     }
 
-    void SwapChainImpl::Reset(const SwapChainDescription& description, const std::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT>& backBuffers)
+    void SwapChainImpl::Reset(const SwapChainDescription& description, const Texture** backBuffers)
     {
+        ASSERT(swapChain);
         UNUSED(description);
         UNUSED(backBuffers);
         NOT_IMPLEMENTED();
@@ -66,26 +86,49 @@ namespace RR::GAPI::Diligent
 
     eastl::any SwapChainImpl::GetWaitableObject() const
     {
+        ASSERT(swapChain);
         NOT_IMPLEMENTED();
         return {};
     }
 
     uint32_t SwapChainImpl::GetCurrentBackBufferIndex() const
     {
-        NOT_IMPLEMENTED();
-        return 0;
+        ASSERT(swapChain);
+        const auto* currentBackBufferRTV = swapChain->GetCurrentBackBufferRTV();
+
+        for (uint32_t i = 0; i < rtvs.size(); i++)
+        {
+            if (rtvs[i] == currentBackBufferRTV)
+                return i;
+        }
+
+        ASSERT_MSG(false, "Current back buffer index not found");
+        return -1;
     }
 
-    void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, const eastl::shared_ptr<Texture>& resource)
+    void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const
     {
-        UNUSED(backBufferIndex);
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
-        swapChain->GetCurrentBackBufferRTV();
+        ASSERT(!resource.GetPrivateImpl());
+        ASSERT(swapChain);
+        ASSERT(resource.GetDescription().usage == GpuResourceUsage::Default);
+        ASSERT(IsSet(resource.GetDescription().bindFlags, GpuResourceBindFlags::RenderTarget));
+        ASSERT(backBufferIndex < rtvs.size());
+
+        auto* backBufferRtv = rtvs[backBufferIndex];
+        ASSERT(backBufferRtv);
+
+        // We want to own this texture, so add ref to it
+        auto* backBufferTexture = backBufferRtv->GetTexture();
+        backBufferTexture->AddRef();
+
+        auto impl = new GpuResourceImpl();
+        impl->Init(backBufferTexture, resource);
+        resource.SetPrivateImpl(impl);
     }
 
     void SwapChainImpl::Present()
     {
+        ASSERT(swapChain);
         swapChain->Present(0);
     }
 }

@@ -91,7 +91,7 @@ namespace RR::App
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
 
-            ctx->ClearRenderTargetView(texture->GetRTV(), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+            ctx->ClearRenderTargetView(swapChain->GetCurrentBackBufferTexture()->GetRTV(), Vector4(1.0f, 0.0f, rand() % 255 / 255.0f, 1.0f));
             deviceContext.Compile(ctx.get());
             commandQueue->Submit(ctx.get());
 

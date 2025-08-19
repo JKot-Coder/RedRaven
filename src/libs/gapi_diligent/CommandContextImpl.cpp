@@ -21,9 +21,7 @@ namespace RR::GAPI::Diligent
             const auto* rtv = static_cast<const GpuResourceViewImpl*>(command.rtvImpl);
             ASSERT(rtv);
 
-            // TODO CAST TO SPECIFIC FORMAT
-            uint32_t color = 0xFFFFFFFF;
-            ctx.device->ClearRenderTarget(rtv->GetTextureView(), &color, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            ctx.device->ClearRenderTarget(rtv->GetTextureView(), &command.color, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         }
     }
 
