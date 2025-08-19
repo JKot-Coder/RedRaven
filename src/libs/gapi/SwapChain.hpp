@@ -50,7 +50,7 @@ namespace RR
             virtual eastl::any GetWaitableObject() const = 0;
 
             virtual void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const = 0;
-            virtual void Reset(const SwapChainDescription& description, const RR::GAPI::Texture** backBuffers) = 0;
+            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain, false>
@@ -77,7 +77,8 @@ namespace RR
 
             SwapChain(const SwapChainDescription& description);
 
-            void Reset(const SwapChainDescription& description);
+            // This method isn't thread safe. So it's should be called from device context.
+            void Resize(uint32_t width, uint32_t height);
 
             inline void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
 

@@ -22,6 +22,8 @@ namespace RR::GAPI::Diligent
         DL::ITextureView* GetTextureView() const { return textureView; }
         DL::IBufferView* GetBufferView() const { return bufferView; }
 
+        void DestroyResource();
+
     private:
         union
         {

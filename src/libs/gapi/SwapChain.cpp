@@ -23,26 +23,22 @@ namespace RR
 
         SwapChain::~SwapChain(){}
 
-        // Todo comment about multhreading
-        // Todo just new size and that's it.
-        void SwapChain::Reset(const SwapChainDescription& description)
+        void SwapChain::Resize(uint32_t width, uint32_t height)
         {
-            ASSERT(description.isStereo == description_.isStereo);
-            ASSERT(description.bufferCount == description_.bufferCount);
-            ASSERT(description.gpuResourceFormat == description_.gpuResourceFormat);
+            ASSERT(width > 0);
+            ASSERT(height > 0);
 
-            eastl::array<const Texture*, MAX_BACK_BUFFER_COUNT> backBuffers;
+            description_.width = width;
+            description_.height = height;
+
+            eastl::array<Texture*, MAX_BACK_BUFFER_COUNT> backBuffers;
             for (uint32_t i = 0; i < description_.bufferCount; i++)
                 backBuffers[i] = backBuffers_[i].get();
 
-            GetPrivateImpl()->Reset(description, backBuffers.data());
+            GetPrivateImpl()->Resize(width, height, backBuffers);
 
-            description_ = description;
             for (auto& backBuffer : backBuffers_)
-            {
-                // TODO assert
                 backBuffer = nullptr;
-            }
         }
 
         Texture* SwapChain::GetBackBufferTexture(uint32_t index)

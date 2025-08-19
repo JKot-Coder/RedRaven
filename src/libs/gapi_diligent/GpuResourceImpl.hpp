@@ -30,6 +30,7 @@ namespace RR::GAPI::Diligent
 
         void* Map() override;
         void Unmap() override;
+        void DestroyResource();
 
     public:
         DL::RESOURCE_DIMENSION GetResourceDimension() const { return dimension; }

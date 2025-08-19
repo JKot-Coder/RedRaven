@@ -19,8 +19,16 @@ namespace RR::GAPI::Diligent
 {
     GpuResourceViewImpl::~GpuResourceViewImpl()
     {
+        DestroyResource();
+    }
+
+    void GpuResourceViewImpl::DestroyResource()
+    {
+        if (!textureView)
+            return;
         // TODO Should we cast to ITextureView or IBufferView based on the resource type
         textureView->Release();
+        textureView = nullptr;
     }
 
     DL::TextureViewDesc getTextureViewDesc(GAPI::GpuResourceView::ViewType viewType, DL::RESOURCE_DIMENSION dimension, const GpuResourceViewDescription& desc)

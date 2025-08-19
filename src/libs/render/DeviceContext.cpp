@@ -40,6 +40,11 @@ namespace RR::Render
         device->MoveToNextFrame(frameIndex);
     }
 
+    void DeviceContext::ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height)
+    {
+        swapchain->Resize(width, height);
+    }
+
     GAPI::CommandQueue::UniquePtr DeviceContext::CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const
     {
         ASSERT(inited);

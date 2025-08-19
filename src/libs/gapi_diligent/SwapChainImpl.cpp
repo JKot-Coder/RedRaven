@@ -5,6 +5,7 @@
 #endif
 
 #include "gapi_diligent/GpuResourceImpl.hpp"
+#include "gapi_diligent/GpuResourceViewImpl.hpp"
 
 #include "gapi/GpuResource.hpp"
 #include "gapi/Texture.hpp"
@@ -59,8 +60,18 @@ namespace RR::GAPI::Diligent
                 ASSERT_MSG(false, "Unsupported device type");
         }
 
+        backBufferCount = swapChainInitDesc.BufferCount;
+
         rtvs.reserve(swapChainInitDesc.BufferCount);
-        for (uint32_t i = 0; i < swapChainInitDesc.BufferCount; i++)
+        resetRTVs();
+
+        swapChain->SetMaximumFrameLatency(frameLatency);
+    }
+
+    void SwapChainImpl::resetRTVs()
+    {
+        rtvs.clear();
+        for (uint32_t i = 0; i < backBufferCount; i++)
         {
             auto* rtv = swapChain->GetCurrentBackBufferRTV();
             ASSERT(rtv);
@@ -72,16 +83,29 @@ namespace RR::GAPI::Diligent
             swapChain->Present(0);
         }
         ASSERT(rtvs[0] == swapChain->GetCurrentBackBufferRTV());
-
-        swapChain->SetMaximumFrameLatency(frameLatency);
     }
 
-    void SwapChainImpl::Reset(const SwapChainDescription& description, const Texture** backBuffers)
+    void SwapChainImpl::Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers)
     {
         ASSERT(swapChain);
-        UNUSED(description);
-        UNUSED(backBuffers);
-        NOT_IMPLEMENTED();
+
+        for (uint32_t i = 0; i < backBufferCount; i++)
+        {
+            auto* backBuffer = backBuffers[i];
+            if (!backBuffer)
+                continue;
+
+            // Const cast is bad, but Diligent swapchain API is worse
+            auto* rtv = const_cast<RenderTargetView*>(backBuffer->GetRTV());
+            static_cast<GpuResourceViewImpl*>(rtv->GetPrivateImpl())->DestroyResource();
+            rtv->SetPrivateImpl(nullptr);
+
+            static_cast<GpuResourceImpl*>(backBuffer->GetPrivateImpl())->DestroyResource();
+            backBuffer->SetPrivateImpl(nullptr);
+        }
+
+        swapChain->Resize(width, height);
+        resetRTVs();
     }
 
     eastl::any SwapChainImpl::GetWaitableObject() const

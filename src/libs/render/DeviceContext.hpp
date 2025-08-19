@@ -31,6 +31,8 @@ namespace RR::Render
 
         void Present(GAPI::SwapChain* swapChain);
         void MoveToNextFrame(uint64_t frameIndex);
+        void ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height);
+
         void Compile(GAPI::GraphicsCommandContext* commandContext);
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;

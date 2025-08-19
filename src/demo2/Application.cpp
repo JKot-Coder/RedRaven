@@ -48,6 +48,16 @@ namespace RR::App
                 world.Emit<Quit>({});
             });
 
+        world.System()
+            .OnEvent<Ecs::WindowModule::Window::OnResize>()
+            .ForEach([](const Ecs::WindowModule::Window::OnResize& event, Ecs::World& world) {
+                world.View().With<Application>().ForEach([event](Application& application) {
+                    GAPI::SwapChain* swapChain = application.instance->swapChain.get();
+                    auto& deviceContext = Render::DeviceContext::Instance();
+                    deviceContext.ResizeSwapChain(swapChain, event.width, event.height);
+                });
+            });
+
         world.System().OnEvent<Quit>().With<Application>().ForEach([](Application& application) {
             application.instance->quit = true;
         });

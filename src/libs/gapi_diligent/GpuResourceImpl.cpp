@@ -15,13 +15,20 @@ namespace RR::GAPI::Diligent
     GpuResourceImpl::~GpuResourceImpl()
     {
         ASSERT(dimension != DL::RESOURCE_DIM_UNDEFINED);
+        DestroyResource();
+    }
+
+    void GpuResourceImpl::DestroyResource()
+    {
+        if (!buffer)
+            return;
 
         if (dimension == DL::RESOURCE_DIM_BUFFER)
-        {
             buffer->Release();
-        }
         else
             texture->Release();
+
+        buffer = nullptr;
     }
 
     DL::RESOURCE_DIMENSION getResourceDimension(const GpuResourceDimension& dimension)
@@ -143,5 +150,6 @@ namespace RR::GAPI::Diligent
         return nullptr;
     }
     void GpuResourceImpl::Unmap() { NOT_IMPLEMENTED(); }
+
 
 }

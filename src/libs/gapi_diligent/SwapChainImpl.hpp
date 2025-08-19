@@ -31,7 +31,7 @@ namespace RR::GAPI::Diligent
                   uint32_t frameLatency);
 
         void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const override;
-        void Reset(const SwapChainDescription& description, const Texture** backBuffers) override;
+        void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers) override;
 
         virtual eastl::any GetWaitableObject() const override;
         uint32_t GetCurrentBackBufferIndex() const override;
@@ -39,6 +39,10 @@ namespace RR::GAPI::Diligent
         void Present();
 
     private:
+        void resetRTVs();
+
+    private:
+        uint32_t backBufferCount = 0;
         eastl::fixed_vector<DL::ITextureView*, 4> rtvs;
         DL::RefCntAutoPtr<DL::ISwapChain> swapChain;
     };
