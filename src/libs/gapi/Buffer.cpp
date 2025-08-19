@@ -2,7 +2,7 @@
 
 #include "gapi/GpuResourceViews.hpp"
 
-#include "render/DeviceContext.hpp"
+#include "render_loom/DeviceContext.hpp"
 
 #include "math/Math.hpp"
 
@@ -41,7 +41,7 @@ namespace RR
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
-                auto& deviceContext = Render::DeviceContext::Instance();
+                auto& deviceContext = RenderLoom::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_ !!!!!!!!!!!
                 ///srvs_[viewDesc] = deviceContext.CreateShaderResourceView(eastl::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
@@ -55,7 +55,7 @@ namespace RR
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {
-                auto& deviceContext = Render::DeviceContext::Instance();
+                auto& deviceContext = RenderLoom::DeviceContext::Instance();
                 // TODO static_pointer_cast; name_
                // uavs_[viewDesc] = deviceContext.CreateUnorderedAccessView(eastl::static_pointer_cast<Buffer>(shared_from_this()), viewDesc);
             }
