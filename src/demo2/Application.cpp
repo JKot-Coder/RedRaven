@@ -34,7 +34,7 @@ namespace RR::App
     void Init(Ecs::World& world)
     {
         world.System()
-            .OnEvent<Ecs::WindowModule::Window::Close>()
+            .OnEvent<Ecs::WindowModule::Window::OnClose>()
             .With<Ecs::WindowModule::Window>()
             .With<MainWindow>()
             .ForEach([](Ecs::World& world) {

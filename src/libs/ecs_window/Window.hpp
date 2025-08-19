@@ -15,14 +15,14 @@ namespace RR::Ecs::WindowModule
 
     struct Window
     {
-        struct Close : public Event
+        struct OnClose : public Event
         {
-            Close() : Event(GetEventId<Close>, sizeof(Close)) { }
+            OnClose() : Event(GetEventId<OnClose>, sizeof(OnClose)) { }
         };
 
-        struct Resize : public Event
+        struct OnResize : public Event
         {
-            Resize(int32_t width, int32_t height) : Event(GetEventId<Resize>, sizeof(Resize)), width(width), height(height) { }
+            OnResize(int32_t width, int32_t height) : Event(GetEventId<OnResize>, sizeof(OnResize)), width(width), height(height) { }
 
             int32_t width;
             int32_t height;

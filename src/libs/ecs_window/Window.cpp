@@ -48,7 +48,7 @@ namespace RR::Ecs::WindowModule
 
     void windowCloseCallback(GLFWwindow* glfwWindow)
     {
-        GetWindowEntity(glfwWindow).Emit<Window::Close>({});
+        GetWindowEntity(glfwWindow).Emit<Window::OnClose>({});
     }
 
     void windowSizeCallback(GLFWwindow* glfwWindow, int width, int height)
@@ -61,7 +61,7 @@ namespace RR::Ecs::WindowModule
             description.height = height;
         });
 
-        world.EmitImmediately<Window::Resize>({width, height});
+        world.EmitImmediately<Window::OnResize>({width, height});
     }
 
     eastl::any getNativeHandle(GLFWwindow* glfwWindow)
