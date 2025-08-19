@@ -17,13 +17,20 @@
 
 namespace RR::App
 {
+
     struct Application
     {
-        ECS_SINGLETON;
-        static bool quit;
-    };
+        struct Instance
+        {
+            bool quit = false;
+            GAPI::SwapChain::UniquePtr swapChain;
+        };
 
-    bool Application::quit = false;
+        ECS_SINGLETON;
+        Application(Instance* instance) : instance(instance) { ASSERT(instance); }
+
+        eastl::unique_ptr<Instance> instance;
+    };
 
     struct MainWindow{};
     struct Quit : public Ecs::Event
@@ -41,8 +48,8 @@ namespace RR::App
                 world.Emit<Quit>({});
             });
 
-        world.System().OnEvent<Quit>().With<Application>().ForEach([]() {
-            Application::quit = true;
+        world.System().OnEvent<Quit>().With<Application>().ForEach([](Application& application) {
+            application.instance->quit = true;
         });
     }
 
@@ -67,14 +74,12 @@ namespace RR::App
 
         world.OrderSystems();
 
-        world.Entity().Add<Application>().Apply();
-
+        auto* applicationInstance = new Application::Instance();
+        world.Entity().Add<Application>(applicationInstance).Apply();
 
         GAPI::DeviceDescription description;
         auto& deviceContext = Render::DeviceContext::Instance();
         deviceContext.Init(description);
-
-        GAPI::SwapChain::UniquePtr swapChain;
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDescription>(800, 600).Add<MainWindow>().Apply();
 
@@ -82,24 +87,24 @@ namespace RR::App
             .With<Ecs::WindowModule::Window>()
             .With<Ecs::WindowModule::WindowDescription>()
             .ForEntity(windowEntity,
-                       [&swapChain](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description) {
-                           swapChain = CreateSwapChain(window, description);
+                       [applicationInstance](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description) {
+                           applicationInstance->swapChain = CreateSwapChain(window, description);
                        });
 
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 
-        while (!Application::quit)
+        while (!applicationInstance->quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
 
-            ctx->ClearRenderTargetView(swapChain->GetCurrentBackBufferTexture()->GetRTV(), Vector4(1.0f, 0.0f, rand() % 255 / 255.0f, 1.0f));
+            ctx->ClearRenderTargetView(applicationInstance->swapChain->GetCurrentBackBufferTexture()->GetRTV(), Vector4(1.0f, 0.0f, rand() % 255 / 255.0f, 1.0f));
             deviceContext.Compile(ctx.get());
             commandQueue->Submit(ctx.get());
 
-            deviceContext.Present(swapChain.get());
+            deviceContext.Present(applicationInstance->swapChain.get());
             deviceContext.MoveToNextFrame(0);
         }
 
