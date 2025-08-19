@@ -12,7 +12,7 @@
 // TODO Temporary
 #include <any>
 
-namespace RR::RenderLoom
+namespace RR::Render
 {
     class DeviceContext;
 }

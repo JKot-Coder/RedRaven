@@ -56,7 +56,7 @@ namespace RR::App
         swapChainDescription.bufferCount = 2;
         swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
 
-        return RenderLoom::DeviceContext::Instance().CreateSwapchain(swapChainDescription);
+        return Render::DeviceContext::Instance().CreateSwapchain(swapChainDescription);
     }
 
     int RunApplication()
@@ -71,7 +71,7 @@ namespace RR::App
 
 
         GAPI::DeviceDescription description;
-        auto& deviceContext = RenderLoom::DeviceContext::Instance();
+        auto& deviceContext = Render::DeviceContext::Instance();
         deviceContext.Init(description);
 
         GAPI::SwapChain::UniquePtr swapChain;

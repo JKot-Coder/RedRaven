@@ -16,7 +16,7 @@ namespace RR
     }
 }
 
-namespace RR::RenderLoom
+namespace RR::Render
 {
     class DeviceContext : public Common::Singleton<DeviceContext>
     {

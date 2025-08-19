@@ -8,7 +8,7 @@
 
 #include "common/ChunkAllocator.hpp"
 
-namespace RR::RenderLoom
+namespace RR::Render
 {
     class DeviceContext;
 }
@@ -113,7 +113,7 @@ namespace RR::GAPI
         using UniquePtr = eastl::unique_ptr<CopyCommandContext>;
 
     private:
-        friend class RenderLoom::DeviceContext;
+        friend class Render::DeviceContext;
 
         explicit CopyCommandContext(const std::string& name)
             : CommandContext(Type::Copy, name), CommandContextMixin(&commandList), CopyCommandContextMixin()
@@ -129,7 +129,7 @@ namespace RR::GAPI
         using UniquePtr = eastl::unique_ptr<ComputeCommandContext>;
 
     private:
-        friend class RenderLoom::DeviceContext;
+        friend class Render::DeviceContext;
 
         explicit ComputeCommandContext(const std::string& name)
             : CommandContext(Type::Compute, name), CommandContextMixin(&commandList), CopyCommandContextMixin(), ComputeCommandContextMixin()
@@ -146,7 +146,7 @@ namespace RR::GAPI
         using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
 
     private:
-        friend class RenderLoom::DeviceContext;
+        friend class Render::DeviceContext;
 
         explicit GraphicsCommandContext(const std::string& name)
             : CommandContext(Type::Graphics, name), CommandContextMixin(&commandList), GraphicsOperationsMixin(), CopyCommandContextMixin(), ComputeCommandContextMixin()

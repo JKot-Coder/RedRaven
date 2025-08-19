@@ -2,7 +2,7 @@
 
 #include "gapi/GpuResource.hpp"
 
-namespace RR::RenderLoom
+namespace RR::Render
 {
     class DeviceContext;
 }

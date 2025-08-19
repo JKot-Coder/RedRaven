@@ -2,7 +2,7 @@
 
 #include "gapi/GpuResource.hpp"
 
-namespace RR::RenderLoom
+namespace RR::Render
 {
     class DeviceContext;
 }
@@ -42,6 +42,6 @@ namespace RR::GAPI
 
     private:
         friend class Render::DeviceContext;
-        friend class RenderLoom::DeviceContext;
+        friend class Render::DeviceContext;
     };
 }

@@ -59,7 +59,7 @@ namespace RR
         class DeviceContext;
     }
 
-    namespace RenderLoom
+    namespace Render
     {
         class DeviceContext;
     }

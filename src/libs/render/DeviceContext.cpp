@@ -9,7 +9,7 @@
 
 #include "gapi_diligent/Device.hpp"
 
-namespace RR::RenderLoom
+namespace RR::Render
 {
     DeviceContext::~DeviceContext() { }
 

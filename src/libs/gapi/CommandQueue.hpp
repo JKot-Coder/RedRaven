@@ -71,7 +71,7 @@ namespace RR
             CommandQueueType type_;
 
             friend class Render::DeviceContext;
-            friend class RenderLoom::DeviceContext;
+            friend class Render::DeviceContext;
         };
     }
 }

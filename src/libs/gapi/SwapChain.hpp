@@ -86,7 +86,7 @@ namespace RR
             eastl::array<eastl::unique_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
 
             friend class Render::DeviceContext;
-            friend class RenderLoom::DeviceContext;
+            friend class Render::DeviceContext;
         };
     }
 }
