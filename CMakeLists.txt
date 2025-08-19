@@ -280,9 +280,9 @@ target_compile_definitions(fmt PUBLIC FMT_STATIC_THOUSANDS_SEPARATOR=1)
 
 #================================= dilligent =================================#
 CPMAddPackage(
-  NAME dilligent
+  NAME dilligentCore
   GIT_REPOSITORY https://github.com/DiligentGraphics/DiligentCore.git
-  GIT_TAG        v2.5.6
+  GIT_TAG        API256010
 )
 set(DILIGENT_BUILD_TOOLS       OFF CACHE BOOL "" FORCE)
 set(DILIGENT_BUILD_FX          OFF CACHE BOOL "" FORCE)
