@@ -21,6 +21,7 @@ namespace RR::Ecs
         void Destroy() const;
 
         [[nodiscard]] EntityId GetId() const { return id; }
+        [[nodiscard]] World& GetWorld() const { return *world; }
         [[nodiscard]] bool IsAlive() const;
         [[nodiscard]] bool Has(Meta::SortedComponentsView componentsView) const;
         [[nodiscard]] Meta::ElementsSpan Elements() const;
