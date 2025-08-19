@@ -46,7 +46,11 @@ namespace RR::GAPI
         auto begin() const { return commands.begin(); }
         auto end() const { return commands.end(); }
         size_t size() const { return commands.size(); }
-        void clear() { commands.clear(); allocator.reset(); }
+        void clear()
+        {
+            commands.clear();
+            allocator.reset();
+        }
 
     private:
         eastl::vector<Command*> commands;
@@ -80,7 +84,11 @@ namespace RR::GAPI
     {
     protected:
         CommandContextMixin(CommandList2* commandList) : commandListPtr(commandList) { }
-        CommandList2& GetCommandList() { ASSERT(commandListPtr); return *commandListPtr; }
+        CommandList2& GetCommandList()
+        {
+            ASSERT(commandListPtr);
+            return *commandListPtr;
+        }
 
     private:
         CommandList2* commandListPtr = nullptr;

@@ -468,8 +468,8 @@ namespace RR
         public:
             virtual ~IGpuResource() = default;
 
-            virtual void DestroyImmediatly() = 0;
-            virtual std::any GetRawHandle() const = 0;
+            virtual void DestroyImmediatly() = 0; // unused
+            virtual std::any GetRawHandle() const = 0; // unused
             virtual std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& decription) const = 0;
 
             virtual void* Map() = 0;
