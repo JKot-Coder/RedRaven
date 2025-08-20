@@ -9,7 +9,7 @@ namespace RR
     namespace GAPI
     {
         template <typename T, bool IsNamed = true>
-        class Resource
+        class Resource : public Common::NonCopyable
         {
         public:
             enum class Type
