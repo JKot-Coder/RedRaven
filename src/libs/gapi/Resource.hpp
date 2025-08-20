@@ -1,7 +1,5 @@
 #pragma once
 
-#include "gapi/Object.hpp"
-
 #include "EASTL/type_traits.h"
 
 namespace RR
