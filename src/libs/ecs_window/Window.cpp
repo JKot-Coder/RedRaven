@@ -86,6 +86,10 @@ namespace RR::Ecs::WindowModule
                 description = &defaultDescription;
                 windowEntity.Edit().Add<WindowDescription>(defaultDescription).Apply();
             }
+
+            // Make sure GLFW does not initialize any graphics context.
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
             GLFWwindow* glfwWindow = glfwCreateWindow(description->width, description->height, "", nullptr, nullptr);
 
             glfwSetWindowUserPointer(glfwWindow, new GlfwHandler {windowEntity});
