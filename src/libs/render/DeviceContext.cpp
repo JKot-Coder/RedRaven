@@ -73,11 +73,11 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::Shader::UniquePtr DeviceContext::CreateShader(const std::string& name) const
+    GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDescription& description, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Shader::Create(name);
+        auto resource = GAPI::Shader::Create(description, name);
         device->InitShader(*resource.get());
 
         return resource;

@@ -6,6 +6,7 @@
 
 #include "gapi/Device.hpp"
 #include "gapi/SwapChain.hpp"
+#include "gapi/Shader.hpp"
 #include "gapi/Texture.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/CommandQueue.hpp"
@@ -38,6 +39,51 @@ namespace RR::App
         Quit() : Event(Ecs::GetEventId<Quit>, sizeof(Quit)) { }
     };
 
+    static const char* VSSource = R"(
+        struct PSInput
+        {
+            float4 Pos   : SV_POSITION;
+            float3 Color : COLOR;
+        };
+
+        void main(in  uint    VertId : SV_VertexID,
+                  out PSInput PSIn)
+        {
+            float4 Pos[3];
+            Pos[0] = float4(-0.5, -0.5, 0.0, 1.0);
+            Pos[1] = float4( 0.0, +0.5, 0.0, 1.0);
+            Pos[2] = float4(+0.5, -0.5, 0.0, 1.0);
+
+            float3 Col[3];
+            Col[0] = float3(1.0, 0.0, 0.0); // red
+            Col[1] = float3(0.0, 1.0, 0.0); // green
+            Col[2] = float3(0.0, 0.0, 1.0); // blue
+
+            PSIn.Pos   = Pos[VertId];
+            PSIn.Color = Col[VertId];
+        }
+        )";
+
+    // Pixel shader simply outputs interpolated vertex color
+    static const char* PSSource = R"(
+        struct PSInput
+        {
+            float4 Pos   : SV_POSITION;
+            float3 Color : COLOR;
+        };
+
+        struct PSOutput
+        {
+            float4 Color : SV_TARGET;
+        };
+
+        void main(in  PSInput  PSIn,
+                  out PSOutput PSOut)
+        {
+            PSOut.Color = float4(PSIn.Color.rgb, 1.0);
+        }
+        )";
+
     void Init(Ecs::World& world)
     {
         world.System()
@@ -63,7 +109,7 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window,  Ecs::WindowModule::WindowDescription& description)
+    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description)
     {
         GAPI::SwapChainDescription swapChainDescription;
         swapChainDescription.windowNativeHandle = window.nativeHandle;
@@ -104,6 +150,9 @@ namespace RR::App
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
+
+        auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
+        auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
 
         while (!applicationInstance->quit)
         {
