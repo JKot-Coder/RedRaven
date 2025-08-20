@@ -17,7 +17,7 @@ set(SRC
     GpuResourceViewImpl.hpp
     CommandQueueImpl.cpp
     CommandQueueImpl.hpp
-    empty.cpp)
+)
 source_group( "" FILES ${SRC} )
 
 add_library(${PROJECT_NAME} ${SRC})
