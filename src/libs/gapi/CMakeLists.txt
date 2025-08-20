@@ -26,7 +26,9 @@ set(SRC
     SwapChain.cpp
     SwapChain.hpp
     Texture.cpp
-    Texture.hpp)
+    Texture.hpp
+    Shader.hpp
+)
 
 set(COMMANDS
     Commands/Command.hpp

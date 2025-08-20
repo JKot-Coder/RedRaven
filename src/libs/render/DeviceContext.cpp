@@ -3,6 +3,7 @@
 #include "gapi/Device.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/SwapChain.hpp"
+#include "gapi/Shader.hpp"
 #include "gapi/Texture.hpp"
 #include "gapi/CommandList2.hpp"
 #include "gapi/CommandQueue.hpp"
@@ -68,6 +69,16 @@ namespace RR::Render
 
         auto resource = GAPI::GraphicsCommandContext::Create(name);
         device->InitCommandContext(*resource.get());
+
+        return resource;
+    }
+
+    GAPI::Shader::UniquePtr DeviceContext::CreateShader(const std::string& name) const
+    {
+        ASSERT(inited);
+
+        auto resource = GAPI::Shader::Create(name);
+        device->InitShader(*resource.get());
 
         return resource;
     }

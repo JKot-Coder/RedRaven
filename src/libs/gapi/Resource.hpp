@@ -24,6 +24,7 @@ namespace RR
                 GpuResourceView,
                 MemoryAllocation,
                 SwapChain,
+                Shader,
             };
 
         public:

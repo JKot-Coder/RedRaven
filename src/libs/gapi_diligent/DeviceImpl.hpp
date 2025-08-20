@@ -39,6 +39,7 @@ namespace RR::GAPI::Diligent
         void InitGpuResourceView(GpuResourceView& view) const override;
         void InitSwapChain(SwapChain& resource) const override;
         void InitTexture(Texture& resource) const override;
+        void InitShader(Shader& resource) const override;
 
         std::any GetRawDevice() const override { ASSERT_MSG(false, "Not implemented"); return nullptr; }
 

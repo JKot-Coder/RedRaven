@@ -7,6 +7,8 @@ namespace RR
         class Device;
         struct DeviceDescription;
 
+        class Shader;
+
         class Fence;
         class Texture;
         class Buffer;

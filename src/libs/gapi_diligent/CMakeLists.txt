@@ -17,6 +17,8 @@ set(SRC
     GpuResourceViewImpl.hpp
     CommandQueueImpl.cpp
     CommandQueueImpl.hpp
+    ShaderImpl.cpp
+    ShaderImpl.hpp
 )
 source_group( "" FILES ${SRC} )
 
