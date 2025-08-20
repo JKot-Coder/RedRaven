@@ -20,7 +20,7 @@ set(SRC
     GpuResourceViews.cpp
     GpuResourceViews.hpp
     Limits.hpp
-    PipelineState.hpp
+    PipelineStateObject.hpp
     Resource.hpp
     SwapChain.cpp
     SwapChain.hpp
