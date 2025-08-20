@@ -33,14 +33,14 @@ namespace RR::GAPI
         MultisampleType multisampleType;
         uint32_t width;
         uint32_t height;
-        std::array<RenderTargetView::SharedPtr, MaxRenderTargets> renderTargetViews;
-        DepthStencilView::SharedPtr depthStencilView;
+        std::array<const RenderTargetView*, MaxRenderTargets> renderTargetViews;
+        const DepthStencilView* depthStencilView;
     };
 
     class FramebufferDesc::Builder
     {
     public:
-        Builder& BindColorTarget(uint32_t index, const RenderTargetView::SharedPtr rtv)
+        Builder& BindColorTarget(uint32_t index, const RenderTargetView* rtv)
         {
             ASSERT(rtv);
 
@@ -56,7 +56,7 @@ namespace RR::GAPI
             return *this;
         }
 
-        Builder& BindDepthStecil(const DepthStencilView::SharedPtr dsv)
+        Builder& BindDepthStecil(const DepthStencilView* dsv)
         {
             ASSERT(dsv);
 
@@ -77,16 +77,16 @@ namespace RR::GAPI
             return (!desc_.IsAnyColorTargetBinded() && desc_.depthStencilView == nullptr);
         }
 
-        GpuResourceDescription getResourceDescription(const GpuResourceView::SharedPtr rv)
+        GpuResourceDescription getResourceDescription(const GpuResourceView* rv)
         {
             ASSERT(rv);
-            const auto gpuResource = rv->GetGpuResource().lock();
+            const auto gpuResource = rv->GetGpuResource();
             ASSERT(gpuResource);
 
             return gpuResource->GetDescription();
         }
 
-        void updateMultisampleAndResolution(const GpuResourceView::SharedPtr rv)
+        void updateMultisampleAndResolution(const GpuResourceView* rv)
         {
             const auto& resourceDesc = getResourceDescription(rv);
             ASSERT(resourceDesc.dimension != GpuResourceDimension::Buffer);
@@ -139,24 +139,24 @@ namespace RR::GAPI
         }
 
         Framebuffer(const FramebufferDesc& description)
-            : Resource(Object::Type::Framebuffer),
+            : Resource(Type::Framebuffer),
               description_(description)
         {
             for (size_t index = 0; index < renderTargetResources_.size(); index++)
             {
                 const auto& rtv = description_.renderTargetViews[index];
-                renderTargetResources_[index] = rtv ? rtv->GetGpuResource().lock() : nullptr;
+                renderTargetResources_[index] = rtv ? rtv->GetGpuResource() : nullptr;
             }
 
-            depthStencilResource_ = description_.depthStencilView ? description_.depthStencilView->GetGpuResource().lock() : nullptr;
+            depthStencilResource_ = description_.depthStencilView ? description_.depthStencilView->GetGpuResource() : nullptr;
         }
 
     private:
         FramebufferDesc description_;
 
         // Resouce ownership prevents deleting resource while framebuffer alive.
-        std::array<GpuResource::SharedPtr, MaxRenderTargets> renderTargetResources_;
-        GpuResource::SharedPtr depthStencilResource_;
+        std::array<const GpuResource*, MaxRenderTargets> renderTargetResources_;
+        const GpuResource* depthStencilResource_;
 
         friend class Render::DeviceContext;
     };
