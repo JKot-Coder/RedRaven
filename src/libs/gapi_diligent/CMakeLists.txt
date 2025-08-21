@@ -9,6 +9,8 @@ set(SRC
     Device.hpp
     DeviceImpl.cpp
     DeviceImpl.hpp
+    FramebufferImpl.cpp
+    FramebufferImpl.hpp
     SwapChainImpl.cpp
     SwapChainImpl.hpp
     GpuResourceImpl.cpp

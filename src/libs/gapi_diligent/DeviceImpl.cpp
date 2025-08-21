@@ -6,6 +6,7 @@
 #include "CommandContextImpl.hpp"
 #include "ShaderImpl.hpp"
 #include "PipelineStateImpl.hpp"
+#include "FramebufferImpl.hpp"
 
 #define ASSERT_IS_DEVICE_INITED ASSERT(inited)
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
@@ -177,8 +178,9 @@ namespace RR::GAPI::Diligent
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<FramebufferImpl>();
+        impl->Init(resource);
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const

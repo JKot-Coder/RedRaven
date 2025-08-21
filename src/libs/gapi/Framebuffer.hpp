@@ -126,16 +126,16 @@ namespace RR::GAPI
     class Framebuffer final : public Resource<IFramebuffer, false>
     {
     public:
-        using SharedPtr = eastl::shared_ptr<Framebuffer>;
+        using UniquePtr = eastl::unique_ptr<Framebuffer>;
 
         static constexpr uint32_t MaxRenderTargets = FramebufferDesc::MaxRenderTargets;
 
         const FramebufferDesc& GetDescription() const { return description_; }
 
     private:
-        static SharedPtr Create(const FramebufferDesc& description)
+        static UniquePtr Create(const FramebufferDesc& description)
         {
-            return SharedPtr(new Framebuffer(description));
+            return UniquePtr(new Framebuffer(description));
         }
 
         Framebuffer(const FramebufferDesc& description)
@@ -144,7 +144,7 @@ namespace RR::GAPI
         {
             for (size_t index = 0; index < renderTargetResources_.size(); index++)
             {
-                const auto& rtv = description_.renderTargetViews[index];
+                const auto rtv = description_.renderTargetViews[index];
                 renderTargetResources_[index] = rtv ? rtv->GetGpuResource().lock() : nullptr;
             }
 

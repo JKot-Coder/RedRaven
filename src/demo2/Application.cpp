@@ -20,6 +20,8 @@
 namespace RR::App
 {
 
+    constexpr uint32_t BACK_BUFFER_COUNT = 2;
+
     struct Application
     {
         struct Instance
@@ -117,7 +119,7 @@ namespace RR::App
 
         swapChainDescription.width = description.width;
         swapChainDescription.height = description.height;
-        swapChainDescription.bufferCount = 2;
+        swapChainDescription.bufferCount = BACK_BUFFER_COUNT;
         swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
         swapChainDescription.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
@@ -199,12 +201,14 @@ namespace RR::App
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDescription>(800, 600).Add<MainWindow>().Apply();
 
+        GAPI::SwapChain* swapChain = nullptr;
         world.View()
             .With<Ecs::WindowModule::Window>()
             .With<Ecs::WindowModule::WindowDescription>()
             .ForEntity(windowEntity,
-                       [applicationInstance](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description) {
+                       [applicationInstance, &swapChain](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description) {
                            applicationInstance->swapChain = CreateSwapChain(window, description);
+                           swapChain = applicationInstance->swapChain.get();
                        });
 
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
@@ -212,6 +216,18 @@ namespace RR::App
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
         auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
         auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
+
+       eastl::array<GAPI::Framebuffer::UniquePtr, BACK_BUFFER_COUNT> framebuffers;
+
+        for (uint32_t i = 0; i < framebuffers.size(); i++)
+        {
+            auto backBuffer = swapChain->GetBackBufferTexture(i);
+
+            auto framebufferDesc = GAPI::FramebufferDesc::Make()
+                                       .BindColorTarget(0, backBuffer->GetRTV());
+
+            framebuffers[i] = deviceContext.CreateFrameBuffer(framebufferDesc);
+        }
 
         auto pipelineState = CreatePipelineState(shaderVS.get(), shaderPS.get());
 
