@@ -6,6 +6,7 @@
 
 #include "gapi_diligent/GpuResourceImpl.hpp"
 #include "gapi_diligent/GpuResourceViewImpl.hpp"
+#include "gapi_diligent/Utils.hpp"
 
 #include "gapi/GpuResource.hpp"
 #include "gapi/Texture.hpp"
@@ -22,10 +23,8 @@ namespace RR::GAPI::Diligent
         diligentSwapChainDesc.BufferCount = description.bufferCount;
         diligentSwapChainDesc.Width = description.width;
         diligentSwapChainDesc.Height = description.height;
-        // TODO: convert GpuResourceFormat to TEXTURE_FORMAT
-        ASSERT(description.gpuResourceFormat == GpuResourceFormat::RGBA8UnormSrgb);
-        diligentSwapChainDesc.ColorBufferFormat = DL::TEX_FORMAT_RGBA8_UNORM_SRGB;
-        diligentSwapChainDesc.DepthBufferFormat = DL::TEX_FORMAT_UNKNOWN;
+        diligentSwapChainDesc.ColorBufferFormat = GetDLTextureFormat(description.gpuResourceFormat);
+        diligentSwapChainDesc.DepthBufferFormat = GetDLTextureFormat(description.depthStencilFormat);
         diligentSwapChainDesc.DefaultDepthValue = 0.f;
         return diligentSwapChainDesc;
     }

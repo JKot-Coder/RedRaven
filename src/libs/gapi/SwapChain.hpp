@@ -36,6 +36,8 @@ namespace RR
             uint32_t bufferCount;
 
             GpuResourceFormat gpuResourceFormat;
+            GpuResourceFormat depthStencilFormat;
+
             bool isStereo;
 
             eastl::any windowNativeHandle;
