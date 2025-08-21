@@ -19,7 +19,7 @@ namespace RR::GAPI
         Back, // Cull back-facing primitives
     }; // 2 bits
 
-    enum class BlendFunc : uint8_t
+    enum class BlendFactor : uint8_t
     {
         Zero, // (0, 0, 0, 0)
         One, // (1, 1, 1, 1)
@@ -63,11 +63,11 @@ namespace RR::GAPI
     {
         bool blendEnabled : 1;
         BlendOp rgbBlendOp : 3;
-        BlendFunc srcRgbFunc : 4;
-        BlendFunc dstRgbFunc : 4;
+        BlendFactor srcRgb : 4;
+        BlendFactor dstRgb : 4;
         BlendOp alphaBlendOp : 3;
-        BlendFunc srcAlphaFunc : 4;
-        BlendFunc dstAlphaFunc : 4;
+        BlendFactor srcAlpha : 4;
+        BlendFactor dstAlpha : 4;
         WriteMask writeMask : 4;
     }; // 4 bytes
 
