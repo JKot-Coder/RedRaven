@@ -2,6 +2,7 @@
 
 #include "RenderDevice.h"
 #include "BlendState.h"
+#include "PipelineState.h"
 
 #include "gapi/PipelineState.hpp"
 
@@ -132,7 +133,7 @@ namespace RR::GAPI::Diligent
 
     PipelineStateImpl::~PipelineStateImpl() { };
 
-    void PipelineStateImpl::Init(DL::IRenderDevice* device, GAPI::PipelineState& resource) const
+    void PipelineStateImpl::Init(DL::IRenderDevice* device, GAPI::PipelineState& resource)
     {
         switch (resource.GetPsoType())
         {
@@ -142,8 +143,9 @@ namespace RR::GAPI::Diligent
                 auto& graphicResource = static_cast<const GAPI::GraphicPipelineState&>(resource);
                 auto createInfo = getGraphicPipelineStateCreateInfo(graphicResource.GetDescription(), resource.GetName());
 
-                DL::IPipelineState* pso = nullptr;
-                device->CreateGraphicsPipelineState(createInfo, &pso);
+                DL::IPipelineState* psoPtr = nullptr;
+                device->CreateGraphicsPipelineState(createInfo, &psoPtr);
+                pso.Attach(psoPtr);
                 break;
             }
             default:

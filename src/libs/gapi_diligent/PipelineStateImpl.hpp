@@ -2,9 +2,12 @@
 
 #include "gapi/PipelineState.hpp"
 
+#include "RefCntAutoPtr.hpp"
+
 namespace Diligent
 {
     class IRenderDevice;
+    class IPipelineState;
 }
 namespace DL = ::Diligent;
 
@@ -14,8 +17,10 @@ namespace RR::GAPI::Diligent
     {
     public:
         PipelineStateImpl() = default;
-        ~PipelineStateImpl() override;
+        ~PipelineStateImpl();
 
-        void Init(DL::IRenderDevice* device, GAPI::PipelineState& resource) const;
+        void Init(DL::IRenderDevice* device, GAPI::PipelineState& resource);
+    private:
+        DL::RefCntAutoPtr<DL::IPipelineState> pso;
     };
 }
