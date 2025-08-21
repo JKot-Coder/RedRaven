@@ -11,6 +11,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList2.hpp"
+#include "gapi/PipelineState.hpp"
 
 #include "math/VectorMath.hpp"
 
@@ -118,8 +119,67 @@ namespace RR::App
         swapChainDescription.height = description.height;
         swapChainDescription.bufferCount = 2;
         swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+        swapChainDescription.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
         return Render::DeviceContext::Instance().CreateSwapchain(swapChainDescription);
+    }
+
+    GAPI::GraphicPipelineState::UniquePtr CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
+    {
+        auto& deviceContext = Render::DeviceContext::Instance();
+
+      /* // Pipeline state object encompasses configuration of all GPU stages
+        GAPI::GraphicPipelineStateDesc PSOCreateInfo;
+
+        // Pipeline state name is used by the engine to report issues.
+        // It is always a good idea to give objects descriptive names.
+        PSOCreateInfo.PSODesc.Name = "Simple triangle PSO";
+
+        // This is a graphics pipeline
+        PSOCreateInfo.PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
+
+        // clang-format off
+        // This tutorial will render to a single render target
+        PSOCreateInfo.GraphicsPipeline.NumRenderTargets             = 1;
+        // Set render target format which is the format of the swap chain's color buffer
+        PSOCreateInfo.GraphicsPipeline.RTVFormats[0]                = m_pSwapChain->GetDesc().ColorBufferFormat;
+        // Use the depth buffer format from the swap chain
+        PSOCreateInfo.GraphicsPipeline.DSVFormat                    = m_pSwapChain->GetDesc().DepthBufferFormat;
+        // Primitive topology defines what kind of primitives will be rendered by this pipeline state
+        PSOCreateInfo.GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        // No back face culling for this tutorial
+        PSOCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
+        // Disable depth testing
+        PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = False;
+        // clang-format on
+
+        ShaderCreateInfo ShaderCI;
+        // Tell the system that the shader source code is in HLSL.
+        // For OpenGL, the engine will convert this into GLSL under the hood.
+        ShaderCI.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
+        // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+        ShaderCI.Desc.UseCombinedTextureSamplers = true;
+
+
+        PSOCreateInfo.pVS = shaderVS;
+        PSOCreateInfo.pPS = shaderPS;
+        m_pDevice->CreateGraphicsPipelineState(PSOCreateInfo, &m_pPSO);
+        return m_pPSO;
+        return nullptr;*/
+
+        GAPI::GraphicPipelineStateDesc desc;
+
+        desc.renderTargetCount = 1;
+        desc.renderTargetFormats[0] = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+        desc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
+
+        ASSERT(vs);
+        ASSERT(ps);
+        desc.vs = vs;
+        desc.ps = ps;
+
+        auto pipelineState = deviceContext.CreatePipelineState(desc, "test");
+        return pipelineState;
     }
 
     int RunApplication()
@@ -150,9 +210,10 @@ namespace RR::App
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
-
         auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
         auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
+
+        auto pipelineState = CreatePipelineState(shaderVS.get(), shaderPS.get());
 
         while (!applicationInstance->quit)
         {
@@ -162,6 +223,7 @@ namespace RR::App
             ctx->ClearRenderTargetView(applicationInstance->swapChain->GetCurrentBackBufferTexture()->GetRTV(), Vector4(1.0f, 0.0f, rand() % 255 / 255.0f, 1.0f));
             deviceContext.Compile(ctx.get());
             commandQueue->Submit(ctx.get());
+
 
             deviceContext.Present(applicationInstance->swapChain.get());
             deviceContext.MoveToNextFrame(0);
