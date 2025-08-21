@@ -3,6 +3,8 @@
 #include "common/EnumClassOperators.hpp"
 #include "gapi/Limits.hpp"
 #include "gapi/Framebuffer.hpp"
+#include "gapi/Resource.hpp"
+#include "gapi/GpuResource.hpp"
 
 namespace RR::GAPI
 {
@@ -227,6 +229,63 @@ namespace RR::GAPI
         DepthStencilDesc depthStencilDesc;
         FramebufferDesc framebufferDesc;
         PrimitiveTopology primitiveTopology;
+
+        uint32_t renderTargetCount = 0;
+        eastl::array<GpuResourceFormat, MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
+        GpuResourceFormat depthStencilFormat = GpuResourceFormat::Unknown;
+
+        Shader* vs = nullptr;
+        Shader* ps = nullptr;
     };
 
+    class IPipelineState
+    {
+    public:
+        virtual ~IPipelineState() = default;
+    };
+
+    class PipelineState : public Resource<IPipelineState, true>
+    {
+    public:
+        using UniquePtr = eastl::unique_ptr<PipelineState>;
+
+        enum class PsoType : uint8_t
+        {
+            Graphic,
+            Compute
+        };
+
+        PsoType GetPsoType() const { return psoType_; }
+
+    protected:
+        PipelineState(PsoType psoType, const std::string& name) : Resource(Type::PipelineState, name), psoType_(psoType)
+        {
+        }
+
+    private:
+        PsoType psoType_;
+    };
+
+    class GraphicPipelineState final : public PipelineState
+    {
+    public:
+        using UniquePtr = eastl::unique_ptr<GraphicPipelineState>;
+
+        GraphicPipelineState(const GraphicPipelineStateDesc& description, const std::string& name)
+            : PipelineState(PsoType::Graphic, name), description_(description)
+        {
+        }
+
+        const GraphicPipelineStateDesc& GetDescription() const { return description_; }
+
+    private:
+        friend class Render::DeviceContext;
+
+        static UniquePtr Create(const GraphicPipelineStateDesc& description, const std::string& name)
+        {
+            return UniquePtr(new GraphicPipelineState(description, name));
+        }
+
+        GraphicPipelineStateDesc description_;
+    };
 }

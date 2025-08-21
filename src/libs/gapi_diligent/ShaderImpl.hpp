@@ -20,6 +20,8 @@ namespace RR::GAPI::Diligent
         ~ShaderImpl() override;
 
         void Init(DL::IRenderDevice* device, Shader& resource);
+
+        DL::IShader* GetShader() const { return shader.RawPtr(); }
     private:
         DL::RefCntAutoPtr<DL::IShader> shader;
     };

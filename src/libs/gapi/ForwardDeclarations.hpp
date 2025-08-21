@@ -10,6 +10,10 @@ namespace RR
         class Shader;
         struct ShaderDescription;
 
+        class PipelineState;
+        class GraphicPipelineState;
+        struct GraphicPipelineStateDesc;
+
         class Fence;
         class Texture;
         class Buffer;

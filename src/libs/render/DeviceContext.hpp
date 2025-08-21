@@ -45,6 +45,8 @@ namespace RR::Render
         eastl::unique_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const GAPI::GpuResource* gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
         eastl::unique_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description) const;
         eastl::unique_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const std::string& name) const;
+        eastl::unique_ptr<GAPI::GraphicPipelineState> CreatePipelineState(const GAPI::GraphicPipelineStateDesc& description, const std::string& name) const;
+
 
     private:
         bool inited = false;

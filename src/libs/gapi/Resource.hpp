@@ -23,6 +23,7 @@ namespace RR
                 MemoryAllocation,
                 SwapChain,
                 Shader,
+                PipelineState,
             };
 
         public:

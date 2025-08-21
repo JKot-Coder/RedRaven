@@ -40,6 +40,7 @@ namespace RR::GAPI::Diligent
         void InitSwapChain(SwapChain& resource) const override;
         void InitTexture(Texture& resource) const override;
         void InitShader(Shader& resource) const override;
+        void InitPipelineState(PipelineState& resource) const override;
 
         std::any GetRawDevice() const override { ASSERT_MSG(false, "Not implemented"); return nullptr; }
 

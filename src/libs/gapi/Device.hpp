@@ -60,6 +60,7 @@ namespace RR
             virtual void InitSwapChain(SwapChain& resource) const = 0;
             virtual void InitTexture(Texture& resource) const = 0;
             virtual void InitShader(Shader& resource) const = 0;
+            virtual void InitPipelineState(PipelineState& resource) const = 0;
 
             virtual std::any GetRawDevice() const = 0;
         };
@@ -100,6 +101,7 @@ namespace RR
             void InitSwapChain(SwapChain& resource) const override { GetPrivateImpl()->InitSwapChain(resource); };
             void InitTexture(Texture& resource) const override { GetPrivateImpl()->InitTexture(resource); };
             void InitShader(Shader& resource) const override { GetPrivateImpl()->InitShader(resource); };
+            void InitPipelineState(PipelineState& resource) const override { GetPrivateImpl()->InitPipelineState(resource); };
 
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 

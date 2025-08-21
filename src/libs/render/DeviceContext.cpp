@@ -7,6 +7,7 @@
 #include "gapi/Texture.hpp"
 #include "gapi/CommandList2.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/PipelineState.hpp"
 
 #include "gapi_diligent/Device.hpp"
 
@@ -173,4 +174,13 @@ namespace RR::Render
         return resource;
     }
 
+    GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& description, const std::string& name) const
+    {
+        ASSERT(inited);
+
+        auto resource = GAPI::GraphicPipelineState::Create(description, name);
+        device->InitPipelineState(*resource.get());
+
+        return resource;
+    }
 }

@@ -5,6 +5,7 @@
 #include "CommandQueueImpl.hpp"
 #include "CommandContextImpl.hpp"
 #include "ShaderImpl.hpp"
+#include "PipelineStateImpl.hpp"
 
 #define ASSERT_IS_DEVICE_INITED ASSERT(inited)
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
@@ -215,6 +216,15 @@ namespace RR::GAPI::Diligent
         ASSERT_IS_DEVICE_INITED;
 
         auto impl = std::make_unique<ShaderImpl>();
+        impl->Init(device, resource);
+        resource.SetPrivateImpl(impl.release());
+    }
+
+    void DeviceImpl::InitPipelineState(PipelineState& resource) const
+    {
+        ASSERT_IS_DEVICE_INITED;
+
+        auto impl = std::make_unique<PipelineStateImpl>();
         impl->Init(device, resource);
         resource.SetPrivateImpl(impl.release());
     }

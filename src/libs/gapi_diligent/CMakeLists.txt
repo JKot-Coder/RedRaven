@@ -15,6 +15,8 @@ set(SRC
     GpuResourceImpl.hpp
     GpuResourceViewImpl.cpp
     GpuResourceViewImpl.hpp
+    PipelineStateImpl.cpp
+    PipelineStateImpl.hpp
     CommandQueueImpl.cpp
     CommandQueueImpl.hpp
     ShaderImpl.cpp
