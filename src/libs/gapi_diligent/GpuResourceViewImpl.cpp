@@ -75,9 +75,10 @@ namespace RR::GAPI::Diligent
 
     void GpuResourceViewImpl::Init(GAPI::GpuResourceView& view)
     {
-        ASSERT(view.GetGpuResource());
-        const auto& gpuResource = *view.GetGpuResource();
-        const GpuResourceImpl* gpuResourceImpl = gpuResource.GetPrivateImpl<GpuResourceImpl>();
+        const auto gpuResource = view.GetGpuResource().lock();
+        ASSERT(gpuResource);
+
+        const GpuResourceImpl* gpuResourceImpl = gpuResource->GetPrivateImpl<GpuResourceImpl>();
 
         switch (gpuResourceImpl->GetResourceDimension())
         {

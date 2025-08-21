@@ -62,8 +62,8 @@ namespace RR
 
             ~SwapChain();
 
-            Texture* GetBackBufferTexture(uint32_t index);
-            Texture* GetCurrentBackBufferTexture() { return GetBackBufferTexture(GetCurrentBackBufferIndex()); }
+            eastl::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
+            eastl::shared_ptr<Texture> GetCurrentBackBufferTexture() { return GetBackBufferTexture(GetCurrentBackBufferIndex()); }
 
             const SwapChainDescription& GetDescription() const { return description_; }
             uint32_t GetCurrentBackBufferIndex() const { return GetPrivateImpl()->GetCurrentBackBufferIndex(); }
@@ -86,7 +86,7 @@ namespace RR
 
         private:
             SwapChainDescription description_;
-            eastl::array<eastl::unique_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
+            eastl::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;

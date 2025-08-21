@@ -51,7 +51,7 @@ namespace RR::GAPI
         if (srvs_.find(viewDesc) == srvs_.end())
         {
             // name_ !!!!!!!!!!
-            srvs_[viewDesc] = Render::DeviceContext::Instance().CreateShaderResourceView(static_cast<const GpuResource*>(this), viewDesc);
+            srvs_[viewDesc] = Render::DeviceContext::Instance().CreateShaderResourceView(shared_from_this(), viewDesc);
         }
 
         return srvs_[viewDesc].get();
@@ -65,7 +65,7 @@ namespace RR::GAPI
         if (dsvs_.find(viewDesc) == dsvs_.end())
         {
             //  name_ !!!!!!!!
-            dsvs_[viewDesc] = Render::DeviceContext::Instance().CreateDepthStencilView(static_cast<const Texture*>(this), viewDesc);
+            dsvs_[viewDesc] = Render::DeviceContext::Instance().CreateDepthStencilView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return dsvs_[viewDesc].get();
@@ -78,7 +78,7 @@ namespace RR::GAPI
         if (rtvs_.find(viewDesc) == rtvs_.end())
         {
             // name_ !!!!!!
-           rtvs_[viewDesc] = Render::DeviceContext::Instance().CreateRenderTargetView(static_cast<const Texture*>(this), viewDesc);
+           rtvs_[viewDesc] = Render::DeviceContext::Instance().CreateRenderTargetView(eastl::static_pointer_cast<Texture>(shared_from_this()), viewDesc);
         }
 
         return rtvs_[viewDesc].get();
@@ -91,7 +91,7 @@ namespace RR::GAPI
         if (uavs_.find(viewDesc) == uavs_.end())
         {
             //  name_ !!!!!!!!!
-           uavs_[viewDesc] = Render::DeviceContext::Instance().CreateUnorderedAccessView(static_cast<const GpuResource*>(this), viewDesc);
+           uavs_[viewDesc] = Render::DeviceContext::Instance().CreateUnorderedAccessView(shared_from_this(), viewDesc);
         }
 
         return uavs_[viewDesc].get();

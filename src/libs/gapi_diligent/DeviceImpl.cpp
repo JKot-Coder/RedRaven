@@ -185,8 +185,6 @@ namespace RR::GAPI::Diligent
     {
         ASSERT_IS_DEVICE_INITED;
 
-        ASSERT(view.GetGpuResource());
-        const auto& resourceSharedPtr = *view.GetGpuResource();
         auto viewImpl = std::make_unique<GpuResourceViewImpl>();
         viewImpl->Init(view);
         view.SetPrivateImpl(viewImpl.release());

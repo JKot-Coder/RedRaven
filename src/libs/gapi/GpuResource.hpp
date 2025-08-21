@@ -476,7 +476,7 @@ namespace RR
             virtual void Unmap() = 0;
         };
 
-        class GpuResource : public Resource<IGpuResource>
+        class GpuResource : public Resource<IGpuResource>, public eastl::enable_shared_from_this<GpuResource>
         {
         public:
             template <typename Type>

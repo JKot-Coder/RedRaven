@@ -27,10 +27,11 @@ namespace RR
                 return result;
             }
 
-            void check(const GpuResourceViewDescription& desc, const GpuResource& gpuResource, GpuResourceBindFlags requiredBindFlags)
+            void check(const GpuResourceViewDescription& desc, const eastl::shared_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
             {
+                ASSERT(gpuResource);
                 #if ENABLE_ASSERTS
-                    const auto& resourceDescription = gpuResource.GetDescription();
+                    const auto& resourceDescription = gpuResource->GetDescription();
 
                     ASSERT(isCompatable(desc, resourceDescription));
                     ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
@@ -56,7 +57,7 @@ namespace RR
         }
 
         ShaderResourceView::ShaderResourceView(
-            const GpuResource& gpuResource,
+            const eastl::shared_ptr<GpuResource>& gpuResource,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
@@ -64,7 +65,7 @@ namespace RR
         }
 
         DepthStencilView::DepthStencilView(
-            const Texture& texture,
+            const eastl::shared_ptr<Texture>& texture,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
@@ -72,7 +73,7 @@ namespace RR
         }
 
         RenderTargetView::RenderTargetView(
-            const Texture& texture,
+            const eastl::shared_ptr<Texture>& texture,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
         {;
@@ -80,7 +81,7 @@ namespace RR
         }
 
         UnorderedAccessView::UnorderedAccessView(
-            const GpuResource& gpuResource,
+            const eastl::shared_ptr<GpuResource>& gpuResource,
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {

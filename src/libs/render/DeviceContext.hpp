@@ -38,13 +38,13 @@ namespace RR::Render
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
         eastl::unique_ptr<GAPI::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;
         eastl::unique_ptr<GAPI::Shader> CreateShader(const GAPI::ShaderDescription& description, const std::string& name) const;
-        eastl::unique_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
-        eastl::unique_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const GAPI::Texture* texture, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::unique_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const GAPI::Texture* texture, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::unique_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const GAPI::GpuResource* gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
-        eastl::unique_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const GAPI::GpuResource* gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
+        eastl::unique_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const eastl::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::DepthStencilView> CreateDepthStencilView(const eastl::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(const eastl::shared_ptr<GAPI::GpuResource>& gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
+        eastl::unique_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(const eastl::shared_ptr<GAPI::GpuResource>& gpuResource, const GAPI::GpuResourceViewDescription& desc) const;
         eastl::unique_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDescription& description) const;
-        eastl::unique_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const std::string& name) const;
+        eastl::shared_ptr<GAPI::Texture> CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const std::string& name) const;
         eastl::unique_ptr<GAPI::GraphicPipelineState> CreatePipelineState(const GAPI::GraphicPipelineStateDesc& description, const std::string& name) const;
 
 

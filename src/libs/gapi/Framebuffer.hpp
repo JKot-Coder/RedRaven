@@ -80,7 +80,7 @@ namespace RR::GAPI
         GpuResourceDescription getResourceDescription(const GpuResourceView* rv)
         {
             ASSERT(rv);
-            const auto gpuResource = rv->GetGpuResource();
+            const auto gpuResource = rv->GetGpuResource().lock();
             ASSERT(gpuResource);
 
             return gpuResource->GetDescription();
@@ -145,18 +145,18 @@ namespace RR::GAPI
             for (size_t index = 0; index < renderTargetResources_.size(); index++)
             {
                 const auto& rtv = description_.renderTargetViews[index];
-                renderTargetResources_[index] = rtv ? rtv->GetGpuResource() : nullptr;
+                renderTargetResources_[index] = rtv ? rtv->GetGpuResource().lock() : nullptr;
             }
 
-            depthStencilResource_ = description_.depthStencilView ? description_.depthStencilView->GetGpuResource() : nullptr;
+            depthStencilResource_ = description_.depthStencilView ? description_.depthStencilView->GetGpuResource().lock() : nullptr;
         }
 
     private:
         FramebufferDesc description_;
 
-        // Resouce ownership prevents deleting resource while framebuffer alive.
-        std::array<const GpuResource*, MaxRenderTargets> renderTargetResources_;
-        const GpuResource* depthStencilResource_;
+        // Store shared_ptr to prevent deleting resource while framebuffer alive.
+        std::array<eastl::shared_ptr<const GpuResource>, MaxRenderTargets> renderTargetResources_;
+        eastl::shared_ptr<const GpuResource> depthStencilResource_;
 
         friend class Render::DeviceContext;
     };

@@ -41,12 +41,12 @@ namespace RR
                 backBuffer = nullptr;
         }
 
-        Texture* SwapChain::GetBackBufferTexture(uint32_t index)
+        Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
         {
             ASSERT(index < description_.bufferCount);
 
             if (backBuffers_[index])
-                return backBuffers_[index].get();
+                return backBuffers_[index];
 
             // TODO  description_.width = 0 sometimes happends
             const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
@@ -59,7 +59,7 @@ namespace RR
                 desc,
                 fmt::sprintf("%s BackBufferTexture:%d", "SwapChain", index)); // TODO move it
 
-            return backBuffers_[index].get();
+            return backBuffers_[index];
         }
     }
 }
