@@ -61,6 +61,15 @@ namespace RR::GAPI
 
     struct RTBlendStateDesc
     {
+        RTBlendStateDesc() : blendEnabled(false),
+                             rgbBlendOp(BlendOp::Add),
+                             srcRgb(BlendFactor::One),
+                             dstRgb(BlendFactor::Zero),
+                             alphaBlendOp(BlendOp::Add),
+                             srcAlpha(BlendFactor::One),
+                             dstAlpha(BlendFactor::Zero),
+                             writeMask(WriteMask::All) { };
+
         bool blendEnabled : 1;
         BlendOp rgbBlendOp : 3;
         BlendFactor srcRgb : 4;
@@ -73,6 +82,17 @@ namespace RR::GAPI
 
     struct RasterizerDesc
     {
+        RasterizerDesc() : fillMode(FillMode::Solid),
+                             cullMode(CullMode::Back),
+                             isFrontCcw(false),
+                             depthClipEnabled(true),
+                             multisampleEnabled(false),
+                             linesAAEnabled(false),
+                             conservativeRasterEnabled(false),
+                             slopeScaledDepthBias(0.0f),
+                             depthBias(0.0f),
+                             forcedSampleCount(0) { };
+
         FillMode fillMode : 1;
         CullMode cullMode : 2;
         bool isFrontCcw : 1;
@@ -87,6 +107,9 @@ namespace RR::GAPI
 
     struct BlendDesc
     {
+        BlendDesc() : independentBlendEnabled(false),
+                      alphaToCoverageEnabled(false) { };
+
         bool independentBlendEnabled : 1;
         bool alphaToCoverageEnabled : 1;
         std::array<RTBlendStateDesc, MAX_RENDER_TARGETS_COUNT> rtBlend;
@@ -129,6 +152,11 @@ namespace RR::GAPI
 
         struct StencilDesc
         {
+            StencilDesc() : func(ComparisonFunc::Always),
+                            stencilFailOp(StencilOp::Keep),
+                            depthFailOp(StencilOp::Keep),
+                            depthStencilPassOp(StencilOp::Keep) { };
+
             ComparisonFunc func : 3; // Stencil comparison function
             StencilOp stencilFailOp : 3; // Stencil operation in case stencil test fails
             StencilOp depthFailOp : 3; /// Stencil operation in case stencil test passes but depth test fails
@@ -140,9 +168,9 @@ namespace RR::GAPI
         bool stencilEnabled : 1;
         StencilDesc stencilFront;
         StencilDesc stencilBack;
-        uint8_t stencilRef;
-        uint8_t stencilReadMask;
-        uint8_t stencilWriteMask;
+        uint8_t stencilRef = 0;
+        uint8_t stencilReadMask = 0xFF;
+        uint8_t stencilWriteMask = 0xFF;
     };
 
     enum class PrimitiveTopology : uint8_t
