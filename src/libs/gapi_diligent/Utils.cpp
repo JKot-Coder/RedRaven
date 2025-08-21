@@ -110,6 +110,7 @@ namespace RR::GAPI::Diligent
 
     DL::TEXTURE_FORMAT GetDLTextureFormat(GpuResourceFormat format)
     {
+        ASSERT(format >= GpuResourceFormat::Unknown && format < GpuResourceFormat::Count);
         ASSERT(formatsConversion[static_cast<uint32_t>(format)].from == format);
         ASSERT(format == GpuResourceFormat::Unknown ||
                formatsConversion[static_cast<uint32_t>(format)].to != DL::TEX_FORMAT_UNKNOWN);
