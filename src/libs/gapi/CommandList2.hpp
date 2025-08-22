@@ -112,9 +112,11 @@ namespace RR::GAPI
         GraphicsOperationsMixin() : CommandContextMixin(nullptr) { }
 
         void SetFramebuffer(Framebuffer* framebuffer);
+        void SetPipelineState(GraphicPipelineState* pso);
         void ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color);
     private:
         Framebuffer* framebuffer = nullptr;
+        GraphicPipelineState* pso = nullptr; // TEMPORATY. INVALID PipelineStateCould be destroyed..............
     };
 
     class CopyCommandContext final : public CommandContext,

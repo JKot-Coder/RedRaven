@@ -146,6 +146,7 @@ namespace RR::GAPI::Diligent
                 DL::IPipelineState* psoPtr = nullptr;
                 device->CreateGraphicsPipelineState(createInfo, &psoPtr);
                 pso.Attach(psoPtr);
+
                 break;
             }
             default:

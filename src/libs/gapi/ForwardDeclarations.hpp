@@ -11,6 +11,7 @@ namespace RR
         struct ShaderDescription;
 
         class PipelineState;
+        class IPipelineState;
         class GraphicPipelineState;
         struct GraphicPipelineStateDesc;
 

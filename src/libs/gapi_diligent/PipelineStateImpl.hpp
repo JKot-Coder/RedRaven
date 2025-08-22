@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RefCntAutoPtr.hpp"
 #include "gapi/PipelineState.hpp"
 
 #include "RefCntAutoPtr.hpp"
@@ -20,6 +21,9 @@ namespace RR::GAPI::Diligent
         ~PipelineStateImpl();
 
         void Init(DL::IRenderDevice* device, GAPI::PipelineState& resource);
+
+        DL::IPipelineState* GetPipelineState() const { return pso.RawPtr(); }
+
     private:
         DL::RefCntAutoPtr<DL::IPipelineState> pso;
     };
