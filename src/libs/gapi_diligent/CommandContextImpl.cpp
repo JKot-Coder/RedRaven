@@ -3,7 +3,10 @@
 #include "DeviceContext.h"
 
 #include "GpuResourceViewImpl.hpp"
-#include "gapi/Commands/Clear.hpp"
+#include "PipelineStateImpl.hpp"
+#include "FramebufferImpl.hpp"
+#include "gapi/commands/Clear.hpp"
+#include "gapi/commands/Draw.hpp"
 
 namespace DL = ::Diligent;
 
@@ -33,6 +36,25 @@ namespace RR::GAPI::Diligent
             ctx.device->ClearDepthStencil(dsv->GetTextureView(), DL::CLEAR_DEPTH_FLAG, command.clearValue, 0, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         }
 
+        void compileCommand(const Commands::Draw& command, const CommandCompileContext& ctx)
+        {
+            const auto* pso = static_cast<const PipelineStateImpl*>(command.psoImpl);
+            ASSERT(pso);
+
+            auto* framebuffer = static_cast<FramebufferImpl*>(command.framebufferImpl);
+            ASSERT(framebuffer);
+
+            ctx.device->SetRenderTargets(MAX_BACK_BUFFER_COUNT, framebuffer->GetRTVs(), framebuffer->GetDSV(), DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            ctx.device->SetPipelineState(pso->GetPipelineState());
+
+            DL::DrawAttribs drawAttribs;
+            drawAttribs.NumVertices = command.attribs.vertexCount;
+            drawAttribs.StartVertexLocation = command.attribs.startVertex;
+            drawAttribs.NumInstances = Max(command.attribs.instanceCount, 1u);
+
+            ctx.device->Draw(drawAttribs);
+        }
+
     }
 
     CommandContextImpl::~CommandContextImpl() { }
@@ -56,6 +78,14 @@ namespace RR::GAPI::Diligent
 
             case Command::Type::ClearDepthStencilView:
                 compileCommand(static_cast<const Commands::ClearDSV&>(*command), ctx);
+                break;
+
+            case Command::Type::Draw:
+                compileCommand(static_cast<const Commands::Draw&>(*command), ctx);
+                break;
+
+            default:
+                ASSERT_MSG(false, "Unknown command type");
                 break;
             }
         }

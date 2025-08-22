@@ -25,4 +25,15 @@ namespace RR::GAPI
         this->framebuffer = framebuffer;
     }
 
+    void GraphicsOperationsMixin::Draw(PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
+    {
+        Commands::Draw::Attribs drawAttribs;
+        drawAttribs.vertexCount = vertexCount;
+        drawAttribs.startVertex = startVertex;
+        drawAttribs.instanceCount = instanceCount;
+
+        UNUSED(topology); // This should be used lately for runtime PSO build here.
+
+        GetCommandList().emplaceCommand<Commands::Draw>(drawAttribs, pso, framebuffer);
+    }
 }

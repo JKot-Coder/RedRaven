@@ -8,6 +8,7 @@ namespace RR::GAPI
         {
             ClearRenderTargetView,
             ClearDepthStencilView,
+            Draw
         };
 
     public:

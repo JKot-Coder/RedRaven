@@ -15,6 +15,7 @@ namespace RR::Render
 
 namespace RR::GAPI
 {
+    enum class PrimitiveTopology : uint8_t;
 
     class ICommandContext
     {
@@ -115,6 +116,8 @@ namespace RR::GAPI
         void SetPipelineState(GraphicPipelineState* pso);
         void ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color);
         void ClearDepthStencilView(const DepthStencilView* depthStencilView, float clearValue);
+        void Draw(PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
+
     private:
         Framebuffer* framebuffer = nullptr;
         GraphicPipelineState* pso = nullptr; // TEMPORATY. INVALID PipelineStateCould be destroyed..............
