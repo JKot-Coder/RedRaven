@@ -15,6 +15,11 @@ namespace RR::GAPI
         GetCommandList().emplaceCommand<Commands::ClearRTV>(renderTargetView, color);
     }
 
+    void GraphicsOperationsMixin::ClearDepthStencilView(const DepthStencilView* depthStencilView, float clearValue)
+    {
+        GetCommandList().emplaceCommand<Commands::ClearDSV>(depthStencilView, clearValue);
+    }
+
     void GraphicsOperationsMixin::SetFramebuffer(Framebuffer* framebuffer)
     {
         this->framebuffer = framebuffer;

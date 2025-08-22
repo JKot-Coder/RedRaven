@@ -114,6 +114,7 @@ namespace RR::GAPI
         void SetFramebuffer(Framebuffer* framebuffer);
         void SetPipelineState(GraphicPipelineState* pso);
         void ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color);
+        void ClearDepthStencilView(const DepthStencilView* depthStencilView, float clearValue);
     private:
         Framebuffer* framebuffer = nullptr;
         GraphicPipelineState* pso = nullptr; // TEMPORATY. INVALID PipelineStateCould be destroyed..............

@@ -22,4 +22,20 @@ namespace RR::GAPI::Commands
         Vector4 color;
     };
     static_assert(std::is_trivially_copyable<ClearRTV>::value);
+
+    struct ClearDSV : public Command
+    {
+        ClearDSV(const DepthStencilView* dsv, float clearValue)
+            : Command(Command::Type::ClearDepthStencilView),
+              clearValue(clearValue)
+        {
+            ASSERT(dsv);
+            dsvImpl = dsv->GetPrivateImpl<IGpuResourceView>();
+        };
+
+        const IGpuResourceView* dsvImpl = nullptr;
+        float clearValue;
+    };
+    static_assert(std::is_trivially_copyable<ClearDSV>::value);
+
 }

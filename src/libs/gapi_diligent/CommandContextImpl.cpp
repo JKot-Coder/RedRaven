@@ -23,6 +23,16 @@ namespace RR::GAPI::Diligent
 
             ctx.device->ClearRenderTarget(rtv->GetTextureView(), &command.color, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         }
+
+        void compileCommand(const Commands::ClearDSV& command, const CommandCompileContext& ctx)
+        {
+            const auto* dsv = static_cast<const GpuResourceViewImpl*>(command.dsvImpl);
+            ASSERT(dsv);
+
+            // TODO Stencil clear value;
+            ctx.device->ClearDepthStencil(dsv->GetTextureView(), DL::CLEAR_DEPTH_FLAG, command.clearValue, 0, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        }
+
     }
 
     CommandContextImpl::~CommandContextImpl() { }
@@ -42,6 +52,10 @@ namespace RR::GAPI::Diligent
             {
             case Command::Type::ClearRenderTargetView:
                 compileCommand(static_cast<const Commands::ClearRTV&>(*command), ctx);
+                break;
+
+            case Command::Type::ClearDepthStencilView:
+                compileCommand(static_cast<const Commands::ClearDSV&>(*command), ctx);
                 break;
             }
         }
