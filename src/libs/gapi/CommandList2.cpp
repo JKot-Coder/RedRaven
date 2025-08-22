@@ -8,4 +8,10 @@ namespace RR::GAPI
     {
         GetCommandList().emplaceCommand<Commands::ClearRTV>(renderTargetView, color);
     }
+
+    void GraphicsOperationsMixin::SetFramebuffer(Framebuffer* framebuffer)
+    {
+        this->framebuffer = framebuffer;
+    }
+
 }

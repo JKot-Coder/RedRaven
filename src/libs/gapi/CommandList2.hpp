@@ -111,7 +111,10 @@ namespace RR::GAPI
     public:
         GraphicsOperationsMixin() : CommandContextMixin(nullptr) { }
 
+        void SetFramebuffer(Framebuffer* framebuffer);
         void ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color);
+    private:
+        Framebuffer* framebuffer = nullptr;
     };
 
     class CopyCommandContext final : public CommandContext,
