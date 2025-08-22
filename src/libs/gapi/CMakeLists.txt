@@ -31,7 +31,7 @@ set(SRC
 
 set(COMMANDS
     Commands/Command.hpp
-    Commands/ClearRTV.hpp
+    Commands/Clear.hpp
 )
 
 source_group( "" FILES ${SRC} ${COMMANDS} )

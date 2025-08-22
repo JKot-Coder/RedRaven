@@ -1,6 +1,6 @@
 #include "CommandList2.hpp"
 
-#include "gapi/commands/ClearRTV.hpp"
+#include "gapi/commands/Clear.hpp"
 
 namespace RR::GAPI
 {

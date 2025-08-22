@@ -3,7 +3,7 @@
 #include "DeviceContext.h"
 
 #include "GpuResourceViewImpl.hpp"
-#include "gapi/Commands/ClearRTV.hpp"
+#include "gapi/Commands/Clear.hpp"
 
 namespace DL = ::Diligent;
 
