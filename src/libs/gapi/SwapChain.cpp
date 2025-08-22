@@ -61,5 +61,18 @@ namespace RR
 
             return backBuffers_[index];
         }
+
+        Texture::SharedPtr SwapChain::GetDepthBufferTexture()
+        {
+            if (depthBuffer_)
+                return depthBuffer_;
+
+            const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.depthStencilFormat, GpuResourceBindFlags::DepthStencil, GpuResourceUsage::Default, 1, 1);
+
+            auto& deviceContext = Render::DeviceContext::Instance();
+
+            depthBuffer_ = deviceContext.CreateSwapChainDepthBuffer(this, desc);
+            return depthBuffer_;
+        }
     }
 }

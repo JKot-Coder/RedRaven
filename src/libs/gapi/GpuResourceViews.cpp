@@ -69,7 +69,7 @@ namespace RR
             const GpuResourceViewDescription& desc)
             : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
-            check(desc, texture, GpuResourceBindFlags::RenderTarget);
+            check(desc, texture, GpuResourceBindFlags::DepthStencil);
         }
 
         RenderTargetView::RenderTargetView(

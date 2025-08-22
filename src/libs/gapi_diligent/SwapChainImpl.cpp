@@ -149,6 +149,22 @@ namespace RR::GAPI::Diligent
         resource.SetPrivateImpl(impl);
     }
 
+    void SwapChainImpl::InitDepthBufferTexture(Texture& resource) const
+    {
+        ASSERT(!resource.GetPrivateImpl());
+        ASSERT(swapChain);
+        ASSERT(resource.GetDescription().usage == GpuResourceUsage::Default);
+        ASSERT(IsSet(resource.GetDescription().bindFlags, GpuResourceBindFlags::DepthStencil));
+
+        ASSERT(swapChain->GetDepthBufferDSV());
+        auto* depthBufferTexture = swapChain->GetDepthBufferDSV()->GetTexture();
+        depthBufferTexture->AddRef();
+
+        auto impl = new GpuResourceImpl();
+        impl->Init(depthBufferTexture, resource);
+        resource.SetPrivateImpl(impl);
+    }
+
     void SwapChainImpl::Present()
     {
         ASSERT(swapChain);
