@@ -51,6 +51,8 @@ namespace RR
             const std::string& GetName() const { return name_; }
 
         protected:
+            Resource(Resource&& other) noexcept : type_(other.type_), privateImpl_(eastl::move(other.privateImpl_)), name_(eastl::move(other.name_)) { };
+
             template <bool isNamed = IsNamed, typename = eastl::enable_if_t<isNamed>>
             Resource(Type type, const std::string& name) : type_(type), name_(name) { }
 

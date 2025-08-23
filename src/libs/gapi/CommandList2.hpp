@@ -17,21 +17,15 @@ namespace RR::GAPI
 {
     enum class PrimitiveTopology : uint8_t;
 
-    class ICommandContext
+    class ICommandList
     {
     public:
-        virtual ~ICommandContext() = default;
+        virtual ~ICommandList() = default;
     };
 
-    class CommandList2
+    class CommandList2 final : public Resource<ICommandList>
     {
     public:
-        CommandList2(size_t initialCommandCapacity = 100, size_t bufferCapacity = 128 * 1024)
-            : allocator(bufferCapacity)
-        {
-            commands.reserve(initialCommandCapacity);
-        }
-
         template <typename CommandType, typename... Args>
         void emplaceCommand(Args&&... params)
         {
@@ -54,64 +48,47 @@ namespace RR::GAPI
         }
 
     private:
+        friend class Render::DeviceContext;
+
+        CommandList2(const std::string& name, size_t initialCommandCapacity = 100, size_t bufferCapacity = 128 * 1024)
+            :  Resource(Type::CommandList, name), allocator(bufferCapacity)
+        {
+            commands.reserve(initialCommandCapacity);
+        }
+
+    private:
         eastl::vector<Command*> commands;
         Common::ChunkAllocator allocator;
     };
 
-    class CommandContext : public Resource<ICommandContext>
+    class CommandContext
     {
-    public:
-        using UniquePtr = eastl::unique_ptr<CommandContext>;
-
-        enum class Type
-        {
-            Graphics,
-            Compute,
-            Copy,
-        };
-
     public:
         CommandList2& GetCommandList() { return commandList; }
 
     protected:
-        explicit CommandContext(Type type, const std::string& name) : Resource(Resource::Type::CommandList, name), type(type), commandList(100, 128 * 1024) { }
-
-    protected:
-        Type type;
+        explicit CommandContext(CommandList2&& commandlist ) : commandList(eastl::move(commandlist)) { }
         CommandList2 commandList;
     };
 
-    struct CommandContextMixin
-    {
-    protected:
-        CommandContextMixin(CommandList2* commandList) : commandListPtr(commandList) { }
-        CommandList2& GetCommandList()
-        {
-            ASSERT(commandListPtr);
-            return *commandListPtr;
-        }
-
-    private:
-        CommandList2* commandListPtr = nullptr;
-    };
-
-    struct CopyCommandContextMixin : virtual CommandContextMixin
+    class CopyCommandContext: public CommandContext
     {
     public:
-        CopyCommandContextMixin() : CommandContextMixin(nullptr) { }
+        CopyCommandContext(CommandList2&& commandlist) : CommandContext(eastl::move(commandlist)) { }
     };
 
-    struct ComputeCommandContextMixin : virtual CommandContextMixin
+    class ComputeCommandContext  : public CopyCommandContext
     {
     public:
-        ComputeCommandContextMixin() : CommandContextMixin(nullptr) { }
+        ComputeCommandContext(CommandList2&& commandlist) : CopyCommandContext(eastl::move(commandlist)) { }
     };
 
-    struct GraphicsOperationsMixin : virtual CommandContextMixin
+    class GraphicsCommandContext : public  ComputeCommandContext
     {
     public:
-        GraphicsOperationsMixin() : CommandContextMixin(nullptr) { }
+        using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
 
+    public:
         void SetFramebuffer(Framebuffer* framebuffer);
         void SetPipelineState(GraphicPipelineState* pso);
         void ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color);
@@ -119,60 +96,16 @@ namespace RR::GAPI
         void Draw(PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
 
     private:
+        friend class Render::DeviceContext;
+
+        GraphicsCommandContext(CommandList2&& commandlist) : ComputeCommandContext(eastl::move(commandlist)) { }
+        static UniquePtr Create(CommandList2&& commandlist)
+        {
+            return eastl::unique_ptr<GraphicsCommandContext>(new GraphicsCommandContext(eastl::move(commandlist)));
+        }
+
+    private:
         Framebuffer* framebuffer = nullptr;
         GraphicPipelineState* pso = nullptr; // TEMPORATY. INVALID PipelineStateCould be destroyed..............
-    };
-
-    class CopyCommandContext final : public CommandContext,
-                                     public CopyCommandContextMixin
-    {
-    public:
-        using UniquePtr = eastl::unique_ptr<CopyCommandContext>;
-
-    private:
-        friend class Render::DeviceContext;
-
-        explicit CopyCommandContext(const std::string& name)
-            : CommandContextMixin(&commandList), CommandContext(Type::Copy, name), CopyCommandContextMixin()
-        {
-        }
-    };
-
-    class ComputeCommandContext final : public CommandContext,
-                                        public CopyCommandContextMixin,
-                                        public ComputeCommandContextMixin
-    {
-    public:
-        using UniquePtr = eastl::unique_ptr<ComputeCommandContext>;
-
-    private:
-        friend class Render::DeviceContext;
-
-        explicit ComputeCommandContext(const std::string& name)
-            : CommandContextMixin(&commandList), CommandContext(Type::Compute, name), CopyCommandContextMixin(), ComputeCommandContextMixin()
-        {
-        }
-    };
-
-    class GraphicsCommandContext final : public CommandContext,
-                                         public GraphicsOperationsMixin,
-                                         public CopyCommandContextMixin,
-                                         public ComputeCommandContextMixin
-    {
-    public:
-        using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
-
-    private:
-        friend class Render::DeviceContext;
-
-        explicit GraphicsCommandContext(const std::string& name)
-            : CommandContextMixin(&commandList), CommandContext(Type::Graphics, name), GraphicsOperationsMixin(), CopyCommandContextMixin(), ComputeCommandContextMixin()
-        {
-        }
-
-        static GraphicsCommandContext::UniquePtr Create(const std::string& name)
-        {
-            return eastl::unique_ptr<GraphicsCommandContext>(new GraphicsCommandContext(name));
-        }
     };
 }

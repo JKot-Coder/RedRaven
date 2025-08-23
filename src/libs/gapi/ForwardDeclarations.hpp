@@ -34,6 +34,8 @@ namespace RR
         class ComputeCommandContext;
         class CopyCommandContext;
 
+        class CommandList2;
+
         class CommandList;
         class CopyCommandList;
         class ComputeCommandList;

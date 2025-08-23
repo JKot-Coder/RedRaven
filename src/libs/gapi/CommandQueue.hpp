@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gapi/Resource.hpp"
+#include "gapi/CommandList2.hpp"
 // TODO temporary
 #include <any>
 
@@ -34,7 +35,7 @@ namespace RR
             virtual void Signal(const eastl::shared_ptr<Fence>& fence) = 0;
             virtual void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) = 0;
             virtual void Submit(const eastl::shared_ptr<CommandList>& commandList) = 0;
-            virtual void Submit(CommandContext* commandContext) = 0;
+            virtual void Submit(CommandList2* commandList) = 0;
             virtual void WaitForGpu() = 0;
         };
 
@@ -49,7 +50,11 @@ namespace RR
             inline void Signal(const eastl::shared_ptr<Fence>& fence) { return GetPrivateImpl()->Signal(fence); }
             inline void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { return GetPrivateImpl()->Signal(fence, value); }
             inline void Submit(const eastl::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
-            inline void Submit(CommandContext* commandContext) { return GetPrivateImpl()->Submit(commandContext); }
+            inline void Submit(CommandContext* commandContext)
+            {
+                ASSERT(commandContext);
+                return GetPrivateImpl()->Submit(&commandContext->GetCommandList());
+            }
 
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 

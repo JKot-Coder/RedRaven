@@ -15,11 +15,11 @@ namespace DL = ::Diligent;
 
 namespace RR::GAPI::Diligent
 {
-    class CommandContextImpl final : public ICommandContext
+    class CommandListImpl final : public ICommandList
     {
     public:
-        CommandContextImpl() = default;
-        ~CommandContextImpl();
+        CommandListImpl() = default;
+        ~CommandListImpl();
 
         void Init();
         void Compile(GAPI::CommandList2& commandList,DL::IDeviceContext* device);

@@ -28,11 +28,11 @@ namespace RR::GAPI::Diligent
 
         GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const override;
 
-        void Compile(CommandContext* commandContext) override;
+        void Compile(CommandList2& commandList) override;
 
         void InitBuffer(Buffer& resource) const override;
         void InitCommandList(CommandList& resource) const override;
-        void InitCommandContext(CommandContext& resource) const override;
+        void InitCommandList2(CommandList2& resource) const override;
         void InitCommandQueue(CommandQueue& resource) const override;
         void InitFence(Fence& resource) const override;
         void InitFramebuffer(Framebuffer& resource) const override;

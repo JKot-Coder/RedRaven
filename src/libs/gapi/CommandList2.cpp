@@ -5,27 +5,27 @@
 
 namespace RR::GAPI
 {
-    void GraphicsOperationsMixin::SetPipelineState(GraphicPipelineState* pso)
+    void GraphicsCommandContext::SetPipelineState(GraphicPipelineState* pso)
     {
         this->pso = pso;
     }
 
-    void GraphicsOperationsMixin::ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color)
+    void GraphicsCommandContext::ClearRenderTargetView(const RenderTargetView* renderTargetView, const Vector4& color)
     {
         GetCommandList().emplaceCommand<Commands::ClearRTV>(renderTargetView, color);
     }
 
-    void GraphicsOperationsMixin::ClearDepthStencilView(const DepthStencilView* depthStencilView, float clearValue)
+    void GraphicsCommandContext::ClearDepthStencilView(const DepthStencilView* depthStencilView, float clearValue)
     {
         GetCommandList().emplaceCommand<Commands::ClearDSV>(depthStencilView, clearValue);
     }
 
-    void GraphicsOperationsMixin::SetFramebuffer(Framebuffer* framebuffer)
+    void GraphicsCommandContext::SetFramebuffer(Framebuffer* framebuffer)
     {
         this->framebuffer = framebuffer;
     }
 
-    void GraphicsOperationsMixin::Draw(PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
+    void GraphicsCommandContext::Draw(PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
     {
         Commands::Draw::Attribs drawAttribs;
         drawAttribs.vertexCount = vertexCount;

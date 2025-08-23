@@ -119,16 +119,16 @@ namespace RR::GAPI::Diligent
         return {};
     }
 
-    void DeviceImpl::Compile(CommandContext* commandContext)
+    void DeviceImpl::Compile(CommandList2& commandList)
     {
         ASSERT_IS_DEVICE_INITED;
-        ASSERT(commandContext);
 
-        ASSERT(dynamic_cast<CommandContextImpl*>(commandContext->GetPrivateImpl()));
-        auto commandContextImpl = static_cast<CommandContextImpl*>(commandContext->GetPrivateImpl());
+
+        ASSERT(dynamic_cast<CommandListImpl*>(commandList.GetPrivateImpl()));
+        auto commandListImpl = static_cast<CommandListImpl*>(commandList.GetPrivateImpl());
 
         // MUTEX HERE AND DEFFERED CONTEXT
-        commandContextImpl->Compile(commandContext->GetCommandList(), deferredContext);
+        commandListImpl->Compile(commandList, deferredContext);
     }
 
     void DeviceImpl::InitBuffer(Buffer& resource) const
@@ -147,12 +147,12 @@ namespace RR::GAPI::Diligent
         NOT_IMPLEMENTED();
     }
 
-    void DeviceImpl::InitCommandContext(CommandContext& resource) const
+    void DeviceImpl::InitCommandList2(CommandList2& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
         UNUSED(resource);
 
-        auto impl = eastl::make_unique<CommandContextImpl>();
+        auto impl = eastl::make_unique<CommandListImpl>();
         impl->Init();
         resource.SetPrivateImpl(impl.release());
     }

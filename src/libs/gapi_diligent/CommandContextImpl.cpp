@@ -57,10 +57,10 @@ namespace RR::GAPI::Diligent
 
     }
 
-    CommandContextImpl::~CommandContextImpl() { }
+    CommandListImpl::~CommandListImpl() { }
 
-    void CommandContextImpl::Init() { }
-    void CommandContextImpl::Compile(GAPI::CommandList2& commandList, DL::IDeviceContext* device)
+    void CommandListImpl::Init() { }
+    void CommandListImpl::Compile(GAPI::CommandList2& commandList, DL::IDeviceContext* device)
     {
         device->Begin(0);
 
