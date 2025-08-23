@@ -29,11 +29,6 @@ namespace RR
         class CommandQueue;
         enum class CommandQueueType : uint32_t;
 
-        class CommandContext;
-        class GraphicsCommandContext;
-        class ComputeCommandContext;
-        class CopyCommandContext;
-
         class CommandList2;
 
         class CommandList;

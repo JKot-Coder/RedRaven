@@ -57,20 +57,20 @@ namespace RR::Render
         return resource;
     }
 
-    void DeviceContext::Compile(GAPI::GraphicsCommandContext* commandContext)
+    void DeviceContext::Compile(Render::GraphicsCommandContext* commandContext)
     {
         ASSERT(inited);
 
         device->Compile(commandContext->GetCommandList());
     }
 
-    GAPI::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
+    Render::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
     {
         ASSERT(inited);
 
         GAPI::CommandList2 commandList(name);
         device->InitCommandList2(commandList);
-        auto resource = GAPI::GraphicsCommandContext::Create(eastl::move(commandList));
+        auto resource = Render::GraphicsCommandContext::Create(eastl::move(commandList));
 
         return resource;
     }

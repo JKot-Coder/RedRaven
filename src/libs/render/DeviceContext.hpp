@@ -18,6 +18,8 @@ namespace RR
 
 namespace RR::Render
 {
+    class GraphicsCommandContext;
+
     class DeviceContext : public Common::Singleton<DeviceContext>
     {
     public:
@@ -33,10 +35,10 @@ namespace RR::Render
         void MoveToNextFrame(uint64_t frameIndex);
         void ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height);
 
-        void Compile(GAPI::GraphicsCommandContext* commandContext);
+        void Compile(Render::GraphicsCommandContext* commandContext);
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
-        eastl::unique_ptr<GAPI::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;
+        eastl::unique_ptr<Render::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;
         eastl::unique_ptr<GAPI::Framebuffer> CreateFrameBuffer(const GAPI::FramebufferDesc& desc) const;
         eastl::unique_ptr<GAPI::Shader> CreateShader(const GAPI::ShaderDescription& description, const std::string& name) const;
         eastl::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);

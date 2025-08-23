@@ -52,7 +52,7 @@ namespace RR
             inline void Signal(const eastl::shared_ptr<Fence>& fence) { return GetPrivateImpl()->Signal(fence); }
             inline void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { return GetPrivateImpl()->Signal(fence, value); }
             inline void Submit(const eastl::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
-            inline void Submit(CommandContext* commandContext)
+            inline void Submit(Render::CommandContext* commandContext)
             {
                 ASSERT(commandContext);
                 return GetPrivateImpl()->Submit(&commandContext->GetCommandList());
