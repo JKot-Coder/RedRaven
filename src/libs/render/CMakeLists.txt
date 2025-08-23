@@ -2,7 +2,10 @@ project (render)
 
 set(SRC
     DeviceContext.cpp
-    DeviceContext.hpp)
+    DeviceContext.hpp
+    CommandContext.cpp
+    CommandContext.hpp
+)
 source_group( "" FILES ${SRC} )
 
 add_library(${PROJECT_NAME} ${SRC})

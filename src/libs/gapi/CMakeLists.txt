@@ -7,8 +7,6 @@ set(SRC
     CommandList.hpp
     CommandList.inl
     CommandList2.hpp
-    CommandContext.hpp
-    CommandContext.cpp
     CommandQueue.hpp
     Device.hpp
     Fence.hpp

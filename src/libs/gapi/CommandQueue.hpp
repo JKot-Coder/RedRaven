@@ -1,7 +1,9 @@
 #pragma once
 
 #include "gapi/Resource.hpp"
-#include "gapi/CommandContext.hpp"
+
+// TODO This is bad dependecy. GAPI should not depend on Render.
+#include "render/CommandContext.hpp"
 // TODO temporary
 #include <any>
 
