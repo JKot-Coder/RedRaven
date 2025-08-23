@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gapi/Resource.hpp"
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandContext.hpp"
 // TODO temporary
 #include <any>
 
