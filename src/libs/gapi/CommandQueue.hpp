@@ -2,8 +2,6 @@
 
 #include "gapi/Resource.hpp"
 
-// TODO This is bad dependecy. GAPI should not depend on Render.
-#include "render/CommandContext.hpp"
 // TODO temporary
 #include <any>
 
@@ -52,11 +50,7 @@ namespace RR
             inline void Signal(const eastl::shared_ptr<Fence>& fence) { return GetPrivateImpl()->Signal(fence); }
             inline void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { return GetPrivateImpl()->Signal(fence, value); }
             inline void Submit(const eastl::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
-            inline void Submit(Render::CommandContext* commandContext)
-            {
-                ASSERT(commandContext);
-                return GetPrivateImpl()->Submit(&commandContext->GetCommandList());
-            }
+            inline void Submit(CommandList2& commandList) { return GetPrivateImpl()->Submit(&commandList); }
 
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 

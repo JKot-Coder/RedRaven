@@ -9,6 +9,8 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/PipelineState.hpp"
 
+#include "render/CommandContext.hpp"
+
 #include "gapi_diligent/Device.hpp"
 
 namespace RR::Render
@@ -57,11 +59,11 @@ namespace RR::Render
         return resource;
     }
 
-    void DeviceContext::Compile(Render::GraphicsCommandContext* commandContext)
+    void DeviceContext::Compile(GAPI::CommandList2& commandList)
     {
         ASSERT(inited);
 
-        device->Compile(commandContext->GetCommandList());
+        device->Compile(commandList);
     }
 
     Render::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
