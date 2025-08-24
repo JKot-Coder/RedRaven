@@ -3,7 +3,7 @@
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "DeviceContext.h"
-#include "CommandContextImpl.hpp"
+#include "CommandListImpl.hpp"
 
 namespace DL = ::Diligent;
 

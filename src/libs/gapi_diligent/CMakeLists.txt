@@ -3,8 +3,8 @@ project (gapi_diligent)
 set(SRC
     Utils.cpp
     Utils.hpp
-    CommandContextImpl.cpp
-    CommandContextImpl.hpp
+    CommandListImpl.cpp
+    CommandListImpl.hpp
     Device.cpp
     Device.hpp
     DeviceImpl.cpp
