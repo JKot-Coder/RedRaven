@@ -54,7 +54,6 @@ namespace RR
             // Graphics command list
             // ---------------------------------------------------------------------------------------------
 
-            virtual void SetFrameBuffer(const eastl::shared_ptr<Framebuffer>& framebuffer) = 0;
             virtual void SetIndexBuffer(const eastl::shared_ptr<Buffer>& buffer, size_t offset = 0) = 0;
             virtual void ClearRenderTargetView(const eastl::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) = 0;
         };
@@ -143,7 +142,6 @@ namespace RR
             using SharedPtr = eastl::shared_ptr<GraphicsCommandList>;
             using SharedConstPtr = eastl::shared_ptr<const GraphicsCommandList>;
 
-            inline void SetFrameBuffer(const eastl::shared_ptr<Framebuffer>& framebuffer) { GetPrivateImpl()->SetFrameBuffer(framebuffer); }
             inline void SetIndexBuffer(const eastl::shared_ptr<Buffer>& buffer, size_t offset = 0) { GetPrivateImpl()->SetIndexBuffer(buffer, offset); }
             inline void ClearRenderTargetView(const eastl::shared_ptr<RenderTargetView>& renderTargetView, const Vector4& color) { GetPrivateImpl()->ClearRenderTargetView(renderTargetView, color); }
 

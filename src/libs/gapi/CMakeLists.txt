@@ -13,7 +13,6 @@ set(SRC
     FencedPool.hpp
     ForwardDeclarations.hpp
     Frame.hpp
-    Framebuffer.hpp
     GpuResource.cpp
     GpuResource.hpp
     GpuResourceViews.cpp

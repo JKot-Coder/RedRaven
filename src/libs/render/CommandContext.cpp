@@ -20,11 +20,6 @@ namespace RR::Render
         GetCommandList().emplaceCommand<GAPI::Commands::ClearDSV>(depthStencilView, clearValue);
     }
 
-    void GraphicsCommandContext::SetFramebuffer(GAPI::Framebuffer* framebuffer)
-    {
-        this->framebuffer = framebuffer;
-    }
-
     void GraphicsCommandContext::Draw(GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
     {
         GAPI::Commands::Draw::Attribs drawAttribs;
@@ -34,6 +29,6 @@ namespace RR::Render
 
         UNUSED(topology); // This should be used lately for runtime PSO build here.
 
-        GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso, framebuffer);
+        GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso);
     }
 }

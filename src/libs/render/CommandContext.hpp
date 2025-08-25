@@ -35,7 +35,6 @@ namespace RR::Render
         using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
 
     public:
-        void SetFramebuffer(GAPI::Framebuffer* framebuffer);
         void SetPipelineState(GAPI::GraphicPipelineState* pso);
         void ClearRenderTargetView(const GAPI::RenderTargetView* renderTargetView, const Vector4& color);
         void ClearDepthStencilView(const GAPI::DepthStencilView* depthStencilView, float clearValue);
@@ -51,7 +50,6 @@ namespace RR::Render
         }
 
     private:
-        GAPI::Framebuffer* framebuffer = nullptr;
         GAPI::GraphicPipelineState* pso = nullptr; // TEMPORATY. INVALID PipelineStateCould be destroyed..............
     };
 }

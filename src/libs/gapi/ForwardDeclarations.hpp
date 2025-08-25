@@ -19,10 +19,6 @@ namespace RR
         class Texture;
         class Buffer;
 
-        class Framebuffer;
-        class IFramebuffer;
-        struct FramebufferDesc;
-
         class SwapChain;
         struct SwapChainDescription;
 

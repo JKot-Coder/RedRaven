@@ -4,7 +4,6 @@
 
 #include "GpuResourceViewImpl.hpp"
 #include "PipelineStateImpl.hpp"
-#include "FramebufferImpl.hpp"
 #include "gapi/commands/Clear.hpp"
 #include "gapi/commands/Draw.hpp"
 
@@ -41,11 +40,9 @@ namespace RR::GAPI::Diligent
             const auto* pso = static_cast<const PipelineStateImpl*>(command.psoImpl);
             ASSERT(pso);
 
-            auto* framebuffer = static_cast<FramebufferImpl*>(command.framebufferImpl);
-            ASSERT(framebuffer);
 
-            ctx.device->SetRenderTargets(MAX_BACK_BUFFER_COUNT, framebuffer->GetRTVs(), framebuffer->GetDSV(), DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-            ctx.device->SetPipelineState(pso->GetPipelineState());
+            //ctx.device->SetRenderTargets(MAX_BACK_BUFFER_COUNT, framebuffer->GetRTVs(), framebuffer->GetDSV(), DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            //ctx.device->SetPipelineState(pso->GetPipelineState());
 
             DL::DrawAttribs drawAttribs;
             drawAttribs.NumVertices = command.attribs.vertexCount;

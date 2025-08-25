@@ -39,7 +39,6 @@ namespace RR::Render
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
         eastl::unique_ptr<Render::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;
-        eastl::unique_ptr<GAPI::Framebuffer> CreateFrameBuffer(const GAPI::FramebufferDesc& desc) const;
         eastl::unique_ptr<GAPI::Shader> CreateShader(const GAPI::ShaderDescription& description, const std::string& name) const;
         eastl::shared_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDescription& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
         eastl::unique_ptr<GAPI::RenderTargetView> CreateRenderTargetView(const eastl::shared_ptr<GAPI::Texture>& texture, const GAPI::GpuResourceViewDescription& desc) const;

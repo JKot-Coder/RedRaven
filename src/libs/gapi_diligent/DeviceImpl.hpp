@@ -35,7 +35,6 @@ namespace RR::GAPI::Diligent
         void InitCommandList2(CommandList2& resource) const override;
         void InitCommandQueue(CommandQueue& resource) const override;
         void InitFence(Fence& resource) const override;
-        void InitFramebuffer(Framebuffer& resource) const override;
         void InitGpuResourceView(GpuResourceView& view) const override;
         void InitSwapChain(SwapChain& resource) const override;
         void InitTexture(Texture& resource) const override;

@@ -77,16 +77,6 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::Framebuffer::UniquePtr DeviceContext::CreateFrameBuffer(const GAPI::FramebufferDesc& desc) const
-    {
-        ASSERT(inited);
-
-        auto resource = GAPI::Framebuffer::Create(desc);
-        device->InitFramebuffer(*resource.get());
-
-        return resource;
-    }
-
     GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDescription& description, const std::string& name) const
     {
         ASSERT(inited);

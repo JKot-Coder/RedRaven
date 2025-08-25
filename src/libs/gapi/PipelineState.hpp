@@ -2,7 +2,6 @@
 
 #include "common/EnumClassOperators.hpp"
 #include "gapi/Limits.hpp"
-#include "gapi/Framebuffer.hpp"
 #include "gapi/Resource.hpp"
 #include "gapi/GpuResource.hpp"
 
@@ -227,7 +226,6 @@ namespace RR::GAPI
         BlendDesc blendDesc;
         RasterizerDesc rasterizerDesc;
         DepthStencilDesc depthStencilDesc;
-        FramebufferDesc framebufferDesc;
         PrimitiveTopology primitiveTopology;
 
         uint32_t renderTargetCount = 0;
