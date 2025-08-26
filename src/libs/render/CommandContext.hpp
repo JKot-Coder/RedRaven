@@ -36,8 +36,6 @@ namespace RR::Render
 
     public:
         void SetPipelineState(GAPI::GraphicPipelineState* pso);
-        void ClearRenderTargetView(const GAPI::RenderTargetView* renderTargetView, const Vector4& color);
-        void ClearDepthStencilView(const GAPI::DepthStencilView* depthStencilView, float clearValue);
         void Draw(GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
 
     private:

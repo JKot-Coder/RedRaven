@@ -29,7 +29,6 @@ set(SRC
 
 set(COMMANDS
     Commands/Command.hpp
-    Commands/Clear.hpp
     Commands/Draw.hpp
 )
 

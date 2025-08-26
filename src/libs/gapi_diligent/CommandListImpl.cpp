@@ -4,7 +4,6 @@
 
 #include "GpuResourceViewImpl.hpp"
 #include "PipelineStateImpl.hpp"
-#include "gapi/commands/Clear.hpp"
 #include "gapi/commands/Draw.hpp"
 
 namespace DL = ::Diligent;
@@ -17,7 +16,7 @@ namespace RR::GAPI::Diligent
         {
             DL::IDeviceContext* device;
         };
-
+/*
         void compileCommand(const Commands::ClearRTV& command, const CommandCompileContext& ctx)
         {
             const auto* rtv = static_cast<const GpuResourceViewImpl*>(command.rtvImpl);
@@ -33,7 +32,7 @@ namespace RR::GAPI::Diligent
 
             // TODO Stencil clear value;
             ctx.device->ClearDepthStencil(dsv->GetTextureView(), DL::CLEAR_DEPTH_FLAG, command.clearValue, 0, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-        }
+        }*/
 
         void compileCommand(const Commands::Draw& command, const CommandCompileContext& ctx)
         {
@@ -69,14 +68,6 @@ namespace RR::GAPI::Diligent
         {
             switch (command->type)
             {
-            case Command::Type::ClearRenderTargetView:
-                compileCommand(static_cast<const Commands::ClearRTV&>(*command), ctx);
-                break;
-
-            case Command::Type::ClearDepthStencilView:
-                compileCommand(static_cast<const Commands::ClearDSV&>(*command), ctx);
-                break;
-
             case Command::Type::Draw:
                 compileCommand(static_cast<const Commands::Draw&>(*command), ctx);
                 break;

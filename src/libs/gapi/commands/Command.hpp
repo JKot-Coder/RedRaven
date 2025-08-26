@@ -6,8 +6,6 @@ namespace RR::GAPI
     {
         enum class Type
         {
-            ClearRenderTargetView,
-            ClearDepthStencilView,
             Draw
         };
 
