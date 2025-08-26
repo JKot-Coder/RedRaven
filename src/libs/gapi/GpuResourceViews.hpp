@@ -97,7 +97,8 @@ namespace RR
                 : Resource<IGpuResourceView, false>(Type::GpuResourceView),
                   viewType_(viewType),
                   desc_(desc),
-                  gpuResource_(gpuResource)
+                  gpuResource_(gpuResource),
+                  uid_(uidCounter.fetch_add(1))
             {
                 ASSERT(gpuResource);
             }
@@ -106,6 +107,8 @@ namespace RR
             ViewType viewType_;
             GpuResourceViewDesc desc_;
             eastl::weak_ptr<GpuResource> gpuResource_;
+            uint32_t uid_;
+            static eastl::atomic<uint32_t> uidCounter;
         };
 
         class ShaderResourceView final : public GpuResourceView

@@ -7,6 +7,8 @@ namespace RR
 {
     namespace GAPI
     {
+        eastl::atomic<uint32_t> GpuResourceView::uidCounter{0};
+
         namespace
         {
             bool isCompatable(const GpuResourceViewDesc& desc, const GpuResourceDesc& resourceDesc)
