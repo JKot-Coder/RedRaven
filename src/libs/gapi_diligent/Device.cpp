@@ -10,7 +10,7 @@ namespace RR::GAPI::Diligent
     {
         auto deviceImpl = std::make_unique<DeviceImpl>();
 
-        if (!deviceImpl->Init(device->GetDescription()))
+        if (!deviceImpl->Init(device->GetDesc()))
             return false;
 
         device->SetPrivateImpl(deviceImpl.release());

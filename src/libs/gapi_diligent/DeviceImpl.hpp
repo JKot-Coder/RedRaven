@@ -22,11 +22,11 @@ namespace RR::GAPI::Diligent
         DeviceImpl();
         ~DeviceImpl() override;
 
-        bool Init(const GAPI::DeviceDescription& description);
+        bool Init(const GAPI::DeviceDesc& desc);
         void Present(SwapChain* swapChain) override;
         void MoveToNextFrame(uint64_t frameIndex) override;
 
-        GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const override;
+        GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& desc) const override;
 
         void Compile(CommandList2& commandList) override;
 
@@ -45,7 +45,7 @@ namespace RR::GAPI::Diligent
 
     private:
         bool inited = false;
-        GAPI::DeviceDescription description = {};
+        GAPI::DeviceDesc desc = {};
         DL::RENDER_DEVICE_TYPE deviceType = DL::RENDER_DEVICE_TYPE_UNDEFINED;
         DL::RefCntAutoPtr<DL::IDeviceContext> immediateContext;
         DL::RefCntAutoPtr<DL::IDeviceContext> deferredContext;

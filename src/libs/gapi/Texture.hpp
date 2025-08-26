@@ -27,19 +27,19 @@ namespace RR::GAPI
         EASTL_FRIEND_MAKE_SHARED;
 
         static SharedPtr Create(
-            const GpuResourceDescription& description,
+            const GpuResourceDesc& desc,
             IDataBuffer::SharedPtr initialData,
             const std::string& name)
         {
-            return eastl::make_shared<Texture>(description, initialData, name);
+            return eastl::make_shared<Texture>(desc, initialData, name);
         }
 
-        Texture(const GpuResourceDescription& description,
+        Texture(const GpuResourceDesc& desc,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
-            : GpuResource(description, initialData, name)
+            : GpuResource(desc, initialData, name)
         {
-            if (!description.IsTexture())
+            if (!desc.IsTexture())
                 LOG_FATAL("Wrong Description");
         };
 

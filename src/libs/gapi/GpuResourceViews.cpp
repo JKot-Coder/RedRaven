@@ -9,7 +9,7 @@ namespace RR
     {
         namespace
         {
-            bool isCompatable(const GpuResourceViewDescription& desc, const GpuResourceDescription& resourceDesc)
+            bool isCompatable(const GpuResourceViewDesc& desc, const GpuResourceDesc& resourceDesc)
             {
                 bool result = resourceDesc.IsValid();
 
@@ -27,28 +27,28 @@ namespace RR
                 return result;
             }
 
-            void check(const GpuResourceViewDescription& desc, const eastl::shared_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
+            void check(const GpuResourceViewDesc& desc, const eastl::shared_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
             {
                 ASSERT(gpuResource);
                 #if ENABLE_ASSERTS
-                    const auto& resourceDescription = gpuResource->GetDescription();
+                    const auto& resourceDesc = gpuResource->GetDesc();
 
-                    ASSERT(isCompatable(desc, resourceDescription));
-                    ASSERT(IsSet(resourceDescription.bindFlags, requiredBindFlags));
+                    ASSERT(isCompatable(desc, resourceDesc));
+                    ASSERT(IsSet(resourceDesc.bindFlags, requiredBindFlags));
                 #else
                     UNUSED(desc, gpuResource, requiredBindFlags);
                 #endif
             }
         }
 
-        GpuResourceViewDescription::GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
+        GpuResourceViewDesc::GpuResourceViewDesc(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
             : texture({mipLevel, mipsCount, firstArraySlice, arraySlicesCount}),
               format(format)
         {
             ASSERT(format != GpuResourceFormat::Unknown);
         }
 
-        GpuResourceViewDescription::GpuResourceViewDescription(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
+        GpuResourceViewDesc::GpuResourceViewDesc(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
             : buffer({firstElement, elementsCount}),
               format(format)
         {
@@ -58,7 +58,7 @@ namespace RR
 
         ShaderResourceView::ShaderResourceView(
             const eastl::shared_ptr<GpuResource>& gpuResource,
-            const GpuResourceViewDescription& desc)
+            const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
             check(desc, gpuResource, GpuResourceBindFlags::ShaderResource);
@@ -66,7 +66,7 @@ namespace RR
 
         DepthStencilView::DepthStencilView(
             const eastl::shared_ptr<Texture>& texture,
-            const GpuResourceViewDescription& desc)
+            const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
             check(desc, texture, GpuResourceBindFlags::DepthStencil);
@@ -74,7 +74,7 @@ namespace RR
 
         RenderTargetView::RenderTargetView(
             const eastl::shared_ptr<Texture>& texture,
-            const GpuResourceViewDescription& desc)
+            const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
         {;
             check(desc, texture, GpuResourceBindFlags::RenderTarget);
@@ -82,7 +82,7 @@ namespace RR
 
         UnorderedAccessView::UnorderedAccessView(
             const eastl::shared_ptr<GpuResource>& gpuResource,
-            const GpuResourceViewDescription& desc)
+            const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {
             check(desc, gpuResource, GpuResourceBindFlags::UnorderedAccess);

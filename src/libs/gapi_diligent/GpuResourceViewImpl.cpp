@@ -31,7 +31,7 @@ namespace RR::GAPI::Diligent
         textureView = nullptr;
     }
 
-    DL::TextureViewDesc getTextureViewDesc(GAPI::GpuResourceView::ViewType viewType, DL::RESOURCE_DIMENSION dimension, const GpuResourceViewDescription& desc)
+    DL::TextureViewDesc getTextureViewDesc(GAPI::GpuResourceView::ViewType viewType, DL::RESOURCE_DIMENSION dimension, const GpuResourceViewDesc& desc)
     {
         auto getTextureViewType = [](GAPI::GpuResourceView::ViewType viewType) -> DL::TEXTURE_VIEW_TYPE {
             switch (viewType)
@@ -63,7 +63,7 @@ namespace RR::GAPI::Diligent
 
     DL::ITextureView* createTextureView(
         GAPI::GpuResourceView::ViewType viewType,
-        const GpuResourceViewDescription& desc,
+        const GpuResourceViewDesc& desc,
         const GpuResourceImpl* gpuResourceImpl)
     {
         ASSERT(gpuResourceImpl);
@@ -89,7 +89,7 @@ namespace RR::GAPI::Diligent
             case DL::RESOURCE_DIM_TEX_1D_ARRAY:
             case DL::RESOURCE_DIM_TEX_2D_ARRAY:
             case DL::RESOURCE_DIM_TEX_CUBE_ARRAY:
-                textureView = createTextureView(view.GetViewType(), view.GetDescription(), gpuResourceImpl);
+                textureView = createTextureView(view.GetViewType(), view.GetDesc(), gpuResourceImpl);
                 break;
             case DL::RESOURCE_DIM_BUFFER:
                 NOT_IMPLEMENTED();

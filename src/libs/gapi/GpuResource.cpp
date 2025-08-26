@@ -190,7 +190,7 @@ namespace RR
             }
         }
 
-        bool GpuResourceDescription::IsValid() const
+        bool GpuResourceDesc::IsValid() const
         {
             if (dimension == GpuResourceDimension::Buffer)
             {
@@ -332,14 +332,14 @@ namespace RR
 
         template <> eastl::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
         {
-            ASSERT(description_.IsTexture());
+            ASSERT(desc_.IsTexture());
             // TODO inherit_shared_from_this
             return eastl::static_pointer_cast<Texture>(shared_from_this());
         }
 
         template <> eastl::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>()
         {
-            ASSERT(description_.IsBuffer());
+            ASSERT(desc_.IsBuffer());
             // TODO inherit_shared_from_this
             return eastl::static_pointer_cast<Buffer>(shared_from_this());
         }

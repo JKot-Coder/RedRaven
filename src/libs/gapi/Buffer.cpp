@@ -12,7 +12,7 @@ namespace RR
     {
         namespace
         {
-            GpuResourceViewDescription createViewDescription(const GpuResourceDescription& resourceDesc, GpuResourceFormat format, size_t firstElement, size_t numElements)
+            GpuResourceViewDesc createViewDescription(const GpuResourceDesc& resourceDesc, GpuResourceFormat format, size_t firstElement, size_t numElements)
             {
                 uint32_t elementSize = 1;
 
@@ -31,13 +31,13 @@ namespace RR
                     numElements = (resourceDesc.buffer.size / elementSize - firstElement);
 
                 ASSERT((firstElement + numElements) * elementSize < resourceDesc.buffer.size);
-                return GpuResourceViewDescription::Buffer(format, firstElement, numElements);
+                return GpuResourceViewDesc::Buffer(format, firstElement, numElements);
             }
         }
 
         const ShaderResourceView* Buffer::GetSRV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
-            const auto viewDesc = createViewDescription(description_, format, firstElement, numElements);
+            const auto viewDesc = createViewDescription(desc_, format, firstElement, numElements);
 
             if (srvs_.find(viewDesc) == srvs_.end())
             {
@@ -51,7 +51,7 @@ namespace RR
 
         const UnorderedAccessView* Buffer::GetUAV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
-            const auto& viewDesc = createViewDescription(description_, format, firstElement, numElements);
+            const auto& viewDesc = createViewDescription(desc_, format, firstElement, numElements);
 
             if (uavs_.find(viewDesc) == uavs_.end())
             {

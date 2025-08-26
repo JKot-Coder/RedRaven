@@ -27,20 +27,20 @@ namespace RR
             EASTL_FRIEND_MAKE_SHARED;
 
             static SharedPtr Create(
-                const GpuResourceDescription& description,
+                const GpuResourceDesc& desc,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
             {
-                return eastl::make_shared<Buffer>(description, initialData, name);
+                return eastl::make_shared<Buffer>(desc, initialData, name);
             }
 
             Buffer(
-                const GpuResourceDescription& description,
+                const GpuResourceDesc& desc,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
-                : GpuResource(description, initialData, name)
+                : GpuResource(desc, initialData, name)
             {
-                if (!description.IsBuffer())
+                if (!desc.IsBuffer())
                     LOG_FATAL("Wrong Description");
             }
 

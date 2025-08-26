@@ -8,22 +8,22 @@ namespace RR
 {
     namespace GAPI
     {
-        struct GpuResourceViewDescription
+        struct GpuResourceViewDesc
         {
         public:
-            static GpuResourceViewDescription Buffer(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
+            static GpuResourceViewDesc Buffer(GpuResourceFormat format, size_t firstElement, size_t elementsCount)
             {
-                return GpuResourceViewDescription(format, firstElement, elementsCount);
+                return GpuResourceViewDesc(format, firstElement, elementsCount);
             }
 
-            static GpuResourceViewDescription Texture(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
+            static GpuResourceViewDesc Texture(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount)
             {
-                return GpuResourceViewDescription(format, mipLevel, mipsCount, firstArraySlice, arraySlicesCount);
+                return GpuResourceViewDesc(format, mipLevel, mipsCount, firstArraySlice, arraySlicesCount);
             }
 
-            bool operator==(const GpuResourceViewDescription& other) const
+            bool operator==(const GpuResourceViewDesc& other) const
             {
-                static_assert(sizeof(GpuResourceViewDescription) == 24);
+                static_assert(sizeof(GpuResourceViewDesc) == 24);
                 return (format == other.format) &&
                        (texture.mipLevel == other.texture.mipLevel) &&
                        (texture.mipCount == other.texture.mipCount) &&
@@ -33,9 +33,9 @@ namespace RR
 
             struct HashFunc
             {
-                std::size_t operator()(const GpuResourceViewDescription& desc) const
+                std::size_t operator()(const GpuResourceViewDesc& desc) const
                 {
-                    static_assert(sizeof(GpuResourceViewDescription) == 24);
+                    static_assert(sizeof(GpuResourceViewDesc) == 24);
                     return (std::hash<uint32_t>()(static_cast<uint32_t>(desc.format))) ^ // TODO StdHash?
                            (std::hash<uint32_t>()(desc.texture.firstArraySlice) << 1) ^
                            (std::hash<uint32_t>()(desc.texture.arraySliceCount) << 3) ^
@@ -65,8 +65,8 @@ namespace RR
             GpuResourceFormat format;
 
         private:
-            GpuResourceViewDescription(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount);
-            GpuResourceViewDescription(GpuResourceFormat format, size_t firstElement, size_t elementsCount);
+            GpuResourceViewDesc(GpuResourceFormat format, uint32_t mipLevel, uint32_t mipsCount, uint32_t firstArraySlice, uint32_t arraySlicesCount);
+            GpuResourceViewDesc(GpuResourceFormat format, size_t firstElement, size_t elementsCount);
         };
 
         class IGpuResourceView
@@ -89,14 +89,14 @@ namespace RR
             };
 
             ViewType GetViewType() const { return viewType_; }
-            const GpuResourceViewDescription& GetDescription() const { return description_; }
+            const GpuResourceViewDesc& GetDesc() const { return desc_; }
             eastl::weak_ptr<GpuResource> GetGpuResource() const { return gpuResource_; }
 
         protected:
-            GpuResourceView(ViewType viewType, const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& description)
+            GpuResourceView(ViewType viewType, const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDesc& desc)
                 : Resource<IGpuResourceView, false>(Type::GpuResourceView),
                   viewType_(viewType),
-                  description_(description),
+                  desc_(desc),
                   gpuResource_(gpuResource)
             {
                 ASSERT(gpuResource);
@@ -104,7 +104,7 @@ namespace RR
 
         private:
             ViewType viewType_;
-            GpuResourceViewDescription description_;
+            GpuResourceViewDesc desc_;
             eastl::weak_ptr<GpuResource> gpuResource_;
         };
 
@@ -116,12 +116,12 @@ namespace RR
         private:
             static UniquePtr Create(
                 const eastl::shared_ptr<GpuResource>& gpuResource,
-                const GpuResourceViewDescription& desc)
+                const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new ShaderResourceView(gpuResource, desc));
             };
 
-            ShaderResourceView(const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
+            ShaderResourceView(const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
@@ -135,12 +135,12 @@ namespace RR
         private:
             static UniquePtr Create(
                 const eastl::shared_ptr<Texture>& texture,
-                const GpuResourceViewDescription& desc)
+                const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new DepthStencilView(texture, desc));
             };
 
-            DepthStencilView(const eastl::shared_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
+            DepthStencilView(const eastl::shared_ptr<Texture>& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
@@ -154,12 +154,12 @@ namespace RR
         private:
             static UniquePtr Create(
                 const eastl::shared_ptr<Texture>& texture,
-                const GpuResourceViewDescription& desc)
+                const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new RenderTargetView(texture, desc));
             };
 
-            RenderTargetView(const eastl::shared_ptr<Texture>& texture, const GpuResourceViewDescription& desc);
+            RenderTargetView(const eastl::shared_ptr<Texture>& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
@@ -173,12 +173,12 @@ namespace RR
         private:
             static UniquePtr Create(
                 const eastl::shared_ptr<GpuResource>& gpuResource,
-                const GpuResourceViewDescription& desc)
+                const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new UnorderedAccessView(gpuResource, desc));
             };
 
-            UnorderedAccessView(const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDescription& desc);
+            UnorderedAccessView(const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;

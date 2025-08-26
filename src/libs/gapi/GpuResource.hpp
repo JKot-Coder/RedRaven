@@ -181,56 +181,56 @@ namespace RR
         };
 
         // TODO: make non copyable use pass by value and move tehnique
-        struct GpuResourceDescription
+        struct GpuResourceDesc
         {
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static GpuResourceDescription Buffer(size_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDesc Buffer(size_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(size, 0, BufferFlags::None, bindFlags, usage);
+                return GpuResourceDesc(size, 0, BufferFlags::None, bindFlags, usage);
             }
 
-            static GpuResourceDescription StructuredBuffer(size_t numElements, size_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDesc StructuredBuffer(size_t numElements, size_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDescription(numElements * structSize, structSize, BufferFlags::StructuredBuffer, bindFlags, usage);
+                return GpuResourceDesc(numElements * structSize, structSize, BufferFlags::StructuredBuffer, bindFlags, usage);
             }
 
-            static GpuResourceDescription IndexBuffer(size_t numElements, GAPI::GpuResourceFormat format, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDesc IndexBuffer(size_t numElements, GAPI::GpuResourceFormat format, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
                 ASSERT_MSG(format == GAPI::GpuResourceFormat::R16Uint || format == GAPI::GpuResourceFormat::R32Uint, "Only R16Uint and R32Uint formats are allowed for index buffers");
                 size_t elementSize = GpuResourceFormatInfo::GetBlockSize(format);
-                return GpuResourceDescription(numElements * elementSize, elementSize, BufferFlags::IndexBuffer, GpuResourceBindFlags::None, usage);
+                return GpuResourceDesc(numElements * elementSize, elementSize, BufferFlags::IndexBuffer, GpuResourceBindFlags::None, usage);
             }
 
-            static GpuResourceDescription Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDesc Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture1D, width, 1, 1, format, bindFlags, usage, MultisampleType::None, arraySize, mipLevels);
+                return GpuResourceDesc(GpuResourceDimension::Texture1D, width, 1, 1, format, bindFlags, usage, MultisampleType::None, arraySize, mipLevels);
             }
 
-            static GpuResourceDescription Texture2D(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDesc Texture2D(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture2D, width, height, 1, format, bindFlags, usage, MultisampleType::None, arraySize, mipLevels);
+                return GpuResourceDesc(GpuResourceDimension::Texture2D, width, height, 1, format, bindFlags, usage, MultisampleType::None, arraySize, mipLevels);
             }
 
-            static GpuResourceDescription Texture2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, MultisampleType multisampleType, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1)
+            static GpuResourceDesc Texture2DMS(uint32_t width, uint32_t height, GpuResourceFormat format, MultisampleType multisampleType, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture2DMS, width, height, 1, format, bindFlags, usage, multisampleType, arraySize, 1);
+                return GpuResourceDesc(GpuResourceDimension::Texture2DMS, width, height, 1, format, bindFlags, usage, multisampleType, arraySize, 1);
             }
 
-            static GpuResourceDescription Texture3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDesc Texture3D(uint32_t width, uint32_t height, uint32_t depth, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::Texture3D, width, height, depth, format, bindFlags, usage, MultisampleType::None, 1, mipLevels);
+                return GpuResourceDesc(GpuResourceDimension::Texture3D, width, height, depth, format, bindFlags, usage, MultisampleType::None, 1, mipLevels);
             }
 
-            static GpuResourceDescription TextureCube(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
+            static GpuResourceDesc TextureCube(uint32_t width, uint32_t height, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
             {
-                return GpuResourceDescription(GpuResourceDimension::TextureCube, width, height, 1, format, bindFlags, usage, MultisampleType::None, arraySize, mipLevels);
+                return GpuResourceDesc(GpuResourceDimension::TextureCube, width, height, 1, format, bindFlags, usage, MultisampleType::None, arraySize, mipLevels);
             }
 
-            inline friend bool operator==(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs)
+            inline friend bool operator==(const GpuResourceDesc& lhs, const GpuResourceDesc& rhs)
             {
-                static_assert(sizeof(GpuResourceDescription) == 12 * sizeof(uint32_t), "Check for tighly packed structure");
+                static_assert(sizeof(GpuResourceDesc) == 12 * sizeof(uint32_t), "Check for tighly packed structure");
                 static_assert(sizeof(TextureDescription) == 7 * sizeof(uint32_t), "Check for tighly packed structure");
                 static_assert(sizeof(BufferDescription) == 2 * sizeof(size_t) + 2 * sizeof(uint32_t), "Check for tighly packed structure");
 
@@ -244,7 +244,7 @@ namespace RR
 
                 return resourceDescriptionCmp;
             }
-            inline friend bool operator!=(const GpuResourceDescription& lhs, const GpuResourceDescription& rhs) { return !(lhs == rhs); }
+            inline friend bool operator!=(const GpuResourceDesc& lhs, const GpuResourceDesc& rhs) { return !(lhs == rhs); }
 
         public:
             bool IsBuffer() const { return dimension == GpuResourceDimension::Buffer; }
@@ -364,7 +364,7 @@ namespace RR
             bool IsValid() const;
 
         private:
-            GpuResourceDescription(GpuResourceDimension dimension,
+            GpuResourceDesc(GpuResourceDimension dimension,
                                    uint32_t width, uint32_t height, uint32_t depth,
                                    GpuResourceFormat format,
                                    GpuResourceBindFlags bindFlags,
@@ -388,7 +388,7 @@ namespace RR
                 ASSERT(IsValid());
             }
 
-            GpuResourceDescription(size_t size,
+            GpuResourceDesc(size_t size,
                                    size_t stride,
                                    BufferFlags bufferFlags,
                                    GpuResourceBindFlags bindFlags,
@@ -470,7 +470,7 @@ namespace RR
 
             virtual void DestroyImmediatly() = 0; // unused
             virtual std::any GetRawHandle() const = 0; // unused
-            virtual std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& decription) const = 0;
+            virtual std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDesc& decription) const = 0;
 
             virtual void* Map() = 0;
             virtual void Unmap() = 0;
@@ -482,11 +482,11 @@ namespace RR
             template <typename Type>
             eastl::shared_ptr<Type> GetTyped();
 
-            inline const GpuResourceDescription& GetDescription() const { return description_; }
+            inline const GpuResourceDesc& GetDesc() const { return desc_; }
             inline IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
             inline std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints() const
             {
-                return GetPrivateImpl()->GetSubresourceFootprints(description_);
+                return GetPrivateImpl()->GetSubresourceFootprints(desc_);
             }
 
             // TODO Temporary
@@ -502,22 +502,22 @@ namespace RR
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
-            GpuResource(GpuResourceDescription description,
+            GpuResource(GpuResourceDesc desc,
                         IDataBuffer::SharedPtr initialData,
                         const std::string& name)
                 : Resource(Type::GpuResource, name),
-                  description_(description),
+                  desc_(desc),
                   initialData_(initialData) { };
 
         protected:
-            GpuResourceDescription description_;
+            GpuResourceDesc desc_;
             IDataBuffer::SharedPtr initialData_;
 
             // TODO NOT UNORDERD MAP NEVER EVER USE IT!!!!!
-            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDescription::HashFunc> srvs_;
-            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDescription::HashFunc> rtvs_;
-            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDescription::HashFunc> dsvs_;
-            std::unordered_map<GpuResourceViewDescription, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDescription::HashFunc> uavs_;
+            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;
+            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDesc::HashFunc> rtvs_;
+            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDesc::HashFunc> dsvs_;
+            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDesc::HashFunc> uavs_;
         };
 
         template <>

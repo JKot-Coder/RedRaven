@@ -29,12 +29,12 @@ namespace RR::GAPI::Diligent
             return;
     }
 
-    bool DeviceImpl::Init(const DeviceDescription& description)
+    bool DeviceImpl::Init(const DeviceDesc& desc)
     {
         ASSERT(!inited);
 
         int m_ValidationLevel = -1;
-        this->description = description;
+        this->desc = desc;
 
         // Todo support other APIs
 #if D3D12_SUPPORTED
@@ -109,11 +109,11 @@ namespace RR::GAPI::Diligent
         // SEE swapChain->SetMaximumFrameLatency
     }
 
-    GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDescription& description) const
+    GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDesc& desc) const
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(description);
+        UNUSED(desc);
         NOT_IMPLEMENTED();
         return {};
     }
@@ -187,7 +187,7 @@ namespace RR::GAPI::Diligent
         ASSERT_IS_DEVICE_INITED;
 
         auto impl = eastl::make_unique<SwapChainImpl>();
-        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDescription(), description.maxFramesInFlight);
+        impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDesc(), desc.maxFramesInFlight);
         resource.SetPrivateImpl(impl.release());
     }
 

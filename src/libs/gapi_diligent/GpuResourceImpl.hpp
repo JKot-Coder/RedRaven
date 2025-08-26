@@ -26,7 +26,7 @@ namespace RR::GAPI::Diligent
 
         void DestroyImmediatly() override;
         std::any GetRawHandle() const override;
-        std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& decription) const override;
+        std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDesc& desc) const override;
 
         void* Map() override;
         void Unmap() override;

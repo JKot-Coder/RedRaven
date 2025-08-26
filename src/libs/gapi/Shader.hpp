@@ -28,12 +28,12 @@ namespace RR::GAPI
         Tile, // METAL only
     };
 
-    struct ShaderDescription
+    struct ShaderDesc
     {
     public:
-        ShaderDescription() = default;
+        ShaderDesc() = default;
 
-        ShaderDescription(ShaderType shaderType, const std::string& entryPoint, const std::string& source)
+        ShaderDesc(ShaderType shaderType, const std::string& entryPoint, const std::string& source)
             : shaderType(shaderType), entryPoint(entryPoint), source(source) { }
 
     public:
@@ -53,20 +53,20 @@ namespace RR::GAPI
     public:
         using UniquePtr = eastl::unique_ptr<Shader>;
 
-        const ShaderDescription& GetDescription() const { return description_; }
+        const ShaderDesc& GetDesc() const { return desc_; }
 
     private:
-        static UniquePtr Create(const ShaderDescription& description, const std::string& name)
+        static UniquePtr Create(const ShaderDesc& desc, const std::string& name)
         {
-            return UniquePtr(new Shader(description, name));
+            return UniquePtr(new Shader(desc, name));
         }
 
-        Shader(const ShaderDescription& description, const std::string& name)
-            : Resource(Type::Shader, name), description_(description) { }
+        Shader(const ShaderDesc& desc, const std::string& name)
+            : Resource(Type::Shader, name), desc_(desc) { }
 
     private:
         friend class Render::DeviceContext;
 
-        ShaderDescription description_;
+        ShaderDesc desc_;
     };
 }

@@ -56,7 +56,7 @@ namespace RR::Ecs::WindowModule
         auto windowEntity = GetWindowEntity(glfwWindow);
         auto& world = windowEntity.GetWorld();
 
-        world.View().With<WindowDescription>().ForEntity(GetWindowEntity(glfwWindow), [width, height](WindowDescription& description) {
+        world.View().With<WindowDesc>().ForEntity(GetWindowEntity(glfwWindow), [width, height](WindowDesc& description) {
             description.width = width;
             description.height = height;
         });
@@ -77,14 +77,14 @@ namespace RR::Ecs::WindowModule
 
     void InitWindow(World& world)
     {
-        world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window, WindowDescription* description) {
+        world.System().OnEvent<OnAppear>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window, WindowDesc* description) {
             Ecs::Entity windowEntity = world.GetEntity(id); // Todo remove this boilerplate
 
-            WindowDescription defaultDescription = {800, 600};
+            WindowDesc defaultDescription = {800, 600};
             if(!description)
             {
                 description = &defaultDescription;
-                windowEntity.Edit().Add<WindowDescription>(defaultDescription).Apply();
+                windowEntity.Edit().Add<WindowDesc>(defaultDescription).Apply();
             }
 
             // Make sure GLFW does not initialize any graphics context.

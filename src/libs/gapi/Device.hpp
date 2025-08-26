@@ -12,7 +12,7 @@ namespace RR
 {
     namespace GAPI
     {
-        struct DeviceDescription final
+        struct DeviceDesc final
         {
         public:
             enum class DebugMode : uint32_t
@@ -23,8 +23,8 @@ namespace RR
             };
 
         public:
-            DeviceDescription() = default;
-            DeviceDescription(DebugMode debugMode) : debugMode(debugMode) { }
+            DeviceDesc() = default;
+            DeviceDesc(DebugMode debugMode) : debugMode(debugMode) { }
 
         public:
             DebugMode debugMode = DebugMode::Retail;
@@ -46,7 +46,7 @@ namespace RR
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            virtual GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const = 0;
+            virtual GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& desc) const = 0;
 
             virtual void Compile(CommandList2& commandList) = 0;
 
@@ -79,15 +79,15 @@ namespace RR
         public:
             virtual ~Device() = default;
 
-            const DeviceDescription& GetDescription() const { return description_; }
+            const DeviceDesc& GetDesc() const { return desc_; }
 
             //   virtual void Submit(const eastl::shared_ptr<CommandList>& CommandList) = 0;
             void Present(SwapChain* swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
             void Compile(CommandList2& commandList) override { GetPrivateImpl()->Compile(commandList); }
 
-            GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDescription& description) const
-                override { return GetPrivateImpl()->GetResourceFootprint(description); };
+            GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& desc) const
+                override { return GetPrivateImpl()->GetResourceFootprint(desc); };
 
             // Todo init resource?
             void InitBuffer(Buffer& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
@@ -104,14 +104,14 @@ namespace RR
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
         private:
-            static SharedPtr Create(const DeviceDescription& description, const std::string& name)
+            static SharedPtr Create(const DeviceDesc& desc, const std::string& name)
             {
-                return eastl::shared_ptr<Device>(new Device(description, name));
+                return eastl::shared_ptr<Device>(new Device(desc, name));
             }
 
-            Device(const DeviceDescription& description, const std::string& name)
+            Device(const DeviceDesc& desc, const std::string& name)
                 : Resource(Type::Device, name),
-                  description_(description)
+                  desc_(desc)
             {
             }
 
@@ -119,7 +119,7 @@ namespace RR
             friend class Render::DeviceContext;
 
         private:
-            DeviceDescription description_;
+            DeviceDesc desc_;
         };
     }
 }

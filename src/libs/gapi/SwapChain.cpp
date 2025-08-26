@@ -9,16 +9,16 @@ namespace RR
 {
     namespace GAPI
     {
-        SwapChain::SwapChain(const SwapChainDescription& description)
+        SwapChain::SwapChain(const SwapChainDesc& desc)
             : Resource(Type::SwapChain),
-              description_(description)
+              desc_(desc)
         {
-            ASSERT(description.width > 0);
-            ASSERT(description.height > 0);
-            ASSERT(description.isStereo == false);
-            ASSERT(description.bufferCount <= MAX_BACK_BUFFER_COUNT);
-            ASSERT(description.gpuResourceFormat != GpuResourceFormat::Unknown);
-            ASSERT(description.windowNativeHandle.has_value());
+            ASSERT(desc.width > 0);
+            ASSERT(desc.height > 0);
+            ASSERT(desc.isStereo == false);
+            ASSERT(desc.bufferCount <= MAX_BACK_BUFFER_COUNT);
+            ASSERT(desc.gpuResourceFormat != GpuResourceFormat::Unknown);
+            ASSERT(desc.windowNativeHandle.has_value());
         }
 
         SwapChain::~SwapChain(){}
@@ -28,11 +28,11 @@ namespace RR
             ASSERT(width > 0);
             ASSERT(height > 0);
 
-            description_.width = width;
-            description_.height = height;
+            desc_.width = width;
+            desc_.height = height;
 
             eastl::array<Texture*, MAX_BACK_BUFFER_COUNT> backBuffers;
-            for (uint32_t i = 0; i < description_.bufferCount; i++)
+            for (uint32_t i = 0; i < desc_.bufferCount; i++)
                 backBuffers[i] = backBuffers_[i].get();
 
             GetPrivateImpl()->Resize(width, height, backBuffers);
@@ -43,13 +43,13 @@ namespace RR
 
         Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
         {
-            ASSERT(index < description_.bufferCount);
+            ASSERT(index < desc_.bufferCount);
 
             if (backBuffers_[index])
                 return backBuffers_[index];
 
             // TODO  description_.width = 0 sometimes happends
-            const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
+            const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
 
             auto& deviceContext = Render::DeviceContext::Instance();
 
@@ -67,7 +67,7 @@ namespace RR
             if (depthBuffer_)
                 return depthBuffer_;
 
-            const GpuResourceDescription desc = GpuResourceDescription::Texture2D(description_.width, description_.height, description_.depthStencilFormat, GpuResourceBindFlags::DepthStencil, GpuResourceUsage::Default, 1, 1);
+            const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.depthStencilFormat, GpuResourceBindFlags::DepthStencil, GpuResourceUsage::Default, 1, 1);
 
             auto& deviceContext = Render::DeviceContext::Instance();
 

@@ -34,19 +34,19 @@ namespace RR::GAPI::Diligent
         }
     }
 
-    DL::ShaderCreateInfo getShaderCreateInfo(const GAPI::ShaderDescription& description, const std::string& name)
+    DL::ShaderCreateInfo getShaderCreateInfo(const GAPI::ShaderDesc& desc, const std::string& name)
     {
         DL::ShaderCreateInfo shaderCI;
-        shaderCI.Source = description.source.c_str();
+        shaderCI.Source = desc.source.c_str();
         shaderCI.Desc.Name = name.c_str();
-        shaderCI.Desc.ShaderType = getShaderType(description.shaderType);
-        shaderCI.EntryPoint = description.entryPoint.c_str();
+        shaderCI.Desc.ShaderType = getShaderType(desc.shaderType);
+        shaderCI.EntryPoint = desc.entryPoint.c_str();
         return shaderCI;
     }
 
     void ShaderImpl::Init(DL::IRenderDevice* device, Shader& resource)
     {
-        DL::ShaderCreateInfo shaderCI = getShaderCreateInfo(resource.GetDescription(), resource.GetName());
+        DL::ShaderCreateInfo shaderCI = getShaderCreateInfo(resource.GetDesc(), resource.GetName());
 
         DL::IShader* shaderPtr = nullptr;
         device->CreateShader(shaderCI, &shaderPtr, nullptr);

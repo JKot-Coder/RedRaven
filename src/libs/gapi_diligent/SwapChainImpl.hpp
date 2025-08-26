@@ -27,7 +27,7 @@ namespace RR::GAPI::Diligent
                   const DL::RefCntAutoPtr<DL::IRenderDevice>& device,
                   const DL::RefCntAutoPtr<DL::IEngineFactory>& engineFactory,
                   DL::IDeviceContext* immediateContext,
-                  const SwapChainDescription& description,
+                  const GAPI::SwapChainDesc& desc,
                   uint32_t frameLatency);
 
         void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const override;

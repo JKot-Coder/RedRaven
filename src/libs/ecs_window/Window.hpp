@@ -32,7 +32,7 @@ namespace RR::Ecs::WindowModule
         eastl::any nativeHandle;
     };
 
-    struct WindowDescription
+    struct WindowDesc
     {
         int32_t width;
         int32_t height;

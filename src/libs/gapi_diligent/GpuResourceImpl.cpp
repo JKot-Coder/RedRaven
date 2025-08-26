@@ -76,7 +76,7 @@ namespace RR::GAPI::Diligent
         return flags;
     }
 
-    DL::TextureDesc getTextureDesc(const GpuResourceDescription& desc, const std::string& name)
+    DL::TextureDesc getTextureDesc(const GpuResourceDesc& desc, const std::string& name)
     {
         DL::TextureDesc texDesc;
         texDesc.Name = name.c_str();
@@ -116,9 +116,9 @@ namespace RR::GAPI::Diligent
     {
         ASSERT_MSG(!resource.GetInitialData(), "Initial data isn't supported");
 
-        const auto desc = getTextureDesc(resource.GetDescription(), resource.GetName());
+        const auto desc = getTextureDesc(resource.GetDesc(), resource.GetName());
         device->CreateTexture(desc, nullptr, &texture);
-        dimension = getDLResourceDimension(resource.GetDescription().GetDimension());
+        dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
     }
 
     void GpuResourceImpl::Init(DL::ITexture* texture, const GpuResource& resource)
@@ -127,7 +127,7 @@ namespace RR::GAPI::Diligent
         ASSERT(!this->texture);
 
         this->texture = texture;
-        dimension = getDLResourceDimension(resource.GetDescription().GetDimension());
+        dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
     }
 
     void GpuResourceImpl::DestroyImmediatly() { NOT_IMPLEMENTED(); }
@@ -138,7 +138,7 @@ namespace RR::GAPI::Diligent
         return nullptr;
     }
 
-    std::vector<GpuResourceFootprint::SubresourceFootprint> GpuResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& decription) const
+    std::vector<GpuResourceFootprint::SubresourceFootprint> GpuResourceImpl::GetSubresourceFootprints(const GpuResourceDesc& desc) const
     {
         NOT_IMPLEMENTED();
         return {};

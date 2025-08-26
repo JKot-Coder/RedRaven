@@ -31,8 +31,8 @@ namespace RR
             ASSERT(sourceTexture);
             ASSERT(destTexture);
 
-            const auto& sourceDesc = sourceTexture->GetDescription();
-            const auto& destDesc = destTexture->GetDescription();
+            const auto& sourceDesc = sourceTexture->GetDesc();
+            const auto& destDesc = destTexture->GetDesc();
             ASSERT(sourceSubresourceIdx < sourceDesc.GetNumSubresources());
             ASSERT(destSubresourceIdx < destDesc.GetNumSubresources());
 #endif
@@ -43,7 +43,7 @@ namespace RR
         namespace
         {
 #ifdef ENABLE_ASSERTS
-            bool checkTextureRegion(const GpuResourceDescription& desc, uint32_t subresourceIdx, const Box3u& region)
+            bool checkTextureRegion(const GpuResourceDesc& desc, uint32_t subresourceIdx, const Box3u& region)
             {
                 auto result = true;
 
@@ -76,8 +76,8 @@ namespace RR
             ASSERT(destTexture);
 
 #ifdef ENABLE_ASSERTS
-            const auto& sourceDesc = sourceTexture->GetDescription();
-            const auto& destDesc = destTexture->GetDescription();
+            const auto& sourceDesc = sourceTexture->GetDesc();
+            const auto& destDesc = destTexture->GetDesc();
             ASSERT(sourceSubresourceIdx < sourceDesc.GetNumSubresources());
             ASSERT(destSubresourceIdx < destDesc.GetNumSubresources());
 

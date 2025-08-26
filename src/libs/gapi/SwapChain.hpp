@@ -16,11 +16,11 @@ namespace RR
 
     namespace GAPI
     {
-        struct SwapChainDescription
+        struct SwapChainDesc
         {
         public:
-            SwapChainDescription() = default;
-            SwapChainDescription(eastl::any windowNativeHandle, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
+            SwapChainDesc() = default;
+            SwapChainDesc(eastl::any windowNativeHandle, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
                 : width(width),
                   height(height),
                   bufferCount(bufferCount),
@@ -67,19 +67,19 @@ namespace RR
             eastl::shared_ptr<Texture> GetDepthBufferTexture();
             eastl::shared_ptr<Texture> GetCurrentBackBufferTexture() { return GetBackBufferTexture(GetCurrentBackBufferIndex()); }
 
-            const SwapChainDescription& GetDescription() const { return description_; }
+            const SwapChainDesc& GetDesc() const { return desc_; }
             uint32_t GetCurrentBackBufferIndex() const { return GetPrivateImpl()->GetCurrentBackBufferIndex(); }
 
             // TODO temporary
             eastl::any GetWaitableObject() const { return GetPrivateImpl()->GetWaitableObject(); }
 
         private:
-            static UniquePtr Create(const SwapChainDescription& description)
+            static UniquePtr Create(const SwapChainDesc& desc)
             {
-                return UniquePtr(new SwapChain(description));
+                return UniquePtr(new SwapChain(desc));
             }
 
-            SwapChain(const SwapChainDescription& description);
+            SwapChain(const SwapChainDesc& desc);
 
             // This method isn't thread safe. So it's should be called from device context.
             void Resize(uint32_t width, uint32_t height);
@@ -88,7 +88,7 @@ namespace RR
             inline void InitDepthBufferTexture(Texture& resource) const { return GetPrivateImpl()->InitDepthBufferTexture(resource); }
 
         private:
-            SwapChainDescription description_;
+            SwapChainDesc desc_;
             eastl::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
             eastl::shared_ptr<Texture> depthBuffer_;
 

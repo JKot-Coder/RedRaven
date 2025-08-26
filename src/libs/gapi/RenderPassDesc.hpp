@@ -114,7 +114,7 @@ namespace RR::GAPI
 
                 auto gpuResource = renderTargetView->GetGpuResource().lock();
                 auto texture = gpuResource->GetTyped<Texture>();
-                auto description = texture->GetDescription();
+                auto description = texture->GetDesc();
 
                 if (dimension == GpuResourceDimension::Count)
                 {
@@ -142,7 +142,7 @@ namespace RR::GAPI
             {
                 auto gpuResource = depthStencilView->GetGpuResource().lock();
                 auto texture = gpuResource->GetTyped<Texture>();
-                auto description = texture->GetDescription();
+                auto description = texture->GetDesc();
 
                 if (width != INVALID_SIZE)
                     ASSERT_MSG(width == description.GetWidth() && height == description.GetHeight() && depth == description.GetDepth(), "Color attachment and DepthStencil attachment size mismatch");

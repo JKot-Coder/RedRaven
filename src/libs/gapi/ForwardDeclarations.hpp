@@ -5,10 +5,10 @@ namespace RR
     namespace GAPI
     {
         class Device;
-        struct DeviceDescription;
+        struct DeviceDesc;
 
         class Shader;
-        struct ShaderDescription;
+        struct ShaderDesc;
 
         class PipelineState;
         class IPipelineState;
@@ -22,7 +22,7 @@ namespace RR
         class Buffer;
 
         class SwapChain;
-        struct SwapChainDescription;
+        struct SwapChainDesc;
 
         class CommandQueue;
         enum class CommandQueueType : uint32_t;
@@ -40,7 +40,7 @@ namespace RR
         class Resource;
 
         class GpuResource;
-        struct GpuResourceDescription;
+        struct GpuResourceDesc;
         struct GpuResourceFootprint;
 
         enum class GpuResourceDimension : uint32_t;
@@ -50,7 +50,7 @@ namespace RR
         enum class MultisampleType : uint32_t;
 
         class GpuResourceView;
-        struct GpuResourceViewDescription;
+        struct GpuResourceViewDesc;
 
         class ShaderResourceView;
         class RenderTargetView;

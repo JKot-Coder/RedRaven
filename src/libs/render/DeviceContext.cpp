@@ -17,11 +17,11 @@ namespace RR::Render
 {
     DeviceContext::~DeviceContext() { }
 
-    void DeviceContext::Init(const GAPI::DeviceDescription& description)
+    void DeviceContext::Init(const GAPI::DeviceDesc& desc)
     {
         ASSERT(!inited);
         // TODO: device should be belong to submission thread
-        device = GAPI::Device::Create(description, "Primary");
+        device = GAPI::Device::Create(desc, "Primary");
 
         // Todo: select device based on description
         // Todo: do it in submission thread
@@ -77,18 +77,18 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDescription& description, const std::string& name) const
+    GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Shader::Create(description, name);
+        auto resource = GAPI::Shader::Create(desc, name);
         device->InitShader(*resource.get());
 
         return resource;
     }
 
     GAPI::Texture::SharedPtr DeviceContext::CreateTexture(
-        const GAPI::GpuResourceDescription& desc,
+        const GAPI::GpuResourceDesc& desc,
         const Common::IDataBuffer::SharedPtr& initialData,
         const std::string& name)
     {
@@ -102,7 +102,7 @@ namespace RR::Render
 
     GAPI::RenderTargetView::UniquePtr DeviceContext::CreateRenderTargetView(
         const eastl::shared_ptr<GAPI::Texture>& texture,
-        const GAPI::GpuResourceViewDescription& desc) const
+        const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
         ASSERT(texture);
@@ -115,7 +115,7 @@ namespace RR::Render
 
     GAPI::DepthStencilView::UniquePtr DeviceContext::CreateDepthStencilView(
         const eastl::shared_ptr<GAPI::Texture>& texture,
-        const GAPI::GpuResourceViewDescription& desc) const
+        const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
         ASSERT(texture);
@@ -128,7 +128,7 @@ namespace RR::Render
 
     GAPI::ShaderResourceView::UniquePtr DeviceContext::CreateShaderResourceView(
         const eastl::shared_ptr<GAPI::GpuResource>& gpuResource,
-        const GAPI::GpuResourceViewDescription& desc) const
+        const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
         ASSERT(gpuResource);
@@ -141,7 +141,7 @@ namespace RR::Render
 
     GAPI::UnorderedAccessView::UniquePtr DeviceContext::CreateUnorderedAccessView(
         const eastl::shared_ptr<GAPI::GpuResource>& gpuResource,
-        const GAPI::GpuResourceViewDescription& desc) const
+        const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
         ASSERT(gpuResource);
@@ -152,17 +152,17 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::SwapChain::UniquePtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDescription& description) const
+    GAPI::SwapChain::UniquePtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDesc& desc) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::SwapChain::Create(description);
+        auto resource = GAPI::SwapChain::Create(desc);
         device->InitSwapChain(*resource.get());
 
         return resource;
     }
 
-    GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDescription& desc, const std::string& name) const
+    GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
@@ -178,7 +178,7 @@ namespace RR::Render
         return resource;
     }
 
-    eastl::shared_ptr<GAPI::Texture> DeviceContext::CreateSwapChainDepthBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDescription& desc) const
+    eastl::shared_ptr<GAPI::Texture> DeviceContext::CreateSwapChainDepthBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDesc& desc) const
     {
         ASSERT(inited);
 
@@ -194,11 +194,11 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& description, const std::string& name) const
+    GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::GraphicPipelineState::Create(description, name);
+        auto resource = GAPI::GraphicPipelineState::Create(desc, name);
         device->InitPipelineState(*resource.get());
 
         return resource;

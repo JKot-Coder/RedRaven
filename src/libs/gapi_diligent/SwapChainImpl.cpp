@@ -17,14 +17,14 @@ namespace RR::GAPI::Diligent
 {
     SwapChainImpl::~SwapChainImpl() { }
 
-    DL::SwapChainDesc getSwapChainInitDesc(const SwapChainDescription& description)
+    DL::SwapChainDesc getSwapChainInitDesc(const GAPI::SwapChainDesc& desc)
     {
         DL::SwapChainDesc diligentSwapChainDesc;
-        diligentSwapChainDesc.BufferCount = description.bufferCount;
-        diligentSwapChainDesc.Width = description.width;
-        diligentSwapChainDesc.Height = description.height;
-        diligentSwapChainDesc.ColorBufferFormat = GetDLTextureFormat(description.gpuResourceFormat);
-        diligentSwapChainDesc.DepthBufferFormat = GetDLTextureFormat(description.depthStencilFormat);
+        diligentSwapChainDesc.BufferCount = desc.bufferCount;
+        diligentSwapChainDesc.Width = desc.width;
+        diligentSwapChainDesc.Height = desc.height;
+        diligentSwapChainDesc.ColorBufferFormat = GetDLTextureFormat(desc.gpuResourceFormat);
+        diligentSwapChainDesc.DepthBufferFormat = GetDLTextureFormat(desc.depthStencilFormat);
         diligentSwapChainDesc.DefaultDepthValue = 0.f;
         return diligentSwapChainDesc;
     }
@@ -33,13 +33,13 @@ namespace RR::GAPI::Diligent
                              const DL::RefCntAutoPtr<DL::IRenderDevice>& device,
                              const DL::RefCntAutoPtr<DL::IEngineFactory>& engineFactory,
                              DL::IDeviceContext* immediateContext,
-                             const SwapChainDescription& description, uint32_t frameLatency)
+                             const GAPI::SwapChainDesc& desc, uint32_t frameLatency)
     {
         ASSERT(!swapChain);
 
-        DL::SwapChainDesc swapChainInitDesc = getSwapChainInitDesc(description);
+        DL::SwapChainDesc swapChainInitDesc = getSwapChainInitDesc(desc);
 #if OS_WINDOWS
-        DL::Win32NativeWindow nativeWindow {eastl::any_cast<HWND>(description.windowNativeHandle)};
+        DL::Win32NativeWindow nativeWindow {eastl::any_cast<HWND>(desc.windowNativeHandle)};
 #elif
         static_assert(false, "Unsupported platform");
 #endif
@@ -133,8 +133,8 @@ namespace RR::GAPI::Diligent
     {
         ASSERT(!resource.GetPrivateImpl());
         ASSERT(swapChain);
-        ASSERT(resource.GetDescription().usage == GpuResourceUsage::Default);
-        ASSERT(IsSet(resource.GetDescription().bindFlags, GpuResourceBindFlags::RenderTarget));
+        ASSERT(resource.GetDesc().usage == GpuResourceUsage::Default);
+        ASSERT(IsSet(resource.GetDesc().bindFlags, GpuResourceBindFlags::RenderTarget));
         ASSERT(backBufferIndex < rtvs.size());
 
         auto* backBufferRtv = rtvs[backBufferIndex];
@@ -153,8 +153,8 @@ namespace RR::GAPI::Diligent
     {
         ASSERT(!resource.GetPrivateImpl());
         ASSERT(swapChain);
-        ASSERT(resource.GetDescription().usage == GpuResourceUsage::Default);
-        ASSERT(IsSet(resource.GetDescription().bindFlags, GpuResourceBindFlags::DepthStencil));
+        ASSERT(resource.GetDesc().usage == GpuResourceUsage::Default);
+        ASSERT(IsSet(resource.GetDesc().bindFlags, GpuResourceBindFlags::DepthStencil));
 
         ASSERT(swapChain->GetDepthBufferDSV());
         auto* depthBufferTexture = swapChain->GetDepthBufferDSV()->GetTexture();

@@ -25,28 +25,28 @@ namespace RR::GAPI
             return viewFormat;
         }
 
-        GpuResourceViewDescription createViewDesctiption(const GpuResourceDescription& resDescription, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
+        GpuResourceViewDesc createViewDesc(const GpuResourceDesc& resDesc, GpuResourceFormat viewFormat, uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t arraySliceCount)
         {
-            ASSERT(firstArraySlice < resDescription.texture.arraySize);
-            ASSERT(mipLevel < resDescription.texture.mipLevels);
+            ASSERT(firstArraySlice < resDesc.texture.arraySize);
+            ASSERT(mipLevel < resDesc.texture.mipLevels);
 
             if (mipCount == Texture::MaxPossible)
-                mipCount = resDescription.texture.mipLevels - mipLevel;
+                mipCount = resDesc.texture.mipLevels - mipLevel;
 
             if (arraySliceCount == Texture::MaxPossible)
-                arraySliceCount = resDescription.texture.arraySize - firstArraySlice;
+                arraySliceCount = resDesc.texture.arraySize - firstArraySlice;
 
-            ASSERT(firstArraySlice + arraySliceCount <= resDescription.texture.arraySize);
-            ASSERT(mipLevel + mipCount <= resDescription.texture.mipLevels);
+            ASSERT(firstArraySlice + arraySliceCount <= resDesc.texture.arraySize);
+            ASSERT(mipLevel + mipCount <= resDesc.texture.mipLevels);
 
-            viewFormat = getViewFormat(resDescription.texture.format, viewFormat);
-            return GpuResourceViewDescription::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
+            viewFormat = getViewFormat(resDesc.texture.format, viewFormat);
+            return GpuResourceViewDesc::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
         }
     }
 
     const ShaderResourceView* Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, mipCount, firstArraySlice, numArraySlices);
+        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, mipCount, firstArraySlice, numArraySlices);
 
         if (srvs_.find(viewDesc) == srvs_.end())
         {
@@ -59,7 +59,7 @@ namespace RR::GAPI
 
     const DepthStencilView* Texture::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, 1, firstArraySlice, numArraySlices);
         // TODO VALIDATION VIEW DESC FORMAT
 
         if (dsvs_.find(viewDesc) == dsvs_.end())
@@ -73,7 +73,7 @@ namespace RR::GAPI
 
     const RenderTargetView* Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (rtvs_.find(viewDesc) == rtvs_.end())
         {
@@ -86,7 +86,7 @@ namespace RR::GAPI
 
     const UnorderedAccessView* Texture::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesctiption(description_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (uavs_.find(viewDesc) == uavs_.end())
         {

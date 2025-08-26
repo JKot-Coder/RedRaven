@@ -114,18 +114,18 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description)
+    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDesc& description)
     {
-        GAPI::SwapChainDescription swapChainDescription;
-        swapChainDescription.windowNativeHandle = window.nativeHandle;
+        GAPI::SwapChainDesc swapChainDesc;
+        swapChainDesc.windowNativeHandle = window.nativeHandle;
 
-        swapChainDescription.width = description.width;
-        swapChainDescription.height = description.height;
-        swapChainDescription.bufferCount = BACK_BUFFER_COUNT;
-        swapChainDescription.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
-        swapChainDescription.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
+        swapChainDesc.width = description.width;
+        swapChainDesc.height = description.height;
+        swapChainDesc.bufferCount = BACK_BUFFER_COUNT;
+        swapChainDesc.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+        swapChainDesc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
-        return Render::DeviceContext::Instance().CreateSwapchain(swapChainDescription);
+        return Render::DeviceContext::Instance().CreateSwapchain(swapChainDesc);
     }
 
     GAPI::GraphicPipelineState::UniquePtr CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
@@ -197,27 +197,27 @@ namespace RR::App
         auto* applicationInstance = new Application::Instance();
         world.Entity().Add<Application>(applicationInstance).Apply();
 
-        GAPI::DeviceDescription description;
+        GAPI::DeviceDesc description;
         auto& deviceContext = Render::DeviceContext::Instance();
         deviceContext.Init(description);
 
-        auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDescription>(800, 600).Add<MainWindow>().Apply();
+        auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
 
         GAPI::SwapChain* swapChain = nullptr;
         world.View()
             .With<Ecs::WindowModule::Window>()
-            .With<Ecs::WindowModule::WindowDescription>()
+            .With<Ecs::WindowModule::WindowDesc>()
             .ForEntity(windowEntity,
-                       [applicationInstance, &swapChain](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDescription& description) {
+                        [applicationInstance, &swapChain](Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDesc& description) {
                            applicationInstance->swapChain = CreateSwapChain(window, description);
                            swapChain = applicationInstance->swapChain.get();
                        });
 
-        auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDescription::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
+        auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
-        auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
-        auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
+        auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDesc(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
+        auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDesc(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
 
         auto pipelineState = CreatePipelineState(shaderVS.get(), shaderPS.get());
 
