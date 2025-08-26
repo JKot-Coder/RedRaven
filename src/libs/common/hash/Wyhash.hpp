@@ -3,6 +3,7 @@
 #include <limits>
 #include <stdint.h>
 #include <type_traits>
+#include "common/hash/HashType.hpp"
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline
@@ -14,34 +15,7 @@ namespace RR::Common::Hash::Wyhash
 {
     namespace details
     {
-        template <uint8_t HashBits>
-        struct HashType_t;
-
-        template <>
-        struct HashType_t<8>
-        {
-            using type = uint8_t;
-        };
-
-        template <>
-        struct HashType_t<16>
-        {
-            using type = uint16_t;
-        };
-
-        template <>
-        struct HashType_t<32>
-        {
-            using type = uint32_t;
-        };
-
-        template <>
-        struct HashType_t<64>
-        {
-            using type = uint64_t;
-        };
-
-        template <uint8_t HashBits>
+        template <size_t HashBits>
         using HashType = typename HashType_t<HashBits>::type;
 
         template <class T>
