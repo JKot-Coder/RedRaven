@@ -12,10 +12,12 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList2.hpp"
 #include "gapi/PipelineState.hpp"
+#include "gapi/RenderPassDesc.hpp"
 
 #include "math/VectorMath.hpp"
 
 #include "render/DeviceContext.hpp"
+#include "render/CommandContext.hpp"
 
 namespace RR::App
 {
@@ -217,18 +219,6 @@ namespace RR::App
         auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
         auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDescription(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
 
-       eastl::array<GAPI::Framebuffer::UniquePtr, BACK_BUFFER_COUNT> framebuffers;
-
-        for (uint32_t i = 0; i < framebuffers.size(); i++)
-        {
-            auto backBuffer = swapChain->GetBackBufferTexture(i);
-
-            auto framebufferDesc = GAPI::FramebufferDesc::Make()
-                                       .BindColorTarget(0, backBuffer->GetRTV());
-
-            framebuffers[i] = deviceContext.CreateFrameBuffer(framebufferDesc);
-        }
-
         auto pipelineState = CreatePipelineState(shaderVS.get(), shaderPS.get());
 
         while (!applicationInstance->quit)
@@ -236,10 +226,17 @@ namespace RR::App
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
 
-            ctx->ClearRenderTargetView(applicationInstance->swapChain->GetCurrentBackBufferTexture()->GetRTV(), Vector4(1.0f, 0.0f, rand() % 255 / 255.0f, 1.0f));
-            deviceContext.Compile(ctx.get());
-            commandQueue->Submit(ctx.get());
+            const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
+                                            .AddColorAttachment(swapChain->GetCurrentBackBufferTexture()->GetRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
+                                            .AddDepthStencilAttachment(swapChain->GetDepthBufferTexture()->GetDSV(), GAPI::AttachmentLoadOp::Clear, GAPI::DepthStencilClearFlags::Depth | GAPI::DepthStencilClearFlags::Stencil, 1.0f, 0, GAPI::AttachmentStoreOp::Store)
+                                            .Build();
 
+            ctx->SetRenderPass(renderPassDesc);
+            ctx->SetPipelineState(pipelineState.get());
+            ctx->Draw(GAPI::PrimitiveTopology::TriangleList, 0, 3);
+
+            deviceContext.Compile(ctx->GetCommandList());
+            commandQueue->Submit(ctx->GetCommandList());
 
             deviceContext.Present(applicationInstance->swapChain.get());
             deviceContext.MoveToNextFrame(0);

@@ -7,35 +7,38 @@
 
 namespace RR::Render
 {
+    class DeviceContext;
+
     class CommandContext
     {
     public:
         GAPI::CommandList2& GetCommandList() { return commandList; }
 
     protected:
-        explicit CommandContext(GAPI::CommandList2&& commandlist ) : commandList(eastl::move(commandlist)) { }
+        explicit CommandContext(GAPI::CommandList2&& commandlist) : commandList(eastl::move(commandlist)) { }
         GAPI::CommandList2 commandList;
     };
 
-    class CopyCommandContext: public CommandContext
+    class CopyCommandContext : public CommandContext
     {
     public:
         CopyCommandContext(GAPI::CommandList2&& commandlist) : CommandContext(eastl::move(commandlist)) { }
     };
 
-    class ComputeCommandContext  : public CopyCommandContext
+    class ComputeCommandContext : public CopyCommandContext
     {
     public:
         ComputeCommandContext(GAPI::CommandList2&& commandlist) : CopyCommandContext(eastl::move(commandlist)) { }
     };
 
-    class GraphicsCommandContext : public  ComputeCommandContext
+    class GraphicsCommandContext : public ComputeCommandContext
     {
     public:
         using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
 
     public:
         void SetPipelineState(GAPI::GraphicPipelineState* pso);
+        void SetRenderPass(const GAPI::RenderPassDesc& renderPass);
         void Draw(GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
 
     private:

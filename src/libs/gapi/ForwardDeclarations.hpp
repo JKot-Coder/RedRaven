@@ -15,6 +15,8 @@ namespace RR
         class GraphicPipelineState;
         struct GraphicPipelineStateDesc;
 
+        struct RenderPassDesc;
+
         class Fence;
         class Texture;
         class Buffer;

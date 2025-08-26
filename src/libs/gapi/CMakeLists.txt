@@ -29,6 +29,7 @@ set(SRC
 
 set(COMMANDS
     Commands/Command.hpp
+    Commands/SetRenderPass.hpp
     Commands/Draw.hpp
 )
 
