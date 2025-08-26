@@ -53,7 +53,7 @@ namespace RR
 
             virtual void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const = 0;
             virtual void InitDepthBufferTexture(Texture& resource) const = 0;
-            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers) = 0;
+            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers, GAPI::Texture* depthBuffer) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain, false>

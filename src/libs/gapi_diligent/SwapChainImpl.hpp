@@ -32,7 +32,7 @@ namespace RR::GAPI::Diligent
 
         void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const override;
         void InitDepthBufferTexture(Texture& resource) const override;
-        void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers) override;
+        void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers, GAPI::Texture* depthBuffer) override;
 
         virtual eastl::any GetWaitableObject() const override;
         uint32_t GetCurrentBackBufferIndex() const override;

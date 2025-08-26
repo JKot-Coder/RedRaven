@@ -84,7 +84,7 @@ namespace RR::GAPI::Diligent
         ASSERT(rtvs[0] == swapChain->GetCurrentBackBufferRTV());
     }
 
-    void SwapChainImpl::Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers)
+    void SwapChainImpl::Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers, GAPI::Texture* depthBuffer)
     {
         ASSERT(swapChain);
 
@@ -101,6 +101,16 @@ namespace RR::GAPI::Diligent
 
             static_cast<GpuResourceImpl*>(backBuffer->GetPrivateImpl())->DestroyResource();
             backBuffer->SetPrivateImpl(nullptr);
+        }
+
+        if (depthBuffer)
+        {
+            auto* dsv = const_cast<DepthStencilView*>(depthBuffer->GetDSV());
+            static_cast<GpuResourceViewImpl*>(dsv->GetPrivateImpl())->DestroyResource();
+            dsv->SetPrivateImpl(nullptr);
+
+            static_cast<GpuResourceImpl*>(depthBuffer->GetPrivateImpl())->DestroyResource();
+            depthBuffer->SetPrivateImpl(nullptr);
         }
 
         swapChain->Resize(width, height);

@@ -35,10 +35,12 @@ namespace RR
             for (uint32_t i = 0; i < desc_.bufferCount; i++)
                 backBuffers[i] = backBuffers_[i].get();
 
-            GetPrivateImpl()->Resize(width, height, backBuffers);
+            GetPrivateImpl()->Resize(width, height, backBuffers, depthBuffer_.get());
 
             for (auto& backBuffer : backBuffers_)
                 backBuffer = nullptr;
+
+            depthBuffer_.reset();
         }
 
         Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
