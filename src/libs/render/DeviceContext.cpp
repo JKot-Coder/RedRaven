@@ -10,6 +10,7 @@
 #include "gapi/PipelineState.hpp"
 
 #include "render/CommandContext.hpp"
+#include "render/Effect.hpp"
 
 #include "gapi_diligent/Device.hpp"
 
@@ -75,6 +76,12 @@ namespace RR::Render
         auto resource = Render::GraphicsCommandContext::Create(eastl::move(commandList));
 
         return resource;
+    }
+
+    Render::Effect::UniquePtr DeviceContext::CreateEffect(const std::string& name) const
+    {
+        ASSERT(inited);
+        return Render::Effect::Create(name);
     }
 
     GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const

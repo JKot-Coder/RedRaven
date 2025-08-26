@@ -5,6 +5,8 @@ set(SRC
     DeviceContext.hpp
     CommandContext.cpp
     CommandContext.hpp
+    Effect.hpp
+    Effect.cpp
 )
 source_group( "" FILES ${SRC} )
 
