@@ -329,7 +329,8 @@ namespace RR
 
             return true;
         }
-/*        template <> eastl::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
+
+        template <> eastl::shared_ptr<Texture> GpuResource::GetTyped<Texture>()
         {
             ASSERT(description_.IsTexture());
             // TODO inherit_shared_from_this
@@ -342,6 +343,6 @@ namespace RR
             // TODO inherit_shared_from_this
             return eastl::static_pointer_cast<Buffer>(shared_from_this());
         }
-            */
+
     }
 }
