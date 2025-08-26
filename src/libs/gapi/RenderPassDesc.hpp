@@ -13,14 +13,14 @@
 
 namespace RR::GAPI
 {
-    enum class AttachmentLoadOp
+    enum class AttachmentLoadOp : uint8_t
     {
         Load,
         Clear,
         Discard,
     };
 
-    enum class AttachmentStoreOp
+    enum class AttachmentStoreOp : uint8_t
     {
         Store,
         Discard,
