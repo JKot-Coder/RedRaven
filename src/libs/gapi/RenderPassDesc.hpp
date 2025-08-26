@@ -2,6 +2,10 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Limits.hpp"
+#if ENABLE_ASSERTS
+#include "gapi/GpuResource.hpp"
+#include "gapi/Texture.hpp"
+#endif
 
 #include "math/VectorMath.hpp"
 
@@ -68,6 +72,7 @@ namespace RR::GAPI
     {
         BuilderImpl& AddColorAttachment(const RenderTargetView* renderTargetView, AttachmentLoadOp loadOp = AttachmentLoadOp::Load, Vector4 clearColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f), AttachmentStoreOp storeOp = AttachmentStoreOp::Store)
         {
+            ASSERT(renderTargetView);
             ASSERT(colorAttachmentCount < desc.colorAttachments.size());
             desc.colorAttachments[colorAttachmentCount] = ColorAttachmentDesc {renderTargetView, loadOp, storeOp, clearColor};
             colorAttachmentCount++;
@@ -76,6 +81,8 @@ namespace RR::GAPI
 
         BuilderImpl& AddDepthStencilAttachment(const DepthStencilView* depthStencilView, AttachmentLoadOp loadOp = AttachmentLoadOp::Load, DepthStencilClearFlags clearFlags = DepthStencilClearFlags::None, float depthClearValue = 0.0f, uint8_t stencilClearValue = 0, AttachmentStoreOp storeOp = AttachmentStoreOp::Store)
         {
+
+            ASSERT(depthStencilView);
             ASSERT((loadOp == AttachmentLoadOp::Clear && clearFlags != DepthStencilClearFlags::None) ||
                    (loadOp != AttachmentLoadOp::Clear && clearFlags == DepthStencilClearFlags::None));
 
@@ -83,7 +90,68 @@ namespace RR::GAPI
             return *this;
         }
 
-        [[nodiscard]] RenderPassDesc Build() const { return desc; }
+        [[nodiscard]] RenderPassDesc Build() const
+        {
+#if ENABLE_ASSERTS
+            AssertValid();
+#endif
+            return desc;
+        }
+
+#if ENABLE_ASSERTS
+        void AssertValid() const
+        {
+            ASSERT(colorAttachmentCount < desc.colorAttachments.size());
+
+            static constexpr uint32_t INVALID_SIZE = -1;
+            uint32_t width = INVALID_SIZE, height = INVALID_SIZE, depth = INVALID_SIZE;
+            GpuResourceDimension dimension = GpuResourceDimension::Count;
+            for (uint32_t i = 0; i < colorAttachmentCount; i++)
+            {
+                const auto* renderTargetView = desc.colorAttachments[i].renderTargetView;
+                if (renderTargetView == nullptr)
+                    continue;
+
+                auto gpuResource = renderTargetView->GetGpuResource().lock();
+                auto texture = gpuResource->GetTyped<Texture>();
+                auto description = texture->GetDescription();
+
+                if (dimension == GpuResourceDimension::Count)
+                {
+                    dimension = description.GetDimension();
+                }
+                else
+                {
+                    ASSERT_MSG(dimension == description.GetDimension(), "Color attachment dimension mismatch");
+                }
+
+                if (width == INVALID_SIZE)
+                {
+                    width = description.GetWidth();
+                    height = description.GetHeight();
+                    depth = description.GetDepth();
+                }
+                else
+                {
+                    ASSERT_MSG(width == description.GetWidth() && height == description.GetHeight() && depth == description.GetDepth(), "Color attachment size mismatch");
+                }
+            }
+
+            const auto* depthStencilView = desc.depthStencilAttachment.depthStencilView;
+            if (depthStencilView)
+            {
+                auto gpuResource = depthStencilView->GetGpuResource().lock();
+                auto texture = gpuResource->GetTyped<Texture>();
+                auto description = texture->GetDescription();
+
+                if (width != INVALID_SIZE)
+                    ASSERT_MSG(width == description.GetWidth() && height == description.GetHeight() && depth == description.GetDepth(), "Color attachment and DepthStencil attachment size mismatch");
+
+                if (dimension != GpuResourceDimension::Count)
+                    ASSERT_MSG(dimension == description.GetDimension(), "DepthStencil attachment dimension mismatch");
+            }
+        }
+#endif
 
     private:
         uint32_t colorAttachmentCount = 0;
