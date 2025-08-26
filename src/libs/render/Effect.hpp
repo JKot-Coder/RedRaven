@@ -12,7 +12,7 @@ namespace RR::Render
     using PsoHashType = uint64_t;
     constexpr size_t PsoHashBits = 64;
 
-    struct EvaluateGraphicsParams
+    struct GraphicsParams
 	{
         GAPI::PrimitiveTopology primitiveTopology;
         uint32_t renderTargetCount = 0;
@@ -23,10 +23,11 @@ namespace RR::Render
     class Effect
     {
     public:
-
         using UniquePtr = eastl::unique_ptr<Effect>;
 
         ~Effect();
+
+        GAPI::GraphicPipelineState* EvaluateGraphicsPipelineState(const GraphicsParams& params);
 
     private:
         friend class DeviceContext;
@@ -37,8 +38,6 @@ namespace RR::Render
         {
             return UniquePtr(new Effect(name));
         }
-
-        GAPI::PipelineState* EvaluateGraphicsPipelineState(const EvaluateGraphicsParams& params);
 
     private:
         absl::flat_hash_map<PsoHashType, eastl::unique_ptr<GAPI::PipelineState>> pipelineStates;

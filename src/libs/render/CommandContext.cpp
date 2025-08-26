@@ -5,21 +5,34 @@
 #include "gapi/commands/Draw.hpp"
 #include "gapi/commands/SetRenderPass.hpp"
 
+#include "render/Effect.hpp"
 
 namespace RR::Render
 {
-    void GraphicsCommandContext::SetPipelineState(GAPI::GraphicPipelineState* pso)
-    {
-        this->pso = pso;
-    }
-
     void GraphicsCommandContext::SetRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
+
+        // TODO THIS IS WRONG, need to calc colorAttachments properly;
+        graphicsParams.renderTargetCount = renderPass.colorAttachments.size();
+
+        ASSERT( graphicsParams.renderTargetFormats.size()  == graphicsParams.renderTargetFormats.size());
+        for(size_t i = 0; i < graphicsParams.renderTargetCount; ++i)
+        {
+            const auto& colorAttachment = renderPass.colorAttachments[i];
+            const auto* renderTargetView = colorAttachment.renderTargetView;
+            graphicsParams.renderTargetFormats[i] = renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+        }
+
+        const auto* depthStencilView = renderPass.depthStencilAttachment.depthStencilView;
+        graphicsParams.depthStencilFormat = depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
     }
 
-    void GraphicsCommandContext::Draw(GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
+    void GraphicsCommandContext::Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
     {
+        ASSERT(effect);
+        graphicsParams.primitiveTopology = topology;
+
         GAPI::Commands::Draw::Attribs drawAttribs;
         drawAttribs.vertexCount = vertexCount;
         drawAttribs.startVertex = startVertex;
@@ -27,6 +40,7 @@ namespace RR::Render
 
         UNUSED(topology); // This should be used lately for runtime PSO build here.
 
+        auto pso = effect->EvaluateGraphicsPipelineState(graphicsParams);
         GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso);
     }
 }

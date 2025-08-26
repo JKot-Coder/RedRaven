@@ -4,6 +4,7 @@
 #include "gapi/CommandList2.hpp"
 
 #include "math/ForwardDeclarations.hpp"
+#include "render/Effect.hpp"
 
 namespace RR::Render
 {
@@ -37,9 +38,8 @@ namespace RR::Render
         using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
 
     public:
-        void SetPipelineState(GAPI::GraphicPipelineState* pso);
         void SetRenderPass(const GAPI::RenderPassDesc& renderPass);
-        void Draw(GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
+        void Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
 
     private:
         friend class Render::DeviceContext;
@@ -51,6 +51,6 @@ namespace RR::Render
         }
 
     private:
-        GAPI::GraphicPipelineState* pso = nullptr; // TEMPORATY. INVALID PipelineStateCould be destroyed..............
+        GraphicsParams graphicsParams;
     };
 }

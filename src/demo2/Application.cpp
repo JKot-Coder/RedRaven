@@ -219,7 +219,7 @@ namespace RR::App
         auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDesc(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
         auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDesc(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
 
-        auto pipelineState = CreatePipelineState(shaderVS.get(), shaderPS.get());
+        auto effect = deviceContext.CreateEffect("test");
 
         while (!applicationInstance->quit)
         {
@@ -232,8 +232,7 @@ namespace RR::App
                                             .Build();
 
             ctx->SetRenderPass(renderPassDesc);
-            ctx->SetPipelineState(pipelineState.get());
-            ctx->Draw(GAPI::PrimitiveTopology::TriangleList, 0, 3);
+            ctx->Draw(effect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 
             deviceContext.Compile(ctx->GetCommandList());
             commandQueue->Submit(ctx->GetCommandList());
