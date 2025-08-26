@@ -24,6 +24,7 @@
 #include <EASTL/string_view.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector.h>
+#include <EASTL/fixed_vector.h>
 #include <EASTL/weak_ptr.h>
 
 #define EASTL_FRIEND_MAKE_SHARED template <typename, typename> friend class eastl::ref_count_sp_t_inst
