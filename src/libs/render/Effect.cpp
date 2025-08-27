@@ -4,12 +4,29 @@
 
 #include "render/DeviceContext.hpp"
 #include "gapi/PipelineState.hpp"
+#include "gapi/Shader.hpp"
 
 namespace RR::Render
 {
     Effect::~Effect(){};
 
-    Effect::Effect(const std::string& name) { UNUSED(name); }
+    Effect::Effect(const std::string& name, const std::string& vsSource, const std::string& psSource) {
+        auto& deviceContext = DeviceContext::Instance();
+
+        // TODO: load shaders from resource
+        GAPI::ShaderDesc vsShaderDesc;
+        vsShaderDesc.type = GAPI::ShaderType::Vertex;
+        vsShaderDesc.entryPoint = "main";
+        vsShaderDesc.source = vsSource;
+
+        GAPI::ShaderDesc psShaderDesc;
+        psShaderDesc.type = GAPI::ShaderType::Pixel;
+        psShaderDesc.entryPoint = "main";
+        psShaderDesc.source = psSource;
+
+        vsShader = deviceContext.CreateShader(vsShaderDesc, name + ".vs");
+        psShader = deviceContext.CreateShader(psShaderDesc, name + ".ps");
+    }
 
     void combineGraphicsParamsHash(PsoHashType& psoHash, const GraphicsParams& params)
     {
@@ -47,6 +64,8 @@ namespace RR::Render
             graphicPSODesc.renderTargetFormats[i] = params.renderTargetFormats[i];
 
         graphicPSODesc.depthStencilFormat = params.depthStencilFormat;
+        graphicPSODesc.vs = vsShader.get();
+        graphicPSODesc.ps = psShader.get();
 
         const auto& deviceContext = DeviceContext::Instance();
         GAPI::GraphicPipelineState::UniquePtr pipelineState = deviceContext.CreatePipelineState(graphicPSODesc, "Effect");

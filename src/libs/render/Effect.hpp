@@ -32,14 +32,16 @@ namespace RR::Render
     private:
         friend class DeviceContext;
 
-        Effect(const std::string& name);
+        Effect(const std::string& name, const std::string& vsSource, const std::string& psSource);
 
-        static UniquePtr Create(const std::string& name)
+        static UniquePtr Create(const std::string& name, const std::string& vsSource, const std::string& psSource)
         {
-            return UniquePtr(new Effect(name));
+            return UniquePtr(new Effect(name, vsSource, psSource));
         }
 
     private:
+        eastl::unique_ptr<GAPI::Shader> vsShader;
+        eastl::unique_ptr<GAPI::Shader> psShader;
         absl::flat_hash_map<PsoHashType, eastl::unique_ptr<GAPI::PipelineState>> pipelineStates;
     };
 

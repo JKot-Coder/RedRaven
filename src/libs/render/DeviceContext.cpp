@@ -78,10 +78,10 @@ namespace RR::Render
         return resource;
     }
 
-    Render::Effect::UniquePtr DeviceContext::CreateEffect(const std::string& name) const
+    Render::Effect::UniquePtr DeviceContext::CreateEffect(const std::string& name, const std::string& vsSource, const std::string& psSource) const
     {
         ASSERT(inited);
-        return Render::Effect::Create(name);
+        return Render::Effect::Create(name, vsSource, psSource);
     }
 
     GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const

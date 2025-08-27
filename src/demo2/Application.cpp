@@ -216,10 +216,8 @@ namespace RR::App
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
-        auto shaderVS = deviceContext.CreateShader(GAPI::ShaderDesc(GAPI::ShaderType::Vertex, "main", VSSource), "testVS");
-        auto shaderPS = deviceContext.CreateShader(GAPI::ShaderDesc(GAPI::ShaderType::Pixel, "main", PSSource), "testPS");
 
-        auto effect = deviceContext.CreateEffect("test");
+        auto effect = deviceContext.CreateEffect("test", VSSource, PSSource);
 
         while (!applicationInstance->quit)
         {
