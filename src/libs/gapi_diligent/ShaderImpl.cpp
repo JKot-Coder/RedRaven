@@ -39,7 +39,7 @@ namespace RR::GAPI::Diligent
         DL::ShaderCreateInfo shaderCI;
         shaderCI.Source = desc.source.c_str();
         shaderCI.Desc.Name = name.c_str();
-        shaderCI.Desc.ShaderType = getShaderType(desc.shaderType);
+        shaderCI.Desc.ShaderType = getShaderType(desc.type);
         shaderCI.EntryPoint = desc.entryPoint.c_str();
         return shaderCI;
     }

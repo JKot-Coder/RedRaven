@@ -33,11 +33,11 @@ namespace RR::GAPI
     public:
         ShaderDesc() = default;
 
-        ShaderDesc(ShaderType shaderType, const std::string& entryPoint, const std::string& source)
-            : shaderType(shaderType), entryPoint(entryPoint), source(source) { }
+        ShaderDesc(ShaderType type, const std::string& entryPoint, const std::string& source)
+            : type(type), entryPoint(entryPoint), source(source) { }
 
     public:
-        ShaderType shaderType;
+        ShaderType type;
         std::string entryPoint;
         std::string source;
     };
