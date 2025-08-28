@@ -66,6 +66,16 @@
             "args": [""],
             "cwd": "${workspaceFolder}/bin/",
             "preLaunchTask": "CMake: build demo2",
+        },
+        {
+            "name": "Shader compiler",
+            "request": "launch",
+            "type": "cppvsdbg",
+            "console": "internalConsole",
+            "program": "${workspaceFolder}/bin/shader_compiler.exe",
+            "args": [""],
+            "cwd": "${workspaceFolder}/bin/",
+            "preLaunchTask": "CMake: build shader_compiler",
         }
     ]
 }

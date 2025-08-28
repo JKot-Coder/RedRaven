@@ -92,6 +92,19 @@
                 "kind": "build"
             },
             "problemMatcher": [],
+        },
+        {
+            "type": "cmake",
+            "label": "CMake: build shader_compiler",
+            "command": "build",
+            "targets": [
+                "shader_compiler"
+            ],
+            "preset": "${command:cmake.activeBuildPresetName}",
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": [],
         }
     ],
     "version": "2.0.0"
