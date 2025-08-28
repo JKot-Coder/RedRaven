@@ -32,6 +32,7 @@ Simpe graphics demo
     scoop install cmake git ninja
     scoop install main/llvm
     scoop install main/vcpkg
+    scoop install go-jsonnet
     ```
 4. **Set LLVM Path Variables:**
     ```sh

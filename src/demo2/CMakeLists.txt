@@ -11,6 +11,7 @@ set(LIBRARIES
     ecs
     ecs_window
     render
+    shader
 )
 
 #=============================== Target ===============================#
@@ -26,3 +27,4 @@ else(MSVC)
 endif(MSVC)
 
 copy_required_dlls(demo2)
+target_add_shaders(demo2 SHADERS)
