@@ -1,7 +1,12 @@
 project(shader_compiler)
 
 set(SRC
-    "main.cpp")
+    main.cpp
+    ShaderBuilder.cpp
+    ShaderBuilder.hpp
+    JsonnetProcessor.cpp
+    JsonnetProcessor.hpp
+    )
 source_group("" FILES ${SRC})
 
 set(SRC
@@ -9,6 +14,7 @@ set(SRC
 
 set(LIBRARIES
     common
+    cxxopts
     )
 
  #=============================== Target ===============================#
