@@ -183,16 +183,16 @@ find_package(glfw3 CONFIG REQUIRED)
 # set(BUILD_DX12 OFF CACHE BOOL "" FORCE)
 
 #================================== cxxopts ==================================#
-# CPMAddPackage(
-#         NAME cxxopts
-#         GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-#         GIT_TAG        c74846a891b3cc3bfa992d588b1295f528d43039 #v3.0.0
-#         GIT_SHALLOW    TRUE
-# )
-# set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-# set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-# set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-# set(CXXOPTS_ENABLE_WARNINGS OFF CACHE BOOL "" FORCE)
+CPMAddPackage(
+        NAME cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG        c74846a891b3cc3bfa992d588b1295f528d43039 #v3.0.0
+        GIT_SHALLOW    TRUE
+)
+set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(CXXOPTS_ENABLE_WARNINGS OFF CACHE BOOL "" FORCE)
 
 #=================================== yaml ===================================#
 # CPMAddPackage(
@@ -303,7 +303,7 @@ set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
 # set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 set_property(TARGET imgui::imgui PROPERTY FOLDER "Dependencies")
 #set_property(TARGET DirectXTex PROPERTY FOLDER "Dependencies")
-# set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
+set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 # set_property(TARGET yaml-cpp PROPERTY FOLDER "Dependencies")
 # set_property(TARGET magic_enum PROPERTY FOLDER "Dependencies")
 # set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")

@@ -1,6 +1,5 @@
 {
   "dependencies": [
-    "cxxopts",
     "glfw3",
     "eastl",
     "catch2",
@@ -23,10 +22,6 @@
     {
       "name": "glfw3",
       "version": "3.3.7"
-    },
-    {
-      "name": "cxxopts",
-      "version": "3.0.0"
     },
     {
       "name": "imgui",
