@@ -2,7 +2,7 @@
 
 #define ON_SCOPE_EXIT_NAME2(y) scopeExit_##y
 #define ON_SCOPE_EXIT_NAME(y) ON_SCOPE_EXIT_NAME2(y)
-#define ON_SCOPE_EXIT(...) const RR::Common::OnScopeExit ON_SCOPE_EXIT_NAME(__COUNTER__)([&]() { __VA_ARGS__; });
+#define ON_SCOPE_EXIT(...) [[maybe_unused]] const RR::Common::OnScopeExit ON_SCOPE_EXIT_NAME(__COUNTER__)(__VA_ARGS__);
 
 namespace RR
 {
