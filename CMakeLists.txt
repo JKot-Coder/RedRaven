@@ -295,6 +295,11 @@ set(VULKAN_SUPPORTED           OFF CACHE BOOL "" FORCE)
 set(METAL_SUPPORTED            OFF CACHE BOOL "" FORCE)
 set(WEBGPU_SUPPORTED           OFF CACHE BOOL "" FORCE)
 
+#================================== nlohmann =================================#
+CPMAddPackage(
+  NAME nlohmann_json
+  URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET STB PROPERTY FOLDER "Dependencies")
 set_property(TARGET fmt PROPERTY FOLDER "Dependencies")
@@ -309,6 +314,7 @@ set_property(TARGET cxxopts PROPERTY FOLDER "Dependencies")
 # set_property(TARGET EASTL PROPERTY FOLDER "Dependencies")
 # set_property(TARGET flecs PROPERTY FOLDER "Dependencies")
 # set_property(TARGET efsw PROPERTY FOLDER "Dependencies")
+set_property(TARGET nlohmann_json PROPERTY FOLDER "Dependencies")
 
 # After dependencies since it's broke Diligent engine build
 set(CMAKE_DEBUG_POSTFIX "_d")
