@@ -15,7 +15,8 @@ namespace RR
             ("h,help", "Print help")
             ("v,version", "Print version")
             ("command", "Command to execute (build/compile)", cxxopts::value<std::string>())
-            ("files", "Input files", cxxopts::value<std::vector<std::string>>());
+            ("files", "Input files", cxxopts::value<std::vector<std::string>>())
+            ("J,include", "Include pathes", cxxopts::value<std::vector<std::string>>());
         // clang-format on
 
         options.add_options("compile");
@@ -44,6 +45,8 @@ namespace RR
             {
                 if (result["command"].as<std::string>() == "build")
                 {
+                    LibraryBuildDesc desc;
+
                     if (!result.count("files"))
                     {
                         std::cerr << "No files provided" << std::endl;
@@ -54,6 +57,11 @@ namespace RR
                         std::cerr << "Multiple input files provided" << std::endl;
                         return 1;
                     }
+                    else
+                    {
+                        const auto files = result["files"].as<std::vector<std::string>>();
+                        desc.inputFile = files[0];
+                    }
 
                     if (!result.count("output"))
                     {
@@ -61,10 +69,9 @@ namespace RR
                         return 1;
                     }
 
-                    const auto files = result["files"].as<std::vector<std::string>>();
+                    if(result.count("include"))
+                        desc.includePathes = result["include"].as<std::vector<std::string>>();
 
-                    LibraryBuildDesc desc;
-                    desc.inputFile = files[0];
                     desc.outputFile = result["output"].as<std::string>();
 
                     if (ShaderBuilder::Instance().BuildLibrary(desc) != Common::RResult::Ok)

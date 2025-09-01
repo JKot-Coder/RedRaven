@@ -12,7 +12,7 @@ namespace RR
     JsonnetProcessor::JsonnetProcessor() { }
     JsonnetProcessor::~JsonnetProcessor() { }
 
-    Common::RResult JsonnetProcessor::evaluateFile(const std::string& file, nlohmann::json& outputJson)
+    Common::RResult JsonnetProcessor::evaluateFile(const std::string& file, const std::vector<std::string>& includePathes, nlohmann::json& outputJson)
     {
         if (!std::filesystem::exists(file))
         {
@@ -20,7 +20,16 @@ namespace RR
             return Common::RResult::NotFound;
         }
 
-        std::vector<const char*> args = {"jsonnet", file.c_str(), nullptr};
+        std::vector<const char*> args = {"jsonnet", file.c_str()};
+
+        if (!includePathes.empty())
+        {
+            args.push_back("-J");
+            for (auto& includePath : includePathes)
+                args.push_back(includePath.c_str());
+        }
+
+        args.push_back(nullptr);
 
         subprocess_s process;
         auto runCode = subprocess_create(args.data(),

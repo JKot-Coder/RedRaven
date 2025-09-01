@@ -12,6 +12,6 @@ namespace RR
         JsonnetProcessor();
         ~JsonnetProcessor();
 
-        Common::RResult evaluateFile(const std::string& file, nlohmann::json& outputJson);
+        Common::RResult evaluateFile(const std::string& file, const std::vector<std::string>& includePathes, nlohmann::json& outputJson);
     };
 }

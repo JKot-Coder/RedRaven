@@ -9,6 +9,7 @@ namespace RR
     {
         std::string inputFile;
         std::string outputFile;
+        std::vector<std::string> includePathes;
     };
 
     class ShaderBuilder : public Common::Singleton<ShaderBuilder>
@@ -20,6 +21,6 @@ namespace RR
         Common::RResult BuildLibrary(const LibraryBuildDesc& desc);
 
     private:
-        Common::RResult compileEffect(const std::string& sourceFile);
+        Common::RResult compileEffect(const LibraryBuildDesc& desc, const std::string& sourceFile);
     };
 }

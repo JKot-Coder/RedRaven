@@ -14,13 +14,13 @@ namespace RR
     {
     }
 
-    Common::RResult ShaderBuilder::compileEffect(const std::string& sourceFile)
+    Common::RResult ShaderBuilder::compileEffect(const LibraryBuildDesc& desc, const std::string& sourceFile)
     {
         std::cout << "Compile compile effect: " << sourceFile << std::endl;
 
         JsonnetProcessor jsonnetProcessor;
         nlohmann::json outputJson;
-        auto result = jsonnetProcessor.evaluateFile(sourceFile, outputJson);
+        auto result = jsonnetProcessor.evaluateFile(sourceFile, desc.includePathes, outputJson);
         if (result != Common::RResult::Ok)
         {
             std::cerr << "Failed to read effect file: " << sourceFile << std::endl;
@@ -36,7 +36,7 @@ namespace RR
 
         JsonnetProcessor jsonnetProcessor;
         nlohmann::json outputJson;
-        auto result = jsonnetProcessor.evaluateFile(desc.inputFile, outputJson);
+        auto result = jsonnetProcessor.evaluateFile(desc.inputFile, desc.includePathes, outputJson);
         if (result != Common::RResult::Ok)
         {
             std::cerr << "Failed to evaluate build list file: " << desc.inputFile << std::endl;
@@ -52,7 +52,7 @@ namespace RR
 
         for (auto& source : sources)
         {
-            if(compileEffect(source.get<std::string>()) != Common::RResult::Ok)
+            if(compileEffect(desc, source.get<std::string>()) != Common::RResult::Ok)
             {
                 std::cerr << "Failed to compile shader: " << source << std::endl;
                 return Common::RResult::Fail;
