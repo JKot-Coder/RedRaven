@@ -73,7 +73,7 @@
             "type": "cppvsdbg",
             "console": "internalConsole",
             "program": "${workspaceFolder}/bin/shader_compiler.exe",
-            "args": [""],
+            "args": ["build", "D:/RR/build/src/demo2/shaders.jsonnet", "--output", "D:/RR/bin/CompiledShaders.bin"],
             "cwd": "${workspaceFolder}/bin/",
             "preLaunchTask": "CMake: build shader_compiler",
         }

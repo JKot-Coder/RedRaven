@@ -20,8 +20,7 @@ namespace RR
 
         options.add_options("compile");
 
-        options.add_options("build")
-            ("output", "Output file", cxxopts::value<std::string>());
+        options.add_options("build")("output", "Output file", cxxopts::value<std::string>());
 
         options.parse_positional({"command", "files"});
         options.positional_help("COMMAND FILES...");
@@ -68,7 +67,11 @@ namespace RR
                     desc.inputFile = files[0];
                     desc.outputFile = result["output"].as<std::string>();
 
-                    ShaderBuilder::Instance().BuildLibrary(desc);
+                    if (ShaderBuilder::Instance().BuildLibrary(desc) != Common::RResult::Ok)
+                    {
+                        std::cerr << "Failed to build library" << std::endl;
+                        return 1;
+                    }
                 }
                 else if (result["command"].as<std::string>() == "compile")
                 {

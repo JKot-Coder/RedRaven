@@ -15,6 +15,7 @@ set(SRC
 set(LIBRARIES
     common
     cxxopts
+    nlohmann_json
     )
 
  #=============================== Target ===============================#
