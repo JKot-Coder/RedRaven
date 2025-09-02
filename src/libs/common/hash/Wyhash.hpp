@@ -11,7 +11,7 @@
 #define FORCE_INLINE __attribute__((always_inline)) inline
 #endif // !defined(_MSC_VER)
 
-namespace RR::Common::Hash::Wyhash
+namespace RR::Common::Hashing::Wyhash
 {
     namespace details
     {

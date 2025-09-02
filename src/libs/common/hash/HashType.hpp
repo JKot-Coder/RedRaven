@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace RR::Common::Hash
+namespace RR::Common::Hashing
 {
     template <size_t HashBits>
     struct HashType_t;

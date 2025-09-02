@@ -6,7 +6,7 @@
 // Wyhash by default
 #include "common/hash/Wyhash.hpp"
 
-namespace RR::Common::Hash
+namespace RR::Common::Hashing::Default
 {
     static constexpr size_t HashBits = 32;
     using HashType = typename HashType_t<HashBits>::type;
@@ -14,19 +14,19 @@ namespace RR::Common::Hash
     constexpr HashType Hash(const void* data, std::size_t len)
     {
         ASSERT_MSG(data, "Hash: data pointer cannot be null");
-        return RR::Common::Hash::Wyhash::Hash<HashBits>(data, static_cast<uint32_t>(len));
+        return Wyhash::Hash<HashBits>(data, static_cast<uint32_t>(len));
     }
 
     template <typename T>
     constexpr HashType Hash(const T& value)
     {
-        return RR::Common::Hash::Wyhash::Hash<HashBits>(&value, sizeof(T));
+        return Wyhash::Hash<HashBits>(&value, sizeof(T));
     }
 
     template <>
     constexpr HashType Hash<std::string>(const std::string& value)
     {
-        return RR::Common::Hash::Wyhash::Hash<HashBits>(
+        return Wyhash::Hash<HashBits>(
             value.data(),
             value.size());
     }
@@ -34,7 +34,7 @@ namespace RR::Common::Hash
     template <>
     constexpr HashType Hash<eastl::string>(const eastl::string& value)
     {
-        return RR::Common::Hash::Wyhash::Hash<HashBits>(
+        return Wyhash::Hash<HashBits>(
             value.data(),
             value.size()
         );
@@ -42,7 +42,7 @@ namespace RR::Common::Hash
 
     constexpr HashType operator""_h(const char* str, std::size_t len)
     {
-        return RR::Common::Hash::Wyhash::ForceConstexprHash<HashBits>(str, static_cast<uint32_t>(len));
+        return Wyhash::ForceConstexprHash<HashBits>(str, static_cast<uint32_t>(len));
     }
 
     template <size_t Bits = HashBits, typename T>
