@@ -1,7 +1,9 @@
-local effects = import "effects.libsonnet";
+local Effects = import "../../shaders/effects.libsonnet";
+local ColorMask = import "../../shaders/colorMask.jsonnet";
 
 {
-    effect: effects.default + {
-
-    },
+    basicEffect: Effects.default + {
+        cullMode: 'Back',
+        colorWriteMasks: [ColorMask.RED | ColorMask.GREEN | ColorMask.BLUE],
+    }
 }
