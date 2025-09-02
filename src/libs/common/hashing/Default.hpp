@@ -2,9 +2,9 @@
 
 #include <string>
 #include "EASTL/string.h"
-#include "common/hash/HashType.hpp"
+#include "common/hashing/HashType.hpp"
 // Wyhash by default
-#include "common/hash/Wyhash.hpp"
+#include "common/hashing/Wyhash.hpp"
 
 namespace RR::Common::Hashing::Default
 {

@@ -3,7 +3,7 @@
 #include <limits>
 #include <stdint.h>
 #include <type_traits>
-#include "common/hash/HashType.hpp"
+#include "common/hashing/HashType.hpp"
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline

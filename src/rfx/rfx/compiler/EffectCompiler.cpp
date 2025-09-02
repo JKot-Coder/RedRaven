@@ -7,14 +7,14 @@
 #include "gapi/PipelineState.hpp"
 
 #include "common/Result.hpp"
-#include "common/hash/Default.hpp"
+#include "common/hashing/Default.hpp"
 
 namespace RR::Rfx
 {
     using RResult = Common::RResult;
-    using namespace Common::Hash::Default;
+    using namespace Common::Hashing::Default;
 
-    constexpr inline HashType Hash(UnownedStringSlice slice) { return Common::Hash::Default::Hash(slice.data(), slice.size()); }
+    constexpr inline HashType Hash(UnownedStringSlice slice) { return Common::Hashing::Default::Hash(slice.data(), slice.size()); }
 
     EffectCompiler::EffectCompiler(const std::shared_ptr<CompileContext>& context) : context_(context) { }
     EffectCompiler::~EffectCompiler() { }

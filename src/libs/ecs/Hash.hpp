@@ -2,7 +2,7 @@
 #pragma once
 
 #include "EASTL/fixed_string.h"
-#include "common/hash/Wyhash.hpp"
+#include "common/hashing/Wyhash.hpp"
 
 namespace RR::Ecs
 {

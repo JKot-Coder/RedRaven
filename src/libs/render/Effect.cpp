@@ -1,6 +1,6 @@
 #include "Effect.hpp"
 
-#include "common/hash/Common.hpp"
+#include "common/hashing/Default.hpp"
 
 #include "render/DeviceContext.hpp"
 #include "gapi/PipelineState.hpp"
@@ -32,12 +32,12 @@ namespace RR::Render
     {
         static_assert(sizeof(GraphicsParams) == 44);
 
-        Common::Hash::HashCombine<PsoHashBits>(psoHash, params.renderTargetCount);
-        Common::Hash::HashCombine<PsoHashBits>(psoHash, params.primitiveTopology);
+        Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.renderTargetCount);
+        Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.primitiveTopology);
         for(size_t i = 0; i < params.renderTargetCount; ++i)
-            Common::Hash::HashCombine<PsoHashBits>(psoHash, params.renderTargetFormats[i]);
+            Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.renderTargetFormats[i]);
 
-        Common::Hash::HashCombine<PsoHashBits>(psoHash, params.depthStencilFormat);
+        Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.depthStencilFormat);
     }
 
     GAPI::GraphicPipelineState* Effect::EvaluateGraphicsPipelineState(const GraphicsParams& params)
