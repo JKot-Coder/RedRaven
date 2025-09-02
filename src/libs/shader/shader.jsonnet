@@ -1,4 +1,4 @@
-local Effects = import "../../shaders/effects.libsonnet";
+local Effects = import "../../shaders/effects.jsonnet";
 local ColorMask = import "../../shaders/colorMask.jsonnet";
 
 {

@@ -8,7 +8,7 @@ set(SRC
     ${SRC})
 
 set(SHADER_SRC
-    "shader.libsonnet")
+    "shader.jsonnet")
 
 set(LIBRARIES)
 
