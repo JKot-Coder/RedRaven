@@ -16,6 +16,7 @@ set(LIBRARIES
     common
     cxxopts
     nlohmann_json
+    slang
     )
 
  #=============================== Target ===============================#
@@ -31,3 +32,4 @@ else(MSVC)
 endif(MSVC)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")
+target_copy_slang_binaries(${PROJECT_NAME})

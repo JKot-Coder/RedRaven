@@ -13,6 +13,7 @@ message(warning ${CMAKE_BINARY_DIR})
 include(FetchContent)
 include(cmake/CPM.cmake)
 include(cmake/shaders.cmake)
+include(cmake/FetchSlang.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
