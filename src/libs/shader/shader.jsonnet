@@ -1,9 +1,17 @@
-local Effects = import "../../shaders/effects.jsonnet";
-local ColorMask = import "../../shaders/colorMask.jsonnet";
+local RenderStates = import "renderStates.jsonnet";
+local ColorMask = import "colorMask.jsonnet";
 
 {
-    basicEffect: Effects.default + {
-        cullMode: 'Back',
-        colorWriteMasks: [ColorMask.RED | ColorMask.GREEN | ColorMask.BLUE],
+    basicEffect:
+    {
+        mainPass:{
+            renderState: RenderStates.default + {
+                cullMode: 'Back',
+                colorWriteMasks: [ColorMask.RED | ColorMask.GREEN | ColorMask.BLUE],
+            },
+            modules: ["shader.slang"],
+            vertexShader: "vertexMain",
+            pixelShader: "fragmentMain"
+        }
     }
 }

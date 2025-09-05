@@ -4,6 +4,8 @@ set(SRC
     main.cpp
     ShaderBuilder.cpp
     ShaderBuilder.hpp
+    ShaderCompiler.hpp
+    ShaderCompiler.cpp
     JsonnetProcessor.cpp
     JsonnetProcessor.hpp
     )

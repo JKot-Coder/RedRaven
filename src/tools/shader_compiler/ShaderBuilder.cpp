@@ -5,7 +5,10 @@
 #include <cctype>
 
 #include "JsonnetProcessor.hpp"
+#include "ShaderCompiler.hpp"
 #include "common/hashing/Default.hpp"
+
+#include <filesystem>
 
 namespace RR
 {
@@ -81,15 +84,15 @@ namespace RR
             cb(json.get<T>());
     }
 
-    void ShaderBuilder::evaluateEffectDesc(nlohmann::json& effect, EffectDesc& effectDesc)
+    void ShaderBuilder::evaluateRenderStateDesc(nlohmann::json& effect, GAPI::RasterizerDesc& rasterizerDesc, GAPI::DepthStencilDesc& depthStencilDesc, GAPI::BlendDesc& blendDesc)
     {
-        std::cout << "Evaluate effect desc: " << effect.dump() << std::endl;
+        std::cout << "Evaluate render state desc: " << effect.dump() << std::endl;
 
-        evalIfExist<std::string>(effect["cullMode"], [&](auto val){ effectDesc.rasterizerDesc.cullMode = getCullMode(val); } );
-        evalIfExist<std::string>(effect["fillMode"], [&](auto val){ effectDesc.rasterizerDesc.fillMode = getFillMode(val); } );
-        evalIfExist<std::string>(effect["depthAccess"], [&](auto val){ effectDesc.depthStencilDesc.depthAccess = getDepthAccess(val); } );
-        evalIfExist<std::string>(effect["depthFunc"], [&](auto val){ effectDesc.depthStencilDesc.depthFunc = getComparisonFunc(val); } );
-        evalIfExist<bool>(effect["stencilEnabled"], [&](auto val){ effectDesc.depthStencilDesc.stencilEnabled = val; } );
+        evalIfExist<std::string>(effect["cullMode"], [&](auto val){ rasterizerDesc.cullMode = getCullMode(val); } );
+        evalIfExist<std::string>(effect["fillMode"], [&](auto val){ rasterizerDesc.fillMode = getFillMode(val); } );
+        evalIfExist<std::string>(effect["depthAccess"], [&](auto val){ depthStencilDesc.depthAccess = getDepthAccess(val); } );
+        evalIfExist<std::string>(effect["depthFunc"], [&](auto val){ depthStencilDesc.depthFunc = getComparisonFunc(val); } );
+        evalIfExist<bool>(effect["stencilEnabled"], [&](auto val){ depthStencilDesc.stencilEnabled = val; } );
 
         auto colorWriteMasks = effect["colorWriteMasks"];
         if(colorWriteMasks.size() > GAPI::MAX_RENDER_TARGETS_COUNT)
@@ -100,7 +103,7 @@ namespace RR
             uint32_t maskValue = colorWriteMasks[i].get<uint32_t>();
             ASSERT((maskValue & ~static_cast<uint32_t>(GAPI::WriteMask::All)) == 0); // TODO checks in release too.
 
-            effectDesc.blendDesc.rtBlend[i].writeMask = static_cast<GAPI::WriteMask>(maskValue);
+            blendDesc.rtBlend[i].writeMask = static_cast<GAPI::WriteMask>(maskValue);
         }
     }
 
@@ -119,15 +122,51 @@ namespace RR
 
         try
         {
-            for(auto& key : effectJson.items())
+            for(auto& effect : effectJson.items())
             {
-                EffectDesc effectDesc;
-                evaluateEffectDesc(key.value(), effectDesc);
+                std::cout << "Effect: " << effect.key() << std::endl;
+
+                for(auto& passKV :effect.value().items())
+                {
+                    auto& passKey = passKV.key();
+                    auto& pass = passKV.value();
+                    std::cout << "  Pass: " << passKey << std::endl;
+
+                    nlohmann::json renderState = pass["renderState"];
+                    if(renderState.empty())
+                        throw std::runtime_error("Render state is empty for pass: " + passKey);
+
+                    GAPI::RasterizerDesc rasterizerDesc;
+                    GAPI::DepthStencilDesc depthStencilDesc;
+                    GAPI::BlendDesc blendDesc;
+                    evaluateRenderStateDesc(renderState, rasterizerDesc, depthStencilDesc, blendDesc);
+
+                    ShaderCompileDesc shaderCompileDesc;
+                    shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
+
+                    for(auto& module : pass["modules"].items())
+                        shaderCompileDesc.modules.emplace_back(module.value().get<std::string>());
+
+                    auto shader = pass["vertexShader"];
+
+                    auto addEntryPoint = [&](const nlohmann::json& shader) {
+                        shaderCompileDesc.entryPoints.emplace_back(shader.get<std::string>());
+                    };
+
+                    if (!pass["vertexShader"].empty())
+                        addEntryPoint(pass["vertexShader"]);
+                    if (!pass["pixelShader"].empty())
+                        addEntryPoint(pass["pixelShader"]);
+
+                    ShaderCompiler compiler;
+                    if (RR_FAILED(compiler.CompileShader(shaderCompileDesc)))
+                        throw std::runtime_error("Failed to compile shader");
+                }
             }
         }
         catch(const std::exception& e)
         {
-            std::cerr << "Failed to evaluate effect desc with error: " << std::endl << e.what() << std::endl;
+            std::cerr << "Effect processing failed with error: " << e.what() << std::endl;
             return Common::RResult::Fail;
         }
 
@@ -158,7 +197,7 @@ namespace RR
         {
             if(compileEffect(desc, source.get<std::string>()) != Common::RResult::Ok)
             {
-                std::cerr << "Failed to compile shader: " << source << std::endl;
+                std::cerr << "Failed to compile effect: " << source << std::endl;
                 return Common::RResult::Fail;
             }
         }

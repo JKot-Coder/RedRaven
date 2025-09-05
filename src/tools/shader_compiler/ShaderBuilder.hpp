@@ -32,6 +32,6 @@ namespace RR
 
     private:
         Common::RResult compileEffect(const LibraryBuildDesc& desc, const std::string& sourceFile);
-        void evaluateEffectDesc(nlohmann::json& effect, EffectDesc& effectDesc);
+        void evaluateRenderStateDesc(nlohmann::json& effect, GAPI::RasterizerDesc& rasterizerDesc, GAPI::DepthStencilDesc& depthStencilDesc, GAPI::BlendDesc& blendDesc);
     };
 }
