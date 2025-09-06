@@ -80,7 +80,9 @@ namespace RR::GAPI
         BlendFactor dstAlpha : 4;
         WriteMask writeMask : 4;
     }; // 4 bytes
+    static_assert(sizeof(RTBlendStateDesc) == 4);
 
+    #pragma pack(push, 1)
     struct RasterizerDesc
     {
         RasterizerDesc() : fillMode(FillMode::Solid),
@@ -104,7 +106,9 @@ namespace RR::GAPI
         float slopeScaledDepthBias;
         float depthBias;
         uint32_t forcedSampleCount;
-    };
+    }; // 13 bytes no padding
+    #pragma pack(pop)
+    static_assert(sizeof(RasterizerDesc) == 13);
 
     struct BlendDesc
     {
@@ -114,7 +118,8 @@ namespace RR::GAPI
         bool independentBlendEnabled : 1;
         bool alphaToCoverageEnabled : 1;
         std::array<RTBlendStateDesc, MAX_RENDER_TARGETS_COUNT> rtBlend;
-    };
+    }; // no padding
+    static_assert(sizeof(BlendDesc) == MAX_RENDER_TARGETS_COUNT * 4 + 1);
 
     struct DepthStencilDesc
     {
@@ -172,8 +177,10 @@ namespace RR::GAPI
         uint8_t stencilRef = 0;
         uint8_t stencilReadMask = 0xFF;
         uint8_t stencilWriteMask = 0xFF;
-    };
+    }; // 8 bytes no padding
+    static_assert(sizeof(DepthStencilDesc) == 8);
 
+    // Todo separate
     enum class PrimitiveTopology : uint8_t
     {
         PointList,
