@@ -78,11 +78,23 @@ namespace RR::Common
             return ptr;
         }
 
+        char* allocateString(std::string_view str)
+        {
+             char* ptr = static_cast<char*>(allocate(str.size() + 1, 1));
+             std::memcpy(ptr, str.data(), str.size());
+             ptr[str.size()] = '\0';
+             return ptr;
+        }
+
         template <typename T, typename... Args>
         T* create(Args&&... args)
         {
             void* memory = allocate(sizeof(T), alignof(T));
             return new (memory) T(std::forward<Args>(args)...);
         }
+
+        auto begin() { return chunks.begin(); }
+        auto end() { return chunks.end(); }
+        auto size() const { return chunks.size(); }
     };
 }
