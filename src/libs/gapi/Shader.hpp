@@ -34,13 +34,13 @@ namespace RR::GAPI
     public:
         ShaderDesc() = default;
 
-        ShaderDesc(ShaderType type, const std::string& entryPoint, const std::string& source)
-            : type(type), entryPoint(entryPoint), source(source) { }
+        ShaderDesc(ShaderType type, const std::byte* data, size_t size)
+            : type(type), data(data), size(size) { }
 
     public:
         ShaderType type;
-        std::string entryPoint;
-        std::string source;
+        const std::byte* data;
+        size_t size;
     };
 
     class IShader

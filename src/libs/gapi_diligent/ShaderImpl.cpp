@@ -37,10 +37,10 @@ namespace RR::GAPI::Diligent
     DL::ShaderCreateInfo getShaderCreateInfo(const GAPI::ShaderDesc& desc, const std::string& name)
     {
         DL::ShaderCreateInfo shaderCI;
-        shaderCI.Source = desc.source.c_str();
+        shaderCI.ByteCode = desc.data;
+        shaderCI.ByteCodeSize = desc.size;
         shaderCI.Desc.Name = name.c_str();
         shaderCI.Desc.ShaderType = getShaderType(desc.type);
-        shaderCI.EntryPoint = desc.entryPoint.c_str();
         return shaderCI;
     }
 
