@@ -4,6 +4,7 @@
 #include "slang-com-ptr.h"
 
 #include "common/Result.hpp"
+#include "gapi/Shader.hpp"
 
 #define TRY_SLANG(statement) \
 	{ \
@@ -19,10 +20,34 @@
 
 namespace RR  {
 
+    namespace {
+        GAPI::ShaderType getShaderType(SlangStage stage)
+        {
+            switch (stage)
+            {
+                case SLANG_STAGE_VERTEX: return GAPI::ShaderType::Vertex;
+                case SLANG_STAGE_HULL: return GAPI::ShaderType::Hull;
+                case SLANG_STAGE_DOMAIN: return GAPI::ShaderType::Domain;
+                case SLANG_STAGE_GEOMETRY: return GAPI::ShaderType::Geometry;
+                case SLANG_STAGE_FRAGMENT: return GAPI::ShaderType::Pixel;
+                case SLANG_STAGE_COMPUTE: return GAPI::ShaderType::Compute;
+                case SLANG_STAGE_RAY_GENERATION: return GAPI::ShaderType::RayGen;
+                case SLANG_STAGE_INTERSECTION: return GAPI::ShaderType::RayIntersection;
+                case SLANG_STAGE_ANY_HIT: return GAPI::ShaderType::RayAnyHit;
+                case SLANG_STAGE_CLOSEST_HIT: return GAPI::ShaderType::RayClosestHit;
+                case SLANG_STAGE_MISS: return GAPI::ShaderType::RayMiss;
+                case SLANG_STAGE_CALLABLE: return GAPI::ShaderType::Callable;
+                case SLANG_STAGE_MESH: return GAPI::ShaderType::Mesh;
+                case SLANG_STAGE_AMPLIFICATION: return GAPI::ShaderType::Amplification;
+                default: throw std::runtime_error("Unknown shader stage");
+            }
+        }
+    }
+
     ShaderCompiler::ShaderCompiler() { }
     ShaderCompiler::~ShaderCompiler() { }
 
-    Common::RResult ShaderCompiler::CompileShader(const ShaderCompileDesc& desc)
+    Common::RResult ShaderCompiler::CompileShader(const ShaderCompileDesc& desc, CompileResult& result)
     {
         Slang::ComPtr<slang::IGlobalSession> globalSession;
         TRY_SLANG(slang::createGlobalSession(globalSession.writeRef()));
@@ -120,15 +145,27 @@ namespace RR  {
         if (!layoutPtr)
             return Common::RResult::Fail;
 
-        for(uint32_t i = 0; i < layoutPtr->getEntryPointCount(); i++)
+        for (uint32_t i = 0; i < layoutPtr->getEntryPointCount(); i++)
         {
-           Slang::ComPtr<slang::IBlob> targetCode;
-           TRY_SLANG(linkedProgram->getEntryPointCode(i, 0, targetCode.writeRef()));
-           if (targetCode)
-           {
-                std::string code = (const char*)targetCode->getBufferPointer();
-                std::cout << "Entry point code: " << code << std::endl;
-           }
+            SlangStage stage = layoutPtr->getEntryPointByIndex(i)->getStage();
+
+            ShaderResult shaderResult;
+            shaderResult.type = getShaderType(stage);
+            shaderResult.session = session;
+            if (SLANG_FAILED(linkedProgram->getEntryPointCode(i, 0, shaderResult.source.writeRef(), diagnostics.writeRef())))
+            {
+                if (diagnostics)
+                {
+                    std::string message = (const char*)diagnostics->getBufferPointer();
+                    std::cerr << "Could not compile shaders with errors:\n" + message << std::endl;
+                    return Common::RResult::Fail;
+                }
+
+                std::cerr << "Could not compile shaders with unknown error" << std::endl;
+                return Common::RResult::Fail;
+            }
+
+            result.shaders.emplace_back(std::move(shaderResult));
         }
 
         return Common::RResult::Ok;

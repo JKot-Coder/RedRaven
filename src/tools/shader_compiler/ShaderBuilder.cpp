@@ -9,6 +9,7 @@
 #include "common/hashing/Default.hpp"
 
 #include <filesystem>
+#include <fstream>
 
 namespace RR
 {
@@ -21,7 +22,7 @@ namespace RR
         return str;
     }
 
-    ShaderBuilder::ShaderBuilder() { }
+    ShaderBuilder::ShaderBuilder() : stringAllocator(1024) { }
     ShaderBuilder::~ShaderBuilder() { }
 
     GAPI::CullMode getCullMode(const std::string& cullMode)
@@ -107,6 +108,19 @@ namespace RR
         }
     }
 
+    uint32_t ShaderBuilder::pushString(const std::string& str)
+    {
+        stringAllocator.allocateString(std::string_view(str));
+        return stringsCount++;
+    };
+
+    uint32_t ShaderBuilder::pushShader(ShaderResult&& shader)
+    {
+        uint32_t index = shaders.size();
+        shaders.emplace_back(std::move(shader));
+        return index;
+    }
+
     Common::RResult ShaderBuilder::compileEffect(const LibraryBuildDesc& desc, const std::string& sourceFile)
     {
         std::cout << "Compile compile effect: " << sourceFile << std::endl;
@@ -126,6 +140,11 @@ namespace RR
             {
                 std::cout << "Effect: " << effect.key() << std::endl;
 
+                effects.push_back();
+                EffectDesc& effectDesc = effects.back().effectDesc;
+                effectDesc.nameIndex = pushString(effect.key());
+                auto& passes = effects.back().passes;
+
                 for(auto& passKV :effect.value().items())
                 {
                     auto& passKey = passKV.key();
@@ -136,10 +155,10 @@ namespace RR
                     if(renderState.empty())
                         throw std::runtime_error("Render state is empty for pass: " + passKey);
 
-                    GAPI::RasterizerDesc rasterizerDesc;
-                    GAPI::DepthStencilDesc depthStencilDesc;
-                    GAPI::BlendDesc blendDesc;
-                    evaluateRenderStateDesc(renderState, rasterizerDesc, depthStencilDesc, blendDesc);
+                    PassDesc passDesc;
+                    passDesc.nameIndex = pushString(passKey);
+                    passDesc.shaderIndexes.fill(INVALID_SHADER_INDEX);
+                    evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
                     ShaderCompileDesc shaderCompileDesc;
                     shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
@@ -159,9 +178,17 @@ namespace RR
                         addEntryPoint(pass["pixelShader"]);
 
                     ShaderCompiler compiler;
-                    if (RR_FAILED(compiler.CompileShader(shaderCompileDesc)))
+                    CompileResult shaderResult;
+                    if (RR_FAILED(compiler.CompileShader(shaderCompileDesc, shaderResult)))
                         throw std::runtime_error("Failed to compile shader");
+
+                    for(auto& shader : shaderResult.shaders)
+                        passDesc.shaderIndexes[eastl::to_underlying(shader.type)] = pushShader(std::move(shader));
+
+                    passes.push_back(std::move(passDesc));
                 }
+
+                effectDesc.passCount = passes.size();
             }
         }
         catch(const std::exception& e)
@@ -202,6 +229,63 @@ namespace RR
             }
         }
 
+        if(saveLibrary(desc) != Common::RResult::Ok)
+        {
+            std::cerr << "Failed to save shader library: " << desc.outputFile << std::endl;
+            return Common::RResult::Fail;
+        }
+
         return Common::RResult::Ok;
     }
+
+
+    Common::RResult ShaderBuilder::saveLibrary(const LibraryBuildDesc& desc)
+    {
+        std::cout << "Save shader library: " << desc.outputFile << std::endl;
+
+        std::ofstream file(desc.outputFile, std::ios::binary);
+        if (!file.is_open())
+        {
+            std::cerr << "Failed to open file: " << desc.outputFile << std::endl;
+            return Common::RResult::Fail;
+        }
+
+        Header header;
+        header.magic = Header::MAGIC;
+        header.version = Header::VERSION;
+        header.stringSectionSize = -1;
+        header.stringsCount = stringsCount;
+        header.effectsSectionSize = -1;
+        header.effectsCount = effects.size();
+        header.shadersSectionSize = -1;
+        header.shadersCount = shaders.size();
+
+        // Header
+        file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+        // Strings
+        for(auto& chunk : stringAllocator)
+            file.write(reinterpret_cast<const char*>(chunk.buffer.get()), chunk.allocated);
+
+        // Shaders
+        for(auto& shader : shaders)
+        {
+            uint32_t shaderSize = shader.source->getBufferSize();
+            file.write(reinterpret_cast<const char*>(&shaderSize), sizeof(shaderSize));
+            file.write(reinterpret_cast<const char*>(shader.source->getBufferPointer()), shaderSize);
+        }
+
+        // Effects
+        for(auto& effect : effects)
+        {
+            file.write(reinterpret_cast<const char*>(&effect.effectDesc), sizeof(EffectDesc));
+
+            for(auto& pass : effect.passes)
+                file.write(reinterpret_cast<const char*>(&pass), sizeof(PassDesc));
+        }
+
+        file.close();
+        return Common::RResult::Ok;
+    }
+
 }
