@@ -26,6 +26,7 @@ namespace RR::GAPI
         RayIntersection,
         Callable,
         Tile, // METAL only
+        Count
     };
 
     struct ShaderDesc
