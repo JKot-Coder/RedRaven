@@ -4,24 +4,25 @@ namespace RR::Common
 {
     class ChunkAllocator final : public Common::NonCopyable
     {
-    private:
-        static constexpr inline size_t MAX_CHUNK_SIZE = 1 << 28;
-
+    public:
         struct Chunk
         {
             std::unique_ptr<std::byte[]> buffer;
             std::size_t size;
+            std::size_t allocated;
 
-            Chunk(std::size_t size) : buffer(new std::byte[size]), size(size) { ASSERT(IsAlignedTo(buffer.get(), alignof(std::max_align_t))); }
+            Chunk(std::size_t size) : buffer(new std::byte[size]), size(size), allocated(0) { ASSERT(IsAlignedTo(buffer.get(), alignof(std::max_align_t))); }
             Chunk(Chunk&& other) noexcept : buffer(std::move(other.buffer)), size(other.size) { }
             Chunk(const Chunk&) = delete;
             Chunk& operator=(const Chunk&) = delete;
         };
 
-        std::size_t offset;
+    private:
+        static constexpr inline size_t MAX_CHUNK_SIZE = 1 << 28;
+
         std::vector<Chunk> chunks;
 
-        const Chunk& getCurrentChunk() { return chunks.back(); }
+        Chunk& getCurrentChunk() { return chunks.back(); }
 
         void addNewChunk(size_t size)
         {
@@ -30,7 +31,6 @@ namespace RR::Common
             ASSERT(IsPowerOfTwo(size));
 
             chunks.emplace_back(size);
-            offset = 0;
         };
 
     public:
@@ -50,7 +50,7 @@ namespace RR::Common
 
             if (chunks.size() == 1 && totalCapasity == chunks.front().size)
             {
-                offset = 0;
+                chunks.front().allocated = 0;
                 return;
             }
 
@@ -62,8 +62,8 @@ namespace RR::Common
         {
             ASSERT(size < MAX_CHUNK_SIZE);
 
-            const Chunk& chunk = getCurrentChunk();
-            std::size_t alignedOffset = AlignTo(offset, alignment);
+            Chunk& chunk = getCurrentChunk();
+            std::size_t alignedOffset = AlignTo(chunk.allocated, alignment);
 
             if UNLIKELY (alignedOffset + size > chunk.size)
             {
@@ -74,7 +74,7 @@ namespace RR::Common
                 return allocate(size, alignment);
             }
             std::byte* ptr = chunk.buffer.get() + alignedOffset;
-            offset = alignedOffset + size;
+            chunk.allocated = alignedOffset + size;
             return ptr;
         }
 
