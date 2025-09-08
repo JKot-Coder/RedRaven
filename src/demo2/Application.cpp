@@ -18,8 +18,7 @@
 
 #include "render/DeviceContext.hpp"
 #include "render/CommandContext.hpp"
-
-#include "effect_asset/EffectLibrary.hpp"
+#include "render/EffectManager.hpp"
 
 #include "common/Result.hpp"
 
@@ -95,6 +94,7 @@ namespace RR::App
 
     void Init(Ecs::World& world)
     {
+        UNUSED(VSSource, PSSource);
         world.System()
             .OnEvent<Ecs::WindowModule::Window::OnClose>()
             .With<Ecs::WindowModule::Window>()
@@ -206,13 +206,14 @@ namespace RR::App
         auto& deviceContext = Render::DeviceContext::Instance();
         deviceContext.Init(description);
 
-
-        EffectAsset::EffectLibrary effectsLib;
-        if(RR_FAILED(effectsLib.Load("CompiledShaders.rfxlib")))
+        Render::EffectManager::Instance();
+        if(RR_FAILED(Render::EffectManager::Instance().Init("CompiledShaders.rfxlib")))
         {
-            LOG_ERROR("Failed to load effects library");
+            LOG_ERROR("Failed to load effects library CompiledShaders.rfxlib");
             return 1;
         }
+
+        auto effect = Render::EffectManager::Instance().Load("triangle");
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
 
@@ -229,8 +230,6 @@ namespace RR::App
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
-
-        auto effect = deviceContext.CreateEffect("test", VSSource, PSSource);
 
         while (!applicationInstance->quit)
         {
