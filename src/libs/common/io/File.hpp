@@ -31,6 +31,7 @@ namespace RR::Common
             bool IsOpen() const { return handle_ != InvalidHandle; }
 
             size_t Write(const void* buffer, size_t byteSize) const;
+            size_t Read(void* buffer, size_t byteSize) const;
         };
     }
 }
