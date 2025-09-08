@@ -126,6 +126,7 @@ namespace RR::App
         swapChainDesc.width = description.width;
         swapChainDesc.height = description.height;
         swapChainDesc.bufferCount = BACK_BUFFER_COUNT;
+        swapChainDesc.isStereo = false;
         swapChainDesc.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
         swapChainDesc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
