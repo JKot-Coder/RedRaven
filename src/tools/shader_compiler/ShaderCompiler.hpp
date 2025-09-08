@@ -29,6 +29,7 @@ namespace RR  {
             session.setNull();
         }
 
+        std::string name;
         GAPI::ShaderType type;
         Slang::ComPtr<slang::IBlob> source;
         Slang::ComPtr<slang::ISession> session; // Sources alive until session alive.

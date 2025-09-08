@@ -118,7 +118,15 @@ namespace RR
     uint32_t ShaderBuilder::pushShader(ShaderResult&& shader)
     {
         uint32_t index = shaders.size();
-        shaders.emplace_back(std::move(shader));
+
+        Asset::ShaderDesc shaderDesc;
+        shaderDesc.header.nameIndex = pushString(shader.name);
+        shaderDesc.header.type = shader.type;
+        shaderDesc.header.size = shader.source->getBufferSize();
+        shaderDesc.data = reinterpret_cast<const std::byte*>(shader.source->getBufferPointer());
+
+        shaderResults.emplace_back(std::move(shader));
+        shaders.emplace_back(std::move(shaderDesc));
         return index;
     }
 
@@ -257,7 +265,7 @@ namespace RR
 
         uint32_t shadersSectionSize = 0;
         for(auto& shader : shaders)
-            shadersSectionSize += shader.source->getBufferSize() + sizeof(uint32_t);
+            shadersSectionSize += shader.header.size + sizeof(shader.header);
 
         uint32_t effectsSectionSize = 0;
         for(auto& effect : effects)
@@ -281,11 +289,10 @@ namespace RR
             file.write(reinterpret_cast<const char*>(chunk.buffer.get()), chunk.allocated);
 
         // Shaders
-        for(auto& shader : shaders)
+        for (auto& shader : shaders)
         {
-            uint32_t shaderSize = shader.source->getBufferSize();
-            file.write(reinterpret_cast<const char*>(&shaderSize), sizeof(shaderSize));
-            file.write(reinterpret_cast<const char*>(shader.source->getBufferPointer()), shaderSize);
+            file.write(reinterpret_cast<const char*>(&shader.header), sizeof(Asset::ShaderDesc::Header));
+            file.write(reinterpret_cast<const char*>(shader.data), shader.header.size);
         }
 
         // Effects

@@ -152,6 +152,7 @@ namespace RR  {
             ShaderResult shaderResult;
             shaderResult.type = getShaderType(stage);
             shaderResult.session = session;
+            shaderResult.name = layoutPtr->getEntryPointByIndex(i)->getName();
             if (SLANG_FAILED(linkedProgram->getEntryPointCode(i, 0, shaderResult.source.writeRef(), diagnostics.writeRef())))
             {
                 if (diagnostics)

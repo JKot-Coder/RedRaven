@@ -77,25 +77,25 @@ namespace RR::EffectLibrary
 
         for(uint32_t i = 0; i < header.shadersCount; i++)
         {
-            uint32_t shaderSize;
-            if(file.Read(reinterpret_cast<void*>(&shaderSize), sizeof(shaderSize)) != sizeof(shaderSize))
+            Asset::ShaderDesc::Header header;
+            if(file.Read(reinterpret_cast<void*>(&header), sizeof(header)) != sizeof(header))
             {
-                LOG_ERROR("Failed to read shader size: {}", i);
+                LOG_ERROR("Failed to read shader header: {}", i);
                 return Common::RResult::Fail;
             }
 
-            auto shaderData = eastl::make_unique<std::byte[]>(shaderSize);
-            if(file.Read(reinterpret_cast<void*>(shaderData.get()), shaderSize) != shaderSize)
+            auto shaderData = eastl::make_unique<std::byte[]>(header.size);
+            if(file.Read(reinterpret_cast<void*>(shaderData.get()), header.size) != header.size)
             {
                 LOG_ERROR("Failed to read shader data: {}", i);
                 return Common::RResult::Fail;
             }
 
             ShaderDesc shaderDesc;
-            shaderDesc.name = nullptr;
-            shaderDesc.type = GAPI::ShaderType::Count;
+            shaderDesc.name = getString(header.nameIndex);
+            shaderDesc.type = header.type;
             shaderDesc.data = shaderData.get();
-            shaderDesc.size = shaderSize;
+            shaderDesc.size = header.size;
 
             shadersData.emplace_back(eastl::move(shaderData));
             shaders.emplace_back(eastl::move(shaderDesc));

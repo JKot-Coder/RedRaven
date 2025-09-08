@@ -40,7 +40,8 @@ namespace RR
 
     private:
         eastl::vector<EffectLibrary::Asset::EffectDesc> effects;
-        eastl::vector<ShaderResult> shaders;
+        eastl::vector<EffectLibrary::Asset::ShaderDesc> shaders;
+        eastl::vector<ShaderResult> shaderResults;
         Common::ChunkAllocator stringAllocator;
         uint32_t stringsCount = 0;
     };

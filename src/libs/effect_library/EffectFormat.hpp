@@ -22,6 +22,17 @@ namespace RR::EffectLibrary
             uint32_t effectsCount;
         };
 
+        struct ShaderDesc
+        {
+            struct Header
+            {
+                uint32_t nameIndex;
+                GAPI::ShaderType type;
+                uint32_t size;
+            } header;
+            const std::byte* data;
+        };
+
         static constexpr inline uint32_t INVALID_SHADER_INDEX = static_cast<uint32_t>(-1);
         struct PassDesc
         {
@@ -38,8 +49,7 @@ namespace RR::EffectLibrary
             {
                 uint32_t nameIndex;
                 uint32_t passCount;
-            };
-            Header header;
+            } header;
             std::vector<PassDesc> passes;
         };
         #pragma pack(pop)
