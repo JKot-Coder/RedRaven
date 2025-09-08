@@ -29,10 +29,10 @@ namespace RR
         uint32_t version;
         uint32_t stringSectionSize;
         uint32_t stringsCount;
-        uint32_t effectsSectionSize;
-        uint32_t effectsCount;
         uint32_t shadersSectionSize;
         uint32_t shadersCount;
+        uint32_t effectsSectionSize;
+        uint32_t effectsCount;
     };
 
     struct EffectDesc

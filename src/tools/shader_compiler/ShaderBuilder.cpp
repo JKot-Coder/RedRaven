@@ -250,15 +250,27 @@ namespace RR
             return Common::RResult::Fail;
         }
 
+        uint32_t stringSectionSize = 0;
+        for(auto& chunk : stringAllocator)
+            stringSectionSize += chunk.allocated;
+
+        uint32_t shadersSectionSize = 0;
+        for(auto& shader : shaders)
+            shadersSectionSize += shader.source->getBufferSize() + sizeof(uint32_t);
+
+        uint32_t effectsSectionSize = 0;
+        for(auto& effect : effects)
+            effectsSectionSize += sizeof(EffectDesc) + effect.passes.size() * sizeof(PassDesc);
+
         Header header;
         header.magic = Header::MAGIC;
         header.version = Header::VERSION;
-        header.stringSectionSize = -1;
+        header.stringSectionSize = stringSectionSize;
         header.stringsCount = stringsCount;
-        header.effectsSectionSize = -1;
-        header.effectsCount = effects.size();
-        header.shadersSectionSize = -1;
+        header.shadersSectionSize = shadersSectionSize;
         header.shadersCount = shaders.size();
+        header.effectsSectionSize = effectsSectionSize;
+        header.effectsCount = effects.size();
 
         // Header
         file.write(reinterpret_cast<const char*>(&header), sizeof(header));
