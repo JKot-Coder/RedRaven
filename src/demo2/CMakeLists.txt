@@ -12,6 +12,7 @@ set(LIBRARIES
     ecs_window
     render
     shader
+    effect_asset
 )
 
 #=============================== Target ===============================#

@@ -19,6 +19,10 @@
 #include "render/DeviceContext.hpp"
 #include "render/CommandContext.hpp"
 
+#include "effect_asset/EffectLibrary.hpp"
+
+#include "common/Result.hpp"
+
 namespace RR::App
 {
 
@@ -200,6 +204,14 @@ namespace RR::App
         GAPI::DeviceDesc description;
         auto& deviceContext = Render::DeviceContext::Instance();
         deviceContext.Init(description);
+
+
+        EffectAsset::EffectLibrary effectsLib;
+        if(RR_FAILED(effectsLib.Load("CompiledShaders.rfxlib")))
+        {
+            LOG_ERROR("Failed to load effects library");
+            return 1;
+        }
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
 
