@@ -17,6 +17,11 @@ namespace RR::Common::Hashing::Default
         return Wyhash::Hash<HashBits>(data, static_cast<uint32_t>(len));
     }
 
+    constexpr HashType Hash(const char* str)
+    {
+        return Wyhash::Hash<HashBits>(str, std::char_traits<char>::length(str));
+    }
+
     template <typename T>
     constexpr HashType Hash(const T& value)
     {
