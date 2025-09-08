@@ -239,8 +239,8 @@ namespace RR::GAPI
         eastl::array<GpuResourceFormat, MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
         GpuResourceFormat depthStencilFormat = GpuResourceFormat::Unknown;
 
-        Shader* vs = nullptr;
-        Shader* ps = nullptr;
+        const Shader* vs = nullptr;
+        const Shader* ps = nullptr;
     };
 
     class IPipelineState

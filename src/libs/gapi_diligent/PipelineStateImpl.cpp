@@ -121,13 +121,16 @@ namespace RR::GAPI::Diligent
         return dlDesc;
     }
 
-
     DL::GraphicsPipelineStateCreateInfo getGraphicPipelineStateCreateInfo(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name)
     {
         DL::GraphicsPipelineStateCreateInfo createInfo(name.c_str());
         createInfo.GraphicsPipeline = getGraphicsPipelineDesc(desc);
-        createInfo.pVS = static_cast<ShaderImpl*>(desc.vs->GetPrivateImpl())->GetShader();
-        createInfo.pPS = static_cast<ShaderImpl*>(desc.ps->GetPrivateImpl())->GetShader();
+
+        ASSERT_MSG(desc.vs, "VS is not set in pipeline state: \"{}\"", name);
+        ASSERT_MSG(desc.ps, "PS is not set in pipeline state: \"{}\"", name);
+
+        createInfo.pVS = static_cast<const ShaderImpl*>(desc.vs->GetPrivateImpl())->GetShader();
+        createInfo.pPS = static_cast<const ShaderImpl*>(desc.ps->GetPrivateImpl())->GetShader();
         return createInfo;
     }
 
