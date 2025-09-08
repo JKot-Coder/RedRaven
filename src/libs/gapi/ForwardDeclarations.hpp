@@ -9,6 +9,7 @@ namespace RR
 
         class Shader;
         struct ShaderDesc;
+        enum class ShaderType : uint8_t;
 
         class PipelineState;
         class IPipelineState;

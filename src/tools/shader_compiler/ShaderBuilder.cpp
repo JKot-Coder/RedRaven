@@ -141,8 +141,8 @@ namespace RR
                 std::cout << "Effect: " << effect.key() << std::endl;
 
                 effects.push_back();
-                EffectDesc& effectDesc = effects.back().effectDesc;
-                effectDesc.nameIndex = pushString(effect.key());
+                Effect::EffectDesc& effectDesc = effects.back();
+                effectDesc.header.nameIndex = pushString(effect.key());
                 auto& passes = effects.back().passes;
 
                 for(auto& passKV :effect.value().items())
@@ -155,9 +155,9 @@ namespace RR
                     if(renderState.empty())
                         throw std::runtime_error("Render state is empty for pass: " + passKey);
 
-                    PassDesc passDesc;
+                    Effect::PassDesc passDesc;
                     passDesc.nameIndex = pushString(passKey);
-                    passDesc.shaderIndexes.fill(INVALID_SHADER_INDEX);
+                    passDesc.shaderIndexes.fill(Effect::INVALID_SHADER_INDEX);
                     evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
                     ShaderCompileDesc shaderCompileDesc;
@@ -188,7 +188,7 @@ namespace RR
                     passes.push_back(std::move(passDesc));
                 }
 
-                effectDesc.passCount = passes.size();
+                effectDesc.header.passCount = passes.size();
             }
         }
         catch(const std::exception& e)
@@ -260,11 +260,11 @@ namespace RR
 
         uint32_t effectsSectionSize = 0;
         for(auto& effect : effects)
-            effectsSectionSize += sizeof(EffectDesc) + effect.passes.size() * sizeof(PassDesc);
+            effectsSectionSize += sizeof(Effect::EffectDesc::Header) + effect.passes.size() * sizeof(Effect::PassDesc);
 
-        Header header;
-        header.magic = Header::MAGIC;
-        header.version = Header::VERSION;
+        Effect::Header header;
+        header.magic = Effect::Header::MAGIC;
+        header.version = Effect::Header::VERSION;
         header.stringSectionSize = stringSectionSize;
         header.stringsCount = stringsCount;
         header.shadersSectionSize = shadersSectionSize;
@@ -290,10 +290,10 @@ namespace RR
         // Effects
         for(auto& effect : effects)
         {
-            file.write(reinterpret_cast<const char*>(&effect.effectDesc), sizeof(EffectDesc));
+            file.write(reinterpret_cast<const char*>(&effect.header), sizeof(Effect::EffectDesc::Header));
 
             for(auto& pass : effect.passes)
-                file.write(reinterpret_cast<const char*>(&pass), sizeof(PassDesc));
+                file.write(reinterpret_cast<const char*>(&pass), sizeof(Effect::PassDesc));
         }
 
         file.close();
