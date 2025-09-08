@@ -10,22 +10,11 @@ namespace RR::Render
 {
     Effect::~Effect(){};
 
-    Effect::Effect(const std::string& name, const std::string& vsSource, const std::string& psSource) {
-        auto& deviceContext = DeviceContext::Instance();
+    Effect::Effect(const std::string& name, EffectDesc&& effectDesc)
+    {
+        UNUSED(name);
 
-        // TODO: load shaders from resource
-        GAPI::ShaderDesc vsShaderDesc;
-        vsShaderDesc.type = GAPI::ShaderType::Vertex;
-        vsShaderDesc.entryPoint = "main";
-        vsShaderDesc.source = vsSource;
-
-        GAPI::ShaderDesc psShaderDesc;
-        psShaderDesc.type = GAPI::ShaderType::Pixel;
-        psShaderDesc.entryPoint = "main";
-        psShaderDesc.source = psSource;
-
-        vsShader = deviceContext.CreateShader(vsShaderDesc, name + ".vs");
-        psShader = deviceContext.CreateShader(psShaderDesc, name + ".ps");
+        this->effectDesc = std::move(effectDesc);
     }
 
     void combineGraphicsParamsHash(PsoHashType& psoHash, const GraphicsParams& params)
@@ -63,9 +52,11 @@ namespace RR::Render
         for(size_t i = 0; i < params.renderTargetCount; ++i)
             graphicPSODesc.renderTargetFormats[i] = params.renderTargetFormats[i];
 
+        ASSERT(effectDesc.passes.size() == 1);
+        auto& pass = effectDesc.passes[0]; // TODO
         graphicPSODesc.depthStencilFormat = params.depthStencilFormat;
-        graphicPSODesc.vs = vsShader.get();
-        graphicPSODesc.ps = psShader.get();
+        graphicPSODesc.vs = pass.shaders[eastl::to_underlying(GAPI::ShaderType::Vertex)];
+        graphicPSODesc.ps = pass.shaders[eastl::to_underlying(GAPI::ShaderType::Pixel)];
 
         const auto& deviceContext = DeviceContext::Instance();
         GAPI::GraphicPipelineState::UniquePtr pipelineState = deviceContext.CreatePipelineState(graphicPSODesc, "Effect");

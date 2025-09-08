@@ -4,6 +4,7 @@
 #include "gapi/GpuResource.hpp"
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/PipelineState.hpp"
+#include "gapi/Shader.hpp"
 
 #include "absl/container/flat_hash_map.h"
 
@@ -20,6 +21,21 @@ namespace RR::Render
         GAPI::GpuResourceFormat depthStencilFormat;
     };
 
+
+    struct EffectDesc
+    {
+        struct PassDesc
+        {
+            const char* name;
+            GAPI::RasterizerDesc rasterizerDesc;
+            GAPI::DepthStencilDesc depthStencilDesc;
+            GAPI::BlendDesc blendDesc;
+            eastl::array<const GAPI::Shader*, eastl::to_underlying(GAPI::ShaderType::Count)> shaders;
+        };
+
+        eastl::vector<PassDesc> passes;
+    };
+
     class Effect
     {
     public:
@@ -32,16 +48,15 @@ namespace RR::Render
     private:
         friend class DeviceContext;
 
-        Effect(const std::string& name, const std::string& vsSource, const std::string& psSource);
+        Effect(const std::string& name, EffectDesc&& effectDesc);
 
-        static UniquePtr Create(const std::string& name, const std::string& vsSource, const std::string& psSource)
+        static UniquePtr Create(const std::string& name, EffectDesc&& effectDesc)
         {
-            return UniquePtr(new Effect(name, vsSource, psSource));
+            return eastl::unique_ptr<Effect>(new Effect(name, std::move(effectDesc)));
         }
 
     private:
-        eastl::unique_ptr<GAPI::Shader> vsShader;
-        eastl::unique_ptr<GAPI::Shader> psShader;
+        EffectDesc effectDesc;
         absl::flat_hash_map<PsoHashType, eastl::unique_ptr<GAPI::PipelineState>> pipelineStates;
     };
 

@@ -78,10 +78,11 @@ namespace RR::Render
         return resource;
     }
 
-    Render::Effect::UniquePtr DeviceContext::CreateEffect(const std::string& name, const std::string& vsSource, const std::string& psSource) const
+    Render::Effect::UniquePtr DeviceContext::CreateEffect(const std::string& name, EffectDesc&& effectDesc) const
     {
         ASSERT(inited);
-        return Render::Effect::Create(name, vsSource, psSource);
+        // Why it's here?
+        return Render::Effect::Create(name, eastl::move(effectDesc));
     }
 
     GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const
@@ -204,6 +205,9 @@ namespace RR::Render
     GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
+
+        ASSERT_MSG(desc.vs, "VS is not set in graphic pipeline state: \"{}\"", name);
+        ASSERT_MSG(desc.ps, "PS is not set in graphic pipeline state: \"{}\"", name);
 
         auto resource = GAPI::GraphicPipelineState::Create(desc, name);
         device->InitPipelineState(*resource.get());
