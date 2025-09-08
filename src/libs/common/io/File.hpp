@@ -26,7 +26,7 @@ namespace RR::Common
         public:
             ~File();
 
-            RResult Open(const std::string_view& path, FileOpenMode accessMode);
+            RResult Open(std::string_view path, FileOpenMode accessMode);
             void Close();
             bool IsOpen() const { return handle_ != InvalidHandle; }
 

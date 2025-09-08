@@ -10,7 +10,7 @@ namespace RR::Common::IO
 {
     File::~File() { Close(); }
 
-    RResult File::Open(const std::string_view& path, FileOpenMode openMode)
+    RResult File::Open(std::string_view path, FileOpenMode openMode)
     {
         Close();
 

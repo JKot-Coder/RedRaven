@@ -52,7 +52,7 @@ namespace RR::Common
                 return utf8::utf8to32(start, end, result);
         }
 
-        inline std::wstring UTF8ToWide(const std::string_view& view)
+        inline std::wstring UTF8ToWide(std::string_view view)
         {
             std::wstring result;
 
