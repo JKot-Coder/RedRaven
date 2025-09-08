@@ -1,8 +1,8 @@
-project(effect)
+project(effect_asset)
 
 set(SRC
-    EffectsLib.cpp
-    EffectsLib.hpp)
+    EffectLibrary.cpp
+    EffectLibrary.hpp)
 source_group( "" FILES ${SRC} )
 
 set(SRC

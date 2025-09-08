@@ -3,7 +3,7 @@
 #include "gapi/Shader.hpp"
 #include "gapi/PipelineState.hpp"
 
-namespace RR::Effect
+namespace RR::EffectAsset
 {
     #pragma pack(push, 1)
     struct Header
@@ -38,15 +38,7 @@ namespace RR::Effect
             uint32_t passCount;
         };
         Header header;
-        std::vector<Effect::PassDesc> passes;
+        std::vector<EffectAsset::PassDesc> passes;
     };
-
     #pragma pack(pop)
-
-    class EffectsLib
-    {
-    public:
-        EffectsLib();
-        ~EffectsLib();
-    };
 }

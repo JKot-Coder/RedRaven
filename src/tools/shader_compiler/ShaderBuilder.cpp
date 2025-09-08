@@ -141,7 +141,7 @@ namespace RR
                 std::cout << "Effect: " << effect.key() << std::endl;
 
                 effects.push_back();
-                Effect::EffectDesc& effectDesc = effects.back();
+                EffectAsset::EffectDesc& effectDesc = effects.back();
                 effectDesc.header.nameIndex = pushString(effect.key());
                 auto& passes = effects.back().passes;
 
@@ -155,9 +155,9 @@ namespace RR
                     if(renderState.empty())
                         throw std::runtime_error("Render state is empty for pass: " + passKey);
 
-                    Effect::PassDesc passDesc;
+                    EffectAsset::PassDesc passDesc;
                     passDesc.nameIndex = pushString(passKey);
-                    passDesc.shaderIndexes.fill(Effect::INVALID_SHADER_INDEX);
+                    passDesc.shaderIndexes.fill(EffectAsset::INVALID_SHADER_INDEX);
                     evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
                     ShaderCompileDesc shaderCompileDesc;
@@ -260,11 +260,11 @@ namespace RR
 
         uint32_t effectsSectionSize = 0;
         for(auto& effect : effects)
-            effectsSectionSize += sizeof(Effect::EffectDesc::Header) + effect.passes.size() * sizeof(Effect::PassDesc);
+            effectsSectionSize += sizeof(EffectAsset::EffectDesc::Header) + effect.passes.size() * sizeof(EffectAsset::PassDesc);
 
-        Effect::Header header;
-        header.magic = Effect::Header::MAGIC;
-        header.version = Effect::Header::VERSION;
+        EffectAsset::Header header;
+        header.magic = EffectAsset::Header::MAGIC;
+        header.version = EffectAsset::Header::VERSION;
         header.stringSectionSize = stringSectionSize;
         header.stringsCount = stringsCount;
         header.shadersSectionSize = shadersSectionSize;
@@ -290,10 +290,10 @@ namespace RR
         // Effects
         for(auto& effect : effects)
         {
-            file.write(reinterpret_cast<const char*>(&effect.header), sizeof(Effect::EffectDesc::Header));
+            file.write(reinterpret_cast<const char*>(&effect.header), sizeof(EffectAsset::EffectDesc::Header));
 
             for(auto& pass : effect.passes)
-                file.write(reinterpret_cast<const char*>(&pass), sizeof(Effect::PassDesc));
+                file.write(reinterpret_cast<const char*>(&pass), sizeof(EffectAsset::PassDesc));
         }
 
         file.close();

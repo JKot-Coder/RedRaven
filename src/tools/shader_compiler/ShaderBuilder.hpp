@@ -6,7 +6,7 @@
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
 
-#include "effect/EffectsLib.hpp"
+#include "effect_asset/EffectFormat.hpp"
 
 #include "nlohmann/json_fwd.hpp"
 #include <common/ChunkAllocator.hpp>
@@ -39,7 +39,7 @@ namespace RR
         uint32_t pushShader(ShaderResult&& shader);
 
     private:
-        eastl::vector<Effect::EffectDesc> effects;
+        eastl::vector<EffectAsset::EffectDesc> effects;
         eastl::vector<ShaderResult> shaders;
         Common::ChunkAllocator stringAllocator;
         uint32_t stringsCount = 0;
