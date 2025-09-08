@@ -2,7 +2,7 @@ local RenderStates = import "renderStates.jsonnet";
 local ColorMask = import "colorMask.jsonnet";
 
 {
-    basicEffect:
+    triangle:
     {
         mainPass:{
             renderState: RenderStates.default + {
