@@ -53,7 +53,6 @@ namespace RR::GAPI
         uint8_t stencilClearValue;
     };
 
-
     struct RenderPassDesc
     {
     private:
@@ -64,24 +63,26 @@ namespace RR::GAPI
 
         [[nodiscard]] static BuilderImpl Builder();
 
+        uint32_t colorAttachmentCount;
         eastl::array<ColorAttachmentDesc, MaxColorAttachments> colorAttachments;
         DepthStencilAttachmentDesc depthStencilAttachment;
     };
 
     struct RenderPassDesc::BuilderImpl
     {
-        BuilderImpl& AddColorAttachment(const RenderTargetView* renderTargetView, AttachmentLoadOp loadOp = AttachmentLoadOp::Load, Vector4 clearColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f), AttachmentStoreOp storeOp = AttachmentStoreOp::Store)
+        BuilderImpl& ColorAttachment(uint32_t index, const RenderTargetView* renderTargetView, AttachmentLoadOp loadOp = AttachmentLoadOp::Load, Vector4 clearColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f), AttachmentStoreOp storeOp = AttachmentStoreOp::Store)
         {
             ASSERT(renderTargetView);
-            ASSERT(colorAttachmentCount < desc.colorAttachments.size());
-            desc.colorAttachments[colorAttachmentCount] = ColorAttachmentDesc {renderTargetView, loadOp, storeOp, clearColor};
-            colorAttachmentCount++;
+            ASSERT(index < desc.colorAttachments.size());
+            ASSERT(desc.colorAttachments[index].renderTargetView == nullptr);
+
+            desc.colorAttachments[index] = ColorAttachmentDesc {renderTargetView, loadOp, storeOp, clearColor};
+            desc.colorAttachmentCount = eastl::max(desc.colorAttachmentCount, index + 1);
             return *this;
         }
 
-        BuilderImpl& AddDepthStencilAttachment(const DepthStencilView* depthStencilView, AttachmentLoadOp loadOp = AttachmentLoadOp::Load, DepthStencilClearFlags clearFlags = DepthStencilClearFlags::None, float depthClearValue = 0.0f, uint8_t stencilClearValue = 0, AttachmentStoreOp storeOp = AttachmentStoreOp::Store)
+        BuilderImpl& DepthStencilAttachment(const DepthStencilView* depthStencilView, AttachmentLoadOp loadOp = AttachmentLoadOp::Load, DepthStencilClearFlags clearFlags = DepthStencilClearFlags::None, float depthClearValue = 0.0f, uint8_t stencilClearValue = 0, AttachmentStoreOp storeOp = AttachmentStoreOp::Store)
         {
-
             ASSERT(depthStencilView);
             ASSERT((loadOp == AttachmentLoadOp::Clear && clearFlags != DepthStencilClearFlags::None) ||
                    (loadOp != AttachmentLoadOp::Clear && clearFlags == DepthStencilClearFlags::None));
@@ -101,12 +102,12 @@ namespace RR::GAPI
 #if ENABLE_ASSERTS
         void AssertValid() const
         {
-            ASSERT(colorAttachmentCount < desc.colorAttachments.size());
+            ASSERT(desc.colorAttachmentCount < desc.colorAttachments.size());
 
             static constexpr uint32_t INVALID_SIZE = -1;
             uint32_t width = INVALID_SIZE, height = INVALID_SIZE, depth = INVALID_SIZE;
             GpuResourceDimension dimension = GpuResourceDimension::Count;
-            for (uint32_t i = 0; i < colorAttachmentCount; i++)
+            for (uint32_t i = 0; i < desc.colorAttachmentCount; i++)
             {
                 const auto* renderTargetView = desc.colorAttachments[i].renderTargetView;
                 if (renderTargetView == nullptr)
@@ -154,7 +155,6 @@ namespace RR::GAPI
 #endif
 
     private:
-        uint32_t colorAttachmentCount = 0;
         RenderPassDesc desc;
     };
 

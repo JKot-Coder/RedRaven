@@ -191,8 +191,8 @@ namespace RR::App
             world.Tick();
 
             const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
-                                            .AddColorAttachment(swapChain->GetCurrentBackBufferTexture()->GetRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
-                                            .AddDepthStencilAttachment(swapChain->GetDepthBufferTexture()->GetDSV(), GAPI::AttachmentLoadOp::Clear, GAPI::DepthStencilClearFlags::Depth | GAPI::DepthStencilClearFlags::Stencil, 1.0f, 0, GAPI::AttachmentStoreOp::Store)
+                                            .ColorAttachment(0, swapChain->GetCurrentBackBufferTexture()->GetRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
+                                            .DepthStencilAttachment(swapChain->GetDepthBufferTexture()->GetDSV(), GAPI::AttachmentLoadOp::Clear, GAPI::DepthStencilClearFlags::Depth | GAPI::DepthStencilClearFlags::Stencil, 1.0f, 0, GAPI::AttachmentStoreOp::Store)
                                             .Build();
 
             ctx->SetRenderPass(renderPassDesc);

@@ -13,11 +13,10 @@ namespace RR::Render
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
 
-        // TODO THIS IS WRONG, need to calc colorAttachments properly;
-        graphicsParams.renderTargetCount = renderPass.colorAttachments.size();
+        graphicsParams.renderTargetCount = renderPass.colorAttachmentCount;
 
         ASSERT( graphicsParams.renderTargetFormats.size()  == graphicsParams.renderTargetFormats.size());
-        for(size_t i = 0; i < graphicsParams.renderTargetCount; ++i)
+        for(size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
         {
             const auto& colorAttachment = renderPass.colorAttachments[i];
             const auto* renderTargetView = colorAttachment.renderTargetView;

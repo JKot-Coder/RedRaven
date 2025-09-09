@@ -49,6 +49,7 @@ namespace RR::Render
 
         graphicPSODesc.renderTargetCount = params.renderTargetCount;
 
+        // Todo maybe we need to check real shaders outputs here.
         for(size_t i = 0; i < params.renderTargetCount; ++i)
             graphicPSODesc.renderTargetFormats[i] = params.renderTargetFormats[i];
 
