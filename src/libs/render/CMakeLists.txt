@@ -9,6 +9,8 @@ set(SRC
     Effect.cpp
     EffectManager.cpp
     EffectManager.hpp
+    Submission.cpp
+    Submission.hpp
 )
 source_group( "" FILES ${SRC} )
 
