@@ -44,7 +44,7 @@ namespace RR
                 if (full())
                     throw std::out_of_range("RingQueue is full");
 
-                new (&back()) T(std::forward<Args>(args)...);
+                new ((void*)back_) T(std::forward<Args>(args)...);
                 increment(back_);
                 ++size_;
             }
