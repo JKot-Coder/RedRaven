@@ -3,9 +3,6 @@
 #include "common/RingQueue.hpp"
 #include "common/threading/Mutex.hpp"
 
-#include <atomic>
-#include <optional>
-
 namespace RR::Common::Threading
 {
     template <typename T, std::size_t BufferSize>
@@ -13,76 +10,138 @@ namespace RR::Common::Threading
     {
     public:
         BlockingRingQueue() = default;
+        // Note: The queue should not be accessed concurrently while it's
+        // being deleted. It's up to the user to synchronize this.
         ~BlockingRingQueue() = default;
 
-        inline void Put(const T& obj)
+        bool TryPush(const T& obj)
         {
-            if (closed_)
-                return;
-
-            Threading::UniqueLock<Threading::Mutex> lock(mutex_);
-
-            if (buffer_.full())
             {
-                outputWait_.wait(lock, [&]() { return !buffer_.full() || closed_; });
-                if (closed_)
-                    return;
-            }
+                Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
 
-            buffer_.push_back(obj);
-            inputWait_.notify_one();
+                if (buffer.full())
+                    return false;
+
+                buffer.push_back(obj);
+            }
+            notEmpty.notify_one();
+            return true;
         }
 
-        inline std::optional<T> GetNext()
+        bool TryPush(T&& obj)
         {
-            Threading::UniqueLock<Threading::Mutex> lock(mutex_);
-
-            if (buffer_.empty())
             {
-                if (closed_)
-                    return std::nullopt;
+                Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
 
-                inputWait_.wait(lock, [&]() { return !buffer_.empty() || closed_; });
+                if (buffer.full())
+                    return false;
 
-                if (buffer_.empty() && closed_)
-                    return std::nullopt;
+                buffer.push_back(std::move(obj));
             }
-
-            const auto temp = std::make_optional<T>(std::move(buffer_.front()));
-            buffer_.pop_front();
-            outputWait_.notify_one();
-
-            return std::move(temp);
+            notEmpty.notify_one();
+            return true;
         }
 
-        inline std::optional<T> TryGetNext()
+        void Push(const T& obj)
         {
-            Threading::UniqueLock<Threading::Mutex> lock(mutex_);
+            {
+                Threading::UniqueLock<Threading::Mutex> lock(mutex);
+                notFull.wait(lock, [this]() { return !buffer.full(); });
 
-            if (buffer_.empty())
-                return std::nullopt;
-
-            auto temp = std::make_optional<T>(std::move(buffer_.front()));
-            buffer_.pop_front();
-            outputWait_.notify_one();
-
-            return std::move(temp);
+                buffer.push_back(obj);
+            }
+            notEmpty.notify_one();
         }
 
-        inline void Close()
+        void Push(T&& obj)
         {
-            closed_ = true;
-            inputWait_.notify_all();
-            outputWait_.notify_all();
+            {
+                Threading::UniqueLock<Threading::Mutex> lock(mutex);
+                notFull.wait(lock, [this]() { return !buffer.full(); });
+
+                buffer.push_back(std::move(obj));
+            }
+            notEmpty.notify_one();
         }
 
-        inline bool IsClosed() const { return closed_; }
+        template <typename... Args>
+        bool TryEmplace(Args&&... args)
+        {
+            {
+                Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
+
+                if (buffer.full())
+                    return false;
+
+                buffer.emplace_back(std::forward<Args>(args)...);
+            }
+            notEmpty.notify_one();
+            return true;
+        }
+
+        template <typename... Args>
+        void Emplace(Args&&... args)
+        {
+            {
+                Threading::UniqueLock<Threading::Mutex> lock(mutex);
+                notFull.wait(lock, [this]() { return !buffer.full(); });
+
+                buffer.emplace_back(std::forward<Args>(args)...);
+            }
+            notEmpty.notify_one();
+        }
+
+        bool TryPop(T& out)
+        {
+            {
+                Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
+
+                if (buffer.empty())
+                    return false;
+
+                out = std::move(buffer.front());
+                buffer.pop_front();
+            }
+            notFull.notify_one();
+            return true;
+        }
+
+        T Pop()
+        {
+            {
+                Threading::UniqueLock<Threading::Mutex> lock(mutex);
+                notEmpty.wait(lock, [this]() { return !buffer.empty(); });
+
+                T temp = std::move(buffer.front());
+                buffer.pop_front();
+            }
+            notFull.notify_one();
+
+            return temp;
+        }
+
+        bool Empty() const
+        {
+            Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
+            return buffer.empty();
+        }
+
+        bool Full() const
+        {
+            Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
+            return buffer.full();
+        }
+
+        std::size_t Size() const
+        {
+            Threading::ReadWriteGuard<Threading::Mutex> lock(mutex);
+            return buffer.size();
+        }
 
     private:
-        std::atomic<bool> closed_ = false;
-        std::condition_variable inputWait_;
-        std::condition_variable outputWait_;
-        Threading::Mutex mutex_;
-        RingQueue<T, BufferSize> buffer_;
+        std::condition_variable notEmpty;
+        std::condition_variable notFull;
+        mutable Threading::Mutex mutex;
+        RingQueue<T, BufferSize> buffer;
     };
 }
