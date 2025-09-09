@@ -2,83 +2,38 @@
 
 #include <thread>
 
-#ifdef OS_WINDOWS
-#include <windows.h>
-#endif // OS_WINDOWS
-
-#include "common/StringEncoding.hpp"
-
-namespace RR
+namespace RR::Common::Threading
 {
-    namespace Common
+    class Thread : public Common::NonCopyable
     {
-        namespace Threading
+    public:
+        Thread() = default;
+        ~Thread() = default;
+        Thread(Thread&& other) noexcept : thread_(std::move(other.thread_)) {};
+
+        template <class Function, class... Args>
+        explicit Thread(std::string_view threadName, Function&& f, Args&&... args)
+            : thread_(eastl::forward<Function>(f), eastl::forward<Args>(args)...)
         {
-            class Thread : public Common::NonCopyable
-            {
-            public:
-                Thread() = default;
-                ~Thread() = default;
-                Thread(Thread&& other) noexcept : thread_(std::move(other.thread_)) {};
-
-                template <class Function, class... Args>
-                explicit Thread(const std::string& threadName, Function&& f, Args&&... args) : thread_(f, args...) { SetName(threadName); }
-
-                Thread& operator=(Thread&& other) noexcept
-                {
-                    thread_.operator=(std::move(other.thread_));
-                    return *this;
-                }
-
-                inline void SetName(const std::string& threadName)
-                {
-#ifdef OS_WINDOWS
-                    // Todo move to cpp to avoid include stringEncoding
-                    const auto& wThreadName = Common::StringEncoding::UTF8ToWide(threadName);
-                    SetThreadDescription(static_cast<HANDLE>(GetNativeHandle()), wThreadName.c_str());
-#else
-                    ASSERT_MSG(false, "Not implemented");
-#endif
-                }
-
-                inline bool IsJoinable() const noexcept
-                {
-                    return thread_.joinable();
-                }
-
-                inline std::thread::id GetId() const noexcept
-                {
-                    return thread_.get_id();
-                }
-
-                inline std::thread::native_handle_type GetNativeHandle()
-                {
-                    return thread_.native_handle();
-                }
-
-                inline void Join()
-                {
-                    thread_.join();
-                }
-
-                inline void Detach()
-                {
-                    thread_.detach();
-                }
-
-                inline void swap(Thread& other) noexcept
-                {
-                    thread_.swap(other.thread_);
-                }
-
-                inline static unsigned int HardwareConcurrency() noexcept
-                {
-                    return std::thread::hardware_concurrency();
-                }
-
-            private:
-                std::thread thread_;
-            };
+            SetName(threadName);
         }
-    }
+
+        Thread& operator=(Thread&& other) noexcept
+        {
+            thread_.operator=(std::move(other.thread_));
+            return *this;
+        }
+
+        void SetName(std::string_view threadName);
+        bool IsJoinable() const noexcept { return thread_.joinable(); }
+        std::thread::id GetId() const noexcept { return thread_.get_id(); }
+        std::thread::native_handle_type GetNativeHandle() { return thread_.native_handle(); }
+        void Join() { thread_.join(); }
+        void Detach() { thread_.detach(); }
+        void swap(Thread& other) noexcept { thread_.swap(other.thread_); }
+        static unsigned int HardwareConcurrency() noexcept { return std::thread::hardware_concurrency(); }
+
+    private:
+        std::thread thread_;
+    };
 }

@@ -4,6 +4,7 @@ set( THREADING_SRC
 	threading/AccessGuard.hpp
 	threading/BufferedChannel.hpp
     threading/Thread.hpp
+    threading/Thread.cpp
     threading/Event.hpp
     threading/Mutex.hpp
     threading/ConditionVariable.hpp
