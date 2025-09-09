@@ -108,13 +108,14 @@ namespace RR::Common::Threading
 
         T Pop()
         {
-            {
-                Threading::UniqueLock<Threading::Mutex> lock(mutex);
-                notEmpty.wait(lock, [this]() { return !buffer.empty(); });
+            Threading::UniqueLock<Threading::Mutex> lock(mutex);
+            notEmpty.wait(lock, [this]() { return !buffer.empty(); });
 
-                T temp = std::move(buffer.front());
-                buffer.pop_front();
-            }
+            T temp = std::move(buffer.front());
+
+            buffer.pop_front();
+
+            lock.unlock();
             notFull.notify_one();
 
             return temp;
