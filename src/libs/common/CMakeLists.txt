@@ -7,7 +7,6 @@ set( THREADING_SRC
     threading/Thread.cpp
     threading/Event.hpp
     threading/Mutex.hpp
-    threading/ConditionVariable.hpp
     threading/SpinLock.hpp
 )
 source_group( "Threading" FILES ${THREADING_SRC} )
