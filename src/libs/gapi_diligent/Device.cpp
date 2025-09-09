@@ -6,14 +6,14 @@
 
 namespace RR::GAPI::Diligent
 {
-    bool InitDevice(GAPI::Device::SharedPtr& device)
+    bool InitDevice(GAPI::Device& device)
     {
         auto deviceImpl = std::make_unique<DeviceImpl>();
 
-        if (!deviceImpl->Init(device->GetDesc()))
+        if (!deviceImpl->Init(device.GetDesc()))
             return false;
 
-        device->SetPrivateImpl(deviceImpl.release());
+        device.SetPrivateImpl(deviceImpl.release());
         return true;
     }
 }

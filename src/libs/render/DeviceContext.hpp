@@ -28,7 +28,7 @@ namespace RR::Render
         using SharedPtr = eastl::shared_ptr<DeviceContext>;
         using SharedConstPtr = eastl::shared_ptr<const DeviceContext>;
 
-        DeviceContext() = default;
+        DeviceContext();
         ~DeviceContext();
 
         void Init(const GAPI::DeviceDesc& desc);
@@ -56,6 +56,6 @@ namespace RR::Render
 
     private:
         bool inited = false;
-        eastl::shared_ptr<GAPI::Device> device;
+        eastl::unique_ptr<GAPI::Device> device;
     };
 }

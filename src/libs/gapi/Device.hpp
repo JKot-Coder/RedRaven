@@ -73,8 +73,7 @@ namespace RR
         class Device final : public Resource<IDevice>, public IDevice
         {
         public:
-            using SharedPtr = eastl::shared_ptr<Device>;
-            using SharedConstPtr = eastl::shared_ptr<const Device>;
+            using UniquePtr = eastl::unique_ptr<Device>;
 
         public:
             virtual ~Device() = default;
@@ -104,9 +103,9 @@ namespace RR
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
         private:
-            static SharedPtr Create(const DeviceDesc& desc, const std::string& name)
+            static Device::UniquePtr Create(const DeviceDesc& desc, const std::string& name)
             {
-                return eastl::shared_ptr<Device>(new Device(desc, name));
+                return eastl::unique_ptr<Device>(new Device(desc, name));
             }
 
             Device(const DeviceDesc& desc, const std::string& name)

@@ -6,6 +6,6 @@ namespace RR::GAPI
 
     namespace Diligent
     {
-        bool InitDevice(eastl::shared_ptr<Device>& device);
+        bool InitDevice(Device& device);
     }
 }

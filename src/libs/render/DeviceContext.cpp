@@ -16,6 +16,7 @@
 
 namespace RR::Render
 {
+    DeviceContext::DeviceContext() {};
     DeviceContext::~DeviceContext() { }
 
     void DeviceContext::Init(const GAPI::DeviceDesc& desc)
@@ -26,7 +27,7 @@ namespace RR::Render
 
         // Todo: select device based on description
         // Todo: do it in submission thread
-        if(!GAPI::Diligent::InitDevice(device))
+        if(!GAPI::Diligent::InitDevice(*device))
         {
             Log::Format::Error("Failed to initialize device");
             return;
