@@ -16,7 +16,12 @@ namespace RR
             typedef typename std::array<T, SIZE>::const_reference const_reference;
             typedef typename std::array<T, SIZE>::size_type size_type;
 
-            RingQueue() : front_(&buffer_[0]), back_(&buffer_[0]), size_(0) { }
+            RingQueue()
+            {
+                front_ = &buffer_[0];
+                back_ = &buffer_[0];
+            }
+
             ~RingQueue()
             {
                 while (!empty())
