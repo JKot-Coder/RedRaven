@@ -9,11 +9,11 @@
 namespace RR::Common::Threading
 {
     template <typename T, std::size_t BufferSize>
-    class BufferedChannel
+    class BlockingRingQueue
     {
     public:
-        BufferedChannel() = default;
-        ~BufferedChannel() = default;
+        BlockingRingQueue() = default;
+        ~BlockingRingQueue() = default;
 
         inline void Put(const T& obj)
         {

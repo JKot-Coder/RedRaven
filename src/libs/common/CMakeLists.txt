@@ -2,7 +2,7 @@ project (common)
 
 set( THREADING_SRC
 	threading/AccessGuard.hpp
-	threading/BufferedChannel.hpp
+	threading/BlockingRingQueue.hpp
     threading/Thread.hpp
     threading/Thread.cpp
     threading/Event.hpp
