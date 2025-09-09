@@ -25,9 +25,6 @@ namespace RR::Render
     class DeviceContext : public Common::Singleton<DeviceContext>
     {
     public:
-        using SharedPtr = eastl::shared_ptr<DeviceContext>;
-        using SharedConstPtr = eastl::shared_ptr<const DeviceContext>;
-
         DeviceContext();
         ~DeviceContext();
 
