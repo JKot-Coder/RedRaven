@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/threading/ConditionVariable.hpp"
 #include "common/threading/Mutex.hpp"
 
 namespace RR
@@ -58,7 +57,7 @@ namespace RR
 
             private:
                 Mutex mutex_;
-                ConditionVariable condition_;
+                std::condition_variable condition_;
                 bool state_ = false;
                 bool manualReset_ = true;
             };
