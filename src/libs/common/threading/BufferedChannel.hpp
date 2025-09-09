@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/RingQueue.hpp"
-#include "common/threading/ConditionVariable.hpp"
 #include "common/threading/Mutex.hpp"
 
 #include <atomic>
@@ -81,8 +80,8 @@ namespace RR::Common::Threading
 
     private:
         std::atomic<bool> closed_ = false;
-        Threading::ConditionVariable inputWait_;
-        Threading::ConditionVariable outputWait_;
+        std::condition_variable inputWait_;
+        std::condition_variable outputWait_;
         Threading::Mutex mutex_;
         RingQueue<T, BufferSize> buffer_;
     };
