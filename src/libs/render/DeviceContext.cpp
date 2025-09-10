@@ -83,6 +83,14 @@ namespace RR::Render
         multiThreadDevice->Compile(commandList);
     }
 
+    void DeviceContext::Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList2& commandList)
+    {
+        ASSERT(inited);
+        ASSERT(commandQueue);
+
+        submission.Submit(commandQueue, commandList);
+    }
+
     Render::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
     {
         ASSERT(inited);

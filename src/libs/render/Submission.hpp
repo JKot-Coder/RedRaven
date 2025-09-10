@@ -24,16 +24,25 @@ namespace RR::Render
         enum class Type
         {
             Terminate,
-            Callback
+            Callback,
+            Present,
+            Submit,
+            MoveToNextFrame
         };
 
     public:
         SubmissionThreadWork() = default;
-        SubmissionThreadWork(Type type) : type(type) { }
-        SubmissionThreadWork(SubmissionThreadFunction&& function) :  type(Type::Callback), function(eastl::move(function)) { }
         ~SubmissionThreadWork() = default;
 
         Type GetType() const { return type; }
+
+    private:
+        SubmissionThreadWork(Type type) : type(type) { }
+        SubmissionThreadWork(SubmissionThreadFunction&& function) : type(Type::Callback), function(eastl::move(function)) { }
+        SubmissionThreadWork(uint64_t frameIndex) : type(Type::MoveToNextFrame), frameIndex(frameIndex) { }
+        SubmissionThreadWork(GAPI::SwapChain* swapChain) : type(Type::Present), swapChain(swapChain) { }
+        SubmissionThreadWork(GAPI::CommandQueue& commandQueue, GAPI::CommandList2& commandList) : type(Type::Submit), submit {&commandQueue, &commandList} { }
+
     public:
         static SubmissionThreadWork Terminate()
         {
@@ -45,11 +54,38 @@ namespace RR::Render
             return SubmissionThreadWork(eastl::move(function));
         }
 
+        static SubmissionThreadWork MoveToNextFrame(uint64_t frameIndex)
+        {
+            return SubmissionThreadWork(frameIndex);
+        }
+
+        static SubmissionThreadWork Present(GAPI::SwapChain* swapChain)
+        {
+            return SubmissionThreadWork(swapChain);
+        }
+
+        static SubmissionThreadWork Submit(GAPI::CommandQueue& commandQueue, GAPI::CommandList2& commandList)
+        {
+            return SubmissionThreadWork(commandQueue, commandList);
+        }
+
     private:
         friend class Submission;
 
         Type type;
         SubmissionThreadFunction function;
+        struct Submit
+        {
+            GAPI::CommandQueue* commandQueue;
+            GAPI::CommandList2* commandList;
+        };
+
+        union
+        {
+            uint64_t frameIndex;
+            GAPI::SwapChain* swapChain;
+            struct Submit submit;
+        };
     };
 
     class Submission final
@@ -58,14 +94,21 @@ namespace RR::Render
         Submission();
         ~Submission();
 
-        void Start(GAPI::Device::UniquePtr device, SubmissionThreadMode mode);
-
         bool isSubmissionThread() const { return submissionThread ? (std::this_thread::get_id() == submissionThread->GetId()) : true; }
 
-        void ExecuteAwait(SubmissionThreadFunction&& function);
+        void Start(GAPI::Device::UniquePtr device, SubmissionThreadMode mode);
         void Terminate();
 
+        void ExecuteAsync(SubmissionThreadFunction&& function);
+        void ExecuteAwait(SubmissionThreadFunction&& function);
+        void Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList2& commandList);
+        void Present(GAPI::SwapChain* swapChain);
+        void MoveToNextFrame(uint64_t frameIndex);
+
     private:
+        void executeAsync(SubmissionThreadWork&& work);
+        void executeAwait(SubmissionThreadWork&& work);
+
         bool doWork(const SubmissionThreadWork& work);
         void blockUntilFinished();
         void threadFunc();
