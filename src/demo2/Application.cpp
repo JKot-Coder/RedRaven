@@ -58,8 +58,8 @@ namespace RR::App
             });
 
         world.System()
-            .OnEvent<Ecs::WindowModule::Window::OnResize>()
-            .ForEach([](const Ecs::WindowModule::Window::OnResize& event, Ecs::World& world) {
+            .OnEvent<Ecs::WindowModule::Window::OnResizeFinished>()
+            .ForEach([](const Ecs::WindowModule::Window::OnResizeFinished& event, Ecs::World& world) {
                 world.View().With<Application>().ForEach([event](Application& application) {
                     GAPI::SwapChain* swapChain = application.instance->swapChain.get();
                     auto& deviceContext = Render::DeviceContext::Instance();

@@ -23,6 +23,11 @@ namespace RR::Ecs::WindowModule
         Ecs::Entity windowEntity;
     };
 
+    uint64_t GetCurrentTimespamp()
+    {
+        return std::chrono::system_clock::now().time_since_epoch().count();
+    }
+
     void InitGlfw(World& world)
     {
         world.System().OnEvent<OnAppear>().With<Glfw>().ForEach([]() {
@@ -56,9 +61,10 @@ namespace RR::Ecs::WindowModule
         auto windowEntity = GetWindowEntity(glfwWindow);
         auto& world = windowEntity.GetWorld();
 
-        world.View().With<WindowDesc>().ForEntity(GetWindowEntity(glfwWindow), [width, height](WindowDesc& description) {
+        world.View().With<WindowDesc, Window>().ForEntity(windowEntity, [width, height](WindowDesc& description, Window& window) {
             description.width = width;
             description.height = height;
+            window.lastResizeTimespamp = GetCurrentTimespamp();
         });
 
         world.EmitImmediately<Window::OnResize>({width, height});
@@ -107,6 +113,18 @@ namespace RR::Ecs::WindowModule
             delete handler;
 
             glfwDestroyWindow(window.glfwWindow);
+        });
+
+        world.System().OnEvent<Tick>().With<Window>().ForEach([](Ecs::World& world, Ecs::EntityId id, Window& window) {
+            Ecs::Entity windowEntity = world.GetEntity(id); // Todo remove this boilerplate
+            if (window.lastResizeTimespamp != 0 && (window.lastResizeTimespamp + 100 < GetCurrentTimespamp()))
+            {
+                int32_t width = 0;
+                int32_t height = 0;
+                glfwGetWindowSize(window.glfwWindow, &width, &height);
+                windowEntity.Emit<Window::OnResizeFinished>({width, height});
+                window.lastResizeTimespamp = 0;
+            }
         });
     }
 
