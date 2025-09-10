@@ -205,6 +205,8 @@ namespace RR::App
             deviceContext.MoveToNextFrame(0);
         }
 
+        deviceContext.Terminate();
+
         return 0;
     }
 }

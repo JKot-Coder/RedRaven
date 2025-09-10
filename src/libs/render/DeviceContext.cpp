@@ -17,33 +17,48 @@
 namespace RR::Render
 {
     DeviceContext::DeviceContext() {};
-    DeviceContext::~DeviceContext() { }
+    DeviceContext::~DeviceContext() { Terminate();  }
 
     void DeviceContext::Init(const GAPI::DeviceDesc& desc)
     {
         ASSERT(!inited);
-        // TODO: device should be belong to submission thread
-        device = GAPI::Device::Create(desc, "Primary");
 
-        // Todo: select device based on description
-        // Todo: do it in submission thread
-        if(!GAPI::Diligent::InitDevice(*device))
-        {
-            Log::Format::Error("Failed to initialize device");
+        auto device = GAPI::Device::Create(desc, "Primary");
+        submission.Start(eastl::move(device), SubmissionThreadMode::Enabled);
+
+        bool result = false;
+        submission.ExecuteAwait([&result, this](GAPI::Device& device) {
+            if(!GAPI::Diligent::InitDevice(device))
+            {
+                Log::Format::Error("Failed to initialize device");
+                return;
+            }
+
+            this->multiThreadDevice = static_cast<GAPI::Device::IMultiThreadDevice*>(&device);
+            result = true;
+        });
+
+        inited = result;
+    }
+
+    void DeviceContext::Terminate()
+    {
+        if(!inited)
             return;
-        }
 
-        inited = true;
+        submission.Terminate();
+        inited = false;
     }
 
     void DeviceContext::Present(GAPI::SwapChain* swapChain)
     {
-        device->Present(swapChain);
+        ASSERT(swapChain);
+        submission.ExecuteAwait([swapChain](GAPI::Device& device) { device.Present(swapChain); });
     }
 
     void DeviceContext::MoveToNextFrame(uint64_t frameIndex)
     {
-        device->MoveToNextFrame(frameIndex);
+        submission.ExecuteAwait([frameIndex](GAPI::Device& device) { device.MoveToNextFrame(frameIndex); });
     }
 
     void DeviceContext::ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height)
@@ -56,7 +71,7 @@ namespace RR::Render
         ASSERT(inited);
 
         auto resource = GAPI::CommandQueue::Create(type, name);
-        device->InitCommandQueue(*resource.get());
+        multiThreadDevice->InitCommandQueue(*resource.get());
 
         return resource;
     }
@@ -65,7 +80,7 @@ namespace RR::Render
     {
         ASSERT(inited);
 
-        device->Compile(commandList);
+        multiThreadDevice->Compile(commandList);
     }
 
     Render::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
@@ -73,7 +88,7 @@ namespace RR::Render
         ASSERT(inited);
 
         GAPI::CommandList2 commandList(name);
-        device->InitCommandList2(commandList);
+        multiThreadDevice->InitCommandList2(commandList);
         auto resource = Render::GraphicsCommandContext::Create(eastl::move(commandList));
 
         return resource;
@@ -91,7 +106,7 @@ namespace RR::Render
         ASSERT(inited);
 
         auto resource = GAPI::Shader::Create(desc, name);
-        device->InitShader(*resource.get());
+        multiThreadDevice->InitShader(*resource.get());
 
         return resource;
     }
@@ -104,7 +119,7 @@ namespace RR::Render
         ASSERT(inited);
 
         auto resource = GAPI::Texture::Create(desc, initialData, name);
-        device->InitTexture(*static_cast<GAPI::Texture*>(resource.get()));
+        multiThreadDevice->InitTexture(*static_cast<GAPI::Texture*>(resource.get()));
 
         return resource;
     }
@@ -117,7 +132,7 @@ namespace RR::Render
         ASSERT(texture);
 
         auto resource = GAPI::RenderTargetView::Create(texture, desc);
-        device->InitGpuResourceView(*resource.get());
+        multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
@@ -130,7 +145,7 @@ namespace RR::Render
         ASSERT(texture);
 
         auto resource = GAPI::DepthStencilView::Create(texture, desc);
-        device->InitGpuResourceView(*resource.get());
+        multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
@@ -143,7 +158,7 @@ namespace RR::Render
         ASSERT(gpuResource);
 
         auto resource = GAPI::ShaderResourceView::Create(gpuResource, desc);
-        device->InitGpuResourceView(*resource.get());
+        multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
@@ -156,7 +171,7 @@ namespace RR::Render
         ASSERT(gpuResource);
 
         auto resource = GAPI::UnorderedAccessView::Create(gpuResource, desc);
-        device->InitGpuResourceView(*resource.get());
+        multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
@@ -166,7 +181,7 @@ namespace RR::Render
         ASSERT(inited);
 
         auto resource = GAPI::SwapChain::Create(desc);
-        device->InitSwapChain(*resource.get());
+        multiThreadDevice->InitSwapChain(*resource.get());
 
         return resource;
     }
@@ -211,7 +226,7 @@ namespace RR::Render
         ASSERT_MSG(desc.ps, "PS is not set in graphic pipeline state: \"{}\"", name);
 
         auto resource = GAPI::GraphicPipelineState::Create(desc, name);
-        device->InitPipelineState(*resource.get());
+        multiThreadDevice->InitPipelineState(*resource.get());
 
         return resource;
     }

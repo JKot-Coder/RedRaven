@@ -2,6 +2,8 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 
+#include "render/Submission.hpp"
+
 #include "common/Singleton.hpp"
 
 namespace RR
@@ -29,6 +31,7 @@ namespace RR::Render
         ~DeviceContext();
 
         void Init(const GAPI::DeviceDesc& desc);
+        void Terminate();
 
         void Present(GAPI::SwapChain* swapChain);
         void MoveToNextFrame(uint64_t frameIndex);
@@ -53,6 +56,7 @@ namespace RR::Render
 
     private:
         bool inited = false;
-        eastl::unique_ptr<GAPI::Device> device;
+        Submission submission;
+        GAPI::Device::IMultiThreadDevice* multiThreadDevice = nullptr;
     };
 }
