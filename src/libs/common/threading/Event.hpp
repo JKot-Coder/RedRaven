@@ -1,39 +1,43 @@
 #pragma once
 
 #include "common/threading/Mutex.hpp"
+#include "common/NonCopyableMovable.hpp"
+#include <limits>
+#include <cstdint>
+#include <chrono>
 
 namespace RR::Common::Threading
 {
-    const uint32_t INFINITE_WAIT = 0xFFFFFFFF;
+    constexpr uint32_t INFINITE_WAIT = std::numeric_limits<uint32_t>::max();
 
     class Event final : public Common::NonCopyableMovable
     {
     public:
-        Event(bool manualReset = true, bool initialState = false) : state_(initialState), manualReset_(manualReset) { }
+        explicit Event(bool manualReset = true, bool initialState = false) : state_(initialState), manualReset_(manualReset) { }
         ~Event() = default;
 
-        inline void Reset()
+        void Reset() noexcept
         {
-            UniqueLock<Mutex> lock(mutex_);
+            ReadWriteGuard<Mutex> lock(mutex_);
             state_ = false;
         }
 
-        inline void Notify()
+        void Notify() noexcept
         {
             {
-                UniqueLock<Mutex> lock(mutex_);
+                ReadWriteGuard<Mutex> lock(mutex_);
                 state_ = true;
             }
 
             condition_.notify_all();
         }
 
-        inline bool Wait(uint32_t milliseconds = INFINITE_WAIT)
+        bool Wait(uint32_t milliseconds = INFINITE_WAIT)
         {
             UniqueLock<Mutex> lock(mutex_);
             bool result = true;
 
-            if (state_ == false)
+            if (!state_)
             {
                 if (milliseconds == INFINITE_WAIT)
                 {
