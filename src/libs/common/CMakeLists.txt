@@ -55,8 +55,6 @@ set( COMMON_SRC
     Singleton.hpp
     Stream.hpp
     StringEncoding.hpp
-    Time.cpp
-    Time.hpp
     ErrorNo.cpp
     ErrorNo.hpp
     EastlAllocator.cpp
