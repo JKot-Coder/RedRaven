@@ -24,8 +24,8 @@ namespace RR::GAPI::Diligent
         ~SwapChainImpl();
 
         void Init(DL::RENDER_DEVICE_TYPE deviceType,
-                  const DL::RefCntAutoPtr<DL::IRenderDevice>& device,
-                  const DL::RefCntAutoPtr<DL::IEngineFactory>& engineFactory,
+                  DL::IRenderDevice* device,
+                  DL::IEngineFactory* engineFactory,
                   DL::IDeviceContext* immediateContext,
                   const GAPI::SwapChainDesc& desc,
                   uint32_t frameLatency);

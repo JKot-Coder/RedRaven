@@ -30,12 +30,15 @@ namespace RR::GAPI::Diligent
     }
 
     void SwapChainImpl::Init(DL::RENDER_DEVICE_TYPE deviceType,
-                             const DL::RefCntAutoPtr<DL::IRenderDevice>& device,
-                             const DL::RefCntAutoPtr<DL::IEngineFactory>& engineFactory,
+                             DL::IRenderDevice* device,
+                             DL::IEngineFactory* engineFactory,
                              DL::IDeviceContext* immediateContext,
                              const GAPI::SwapChainDesc& desc, uint32_t frameLatency)
     {
         ASSERT(!swapChain);
+        ASSERT(device);
+        ASSERT(engineFactory);
+        ASSERT(immediateContext);
 
         DL::SwapChainDesc swapChainInitDesc = getSwapChainInitDesc(desc);
 #if OS_WINDOWS
