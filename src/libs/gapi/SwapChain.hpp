@@ -18,30 +18,16 @@ namespace RR
     {
         struct SwapChainDesc
         {
-        public:
-            SwapChainDesc() = default;
-            SwapChainDesc(eastl::any windowNativeHandle, uint32_t width, uint32_t height, uint32_t bufferCount, GpuResourceFormat gpuResourceFormat, bool isStereo = false)
-                : width(width),
-                  height(height),
-                  bufferCount(bufferCount),
-                  gpuResourceFormat(gpuResourceFormat),
-                  isStereo(isStereo),
-                  windowNativeHandle(eastl::move(windowNativeHandle))
-            {
-            }
-
-        public:
-            // TODO Default initialization values
-            uint32_t width;
-            uint32_t height;
-            uint32_t bufferCount;
+            uint32_t width = 0;
+            uint32_t height = 0;
+            uint32_t bufferCount = 2;
 
             GpuResourceFormat gpuResourceFormat;
             GpuResourceFormat depthStencilFormat;
 
-            bool isStereo;
+            bool isStereo = false;
 
-            eastl::any windowNativeHandle;
+            eastl::any windowNativeHandle = nullptr;
         };
 
         class ISwapChain
