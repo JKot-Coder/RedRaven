@@ -354,9 +354,11 @@ namespace RR::Ecs
         ArchetypeComponentIndex GetComponentIndex() const
         {
             if constexpr (eastl::is_same_v<Component, EntityId>)
+            {
                 return ArchetypeComponentIndex(0);
-
-            return componentsData.GetComponentIndex(Meta::GetComponentId<Component>);
+            }
+            else
+                return componentsData.GetComponentIndex(Meta::GetComponentId<Component>);
         }
 
         template <typename ComponentId>
