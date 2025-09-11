@@ -104,7 +104,7 @@ namespace RR::GAPI
         {
             ASSERT(desc.colorAttachmentCount < desc.colorAttachments.size());
 
-            static constexpr uint32_t INVALID_SIZE = -1;
+            static constexpr uint32_t INVALID_SIZE = 0xFFFFFFFF;
             uint32_t width = INVALID_SIZE, height = INVALID_SIZE, depth = INVALID_SIZE;
             GpuResourceDimension dimension = GpuResourceDimension::Count;
             for (uint32_t i = 0; i < desc.colorAttachmentCount; i++)

@@ -260,32 +260,32 @@ namespace RR::Common::Hashing::Wyhash
     }
 
     template <uint32_t BitNum> // By default water for 32 bits and woot for 64 bit
-    constexpr FORCE_INLINE details::HashType<BitNum> Hash(const void* key, uint32_t len);
+    constexpr FORCE_INLINE details::HashType<BitNum> Hash(const void* key, size_t len);
 
     template <uint32_t BitNum> // By default water for 32 bits and woot for 64 bit
-    constexpr FORCE_INLINE details::HashType<BitNum> ForceConstexprHash(const char* key, uint32_t len);
+    constexpr FORCE_INLINE details::HashType<BitNum> ForceConstexprHash(const char* key, size_t len);
 
     template <>
-    constexpr FORCE_INLINE details::HashType<32> Hash<32>(const void* key, uint32_t len)
+    constexpr FORCE_INLINE details::HashType<32> Hash<32>(const void* key, size_t len)
     {
-        return details::waterhash<false>((const char*)key, len, 0x59B8541C);
+        return details::waterhash<false>((const char*)key, static_cast<uint32_t>(len), 0x59B8541C);
     }
 
     template <>
-    constexpr FORCE_INLINE details::HashType<64> Hash<64>(const void* key, uint32_t len)
+    constexpr FORCE_INLINE details::HashType<64> Hash<64>(const void* key, size_t len)
     {
-        return details::woothash<false>((const char*)key, len, 0x23968DAB);
+        return details::woothash<false>((const char*)key, static_cast<uint64_t>(len), 0x23968DAB);
     }
 
     template <>
-    constexpr FORCE_INLINE details::HashType<32> ForceConstexprHash<32>(const char* key, uint32_t len)
+    constexpr FORCE_INLINE details::HashType<32> ForceConstexprHash<32>(const char* key, size_t len)
     {
-        return details::waterhash<true>(key, len, 0x59B8541C);
+        return details::waterhash<true>(key, static_cast<uint32_t>(len), 0x59B8541C);
     }
 
     template <>
-    constexpr FORCE_INLINE details::HashType<64> ForceConstexprHash<64>(const char* key, uint32_t len)
+    constexpr FORCE_INLINE details::HashType<64> ForceConstexprHash<64>(const char* key, size_t len)
     {
-        return details::woothash<true>(key, len, 0x23968DAB);
+        return details::woothash<true>(key, static_cast<uint64_t>(len), 0x23968DAB);
     }
 }

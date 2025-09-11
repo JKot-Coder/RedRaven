@@ -109,7 +109,7 @@ namespace RR::Common::IO
         }
 
         DWORD result;
-        if (!WriteFile(handle_, buffer, byteSize, &result, nullptr))
+        if (!WriteFile(handle_, buffer, static_cast<DWORD>(byteSize), &result, nullptr))
             return 0;
 
         return result;
@@ -124,7 +124,7 @@ namespace RR::Common::IO
         }
 
         DWORD result;
-        if (!ReadFile(handle_, buffer, byteSize, &result, nullptr))
+        if (!ReadFile(handle_, buffer, static_cast<DWORD>(byteSize), &result, nullptr))
             return 0;
 
         return result;

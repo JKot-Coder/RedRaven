@@ -141,7 +141,7 @@ namespace RR::Ecs
 
                             auto& column = columns[componentIndex];
                             ASSERT(offset < eastl::numeric_limits<decltype(column.offset)>::max());
-                            column.offset = offset;
+                            column.offset = static_cast<uint32_t>(offset);
                             column.size = componentInfo.size;
 
                             if (!componentInfo.isTrackable)
@@ -149,7 +149,7 @@ namespace RR::Ecs
                                 auto& elementInfo = elementsInfo[componentIndex];
                                 ASSERT(offset < eastl::numeric_limits<decltype(elementInfo.offset)>::max());
 
-                                elementInfo.offset = offset;
+                                elementInfo.offset = static_cast<uint32_t>(offset);
                                 elementInfo.componentInfo = &componentInfo;
                             }
 

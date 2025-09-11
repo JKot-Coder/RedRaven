@@ -14,7 +14,7 @@ namespace RR::Common::Hashing::Default
     constexpr HashType Hash(const void* data, std::size_t len)
     {
         ASSERT_MSG(data, "Hash: data pointer cannot be null");
-        return Wyhash::Hash<HashBits>(data, static_cast<uint32_t>(len));
+        return Wyhash::Hash<HashBits>(data, len);
     }
 
     constexpr HashType Hash(const char* str)
@@ -31,23 +31,18 @@ namespace RR::Common::Hashing::Default
     template <>
     constexpr HashType Hash<std::string>(const std::string& value)
     {
-        return Wyhash::Hash<HashBits>(
-            value.data(),
-            value.size());
+        return Wyhash::Hash<HashBits>(value.data(), value.size());
     }
 
     template <>
     constexpr HashType Hash<eastl::string>(const eastl::string& value)
     {
-        return Wyhash::Hash<HashBits>(
-            value.data(),
-            value.size()
-        );
+        return Wyhash::Hash<HashBits>(value.data(), value.size());
     }
 
     constexpr HashType operator""_h(const char* str, std::size_t len)
     {
-        return Wyhash::ForceConstexprHash<HashBits>(str, static_cast<uint32_t>(len));
+        return Wyhash::ForceConstexprHash<HashBits>(str, len);
     }
 
     template <size_t Bits = HashBits, typename T>
