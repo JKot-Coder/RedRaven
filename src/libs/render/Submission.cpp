@@ -12,10 +12,10 @@ namespace RR::Render
 {
     Submission::Submission() : submissionEvent(false, false) { }
 
-    void Submission::Start(GAPI::Device::UniquePtr device, SubmissionThreadMode mode)
+    void Submission::Start(GAPI::Device::UniquePtr devicePtr, SubmissionThreadMode mode)
     {
-        ASSERT(device);
-        this->device = eastl::move(device);
+        ASSERT(devicePtr);
+        device = eastl::move(devicePtr);
 
         if (mode == SubmissionThreadMode::Enabled)
         {
