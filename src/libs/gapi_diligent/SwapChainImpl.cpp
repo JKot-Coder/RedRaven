@@ -13,6 +13,10 @@
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
+#if OS_WINDOWS
+#include "windows.h"
+#endif
+
 namespace RR::GAPI::Diligent
 {
     SwapChainImpl::~SwapChainImpl() { }
