@@ -544,14 +544,14 @@ namespace RR::Platform
         glfwSetClipboardString(window_, text.c_str());
     }
 
-    std::any GlfwWindowImpl::GetNativeHandle() const
+    eastl::any GlfwWindowImpl::GetNativeHandle() const
     {
         ASSERT(window_);
 
         return window_;
     }
 
-    std::any GlfwWindowImpl::GetNativeHandleRaw() const
+    eastl::any GlfwWindowImpl::GetNativeHandleRaw() const
     {
         ASSERT(window_);
 

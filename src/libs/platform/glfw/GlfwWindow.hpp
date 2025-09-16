@@ -3,6 +3,8 @@
 #include "platform/Window.hpp"
 #include "math/ForwardDeclarations.hpp"
 
+#include "EASTL/any.h"
+
 struct GLFWwindow;
 
 namespace RR
@@ -39,8 +41,8 @@ namespace RR
             void ShowCursor(bool value) override;
             void SetCursor(const std::shared_ptr<Cursor>& cursor) const override;
 
-            std::any GetNativeHandle() const override;
-            std::any GetNativeHandleRaw() const override;
+            eastl::any GetNativeHandle() const override;
+            eastl::any GetNativeHandleRaw() const override;
 
             void Focus() const override;
             void Show() const override;

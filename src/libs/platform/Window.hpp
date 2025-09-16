@@ -2,7 +2,7 @@
 
 #include "common/Event.hpp"
 #include "math/VectorMath.hpp"
-#include <any>
+#include "EASTL/any.h"
 
 namespace RR::Platform
 {
@@ -85,8 +85,8 @@ namespace RR::Platform
         virtual void ShowCursor(bool value) = 0;
         virtual void SetCursor(const std::shared_ptr<Cursor>& cursor) const = 0;
 
-        virtual std::any GetNativeHandle() const = 0;
-        virtual std::any GetNativeHandleRaw() const = 0;
+        virtual eastl::any GetNativeHandle() const = 0;
+        virtual eastl::any GetNativeHandleRaw() const = 0;
 
         virtual void Focus() const = 0;
         virtual void Show() const = 0;
