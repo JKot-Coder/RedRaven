@@ -38,6 +38,9 @@ namespace RR::Render
             inited = true;
         });
 
+        if(!inited)
+            submission.Terminate();
+
         return inited;
     }
 
