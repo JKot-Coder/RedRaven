@@ -29,12 +29,12 @@ namespace RR::GAPI::Diligent
             return;
     }
 
-    bool DeviceImpl::Init(const DeviceDesc& desc)
+    bool DeviceImpl::Init(const DeviceDesc& deviceDesc)
     {
         ASSERT(!inited);
 
         int m_ValidationLevel = -1;
-        this->desc = desc;
+        desc = deviceDesc;
 
         // Todo support other APIs
 #if D3D12_SUPPORTED
@@ -109,11 +109,11 @@ namespace RR::GAPI::Diligent
         // SEE swapChain->SetMaximumFrameLatency
     }
 
-    GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDesc& desc) const
+    GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDesc& resourceDesc) const
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(desc);
+        UNUSED(resourceDesc);
         NOT_IMPLEMENTED();
         return {};
     }

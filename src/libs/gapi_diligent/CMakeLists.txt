@@ -28,8 +28,15 @@ add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    RR::BuildSettings
     common
     gapi
     Diligent-Common
     Diligent-GraphicsEngineD3D12-shared
 )
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd4005) # LOG_ERROR macro conflict with diligent
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wno-macro-redefined) # LOG_ERROR macro conflict with diligent
+endif()

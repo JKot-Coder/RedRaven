@@ -9,9 +9,9 @@ namespace DL = ::Diligent;
 
 namespace Diligent
 {
-    class IDeviceContext;
-    class IRenderDevice;
-    class IEngineFactory;
+    struct IDeviceContext;
+    struct IRenderDevice;
+    struct IEngineFactory;
 }
 
 namespace RR::GAPI::Diligent
@@ -22,7 +22,7 @@ namespace RR::GAPI::Diligent
         DeviceImpl();
         ~DeviceImpl() override;
 
-        bool Init(const GAPI::DeviceDesc& desc);
+        bool Init(const GAPI::DeviceDesc& deviceDesc);
         void Present(SwapChain* swapChain) override;
         void MoveToNextFrame(uint64_t frameIndex) override;
 

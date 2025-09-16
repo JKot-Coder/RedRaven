@@ -8,9 +8,9 @@
 namespace DL = ::Diligent;
 namespace Diligent
 {
-    class IRenderDevice;
-    class ITexture;
-    class IBuffer;
+    struct IRenderDevice;
+    struct ITexture;
+    struct IBuffer;
 }
 
 namespace RR::GAPI::Diligent
@@ -39,22 +39,22 @@ namespace RR::GAPI::Diligent
         {
             ASSERT(dimension != DL::RESOURCE_DIM_UNDEFINED);
             ASSERT(dimension != DL::RESOURCE_DIM_BUFFER);
-            return texture;
+            return texture_;
         }
 
         DL::IBuffer* GetAsBuffer() const
         {
             ASSERT(dimension != DL::RESOURCE_DIM_UNDEFINED);
             ASSERT(dimension == DL::RESOURCE_DIM_BUFFER);
-            return buffer;
+            return buffer_;
         }
 
     private:
         DL::RESOURCE_DIMENSION dimension;
         union
         {
-            DL::ITexture* texture;
-            DL::IBuffer* buffer;
+            DL::ITexture* texture_;
+            DL::IBuffer* buffer_;
         };
     };
 }

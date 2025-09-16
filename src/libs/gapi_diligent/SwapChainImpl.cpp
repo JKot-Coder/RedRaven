@@ -143,7 +143,7 @@ namespace RR::GAPI::Diligent
         }
 
         ASSERT_MSG(false, "Current back buffer index not found");
-        return -1;
+        return 0xFFFFFFFF;
     }
 
     void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const

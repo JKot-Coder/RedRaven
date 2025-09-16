@@ -1,14 +1,13 @@
 #pragma once
 
-#include "RefCntAutoPtr.hpp"
 #include "gapi/PipelineState.hpp"
 
 #include "RefCntAutoPtr.hpp"
 
 namespace Diligent
 {
-    class IRenderDevice;
-    class IPipelineState;
+    struct IRenderDevice;
+    struct IPipelineState;
 }
 namespace DL = ::Diligent;
 

@@ -8,7 +8,7 @@
 
 namespace Diligent
 {
-    class IDeviceContext;
+    struct IDeviceContext;
     class ICommandList;
 }
 namespace DL = ::Diligent;
@@ -24,10 +24,10 @@ namespace RR::GAPI::Diligent
         void Init();
         void Compile(GAPI::CommandList2& commandList,DL::IDeviceContext* device);
 
-        DL::ICommandList* GetCommandList() { ASSERT(commandList); return commandList.RawPtr(); }
-        void Reset() { commandList.Release(); }
+        DL::ICommandList* GetCommandList() { ASSERT(diligentCommandList); return diligentCommandList.RawPtr(); }
+        void Reset() { diligentCommandList.Release(); }
 
     private:
-        DL::RefCntAutoPtr<DL::ICommandList> commandList;
+        DL::RefCntAutoPtr<DL::ICommandList> diligentCommandList;
     };
 }

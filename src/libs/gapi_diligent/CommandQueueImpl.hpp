@@ -8,7 +8,7 @@
 
 namespace Diligent
 {
-    class IDeviceContext;
+    struct IDeviceContext;
 }
 
 namespace DL = ::Diligent;
@@ -34,7 +34,7 @@ namespace RR
             void WaitForGpu() override;
 
         private:
-            DL::RefCntAutoPtr<DL::IDeviceContext> deviceContext;
+            DL::RefCntAutoPtr<DL::IDeviceContext> deviceContext_;
         };
     }
 }

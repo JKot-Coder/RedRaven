@@ -4,8 +4,8 @@
 
 namespace Diligent
 {
-    class ITextureView;
-    class IBufferView;
+    struct ITextureView;
+    struct IBufferView;
 }
 namespace DL = ::Diligent;
 

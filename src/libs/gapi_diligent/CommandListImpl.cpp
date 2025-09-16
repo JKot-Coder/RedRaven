@@ -126,7 +126,7 @@ namespace RR::GAPI::Diligent
 
         commandList.clear();
 
-        this->commandList.Attach(commandListPtr);
+        diligentCommandList.Attach(commandListPtr);
     }
 
 }

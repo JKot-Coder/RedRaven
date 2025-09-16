@@ -4,7 +4,7 @@
 #include "gapi/SwapChain.hpp"
 
 #include "RefCntAutoPtr.hpp"
-#include "RenderDevice.h"
+#include "GraphicsTypes.h"
 
 #include "EASTL/fixed_vector.h"
 
@@ -12,7 +12,11 @@ namespace DL = ::Diligent;
 
 namespace Diligent
 {
-    class ISwapChain;
+    struct IRenderDevice;
+    struct IEngineFactory;
+    struct IDeviceContext;
+    struct ITextureView;
+    struct ISwapChain;
 }
 
 namespace RR::GAPI::Diligent

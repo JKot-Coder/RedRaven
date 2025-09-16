@@ -20,15 +20,15 @@ namespace RR::GAPI::Diligent
 
     void GpuResourceImpl::DestroyResource()
     {
-        if (!buffer)
+        if (!buffer_)
             return;
 
         if (dimension == DL::RESOURCE_DIM_BUFFER)
-            buffer->Release();
+            buffer_->Release();
         else
-            texture->Release();
+            texture_->Release();
 
-        buffer = nullptr;
+        buffer_ = nullptr;
     }
 
     DL::RESOURCE_DIMENSION getResourceDimension(const GpuResourceDimension& dimension)
@@ -117,16 +117,16 @@ namespace RR::GAPI::Diligent
         ASSERT_MSG(!resource.GetInitialData(), "Initial data isn't supported");
 
         const auto desc = getTextureDesc(resource.GetDesc(), resource.GetName());
-        device->CreateTexture(desc, nullptr, &texture);
+        device->CreateTexture(desc, nullptr, &texture_);
         dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
     }
 
     void GpuResourceImpl::Init(DL::ITexture* texture, const GpuResource& resource)
     {
         ASSERT(texture);
-        ASSERT(!this->texture);
+        ASSERT(!texture_);
 
-        this->texture = texture;
+        texture_ = texture;
         dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
     }
 
@@ -140,6 +140,7 @@ namespace RR::GAPI::Diligent
 
     std::vector<GpuResourceFootprint::SubresourceFootprint> GpuResourceImpl::GetSubresourceFootprints(const GpuResourceDesc& desc) const
     {
+        UNUSED(desc);
         NOT_IMPLEMENTED();
         return {};
     }

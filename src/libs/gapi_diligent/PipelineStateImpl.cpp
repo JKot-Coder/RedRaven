@@ -98,7 +98,7 @@ namespace RR::GAPI::Diligent
     {
         DL::GraphicsPipelineDesc dlDesc;
         dlDesc.BlendDesc = getBlendDesc(desc.blendDesc);
-        dlDesc.NumViewports;
+        dlDesc.NumViewports = 1;
 
         ASSERT(desc.renderTargetCount <= MAX_RENDER_TARGETS_COUNT);
         ASSERT(desc.renderTargetCount <= DILIGENT_MAX_RENDER_TARGETS);
@@ -106,7 +106,7 @@ namespace RR::GAPI::Diligent
         uint32_t renderTargetCount = Min(desc.renderTargetCount, MAX_RENDER_TARGETS_COUNT);
         renderTargetCount = Min<uint32_t>(renderTargetCount, DILIGENT_MAX_RENDER_TARGETS);
 
-        dlDesc.NumRenderTargets = renderTargetCount;
+        dlDesc.NumRenderTargets = static_cast<uint8_t>(renderTargetCount);
 
         for (size_t i = 0; i < renderTargetCount; i++)
             dlDesc.RTVFormats[i] = GetDLTextureFormat(desc.renderTargetFormats[i]);

@@ -6,8 +6,8 @@
 
 namespace Diligent
 {
-    class IRenderDevice;
-    class IShader;
+    struct IRenderDevice;
+    struct IShader;
 }
 namespace DL = ::Diligent;
 
