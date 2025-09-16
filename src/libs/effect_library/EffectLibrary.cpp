@@ -77,25 +77,25 @@ namespace RR::EffectLibrary
 
         for(uint32_t i = 0; i < header.shadersCount; i++)
         {
-            Asset::ShaderDesc::Header header;
-            if(file.Read(reinterpret_cast<void*>(&header), sizeof(header)) != sizeof(header))
+            Asset::ShaderDesc::Header shaderHeader;
+            if(file.Read(reinterpret_cast<void*>(&shaderHeader), sizeof(shaderHeader)) != sizeof(shaderHeader))
             {
                 LOG_ERROR("Failed to read shader header: {}", i);
                 return Common::RResult::Fail;
             }
 
-            auto shaderData = eastl::make_unique<std::byte[]>(header.size);
-            if(file.Read(reinterpret_cast<void*>(shaderData.get()), header.size) != header.size)
+            auto shaderData = eastl::make_unique<std::byte[]>(shaderHeader.size);
+            if(file.Read(reinterpret_cast<void*>(shaderData.get()), shaderHeader.size) != shaderHeader.size)
             {
                 LOG_ERROR("Failed to read shader data: {}", i);
                 return Common::RResult::Fail;
             }
 
             ShaderDesc shaderDesc;
-            shaderDesc.name = getString(header.nameIndex);
-            shaderDesc.type = header.type;
+            shaderDesc.name = getString(shaderHeader.nameIndex);
+            shaderDesc.type = shaderHeader.type;
             shaderDesc.data = shaderData.get();
-            shaderDesc.size = header.size;
+            shaderDesc.size = shaderHeader.size;
 
             shadersData.emplace_back(eastl::move(shaderData));
             shaders.emplace_back(eastl::move(shaderDesc));
@@ -104,13 +104,13 @@ namespace RR::EffectLibrary
         effectsMap.reserve(header.effectsCount);
         for(uint32_t i = 0; i < header.effectsCount; i++)
         {
-            Asset::EffectDesc::Header header;
-            if(file.Read(reinterpret_cast<void*>(&header), sizeof(header)) != sizeof(header))
+            Asset::EffectDesc::Header effectHeader;
+            if(file.Read(reinterpret_cast<void*>(&effectHeader), sizeof(effectHeader)) != sizeof(effectHeader))
             {
                 LOG_ERROR("Failed to read effect header: {}", i);
                 return Common::RResult::Fail;
             }
-            auto name = getString(header.nameIndex);
+            auto name = getString(effectHeader.nameIndex);
             auto hash = Common::Hashing::Default::Hash(name);
             ASSERT(effectsMap.contains(hash) == false);
             effectsMap.insert(std::make_pair(hash, i));
@@ -118,7 +118,7 @@ namespace RR::EffectLibrary
             EffectDesc effectDesc;
             effectDesc.name = name;
 
-            for(uint32_t j = 0; j < header.passCount; j++)
+            for(uint32_t j = 0; j < effectHeader.passCount; j++)
             {
                 Asset::PassDesc assetPassDesc;
                 if(file.Read(reinterpret_cast<void*>(&assetPassDesc), sizeof(assetPassDesc)) != sizeof(assetPassDesc))
