@@ -39,4 +39,5 @@ if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /wd4005) # LOG_ERROR macro conflict with diligent
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-macro-redefined) # LOG_ERROR macro conflict with diligent
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
 endif()
