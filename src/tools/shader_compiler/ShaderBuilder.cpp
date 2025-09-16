@@ -117,12 +117,12 @@ namespace RR
 
     uint32_t ShaderBuilder::pushShader(ShaderResult&& shader)
     {
-        uint32_t index = shaders.size();
+        uint32_t index = static_cast<uint32_t>(shaders.size());
 
         Asset::ShaderDesc shaderDesc;
         shaderDesc.header.nameIndex = pushString(shader.name);
         shaderDesc.header.type = shader.type;
-        shaderDesc.header.size = shader.source->getBufferSize();
+        shaderDesc.header.size = static_cast<uint32_t>(shader.source->getBufferSize());
         shaderDesc.data = reinterpret_cast<const std::byte*>(shader.source->getBufferPointer());
 
         shaderResults.emplace_back(std::move(shader));
@@ -175,8 +175,6 @@ namespace RR
                     for(auto& module : pass["modules"].items())
                         shaderCompileDesc.modules.emplace_back(module.value().get<std::string>());
 
-                    auto shader = pass["vertexShader"];
-
                     auto addEntryPoint = [&](const nlohmann::json& shader) {
                         shaderCompileDesc.entryPoints.emplace_back(shader.get<std::string>());
                     };
@@ -197,7 +195,7 @@ namespace RR
                     passes.push_back(std::move(passDesc));
                 }
 
-                effectDesc.header.passCount = passes.size();
+                effectDesc.header.passCount = static_cast<uint32_t>(passes.size());
             }
         }
         catch(const std::exception& e)
@@ -261,7 +259,7 @@ namespace RR
 
         uint32_t stringSectionSize = 0;
         for(auto& chunk : stringAllocator)
-            stringSectionSize += chunk.allocated;
+            stringSectionSize += static_cast<uint32_t>(chunk.allocated);
 
         uint32_t shadersSectionSize = 0;
         for(auto& shader : shaders)
@@ -269,7 +267,7 @@ namespace RR
 
         uint32_t effectsSectionSize = 0;
         for(auto& effect : effects)
-            effectsSectionSize += sizeof(Asset::EffectDesc::Header) + effect.passes.size() * sizeof(EffectLibrary::Asset::PassDesc);
+            effectsSectionSize += sizeof(Asset::EffectDesc::Header) + static_cast<uint32_t>(effect.passes.size()) * sizeof(EffectLibrary::Asset::PassDesc);
 
         Asset::Header header;
         header.magic = Asset::Header::MAGIC;
@@ -277,9 +275,9 @@ namespace RR
         header.stringSectionSize = stringSectionSize;
         header.stringsCount = stringsCount;
         header.shadersSectionSize = shadersSectionSize;
-        header.shadersCount = shaders.size();
+        header.shadersCount = static_cast<uint32_t>(shaders.size());
         header.effectsSectionSize = effectsSectionSize;
-        header.effectsCount = effects.size();
+        header.effectsCount = static_cast<uint32_t>(effects.size());
 
         // Header
         file.write(reinterpret_cast<const char*>(&header), sizeof(header));
