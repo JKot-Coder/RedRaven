@@ -326,6 +326,7 @@ add_library(RR::BuildSettings ALIAS RR_BuildSettings)
 if(MSVC)
     set_target_properties(RR_BuildSettings PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
     target_compile_options(RR_BuildSettings INTERFACE /W4 /WX)
+    target_compile_options(RR_BuildSettings INTERFACE /wd4324) # structure was padded due to alignment specifier
 else(MSVC)
     target_compile_options(RR_BuildSettings INTERFACE -Wall -Wextra -pedantic -Werror)
 endif(MSVC)
