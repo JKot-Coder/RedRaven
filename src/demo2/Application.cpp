@@ -158,7 +158,11 @@ namespace RR::App
 
         GAPI::DeviceDesc description;
         auto& deviceContext = Render::DeviceContext::Instance();
-        deviceContext.Init(description);
+        if(!deviceContext.Init(description))
+        {
+            LOG_ERROR("Failed to initialize device context");
+            return 1;
+        }
 
         Render::EffectManager::Instance();
         if(RR_FAILED(Render::EffectManager::Instance().Init("CompiledShaders.rfxlib")))

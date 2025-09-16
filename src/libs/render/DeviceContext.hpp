@@ -30,7 +30,7 @@ namespace RR::Render
         DeviceContext();
         ~DeviceContext();
 
-        void Init(const GAPI::DeviceDesc& desc);
+        [[nodiscard]] bool Init(const GAPI::DeviceDesc& desc);
         void Terminate();
 
         void Present(GAPI::SwapChain* swapChain);

@@ -19,26 +19,26 @@ namespace RR::Render
     DeviceContext::DeviceContext() {};
     DeviceContext::~DeviceContext() { Terminate();  }
 
-    void DeviceContext::Init(const GAPI::DeviceDesc& desc)
+    bool DeviceContext::Init(const GAPI::DeviceDesc& desc)
     {
         ASSERT(!inited);
 
         auto device = GAPI::Device::Create(desc, "Primary");
         submission.Start(eastl::move(device), SubmissionThreadMode::Enabled);
 
-        bool result = false;
-        submission.ExecuteAwait([&result, this](GAPI::Device& device) {
+        inited = false;
+        submission.ExecuteAwait([this](GAPI::Device& device) {
             if(!GAPI::Diligent::InitDevice(device))
             {
                 Log::Format::Error("Failed to initialize device");
                 return;
             }
 
-            this->multiThreadDevice = static_cast<GAPI::Device::IMultiThreadDevice*>(&device);
-            result = true;
+            multiThreadDevice = static_cast<GAPI::Device::IMultiThreadDevice*>(&device);
+            inited = true;
         });
 
-        inited = result;
+        return inited;
     }
 
     void DeviceContext::Terminate()
