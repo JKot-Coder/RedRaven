@@ -54,6 +54,6 @@ set(DEMO_SRC
         )
 
 add_executable(${PROJECT_NAME} WIN32 ${DEMO_SRC})
-target_link_libraries(${PROJECT_NAME} ${DEMO_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${DEMO_LINK_LIBRARIES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${DEMO_DEFINITIONS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${DEMO_INCLUDE_DIRS})

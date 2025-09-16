@@ -86,7 +86,7 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
-target_link_libraries(${PROJECT_NAME} ${RFX_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RFX_LINK_LIBRARIES})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")

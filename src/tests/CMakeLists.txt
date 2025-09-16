@@ -50,7 +50,7 @@ set(TESTS_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR})
 
 add_executable(${PROJECT_NAME} WIN32 ${SRC})
-target_link_libraries(${PROJECT_NAME} ${TESTS_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${TESTS_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${TESTS_INCLUDE_DIRS})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 

@@ -24,4 +24,4 @@ foreach(ECS_CPP ${ECS_CPP_FILES})
 endforeach()
 
 add_executable(${PROJECT_NAME} ${SRC} ${GEN_CPP_FILES})
-target_link_libraries(${PROJECT_NAME} meta)
+target_link_libraries(${PROJECT_NAME} PRIVATE meta)

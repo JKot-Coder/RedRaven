@@ -17,6 +17,6 @@ set(LIBRARIES
 #=============================== Target ===============================#
 
 add_library(${PROJECT_NAME} SHARED ${SRC})
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")

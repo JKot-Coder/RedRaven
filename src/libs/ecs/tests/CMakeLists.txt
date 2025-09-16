@@ -34,7 +34,7 @@ add_executable(${PROJECT_NAME} ${SRC} )
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/../..  ${PROJECT_SOURCE_DIR}/.. )
 target_compile_definitions(${PROJECT_NAME} PRIVATE ECS_USE_EXCEPTIONS)
 
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 
 if(MSVC)
 	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

@@ -122,7 +122,7 @@ add_subdirectory(cpp-command-output)
 
 add_executable(${PROJECT_NAME} ${SRC})
 add_dependencies(${PROJECT_NAME} rfxc)
-target_link_libraries(${PROJECT_NAME} ${RFX_TESTS_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RFX_TESTS_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")

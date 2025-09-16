@@ -34,7 +34,7 @@ add_subdirectory(editor_ecs)
 #=============================== Target ===============================#
 
 add_executable(${PROJECT_NAME} WIN32 ${SRC})
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 add_dependencies(${PROJECT_NAME} editor_ecs)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")

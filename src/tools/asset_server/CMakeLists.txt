@@ -21,7 +21,7 @@ set(LIBRARIES
 #=============================== Target ===============================#
 
 add_library(${PROJECT_NAME} ${SRC})
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/..")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")

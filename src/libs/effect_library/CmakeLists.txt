@@ -17,5 +17,5 @@ set(LIBRARIES
 
 add_library(${PROJECT_NAME} STATIC ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/.. )

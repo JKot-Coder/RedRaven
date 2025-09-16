@@ -25,7 +25,7 @@ set(LIBRARIES
  #=============================== Target ===============================#
 
 add_executable(${PROJECT_NAME} WIN32 ${SRC})
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")
 target_copy_slang_binaries(${PROJECT_NAME})

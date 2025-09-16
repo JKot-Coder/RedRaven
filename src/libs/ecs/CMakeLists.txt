@@ -13,7 +13,7 @@ set (SRC
 add_library(${PROJECT_NAME} STATIC ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
-target_link_libraries(${PROJECT_NAME} common absl::flat_hash_map)
+target_link_libraries(${PROJECT_NAME} PRIVATE common absl::flat_hash_map)
 
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX)

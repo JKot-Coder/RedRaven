@@ -16,7 +16,7 @@ set(RFXC_LINK_LIBRARIES
 #================================== Target ===================================#
 
 add_executable(${PROJECT_NAME} ${RFXC_SRC})
-target_link_libraries(${PROJECT_NAME} ${RFXC_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RFXC_LINK_LIBRARIES})
 #target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")

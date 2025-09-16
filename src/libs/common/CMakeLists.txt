@@ -72,5 +72,6 @@ set( COMMON_SRC
 add_library(${PROJECT_NAME}  ${COMMON_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/..)
-target_link_libraries(${PROJECT_NAME} RR::BuildSettings fmt::fmt utf8cpp stl)
+target_link_libraries(${PROJECT_NAME} PUBLIC fmt::fmt utf8cpp stl)
+target_link_libraries(${PROJECT_NAME} PRIVATE RR::BuildSettings)
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch/pch.hpp)
