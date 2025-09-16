@@ -23,10 +23,6 @@ namespace RR
             };
 
         public:
-            DeviceDesc() = default;
-            DeviceDesc(DebugMode debugMode) : debugMode(debugMode) { }
-
-        public:
             DebugMode debugMode = DebugMode::Retail;
             uint32_t maxFramesInFlight = 2;
         };
