@@ -12,6 +12,7 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
 endif()
 
 set(DEMO_LINK_LIBRARIES
+        RR::BuildSettings
         common
         platform
         render
@@ -56,10 +57,3 @@ add_executable(${PROJECT_NAME} WIN32 ${DEMO_SRC})
 target_link_libraries(${PROJECT_NAME} ${DEMO_LINK_LIBRARIES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${DEMO_DEFINITIONS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${DEMO_INCLUDE_DIRS})
-
-if(MSVC)
-    set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
-else(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif(MSVC)

@@ -109,6 +109,7 @@ set(SRC
     ${RFX_TESTS_COMPILER_SRC})
 
 set(RFX_TESTS_LINK_LIBRARIES
+    RR::BuildSettings
     common
     rfx
     Catch2::Catch2
@@ -127,13 +128,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-
-if(MSVC)
-	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
-else(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif(MSVC)
 
 #=============================== Tests ================================#
 

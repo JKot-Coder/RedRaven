@@ -9,6 +9,7 @@ set(RFXC_SRC
     ${RFXC_SRC})
 
 set(RFXC_LINK_LIBRARIES
+    RR::BuildSettings
     rfx
     cxxopts)
 
@@ -20,10 +21,3 @@ target_link_libraries(${PROJECT_NAME} ${RFXC_LINK_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "rfx")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
-
-if(MSVC)
-	set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
-else(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif(MSVC)

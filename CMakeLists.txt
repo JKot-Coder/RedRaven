@@ -320,4 +320,14 @@ set_property(TARGET nlohmann_json PROPERTY FOLDER "Dependencies")
 # After dependencies since it's broke Diligent engine build
 set(CMAKE_DEBUG_POSTFIX "_d")
 
+add_library(RR_BuildSettings INTERFACE)
+add_library(RR::BuildSettings ALIAS RR_BuildSettings)
+
+if(MSVC)
+    set_target_properties(RR_BuildSettings PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+    target_compile_options(RR_BuildSettings INTERFACE /W4 /WX)
+else(MSVC)
+    target_compile_options(RR_BuildSettings INTERFACE -Wall -Wextra -pedantic -Werror)
+endif(MSVC)
+
 add_subdirectory(src)
