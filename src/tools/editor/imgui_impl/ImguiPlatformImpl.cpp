@@ -15,11 +15,6 @@ namespace RR
 
     namespace
     {
-        ImVec2 Vector2ToImVec(const Vector2& vector)
-        {
-            return *reinterpret_cast<const ImVec2*>(&vector);
-        }
-
         ImVec2 Vector2iToImVec(const Vector2i& vector)
         {
             auto fVector = vector.Cast<float>();

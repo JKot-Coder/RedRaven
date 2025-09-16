@@ -4,22 +4,21 @@
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
-#include <imgui.h>
-#include <imgui_impl_dx12.h>
 #include <tchar.h>
 
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/Framebuffer.hpp"
 #include "gapi/Texture.hpp"
+#include "gapi/SwapChain.hpp"
 #include "render/DeviceContext.hpp"
 #include "math/Math.hpp"
 
 #include "platform/Toolkit.hpp"
 #include "platform/Window.hpp"
 
-
 #include "common/Result.hpp"
+#include "common/RingBuffer.hpp"
+#include "ecs_imgui/ImGui.hpp"
 
 namespace RR
 {
@@ -55,104 +54,42 @@ namespace RR
         // Forward declarations of helper functions
         bool CreateDeviceD3D(const Platform::Window::SharedPtr&);
         void CleanupDeviceD3D();
-        void CreateRenderTarget();
-        void CleanupRenderTarget();
-        void WaitForLastSubmittedFrame();
 
-        // Data
-        static int const NUM_FRAMES_IN_FLIGHT = 3;
-        // static UINT g_frameIndex = 0;
         static bool g_done = false;
-        static uint32_t swindex = 0;
-        static int const NUM_BACK_BUFFERS = 3;
-        static ID3D12Device* g_pd3dDevice = nullptr;
-        static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
-        static GAPI::CommandQueue::SharedPtr g_CommandQueue = nullptr;
-        static GAPI::GraphicsCommandList::SharedPtr g_CommandList = nullptr;
-        static ID3D12GraphicsCommandList4* g_pd3dCommandList = nullptr;
-        static GAPI::SwapChain::SharedPtr g_pSwapChain;
-        static std::array<GAPI::Framebuffer::SharedPtr, NUM_BACK_BUFFERS> g_frameBuffers;
-        static ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
+        static GAPI::CommandQueue::UniquePtr g_CommandQueue = nullptr;
+        static GAPI::SwapChain::UniquePtr g_pSwapChain;
 
         // Helper functions
         bool CreateDeviceD3D(const Platform::Window::SharedPtr& window)
         {
             auto& deviceContext = Render::DeviceContext::Instance();
-            deviceContext.Init(1, 1);
-            deviceContext.ExecuteAwait([](GAPI::Device& device) { g_pd3dDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
+            GAPI::DeviceDesc deviceDesc;
+            deviceDesc.debugMode = GAPI::DeviceDesc::DebugMode::Retail;
+            deviceDesc.maxFramesInFlight = 1;
 
+            if(!deviceContext.Init(deviceDesc))
             {
-                D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-                desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-                desc.NumDescriptors = 1;
-                desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-                if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
-                    return false;
+                LOG_ERROR("Failed to initialize device context");
+                return false;
             }
-            g_CommandQueue = deviceContext.CreteCommandQueue(GAPI::CommandQueueType::Graphics, "Primary");
 
-            g_CommandList = deviceContext.CreateGraphicsCommandList("Primary");
-            g_pd3dCommandList = std::any_cast<ID3D12GraphicsCommandList4*>(g_CommandList->GetNativeHandle());
-            //  g_pd3dCommandList->Close();
-
-            GAPI::SwapChainDescription desciption = {};
+            GAPI::SwapChainDesc desciption = {};
             desciption.width = window->GetSize().x;
             desciption.height = window->GetSize().y;
-            desciption.bufferCount = NUM_BACK_BUFFERS;
+            desciption.bufferCount = 2;
             desciption.isStereo = false;
             desciption.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8Unorm;
-            desciption.window = window;
+            desciption.windowNativeHandle = window->GetNativeHandleRaw();
 
-            g_pSwapChain = deviceContext.CreateSwapchain(desciption, "Primary");
+            g_pSwapChain = deviceContext.CreateSwapchain(desciption);
 
-            CreateRenderTarget();
             return true;
         }
 
         void CleanupDeviceD3D()
         {
-            CleanupRenderTarget();
-            g_CommandList = nullptr;
-            g_pd3dCommandList = nullptr;
             g_pSwapChain = nullptr;
             g_CommandQueue = nullptr;
-
-            if (g_pd3dSrvDescHeap)
-            {
-                g_pd3dSrvDescHeap->Release();
-                g_pd3dSrvDescHeap = nullptr;
-            }
-        }
-
-        void CreateRenderTarget()
-        {
-            auto& deviceContext = Render::DeviceContext::Instance();
-            for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
-            {
-                ID3D12Resource* pBackBuffer = nullptr;
-                pBackBuffer = std::any_cast<ID3D12Resource*>(g_pSwapChain->GetBackBufferTexture(i)->GetRawHandle());
-                g_mainRenderTargetResource[i] = pBackBuffer;
-
-                GAPI::FramebufferDesc desc = GAPI::FramebufferDesc::Make().BindColorTarget(0, g_pSwapChain->GetBackBufferTexture(i)->GetRTV());
-                g_frameBuffers[i] = deviceContext.CreateFramebuffer(desc);
-            }
-        }
-
-        void CleanupRenderTarget()
-        {
-            WaitForLastSubmittedFrame();
-
-            for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
-                if (g_mainRenderTargetResource[i])
-                {
-                    g_mainRenderTargetResource[i] = nullptr;
-                    g_frameBuffers[i] = nullptr;
-                }
-        }
-
-        void WaitForLastSubmittedFrame()
-        {
-            Render::DeviceContext::Instance().WaitForGpu(g_CommandQueue);
         }
     }
 
@@ -161,24 +98,13 @@ namespace RR
         g_done = true;
     }
 
-    void Application::resizeCallback(const Platform::Window&, const Vector2i& size)
+    /*void Application::resizeCallback(const Platform::Window&, const Vector2i& size)
     {
-        WaitForLastSubmittedFrame();
-        CleanupRenderTarget();
-
-        GAPI::SwapChainDescription desc = g_pSwapChain->GetDescription();
-        desc.width = size.x;
-        desc.height = size.y;
-
         auto& deviceContext = Render::DeviceContext::Instance();
-        deviceContext.ResetSwapChain(g_pSwapChain, desc);
-
-        swindex = 0;
-
-        CreateRenderTarget();
+        deviceContext.ResizeSwapChain(g_pSwapChain.get(), size.x, size.y);
 
         draw(deviceContext, 0.00001f);
-    }
+    }*/
 
     Application::Application() {}
     Application::~Application() {}
@@ -199,7 +125,7 @@ namespace RR
         if (!window)
             return 1;
 
-        window->OnResize.Subscribe<Application, &Application::resizeCallback>(this);
+       // window->OnResize.Subscribe<Application, &Application::resizeCallback>(this);
         window->OnClose.Subscribe<CloseCallback>();
 
         // Initialize Direct3D
@@ -208,7 +134,7 @@ namespace RR
             CleanupDeviceD3D();
             return 1;
         }
-
+/*
         ImGuiIO& io = ImGui::GetIO();
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
@@ -235,8 +161,8 @@ namespace RR
         }
 
         // Setup Platform/Renderer backends
-        imguiPlatformInput.Init(window, true);
-
+        imguiPlatformInput.Init(window, true);*/
+/*
         auto& deviceContext = Render::DeviceContext::Instance();
         ID3D12Device* rawDevice;
         deviceContext.ExecuteAwait([&rawDevice](RR::GAPI::Device& device) { rawDevice = std::any_cast<ID3D12Device*>(device.GetRawDevice()); });
@@ -282,7 +208,7 @@ namespace RR
         ImGui_ImplDX12_Shutdown();
         imguiPlatformInput.Shutdown();
         ImGui::DestroyContext();
-
+*/
         CleanupDeviceD3D();
 
         Render::DeviceContext::Instance().Terminate();
@@ -296,65 +222,14 @@ namespace RR
     #pragma clang optimize off
     void Application::draw(Render::DeviceContext& deviceContext, float dt)
     {
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+        UNUSED(dt);
 
-        deviceContext.ExecuteAsync(
-            [clear_color, dt, this](GAPI::Device& device) {
-                std::ignore = device;
+        //ImGui_ImplDX12_NewFrame();
+        //imguiPlatformInput.NewFrame(dt);
 
-                // Start the Dear ImGui frame
-                ImGui_ImplDX12_NewFrame();
-                imguiPlatformInput.NewFrame(dt);
-
-                // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-                if (show_demo_window)
-                    ImGui::ShowDemoWindow(&show_demo_window);
-
-                // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-                {
-                    static float f = 0.0f;
-                    static int counter = 0;
-
-                    ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-                    ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
-                    ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-                    ImGui::Checkbox("Another Window", &show_another_window);
-
-                    ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-                    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-                    if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-                        counter++;
-                    ImGui::SameLine();
-                    ImGui::Text("counter = %d", counter);
-
-                    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-                    ImGui::End();
-                }
-
-                // 3. Show another simple window.
-                if (show_another_window)
-                {
-                    ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-                    ImGui::Text("Hello from another window!");
-                    if (ImGui::Button("Close Me"))
-                        show_another_window = false;
-                    ImGui::End();
-                }
-
-                ecsManager->Update();
-                editorWorld.Tick();
-
-                // Rendering
-                ImGui::Render();
-            });
-
-        UINT backBufferIdx = swindex; //           g_pSwapChain->GetCurrentBackBufferIndex();
-
-        deviceContext.ExecuteAsync(
-            [backBufferIdx, clear_color](GAPI::Device& device) {
-                std::ignore = device;
+        ImGuiEcs::Draw(editorWorld);
+/*
+        static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
                 D3D12_RESOURCE_BARRIER barrier = {};
                 barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -364,27 +239,34 @@ namespace RR
                 barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
                 barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-                // Render Dear ImGui graphics
+                const auto& сommandList = g_CommandLists.Advance();
 
-                g_CommandList->ClearRenderTargetView(g_frameBuffers[backBufferIdx]->GetDescription().renderTargetViews[0], Vector4(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w));
+                // Render Dear ImGui graphics
+                сommandList->ClearRenderTargetView(g_frameBuffers[backBufferIdx]->GetDescription().renderTargetViews[0], Vector4(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w));
+
+
+                frameIdx++;
+                ID3D12GraphicsCommandList4* g_pd3dCommandList = std::any_cast<ID3D12GraphicsCommandList4*>(сommandList->GetNativeHandle());
 
                 g_pd3dCommandList->ResourceBarrier(1, &barrier);
-                g_CommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
+                сommandList->SetFrameBuffer(g_frameBuffers[backBufferIdx]);
+
                 g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
 
-                auto ctx = std::any_cast<ID3D12GraphicsCommandList4*>(g_CommandList->GetNativeHandle());
-                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), ctx);
+                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_pd3dCommandList);
 
                 barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
                 barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
                 g_pd3dCommandList->ResourceBarrier(1, &barrier);
-                g_CommandList->Close();
-            });
+                сommandList->Close();
+
+
+        //    });
 
         swindex = (++swindex % NUM_BACK_BUFFERS);
 
-        deviceContext.Submit(g_CommandQueue, g_CommandList);
+        deviceContext.Submit(g_CommandQueue, сommandList);
 
         ImGuiIO& io = ImGui::GetIO();
         // Update and Render additional Platform Windows
@@ -393,27 +275,33 @@ namespace RR
             // ImGui::UpdatePlatformWindows();
             //   ImGui::RenderPlatformWindowsDefault(nullptr, (void*)g_pd3dCommandList);
         }
-
-        deviceContext.Present(g_pSwapChain);
-        deviceContext.MoveToNextFrame(g_CommandQueue);
+*/
+        deviceContext.Present(g_pSwapChain.get());
+        deviceContext.MoveToNextFrame(0);
     }
-    #pragma clang optimize on
+
+
     void Application::init()
     {
         // Setup Dear ImGui context
-        IMGUI_CHECKVERSION();
-        auto imguiCtx = ImGui::CreateContext();
+      //  IMGUI_CHECKVERSION();
+     //   auto imguiCtx = ImGui::CreateContext();
 
-        EcsModule::Context ctx(editorWorld, *imguiCtx);
+      //  EcsModule::Context ctx(editorWorld, *imguiCtx);
 
-        ecsManager = std::make_unique<EcsModule::Manager>(ctx);
-        if (ecsManager->Load("editor_ecs_d.dll") != Common::RResult::Ok)
+
+     //   ecsManager = std::make_unique<EcsModule::Manager>(ctx);
+      /*  if (ecsManager->Load("editor_ecs_d.dll") != Common::RResult::Ok)
         {
             LOG_ERROR("cant load shit!");
         }
         else
         {
-        }
+        }*/
+        editorWorld.OrderSystems();
+     //  ImGuiEcs::Init(editorWorld, ImGui::GetCurrentContext());
+
+        editorWorld.OrderSystems();
 
         //   testEvent.Register<Application>(this, &Application::bar);
     }

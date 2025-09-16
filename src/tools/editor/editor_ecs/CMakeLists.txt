@@ -1,7 +1,9 @@
 project(editor_ecs)
 
 set(SRC
-    "main.cpp")
+    main.cpp
+    test.cpp
+    InitImguiContext.cpp)
 source_group("" FILES ${SRC})
 
 set(SRC ${SRC})
@@ -12,6 +14,7 @@ set(LIBRARIES
     imgui::imgui
     ecs
     ecs_module::interface
+    ecs_imgui::interface
     cr)
 
 #=============================== Target ===============================#

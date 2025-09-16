@@ -1,12 +1,12 @@
 #include "cr.h"
-#include "ecs\Ecs.hpp"
+
 #include "ecs_module\Context.hpp"
-#include <imgui.h>
+#include "ecs_module\FeatureRegistry.hpp"
 
-
-#pragma clang optimize off
 int init(const RR::EcsModule::Context& ctx)
 {
+    EcsFeatureRegistry::ForEach([&ctx](auto& fn) { fn(*ctx.editorWorld); });
+
     UNUSED(ctx);
     return 0;
 }
@@ -23,4 +23,3 @@ CR_EXPORT int cr_main(struct cr_plugin* ctx, enum cr_op operation)
         default: return 0; // CR_STEP
     }
 }
-#pragma clang optimize on

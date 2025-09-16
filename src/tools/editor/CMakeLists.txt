@@ -12,8 +12,7 @@ set(IMGUI_IMPL_SRC
 source_group("ImguiImpl" FILES ${IMGUI_IMPL_SRC})
 
 set(SRC
-    ${SRC}
-    ${IMGUI_IMPL_SRC})
+    ${SRC})
 
 set(LIBRARIES
     RR::BuildSettings
