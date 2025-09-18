@@ -67,11 +67,10 @@ namespace RR::GAPI::Diligent
         }
 
         backBufferCount = swapChainInitDesc.BufferCount;
+        swapChain->SetMaximumFrameLatency(frameLatency);
 
         rtvs.reserve(swapChainInitDesc.BufferCount);
         resetRTVs();
-
-        swapChain->SetMaximumFrameLatency(frameLatency);
     }
 
     void SwapChainImpl::resetRTVs()
