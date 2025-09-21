@@ -59,6 +59,17 @@ namespace RR::GAPI::Diligent
         }
     }
 
+    DL::CPU_ACCESS_FLAGS getCPUAccessFlags(const GpuResourceUsage& usage)
+    {
+        switch (usage)
+        {
+            case GpuResourceUsage::Default: return DL::CPU_ACCESS_NONE;
+            case GpuResourceUsage::Upload: return DL::CPU_ACCESS_WRITE;
+            case GpuResourceUsage::Readback: return DL::CPU_ACCESS_READ;
+            default: ASSERT_MSG(false, "Unknown usage"); return DL::CPU_ACCESS_NONE;
+        }
+    }
+
     DL::BIND_FLAGS getBindFlags(const GpuResourceBindFlags& bindFlags)
     {
         DL::BIND_FLAGS flags = DL::BIND_NONE;
@@ -92,6 +103,33 @@ namespace RR::GAPI::Diligent
         return texDesc;
     }
 
+    DL::BUFFER_MODE getBufferMode(const GpuResourceDesc& desc)
+    {
+        switch (desc.GetBufferMode())
+        {
+            case BufferMode::Structured: return DL::BUFFER_MODE_STRUCTURED;
+            case BufferMode::Raw: return DL::BUFFER_MODE_RAW;
+            case BufferMode::Formatted: return DL::BUFFER_MODE_FORMATTED;
+            default: ASSERT_MSG(false, "Unknown buffer mode"); return DL::BUFFER_MODE_UNDEFINED;
+        }
+    }
+
+    DL::BufferDesc getBufferDesc(const GpuResourceDesc& desc, const std::string& name)
+    {
+        ASSERT(desc.IsBuffer());
+
+        DL::BufferDesc bufDesc;
+        bufDesc.Name = name.c_str();
+        bufDesc.Size = desc.buffer.size;
+        bufDesc.Usage = getUsage(desc.usage);
+        bufDesc.BindFlags = getBindFlags(desc.bindFlags);
+        bufDesc.Mode = getBufferMode(desc);
+        bufDesc.CPUAccessFlags = getCPUAccessFlags(desc.usage);
+        bufDesc.ElementByteStride = desc.buffer.stride;
+
+        return bufDesc;
+    }
+
     DL::RESOURCE_DIMENSION getDLResourceDimension(GAPI::GpuResourceDimension dimension)
     {
         switch (dimension)
@@ -116,9 +154,18 @@ namespace RR::GAPI::Diligent
     {
         ASSERT_MSG(!resource.GetInitialData(), "Initial data isn't supported");
 
-        const auto desc = getTextureDesc(resource.GetDesc(), resource.GetName());
-        device->CreateTexture(desc, nullptr, &texture_);
-        dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
+        if (resource.GetDesc().IsBuffer())
+        {
+            const auto desc = getBufferDesc(resource.GetDesc(), resource.GetName());
+            device->CreateBuffer(desc, nullptr, &buffer_);
+            dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
+        }
+        else
+        {
+            const auto desc = getTextureDesc(resource.GetDesc(), resource.GetName());
+            device->CreateTexture(desc, nullptr, &texture_);
+            dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
+        }
     }
 
     void GpuResourceImpl::Init(DL::ITexture* texture, const GpuResource& resource)
