@@ -4,6 +4,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Shader.hpp"
+#include "gapi/Buffer.hpp"
 #include "gapi/Texture.hpp"
 #include "gapi/CommandList2.hpp"
 #include "gapi/CommandQueue.hpp"
@@ -118,6 +119,16 @@ namespace RR::Render
 
         auto resource = GAPI::Shader::Create(desc, name);
         multiThreadDevice->InitShader(*resource.get());
+
+        return resource;
+    }
+
+    GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(const GAPI::GpuResourceDesc& desc,const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name) const
+    {
+        ASSERT(inited);
+
+        auto resource = GAPI::Buffer::Create(desc, initialData, name);
+        multiThreadDevice->InitBuffer(*resource.get());
 
         return resource;
     }
