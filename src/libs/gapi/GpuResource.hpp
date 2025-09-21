@@ -153,14 +153,12 @@ namespace RR
             MSAA_2
         };
 
-        enum class BufferFlags : uint32_t
+        enum class BufferMode : uint32_t
         {
-            None = 0,
-            RawBuffer = 1 << 0,
-            StructuredBuffer = 1 << 1,
-            IndexBuffer = 1 << 2,
+            Raw,
+            Structured,
+            Formatted
         };
-        ENUM_CLASS_BITWISE_OPS(BufferFlags)
 
         enum class GpuResourceUsage : uint32_t
         {
@@ -188,19 +186,19 @@ namespace RR
 
             static GpuResourceDesc Buffer(size_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDesc(size, 0, BufferFlags::None, bindFlags, usage);
+                return GpuResourceDesc(size, 0, BufferMode::Raw, bindFlags, usage);
             }
 
             static GpuResourceDesc StructuredBuffer(size_t numElements, size_t structSize, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
-                return GpuResourceDesc(numElements * structSize, structSize, BufferFlags::StructuredBuffer, bindFlags, usage);
+                return GpuResourceDesc(numElements * structSize, structSize, BufferMode::Structured, bindFlags, usage);
             }
 
             static GpuResourceDesc IndexBuffer(size_t numElements, GAPI::GpuResourceFormat format, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
                 ASSERT_MSG(format == GAPI::GpuResourceFormat::R16Uint || format == GAPI::GpuResourceFormat::R32Uint, "Only R16Uint and R32Uint formats are allowed for index buffers");
                 size_t elementSize = GpuResourceFormatInfo::GetBlockSize(format);
-                return GpuResourceDesc(numElements * elementSize, elementSize, BufferFlags::IndexBuffer, GpuResourceBindFlags::None, usage);
+                return GpuResourceDesc(numElements * elementSize, elementSize, BufferMode::Formatted, GpuResourceBindFlags::None, usage);
             }
 
             static GpuResourceDesc Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
@@ -328,10 +326,10 @@ namespace RR
                 return planeSlices * numFaces * arraySize * mipLevels;
             }
 
-            GpuResourceFormat GetIndexBufferFormat() const
+            GpuResourceFormat GetBufferFormat() const
             {
                 ASSERT(dimension == GpuResourceDimension::Buffer);
-                ASSERT(IsIndex());
+                ASSERT(GetBufferMode() == BufferMode::Formatted);
                 return buffer.stride == 2   ? GpuResourceFormat::R16Uint
                        : buffer.stride == 4 ? GpuResourceFormat::R32Uint
                                             : GpuResourceFormat::Unknown;
@@ -343,22 +341,10 @@ namespace RR
                 return dimension == GpuResourceDimension::Buffer ? 1 : 1 + static_cast<uint32_t>(log2(static_cast<float>(maxDimension)));
             }
 
-            bool IsStuctured() const
+            BufferMode GetBufferMode() const
             {
                 ASSERT(dimension == GpuResourceDimension::Buffer);
-                return IsSet(buffer.flags, BufferFlags::StructuredBuffer);
-            }
-
-            bool IsRaw() const
-            {
-                ASSERT(dimension == GpuResourceDimension::Buffer);
-                return IsSet(buffer.flags, BufferFlags::RawBuffer);
-            }
-
-            bool IsIndex() const
-            {
-                ASSERT(dimension == GpuResourceDimension::Buffer);
-                return IsSet(buffer.flags, BufferFlags::IndexBuffer);
+                return buffer.mode;
             }
 
             bool IsValid() const;
@@ -390,7 +376,7 @@ namespace RR
 
             GpuResourceDesc(size_t size,
                                    size_t stride,
-                                   BufferFlags bufferFlags,
+                                   BufferMode bufferMode,
                                    GpuResourceBindFlags bindFlags,
                                    GpuResourceUsage usage)
                 : dimension(GpuResourceDimension::Buffer),
@@ -399,7 +385,7 @@ namespace RR
             {
                 buffer.size = size;
                 buffer.stride = stride;
-                buffer.flags = bufferFlags;
+                buffer.mode = bufferMode;
 
                 ASSERT(IsValid());
             }
@@ -420,7 +406,7 @@ namespace RR
             {
                 size_t size = 1;
                 size_t stride = 1;
-                BufferFlags flags = BufferFlags::None;
+                BufferMode mode = BufferMode::Raw;
             };
 
         public:
