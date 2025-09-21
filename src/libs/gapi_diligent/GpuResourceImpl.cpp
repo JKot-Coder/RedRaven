@@ -89,6 +89,8 @@ namespace RR::GAPI::Diligent
 
     DL::TextureDesc getTextureDesc(const GpuResourceDesc& desc, const std::string& name)
     {
+        ASSERT(desc.IsTexture());
+
         DL::TextureDesc texDesc;
         texDesc.Name = name.c_str();
         texDesc.Format = GetDLTextureFormat(desc.texture.format);
