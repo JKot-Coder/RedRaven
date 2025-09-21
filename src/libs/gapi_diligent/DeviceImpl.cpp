@@ -7,6 +7,9 @@
 #include "ShaderImpl.hpp"
 #include "PipelineStateImpl.hpp"
 
+#include "gapi/Texture.hpp"
+#include "gapi/Buffer.hpp"
+
 #define ASSERT_IS_DEVICE_INITED ASSERT(inited)
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
@@ -130,14 +133,6 @@ namespace RR::GAPI::Diligent
         commandListImpl->Compile(commandList, deferredContext);
     }
 
-    void DeviceImpl::InitBuffer(Buffer& resource) const
-    {
-        ASSERT_IS_DEVICE_INITED;
-
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
-    }
-
     void DeviceImpl::InitCommandList(CommandList& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
@@ -188,6 +183,15 @@ namespace RR::GAPI::Diligent
 
         auto impl = eastl::make_unique<SwapChainImpl>();
         impl->Init(deviceType, device, engineFactory, immediateContext, resource.GetDesc(), desc.maxFramesInFlight);
+        resource.SetPrivateImpl(impl.release());
+    }
+
+    void DeviceImpl::InitBuffer(Buffer& resource) const
+    {
+        ASSERT_IS_DEVICE_INITED;
+
+        auto impl = std::make_unique<GpuResourceImpl>();
+        impl->Init(device, resource);
         resource.SetPrivateImpl(impl.release());
     }
 

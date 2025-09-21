@@ -22,7 +22,7 @@ namespace RR::GAPI::Diligent
         DeviceImpl();
         ~DeviceImpl() override;
 
-        bool Init(const GAPI::DeviceDesc& deviceDesc);
+        bool Init(const GAPI::DeviceDesc& desc);
         void Present(SwapChain* swapChain) override;
         void MoveToNextFrame(uint64_t frameIndex) override;
 
@@ -30,13 +30,13 @@ namespace RR::GAPI::Diligent
 
         void Compile(CommandList2& commandList) override;
 
-        void InitBuffer(Buffer& resource) const override;
         void InitCommandList(CommandList& resource) const override;
         void InitCommandList2(CommandList2& resource) const override;
         void InitCommandQueue(CommandQueue& resource) const override;
         void InitFence(Fence& resource) const override;
         void InitGpuResourceView(GpuResourceView& view) const override;
         void InitSwapChain(SwapChain& resource) const override;
+        void InitBuffer(Buffer& resource) const override;
         void InitTexture(Texture& resource) const override;
         void InitShader(Shader& resource) const override;
         void InitPipelineState(PipelineState& resource) const override;

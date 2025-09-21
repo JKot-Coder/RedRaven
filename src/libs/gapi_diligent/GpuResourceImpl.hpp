@@ -1,8 +1,8 @@
 #pragma once
 
-#include "gapi/Texture.hpp"
-#include "RefCntAutoPtr.hpp"
+#include "gapi/GpuResource.hpp"
 
+#include "RefCntAutoPtr.hpp"
 #include "GraphicsTypes.h"
 
 namespace DL = ::Diligent;
