@@ -469,7 +469,6 @@ namespace RR
             eastl::shared_ptr<Type> GetTyped();
 
             inline const GpuResourceDesc& GetDesc() const { return desc_; }
-            inline IDataBuffer::SharedPtr GetInitialData() const { return initialData_; }
             inline std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints() const
             {
                 return GetPrivateImpl()->GetSubresourceFootprints(desc_);
@@ -477,27 +476,15 @@ namespace RR
 
             // TODO Temporary
             inline std::any GetRawHandle() const { return GetPrivateImpl()->GetRawHandle(); }
-
-            inline void ResetInitialData()
-            {
-                ASSERT(initialData_);
-                initialData_.reset();
-            }
-
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
         protected:
-            GpuResource(GpuResourceDesc desc,
-                        IDataBuffer::SharedPtr initialData,
-                        const std::string& name)
-                : Resource(Type::GpuResource, name),
-                  desc_(desc),
-                  initialData_(initialData) { };
+            GpuResource(GpuResourceDesc desc, const std::string& name)
+                : Resource(Type::GpuResource, name), desc_(desc) { };
 
         protected:
             GpuResourceDesc desc_;
-            IDataBuffer::SharedPtr initialData_;
 
             // TODO NOT UNORDERD MAP NEVER EVER USE IT!!!!!
             std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;

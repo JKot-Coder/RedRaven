@@ -46,7 +46,7 @@ namespace RR
 
             virtual void Compile(CommandList2& commandList) = 0;
 
-            virtual void InitBuffer(Buffer& resource) const = 0;
+            virtual void InitBuffer(Buffer& resource, const BufferData* initialData) const = 0;
             virtual void InitCommandList(CommandList& resource) const = 0;
             virtual void InitCommandList2(CommandList2& resource) const = 0;
             virtual void InitCommandQueue(CommandQueue& resource) const = 0;
@@ -85,7 +85,7 @@ namespace RR
                 override { return GetPrivateImpl()->GetResourceFootprint(desc); };
 
             // Todo init resource?
-            void InitBuffer(Buffer& resource) const override { GetPrivateImpl()->InitBuffer(resource); };
+            void InitBuffer(Buffer& resource, const BufferData* initialData) const override { GetPrivateImpl()->InitBuffer(resource, initialData); };
             void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
             void InitCommandList2(CommandList2& resource) const override { GetPrivateImpl()->InitCommandList2(resource); };
             void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };

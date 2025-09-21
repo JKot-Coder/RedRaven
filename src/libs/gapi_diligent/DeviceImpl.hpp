@@ -36,7 +36,7 @@ namespace RR::GAPI::Diligent
         void InitFence(Fence& resource) const override;
         void InitGpuResourceView(GpuResourceView& view) const override;
         void InitSwapChain(SwapChain& resource) const override;
-        void InitBuffer(Buffer& resource) const override;
+        void InitBuffer(Buffer& resource, const BufferData* initialData) const override;
         void InitTexture(Texture& resource) const override;
         void InitShader(Shader& resource) const override;
         void InitPipelineState(PipelineState& resource) const override;

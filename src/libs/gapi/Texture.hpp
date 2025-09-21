@@ -37,8 +37,9 @@ namespace RR::GAPI
         Texture(const GpuResourceDesc& desc,
                 IDataBuffer::SharedPtr initialData,
                 const std::string& name)
-            : GpuResource(desc, initialData, name)
+            : GpuResource(desc, name)
         {
+            UNUSED(initialData);
             if (!desc.IsTexture())
                 LOG_FATAL("Wrong Description");
         };

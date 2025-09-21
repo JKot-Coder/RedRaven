@@ -8,6 +8,8 @@
 #include "Texture.h"
 #include "Buffer.h"
 
+#include "gapi/Buffer.hpp"
+
 namespace DL = ::Diligent;
 
 namespace RR::GAPI::Diligent
@@ -152,22 +154,30 @@ namespace RR::GAPI::Diligent
         }
     }
 
+    void GpuResourceImpl::InitBuffer(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource& resource, const BufferData* initialData)
+    {
+        ASSERT_MSG(resource.GetDesc().IsBuffer(), "Resource is not a buffer");
+
+        DL::BufferData data = {};
+
+        if (initialData)
+        {
+            data.pData = initialData->data;
+            data.DataSize = initialData->size;
+        }
+
+        const auto desc = getBufferDesc(resource.GetDesc(), resource.GetName());
+        device->CreateBuffer(desc, initialData ? &data : nullptr, &buffer_);
+        dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
+    }
+
     void GpuResourceImpl::Init(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource& resource)
     {
-        ASSERT_MSG(!resource.GetInitialData(), "Initial data isn't supported");
+        ASSERT_MSG(resource.GetDesc().IsTexture(), "Resource is not a texture");
 
-        if (resource.GetDesc().IsBuffer())
-        {
-            const auto desc = getBufferDesc(resource.GetDesc(), resource.GetName());
-            device->CreateBuffer(desc, nullptr, &buffer_);
-            dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
-        }
-        else
-        {
-            const auto desc = getTextureDesc(resource.GetDesc(), resource.GetName());
-            device->CreateTexture(desc, nullptr, &texture_);
-            dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
-        }
+        const auto desc = getTextureDesc(resource.GetDesc(), resource.GetName());
+        device->CreateTexture(desc, nullptr, &texture_);
+        dimension = getDLResourceDimension(resource.GetDesc().GetDimension());
     }
 
     void GpuResourceImpl::Init(DL::ITexture* texture, const GpuResource& resource)

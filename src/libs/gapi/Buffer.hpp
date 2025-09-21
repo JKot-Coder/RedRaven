@@ -11,6 +11,19 @@ namespace RR
 {
     namespace GAPI
     {
+        struct BufferData
+        {
+            const void* data = nullptr;
+            size_t size = 0;
+
+        public:
+            constexpr BufferData() = default;
+            constexpr BufferData(const void* data, size_t size) : data(data), size(size)
+            {
+                ASSERT(data);
+            }
+        };
+
         class Buffer final : public GpuResource
         {
         public:
@@ -26,19 +39,12 @@ namespace RR
         private:
             EASTL_FRIEND_MAKE_SHARED;
 
-            static SharedPtr Create(
-                const GpuResourceDesc& desc,
-                IDataBuffer::SharedPtr initialData,
-                const std::string& name)
+            static SharedPtr Create(const GpuResourceDesc& desc, const std::string& name)
             {
-                return eastl::make_shared<Buffer>(desc, initialData, name);
+                return eastl::make_shared<Buffer>(desc, name);
             }
 
-            Buffer(
-                const GpuResourceDesc& desc,
-                IDataBuffer::SharedPtr initialData,
-                const std::string& name)
-                : GpuResource(desc, initialData, name)
+            Buffer(const GpuResourceDesc& desc, const std::string& name) : GpuResource(desc, name)
             {
                 if (!desc.IsBuffer())
                     LOG_FATAL("Wrong Description");

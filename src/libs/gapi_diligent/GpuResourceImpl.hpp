@@ -21,6 +21,7 @@ namespace RR::GAPI::Diligent
         GpuResourceImpl() = default;
         ~GpuResourceImpl() override;
 
+        void InitBuffer(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource& resource, const BufferData* initialData);
         void Init(const DL::RefCntAutoPtr<DL::IRenderDevice>& device, const GpuResource& resource);
         void Init(DL::ITexture* texture, const GpuResource& resource);
 

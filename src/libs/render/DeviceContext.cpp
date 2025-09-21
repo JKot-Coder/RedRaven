@@ -123,12 +123,12 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(const GAPI::GpuResourceDesc& desc,const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name) const
+    GAPI::Buffer::SharedPtr DeviceContext::CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Buffer::Create(desc, initialData, name);
-        multiThreadDevice->InitBuffer(*resource.get());
+        auto resource = GAPI::Buffer::Create(desc, name);
+        multiThreadDevice->InitBuffer(*resource.get(), initialData);
 
         return resource;
     }

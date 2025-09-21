@@ -18,6 +18,8 @@ namespace RR
 
         struct RenderPassDesc;
 
+        struct BufferData;
+
         class Fence;
         class Texture;
         class Buffer;

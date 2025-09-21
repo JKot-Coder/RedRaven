@@ -186,12 +186,12 @@ namespace RR::GAPI::Diligent
         resource.SetPrivateImpl(impl.release());
     }
 
-    void DeviceImpl::InitBuffer(Buffer& resource) const
+    void DeviceImpl::InitBuffer(Buffer& resource, const BufferData* initialData) const
     {
         ASSERT_IS_DEVICE_INITED;
 
         auto impl = std::make_unique<GpuResourceImpl>();
-        impl->Init(device, resource);
+        impl->InitBuffer(device, resource, initialData);
         resource.SetPrivateImpl(impl.release());
     }
 
