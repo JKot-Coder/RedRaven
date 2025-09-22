@@ -224,9 +224,9 @@ namespace RR
                     return false;
                 }
 
-                if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget))
+                if (IsSet(bindFlags, GpuResourceBindFlags::RenderTarget) || IsSet(bindFlags, GpuResourceBindFlags::DepthStencil))
                 {
-                    LOG_WARNING("Buffer can't be binded as RenderTarget");
+                    LOG_WARNING("Buffer can't be binded as RenderTarget or DepthStencil");
                     return false;
                 }
 
@@ -247,6 +247,12 @@ namespace RR
                 if (texture.format == GpuResourceFormat::Unknown)
                 {
                     LOG_WARNING("Unknown resource format");
+                    return false;
+                }
+
+                if (IsSet(bindFlags, GpuResourceBindFlags::IndexBuffer) || IsSet(bindFlags, GpuResourceBindFlags::VertexBuffer))
+                {
+                    LOG_WARNING("Texture can't be binded as index or vertex buffer");
                     return false;
                 }
 

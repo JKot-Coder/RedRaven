@@ -76,6 +76,11 @@ namespace RR::GAPI::Diligent
     {
         DL::BIND_FLAGS flags = DL::BIND_NONE;
 
+        if (IsSet(bindFlags, GpuResourceBindFlags::IndexBuffer))
+            flags |= DL::BIND_INDEX_BUFFER;
+        if (IsSet(bindFlags, GpuResourceBindFlags::VertexBuffer))
+            flags |= DL::BIND_VERTEX_BUFFER;
+
         if (IsSet(bindFlags, GpuResourceBindFlags::ShaderResource))
             flags |= DL::BIND_SHADER_RESOURCE;
         if (IsSet(bindFlags, GpuResourceBindFlags::UnorderedAccess))
@@ -92,6 +97,7 @@ namespace RR::GAPI::Diligent
     DL::TextureDesc getTextureDesc(const GpuResourceDesc& desc, const std::string& name)
     {
         ASSERT(desc.IsTexture());
+        ASSERT(!IsSet(desc.bindFlags, GpuResourceBindFlags::IndexBuffer) && !IsSet(desc.bindFlags, GpuResourceBindFlags::VertexBuffer));
 
         DL::TextureDesc texDesc;
         texDesc.Name = name.c_str();
@@ -121,6 +127,7 @@ namespace RR::GAPI::Diligent
     DL::BufferDesc getBufferDesc(const GpuResourceDesc& desc, const std::string& name)
     {
         ASSERT(desc.IsBuffer());
+        ASSERT(!IsSet(desc.bindFlags, GpuResourceBindFlags::RenderTarget) && !IsSet(desc.bindFlags, GpuResourceBindFlags::DepthStencil));
 
         DL::BufferDesc bufDesc;
         bufDesc.Name = name.c_str();

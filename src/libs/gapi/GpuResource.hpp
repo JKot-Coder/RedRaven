@@ -26,10 +26,12 @@ namespace RR
         enum class GpuResourceBindFlags : uint32_t
         {
             None = 0,
-            ShaderResource = 1 << 0,
-            UnorderedAccess = 1 << 1,
-            RenderTarget = 1 << 2,
-            DepthStencil = 1 << 3,
+            IndexBuffer = 1 << 0,
+            VertexBuffer = 1 << 1,
+            ShaderResource = 1 << 2,
+            UnorderedAccess = 1 << 3,
+            RenderTarget = 1 << 4,
+            DepthStencil = 1 << 5,
             Count = 4,
         };
         ENUM_CLASS_BITWISE_OPS(GpuResourceBindFlags)
@@ -184,7 +186,7 @@ namespace RR
         public:
             static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
-            static GpuResourceDesc Buffer(size_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default)
+            static GpuResourceDesc Buffer(size_t size, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::VertexBuffer, GpuResourceUsage usage = GpuResourceUsage::Default)
             {
                 return GpuResourceDesc(size, 0, BufferMode::Raw, bindFlags, usage);
             }
@@ -198,7 +200,7 @@ namespace RR
             {
                 ASSERT_MSG(format == GAPI::GpuResourceFormat::R16Uint || format == GAPI::GpuResourceFormat::R32Uint, "Only R16Uint and R32Uint formats are allowed for index buffers");
                 size_t elementSize = GpuResourceFormatInfo::GetBlockSize(format);
-                return GpuResourceDesc(numElements * elementSize, elementSize, BufferMode::Formatted, GpuResourceBindFlags::None, usage);
+                return GpuResourceDesc(numElements * elementSize, elementSize, BufferMode::Formatted, GpuResourceBindFlags::IndexBuffer, usage);
             }
 
             static GpuResourceDesc Texture1D(uint32_t width, GpuResourceFormat format, GpuResourceBindFlags bindFlags = GpuResourceBindFlags::ShaderResource, GpuResourceUsage usage = GpuResourceUsage::Default, uint32_t arraySize = 1, uint32_t mipLevels = MaxPossible)
