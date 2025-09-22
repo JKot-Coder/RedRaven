@@ -32,7 +32,7 @@ namespace RR::Render
         ComputeCommandContext(GAPI::CommandList2&& commandlist) : CopyCommandContext(eastl::move(commandlist)) { }
     };
 
-    class GraphicsCommandContext : public ComputeCommandContext
+    class GraphicsCommandContext final : public ComputeCommandContext
     {
     public:
         using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
