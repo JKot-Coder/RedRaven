@@ -212,9 +212,9 @@ namespace RR
                     return false;
                 }
 
-                if (buffer.mode != BufferMode::Structured && (buffer.stride != 0))
+                if (buffer.mode != BufferMode::Structured && buffer.mode != BufferMode::Formatted && (buffer.stride != 0))
                 {
-                    LOG_WARNING("Stride of non structured buffer should be zero");
+                    LOG_WARNING("Stride of non structured or formatted buffer should be zero");
                     return false;
                 }
 
