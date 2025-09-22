@@ -19,8 +19,15 @@ namespace RR::Render
         uint32_t renderTargetCount = 0;
         eastl::array<GAPI::GpuResourceFormat, GAPI::MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
         GAPI::GpuResourceFormat depthStencilFormat;
-    };
 
+        void Reset()
+        {
+            primitiveTopology = GAPI::PrimitiveTopology::TriangleList;
+            renderTargetCount = 0;
+            renderTargetFormats.fill(GAPI::GpuResourceFormat::Unknown);
+            depthStencilFormat = GAPI::GpuResourceFormat::Unknown;
+        }
+    };
 
     struct EffectDesc
     {

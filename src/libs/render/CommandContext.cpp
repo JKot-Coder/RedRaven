@@ -12,16 +12,49 @@
 namespace RR::Render
 {
 
-    void GraphicsCommandContext::SetVertexBuffers(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset)
+    GAPI::Commands::GeometryLayout& GraphicsCommandContext::GeometryManager::flush(GAPI::CommandList2& commandList)
     {
-        UNUSED(slot, buffer, offset);
-        //GetCommandList().emplaceCommand<GAPI::Commands::SetVertexBuffers>(slot, buffer, offset);
+        if (!dirty)
+        {
+            if (!currentLayout)
+                currentLayout = commandList.allocate<GAPI::Commands::GeometryLayout>();
+
+            return *currentLayout;
+        }
+
+        auto vbArray = commandList.allocateArray<GAPI::Commands::VertexBinding>(vertexBindings.size());
+
+        for (size_t i = 0; i < vertexBindings.size(); ++i)
+            vbArray[i] = vertexBindings[i];
+
+        currentLayout = commandList.allocate<GAPI::Commands::GeometryLayout>();
+        currentLayout->vertexBindings = eastl::span(vbArray, vertexBindings.size());
+        currentLayout->indexBuffer = indexBuffer;
+
+        dirty = false;
+
+        return *currentLayout;
     }
 
-    void GraphicsCommandContext::SetIndexBuffer(const GAPI::Buffer* buffer)
+    void GraphicsCommandContext::GeometryManager::SetVertexBuffers(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0)
     {
-        ASSERT(buffer == nullptr || buffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
+        if (vertexBindings.size() > slot && vertexBindings[slot].vertexBuffer == &buffer && vertexBindings[slot].vertexBufferOffset == offset)
+            return;
+
+        if (vertexBindings.size() <= slot)
+            vertexBindings.resize(slot + 1, { nullptr, 0 });
+
+        vertexBindings[slot] = { &buffer, offset };
+        dirty = true;
+    }
+
+    void GraphicsCommandContext::GeometryManager::SetIndexBuffer(const GAPI::Buffer* buffer)
+    {
+        if (currentLayout && currentLayout->indexBuffer == buffer)
+            return;
+
         indexBuffer = buffer;
+        dirty = true;
     }
 
     void GraphicsCommandContext::SetRenderPass(const GAPI::RenderPassDesc& renderPass)
@@ -53,13 +86,17 @@ namespace RR::Render
         drawAttribs.instanceCount = instanceCount;
 
         auto pso = effect->EvaluateGraphicsPipelineState(graphicsParams);
-        GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso);
+        GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso, flushLayout());
     }
 
     void GraphicsCommandContext::DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount)
     {
         ASSERT(effect);
-        ASSERT(indexBuffer);
+
+        auto& layout = flushLayout();
+        ASSERT(layout.indexBuffer);
+
+        ASSERT(reinterpret_cast <size_t>(layout.indexBuffer) > 10000) ;
 
         graphicsParams.primitiveTopology = topology;
 
@@ -69,6 +106,6 @@ namespace RR::Render
         drawAttribs.instanceCount = instanceCount;
 
         auto pso = effect->EvaluateGraphicsPipelineState(graphicsParams);
-        GetCommandList().emplaceCommand<GAPI::Commands::DrawIndexed>(drawAttribs, pso, *indexBuffer);
+        GetCommandList().emplaceCommand<GAPI::Commands::DrawIndexed>(drawAttribs, pso, layout);
     }
 }

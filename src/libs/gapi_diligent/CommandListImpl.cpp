@@ -82,21 +82,52 @@ namespace RR::GAPI::Diligent
         // ---------------------------------------------------------------------------------------------
 
         template <typename T>
-        void compileCommand(const T& command, const Buffer* indexBuffer, const CommandCompileContext& ctx)
+        void compileCommand(const T& command, bool indexed, const CommandCompileContext& ctx)
         {
             const auto* pso = static_cast<const PipelineStateImpl*>(command.psoImpl);
             ASSERT(pso);
+            ASSERT(command.geometryLayout);
 
             ctx.device->SetPipelineState(pso->GetPipelineState());
 
-            if (indexBuffer)
+            static constexpr size_t MAX_VERTEX_BINDINGS_COUNT = 8;
+            eastl::array<DL::IBuffer*, MAX_VERTEX_BINDINGS_COUNT> vertexBuffers;
+            eastl::array<uint64_t, MAX_VERTEX_BINDINGS_COUNT> vertexBufferOffsets;
+
+            size_t vertexBindingsCount = command.geometryLayout->vertexBindings.size();
+            ASSERT(vertexBindingsCount <= MAX_VERTEX_BINDINGS_COUNT);
+
+            if (vertexBindingsCount > MAX_VERTEX_BINDINGS_COUNT)
             {
-                ASSERT(indexBuffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
-                ctx.device->SetIndexBuffer(indexBuffer->GetPrivateImpl<GpuResourceImpl>()->GetAsBuffer(), 0, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+                static bool IsFirstTime = true;
+                if (IsFirstTime)
+                {
+                    IsFirstTime = false;
+                    Log::Format::Error("ERROR: Too many vertex buffers bound");
+                }
+                return;
             }
 
-            if (indexBuffer)
+            for (size_t i = 0; i < vertexBindingsCount; i++)
             {
+                auto vertexBinding = command.geometryLayout->vertexBindings[i];
+                vertexBuffers[i] = vertexBinding.vertexBuffer ? vertexBinding.vertexBuffer->template GetPrivateImpl<GpuResourceImpl>()->GetAsBuffer() : nullptr;
+                vertexBufferOffsets[i] = vertexBinding.vertexBufferOffset;
+            }
+            ctx.device->SetVertexBuffers(0, vertexBindingsCount, vertexBuffers.data(), vertexBufferOffsets.data(), DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+            if (indexed)
+            {
+                const auto* indexBuffer = command.geometryLayout->indexBuffer;
+                ASSERT(indexBuffer);
+                ASSERT(indexBuffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
+                ctx.device->SetIndexBuffer(indexBuffer->template GetPrivateImpl<GpuResourceImpl>()->GetAsBuffer(), 0, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            }
+
+            if (indexed)
+            {
+                const auto* indexBuffer = command.geometryLayout->indexBuffer;
+
                 DL::DrawIndexedAttribs drawAttribs;
                 drawAttribs.NumIndices = command.attribs.vertexCount;
                 drawAttribs.FirstIndexLocation = command.attribs.startLocation;
@@ -124,13 +155,12 @@ namespace RR::GAPI::Diligent
 
         void compileCommand(const Commands::Draw& command, const CommandCompileContext& ctx)
         {
-            compileCommand(command, nullptr, ctx);
+            compileCommand(command, false, ctx);
         }
 
         void compileCommand(const Commands::DrawIndexed& command, const CommandCompileContext& ctx)
         {
-            ASSERT(command.indexBuffer);
-            compileCommand(command, command.indexBuffer, ctx);
+            compileCommand(command, true, ctx);
         }
     }
 

@@ -14,9 +14,22 @@ namespace RR::GAPI::Commands
         uint32_t instanceCount = 0;
     };
 
+    struct VertexBinding
+    {
+        const Buffer* vertexBuffer = nullptr;
+        uint32_t vertexBufferOffset = 0;
+    };
+
+    struct GeometryLayout
+    {
+        const Buffer* indexBuffer = nullptr;
+        eastl::span<VertexBinding> vertexBindings;
+    };
+
     struct Draw : public Command
     {
-        Draw(const DrawAttribs& attribs, GraphicPipelineState* pso) : Command(Type::Draw), attribs(attribs)
+        Draw(const DrawAttribs& attribs, GraphicPipelineState* pso, const GeometryLayout& geometryLayout)
+            : Command(Type::Draw), attribs(attribs), geometryLayout(&geometryLayout)
         {
             ASSERT(pso);
             psoImpl = pso->GetPrivateImpl<GAPI::IPipelineState>();
@@ -24,12 +37,14 @@ namespace RR::GAPI::Commands
         }
 
         DrawAttribs attribs;
-        IPipelineState* psoImpl = nullptr;
+        IPipelineState* psoImpl;
+        const GeometryLayout* geometryLayout;
     };
 
     struct DrawIndexed : public Command
     {
-        DrawIndexed(const DrawAttribs& attribs, GraphicPipelineState* pso, const Buffer& indexBuffer) : Command(Type::DrawIndexed), attribs(attribs), indexBuffer(&indexBuffer)
+        DrawIndexed(const DrawAttribs& attribs, GraphicPipelineState* pso, const GeometryLayout& geometryLayout)
+                : Command(Type::DrawIndexed), attribs(attribs), geometryLayout(&geometryLayout)
         {
             ASSERT(pso);
             psoImpl = pso->GetPrivateImpl<GAPI::IPipelineState>();
@@ -37,7 +52,7 @@ namespace RR::GAPI::Commands
         }
 
         DrawAttribs attribs;
-        IPipelineState* psoImpl = nullptr;
-        const Buffer* indexBuffer = nullptr;
+        IPipelineState* psoImpl;
+        const GeometryLayout* geometryLayout;
     };
 }
