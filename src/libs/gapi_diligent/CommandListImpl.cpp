@@ -4,9 +4,11 @@
 
 #include "GpuResourceViewImpl.hpp"
 #include "PipelineStateImpl.hpp"
+#include "GpuResourceImpl.hpp"
 
 #include "gapi/RenderPassDesc.hpp"
 
+#include "gapi/Buffer.hpp"
 #include "gapi/commands/Draw.hpp"
 #include "gapi/commands/SetRenderPass.hpp"
 
@@ -75,21 +77,61 @@ namespace RR::GAPI::Diligent
                 ASSERT(command.desc.depthStencilAttachment.clearFlags == DepthStencilClearFlags::None);
         }
 
-        void compileCommand(const Commands::Draw& command, const CommandCompileContext& ctx)
+        // ---------------------------------------------------------------------------------------------
+        // Draw commands
+        // ---------------------------------------------------------------------------------------------
+
+        template <typename T>
+        void compileCommand(const T& command, const Buffer* indexBuffer, const CommandCompileContext& ctx)
         {
             const auto* pso = static_cast<const PipelineStateImpl*>(command.psoImpl);
             ASSERT(pso);
 
             ctx.device->SetPipelineState(pso->GetPipelineState());
 
-            DL::DrawAttribs drawAttribs;
-            drawAttribs.NumVertices = command.attribs.vertexCount;
-            drawAttribs.StartVertexLocation = command.attribs.startVertex;
-            drawAttribs.NumInstances = Max(command.attribs.instanceCount, 1u);
+            if (indexBuffer)
+            {
+                ASSERT(indexBuffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
+                ctx.device->SetIndexBuffer(indexBuffer->GetPrivateImpl<GpuResourceImpl>()->GetAsBuffer(), 0, DL::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            }
 
-            ctx.device->Draw(drawAttribs);
+            if (indexBuffer)
+            {
+                DL::DrawIndexedAttribs drawAttribs;
+                drawAttribs.NumIndices = command.attribs.vertexCount;
+                drawAttribs.FirstIndexLocation = command.attribs.startLocation;
+                drawAttribs.NumInstances = Max(command.attribs.instanceCount, 1u);
+
+                switch (indexBuffer->GetDesc().GetBufferFormat())
+                {
+                    case GAPI::GpuResourceFormat::R16Uint: drawAttribs.IndexType = DL::VT_UINT16; break;
+                    case GAPI::GpuResourceFormat::R32Uint: drawAttribs.IndexType = DL::VT_UINT32; break;
+                    default: ASSERT_MSG(false, "Unknown index buffer format"); break;
+                }
+
+                ctx.device->DrawIndexed(drawAttribs);
+            }
+            else
+            {
+                DL::DrawAttribs drawAttribs;
+                drawAttribs.NumVertices = command.attribs.vertexCount;
+                drawAttribs.StartVertexLocation = command.attribs.startLocation;
+                drawAttribs.NumInstances = Max(command.attribs.instanceCount, 1u);
+
+                ctx.device->Draw(drawAttribs);
+            }
         }
 
+        void compileCommand(const Commands::Draw& command, const CommandCompileContext& ctx)
+        {
+            compileCommand(command, nullptr, ctx);
+        }
+
+        void compileCommand(const Commands::DrawIndexed& command, const CommandCompileContext& ctx)
+        {
+            ASSERT(command.indexBuffer);
+            compileCommand(command, command.indexBuffer, ctx);
+        }
     }
 
     CommandListImpl::~CommandListImpl() { }
@@ -113,6 +155,10 @@ namespace RR::GAPI::Diligent
 
             case Command::Type::Draw:
                 compileCommand(static_cast<const Commands::Draw&>(*command), ctx);
+                break;
+
+            case Command::Type::DrawIndexed:
+                compileCommand(static_cast<const Commands::DrawIndexed&>(*command), ctx);
                 break;
 
             default:

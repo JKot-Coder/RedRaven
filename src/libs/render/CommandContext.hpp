@@ -38,8 +38,11 @@ namespace RR::Render
         using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
 
     public:
+        void SetVertexBuffers(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0);
+        void SetIndexBuffer(const GAPI::Buffer* buffer);
         void SetRenderPass(const GAPI::RenderPassDesc& renderPass);
         void Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
+        void DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount = 0);
 
     private:
         friend class Render::DeviceContext;
@@ -52,5 +55,6 @@ namespace RR::Render
 
     private:
         GraphicsParams graphicsParams;
+        const GAPI::Buffer* indexBuffer = nullptr;
     };
 }

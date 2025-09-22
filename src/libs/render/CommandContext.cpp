@@ -2,6 +2,8 @@
 
 #include "gapi/RenderPassDesc.hpp"
 
+#include "gapi/Buffer.hpp"
+
 #include "gapi/commands/Draw.hpp"
 #include "gapi/commands/SetRenderPass.hpp"
 
@@ -9,6 +11,19 @@
 
 namespace RR::Render
 {
+
+    void GraphicsCommandContext::SetVertexBuffers(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset)
+    {
+        UNUSED(slot, buffer, offset);
+        //GetCommandList().emplaceCommand<GAPI::Commands::SetVertexBuffers>(slot, buffer, offset);
+    }
+
+    void GraphicsCommandContext::SetIndexBuffer(const GAPI::Buffer* buffer)
+    {
+        ASSERT(buffer == nullptr || buffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
+        indexBuffer = buffer;
+    }
+
     void GraphicsCommandContext::SetRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
@@ -32,14 +47,28 @@ namespace RR::Render
         ASSERT(effect);
         graphicsParams.primitiveTopology = topology;
 
-        GAPI::Commands::Draw::Attribs drawAttribs;
+        GAPI::Commands::DrawAttribs drawAttribs;
         drawAttribs.vertexCount = vertexCount;
-        drawAttribs.startVertex = startVertex;
+        drawAttribs.startLocation = startVertex;
         drawAttribs.instanceCount = instanceCount;
-
-        UNUSED(topology); // This should be used lately for runtime PSO build here.
 
         auto pso = effect->EvaluateGraphicsPipelineState(graphicsParams);
         GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso);
+    }
+
+    void GraphicsCommandContext::DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount)
+    {
+        ASSERT(effect);
+        ASSERT(indexBuffer);
+
+        graphicsParams.primitiveTopology = topology;
+
+        GAPI::Commands::DrawAttribs drawAttribs;
+        drawAttribs.vertexCount = indexCount;
+        drawAttribs.startLocation = startIndex;
+        drawAttribs.instanceCount = instanceCount;
+
+        auto pso = effect->EvaluateGraphicsPipelineState(graphicsParams);
+        GetCommandList().emplaceCommand<GAPI::Commands::DrawIndexed>(drawAttribs, pso, *indexBuffer);
     }
 }

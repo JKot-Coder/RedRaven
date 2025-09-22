@@ -7,6 +7,7 @@ namespace RR::GAPI
         enum class Type
         {
             Draw,
+            DrawIndexed,
             SetRenderPass
         };
 
