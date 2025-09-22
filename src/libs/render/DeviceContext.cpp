@@ -80,19 +80,11 @@ namespace RR::Render
         return resource;
     }
 
-    void DeviceContext::Compile(GAPI::CommandList2& commandList)
+    void DeviceContext::Compile(Render::CommandContext& commandContext)
     {
         ASSERT(inited);
 
-        multiThreadDevice->Compile(commandList);
-    }
-
-    void DeviceContext::Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList2& commandList)
-    {
-        ASSERT(inited);
-        ASSERT(commandQueue);
-
-        submission.Submit(commandQueue, commandList);
+        multiThreadDevice->Compile(commandContext.GetCommandList());
     }
 
     Render::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const

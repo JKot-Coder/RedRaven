@@ -202,8 +202,8 @@ namespace RR::App
             ctx->SetRenderPass(renderPassDesc);
             ctx->Draw(effect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 
-            deviceContext.Compile(ctx->GetCommandList());
-            deviceContext.Submit(commandQueue.get(), ctx->GetCommandList());
+            deviceContext.Compile(*ctx);
+            deviceContext.Submit(commandQueue.get(), *ctx);
             deviceContext.Present(applicationInstance->swapChain.get());
             deviceContext.MoveToNextFrame(0);
         }

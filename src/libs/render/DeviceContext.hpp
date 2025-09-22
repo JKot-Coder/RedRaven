@@ -20,6 +20,7 @@ namespace RR
 
 namespace RR::Render
 {
+    class CommandContext;
     class GraphicsCommandContext;
     class Effect;
     struct EffectDesc;
@@ -37,8 +38,17 @@ namespace RR::Render
         void MoveToNextFrame(uint64_t frameIndex);
         void ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height);
 
-        void Compile(GAPI::CommandList2& commandList);
-        void Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList2& commandList);
+        void Compile(CommandContext& commandContext);
+
+        template<typename CommandContextType>
+        void Submit(GAPI::CommandQueue* commandQueue, CommandContextType& commandContext)
+        {
+            ASSERT(inited);
+            ASSERT(commandQueue);
+            static_assert(std::is_base_of<CommandContext, CommandContextType>::value, "CommandContextType must be derived from CommandContext");
+
+            submission.Submit(commandQueue, commandContext.GetCommandList());
+        }
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
         eastl::unique_ptr<Render::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;

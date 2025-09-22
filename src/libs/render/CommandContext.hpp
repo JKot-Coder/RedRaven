@@ -12,8 +12,10 @@ namespace RR::Render
 
     class CommandContext
     {
-    public:
+    protected:
         GAPI::CommandList2& GetCommandList() { return commandList; }
+
+        friend class DeviceContext;
 
     protected:
         explicit CommandContext(GAPI::CommandList2&& commandlist) : commandList(eastl::move(commandlist)) { }
