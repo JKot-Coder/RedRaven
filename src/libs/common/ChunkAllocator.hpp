@@ -62,6 +62,9 @@ namespace RR::Common
         {
             ASSERT(size < MAX_CHUNK_SIZE);
 
+            if(size == 0)
+                return nullptr;
+
             Chunk& chunk = getCurrentChunk();
             std::size_t alignedOffset = AlignTo(chunk.allocated, alignment);
 
