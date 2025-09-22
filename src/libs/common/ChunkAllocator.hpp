@@ -89,6 +89,12 @@ namespace RR::Common
              return ptr;
         }
 
+        template <typename T>
+        T* allocateArray(size_t count)
+        {
+            return static_cast<T*>(allocate(count * sizeof(T), alignof(T)));
+        }
+
         template <typename T, typename... Args>
         T* create(Args&&... args)
         {
