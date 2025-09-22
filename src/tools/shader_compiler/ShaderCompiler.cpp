@@ -104,6 +104,7 @@ namespace RR  {
                     return Common::RResult::Ok;
             }
 
+            std::cerr << "Could not find entry point: " << entryPointName << std::endl;
             return Common::RResult::Fail;
         };
 
