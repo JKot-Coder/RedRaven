@@ -35,6 +35,24 @@ namespace RR::GAPI
             commands.push_back(static_cast<Command*>(commandStorage));
         }
 
+        template <typename T, typename... Args>
+        T* allocate(Args&&... args)
+        {
+            static_assert(std::is_trivially_move_constructible<T>::value);
+            static_assert(std::is_trivially_destructible<T>::value);
+
+            return allocator.create<T>(eastl::forward<Args>(args)...);
+        }
+
+        template <typename T>
+        T* allocateArray(size_t count)
+        {
+            static_assert(std::is_trivially_move_constructible<T>::value);
+            static_assert(std::is_trivially_destructible<T>::value);
+
+            return allocator.allocateArray<T>(count);
+        }
+
         auto begin() { return commands.begin(); }
         auto end() { return commands.end(); }
         auto begin() const { return commands.begin(); }
