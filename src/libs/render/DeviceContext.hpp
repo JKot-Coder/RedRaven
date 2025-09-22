@@ -48,6 +48,8 @@ namespace RR::Render
             static_assert(std::is_base_of<CommandContext, CommandContextType>::value, "CommandContextType must be derived from CommandContext");
 
             submission.Submit(commandQueue, commandContext.GetCommandList());
+
+            commandContext.reset();
         }
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;

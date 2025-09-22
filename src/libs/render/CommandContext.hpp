@@ -55,6 +55,12 @@ namespace RR::Render
             return eastl::unique_ptr<GraphicsCommandContext>(new GraphicsCommandContext(eastl::move(commandlist)));
         }
 
+        void reset()
+        {
+            // We reset only internal state here. Command list still in use until submit.
+            graphicsParams.Reset();
+        }
+
     private:
         GraphicsParams graphicsParams;
         const GAPI::Buffer* indexBuffer = nullptr;
