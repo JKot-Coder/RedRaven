@@ -29,6 +29,7 @@ namespace RR::GAPI
         {
             static_assert(std::is_base_of<Command, CommandType>::value);
             static_assert(std::is_trivially_move_constructible<CommandType>::value);
+            static_assert(std::is_trivially_destructible<CommandType>::value);
 
             void* commandStorage = allocator.create<CommandType>(eastl::forward<Args>(params)...);
             commands.push_back(static_cast<Command*>(commandStorage));
