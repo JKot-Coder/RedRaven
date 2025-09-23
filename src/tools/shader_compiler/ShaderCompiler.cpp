@@ -47,11 +47,8 @@ namespace RR  {
     ShaderCompiler::ShaderCompiler() { }
     ShaderCompiler::~ShaderCompiler() { }
 
-    Common::RResult ShaderCompiler::CompileShader(const ShaderCompileDesc& desc, CompileResult& result)
+    Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
     {
-        Slang::ComPtr<slang::IGlobalSession> globalSession;
-        TRY_SLANG(slang::createGlobalSession(globalSession.writeRef()));
-
         slang::TargetDesc targetDesc;
         targetDesc.format = SLANG_DXIL;
         targetDesc.profile = globalSession->findProfile("sm_6_5");

@@ -8,6 +8,9 @@
 #include "ShaderCompiler.hpp"
 #include "common/hashing/Default.hpp"
 
+#include "slang.h"
+#include "slang-com-ptr.h"
+
 #include <filesystem>
 #include <fstream>
 
@@ -186,7 +189,7 @@ namespace RR
 
                     ShaderCompiler compiler;
                     CompileResult shaderResult;
-                    if (RR_FAILED(compiler.CompileShader(shaderCompileDesc, shaderResult)))
+                    if (RR_FAILED(compiler.CompileShader(globalSession, shaderCompileDesc, shaderResult)))
                         throw std::runtime_error("Failed to compile shader");
 
                     for(auto& shader : shaderResult.shaders)
@@ -227,6 +230,12 @@ namespace RR
             return Common::RResult::Fail;
         }
 
+        if (SLANG_FAILED(slang::createGlobalSession(globalSession.writeRef())))
+        {
+            std::cerr << "Failed to create global session:";
+            return Common::RResult::Fail;
+        }
+
         for (auto& source : sources)
         {
             if(compileEffect(desc, source.get<std::string>()) != Common::RResult::Ok)
@@ -244,7 +253,6 @@ namespace RR
 
         return Common::RResult::Ok;
     }
-
 
     Common::RResult ShaderBuilder::saveLibrary(const LibraryBuildDesc& desc)
     {
@@ -301,6 +309,8 @@ namespace RR
             for(auto& pass : effect.passes)
                 file.write(reinterpret_cast<const char*>(&pass), sizeof(Asset::PassDesc));
         }
+
+        shaderResults.clear();
 
         file.close();
         return Common::RResult::Ok;

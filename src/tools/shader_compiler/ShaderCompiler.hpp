@@ -46,7 +46,7 @@ namespace RR  {
         ShaderCompiler();
         ~ShaderCompiler();
 
-        Common::RResult CompileShader(const ShaderCompileDesc& desc, CompileResult& result);
+        Common::RResult CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result);
     };
 
 }

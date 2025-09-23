@@ -11,6 +11,8 @@
 #include "nlohmann/json_fwd.hpp"
 #include <common/ChunkAllocator.hpp>
 
+#include "slang-com-ptr.h"
+
 namespace RR
 {
     struct ShaderResult;
@@ -44,5 +46,6 @@ namespace RR
         eastl::vector<ShaderResult> shaderResults;
         Common::ChunkAllocator stringAllocator;
         uint32_t stringsCount = 0;
+        Slang::ComPtr<slang::IGlobalSession> globalSession;
     };
 }
