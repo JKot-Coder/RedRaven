@@ -148,7 +148,9 @@ namespace RR
 
         try
         {
-            for(auto& effect : effectJson.items())
+            nlohmann::json effectsJson = effectJson["effects"];
+
+            for(auto& effect : effectsJson.items())
             {
                 std::cout << "Effect: " << effect.key() << std::endl;
 
