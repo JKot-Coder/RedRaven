@@ -97,7 +97,7 @@ namespace RR
         evalIfExist<std::string>(effect["fillMode"], [&](auto val) { rasterizerDesc.fillMode = getFillMode(val); });
         evalIfExist<std::string>(effect["depthAccess"], [&](auto val) { depthStencilDesc.depthAccess = getDepthAccess(val); });
         evalIfExist<std::string>(effect["depthFunc"], [&](auto val) { depthStencilDesc.depthFunc = getComparisonFunc(val); });
-        evalIfExist<bool>(effect["stencilEnabled"], [&](auto val) { depthStencilDesc.stencilEnabled = val; });
+        depthStencilDesc.stencilReadMask = effect.value("stencilReadMask", false);
 
         auto colorWriteMasks = effect["colorWriteMasks"];
         if (colorWriteMasks.size() > GAPI::MAX_RENDER_TARGETS_COUNT)
