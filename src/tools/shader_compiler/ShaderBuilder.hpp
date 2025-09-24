@@ -12,6 +12,7 @@
 #include <common/ChunkAllocator.hpp>
 
 #include "slang-com-ptr.h"
+#include "absl/container/flat_hash_map.h"
 
 namespace RR
 {
@@ -38,7 +39,7 @@ namespace RR
 
         Common::RResult saveLibrary(const LibraryBuildDesc& desc);
 
-        uint32_t pushString(const std::string& str);
+        uint32_t pushString(std::string_view str);
         uint32_t pushShader(ShaderResult&& shader);
 
     private:
@@ -48,5 +49,6 @@ namespace RR
         Common::ChunkAllocator stringAllocator;
         uint32_t stringsCount = 0;
         Slang::ComPtr<slang::IGlobalSession> globalSession;
+        absl::flat_hash_map<std::string, uint32_t> stringsCache;
     };
 }

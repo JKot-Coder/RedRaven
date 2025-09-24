@@ -20,6 +20,7 @@ set(LIBRARIES
     cxxopts
     nlohmann_json
     slang
+    absl::flat_hash_map
     )
 
  #=============================== Target ===============================#

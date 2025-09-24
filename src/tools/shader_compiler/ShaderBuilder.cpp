@@ -112,9 +112,14 @@ namespace RR
         }
     }
 
-    uint32_t ShaderBuilder::pushString(const std::string& str)
+    uint32_t ShaderBuilder::pushString(std::string_view str)
     {
-        stringAllocator.allocateString(std::string_view(str));
+        auto it = stringsCache.find(str);
+        if (it != stringsCache.end())
+            return it->second;
+
+        stringAllocator.allocateString(str);
+        stringsCache[str] = stringsCount;
         return stringsCount++;
     };
 
