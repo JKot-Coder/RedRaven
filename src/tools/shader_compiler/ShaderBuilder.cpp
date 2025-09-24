@@ -133,9 +133,62 @@ namespace RR
         return index;
     }
 
-    Common::RResult ShaderBuilder::compileEffect(const LibraryBuildDesc& desc, const std::string& sourceFile)
+    void ShaderBuilder::compileEffect(const std::string& name, nlohmann::json effect, const std::string& sourceFile)
     {
-        std::cout << "Compile compile effect: " << sourceFile << std::endl;
+        std::cout << "Effect: " << name << std::endl;
+
+        effects.push_back();
+        EffectLibrary::Asset::EffectDesc& effectDesc = effects.back();
+        effectDesc.header.nameIndex = pushString(name);
+        auto& passes = effects.back().passes;
+
+        for (auto& passKV : effect.items())
+        {
+            auto& passKey = passKV.key();
+            auto& pass = passKV.value();
+            std::cout << "  Pass: " << passKey << std::endl;
+
+            nlohmann::json renderState = pass["renderState"];
+            if (renderState.empty())
+                throw std::runtime_error("Render state is empty for pass: " + passKey);
+
+            EffectLibrary::Asset::PassDesc passDesc;
+            passDesc.nameIndex = pushString(passKey);
+            passDesc.shaderIndexes.fill(Asset::INVALID_SHADER_INDEX);
+            evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
+
+            ShaderCompileDesc shaderCompileDesc;
+            shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
+
+            for (auto& module : pass["modules"].items())
+                shaderCompileDesc.modules.emplace_back(module.value().get<std::string>());
+
+            auto addEntryPoint = [&](const nlohmann::json& shader) {
+                shaderCompileDesc.entryPoints.emplace_back(shader.get<std::string>());
+            };
+
+            if (!pass["vertexShader"].empty())
+                addEntryPoint(pass["vertexShader"]);
+            if (!pass["pixelShader"].empty())
+                addEntryPoint(pass["pixelShader"]);
+
+            ShaderCompiler compiler;
+            CompileResult shaderResult;
+            if (RR_FAILED(compiler.CompileShader(globalSession, shaderCompileDesc, shaderResult)))
+                throw std::runtime_error("Failed to compile shader");
+
+            for (auto& shader : shaderResult.shaders)
+                passDesc.shaderIndexes[eastl::to_underlying(shader.type)] = pushShader(std::move(shader));
+
+            passes.push_back(std::move(passDesc));
+        }
+
+        effectDesc.header.passCount = static_cast<uint32_t>(passes.size());
+    }
+
+    Common::RResult ShaderBuilder::compileFile(const LibraryBuildDesc& desc, const std::string& sourceFile)
+    {
+        std::cout << "Compile file: " << sourceFile << std::endl;
 
         JsonnetProcessor jsonnetProcessor;
         nlohmann::json effectJson;
@@ -150,58 +203,8 @@ namespace RR
         {
             nlohmann::json effectsJson = effectJson["effects"];
 
-            for(auto& effect : effectsJson.items())
-            {
-                std::cout << "Effect: " << effect.key() << std::endl;
-
-                effects.push_back();
-                EffectLibrary::Asset::EffectDesc& effectDesc = effects.back();
-                effectDesc.header.nameIndex = pushString(effect.key());
-                auto& passes = effects.back().passes;
-
-                for(auto& passKV :effect.value().items())
-                {
-                    auto& passKey = passKV.key();
-                    auto& pass = passKV.value();
-                    std::cout << "  Pass: " << passKey << std::endl;
-
-                    nlohmann::json renderState = pass["renderState"];
-                    if(renderState.empty())
-                        throw std::runtime_error("Render state is empty for pass: " + passKey);
-
-                    EffectLibrary::Asset::PassDesc passDesc;
-                    passDesc.nameIndex = pushString(passKey);
-                    passDesc.shaderIndexes.fill(Asset::INVALID_SHADER_INDEX);
-                    evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
-
-                    ShaderCompileDesc shaderCompileDesc;
-                    shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
-
-                    for(auto& module : pass["modules"].items())
-                        shaderCompileDesc.modules.emplace_back(module.value().get<std::string>());
-
-                    auto addEntryPoint = [&](const nlohmann::json& shader) {
-                        shaderCompileDesc.entryPoints.emplace_back(shader.get<std::string>());
-                    };
-
-                    if (!pass["vertexShader"].empty())
-                        addEntryPoint(pass["vertexShader"]);
-                    if (!pass["pixelShader"].empty())
-                        addEntryPoint(pass["pixelShader"]);
-
-                    ShaderCompiler compiler;
-                    CompileResult shaderResult;
-                    if (RR_FAILED(compiler.CompileShader(globalSession, shaderCompileDesc, shaderResult)))
-                        throw std::runtime_error("Failed to compile shader");
-
-                    for(auto& shader : shaderResult.shaders)
-                        passDesc.shaderIndexes[eastl::to_underlying(shader.type)] = pushShader(std::move(shader));
-
-                    passes.push_back(std::move(passDesc));
-                }
-
-                effectDesc.header.passCount = static_cast<uint32_t>(passes.size());
-            }
+            for (auto& effect : effectsJson.items())
+                compileEffect(effect.key(), effect.value(), sourceFile);
         }
         catch (const std::exception& e)
         {

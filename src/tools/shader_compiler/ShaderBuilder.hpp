@@ -32,7 +32,8 @@ namespace RR
 
         Common::RResult BuildLibrary(const LibraryBuildDesc& desc);
     private:
-        Common::RResult compileEffect(const LibraryBuildDesc& desc, const std::string& sourceFile);
+        Common::RResult compileFile(const LibraryBuildDesc& desc, const std::string& sourceFile);
+        void compileEffect(const std::string& name, nlohmann::json effect, const std::string& sourceFile);
         void evaluateRenderStateDesc(nlohmann::json& effect, GAPI::RasterizerDesc& rasterizerDesc, GAPI::DepthStencilDesc& depthStencilDesc, GAPI::BlendDesc& blendDesc);
 
         Common::RResult saveLibrary(const LibraryBuildDesc& desc);
