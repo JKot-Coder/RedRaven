@@ -1,15 +1,15 @@
 #include "ShaderBuilder.hpp"
 
-#include <iostream>
 #include <algorithm>
 #include <cctype>
+#include <iostream>
 
 #include "JsonnetProcessor.hpp"
 #include "ShaderCompiler.hpp"
 #include "common/hashing/Default.hpp"
 
-#include "slang.h"
 #include "slang-com-ptr.h"
+#include "slang.h"
 
 #include <filesystem>
 #include <fstream>
@@ -22,7 +22,7 @@ namespace RR
     std::string toLower(std::string str)
     {
         std::transform(str.begin(), str.end(), str.begin(),
-                      [](unsigned char c) { return std::tolower(c); });
+                       [](unsigned char c) { return std::tolower(c); });
         return str;
     }
 
@@ -85,7 +85,7 @@ namespace RR
     template <typename T, typename Cb>
     void evalIfExist(const nlohmann::json& json, Cb&& cb)
     {
-        if(!json.empty())
+        if (!json.empty())
             cb(json.get<T>());
     }
 
@@ -93,17 +93,17 @@ namespace RR
     {
         std::cout << "Evaluate render state desc: " << effect.dump() << std::endl;
 
-        evalIfExist<std::string>(effect["cullMode"], [&](auto val){ rasterizerDesc.cullMode = getCullMode(val); } );
-        evalIfExist<std::string>(effect["fillMode"], [&](auto val){ rasterizerDesc.fillMode = getFillMode(val); } );
-        evalIfExist<std::string>(effect["depthAccess"], [&](auto val){ depthStencilDesc.depthAccess = getDepthAccess(val); } );
-        evalIfExist<std::string>(effect["depthFunc"], [&](auto val){ depthStencilDesc.depthFunc = getComparisonFunc(val); } );
-        evalIfExist<bool>(effect["stencilEnabled"], [&](auto val){ depthStencilDesc.stencilEnabled = val; } );
+        evalIfExist<std::string>(effect["cullMode"], [&](auto val) { rasterizerDesc.cullMode = getCullMode(val); });
+        evalIfExist<std::string>(effect["fillMode"], [&](auto val) { rasterizerDesc.fillMode = getFillMode(val); });
+        evalIfExist<std::string>(effect["depthAccess"], [&](auto val) { depthStencilDesc.depthAccess = getDepthAccess(val); });
+        evalIfExist<std::string>(effect["depthFunc"], [&](auto val) { depthStencilDesc.depthFunc = getComparisonFunc(val); });
+        evalIfExist<bool>(effect["stencilEnabled"], [&](auto val) { depthStencilDesc.stencilEnabled = val; });
 
         auto colorWriteMasks = effect["colorWriteMasks"];
-        if(colorWriteMasks.size() > GAPI::MAX_RENDER_TARGETS_COUNT)
+        if (colorWriteMasks.size() > GAPI::MAX_RENDER_TARGETS_COUNT)
             throw std::runtime_error("Invalid color write masks count: " + std::to_string(colorWriteMasks.size()));
 
-        for(size_t i = 0; i < colorWriteMasks.size(); i++)
+        for (size_t i = 0; i < colorWriteMasks.size(); i++)
         {
             uint32_t maskValue = colorWriteMasks[i].get<uint32_t>();
             ASSERT((maskValue & ~static_cast<uint32_t>(GAPI::WriteMask::All)) == 0); // TODO checks in release too.
@@ -203,7 +203,7 @@ namespace RR
                 effectDesc.header.passCount = static_cast<uint32_t>(passes.size());
             }
         }
-        catch(const std::exception& e)
+        catch (const std::exception& e)
         {
             std::cerr << "Effect processing failed with error: " << e.what() << std::endl;
             return Common::RResult::Fail;
@@ -226,7 +226,7 @@ namespace RR
         }
 
         auto sources = outputJson["Sources"];
-        if(sources.empty())
+        if (sources.empty())
         {
             std::cerr << "No sources found in build list file: " << desc.inputFile << std::endl;
             return Common::RResult::Fail;
@@ -240,14 +240,14 @@ namespace RR
 
         for (auto& source : sources)
         {
-            if(compileEffect(desc, source.get<std::string>()) != Common::RResult::Ok)
+            if (compileFile(desc, source.get<std::string>()) != Common::RResult::Ok)
             {
                 std::cerr << "Failed to compile effect: " << source << std::endl;
                 return Common::RResult::Fail;
             }
         }
 
-        if(saveLibrary(desc) != Common::RResult::Ok)
+        if (saveLibrary(desc) != Common::RResult::Ok)
         {
             std::cerr << "Failed to save shader library: " << desc.outputFile << std::endl;
             return Common::RResult::Fail;
@@ -268,15 +268,15 @@ namespace RR
         }
 
         uint32_t stringSectionSize = 0;
-        for(auto& chunk : stringAllocator)
+        for (auto& chunk : stringAllocator)
             stringSectionSize += static_cast<uint32_t>(chunk.allocated);
 
         uint32_t shadersSectionSize = 0;
-        for(auto& shader : shaders)
+        for (auto& shader : shaders)
             shadersSectionSize += shader.header.size + sizeof(shader.header);
 
         uint32_t effectsSectionSize = 0;
-        for(auto& effect : effects)
+        for (auto& effect : effects)
             effectsSectionSize += sizeof(Asset::EffectDesc::Header) + static_cast<uint32_t>(effect.passes.size()) * sizeof(EffectLibrary::Asset::PassDesc);
 
         Asset::Header header;
@@ -293,7 +293,7 @@ namespace RR
         file.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
         // Strings
-        for(auto& chunk : stringAllocator)
+        for (auto& chunk : stringAllocator)
             file.write(reinterpret_cast<const char*>(chunk.buffer.get()), chunk.allocated);
 
         // Shaders
@@ -304,11 +304,11 @@ namespace RR
         }
 
         // Effects
-        for(auto& effect : effects)
+        for (auto& effect : effects)
         {
             file.write(reinterpret_cast<const char*>(&effect.header), sizeof(Asset::EffectDesc::Header));
 
-            for(auto& pass : effect.passes)
+            for (auto& pass : effect.passes)
                 file.write(reinterpret_cast<const char*>(&pass), sizeof(Asset::PassDesc));
         }
 
