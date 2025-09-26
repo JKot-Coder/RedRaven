@@ -3,7 +3,6 @@
 #include <limits>
 #include <stdint.h>
 #include <type_traits>
-#include "common/hashing/HashType.hpp"
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline
@@ -11,12 +10,39 @@
 #define FORCE_INLINE __attribute__((always_inline)) inline
 #endif // !defined(_MSC_VER)
 
-namespace RR::Common::Hashing::Wyhash
+namespace RR::Common::Wyhash
 {
     namespace details
     {
-        template <size_t HashBits>
-        using HashType = typename HashType_t<HashBits>::type;
+        template <uint32_t BitNum>
+        struct hash_type_t;
+
+        template <>
+        struct hash_type_t<8>
+        {
+            using type = uint8_t;
+        };
+
+        template <>
+        struct hash_type_t<16>
+        {
+            using type = uint16_t;
+        };
+
+        template <>
+        struct hash_type_t<32>
+        {
+            using type = uint32_t;
+        };
+
+        template <>
+        struct hash_type_t<64>
+        {
+            using type = uint64_t;
+        };
+
+        template <uint32_t BitNum>
+        using HashType = typename hash_type_t<BitNum>::type;
 
         template <class T>
         constexpr FORCE_INLINE T ROTL(const T v, uint32_t R)
@@ -259,33 +285,43 @@ namespace RR::Common::Hashing::Wyhash
         static_assert(woothash<true>("woothash", 8, 0x23968DAB) == 0xacf137bfd07e6073, "SanityCheck");
     }
 
-    template <uint32_t BitNum> // By default water for 32 bits and woot for 64 bit
-    constexpr FORCE_INLINE details::HashType<BitNum> Hash(const void* key, size_t len);
-
-    template <uint32_t BitNum> // By default water for 32 bits and woot for 64 bit
-    constexpr FORCE_INLINE details::HashType<BitNum> ForceConstexprHash(const char* key, size_t len);
+    template<uint32_t BitNum>
+    struct WyHash;
 
     template <>
-    constexpr FORCE_INLINE details::HashType<32> Hash<32>(const void* key, size_t len)
+    struct WyHash<64>
     {
-        return details::waterhash<false>((const char*)key, static_cast<uint32_t>(len), 0x59B8541C);
-    }
+        using HashType = typename details::HashType<64>;
+
+        static constexpr HashType Hash(const void* key, size_t len)
+        {
+            return details::woothash<false>((const char*)key, static_cast<uint64_t>(len), 0x23968DAB);
+        }
+
+        static constexpr HashType ConstexprHash(const char* key, size_t len)
+        {
+            return details::woothash<true>((const char*)key, static_cast<uint64_t>(len), 0x23968DAB);
+        }
+    };
 
     template <>
-    constexpr FORCE_INLINE details::HashType<64> Hash<64>(const void* key, size_t len)
+    struct WyHash<32>
     {
-        return details::woothash<false>((const char*)key, static_cast<uint64_t>(len), 0x23968DAB);
-    }
+        using HashType = typename details::HashType<32>;
 
-    template <>
-    constexpr FORCE_INLINE details::HashType<32> ForceConstexprHash<32>(const char* key, size_t len)
-    {
-        return details::waterhash<true>(key, static_cast<uint32_t>(len), 0x59B8541C);
-    }
+        static constexpr HashType Hash(const void* key, size_t len)
+        {
+            return details::waterhash<false>((const char*)key, static_cast<uint32_t>(len), 0x59B8541C);
+        }
 
-    template <>
-    constexpr FORCE_INLINE details::HashType<64> ForceConstexprHash<64>(const char* key, size_t len)
-    {
-        return details::woothash<true>(key, static_cast<uint64_t>(len), 0x23968DAB);
-    }
+        static constexpr HashType ConstexprHash(const char* key, size_t len)
+        {
+            return details::waterhash<true>((const char*)key, static_cast<uint32_t>(len), 0x59B8541C);
+        }
+    };
+
+    // Sanity checks
+    static_assert(details::waterhash<true>("waterhash", 8, 0x59B8541C) == 0x29dcbc19, "SanityCheck");
+    static_assert(details::wheathash<true>("wheathash", 8, 0x7625AEEC) == 0x928f593f70055e88, "SanityCheck");
+    static_assert(details::woothash<true>("woothash", 8, 0x23968DAB) == 0xacf137bfd07e6073, "SanityCheck");
 }

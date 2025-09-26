@@ -4,7 +4,7 @@
 #include "common/io/File.hpp"
 #include "common/Result.hpp"
 #include "common/OnScopeExit.hpp"
-#include "common/hashing/Default.hpp"
+#include "common/hashing/Hash.hpp"
 
 #include "render/DeviceContext.hpp"
 
@@ -111,7 +111,7 @@ namespace RR::EffectLibrary
                 return Common::RResult::Fail;
             }
             auto name = getString(effectHeader.nameIndex);
-            auto hash = Common::Hashing::Default::Hash(name);
+            auto hash = Common::Hash(name);
             ASSERT(effectsMap.contains(hash) == false);
             effectsMap.insert(std::make_pair(hash, i));
 
@@ -144,7 +144,7 @@ namespace RR::EffectLibrary
         return Common::RResult::Ok;
     }
 
-    bool EffectLibrary::GetEffectDesc(Common::Hashing::Default::HashType hash, EffectDesc& effectDesc) const
+    bool EffectLibrary::GetEffectDesc(HashType hash, EffectDesc& effectDesc) const
     {
         ASSERT(loaded);
 

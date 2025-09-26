@@ -8,10 +8,12 @@
 
 #include "absl/container/flat_hash_map.h"
 
+#include "common/hashing/Wyhash.hpp"
+
 namespace RR::Render
 {
-    using PsoHashType = uint64_t;
-    constexpr size_t PsoHashBits = 64;
+    using PsoHasher = RR::Common::Wyhash::WyHash<64>;
+    using PsoHashType = PsoHasher::HashType;
 
     struct GraphicsParams
 	{
@@ -66,9 +68,7 @@ namespace RR::Render
 
     private:
         EffectDesc effectDesc;
+        // todo trivial hash
         absl::flat_hash_map<PsoHashType, eastl::unique_ptr<GAPI::PipelineState>> pipelineStates;
     };
-
-
-
 }

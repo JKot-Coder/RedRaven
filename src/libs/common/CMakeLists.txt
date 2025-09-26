@@ -27,7 +27,6 @@ set(IO_SRC)
 add_subdirectory(io) # IO_SRC
 
 set( HASHING_SRC
-    hashing/Default.hpp
 	hashing/Murmur.hpp
     hashing/Wyhash.hpp
 )

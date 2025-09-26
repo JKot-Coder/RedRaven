@@ -7,7 +7,7 @@
 #include "effect_library/EffectFormat.hpp"
 
 #include "common/Result.hpp"
-#include "common/hashing/Default.hpp"
+#include "common/hashing/Hash.hpp"
 
 namespace RR::Render
 {
@@ -33,7 +33,7 @@ namespace RR::Render
         EffectLibrary::EffectDesc libraryEffectDesc;
 
         // TODO, Could be replace with const expr hash. Todo replace with hashed string
-        if(!effectLibrary->GetEffectDesc(Common::Hashing::Default::Hash(name), libraryEffectDesc))
+        if(!effectLibrary->GetEffectDesc(Common::Hash(name), libraryEffectDesc))
         {
             LOG_ERROR("Failed to get effect desc for effect: {}", name);
             return nullptr;

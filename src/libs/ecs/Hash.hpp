@@ -3,6 +3,7 @@
 
 #include "EASTL/fixed_string.h"
 #include "common/hashing/Wyhash.hpp"
+#include "common/hashing/Hash.hpp"
 
 namespace RR::Ecs
 {
@@ -11,13 +12,13 @@ namespace RR::Ecs
 
     using HashType = uint32_t;
     using HashName = HashString<32>;
-    namespace Wyhash = RR::Common::Hashing::Wyhash;
+    namespace Wyhash = RR::Common::Wyhash;
 
     namespace details
     {
-        constexpr inline HashType HashImpl(const char* str, uint32_t len) { return Wyhash::Hash<32>(str, len); }
-        constexpr inline HashType HashImpl(const void* data, uint32_t len) { return Wyhash::Hash<32>(data, len); }
-        constexpr inline HashType ConstexprHashImpl(const char* str, uint32_t len) { return Wyhash::ForceConstexprHash<32>(str, len); }
+        constexpr inline HashType HashImpl(const char* str, uint32_t len) { return Common::Hash<Wyhash::WyHash<32>>(str, len); }
+        constexpr inline HashType HashImpl(const void* data, uint32_t len) { return Common::Hash<Wyhash::WyHash<32>>(data, len); }
+        constexpr inline HashType ConstexprHashImpl(const char* str, uint32_t len) { return Common::ConstexprHash<Wyhash::WyHash<32>>(str, len); }
     }
 
     template <typename stringType>
