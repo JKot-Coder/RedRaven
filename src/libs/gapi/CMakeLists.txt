@@ -20,11 +20,11 @@ set(SRC
     Limits.hpp
     PipelineState.hpp
     Resource.hpp
+    Shader.hpp
     SwapChain.cpp
     SwapChain.hpp
     Texture.cpp
     Texture.hpp
-    Shader.hpp
     VertexLayout.hpp
 )
 
