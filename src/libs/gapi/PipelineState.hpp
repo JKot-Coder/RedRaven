@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/EnumClassOperators.hpp"
+#include "gapi/VertexLayout.hpp"
 #include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
 #include "gapi/GpuResource.hpp"
@@ -234,6 +235,7 @@ namespace RR::GAPI
         RasterizerDesc rasterizerDesc;
         DepthStencilDesc depthStencilDesc;
         PrimitiveTopology primitiveTopology;
+        VertexLayout vertexLayout;
 
         uint32_t renderTargetCount = 0;
         eastl::array<GpuResourceFormat, MAX_RENDER_TARGETS_COUNT> renderTargetFormats;

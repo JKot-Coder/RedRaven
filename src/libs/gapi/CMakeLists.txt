@@ -25,6 +25,7 @@ set(SRC
     Texture.cpp
     Texture.hpp
     Shader.hpp
+    VertexLayout.hpp
 )
 
 set(COMMANDS

@@ -13,6 +13,7 @@ namespace DL = ::Diligent;
 
 namespace RR::GAPI::Diligent
 {
+    static constexpr uint32_t MaxLayoutElements = 16;
 
     DL::BLEND_OPERATION getBlendOp(GAPI::BlendOp op)
     {
@@ -94,7 +95,83 @@ namespace RR::GAPI::Diligent
         return blendDesc;
     }
 
-    DL::GraphicsPipelineDesc getGraphicsPipelineDesc(const GAPI::GraphicPipelineStateDesc& desc)
+    DL::VALUE_TYPE getValueType(GAPI::VertexAttributeType type)
+    {
+        switch (type)
+        {
+            case GAPI::VertexAttributeType::Float: return DL::VALUE_TYPE::VT_FLOAT32;
+            case GAPI::VertexAttributeType::Half: return DL::VALUE_TYPE::VT_FLOAT16;
+
+            case GAPI::VertexAttributeType::Uint8: return DL::VALUE_TYPE::VT_UINT8;
+            case GAPI::VertexAttributeType::Int8: return DL::VALUE_TYPE::VT_INT8;
+            case GAPI::VertexAttributeType::Unorm8: return DL::VALUE_TYPE::VT_UINT8;
+            case GAPI::VertexAttributeType::Snorm8: return DL::VALUE_TYPE::VT_INT8;
+
+            case GAPI::VertexAttributeType::Uint16: return DL::VALUE_TYPE::VT_UINT16;
+            case GAPI::VertexAttributeType::Int16: return DL::VALUE_TYPE::VT_INT16;
+            case GAPI::VertexAttributeType::Unorm16: return DL::VALUE_TYPE::VT_UINT16;
+            case GAPI::VertexAttributeType::Snorm16: return DL::VALUE_TYPE::VT_INT16;
+
+            case GAPI::VertexAttributeType::Uint32: return DL::VALUE_TYPE::VT_UINT32;
+            case GAPI::VertexAttributeType::Int32: return DL::VALUE_TYPE::VT_INT32;
+            case GAPI::VertexAttributeType::Unorm32: return DL::VALUE_TYPE::VT_UINT32;
+            case GAPI::VertexAttributeType::Snorm32: return DL::VALUE_TYPE::VT_INT32;
+
+            default:
+                ASSERT_MSG(false, "Unknown vertex attribute type");
+                return DL::VALUE_TYPE::VT_UNDEFINED;
+        }
+    }
+
+    bool isNormalized(GAPI::VertexAttributeType type)
+    {
+        switch (type)
+        {
+            case GAPI::VertexAttributeType::Unorm8:
+            case GAPI::VertexAttributeType::Unorm16:
+            case GAPI::VertexAttributeType::Unorm32:
+            case GAPI::VertexAttributeType::Snorm8:
+            case GAPI::VertexAttributeType::Snorm16:
+            case GAPI::VertexAttributeType::Snorm32:
+            return true;
+
+            default:
+                return false;
+        }
+    }
+
+    DL::InputLayoutDesc getInputLayout(const GAPI::VertexLayout& layout, eastl::array<DL::LayoutElement, MaxLayoutElements>& layoutElements)
+    {
+        DL::InputLayoutDesc inputLayout;
+
+        ASSERT(layout.attributes.size() <= MaxLayoutElements);
+
+        for (size_t i = 0; i < layout.attributes.size(); i++)
+        {
+            auto& layoutElement = layoutElements[i];
+            const auto& attribute = layout.attributes[i];
+
+            layoutElement.HLSLSemantic = attribute.semanticName;
+            layoutElement.InputIndex = attribute.semanticIndex;
+
+            layoutElement.BufferSlot = attribute.bufferSlot;
+            layoutElement.NumComponents = attribute.numComponents;
+            layoutElement.ValueType = getValueType(attribute.type);
+            layoutElement.IsNormalized = isNormalized(attribute.type);
+
+            layoutElement.RelativeOffset = DL::LAYOUT_ELEMENT_AUTO_OFFSET;
+            layoutElement.Stride = DL::LAYOUT_ELEMENT_AUTO_STRIDE;
+
+            layoutElement.Frequency = DL::INPUT_ELEMENT_FREQUENCY_PER_VERTEX;
+            layoutElement.InstanceDataStepRate = 1;
+        }
+
+        inputLayout.LayoutElements = layoutElements.data();
+        inputLayout.NumElements = static_cast<uint32_t>(layout.attributes.size());
+        return inputLayout;
+    }
+
+    DL::GraphicsPipelineDesc getGraphicsPipelineDesc(const GAPI::GraphicPipelineStateDesc& desc, eastl::array<DL::LayoutElement, MaxLayoutElements>& layoutElements)
     {
         DL::GraphicsPipelineDesc dlDesc;
         dlDesc.BlendDesc = getBlendDesc(desc.blendDesc);
@@ -112,6 +189,8 @@ namespace RR::GAPI::Diligent
             dlDesc.RTVFormats[i] = GetDLTextureFormat(desc.renderTargetFormats[i]);
 
         dlDesc.DSVFormat = GetDLTextureFormat(desc.depthStencilFormat);
+        dlDesc.InputLayout = getInputLayout(desc.vertexLayout, layoutElements);
+
         /*  dlDesc.RasterizerDesc = getRasterizerDesc(desc.rasterizerDesc);
           dlDesc.DepthStencilDesc = getDepthStencilDesc(desc.depthStencilDesc);
           dlDesc.InputLayout = getInputLayout(desc.inputLayout);
@@ -121,10 +200,13 @@ namespace RR::GAPI::Diligent
         return dlDesc;
     }
 
-    DL::GraphicsPipelineStateCreateInfo getGraphicPipelineStateCreateInfo(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name)
+    DL::GraphicsPipelineStateCreateInfo getGraphicPipelineStateCreateInfo(
+        const GAPI::GraphicPipelineStateDesc& desc,
+        const std::string& name,
+        eastl::array<DL::LayoutElement, MaxLayoutElements>& layoutElements)
     {
         DL::GraphicsPipelineStateCreateInfo createInfo(name.c_str());
-        createInfo.GraphicsPipeline = getGraphicsPipelineDesc(desc);
+        createInfo.GraphicsPipeline = getGraphicsPipelineDesc(desc, layoutElements);
 
         ASSERT_MSG(desc.vs, "VS is not set in pipeline state: \"{}\"", name);
         ASSERT_MSG(desc.ps, "PS is not set in pipeline state: \"{}\"", name);
@@ -144,7 +226,10 @@ namespace RR::GAPI::Diligent
             {
                 ASSERT(dynamic_cast<const GAPI::GraphicPipelineState*>(&resource));
                 auto& graphicResource = static_cast<const GAPI::GraphicPipelineState&>(resource);
-                auto createInfo = getGraphicPipelineStateCreateInfo(graphicResource.GetDescription(), resource.GetName());
+
+                // To avoid allocations and keep thread safity we should allocate this on stack
+                eastl::array<DL::LayoutElement, MaxLayoutElements> layoutElements;
+                auto createInfo = getGraphicPipelineStateCreateInfo(graphicResource.GetDescription(), resource.GetName(), layoutElements);
 
                 DL::IPipelineState* psoPtr = nullptr;
                 device->CreateGraphicsPipelineState(createInfo, &psoPtr);

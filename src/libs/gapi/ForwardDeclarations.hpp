@@ -11,6 +11,8 @@ namespace RR
         struct ShaderDesc;
         enum class ShaderType : uint8_t;
 
+        struct VertexLayout;
+
         class PipelineState;
         class IPipelineState;
         class GraphicPipelineState;
