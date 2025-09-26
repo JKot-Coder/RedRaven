@@ -159,7 +159,7 @@ namespace RR
 
             EffectLibrary::Asset::PassDesc passDesc;
             passDesc.nameIndex = pushString(passKey);
-            passDesc.shaderIndexes.fill(Asset::INVALID_SHADER_INDEX);
+            passDesc.shaderIndexes.fill(Asset::INVALID_INDEX);
             evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
             ShaderCompileDesc shaderCompileDesc;

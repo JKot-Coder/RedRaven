@@ -8,6 +8,8 @@ namespace RR::EffectLibrary
     namespace Asset
     {
         #pragma pack(push, 1)
+        static constexpr uint32_t INVALID_INDEX = static_cast<uint32_t>(-1);
+
         struct Header
         {
             static constexpr uint32_t MAGIC = 0x4C584652;
@@ -33,7 +35,6 @@ namespace RR::EffectLibrary
             const std::byte* data;
         };
 
-        static constexpr inline uint32_t INVALID_SHADER_INDEX = static_cast<uint32_t>(-1);
         struct PassDesc
         {
             uint32_t nameIndex;

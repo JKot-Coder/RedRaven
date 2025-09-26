@@ -64,7 +64,7 @@ namespace RR::Render
             for(uint32_t i = 0; i < pass.shaderIndexes.size(); i++)
             {
                 const auto shaderIndex = pass.shaderIndexes[i];
-                if (shaderIndex == EffectLibrary::Asset::INVALID_SHADER_INDEX)
+                if (shaderIndex == EffectLibrary::Asset::INVALID_INDEX)
                     continue;
 
                 passDesc.shaders[i] = shaders[shaderIndex].get();
