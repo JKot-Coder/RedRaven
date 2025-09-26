@@ -62,6 +62,7 @@ namespace RR::Render
         };
 
     public:
+        void SetVertexLayout(const GAPI::VertexLayout* layout) { graphicsParams.vertexLayout = layout; }
         void SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0) { geometryManager.SetVertexBuffer(slot, buffer, offset); }
         void SetIndexBuffer(const GAPI::Buffer* buffer) { geometryManager.SetIndexBuffer(buffer); }
         void SetRenderPass(const GAPI::RenderPassDesc& renderPass);

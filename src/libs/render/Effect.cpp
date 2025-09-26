@@ -19,10 +19,11 @@ namespace RR::Render
 
     void combineGraphicsParamsHash(PsoHashType& psoHash, const GraphicsParams& params)
     {
-        static_assert(sizeof(GraphicsParams) == 44);
+        static_assert(sizeof(GraphicsParams) == 56);
 
         Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.renderTargetCount);
         Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.primitiveTopology);
+        Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.vertexLayout); // TODO
         for(size_t i = 0; i < params.renderTargetCount; ++i)
             Common::Hashing::Default::HashCombine<PsoHashBits>(psoHash, params.renderTargetFormats[i]);
 
@@ -43,6 +44,8 @@ namespace RR::Render
         }
         GAPI::GraphicPipelineStateDesc graphicPSODesc;
         graphicPSODesc.primitiveTopology = params.primitiveTopology;
+        if(params.vertexLayout)
+            graphicPSODesc.vertexLayout = *params.vertexLayout;
 
         ASSERT(params.renderTargetCount <= graphicPSODesc.renderTargetFormats.size());
         ASSERT(params.renderTargetCount <= params.renderTargetFormats.size());

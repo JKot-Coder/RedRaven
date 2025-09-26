@@ -16,6 +16,7 @@ namespace RR::Render
     struct GraphicsParams
 	{
         GAPI::PrimitiveTopology primitiveTopology;
+        const GAPI::VertexLayout* vertexLayout = nullptr;
         uint32_t renderTargetCount = 0;
         eastl::array<GAPI::GpuResourceFormat, GAPI::MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
         GAPI::GpuResourceFormat depthStencilFormat;
@@ -24,6 +25,7 @@ namespace RR::Render
         {
             primitiveTopology = GAPI::PrimitiveTopology::TriangleList;
             renderTargetCount = 0;
+            vertexLayout = nullptr;
             renderTargetFormats.fill(GAPI::GpuResourceFormat::Unknown);
             depthStencilFormat = GAPI::GpuResourceFormat::Unknown;
         }
