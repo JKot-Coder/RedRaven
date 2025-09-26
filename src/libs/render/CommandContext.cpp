@@ -36,7 +36,7 @@ namespace RR::Render
         return *currentLayout;
     }
 
-    void GraphicsCommandContext::GeometryManager::SetVertexBuffers(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0)
+    void GraphicsCommandContext::GeometryManager::SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0)
     {
         if (vertexBindings.size() > slot && vertexBindings[slot].vertexBuffer == &buffer && vertexBindings[slot].vertexBufferOffset == offset)
             return;
