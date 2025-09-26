@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/hashing/Hash.hpp"
+
 namespace RR::GAPI
 {
     struct VertexLayoutBuilder;
@@ -36,9 +38,19 @@ namespace RR::GAPI
 
     struct VertexLayout
     {
+    private:
         eastl::fixed_vector<VertexAttributeDesc, 8> attributes;
+        Common::HashType hash;
+
+        friend struct VertexLayoutBuilder;
 
     public:
+        Common::HashType GetHash() const { return hash; }
+
+        size_t GetAttributeCount() const { return attributes.size(); }
+        const VertexAttributeDesc& GetAttribute(size_t index) const { return attributes[index]; }
+        const eastl::fixed_vector<VertexAttributeDesc, 8>& GetAttributes() const { return attributes; }
+
         static VertexLayoutBuilder Build();
     };
 
@@ -47,12 +59,21 @@ namespace RR::GAPI
         VertexLayoutBuilder& Add(const char* semanticName, uint32_t semanticIndex, VertexAttributeType type, uint16_t numComponents, uint32_t bufferSlot)
         {
             layout.attributes.emplace_back(VertexAttributeDesc {semanticName, semanticIndex, type, numComponents, bufferSlot});
+            hash.Combine(semanticName);
+            hash.Combine(semanticIndex);
+            hash.Combine(type);
+            hash.Combine(numComponents);
+            hash.Combine(bufferSlot);
             return *this;
         }
 
-        [[nodiscard]] VertexLayout Commit() { return layout; }
+        [[nodiscard]] VertexLayout Commit() {
+            layout.hash = hash.GetHash();
+            return layout;
+        }
 
         VertexLayout layout;
+        Common::HashBuilder<Common::DefaultHasher> hash;
     };
 
     inline VertexLayoutBuilder VertexLayout::Build() { return VertexLayoutBuilder(); }

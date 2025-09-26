@@ -23,7 +23,8 @@ namespace RR::Render
 
         psoHash.Combine(params.renderTargetCount);
         psoHash.Combine(params.primitiveTopology);
-        psoHash.Combine(params.vertexLayout); // TODO
+        if(params.vertexLayout)
+            psoHash.Combine(params.vertexLayout->GetHash());
         for(size_t i = 0; i < params.renderTargetCount; ++i)
             psoHash.Combine(params.renderTargetFormats[i]);
         psoHash.Combine(params.depthStencilFormat);

@@ -144,12 +144,12 @@ namespace RR::GAPI::Diligent
     {
         DL::InputLayoutDesc inputLayout;
 
-        ASSERT(layout.attributes.size() <= MaxLayoutElements);
+        ASSERT(layout.GetAttributeCount() <= MaxLayoutElements);
 
-        for (size_t i = 0; i < layout.attributes.size(); i++)
+        for (size_t i = 0; i < layout.GetAttributeCount(); i++)
         {
             auto& layoutElement = layoutElements[i];
-            const auto& attribute = layout.attributes[i];
+            const auto& attribute = layout.GetAttribute(i);
 
             layoutElement.HLSLSemantic = attribute.semanticName;
             layoutElement.InputIndex = attribute.semanticIndex;
@@ -167,7 +167,7 @@ namespace RR::GAPI::Diligent
         }
 
         inputLayout.LayoutElements = layoutElements.data();
-        inputLayout.NumElements = static_cast<uint32_t>(layout.attributes.size());
+        inputLayout.NumElements = static_cast<uint32_t>(layout.GetAttributeCount());
         return inputLayout;
     }
 
