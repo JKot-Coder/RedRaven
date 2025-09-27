@@ -95,8 +95,6 @@ namespace RR::Render
         auto& layout = flushLayout();
         ASSERT(layout.indexBuffer);
 
-        ASSERT(reinterpret_cast <size_t>(layout.indexBuffer) > 10000) ;
-
         graphicsParams.SetPrimitiveTopology(topology);
 
         GAPI::Commands::DrawAttribs drawAttribs;
