@@ -61,24 +61,23 @@ namespace RR::Render
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
 
-        graphicsParams.renderTargetCount = renderPass.colorAttachmentCount;
+        graphicsParams.SetRenderTargetCount(renderPass.colorAttachmentCount);
 
-        ASSERT( graphicsParams.renderTargetFormats.size()  == graphicsParams.renderTargetFormats.size());
         for(size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
         {
             const auto& colorAttachment = renderPass.colorAttachments[i];
             const auto* renderTargetView = colorAttachment.renderTargetView;
-            graphicsParams.renderTargetFormats[i] = renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+            graphicsParams.SetRenderTargetFormat(i, renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown);
         }
 
         const auto* depthStencilView = renderPass.depthStencilAttachment.depthStencilView;
-        graphicsParams.depthStencilFormat = depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+        graphicsParams.SetDepthStencilFormat(depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown);
     }
 
     void GraphicsCommandContext::Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
     {
         ASSERT(effect);
-        graphicsParams.primitiveTopology = topology;
+        graphicsParams.SetPrimitiveTopology(topology);
 
         GAPI::Commands::DrawAttribs drawAttribs;
         drawAttribs.vertexCount = vertexCount;
@@ -98,7 +97,7 @@ namespace RR::Render
 
         ASSERT(reinterpret_cast <size_t>(layout.indexBuffer) > 10000) ;
 
-        graphicsParams.primitiveTopology = topology;
+        graphicsParams.SetPrimitiveTopology(topology);
 
         GAPI::Commands::DrawAttribs drawAttribs;
         drawAttribs.vertexCount = indexCount;

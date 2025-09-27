@@ -16,21 +16,80 @@ namespace RR::Render
     using PsoHashType = PsoHasher::HashType;
 
     struct GraphicsParams
-	{
-        GAPI::PrimitiveTopology primitiveTopology;
-        const GAPI::VertexLayout* vertexLayout = nullptr;
-        uint32_t renderTargetCount = 0;
-        eastl::array<GAPI::GpuResourceFormat, GAPI::MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
-        GAPI::GpuResourceFormat depthStencilFormat;
+    {
+    public:
+        void SetPrimitiveTopology(GAPI::PrimitiveTopology topology)
+        {
+            primitiveTopology = topology;
+            dirty = true;
+        }
+
+        void SetVertexLayout(const GAPI::VertexLayout* vertexLayout)
+        {
+            this->vertexLayout = vertexLayout;
+            dirty = true;
+        }
+
+        void SetRenderTargetCount(uint32_t renderTargetCount)
+        {
+            this->renderTargetCount = renderTargetCount;
+            dirty = true;
+        }
+
+        void SetRenderTargetFormat(uint32_t index, GAPI::GpuResourceFormat format)
+        {
+            renderTargetFormats[index] = format;
+            dirty = true;
+        }
+
+        void SetDepthStencilFormat(GAPI::GpuResourceFormat format)
+        {
+            depthStencilFormat = format;
+            dirty = true;
+        }
 
         void Reset()
         {
+            dirty = true;
             primitiveTopology = GAPI::PrimitiveTopology::TriangleList;
             renderTargetCount = 0;
             vertexLayout = nullptr;
             renderTargetFormats.fill(GAPI::GpuResourceFormat::Unknown);
             depthStencilFormat = GAPI::GpuResourceFormat::Unknown;
         }
+
+        HashType GetHash() const
+        {
+            if (dirty)
+            {
+                static_assert(sizeof(GraphicsParams) == 64);
+
+                HashBuilder<PsoHasher> hashBuilder;
+                hashBuilder.Combine(renderTargetCount);
+                hashBuilder.Combine(primitiveTopology);
+                if (vertexLayout)
+                    hashBuilder.Combine(vertexLayout->GetHash());
+                for (size_t i = 0; i < renderTargetCount; ++i)
+                    hashBuilder.Combine(renderTargetFormats[i]);
+                hashBuilder.Combine(depthStencilFormat);
+                hash = hashBuilder.GetHash();
+                dirty = false;
+            }
+
+            return hash;
+        }
+
+    private:
+        mutable bool dirty = true;
+
+        GAPI::PrimitiveTopology primitiveTopology;
+        const GAPI::VertexLayout* vertexLayout = nullptr;
+        uint32_t renderTargetCount = 0;
+        eastl::array<GAPI::GpuResourceFormat, GAPI::MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
+        GAPI::GpuResourceFormat depthStencilFormat;
+        mutable PsoHashType hash;
+
+        friend class Effect;
     };
 
     struct EffectDesc

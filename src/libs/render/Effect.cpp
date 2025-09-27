@@ -17,25 +17,11 @@ namespace RR::Render
         this->effectDesc = std::move(effectDesc);
     }
 
-    void combineGraphicsParamsHash(HashBuilder<PsoHasher>& psoHash, const GraphicsParams& params)
-    {
-        static_assert(sizeof(GraphicsParams) == 56);
-
-        psoHash.Combine(params.renderTargetCount);
-        psoHash.Combine(params.primitiveTopology);
-        if(params.vertexLayout)
-            psoHash.Combine(params.vertexLayout->GetHash());
-        for(size_t i = 0; i < params.renderTargetCount; ++i)
-            psoHash.Combine(params.renderTargetFormats[i]);
-        psoHash.Combine(params.depthStencilFormat);
-    }
 
     GAPI::GraphicPipelineState* Effect::EvaluateGraphicsPipelineState(const GraphicsParams& params)
     {
-        HashBuilder<PsoHasher> psoHash;
-        combineGraphicsParamsHash(psoHash, params);
-
-        auto it = pipelineStates.find(psoHash.GetHash());
+        auto psoHash = params.GetHash();
+        auto it = pipelineStates.find(psoHash);
 
         if(it != pipelineStates.end())
         {
@@ -65,7 +51,7 @@ namespace RR::Render
         const auto& deviceContext = DeviceContext::Instance();
         GAPI::GraphicPipelineState::UniquePtr pipelineState = deviceContext.CreatePipelineState(graphicPSODesc, "Effect");
 
-        auto pso = pipelineStates.emplace(psoHash.GetHash(), std::move(pipelineState)).first->second.get();
+        auto pso = pipelineStates.emplace(psoHash, std::move(pipelineState)).first->second.get();
         return static_cast<GAPI::GraphicPipelineState*>(pso);
     }
 }
