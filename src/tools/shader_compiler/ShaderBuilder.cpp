@@ -6,7 +6,7 @@
 
 #include "JsonnetProcessor.hpp"
 #include "ShaderCompiler.hpp"
-#include "common/hashing/Default.hpp"
+#include "common/hashing/Hash.hpp"
 
 #include "slang-com-ptr.h"
 #include "slang.h"
@@ -16,7 +16,7 @@
 
 namespace RR
 {
-    using namespace Common::Hashing::Default;
+    using namespace Common;
     using namespace EffectLibrary;
 
     std::string toLower(std::string str)

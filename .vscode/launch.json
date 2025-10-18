@@ -66,6 +66,7 @@
             "args": [""],
             "cwd": "${workspaceFolder}/bin/",
             "preLaunchTask": "CMake: build demo2",
+            "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
         },
         {
             "name": "Shader compiler",
@@ -76,6 +77,7 @@
             "args": ["build", "D:/RR/build/src/demo2/shaders.jsonnet", "--output", "D:/RR/bin/CompiledShaders.rfxlib", "--include", "D:/RR/src/shaders"],
             "cwd": "${workspaceFolder}/bin/",
             "preLaunchTask": "CMake: build shader_compiler",
+            "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
         }
     ]
 }

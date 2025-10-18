@@ -235,6 +235,17 @@ namespace RR::GAPI::Diligent
                 device->CreateGraphicsPipelineState(createInfo, &psoPtr);
                 pso.Attach(psoPtr);
 
+    
+
+                device->CreatePipelineResourceSignature
+                DL::IShaderResourceBinding *srbPtr = nullptr;
+                psoPtr->CreateShaderResourceBinding(&srbPtr, false);
+
+
+                device->CreateResourceMapping(resourceMapping, nullptr);
+
+                srbPtr->BindResources(resourceMapping, DL::BIND_SHADER_RESOURCES_FLAGS_NONE);
+
                 break;
             }
             default:

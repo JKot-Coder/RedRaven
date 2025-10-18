@@ -42,15 +42,149 @@ namespace RR  {
                 default: throw std::runtime_error("Unknown shader stage");
             }
         }
+
+        void printOffset(
+            slang::VariableLayoutReflection* varLayout,
+            slang::ParameterCategory layoutUnit)
+        {
+            size_t spaceOffset = varLayout->getBindingSpace(layoutUnit);
+
+            switch(layoutUnit)
+            {
+            default:
+                break;
+
+            case slang::ParameterCategory::ConstantBuffer:
+            case slang::ParameterCategory::ShaderResource:
+            case slang::ParameterCategory::UnorderedAccess:
+            case slang::ParameterCategory::SamplerState:
+            case slang::ParameterCategory::DescriptorTableSlot:
+                std::cout << "space: " << spaceOffset << std::endl;
+            }
+        }
+
+        void printRelativeOffsets(
+            slang::VariableLayoutReflection* varLayout)
+        {
+            std::cout << "relative offset: " << std::endl;
+            int usedLayoutUnitCount = varLayout->getCategoryCount();
+            for (int i = 0; i < usedLayoutUnitCount; ++i)
+            {
+                auto layoutUnit = varLayout->getCategoryByIndex(i);
+                printOffset(varLayout, layoutUnit);
+            }
+        }
+
+
+        void printTypeLayout(slang::TypeLayoutReflection* typeLayout, std::string indent = "")
+        {
+            auto kind = typeLayout->getKind();
+            switch (kind)
+            {
+                case slang::TypeReflection::Kind::ConstantBuffer:
+                case slang::TypeReflection::Kind::ParameterBlock:
+                case slang::TypeReflection::Kind::TextureBuffer:
+                case slang::TypeReflection::Kind::ShaderStorageBuffer:
+                    {
+                        std::cout << indent << (kind == slang::TypeReflection::Kind::ConstantBuffer ? "ConstantBuffer" : kind == slang::TypeReflection::Kind::ParameterBlock ? "ParameterBlock" : kind == slang::TypeReflection::Kind::TextureBuffer ? "TextureBuffer" : "ShaderStorageBuffer") << " : " << std::endl;
+                     //   printRelativeOffsets(elementVarLayout);
+                        printRelativeOffsets(typeLayout->getContainerVarLayout());
+
+                        auto elementVarLayout = typeLayout->getElementVarLayout();
+                      //  printRelativeOffsets(elementVarLayout);
+                        /*   std::cout << "element: " << std::endl;
+                        //printOffsets(elementVarLayout);*/
+
+                        //std::cout << indent << "type layout: " << std::endl;
+                        printTypeLayout(
+                            elementVarLayout->getTypeLayout(), indent + "  ");
+                    }
+                    break;
+                case slang::TypeReflection::Kind::Struct:
+                {
+                    std::cout << indent << "Struct: " << std::endl;
+
+                    uint32_t paramCount = typeLayout->getFieldCount();
+                    for (uint32_t i = 0; i < paramCount; i++)
+                    {
+                        std::cout << indent << "-" << typeLayout->getFieldByIndex(i)->getName() << std::endl;
+                        printTypeLayout( typeLayout->getFieldByIndex(i)->getTypeLayout(), indent + "  ");
+                    }
+                }
+                break;
+                case slang::TypeReflection::Kind::Scalar:
+                case slang::TypeReflection::Kind::Matrix:
+                {
+                    std::cout << indent <<  typeLayout->getName() << std::endl;
+                }
+                break;
+                default:
+                    std::cerr << indent << "Unknown global params type" << std::endl;
+                    break;
+            }
+        }
     }
 
     ShaderCompiler::ShaderCompiler() { }
     ShaderCompiler::~ShaderCompiler() { }
 
+
+    std::string getBindingTypeStr(slang::BindingType bindingType)
+    {
+        switch (bindingType)
+        {
+            case slang::BindingType::ConstantBuffer: return "ConstantBuffer";
+            case slang::BindingType::ParameterBlock: return "ParameterBlock";
+            case slang::BindingType::PushConstant: return "PushConstant";
+            default: return "Unknown";
+        }
+    }
+
+    std::string getParameterCategoryStr(slang::ParameterCategory parameterCategory)
+    {
+        switch (parameterCategory)
+        {
+            case slang::ParameterCategory::SubElementRegisterSpace: return "SubElementRegisterSpace";
+            case slang::ParameterCategory::ConstantBuffer: return "ConstantBuffer";
+            case slang::ParameterCategory::Uniform: return "Uniform";
+            default: return "Unknown";
+        }
+    }
+
+    void CollectSets(slang::ShaderReflection* shaderReflection)
+    {
+     //   slang::VariableLayoutReflection* scopeVarLayout = shaderReflection->getGlobalParamsVarLayout();
+	//	slang::TypeLayoutReflection* typeLayoutReflection = scopeVarLayout->getTypeLayout();
+
+		const uint32_t paramCount = shaderReflection->getParameterCount();
+		for (uint32_t i = 0; i < paramCount; i++)
+        {
+			auto param = shaderReflection->getParameterByIndex(i);
+         //   auto bindingRangeType = typeLayoutReflection->getBindingRangeType(i);
+			auto paramName = param->getName();
+			//auto type = param->getType();
+
+            // Получаем binding info
+            slang::ParameterCategory category = param->getCategory();
+            uint32_t binding = param->getBindingIndex();
+            uint32_t space = param->getBindingSpace();
+
+            std::cout << "Param " << i << ": " << paramName << std::endl;
+            std::cout << "  Category: " << getParameterCategoryStr(category) << std::endl;
+            std::cout << "  Binding: " << binding << std::endl;
+            std::cout << "  Space: " << space << std::endl;
+
+            //std::cout << "Parameter: " << paramName << " " << getBindingTypeStr(bindingRangeType) << std::endl;
+        }
+
+
+    }
+
+
     Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
     {
         slang::TargetDesc targetDesc;
-        targetDesc.format = SLANG_DXIL;
+        targetDesc.format = SLANG_HLSL;
         targetDesc.profile = globalSession->findProfile("sm_6_5");
         targetDesc.floatingPointMode = SLANG_FLOATING_POINT_MODE_DEFAULT;
         targetDesc.lineDirectiveMode = SLANG_LINE_DIRECTIVE_MODE_DEFAULT;
@@ -131,7 +265,7 @@ namespace RR  {
             return Common::RResult::Fail;
         }
 
-        slang::ProgramLayout* layoutPtr = linkedProgram->getLayout(0, diagnostics.writeRef());
+        slang::ProgramLayout* programLayout = linkedProgram->getLayout(0, diagnostics.writeRef());
 
         if (diagnostics)
         {
@@ -140,17 +274,17 @@ namespace RR  {
             return Common::RResult::Fail;
         }
 
-        if (!layoutPtr)
+        if (!programLayout)
             return Common::RResult::Fail;
 
-        for (uint32_t i = 0; i < layoutPtr->getEntryPointCount(); i++)
+        for (uint32_t i = 0; i < programLayout->getEntryPointCount(); i++)
         {
-            SlangStage stage = layoutPtr->getEntryPointByIndex(i)->getStage();
+            SlangStage stage = programLayout->getEntryPointByIndex(i)->getStage();
 
             ShaderResult shaderResult;
             shaderResult.type = getShaderType(stage);
             shaderResult.session = session;
-            shaderResult.name = layoutPtr->getEntryPointByIndex(i)->getName();
+            shaderResult.name = programLayout->getEntryPointByIndex(i)->getName();
             if (SLANG_FAILED(linkedProgram->getEntryPointCode(i, 0, shaderResult.source.writeRef(), diagnostics.writeRef())))
             {
                 if (diagnostics)
@@ -166,6 +300,14 @@ namespace RR  {
 
             result.shaders.emplace_back(std::move(shaderResult));
         }
+
+        slang::VariableLayoutReflection* globalParamsVarLayout = programLayout->getGlobalParamsVarLayout();
+
+        CollectSets(programLayout);
+
+        auto scopeTypeLayout = globalParamsVarLayout->getTypeLayout();
+        printTypeLayout(scopeTypeLayout);
+
 
         return Common::RResult::Ok;
     }

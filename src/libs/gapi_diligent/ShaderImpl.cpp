@@ -41,6 +41,7 @@ namespace RR::GAPI::Diligent
         shaderCI.ByteCodeSize = desc.size;
         shaderCI.Desc.Name = name.c_str();
         shaderCI.Desc.ShaderType = getShaderType(desc.type);
+        shaderCI.LoadConstantBufferReflection = false;
         return shaderCI;
     }
 

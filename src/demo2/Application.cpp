@@ -8,6 +8,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Shader.hpp"
 #include "gapi/Texture.hpp"
+#include "gapi/Buffer.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/CommandList2.hpp"
@@ -16,9 +17,11 @@
 
 #include "math/VectorMath.hpp"
 
+#include "render/VertexFormats/Vertex.hpp"
 #include "render/DeviceContext.hpp"
 #include "render/CommandContext.hpp"
 #include "render/EffectManager.hpp"
+#include "render/VertexFormats/Vertex.hpp"
 
 #include "common/Result.hpp"
 
@@ -85,6 +88,68 @@ namespace RR::App
         swapChainDesc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
         return Render::DeviceContext::Instance().CreateSwapchain(swapChainDesc);
+    }
+
+    GAPI::Buffer::SharedPtr CreateVertexBuffer()
+    {
+        // Layout of this structure matches the one we defined in the pipeline state
+        struct Vertex
+        {
+            Vector4 pos;
+            Vector4 color;
+        };
+
+        // Cube vertices
+
+        //      (-1,+1,+1)________________(+1,+1,+1)
+        //               /|              /|
+        //              / |             / |
+        //             /  |            /  |
+        //            /   |           /   |
+        //(-1,-1,+1) /____|__________/(+1,-1,+1)
+        //           |    |__________|____|
+        //           |   /(-1,+1,-1) |    /(+1,+1,-1)
+        //           |  /            |   /
+        //           | /             |  /
+        //           |/              | /
+        //           /_______________|/
+        //        (-1,-1,-1)       (+1,-1,-1)
+        //
+
+        constexpr Vertex CubeVerts[8] =
+        {
+            {Vector4{-1, -1, -1, 1}, Vector4{1, 0, 0, 1}},
+            {Vector4{-1, +1, -1, 1}, Vector4{0, 1, 0, 1}},
+            {Vector4{+1, +1, -1, 1}, Vector4{0, 0, 1, 1}},
+            {Vector4{+1, -1, -1, 1}, Vector4{1, 1, 1, 1}},
+
+            {Vector4{-1, -1, +1, 1}, Vector4{1, 1, 0, 1}},
+            {Vector4{-1, +1, +1, 1}, Vector4{0, 1, 1, 1}},
+            {Vector4{+1, +1, +1, 1}, Vector4{1, 0, 1, 1}},
+            {Vector4{+1, -1, +1, 1}, Vector4{0.2f, 0.2f, 0.2f, 1.f}},
+        };
+
+        auto& deviceContext = Render::DeviceContext::Instance();
+        GAPI::BufferData bufferData = { CubeVerts, sizeof(CubeVerts) };
+        return deviceContext.CreateBuffer(GAPI::GpuResourceDesc::Buffer(sizeof(CubeVerts)), &bufferData, "Cube vertex buffer");
+    }
+
+    GAPI::Buffer::SharedPtr CreateIndexBuffer()
+    {
+        // clang-format off
+        constexpr uint32_t Indices[] =
+        {
+            2,0,1, 2,3,0,
+            4,6,5, 4,7,6,
+            0,7,4, 0,3,7,
+            1,0,4, 1,4,5,
+            1,5,2, 5,6,2,
+            3,6,7, 3,2,6
+        };
+        // clang-format on
+        auto& deviceContext = Render::DeviceContext::Instance();
+        GAPI::BufferData bufferData = { Indices, sizeof(Indices) };
+        return deviceContext.CreateBuffer(GAPI::GpuResourceDesc::IndexBuffer(sizeof(Indices) / sizeof(Indices[0]), GAPI::GpuResourceFormat::R32Uint), &bufferData, "Cube index buffer");
     }
 
     GAPI::GraphicPipelineState::UniquePtr CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
@@ -171,7 +236,8 @@ namespace RR::App
             return 1;
         }
 
-        auto effect = Render::EffectManager::Instance().Load("triangle");
+        auto triangleEffect = Render::EffectManager::Instance().Load("triangle");
+        auto cubeEffect = Render::EffectManager::Instance().Load("cube");
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
 
@@ -189,6 +255,9 @@ namespace RR::App
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 
+        auto vertexBuffer = CreateVertexBuffer();
+        auto indexBuffer = CreateIndexBuffer();
+
         while (!applicationInstance->quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
@@ -200,7 +269,12 @@ namespace RR::App
                                             .Build();
 
             ctx->SetRenderPass(renderPassDesc);
-            ctx->Draw(effect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
+            ctx->Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
+
+            ctx->SetVertexLayout(&Render::Vertex::GetVertexLayout());
+            ctx->SetIndexBuffer(indexBuffer.get());
+            ctx->SetVertexBuffer(0, *vertexBuffer.get(), 0);
+            ctx->DrawIndexed(cubeEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 36);
 
             deviceContext.Compile(*ctx);
             deviceContext.Submit(commandQueue.get(), *ctx);
