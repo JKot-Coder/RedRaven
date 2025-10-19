@@ -4,6 +4,8 @@
 
 #if OS_WINDOWS
 #include "platform/windows/File.hpp"
+#else
+#include "platform/posix/File.hpp"
 #endif
 
 namespace RR::Common

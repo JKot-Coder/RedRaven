@@ -6,62 +6,35 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "EASTL/fixed_string.h"
+
 namespace RR::Common::IO
 {
-    File::~File()
-    {
-        if (IsOpen())
-            Close();
-    }
+    File::~File() { Close(); }
 
-    RResult File::Open(const fs::path& path, FileAccessMode accessMode)
+    RResult File::Open(std::string_view path, FileOpenMode accessMode)
     {
-        int permissions = S_IRWXU | S_IRGRP | S_IROTH; // 744
-
-        if (IsOpen())
-        {
-            ASSERT_MSG(false, "File aready opened");
-            return RResult::Unexpected;
-        }
+        Close();
 
         if (path.empty())
             return RResult::NotFound;
 
-        bool readMode = IsSet(accessMode, FileAccessMode::Read);
-        bool writeMode = IsSet(accessMode, FileAccessMode::Write);
-        bool openMode = IsSet(accessMode, FileAccessMode::Open);
-        bool createMode = IsSet(accessMode, FileAccessMode::Create);
-        bool appendMode = IsSet(accessMode, FileAccessMode::Append);
-        bool truncateMode = IsSet(accessMode, FileAccessMode::Truncate);
 
         int desiredAccess = 0;
+        switch (accessMode)
         {
-            if (!readMode && !writeMode)
-                return RResult::InvalidArgument;
-
-            desiredAccess = (writeMode && readMode) ? O_RDWR : (writeMode ? O_WRONLY : O_RDONLY);
+            case FileOpenMode::Read: desiredAccess = O_RDONLY; break;
+            case FileOpenMode::ReadWrite: desiredAccess = O_RDWR; break;
+            case FileOpenMode::Create: desiredAccess = O_RDWR | O_CREAT; break;
+            case FileOpenMode::CreateTruncate: desiredAccess = O_RDWR | O_CREAT | O_TRUNC; break;
+            case FileOpenMode::CreateAppend: desiredAccess = O_RDWR | O_CREAT | O_APPEND; break;
+            default: return RResult::InvalidArgument;
         }
 
-        {
-            if (!openMode && !createMode)
-                return RResult::InvalidArgument;
+        eastl::fixed_string<char, 512> pathStr(path.begin(), path.end());
 
-            desiredAccess |= createMode ? O_CREAT : 0;
-            desiredAccess |= openMode ? 0 : O_EXCL;
-        }
-
-        {
-            if (appendMode && truncateMode)
-                return RResult::InvalidArgument;
-
-            if (appendMode && !writeMode)
-                return RResult::InvalidArgument;
-
-            desiredAccess |= appendMode ? O_APPEND : 0;
-            desiredAccess |= truncateMode ? O_TRUNC : 0;
-        }
-
-        int handle = open(path.c_str(), desiredAccess, permissions);
+        const int permissions = S_IRWXU | S_IRGRP | S_IROTH; // 744
+        int handle = open(pathStr.c_str(), desiredAccess, permissions);
 
         if (handle < 0)
         {
