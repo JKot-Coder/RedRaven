@@ -14,6 +14,7 @@ namespace RR::Common::Threading
         const auto& wThreadName = Common::StringEncoding::UTF8ToWide(threadName);
         SetThreadDescription(static_cast<HANDLE>(GetNativeHandle()), wThreadName.c_str());
 #else
+        UNUSED(threadName);
         ASSERT_MSG(false, "Not implemented");
 #endif
     }
