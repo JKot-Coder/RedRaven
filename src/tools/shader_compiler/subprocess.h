@@ -976,7 +976,13 @@ int subprocess_join(struct subprocess_s *const process,
   }
 
   if (process->child) {
-    if (process->child != waitpid(process->child, &status, 0)) {
+    pid_t pid;
+
+    do {
+      pid = waitpid(process->child, &status, 0);
+    } while (pid != process->child && errno == EINTR);
+
+    if (pid != process->child) {
       return -1;
     }
 
