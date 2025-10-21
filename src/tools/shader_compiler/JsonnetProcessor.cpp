@@ -33,18 +33,20 @@ namespace RR
 
         subprocess_s process;
         auto runCode = subprocess_create(args.data(),
-                                         subprocess_option_combined_stdout_stderr | subprocess_option_no_window,
+                                         subprocess_option_combined_stdout_stderr |
+                                             subprocess_option_no_window |
+                                             subprocess_option_search_user_path,
                                          &process);
+
+        if (runCode != 0)
+        {
+            std::cerr << "Process " << args[0] << " executed with error: " << runCode << std::endl;
+            return Common::RResult::Fail;
+        }
 
         ON_SCOPE_EXIT([&process]() {
             UNUSED(subprocess_destroy(&process));
         });
-
-        if (runCode != 0)
-        {
-            std::cerr << "Process executed with error: " << runCode << std::endl;
-            return Common::RResult::Fail;
-        }
 
         char buffer[4096];
         std::string output;
@@ -52,7 +54,12 @@ namespace RR
             output.append(buffer, size);
 
         int exitCode;
-        subprocess_join(&process, &exitCode);
+        for (int result = subprocess_join(&process, &exitCode); result != 0;) {
+            std::cerr << "Process " << args[0] << " failed to join: " << result << std::endl;
+            std::cerr << "errno: " << errno << " (" << strerror(errno) << ")" << std::endl;
+
+            return Common::RResult::Fail;
+        }
 
         if (exitCode != 0)
         {
