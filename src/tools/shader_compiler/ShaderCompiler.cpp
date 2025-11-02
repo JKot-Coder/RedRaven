@@ -6,6 +6,8 @@
 #include "common/Result.hpp"
 #include "gapi/Shader.hpp"
 
+#include "ReflectionBuilder.hpp"
+
 #define TRY_SLANG(statement) \
 	{ \
 		SlangResult res = (statement); \
@@ -17,6 +19,18 @@
 
 
 #include <iostream>
+
+
+std::string getParameterCategoryStr(slang::ParameterCategory parameterCategory)
+{
+    switch (parameterCategory)
+    {
+        case slang::ParameterCategory::SubElementRegisterSpace: return "SubElementRegisterSpace";
+        case slang::ParameterCategory::ConstantBuffer: return "ConstantBuffer";
+        case slang::ParameterCategory::Uniform: return "Uniform";
+        default: return "Unknown";
+    }
+}
 
 namespace RR  {
 
@@ -44,10 +58,13 @@ namespace RR  {
         }
 
         void printOffset(
+            std::string indent,
             slang::VariableLayoutReflection* varLayout,
             slang::ParameterCategory layoutUnit)
         {
             size_t spaceOffset = varLayout->getBindingSpace(layoutUnit);
+            uint32_t bindingIndex = varLayout->getBindingIndex();
+
 
             switch(layoutUnit)
             {
@@ -59,25 +76,42 @@ namespace RR  {
             case slang::ParameterCategory::UnorderedAccess:
             case slang::ParameterCategory::SamplerState:
             case slang::ParameterCategory::DescriptorTableSlot:
-                std::cout << "space: " << spaceOffset << std::endl;
+                std::cout << indent << "space: " << spaceOffset << std::endl;
+                std::cout << indent << "binding index: " << bindingIndex << std::endl;
+                std::cout << " bindingSet:" << varLayout->getBindingSpace(SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT)<< std::endl;
+                std::cout << " binding:" << varLayout->getOffset(SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT)<< std::endl;
+                std::cout << " childSet:" << varLayout->getOffset(SLANG_PARAMETER_CATEGORY_REGISTER_SPACE)<< std::endl;
+                std::cout << " pushConstantRange:" << varLayout->getOffset(SLANG_PARAMETER_CATEGORY_PUSH_CONSTANT_BUFFER)<< std::endl;
+
+                break;
             }
         }
 
         void printRelativeOffsets(
+            std::string indent,
             slang::VariableLayoutReflection* varLayout)
         {
-            std::cout << "relative offset: " << std::endl;
+            std::cout << indent << "relative offset: " << std::endl;
             int usedLayoutUnitCount = varLayout->getCategoryCount();
             for (int i = 0; i < usedLayoutUnitCount; ++i)
             {
                 auto layoutUnit = varLayout->getCategoryByIndex(i);
-                printOffset(varLayout, layoutUnit);
+                printOffset(indent , varLayout, layoutUnit);
             }
         }
 
 
-        void printTypeLayout(slang::TypeLayoutReflection* typeLayout, std::string indent = "")
+        void printTypeLayout(slang::VariableLayoutReflection* varLayout, std::string indent = "")
         {
+            slang::TypeLayoutReflection* typeLayout = varLayout->getTypeLayout();
+            slang::ParameterCategory category = typeLayout->getParameterCategory();
+   ;
+            for(int i = 0; i<=typeLayout->getDescriptorSetCount(); i++)
+                std::cout << "  space" << i << ":" << typeLayout->getDescriptorSetSpaceOffset(i) << std::endl;
+
+            std::cout << "  Category: " << getParameterCategoryStr(category) << std::endl;
+
+
             auto kind = typeLayout->getKind();
             switch (kind)
             {
@@ -87,17 +121,41 @@ namespace RR  {
                 case slang::TypeReflection::Kind::ShaderStorageBuffer:
                     {
                         std::cout << indent << (kind == slang::TypeReflection::Kind::ConstantBuffer ? "ConstantBuffer" : kind == slang::TypeReflection::Kind::ParameterBlock ? "ParameterBlock" : kind == slang::TypeReflection::Kind::TextureBuffer ? "TextureBuffer" : "ShaderStorageBuffer") << " : " << std::endl;
-                     //   printRelativeOffsets(elementVarLayout);
-                        printRelativeOffsets(typeLayout->getContainerVarLayout());
+
+                        // Показываем binding информацию для константного буфера
+                        auto containerVarLayout = typeLayout->getContainerVarLayout();
+
+                        if (containerVarLayout)
+                        {
+                            std::cout << indent << "  Register: b" << containerVarLayout->getBindingIndex() << std::endl;
+                            std::cout << indent << "  Space: " << containerVarLayout->getBindingSpace(category) << std::endl;
+
+                            std::cout << " sZZZubElementRegisterSpace:" << varLayout->getOffset(SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE)<< std::endl;
+                            std::cout << " bindingSet:" << containerVarLayout->getBindingSpace(category)<< std::endl;
+                            std::cout << " binding:" << containerVarLayout->getOffset(category)<< std::endl;
+                            std::cout << " childSet:" << containerVarLayout->getOffset(category)<< std::endl;
+                            std::cout << " pushConstantRange:" << containerVarLayout->getOffset(category)<< std::endl;
+
+                            // Показываем все доступные категории binding
+                            int usedLayoutUnitCount = containerVarLayout->getCategoryCount();
+                            for (int i = 0; i < usedLayoutUnitCount; ++i)
+                            {
+                                auto layoutUnit = containerVarLayout->getCategoryByIndex(i);
+                                size_t spaceOffset = containerVarLayout->getBindingSpace(layoutUnit);
+                                uint32_t bindingIndex = containerVarLayout->getBindingIndex();
+                                std::cout << indent << "  Category " << i << ": " << getParameterCategoryStr(layoutUnit)
+                                         << " - Register: b" << bindingIndex << ", Space: " << spaceOffset << std::endl;
+
+                                std::cout << " bindingSet:" << containerVarLayout->getBindingSpace(layoutUnit)<< std::endl;
+                                std::cout << " binding:" << containerVarLayout->getOffset(layoutUnit)<< std::endl;
+
+                            }
+                        }
+
+                        printRelativeOffsets(indent, containerVarLayout);
 
                         auto elementVarLayout = typeLayout->getElementVarLayout();
-                      //  printRelativeOffsets(elementVarLayout);
-                        /*   std::cout << "element: " << std::endl;
-                        //printOffsets(elementVarLayout);*/
-
-                        //std::cout << indent << "type layout: " << std::endl;
-                        printTypeLayout(
-                            elementVarLayout->getTypeLayout(), indent + "  ");
+                        printTypeLayout(elementVarLayout, indent + "  ");
                     }
                     break;
                 case slang::TypeReflection::Kind::Struct:
@@ -107,8 +165,9 @@ namespace RR  {
                     uint32_t paramCount = typeLayout->getFieldCount();
                     for (uint32_t i = 0; i < paramCount; i++)
                     {
+                        //typeLayout->getFieldByIndex(i)->getVariable()->getDefaultValueInt();
                         std::cout << indent << "-" << typeLayout->getFieldByIndex(i)->getName() << std::endl;
-                        printTypeLayout( typeLayout->getFieldByIndex(i)->getTypeLayout(), indent + "  ");
+                        printTypeLayout( typeLayout->getFieldByIndex(i), indent + "  ");
                     }
                 }
                 break;
@@ -140,55 +199,64 @@ namespace RR  {
         }
     }
 
-    std::string getParameterCategoryStr(slang::ParameterCategory parameterCategory)
+    void CollectSets(slang::ProgramLayout* programLayout)
     {
-        switch (parameterCategory)
+        const uint32_t paramCount = programLayout->getParameterCount();
+        for (uint32_t i = 0; i < paramCount; i++)
         {
-            case slang::ParameterCategory::SubElementRegisterSpace: return "SubElementRegisterSpace";
-            case slang::ParameterCategory::ConstantBuffer: return "ConstantBuffer";
-            case slang::ParameterCategory::Uniform: return "Uniform";
-            default: return "Unknown";
-        }
-    }
+            auto param = programLayout->getParameterByIndex(i);
+            auto paramName = param->getName();
 
-    void CollectSets(slang::ShaderReflection* shaderReflection)
-    {
-     //   slang::VariableLayoutReflection* scopeVarLayout = shaderReflection->getGlobalParamsVarLayout();
-	//	slang::TypeLayoutReflection* typeLayoutReflection = scopeVarLayout->getTypeLayout();
 
-		const uint32_t paramCount = shaderReflection->getParameterCount();
-		for (uint32_t i = 0; i < paramCount; i++)
-        {
-			auto param = shaderReflection->getParameterByIndex(i);
-         //   auto bindingRangeType = typeLayoutReflection->getBindingRangeType(i);
-			auto paramName = param->getName();
-			//auto type = param->getType();
-
-            // Получаем binding info
             slang::ParameterCategory category = param->getCategory();
             uint32_t binding = param->getBindingIndex();
-            uint32_t space = param->getBindingSpace();
+            uint32_t space = param->getBindingSpace(SLANG_PARAMETER_CATEGORY_REGISTER_SPACE);
 
             std::cout << "Param " << i << ": " << paramName << std::endl;
+
             std::cout << "  Category: " << getParameterCategoryStr(category) << std::endl;
             std::cout << "  Binding: " << binding << std::endl;
             std::cout << "  Space: " << space << std::endl;
 
-            //std::cout << "Parameter: " << paramName << " " << getBindingTypeStr(bindingRangeType) << std::endl;
+            std::cout << " bindingSet:" << param->getBindingSpace(SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT)<< std::endl;
+
+            std::cout << " childSet:" << param->getOffset(SLANG_PARAMETER_CATEGORY_REGISTER_SPACE)<< std::endl;
+            std::cout << " pushConstantRange:" << param->getOffset(SLANG_PARAMETER_CATEGORY_PUSH_CONSTANT_BUFFER)<< std::endl;
+            std::cout << " ???" <<  std::endl;
+           // auto c =programLayout->getGlobalParamsTypeLayout()->getName();
+
+
+
+           // param->getType()
+
+           //   if(category != slang::ParameterCategory::Uniform)
+                //std::cout << " sss:" <<   << std::endl;
+            std::cout << " register:" << param->getOffset(SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT)<< std::endl;
+            std::cout << " space:" << param->getOffset(SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE)<< std::endl;
         }
-
-
     }
 
 
     Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
     {
         slang::TargetDesc targetDesc;
-        targetDesc.format = SLANG_HLSL;
+        targetDesc.format = SLANG_GLSL;
         targetDesc.profile = globalSession->findProfile("sm_6_5");
         targetDesc.floatingPointMode = SLANG_FLOATING_POINT_MODE_DEFAULT;
         targetDesc.lineDirectiveMode = SLANG_LINE_DIRECTIVE_MODE_DEFAULT;
-        targetDesc.flags = 0;
+
+        std::array<slang::CompilerOptionEntry, 2> compilerOptionEntries;
+        compilerOptionEntries[0].name = slang::CompilerOptionName::NoMangle;
+        compilerOptionEntries[0].value.kind = slang::CompilerOptionValueKind::Int;
+        compilerOptionEntries[0].value.intValue0 = true;
+
+        compilerOptionEntries[1].name = slang::CompilerOptionName::ForceDXLayout;
+        compilerOptionEntries[1].value.kind = slang::CompilerOptionValueKind::Int;
+        compilerOptionEntries[1].value.intValue0 = true;
+
+        targetDesc.compilerOptionEntries = compilerOptionEntries.data();
+        targetDesc.compilerOptionEntryCount = compilerOptionEntries.size();
+     //   targetDesc.flags = SLANG_COMPILE_FLAG_NO_MANGLING;
 
         slang::SessionDesc sessionDesc;
         sessionDesc.targets = &targetDesc;
@@ -298,15 +366,83 @@ namespace RR  {
                 return Common::RResult::Fail;
             }
 
+            const char* c = static_cast<const char*>(shaderResult.source->getBufferPointer());
+            size_t s = shaderResult.source->getBufferSize();
+
+            std::cout << "Shader: "<< std::endl << std::string(c,s ) << std::endl;
+
+            // Анализируем скомпилированный HLSL код для извлечения правильной информации о binding
+            std::string shaderCode(c, s);
+            std::cout << "HLSL Analysis:" << std::endl;
+
+            // Ищем cbuffer declarations
+            size_t pos = 0;
+            while ((pos = shaderCode.find("cbuffer", pos)) != std::string::npos)
+            {
+                size_t lineEnd = shaderCode.find('\n', pos);
+                if (lineEnd != std::string::npos)
+                {
+                    std::string cbufferLine = shaderCode.substr(pos, lineEnd - pos);
+                    std::cout << "  Found: " << cbufferLine << std::endl;
+
+                    // Извлекаем имя буфера
+                    size_t nameStart = cbufferLine.find(' ');
+                    if (nameStart != std::string::npos)
+                    {
+                        nameStart++;
+                        size_t nameEnd = cbufferLine.find(' ', nameStart);
+                        if (nameEnd == std::string::npos) nameEnd = cbufferLine.find(':', nameStart);
+                        if (nameEnd != std::string::npos)
+                        {
+                            std::string bufferName = cbufferLine.substr(nameStart, nameEnd - nameStart);
+                            std::cout << "    Buffer name: " << bufferName << std::endl;
+                        }
+                    }
+
+                    // Извлекаем register информацию
+                    size_t registerPos = cbufferLine.find("register(");
+                    if (registerPos != std::string::npos)
+                    {
+                        size_t registerStart = registerPos + 9; // "register("
+                        size_t registerEnd = cbufferLine.find(')', registerStart);
+                        if (registerEnd != std::string::npos)
+                        {
+                            std::string registerInfo = cbufferLine.substr(registerStart, registerEnd - registerStart);
+                            std::cout << "    Register info: " << registerInfo << std::endl;
+                        }
+                    }
+                }
+                pos = lineEnd;
+            }
+
             result.shaders.emplace_back(std::move(shaderResult));
         }
 
         slang::VariableLayoutReflection* globalParamsVarLayout = programLayout->getGlobalParamsVarLayout();
 
-        CollectSets(programLayout);
+        for(uint32_t i = 0; i < programLayout->getParameterCount(); i++)
+        {
+        auto param = programLayout->getParameterByIndex(i);
+ Slang::ComPtr<slang::IBlob> nnn;
+        session->getTypeRTTIMangledName(param->getType(),nnn.writeRef());
 
-        auto scopeTypeLayout = globalParamsVarLayout->getTypeLayout();
-        printTypeLayout(scopeTypeLayout);
+
+        std::cout << "ZZZZZZ: " << std::string(static_cast<const char*>(nnn->getBufferPointer()), nnn->getBufferSize()) << std::endl;
+        }
+        std::cout << "!!!!!!!!!!!!!!!!: " << std::endl;
+        std::cout << "Shader params reflection: " << std::endl;
+        CollectSets(programLayout);
+        std::cout << "!!!!!!!!!!!!!!!!: " << std::endl;
+        std::cout << "Global params type layout: " << std::endl;
+
+
+        printTypeLayout(globalParamsVarLayout);
+
+
+        std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
+
+        ReflectionBuilder reflectionBuilder;
+        reflectionBuilder.Build(programLayout);
 
 
         return Common::RResult::Ok;

@@ -235,12 +235,11 @@ namespace RR::GAPI::Diligent
                 device->CreateGraphicsPipelineState(createInfo, &psoPtr);
                 pso.Attach(psoPtr);
 
-    
-
                 device->CreatePipelineResourceSignature
                 DL::IShaderResourceBinding *srbPtr = nullptr;
                 psoPtr->CreateShaderResourceBinding(&srbPtr, false);
 
+                DL::PipelineResourceDesc resourceDesc;
 
                 device->CreateResourceMapping(resourceMapping, nullptr);
 

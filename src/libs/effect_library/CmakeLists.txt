@@ -2,7 +2,9 @@ project(effect_library)
 
 set(SRC
     EffectLibrary.cpp
-    EffectLibrary.hpp)
+    EffectLibrary.hpp
+    ShaderReflectionData.hpp
+    ShaderReflectionData.cpp)
 source_group( "" FILES ${SRC} )
 
 set(SRC
