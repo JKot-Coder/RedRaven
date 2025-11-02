@@ -55,9 +55,10 @@ namespace RR
 
         int exitCode;
         for (int result = subprocess_join(&process, &exitCode); result != 0;) {
-            std::cerr << "Process " << args[0] << " failed to join: " << result << std::endl;
+            std::cerr << "Process " << args[0] << " failed to join." << result << std::endl;
+#ifndef OS_WINDOWS
             std::cerr << "errno: " << errno << " (" << strerror(errno) << ")" << std::endl;
-
+#endif
             return Common::RResult::Fail;
         }
 
