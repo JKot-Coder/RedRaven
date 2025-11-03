@@ -8,9 +8,10 @@ set(SRC
     ShaderCompiler.cpp
     JsonnetProcessor.cpp
     JsonnetProcessor.hpp
-    ReflectionBuilder.hpp
-    ReflectionBuilder.cpp
-    ReflectionResourceType.hpp
+    reflection/ReflectionBuilder.hpp
+    reflection/ReflectionBuilder.cpp
+    reflection/ReflectionResourceType.hpp
+    reflection/Utils.hpp
     )
 source_group("" FILES ${SRC})
 

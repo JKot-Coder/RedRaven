@@ -3,7 +3,7 @@
 #include "ReflectionResourceType.hpp"
 #include "effect_library/ShaderReflectionData.hpp"
 
-#include "reflection/Utils.hpp"
+#include "Utils.hpp"
 
 #include "slang.h"
 using namespace slang;

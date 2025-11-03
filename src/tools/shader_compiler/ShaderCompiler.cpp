@@ -6,7 +6,7 @@
 #include "common/Result.hpp"
 #include "gapi/Shader.hpp"
 
-#include "ReflectionBuilder.hpp"
+#include "reflection/ReflectionBuilder.hpp"
 
 #define TRY_SLANG(statement) \
 	{ \
