@@ -78,7 +78,17 @@ namespace
     //
     struct ReflectionPath
     {
-        ReflectionPath(ReflectionPath* pParent)
+        ReflectionPathLink* pPrimary = nullptr;
+        ReflectionPathLink* pDeferred = nullptr;
+    };
+
+    // A helper RAII type to extend a `ReflectionPath` with
+    // additional links as needed based on the reflection
+    // information from a Slang `VariableLayoutReflection`.
+    //
+    struct ExtendedReflectionPath : ReflectionPath
+    {
+        ExtendedReflectionPath(ReflectionPath const* pParent, VariableLayoutReflection* pVar)
         {
             // If there is any path stored in `pParent`,
             // then that will be our starting point.
@@ -88,9 +98,34 @@ namespace
                 pPrimary = pParent->pPrimary;
                 pDeferred = pParent->pDeferred;
             }
+
+            // Next, if `pVar` has a primary layout (and/or
+            // an optional pending/deferred layout), then
+            // we will extend the appropriate breadcrumb
+            // trail with its information.
+            //
+            if (pVar)
+            {
+                primaryLinkStorage.pParent = pPrimary;
+                primaryLinkStorage.pVar = pVar;
+                pPrimary = &primaryLinkStorage;
+
+                if (auto pDeferredVar = pVar->getPendingDataLayout())
+                {
+                    deferredLinkStorage.pParent = pDeferred;
+                    deferredLinkStorage.pVar = pDeferredVar;
+                    pDeferred = &deferredLinkStorage;
+                }
+            }
         }
-        ReflectionPathLink* pPrimary = nullptr;
-        ReflectionPathLink* pDeferred = nullptr;
+
+        // These "storage" fields are used in the constructor
+        // when it needs to allocate additional links. By pre-allocating
+        // them here in the body of the type we avoid having to do
+        // heap allocation when constructing an extended path.
+        //
+        ReflectionPathLink primaryLinkStorage;
+        ReflectionPathLink deferredLinkStorage;
     };
 
     // Determine if a Slang type layout consumes any storage/resources of the given kind
@@ -302,8 +337,9 @@ namespace RR
 
         for (uint32_t i = 0; i < slangGlobalParamsTypeLayout->getFieldCount(); i++)
         {
-            ReflectionPath path(nullptr);
+
             auto field = slangGlobalParamsTypeLayout->getFieldByIndex(i);
+            ExtendedReflectionPath path(nullptr, field);
 
             auto pSlangType = field->getTypeLayout();
             auto kind = pSlangType->getType()->getKind();
