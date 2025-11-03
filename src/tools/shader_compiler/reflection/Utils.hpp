@@ -1,6 +1,8 @@
 #pragma once
 
-#define THROW(message) throw std::runtime_error(message);
+#include <fmt/core.h>
+
+#define THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__));
 #define UNREACHABLE() throw std::runtime_error("Unreachable");
 
 namespace RR
