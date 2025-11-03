@@ -41,5 +41,18 @@ namespace RR
             ConstantBuffer,
             AccelerationStructure,
         };
+        ENUM_INFO(
+            Type,
+            {
+                {Type::Texture, "Texture"},
+                {Type::StructuredBuffer, "StructuredBuffer"},
+                {Type::RawBuffer, "RawBuffer"},
+                {Type::TypedBuffer, "TypedBuffer"},
+                {Type::Sampler, "Sampler"},
+                {Type::ConstantBuffer, "ConstantBuffer"},
+                {Type::AccelerationStructure, "AccelerationStructure"},
+            }
+        );
+
     };
 }
