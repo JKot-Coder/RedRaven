@@ -3,13 +3,12 @@
 #include "ReflectionResourceType.hpp"
 #include "effect_library/ShaderReflectionData.hpp"
 
+#include "reflection/Utils.hpp"
+
 #include "slang.h"
 using namespace slang;
 
 #include <iostream>
-
-#define THROW(message) throw std::runtime_error(message);
-#define UNREACHABLE() throw std::runtime_error("Unreachable");
 
 namespace
 {
