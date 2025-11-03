@@ -211,6 +211,30 @@ namespace
         }
     }
 
+    static ReflectionResourceType::Dimensions getResourceDimensions(SlangResourceShape shape)
+    {
+        switch (shape)
+        {
+            case SLANG_TEXTURE_1D: return ReflectionResourceType::Dimensions::Texture1D;
+            case SLANG_TEXTURE_1D_ARRAY: return ReflectionResourceType::Dimensions::Texture1DArray;
+            case SLANG_TEXTURE_2D: return ReflectionResourceType::Dimensions::Texture2D;
+            case SLANG_TEXTURE_2D_ARRAY: return ReflectionResourceType::Dimensions::Texture2DArray;
+            case SLANG_TEXTURE_2D_MULTISAMPLE: return ReflectionResourceType::Dimensions::Texture2DMS;
+            case SLANG_TEXTURE_2D_MULTISAMPLE_ARRAY: return ReflectionResourceType::Dimensions::Texture2DMSArray;
+            case SLANG_TEXTURE_3D: return ReflectionResourceType::Dimensions::Texture3D;
+            case SLANG_TEXTURE_CUBE: return ReflectionResourceType::Dimensions::TextureCube;
+            case SLANG_TEXTURE_CUBE_ARRAY: return ReflectionResourceType::Dimensions::TextureCubeArray;
+            case SLANG_ACCELERATION_STRUCTURE: return ReflectionResourceType::Dimensions::AccelerationStructure;
+
+            case SLANG_TEXTURE_BUFFER:
+            case SLANG_STRUCTURED_BUFFER:
+            case SLANG_BYTE_ADDRESS_BUFFER:
+                return ReflectionResourceType::Dimensions::Buffer;
+
+            default: return ReflectionResourceType::Dimensions::Unknown;
+        }
+    }
+
     static ParameterCategory getParameterCategory(TypeLayoutReflection* pTypeLayout)
     {
         ParameterCategory category = pTypeLayout->getParameterCategory();
