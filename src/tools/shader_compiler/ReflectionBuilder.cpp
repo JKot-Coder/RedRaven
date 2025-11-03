@@ -186,23 +186,16 @@ namespace
             case TypeReflection::Kind::ParameterBlock:
             case TypeReflection::Kind::ConstantBuffer:
                 return ReflectionResourceType::Type::ConstantBuffer;
-            case TypeReflection::Kind::SamplerState:
-                return ReflectionResourceType::Type::Sampler;
-            case TypeReflection::Kind::ShaderStorageBuffer:
-                return ReflectionResourceType::Type::StructuredBuffer;
-            case TypeReflection::Kind::TextureBuffer:
-                return ReflectionResourceType::Type::TypedBuffer;
+            case TypeReflection::Kind::SamplerState: return ReflectionResourceType::Type::Sampler;
+            case TypeReflection::Kind::ShaderStorageBuffer: return ReflectionResourceType::Type::StructuredBuffer;
+            case TypeReflection::Kind::TextureBuffer: return ReflectionResourceType::Type::TypedBuffer;
             case TypeReflection::Kind::Resource:
                 switch (pSlangType->getResourceShape() & SLANG_RESOURCE_BASE_SHAPE_MASK)
                 {
-                    case SLANG_STRUCTURED_BUFFER:
-                        return ReflectionResourceType::Type::StructuredBuffer;
-                    case SLANG_BYTE_ADDRESS_BUFFER:
-                        return ReflectionResourceType::Type::RawBuffer;
-                    case SLANG_TEXTURE_BUFFER:
-                        return ReflectionResourceType::Type::TypedBuffer;
-                    case SLANG_ACCELERATION_STRUCTURE:
-                        return ReflectionResourceType::Type::AccelerationStructure;
+                    case SLANG_STRUCTURED_BUFFER: return ReflectionResourceType::Type::StructuredBuffer;
+                    case SLANG_BYTE_ADDRESS_BUFFER: return ReflectionResourceType::Type::RawBuffer;
+                    case SLANG_TEXTURE_BUFFER: return ReflectionResourceType::Type::TypedBuffer;
+                    case SLANG_ACCELERATION_STRUCTURE: return ReflectionResourceType::Type::AccelerationStructure;
                     case SLANG_TEXTURE_1D:
                     case SLANG_TEXTURE_2D:
                     case SLANG_TEXTURE_3D:
