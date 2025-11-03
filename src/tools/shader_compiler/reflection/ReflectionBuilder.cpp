@@ -10,9 +10,8 @@ using namespace slang;
 
 #include <iostream>
 
-namespace
+namespace RR
 {
-    using namespace RR;
     /* ----------------  Metdods from Falcor ---------------- */
 
     // Represents one link in a "breadcrumb trail" leading from a particular variable
