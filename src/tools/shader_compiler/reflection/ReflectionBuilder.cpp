@@ -300,10 +300,15 @@ namespace RR
     {
         ASSERT(pPath->pPrimary && pPath->pPrimary->pVar);
 
-        ParameterCategory category = getParameterCategory(pSlangType);
         ReflectionResourceType::Type type = getResourceType(pSlangType->getType());
+        ReflectionResourceType::Dimensions dims = getResourceDimensions(pSlangType->getResourceShape());
+
+        ParameterCategory category = getParameterCategory(pSlangType);
+
         auto regIndex = (uint32_t)getRegisterIndexFromPath(pPath->pPrimary, SlangParameterCategory(category));
         auto regSpace = getRegisterSpaceFromPath(pPath->pPrimary, SlangParameterCategory(category));
+
+        std::cout << " " << enumToString(type) << " regIndex: " << regIndex << " regSpace: " << regSpace << " dims: " << enumToString(dims) << std::endl;
 
         switch (type)
         {
@@ -312,7 +317,6 @@ namespace RR
 
             case ReflectionResourceType::Type::ConstantBuffer:
             {
-                std::cout << " regIndex: " << regIndex << " regSpace: " << regSpace << std::endl;
                 break;
             }
         }
