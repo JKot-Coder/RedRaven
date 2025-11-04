@@ -9,7 +9,7 @@ namespace RR
 {
     // Helper using ADL to find EnumInfo in other namespaces.
     template <typename T>
-    using EnumInfo = decltype(falcorFindEnumInfoADL(eastl::declval<T>()));
+    using EnumInfo = decltype(findEnumInfoADL(eastl::declval<T>()));
 
     template <typename, typename = void>
     struct has_enum_info : eastl::false_type
@@ -57,4 +57,31 @@ namespace RR
             return {eastl::begin(items), eastl::end(items)};          \
         }                                                             \
     }
+
+    /**
+     * Register enum information to be used with helper functions.
+     * This needs to be placed outside of any structs but within the
+     * namespace of the enum:
+     *
+     * namespace ns
+     * {
+     * struct Bar
+     * {
+     *     enum class Foo { A, B, C };
+     *     ENUM_INFO(Foo, ...)
+     * };
+     *
+     * ENUM_REGISTER(Bar::Foo)
+     * } // namespace ns
+     *
+     * Registered enums can be converted to/from strings using:
+     * - enumToString<Enum>(Enum value)
+     * - stringToEnum<Enum>(std::string_view name)
+     */
+    #define ENUM_REGISTER(T)                                            \
+    constexpr T##_info findEnumInfoADL [[maybe_unused]] (T) noexcept \
+    {                                                                      \
+        return T##_info{};                                                 \
+    }
+
 }

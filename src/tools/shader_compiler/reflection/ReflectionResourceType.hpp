@@ -72,4 +72,7 @@ namespace RR
                 {Dimensions::Buffer, "Buffer"},
             });
     };
+
+    ENUM_REGISTER(ReflectionResourceType::Type);
+    ENUM_REGISTER(ReflectionResourceType::Dimensions);
 }
