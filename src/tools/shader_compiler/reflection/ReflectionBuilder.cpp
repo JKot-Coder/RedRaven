@@ -296,7 +296,57 @@ namespace RR
 
 namespace RR
 {
-    void reflectResourceType(TypeLayoutReflection* pSlangType, ReflectionPath* pPath)
+    using ReflectionType = void; // TODO
+    ReflectionType* reflectResourceType(TypeLayoutReflection* pSlangType, ReflectionPath* pPath);
+
+    ReflectionType* reflectType(
+        TypeLayoutReflection* pSlangType,
+        ReflectionPath* pPath)
+    {
+        ASSERT(pSlangType);
+        auto kind = pSlangType->getType()->getKind();
+        switch (kind)
+        {
+            case TypeReflection::Kind::ParameterBlock:
+            case TypeReflection::Kind::Resource:
+            case TypeReflection::Kind::SamplerState:
+            case TypeReflection::Kind::ConstantBuffer:
+            case TypeReflection::Kind::ShaderStorageBuffer:
+            case TypeReflection::Kind::TextureBuffer:
+                return reflectResourceType(pSlangType, pPath);
+            case TypeReflection::Kind::Struct:
+            case TypeReflection::Kind::Array:
+            case TypeReflection::Kind::Interface:
+            case TypeReflection::Kind::Specialized:
+            case TypeReflection::Kind::Scalar:
+            case TypeReflection::Kind::Matrix:
+            case TypeReflection::Kind::Vector:
+                return nullptr; // Todo: Implement
+
+          /*  case TypeReflection::Kind::Struct:
+                return reflectStructType(pSlangType, pPath);
+            case TypeReflection::Kind::Array:
+                return reflectArrayType(pSlangType, pPath);
+            case TypeReflection::Kind::Interface:
+                return reflectInterfaceType(pSlangType, pPath);
+            case TypeReflection::Kind::Specialized:
+                return reflectSpecializedType(pSlangType, pPath);
+            case TypeReflection::Kind::Scalar:
+            case TypeReflection::Kind::Matrix:
+            case TypeReflection::Kind::Vector:
+                return reflectBasicType(pSlangType);*/
+            case TypeReflection::Kind::None:
+                return nullptr;
+            case TypeReflection::Kind::GenericTypeParameter:
+                // TODO: How to handle this type? Let it generate an error for now.
+                THROW("Unexpected Slang type");
+            default:
+                UNREACHABLE();
+        }
+        return nullptr;
+    }
+
+    ReflectionType* reflectResourceType(TypeLayoutReflection* pSlangType, ReflectionPath* pPath)
     {
         ASSERT(pPath->pPrimary && pPath->pPrimary->pVar);
 
@@ -308,7 +358,9 @@ namespace RR
         auto regIndex = (uint32_t)getRegisterIndexFromPath(pPath->pPrimary, SlangParameterCategory(category));
         auto regSpace = getRegisterSpaceFromPath(pPath->pPrimary, SlangParameterCategory(category));
 
-        std::cout << " " << enumToString(type) << " regIndex: " << regIndex << " regSpace: " << regSpace << " dims: " << enumToString(dims) << std::endl;
+        std::string name = pPath->pPrimary->pVar->getName();
+
+        std::cout << " " << name << " " << enumToString(type) << " regIndex: " << regIndex << " regSpace: " << regSpace << " dims: " << enumToString(dims) << std::endl;
 
         switch (type)
         {
@@ -317,9 +369,14 @@ namespace RR
 
             case ReflectionResourceType::Type::ConstantBuffer:
             {
+                const auto& pElementLayout = pSlangType->getElementTypeLayout();
+                auto pElementType = reflectType(pElementLayout, pPath);
+                UNUSED(pElementType);
                 break;
             }
         }
+
+        return nullptr;
     }
 
     void ReflectionBuilder::Build(ShaderReflection* reflection)
@@ -344,22 +401,7 @@ namespace RR
             ExtendedReflectionPath path(nullptr, field);
 
             auto pSlangType = field->getTypeLayout();
-            auto kind = pSlangType->getType()->getKind();
-            switch (kind)
-            {
-                case TypeReflection::Kind::ParameterBlock:
-                case TypeReflection::Kind::ConstantBuffer:
-                    std::cout << field->getName();
-                    reflectResourceType(pSlangType, &path);
-                    break;
-
-                case TypeReflection::Kind::Scalar:
-                case TypeReflection::Kind::Matrix:
-                case TypeReflection::Kind::Vector:
-                    break;
-                default:
-                    ASSERT_MSG(false, "unknown type"); // maybe throw
-            }
+            reflectType(pSlangType, &path);
         }
 
         //  slangGlobalParamsTypeLayout->

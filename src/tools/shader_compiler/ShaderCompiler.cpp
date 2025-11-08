@@ -240,7 +240,7 @@ namespace RR  {
     Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
     {
         slang::TargetDesc targetDesc;
-        targetDesc.format = SLANG_GLSL;
+        targetDesc.format = SLANG_HLSL;
         targetDesc.profile = globalSession->findProfile("sm_6_5");
         targetDesc.floatingPointMode = SLANG_FLOATING_POINT_MODE_DEFAULT;
         targetDesc.lineDirectiveMode = SLANG_LINE_DIRECTIVE_MODE_DEFAULT;
