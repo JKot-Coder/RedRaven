@@ -25,9 +25,9 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "ProgramReflection.h"
+#include "ProgramReflection.hpp"
 #include "Program.h"
-#include "ProgramVersion.h"
+#include "ProgramVersion.hpp"
 #include "Core/API/Device.h"
 #include "Utils/StringUtils.h"
 #include "Utils/Scripting/ScriptBindings.h"

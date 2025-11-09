@@ -25,7 +25,7 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
-#include "ProgramVersion.h"
+#include "ProgramVersion.hpp"
 #include "Program.h"
 #include "ProgramManager.h"
 #include "ProgramVars.h"

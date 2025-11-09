@@ -26,7 +26,7 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "ProgramReflection.h"
+#include "ProgramReflection.hpp"
 #include "DefineList.h"
 #include "Core/Macros.h"
 #include "Core/Object.h"
