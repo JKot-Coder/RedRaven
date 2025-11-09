@@ -4,6 +4,7 @@
 
 #define THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__));
 #define UNREACHABLE() throw std::runtime_error("Unreachable");
+#define UNIMPLEMENTED() assert(false); throw std::runtime_error("Unimplemented");
 
 namespace RR
 {
