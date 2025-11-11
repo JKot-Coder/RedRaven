@@ -27,24 +27,73 @@
  **************************************************************************/
 #pragma once
 #include "ProgramReflection.hpp"
-#include "DefineList.h"
-#include "Core/Macros.h"
-#include "Core/Object.h"
-#include "Core/API/fwd.h"
-#include "Core/API/Types.h"
-#include "Core/API/Handles.h"
+#include "Utils.hpp"
+#include "Types.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <initializer_list>
+#include <map>
 
 #include <slang.h>
+#include <slang-com-ptr.h>
 
 namespace Falcor
 {
 class FALCOR_API Program;
 class FALCOR_API ProgramVars;
 class FALCOR_API ProgramVersion;
+
+class DefineList : public std::map<std::string, std::string>
+{
+public:
+    /**
+     * Adds a macro definition. If the macro already exists, it will be replaced.
+     * @param[in] name The name of macro.
+     * @param[in] value Optional. The value of the macro.
+     * @return The updated list of macro definitions.
+     */
+    DefineList& add(const std::string& name, const std::string& val = "")
+    {
+        (*this)[name] = val;
+        return *this;
+    }
+
+    /**
+     * Removes a macro definition. If the macro doesn't exist, the call will be silently ignored.
+     * @param[in] name The name of macro.
+     * @return The updated list of macro definitions.
+     */
+    DefineList& remove(const std::string& name)
+    {
+        (*this).erase(name);
+        return *this;
+    }
+
+    /**
+     * Add a define list to the current list
+     */
+    DefineList& add(const DefineList& dl)
+    {
+        for (const auto& p : dl)
+            add(p.first, p.second);
+        return *this;
+    }
+
+    /**
+     * Remove a define list from the current list
+     */
+    DefineList& remove(const DefineList& dl)
+    {
+        for (const auto& p : dl)
+            remove(p.first);
+        return *this;
+    }
+
+    DefineList() = default;
+    DefineList(std::initializer_list<std::pair<const std::string, std::string>> il) : std::map<std::string, std::string>(il) {}
+};
 
 /**
  * Represents a single program entry point and its associated kernel code.
@@ -164,91 +213,11 @@ protected:
     std::string mExportName;
 };
 
-/**
- * Low-level program object
- * This class abstracts the API's program creation and management
- */
-class FALCOR_API ProgramKernels : public Object
-{
-    FALCOR_OBJECT(ProgramKernels)
-public:
-    typedef std::vector<ref<const EntryPointGroupKernels>> UniqueEntryPointGroups;
-
-    /**
-     * Create a new program object for graphics.
-     * @param[in] The program reflection object
-     * @param[in] pVS Vertex shader object
-     * @param[in] pPS Fragment shader object
-     * @param[in] pGS Geometry shader object
-     * @param[in] pHS Hull shader object
-     * @param[in] pDS Domain shader object
-     * @param[out] Log In case of error, this will contain the error log string
-     * @param[in] DebugName Optional. A meaningful name to use with log messages
-     * @return New object in case of success, otherwise nullptr
-     */
-    static ref<ProgramKernels> create(
-        Device* pDevice,
-        const ProgramVersion* pVersion,
-        slang::IComponentType* pSpecializedSlangGlobalScope,
-        const std::vector<slang::IComponentType*>& pTypeConformanceSpecializedEntryPoints,
-        const ref<const ProgramReflection>& pReflector,
-        const UniqueEntryPointGroups& uniqueEntryPointGroups,
-        std::string& log,
-        const std::string& name = ""
-    );
-
-    virtual ~ProgramKernels() = default;
-
-    /**
-     * Get an attached shader object, or nullptr if no shader is attached to the slot.
-     */
-    const EntryPointKernel* getKernel(ShaderType type) const;
-
-    /**
-     * Get the program name
-     */
-    const std::string& getName() const { return mName; }
-
-    /**
-     * Get the reflection object
-     */
-    const ref<const ProgramReflection>& getReflector() const { return mpReflector; }
-
-    ProgramVersion const* getProgramVersion() const { return mpVersion; }
-
-    const UniqueEntryPointGroups& getUniqueEntryPointGroups() const { return mUniqueEntryPointGroups; }
-
-    const ref<const EntryPointGroupKernels>& getUniqueEntryPointGroup(uint32_t index) const { return mUniqueEntryPointGroups[index]; }
-
-    gfx::IShaderProgram* getGfxProgram() const { return mGfxProgram; }
-
-protected:
-    ProgramKernels(
-        const ProgramVersion* pVersion,
-        const ref<const ProgramReflection>& pReflector,
-        const UniqueEntryPointGroups& uniqueEntryPointGroups,
-        const std::string& name = ""
-    );
-
-    Slang::ComPtr<gfx::IShaderProgram> mGfxProgram;
-    const std::string mName;
-
-    UniqueEntryPointGroups mUniqueEntryPointGroups;
-
-    void* mpPrivateData;
-    const ref<const ProgramReflection> mpReflector;
-
-    ProgramVersion const* mpVersion = nullptr;
-};
 
 class ProgramVersion : public Object
 {
     FALCOR_OBJECT(ProgramVersion)
 public:
-    /**
-     * Get the program that this version was created from
-     */
-    Program* getProgram() const { return mpProgram; }
 
     /**
      * Get the defines that were used to create this version
@@ -270,24 +239,19 @@ public:
         return mpReflector;
     }
 
-    /**
-     * Get executable kernels based on state in a `ProgramVars`
-     */
-    // TODO @skallweit passing pDevice here is a bit of a WAR
-    ref<const ProgramKernels> getKernels(Device* pDevice, ProgramVars const* pVars) const;
-
     slang::ISession* getSlangSession() const;
     slang::IComponentType* getSlangGlobalScope() const;
     slang::IComponentType* getSlangEntryPoint(uint32_t index) const;
     const std::vector<Slang::ComPtr<slang::IComponentType>>& getSlangEntryPoints() const { return mpSlangEntryPoints; }
 
+public:
+    static ref<ProgramVersion> createEmpty(slang::IComponentType* pSlangGlobalScope);
+
 protected:
     friend class Program;
     friend class ProgramManager;
 
-    static ref<ProgramVersion> createEmpty(Program* pProgram, slang::IComponentType* pSlangGlobalScope);
-
-    ProgramVersion(Program* pProgram, slang::IComponentType* pSlangGlobalScope);
+    ProgramVersion(slang::IComponentType* pSlangGlobalScope);
 
     void init(
         const DefineList& defineList,
@@ -296,14 +260,10 @@ protected:
         const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints
     );
 
-    mutable Program* mpProgram;
     DefineList mDefines;
     ref<const ProgramReflection> mpReflector;
     std::string mName;
     Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
     std::vector<Slang::ComPtr<slang::IComponentType>> mpSlangEntryPoints;
-
-    // Cached version of compiled kernels for this program version
-    mutable std::unordered_map<std::string, ref<const ProgramKernels>> mpKernels;
 };
 } // namespace Falcor

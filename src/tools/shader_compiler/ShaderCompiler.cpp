@@ -453,21 +453,26 @@ namespace RR  {
 
         std::cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
 
-
         std::string log;
         auto programVersion = ProgramVersion::createEmpty(linkedProgram);
         try {
-            auto programReflection = ProgramReflection::create(programVersion.get(), programLayout, {}, log);
+
+            std::vector<slang::EntryPointLayout*> entryPointLayouts;
+
+            for(uint32_t i = 0; i < programLayout->getEntryPointCount(); i++)
+                entryPointLayouts.emplace_back(programLayout->getEntryPointByIndex(i));
+
+            auto programReflection = ProgramReflection::create(programVersion.get(), programLayout, entryPointLayouts, log);
 
             auto defaultParameterBlock = programReflection->getDefaultParameterBlock();
 
-            for(uint32_t i = 0; i < defaultParameterBlock->getResourceCount(); i++)
+     /*      for(uint32_t i = 0; i < defaultParameterBlock->getResourceCount(); i++)
             {
                 auto resource = defaultParameterBlock->getResource(i);
                 auto resourceBinding = defaultParameterBlock->getResourceBinding(resource->getName());
 
                 std::cout << "resource: " << resource->getName() << " binding location: " << resourceBinding.getResourceRangeIndex() << std::endl;
-            }
+            }*/
 
             for(uint32_t j = 0; j < defaultParameterBlock->getResourceRangeCount(); j++)
             {

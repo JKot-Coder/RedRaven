@@ -176,7 +176,7 @@ namespace RR
                 offset += (uint32_t)pp->pVar->getOffset(category);
                 continue;
             }
-            THROW("Invalid reflection path");
+            FALCOR_THROW("Invalid reflection path");
         }
         return offset;
     }
@@ -207,7 +207,7 @@ namespace RR
                 continue;
             }
 
-            THROW("Invalid reflection path");
+            FALCOR_THROW("Invalid reflection path");
         }
         return offset;
     }
@@ -235,15 +235,15 @@ namespace RR
                     case SLANG_TEXTURE_CUBE:
                         return ReflectionResourceType::Type::Texture;
                     default:
-                        UNREACHABLE();
+                        FALCOR_UNREACHABLE();
                         return ReflectionResourceType::Type(-1);
                 }
             default:
-                UNREACHABLE();
+                FALCOR_UNREACHABLE();
                 return ReflectionResourceType::Type(-1);
         }
     }
-
+/*
     static ReflectionResourceType::Dimensions getResourceDimensions(SlangResourceShape shape)
     {
         switch (shape)
@@ -266,7 +266,7 @@ namespace RR
 
             default: return ReflectionResourceType::Dimensions::Unknown;
         }
-    }
+    }*/
 
     static ParameterCategory getParameterCategory(TypeLayoutReflection* pTypeLayout)
     {
@@ -281,7 +281,7 @@ namespace RR
                     category = ParameterCategory::ConstantBuffer;
                     break;
                 default:
-                    UNREACHABLE();
+                    FALCOR_UNREACHABLE();
                     return ParameterCategory::None;
             }
         }
@@ -339,9 +339,9 @@ namespace RR
                 return nullptr;
             case TypeReflection::Kind::GenericTypeParameter:
                 // TODO: How to handle this type? Let it generate an error for now.
-                THROW("Unexpected Slang type");
+                FALCOR_THROW("Unexpected Slang type");
             default:
-                UNREACHABLE();
+                FALCOR_UNREACHABLE();
         }
         return nullptr;
     }
@@ -351,7 +351,7 @@ namespace RR
         ASSERT(pPath->pPrimary && pPath->pPrimary->pVar);
 
         ReflectionResourceType::Type type = getResourceType(pSlangType->getType());
-        ReflectionResourceType::Dimensions dims = getResourceDimensions(pSlangType->getResourceShape());
+      //  ReflectionResourceType::Dimensions dims = getResourceDimensions(pSlangType->getResourceShape());
 
         ParameterCategory category = getParameterCategory(pSlangType);
 
@@ -360,7 +360,7 @@ namespace RR
 
         std::string name = pPath->pPrimary->pVar->getName();
 
-        std::cout << " " << name << " " << enumToString(type) << " regIndex: " << regIndex << " regSpace: " << regSpace << " dims: " << enumToString(dims) << std::endl;
+        std::cout << " " << name << " " << "UNNNNNNKNOW "<< " regIndex: " << regIndex << " regSpace: " << regSpace << " dims: " << "UNNNNNNKNOW"  << std::endl;
 
         switch (type)
         {

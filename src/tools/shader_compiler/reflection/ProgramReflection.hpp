@@ -26,15 +26,9 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #pragma once
-#include "Core/Macros.h"
-#include "Core/Error.h"
-#include "Core/Object.h"
-#include "Core/Enum.h"
-#include "Core/API/ShaderResourceType.h"
-#include "Utils/Math/Vector.h"
-#if FALCOR_HAS_D3D12
-#include "Core/API/Shared/D3D12DescriptorSetLayout.h"
-#endif
+
+#include "Utils.hpp"
+#include "Types.hpp"
 
 #include <slang.h>
 
@@ -1616,7 +1610,6 @@ class FALCOR_API EntryPointGroupReflection : public ParameterBlockReflection
 public:
     static ref<EntryPointGroupReflection> create(
         ProgramVersion const* pProgramVersion,
-        uint32_t groupIndex,
         const std::vector<slang::EntryPointLayout*>& pSlangEntryPointReflectors
     );
 
@@ -1681,7 +1674,7 @@ public:
     /**
      * For compute-shaders, return the required thread-group size
      */
-    uint3 getThreadGroupSize() const { return mThreadGroupSize; }
+  //  uint3 getThreadGroupSize() const { return mThreadGroupSize; }
 
     /**
      * For pixel-shaders, check if we need to run the shader at sample frequency
@@ -1736,7 +1729,7 @@ private:
     ProgramVersion const* mpProgramVersion;
 
     ref<ParameterBlockReflection> mpDefaultBlock;
-    uint3 mThreadGroupSize;
+    //uint3 mThreadGroupSize;
     bool mIsSampleFrequency = false;
 
     VariableMap mPsOut;

@@ -12,6 +12,10 @@ set(SRC
     reflection/ReflectionBuilder.cpp
     reflection/ReflectionResourceType.hpp
     reflection/Utils.hpp
+    reflection/ProgramReflection.cpp
+    reflection/ProgramReflection.hpp
+    reflection/ProgramVersion.cpp
+    reflection/ProgramVersion.hpp
     )
 source_group("" FILES ${SRC})
 

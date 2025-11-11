@@ -2,12 +2,23 @@
 
 #include <fmt/core.h>
 
-#define THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__));
-#define UNREACHABLE() throw std::runtime_error("Unreachable");
-#define UNIMPLEMENTED() assert(false); throw std::runtime_error("Unimplemented");
+#define FALCOR_THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__))
+#define FALCOR_UNREACHABLE() throw std::runtime_error("Unreachable")
+#define UNIMPLEMENTED() assert(false); throw std::runtime_error("Unimplemented")
+#define FALCOR_ASSERT(condition) ASSERT(condition)
+#define FALCOR_API
+#define FALCOR_OBJECT(T)
+#define FALCOR_HAS_D3D12 1
 
-namespace RR
+namespace
 {
+    struct Object
+    {
+    };
+
+    template <typename T>
+    using ref = std::shared_ptr<T>;
+
     // Helper using ADL to find EnumInfo in other namespaces.
     template <typename T>
     using EnumInfo = decltype(findEnumInfoADL(eastl::declval<T>()));
@@ -43,13 +54,13 @@ namespace RR
      * Define enum information. This is expected to be used as follows:
      *
      * enum class Foo { A, B, C };
-     * ENUM_INFO(Foo, {
+     * FALCOR_ENUM_INFO(Foo, {
      *     { Foo::A, "A" },
      *     { Foo::B, "B" },
      *     { Foo::C, "C" },
      * })
      */
-#define ENUM_INFO(T, ...)                                             \
+#define FALCOR_ENUM_INFO(T, ...)                                      \
     struct T##_info                                                   \
     {                                                                 \
         static eastl::span<eastl::pair<T, const char*>> items()       \
@@ -72,17 +83,30 @@ namespace RR
      *     ENUM_INFO(Foo, ...)
      * };
      *
-     * ENUM_REGISTER(Bar::Foo)
+     * FALCOR_ENUM_REGISTER(Bar::Foo)
      * } // namespace ns
      *
      * Registered enums can be converted to/from strings using:
      * - enumToString<Enum>(Enum value)
      * - stringToEnum<Enum>(std::string_view name)
      */
-    #define ENUM_REGISTER(T)                                            \
+    #define FALCOR_ENUM_REGISTER(T)                                         \
     constexpr T##_info findEnumInfoADL [[maybe_unused]] (T) noexcept \
-    {                                                                      \
-        return T##_info{};                                                 \
+    {                                                                \
+        return T##_info {};                                          \
     }
 
+/**
+ * Implement logical operators on a class enum for making it usable as a flags enum.
+ */
+// clang-format off
+#define FALCOR_ENUM_CLASS_OPERATORS(e_) \
+inline e_ operator& (e_ a, e_ b) { return static_cast<e_>(static_cast<int>(a)& static_cast<int>(b)); } \
+inline e_ operator| (e_ a, e_ b) { return static_cast<e_>(static_cast<int>(a)| static_cast<int>(b)); } \
+inline e_& operator|= (e_& a, e_ b) { a = a | b; return a; }; \
+inline e_& operator&= (e_& a, e_ b) { a = a & b; return a; }; \
+inline e_  operator~ (e_ a) { return static_cast<e_>(~static_cast<int>(a)); } \
+inline bool is_set(e_ val, e_ flag) { return (val & flag) != static_cast<e_>(0); } \
+inline void flip_bit(e_& val, e_ flag) { val = is_set(val, flag) ? (val & (~flag)) : (val | flag); }
+// clang-format on
 }

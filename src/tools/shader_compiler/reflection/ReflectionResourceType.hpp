@@ -23,7 +23,7 @@ namespace RR
             ConstantBuffer,
             AccelerationStructure,
         };
-        ENUM_INFO(
+      /* ENUM_INFO(
             Type,
             {
                 {Type::Texture, "Texture"},
@@ -33,7 +33,7 @@ namespace RR
                 {Type::Sampler, "Sampler"},
                 {Type::ConstantBuffer, "ConstantBuffer"},
                 {Type::AccelerationStructure, "AccelerationStructure"},
-            });
+            });*/
 
         /**
          * The resource dimension
@@ -55,7 +55,7 @@ namespace RR
 
             Count
         };
-        ENUM_INFO(
+      /*  ENUM_INFO(
             Dimensions,
             {
                 {Dimensions::Unknown, "Unknown"},
@@ -70,9 +70,9 @@ namespace RR
                 {Dimensions::TextureCubeArray, "TextureCubeArray"},
                 {Dimensions::AccelerationStructure, "AccelerationStructure"},
                 {Dimensions::Buffer, "Buffer"},
-            });
+            });*/
     };
 
-    ENUM_REGISTER(ReflectionResourceType::Type);
-    ENUM_REGISTER(ReflectionResourceType::Dimensions);
+   // ENUM_REGISTER(ReflectionResourceType::Type);
+   // ENUM_REGISTER(ReflectionResourceType::Dimensions);
 }

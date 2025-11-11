@@ -26,13 +26,6 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ProgramVersion.hpp"
-#include "Program.h"
-#include "ProgramManager.h"
-#include "ProgramVars.h"
-#include "Core/Error.h"
-#include "Core/API/Device.h"
-#include "Core/API/ParameterBlock.h"
-#include "Utils/Logger.h"
 
 #include <slang.h>
 
@@ -68,105 +61,9 @@ const EntryPointKernel* EntryPointGroupKernels::getKernel(ShaderType type) const
     return nullptr;
 }
 
-//
-// ProgramKernels
-//
-
-ProgramKernels::ProgramKernels(
-    const ProgramVersion* pVersion,
-    const ref<const ProgramReflection>& pReflector,
-    const ProgramKernels::UniqueEntryPointGroups& uniqueEntryPointGroups,
-    const std::string& name
-)
-    : mName(name), mUniqueEntryPointGroups(uniqueEntryPointGroups), mpReflector(pReflector), mpVersion(pVersion)
-{}
-
-ref<ProgramKernels> ProgramKernels::create(
-    Device* pDevice,
-    const ProgramVersion* pVersion,
-    slang::IComponentType* pSpecializedSlangGlobalScope,
-    const std::vector<slang::IComponentType*>& pTypeConformanceSpecializedEntryPoints,
-    const ref<const ProgramReflection>& pReflector,
-    const ProgramKernels::UniqueEntryPointGroups& uniqueEntryPointGroups,
-    std::string& log,
-    const std::string& name
-)
+ProgramVersion::ProgramVersion(slang::IComponentType* pSlangGlobalScope)
+    : mpSlangGlobalScope(pSlangGlobalScope)
 {
-    ref<ProgramKernels> pProgram = ref<ProgramKernels>(new ProgramKernels(pVersion, pReflector, uniqueEntryPointGroups, name));
-
-    gfx::IShaderProgram::Desc programDesc = {};
-    programDesc.linkingStyle = gfx::IShaderProgram::LinkingStyle::SeparateEntryPointCompilation;
-    programDesc.slangGlobalScope = pSpecializedSlangGlobalScope;
-
-    // Check if we are creating program kernels for ray tracing pipeline.
-    bool isRayTracingProgram = false;
-    if (pTypeConformanceSpecializedEntryPoints.size())
-    {
-        auto stage = pTypeConformanceSpecializedEntryPoints[0]->getLayout()->getEntryPointByIndex(0)->getStage();
-        switch (stage)
-        {
-        case SLANG_STAGE_ANY_HIT:
-        case SLANG_STAGE_RAY_GENERATION:
-        case SLANG_STAGE_CLOSEST_HIT:
-        case SLANG_STAGE_CALLABLE:
-        case SLANG_STAGE_INTERSECTION:
-        case SLANG_STAGE_MISS:
-            isRayTracingProgram = true;
-            break;
-        default:
-            break;
-        }
-    }
-    // Deduplicate entry points by name for ray tracing program.
-    std::vector<slang::IComponentType*> deduplicatedEntryPoints;
-    if (isRayTracingProgram)
-    {
-        std::set<std::string> entryPointNames;
-        for (auto entryPoint : pTypeConformanceSpecializedEntryPoints)
-        {
-            auto compiledEntryPointName = std::string(entryPoint->getLayout()->getEntryPointByIndex(0)->getNameOverride());
-            if (entryPointNames.find(compiledEntryPointName) == entryPointNames.end())
-            {
-                entryPointNames.insert(compiledEntryPointName);
-                deduplicatedEntryPoints.push_back(entryPoint);
-            }
-        }
-        programDesc.entryPointCount = (uint32_t)deduplicatedEntryPoints.size();
-        programDesc.slangEntryPoints = (slang::IComponentType**)deduplicatedEntryPoints.data();
-    }
-    else
-    {
-        programDesc.entryPointCount = (uint32_t)pTypeConformanceSpecializedEntryPoints.size();
-        programDesc.slangEntryPoints = (slang::IComponentType**)pTypeConformanceSpecializedEntryPoints.data();
-    }
-
-    Slang::ComPtr<ISlangBlob> diagnostics;
-    if (SLANG_FAILED(pDevice->getGfxDevice()->createProgram(programDesc, pProgram->mGfxProgram.writeRef(), diagnostics.writeRef())))
-    {
-        pProgram = nullptr;
-    }
-    if (diagnostics)
-    {
-        log = (const char*)diagnostics->getBufferPointer();
-    }
-
-    return pProgram;
-}
-
-const EntryPointKernel* ProgramKernels::getKernel(ShaderType type) const
-{
-    for (auto& pEntryPointGroup : mUniqueEntryPointGroups)
-    {
-        if (auto pShader = pEntryPointGroup->getKernel(type))
-            return pShader;
-    }
-    return nullptr;
-}
-
-ProgramVersion::ProgramVersion(Program* pProgram, slang::IComponentType* pSlangGlobalScope)
-    : mpProgram(pProgram), mpSlangGlobalScope(pSlangGlobalScope)
-{
-    FALCOR_ASSERT(pProgram);
 }
 
 void ProgramVersion::init(
@@ -183,72 +80,9 @@ void ProgramVersion::init(
     mpSlangEntryPoints = pSlangEntryPoints;
 }
 
-ref<ProgramVersion> ProgramVersion::createEmpty(Program* pProgram, slang::IComponentType* pSlangGlobalScope)
+ref<ProgramVersion> ProgramVersion::createEmpty(slang::IComponentType* pSlangGlobalScope)
 {
-    return ref<ProgramVersion>(new ProgramVersion(pProgram, pSlangGlobalScope));
-}
-
-ref<const ProgramKernels> ProgramVersion::getKernels(Device* pDevice, ProgramVars const* pVars) const
-{
-    // We need are going to look up or create specialized kernels
-    // based on how parameters are bound in `pVars`.
-    //
-    // To do this we need to identify those parameters that are relevant
-    // to specialization, and what argument type/value is bound to
-    // those parameters.
-    //
-    std::string specializationKey;
-
-    ParameterBlock::SpecializationArgs specializationArgs;
-    if (pVars)
-    {
-        pVars->collectSpecializationArgs(specializationArgs);
-    }
-
-    bool first = true;
-    for (auto specializationArg : specializationArgs)
-    {
-        if (!first)
-            specializationKey += ",";
-        specializationKey += std::string(specializationArg.type->getName());
-        first = false;
-    }
-
-    auto foundKernels = mpKernels.find(specializationKey);
-    if (foundKernels != mpKernels.end())
-    {
-        return foundKernels->second;
-    }
-
-    FALCOR_ASSERT(mpProgram);
-
-    // Loop so that user can trigger recompilation on error
-    for (;;)
-    {
-        std::string log;
-        auto pKernels = pDevice->getProgramManager()->createProgramKernels(*mpProgram, *this, *pVars, log);
-        if (pKernels)
-        {
-            // Success
-
-            if (!log.empty())
-            {
-                logWarning("Warnings in program:\n{}\n{}", getName(), log);
-            }
-
-            mpKernels[specializationKey] = pKernels;
-            return pKernels;
-        }
-        else
-        {
-            // Failure
-            std::string msg = fmt::format("Failed to link program:\n{}\n\n{}", getName(), log);
-            bool showMessageBox = is_set(getErrorDiagnosticFlags(), ErrorDiagnosticFlags::ShowMessageBoxOnError);
-            if (showMessageBox && reportErrorAndAllowRetry(msg))
-                continue;
-            FALCOR_THROW(msg);
-        }
-    }
+    return ref<ProgramVersion>(new ProgramVersion(pSlangGlobalScope));
 }
 
 slang::ISession* ProgramVersion::getSlangSession() const

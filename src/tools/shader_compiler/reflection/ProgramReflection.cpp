@@ -26,15 +26,14 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 #include "ProgramReflection.hpp"
-#include "Program.h"
 #include "ProgramVersion.hpp"
-#include "Core/API/Device.h"
-#include "Utils/StringUtils.h"
-#include "Utils/Scripting/ScriptBindings.h"
 
 #include <slang.h>
 
 #include <map>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
 
 using namespace slang;
 
@@ -65,7 +64,7 @@ TypedShaderVarOffset TypedShaderVarOffset::operator[](std::string_view name) con
     FALCOR_THROW("No member named '{}' found.", name);
 }
 
-TypedShaderVarOffset TypedShaderVarOffset::operator[](size_t index) const
+TypedShaderVarOffset TypedShaderVarOffset::operator[](size_t) const
 {
     throw 99;
 }
@@ -570,6 +569,10 @@ ReflectionBasicType::Type getVariableType(TypeReflection::ScalarType slangScalar
             return ReflectionBasicType::Type::Float64_4;
         }
         break;
+
+    default:
+        FALCOR_UNREACHABLE();
+        return ReflectionBasicType::Type::Unknown;
     }
 
     FALCOR_UNREACHABLE();
@@ -1062,6 +1065,9 @@ static ParameterCategory getParameterCategory(TypeLayoutReflection* pTypeLayout)
         case TypeReflection::Kind::None:
             category = ParameterCategory::ConstantBuffer;
             break;
+        default:
+            FALCOR_UNREACHABLE();
+            return ParameterCategory::None;
         }
     }
     return category;
@@ -1300,7 +1306,6 @@ static uint32_t getUniformParameterCount(slang::EntryPointReflection* pSlangEntr
 
 ref<EntryPointGroupReflection> EntryPointGroupReflection::create(
     ProgramVersion const* pProgramVersion,
-    uint32_t groupIndex,
     const std::vector<slang::EntryPointLayout*>& pSlangEntryPointReflectors
 )
 {
@@ -1311,14 +1316,14 @@ ref<EntryPointGroupReflection> EntryPointGroupReflection::create(
     // We will start by finding out which of the entry points has the
     // most uniform parameters.
     //
-    auto pProgram = pProgramVersion->getProgram();
-    uint32_t entryPointCount = pProgram->getGroupEntryPointCount(groupIndex);
+
+    uint32_t entryPointCount = pSlangEntryPointReflectors.size();
     FALCOR_ASSERT(entryPointCount != 0);
 
-    slang::EntryPointLayout* pBestEntryPoint = pSlangEntryPointReflectors[pProgram->getGroupEntryPointIndex(groupIndex, 0)];
+    slang::EntryPointLayout* pBestEntryPoint = pSlangEntryPointReflectors[0];
     for (uint32_t ee = 0; ee < entryPointCount; ++ee)
     {
-        slang::EntryPointReflection* pSlangEntryPoint = pSlangEntryPointReflectors[pProgram->getGroupEntryPointIndex(groupIndex, ee)];
+        slang::EntryPointReflection* pSlangEntryPoint = pSlangEntryPointReflectors[ee];
 
         if (getUniformParameterCount(pSlangEntryPoint) > getUniformParameterCount(pBestEntryPoint))
         {
@@ -1374,6 +1379,8 @@ ref<EntryPointGroupReflection> EntryPointGroupReflection::create(
     {
         pElementPath = &elementPath;
     }
+
+    UNUSED(pElementPath);
 
     ReflectionStructType::BuildState elementTypeBuildState;
 
@@ -1468,7 +1475,7 @@ ProgramReflection::ProgramReflection(
     ProgramVersion const* pProgramVersion,
     slang::ShaderReflection* pSlangReflector,
     const std::vector<slang::EntryPointLayout*>& pSlangEntryPointReflectors,
-    std::string& log
+    std::string&
 )
     : mpProgramVersion(pProgramVersion), mpSlangReflector(pSlangReflector)
 {
@@ -1523,16 +1530,8 @@ ProgramReflection::ProgramReflection(
     pDefaultBlock->finalize();
     setDefaultParameterBlock(pDefaultBlock);
 
-    auto pProgram = pProgramVersion->getProgram();
-
-    auto entryPointGroupCount = pProgram->getEntryPointGroupCount();
-
-    for (uint32_t gg = 0; gg < entryPointGroupCount; ++gg)
-    {
-        ref<EntryPointGroupReflection> pEntryPointGroup =
-            EntryPointGroupReflection::create(pProgramVersion, gg, pSlangEntryPointReflectors);
-        mEntryPointGroups.push_back(pEntryPointGroup);
-    }
+    ref<EntryPointGroupReflection> pEntryPointGroup = EntryPointGroupReflection::create(pProgramVersion, pSlangEntryPointReflectors);
+    mEntryPointGroups.push_back(pEntryPointGroup);
 
     // Reflect per-stage parameters
     for (auto pSlangEntryPoint : pSlangEntryPointReflectors)
@@ -1543,9 +1542,9 @@ ProgramReflection::ProgramReflection(
         {
             SlangUInt sizeAlongAxis[3];
             pSlangEntryPoint->getComputeThreadGroupSize(3, &sizeAlongAxis[0]);
-            mThreadGroupSize.x = (uint32_t)sizeAlongAxis[0];
+          /*  mThreadGroupSize.x = (uint32_t)sizeAlongAxis[0];
             mThreadGroupSize.y = (uint32_t)sizeAlongAxis[1];
-            mThreadGroupSize.z = (uint32_t)sizeAlongAxis[2];
+            mThreadGroupSize.z = (uint32_t)sizeAlongAxis[2];*/
         }
         break;
         case SLANG_STAGE_FRAGMENT:
@@ -1692,7 +1691,7 @@ ref<ParameterBlockReflection> ParameterBlockReflection::create(
 
 #if FALCOR_HAS_D3D12
     ReflectionStructType::BuildState counters;
-    pResult->mBuildDescriptorSets = pProgramVersion->getProgram()->mpDevice->getType() == Device::Type::D3D12;
+    pResult->mBuildDescriptorSets = true;
 #endif
 
     auto rangeCount = pElementType->getResourceRangeCount();
@@ -2083,7 +2082,7 @@ ref<const ReflectionVar> ReflectionType::findMember(std::string_view name) const
 {
     if (auto pStructType = asStructType())
     {
-        size_t fieldIndex = pStructType->getMemberIndex(name);
+        int32_t fieldIndex = pStructType->getMemberIndex(name);
         if (fieldIndex == ReflectionStructType::kInvalidMemberIndex)
             return nullptr;
 
@@ -2370,7 +2369,7 @@ bool ReflectionVar::operator==(const ReflectionVar& other) const
 inline const ProgramReflection::ShaderVariable* getShaderAttribute(
     std::string_view name,
     const ProgramReflection::VariableMap& varMap,
-    const std::string& funcName
+    const std::string&
 )
 {
     const auto& it = varMap.find(name);
@@ -2435,7 +2434,7 @@ ReflectionInterfaceType::ReflectionInterfaceType(slang::TypeLayoutReflection* pS
     mResourceRanges.push_back(range);
 }
 
-bool ReflectionInterfaceType::operator==(const ReflectionInterfaceType& other) const
+bool ReflectionInterfaceType::operator==(const ReflectionInterfaceType&) const
 {
     // TODO: properly double-check this
     return true;
@@ -2448,200 +2447,6 @@ bool ReflectionInterfaceType::operator==(const ReflectionType& other) const
         return false;
     return (*this == *pOtherInterface);
 }
-
-FALCOR_SCRIPT_BINDING(ReflectionArrayType)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionType)
-
-    pybind11::class_<ReflectionArrayType, ReflectionType, ref<ReflectionArrayType>> reflectionArrayType(m, "ReflectionArrayType");
-    reflectionArrayType.def_property_readonly("element_type", &ReflectionArrayType::getElementType);
-    reflectionArrayType.def_property_readonly("element_count", &ReflectionArrayType::getElementCount);
-    reflectionArrayType.def_property_readonly("element_byte_stride", &ReflectionArrayType::getElementByteStride);
-    reflectionArrayType.def(
-        "__repr__",
-        [](const ReflectionArrayType& self)
-        {
-            return fmt::format(
-                "ReflectionArrayType(element_type={}, element_count={}, element_byte_stride={})",
-                ScriptBindings::repr(self.getElementType()),
-                self.getElementCount(),
-                self.getElementByteStride()
-            );
-        }
-    );
-}
-
-FALCOR_SCRIPT_BINDING(ReflectionStructType)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionType)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionVar)
-
-    pybind11::class_<ReflectionStructType, ReflectionType, ref<ReflectionStructType>> reflectionStructType(m, "ReflectionStructType");
-    reflectionStructType.def_property_readonly("name", &ReflectionStructType::getName);
-    reflectionStructType.def_property_readonly(
-        "members",
-        [](const ReflectionStructType& self)
-        {
-            pybind11::dict members;
-            for (size_t i = 0; i < self.getMemberCount(); i++)
-            {
-                auto member = self.getMember(i);
-                members[pybind11::str(member->getName())] = member;
-            }
-            return members;
-        }
-    );
-    reflectionStructType.def(
-        "__repr__",
-        [](const ReflectionStructType& self)
-        {
-            std::string members;
-            for (size_t i = 0; i < self.getMemberCount(); i++)
-            {
-                if (i > 0)
-                    members += ", ";
-                members += ScriptBindings::repr(self.getMember(i));
-            }
-            return fmt::format("ReflectionStructType(name={}, members=[{}])", ScriptBindings::repr(self.getName()), members);
-        }
-    );
-    reflectionStructType.def("__getitem__", [](ReflectionStructType& self, std::string_view name) { return self.getMember(name); });
-    reflectionStructType.def("__getitem__", [](ReflectionStructType& self, size_t index) { return self.getMember(index); });
-    reflectionStructType.def("__getattr__", [](ReflectionStructType& self, std::string_view name) { return self.getMember(name); });
-}
-
-FALCOR_SCRIPT_BINDING(ReflectionBasicType)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionType)
-
-    pybind11::class_<ReflectionBasicType, ReflectionType, ref<ReflectionBasicType>> reflectionBasicType(m, "ReflectionBasicType");
-
-    pybind11::falcor_enum<ReflectionBasicType::Type>(reflectionBasicType, "Type");
-
-    reflectionBasicType.def_property_readonly("type", &ReflectionBasicType::getType);
-    reflectionBasicType.def_property_readonly("is_row_major", &ReflectionBasicType::isRowMajor);
-    reflectionBasicType.def(
-        "__repr__",
-        [](const ReflectionBasicType& self)
-        { return fmt::format("ReflectionBasicType(type={}, is_row_major={})", ScriptBindings::repr(self.getType()), self.isRowMajor()); }
-    );
-}
-
-FALCOR_SCRIPT_BINDING(ReflectionResourceType)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionType)
-
-    pybind11::class_<ReflectionResourceType, ReflectionType, ref<ReflectionResourceType>> reflectionResourceType(
-        m, "ReflectionResourceType"
-    );
-
-    pybind11::falcor_enum<ReflectionResourceType::ShaderAccess>(reflectionResourceType, "ShaderAccess");
-    pybind11::falcor_enum<ReflectionResourceType::ReturnType>(reflectionResourceType, "ReturnType");
-    pybind11::falcor_enum<ReflectionResourceType::Dimensions>(reflectionResourceType, "Dimensions");
-    pybind11::falcor_enum<ReflectionResourceType::StructuredType>(reflectionResourceType, "StructuredType");
-    pybind11::falcor_enum<ReflectionResourceType::Type>(reflectionResourceType, "Type");
-
-    reflectionResourceType.def_property_readonly("type", &ReflectionResourceType::getType);
-    reflectionResourceType.def_property_readonly("size", &ReflectionResourceType::getSize);
-    reflectionResourceType.def_property_readonly("dimensions", &ReflectionResourceType::getDimensions);
-    reflectionResourceType.def_property_readonly("struct_type", &ReflectionResourceType::getStructType);
-    reflectionResourceType.def_property_readonly("structured_buffer_type", &ReflectionResourceType::getStructuredBufferType);
-    reflectionResourceType.def_property_readonly("return_type", &ReflectionResourceType::getReturnType);
-    reflectionResourceType.def_property_readonly("shader_access", &ReflectionResourceType::getShaderAccess);
-    reflectionResourceType.def(
-        "__repr__",
-        [](const ReflectionResourceType& self)
-        {
-            return fmt::format(
-                "ReflectionResourceType(type={}, size={}, dimensions={}, structured_buffer_type={}, return_type={}, shader_access={})",
-                ScriptBindings::repr(self.getType()),
-                self.getSize(),
-                ScriptBindings::repr(self.getDimensions()),
-                ScriptBindings::repr(self.getStructuredBufferType()),
-                ScriptBindings::repr(self.getReturnType()),
-                ScriptBindings::repr(self.getShaderAccess())
-            );
-        }
-    );
-}
-
-FALCOR_SCRIPT_BINDING(ReflectionInterfaceType)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionType)
-
-    pybind11::class_<ReflectionInterfaceType, ReflectionType, ref<ReflectionInterfaceType>> reflectionInterfaceType(
-        m, "ReflectionInterfaceType"
-    );
-
-    reflectionInterfaceType.def("__repr__", [](const ReflectionInterfaceType& self) { return "ReflectionInterfaceType()"; });
-}
-
-FALCOR_SCRIPT_BINDING(ReflectionType)
-{
-    pybind11::class_<ReflectionType, ref<ReflectionType>> reflectionType(m, "ReflectionType");
-
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionArrayType)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionStructType)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionBasicType)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionResourceType)
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionInterfaceType)
-
-    pybind11::falcor_enum<ReflectionType::Kind>(reflectionType, "Kind");
-
-    reflectionType.def_property_readonly("kind", &ReflectionType::getKind);
-    reflectionType.def_property_readonly("as_array_type", &ReflectionType::asArrayType);
-    reflectionType.def_property_readonly("as_struct_type", &ReflectionType::asStructType);
-    reflectionType.def_property_readonly("as_basic_type", &ReflectionType::asBasicType);
-    reflectionType.def_property_readonly("as_resource_type", &ReflectionType::asResourceType);
-    reflectionType.def_property_readonly("as_interface_type", &ReflectionType::asInterfaceType);
-    reflectionType.def(
-        "__repr__", [](const ReflectionType& self) { return fmt::format("ReflectionType(kind={})", ScriptBindings::repr(self.getKind())); }
-    );
-}
-
-FALCOR_SCRIPT_BINDING(ReflectionVar)
-{
-    pybind11::class_<ReflectionVar, ref<ReflectionVar>> reflectionVar(m, "ReflectionVar");
-
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionType)
-
-    reflectionVar.def_property_readonly("name", &ReflectionVar::getName);
-    reflectionVar.def_property_readonly("type", &ReflectionVar::getType);
-    reflectionVar.def_property_readonly("offset", &ReflectionVar::getOffset);
-    reflectionVar.def(
-        "__repr__",
-        [](const ReflectionVar& self)
-        {
-            return fmt::format(
-                "ReflectionVar(name=\"{}\", type={}, offset={})", self.getName(), ScriptBindings::repr(self.getType()), self.getOffset()
-            );
-        }
-    );
-}
-
-FALCOR_SCRIPT_BINDING(ParameterBlockReflection)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ReflectionVar)
-
-    pybind11::class_<ParameterBlockReflection, ref<ParameterBlockReflection>> parameterBlockReflection(m, "ParameterBlockReflection");
-
-    parameterBlockReflection.def_property_readonly("element_type", &ParameterBlockReflection::getElementType);
-
-    parameterBlockReflection.def(
-        "__getitem__", [](ParameterBlockReflection& self, std::string_view name) { return self.getResource(name); }
-    );
-    parameterBlockReflection.def(
-        "__getattr__", [](ParameterBlockReflection& self, std::string_view name) { return self.getResource(name); }
-    );
-}
-
-FALCOR_SCRIPT_BINDING(ProgramReflection)
-{
-    FALCOR_SCRIPT_BINDING_DEPENDENCY(ParameterBlockReflection)
-
-    pybind11::class_<ProgramReflection, ref<ProgramReflection>> programReflection(m, "ProgramReflection");
-
-    programReflection.def_property_readonly("default_parameter_block", &ProgramReflection::getDefaultParameterBlock);
-}
-
 } // namespace Falcor
+
+#pragma clang diagnostic pop
