@@ -34,69 +34,68 @@
 namespace Falcor
 {
 
-//
-// EntryPointGroupKernels
-//
+    //
+    // EntryPointGroupKernels
+    //
 
-ref<const EntryPointGroupKernels> EntryPointGroupKernels::create(
-    EntryPointGroupKernels::Type type,
-    const std::vector<ref<EntryPointKernel>>& kernels,
-    const std::string& exportName
-)
-{
-    return ref<EntryPointGroupKernels>(new EntryPointGroupKernels(type, kernels, exportName));
-}
-
-EntryPointGroupKernels::EntryPointGroupKernels(Type type, const std::vector<ref<EntryPointKernel>>& kernels, const std::string& exportName)
-    : mType(type), mKernels(kernels), mExportName(exportName)
-{}
-
-const EntryPointKernel* EntryPointGroupKernels::getKernel(ShaderType type) const
-{
-    for (auto& pKernel : mKernels)
+    ref<const EntryPointGroupKernels> EntryPointGroupKernels::create(
+        EntryPointGroupKernels::Type type,
+        const std::vector<ref<EntryPointKernel>>& kernels,
+        const std::string& exportName)
     {
-        if (pKernel->getType() == type)
-            return pKernel.get();
+        return ref<EntryPointGroupKernels>(new EntryPointGroupKernels(type, kernels, exportName));
     }
-    return nullptr;
-}
 
-ProgramVersion::ProgramVersion(slang::IComponentType* pSlangGlobalScope)
-    : mpSlangGlobalScope(pSlangGlobalScope)
-{
-}
+    EntryPointGroupKernels::EntryPointGroupKernels(Type type, const std::vector<ref<EntryPointKernel>>& kernels, const std::string& exportName)
+        : mType(type), mKernels(kernels), mExportName(exportName)
+    {
+    }
 
-void ProgramVersion::init(
-    const DefineList& defineList,
-    const ref<const ProgramReflection>& pReflector,
-    const std::string& name,
-    const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints
-)
-{
-    FALCOR_ASSERT(pReflector);
-    mDefines = defineList;
-    mpReflector = pReflector;
-    mName = name;
-    mpSlangEntryPoints = pSlangEntryPoints;
-}
+    const EntryPointKernel* EntryPointGroupKernels::getKernel(ShaderType type) const
+    {
+        for (auto& pKernel : mKernels)
+        {
+            if (pKernel->getType() == type)
+                return pKernel.get();
+        }
+        return nullptr;
+    }
 
-ref<ProgramVersion> ProgramVersion::createEmpty(slang::IComponentType* pSlangGlobalScope)
-{
-    return ref<ProgramVersion>(new ProgramVersion(pSlangGlobalScope));
-}
+    ProgramVersion::ProgramVersion(slang::IComponentType* pSlangGlobalScope)
+        : mpSlangGlobalScope(pSlangGlobalScope)
+    {
+    }
 
-slang::ISession* ProgramVersion::getSlangSession() const
-{
-    return getSlangGlobalScope()->getSession();
-}
+    void ProgramVersion::init(
+        const DefineList& defineList,
+        const ref<const ProgramReflection>& pReflector,
+        const std::string& name,
+        const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints)
+    {
+        FALCOR_ASSERT(pReflector);
+        mDefines = defineList;
+        mpReflector = pReflector;
+        mName = name;
+        mpSlangEntryPoints = pSlangEntryPoints;
+    }
 
-slang::IComponentType* ProgramVersion::getSlangGlobalScope() const
-{
-    return mpSlangGlobalScope;
-}
+    ref<ProgramVersion> ProgramVersion::createEmpty(slang::IComponentType* pSlangGlobalScope)
+    {
+        return ref<ProgramVersion>(new ProgramVersion(pSlangGlobalScope));
+    }
 
-slang::IComponentType* ProgramVersion::getSlangEntryPoint(uint32_t index) const
-{
-    return mpSlangEntryPoints[index];
-}
+    slang::ISession* ProgramVersion::getSlangSession() const
+    {
+        return getSlangGlobalScope()->getSession();
+    }
+
+    slang::IComponentType* ProgramVersion::getSlangGlobalScope() const
+    {
+        return mpSlangGlobalScope;
+    }
+
+    slang::IComponentType* ProgramVersion::getSlangEntryPoint(uint32_t index) const
+    {
+        return mpSlangEntryPoints[index];
+    }
 } // namespace Falcor

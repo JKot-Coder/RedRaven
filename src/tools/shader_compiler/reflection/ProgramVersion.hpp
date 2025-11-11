@@ -27,243 +27,239 @@
  **************************************************************************/
 #pragma once
 #include "ProgramReflection.hpp"
-#include "Utils.hpp"
 #include "Types.hpp"
+#include "Utils.hpp"
+#include <initializer_list>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <initializer_list>
-#include <map>
 
-#include <slang.h>
 #include <slang-com-ptr.h>
+#include <slang.h>
 
 namespace Falcor
 {
-class FALCOR_API Program;
-class FALCOR_API ProgramVars;
-class FALCOR_API ProgramVersion;
+    class FALCOR_API Program;
+    class FALCOR_API ProgramVars;
+    class FALCOR_API ProgramVersion;
 
-class DefineList : public std::map<std::string, std::string>
-{
-public:
-    /**
-     * Adds a macro definition. If the macro already exists, it will be replaced.
-     * @param[in] name The name of macro.
-     * @param[in] value Optional. The value of the macro.
-     * @return The updated list of macro definitions.
-     */
-    DefineList& add(const std::string& name, const std::string& val = "")
+    class DefineList : public std::map<std::string, std::string>
     {
-        (*this)[name] = val;
-        return *this;
-    }
-
-    /**
-     * Removes a macro definition. If the macro doesn't exist, the call will be silently ignored.
-     * @param[in] name The name of macro.
-     * @return The updated list of macro definitions.
-     */
-    DefineList& remove(const std::string& name)
-    {
-        (*this).erase(name);
-        return *this;
-    }
-
-    /**
-     * Add a define list to the current list
-     */
-    DefineList& add(const DefineList& dl)
-    {
-        for (const auto& p : dl)
-            add(p.first, p.second);
-        return *this;
-    }
-
-    /**
-     * Remove a define list from the current list
-     */
-    DefineList& remove(const DefineList& dl)
-    {
-        for (const auto& p : dl)
-            remove(p.first);
-        return *this;
-    }
-
-    DefineList() = default;
-    DefineList(std::initializer_list<std::pair<const std::string, std::string>> il) : std::map<std::string, std::string>(il) {}
-};
-
-/**
- * Represents a single program entry point and its associated kernel code.
- *
- * In GFX, we do not generate actual shader code at program creation.
- * The actual shader code will only be generated and cached when all specialization arguments
- * are known, which is right before a draw/dispatch command is issued, and this is done
- * internally within GFX.
- * The `EntryPointKernel` implementation here serves as a helper utility for application code that
- * uses raw graphics API to get shader kernel code from an ordinary slang source.
- * Since most users/render-passes do not need to get shader kernel code, we defer
- * the call to slang's `getEntryPointCode` function until it is actually needed.
- * to avoid redundant shader compiler invocation.
- */
-class FALCOR_API EntryPointKernel : public Object
-{
-    FALCOR_OBJECT(EntryPointKernel)
-public:
-    struct BlobData
-    {
-        const void* data;
-        size_t size;
-    };
-
-    /**
-     * Create a shader object
-     * @param[in] linkedSlangEntryPoint The Slang IComponentType that defines the shader entry point.
-     * @param[in] type The Type of the shader
-     * @return If success, a new shader object, otherwise nullptr
-     */
-    static ref<EntryPointKernel> create(
-        Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint,
-        ShaderType type,
-        const std::string& entryPointName
-    )
-    {
-        return ref<EntryPointKernel>(new EntryPointKernel(linkedSlangEntryPoint, type, entryPointName));
-    }
-
-    /**
-     * Get the shader Type
-     */
-    ShaderType getType() const { return mType; }
-
-    /**
-     * Get the name of the entry point.
-     */
-    const std::string& getEntryPointName() const { return mEntryPointName; }
-
-    BlobData getBlobData() const
-    {
-        if (!mpBlob)
+    public:
+        /**
+         * Adds a macro definition. If the macro already exists, it will be replaced.
+         * @param[in] name The name of macro.
+         * @param[in] value Optional. The value of the macro.
+         * @return The updated list of macro definitions.
+         */
+        DefineList& add(const std::string& name, const std::string& val = "")
         {
-            Slang::ComPtr<ISlangBlob> pDiagnostics;
-            if (SLANG_FAILED(mLinkedSlangEntryPoint->getEntryPointCode(0, 0, mpBlob.writeRef(), pDiagnostics.writeRef())))
-            {
-                FALCOR_THROW(std::string("Shader compilation failed. \n") + (const char*)pDiagnostics->getBufferPointer());
-            }
+            (*this)[name] = val;
+            return *this;
         }
 
-        BlobData result;
-        result.data = mpBlob->getBufferPointer();
-        result.size = mpBlob->getBufferSize();
-        return result;
-    }
+        /**
+         * Removes a macro definition. If the macro doesn't exist, the call will be silently ignored.
+         * @param[in] name The name of macro.
+         * @return The updated list of macro definitions.
+         */
+        DefineList& remove(const std::string& name)
+        {
+            (*this).erase(name);
+            return *this;
+        }
 
-protected:
-    EntryPointKernel(Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint, ShaderType type, const std::string& entryPointName)
-        : mLinkedSlangEntryPoint(linkedSlangEntryPoint), mType(type), mEntryPointName(entryPointName)
-    {}
+        /**
+         * Add a define list to the current list
+         */
+        DefineList& add(const DefineList& dl)
+        {
+            for (const auto& p : dl)
+                add(p.first, p.second);
+            return *this;
+        }
 
-    Slang::ComPtr<slang::IComponentType> mLinkedSlangEntryPoint;
-    ShaderType mType;
-    std::string mEntryPointName;
-    mutable Slang::ComPtr<ISlangBlob> mpBlob;
-};
+        /**
+         * Remove a define list from the current list
+         */
+        DefineList& remove(const DefineList& dl)
+        {
+            for (const auto& p : dl)
+                remove(p.first);
+            return *this;
+        }
 
-/**
- * A collection of one or more entry points in a program kernels object.
- */
-class FALCOR_API EntryPointGroupKernels : public Object
-{
-    FALCOR_OBJECT(EntryPointGroupKernels)
-public:
-    /**
-     * Types of entry point groups.
-     */
-    enum class Type
-    {
-        Compute,        ///< A group consisting of a single compute kernel
-        Rasterization,  ///< A group consisting of rasterization shaders to be used together as a pipeline.
-        RtSingleShader, ///< A group consisting of a single ray tracing shader
-        RtHitGroup,     ///< A ray tracing "hit group"
+        DefineList() = default;
+        DefineList(std::initializer_list<std::pair<const std::string, std::string>> il) : std::map<std::string, std::string>(il) { }
     };
 
-    static ref<const EntryPointGroupKernels> create(
-        Type type,
-        const std::vector<ref<EntryPointKernel>>& kernels,
-        const std::string& exportName
-    );
-
-    virtual ~EntryPointGroupKernels() = default;
-
-    Type getType() const { return mType; }
-    const EntryPointKernel* getKernel(ShaderType type) const;
-    const EntryPointKernel* getKernelByIndex(size_t index) const { return mKernels[index].get(); }
-    const std::string& getExportName() const { return mExportName; }
-
-protected:
-    EntryPointGroupKernels(Type type, const std::vector<ref<EntryPointKernel>>& shaders, const std::string& exportName);
-    EntryPointGroupKernels() = default;
-    EntryPointGroupKernels(const EntryPointGroupKernels&) = delete;
-    EntryPointGroupKernels& operator=(const EntryPointGroupKernels&) = delete;
-
-    Type mType;
-    std::vector<ref<EntryPointKernel>> mKernels;
-    std::string mExportName;
-};
-
-
-class ProgramVersion : public Object
-{
-    FALCOR_OBJECT(ProgramVersion)
-public:
-
     /**
-     * Get the defines that were used to create this version
+     * Represents a single program entry point and its associated kernel code.
+     *
+     * In GFX, we do not generate actual shader code at program creation.
+     * The actual shader code will only be generated and cached when all specialization arguments
+     * are known, which is right before a draw/dispatch command is issued, and this is done
+     * internally within GFX.
+     * The `EntryPointKernel` implementation here serves as a helper utility for application code that
+     * uses raw graphics API to get shader kernel code from an ordinary slang source.
+     * Since most users/render-passes do not need to get shader kernel code, we defer
+     * the call to slang's `getEntryPointCode` function until it is actually needed.
+     * to avoid redundant shader compiler invocation.
      */
-    const DefineList& getDefines() const { return mDefines; }
-
-    /**
-     * Get the program name
-     */
-    const std::string& getName() const { return mName; }
-
-    /**
-     * Get the reflection object.
-     * @return A program reflection object.
-     */
-    const ref<const ProgramReflection>& getReflector() const
+    class FALCOR_API EntryPointKernel : public Object
     {
-        FALCOR_ASSERT(mpReflector);
-        return mpReflector;
-    }
+        FALCOR_OBJECT(EntryPointKernel)
+    public:
+        struct BlobData
+        {
+            const void* data;
+            size_t size;
+        };
 
-    slang::ISession* getSlangSession() const;
-    slang::IComponentType* getSlangGlobalScope() const;
-    slang::IComponentType* getSlangEntryPoint(uint32_t index) const;
-    const std::vector<Slang::ComPtr<slang::IComponentType>>& getSlangEntryPoints() const { return mpSlangEntryPoints; }
+        /**
+         * Create a shader object
+         * @param[in] linkedSlangEntryPoint The Slang IComponentType that defines the shader entry point.
+         * @param[in] type The Type of the shader
+         * @return If success, a new shader object, otherwise nullptr
+         */
+        static ref<EntryPointKernel> create(
+            Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint,
+            ShaderType type,
+            const std::string& entryPointName)
+        {
+            return ref<EntryPointKernel>(new EntryPointKernel(linkedSlangEntryPoint, type, entryPointName));
+        }
 
-public:
-    static ref<ProgramVersion> createEmpty(slang::IComponentType* pSlangGlobalScope);
+        /**
+         * Get the shader Type
+         */
+        ShaderType getType() const { return mType; }
 
-protected:
-    friend class Program;
-    friend class ProgramManager;
+        /**
+         * Get the name of the entry point.
+         */
+        const std::string& getEntryPointName() const { return mEntryPointName; }
 
-    ProgramVersion(slang::IComponentType* pSlangGlobalScope);
+        BlobData getBlobData() const
+        {
+            if (!mpBlob)
+            {
+                Slang::ComPtr<ISlangBlob> pDiagnostics;
+                if (SLANG_FAILED(mLinkedSlangEntryPoint->getEntryPointCode(0, 0, mpBlob.writeRef(), pDiagnostics.writeRef())))
+                {
+                    FALCOR_THROW(std::string("Shader compilation failed. \n") + (const char*)pDiagnostics->getBufferPointer());
+                }
+            }
 
-    void init(
-        const DefineList& defineList,
-        const ref<const ProgramReflection>& pReflector,
-        const std::string& name,
-        const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints
-    );
+            BlobData result;
+            result.data = mpBlob->getBufferPointer();
+            result.size = mpBlob->getBufferSize();
+            return result;
+        }
 
-    DefineList mDefines;
-    ref<const ProgramReflection> mpReflector;
-    std::string mName;
-    Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
-    std::vector<Slang::ComPtr<slang::IComponentType>> mpSlangEntryPoints;
-};
+    protected:
+        EntryPointKernel(Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint, ShaderType type, const std::string& entryPointName)
+            : mLinkedSlangEntryPoint(linkedSlangEntryPoint), mType(type), mEntryPointName(entryPointName)
+        {
+        }
+
+        Slang::ComPtr<slang::IComponentType> mLinkedSlangEntryPoint;
+        ShaderType mType;
+        std::string mEntryPointName;
+        mutable Slang::ComPtr<ISlangBlob> mpBlob;
+    };
+
+    /**
+     * A collection of one or more entry points in a program kernels object.
+     */
+    class FALCOR_API EntryPointGroupKernels : public Object
+    {
+        FALCOR_OBJECT(EntryPointGroupKernels)
+    public:
+        /**
+         * Types of entry point groups.
+         */
+        enum class Type
+        {
+            Compute, ///< A group consisting of a single compute kernel
+            Rasterization, ///< A group consisting of rasterization shaders to be used together as a pipeline.
+            RtSingleShader, ///< A group consisting of a single ray tracing shader
+            RtHitGroup, ///< A ray tracing "hit group"
+        };
+
+        static ref<const EntryPointGroupKernels> create(
+            Type type,
+            const std::vector<ref<EntryPointKernel>>& kernels,
+            const std::string& exportName);
+
+        virtual ~EntryPointGroupKernels() = default;
+
+        Type getType() const { return mType; }
+        const EntryPointKernel* getKernel(ShaderType type) const;
+        const EntryPointKernel* getKernelByIndex(size_t index) const { return mKernels[index].get(); }
+        const std::string& getExportName() const { return mExportName; }
+
+    protected:
+        EntryPointGroupKernels(Type type, const std::vector<ref<EntryPointKernel>>& shaders, const std::string& exportName);
+        EntryPointGroupKernels() = default;
+        EntryPointGroupKernels(const EntryPointGroupKernels&) = delete;
+        EntryPointGroupKernels& operator=(const EntryPointGroupKernels&) = delete;
+
+        Type mType;
+        std::vector<ref<EntryPointKernel>> mKernels;
+        std::string mExportName;
+    };
+
+    class ProgramVersion : public Object
+    {
+        FALCOR_OBJECT(ProgramVersion)
+    public:
+        /**
+         * Get the defines that were used to create this version
+         */
+        const DefineList& getDefines() const { return mDefines; }
+
+        /**
+         * Get the program name
+         */
+        const std::string& getName() const { return mName; }
+
+        /**
+         * Get the reflection object.
+         * @return A program reflection object.
+         */
+        const ref<const ProgramReflection>& getReflector() const
+        {
+            FALCOR_ASSERT(mpReflector);
+            return mpReflector;
+        }
+
+        slang::ISession* getSlangSession() const;
+        slang::IComponentType* getSlangGlobalScope() const;
+        slang::IComponentType* getSlangEntryPoint(uint32_t index) const;
+        const std::vector<Slang::ComPtr<slang::IComponentType>>& getSlangEntryPoints() const { return mpSlangEntryPoints; }
+
+    public:
+        static ref<ProgramVersion> createEmpty(slang::IComponentType* pSlangGlobalScope);
+
+    protected:
+        friend class Program;
+        friend class ProgramManager;
+
+        ProgramVersion(slang::IComponentType* pSlangGlobalScope);
+
+        void init(
+            const DefineList& defineList,
+            const ref<const ProgramReflection>& pReflector,
+            const std::string& name,
+            const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints);
+
+        DefineList mDefines;
+        ref<const ProgramReflection> mpReflector;
+        std::string mName;
+        Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
+        std::vector<Slang::ComPtr<slang::IComponentType>> mpSlangEntryPoints;
+    };
 } // namespace Falcor
