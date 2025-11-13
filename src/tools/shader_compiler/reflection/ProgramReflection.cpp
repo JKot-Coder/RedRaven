@@ -696,7 +696,7 @@ namespace Falcor
                 //
                 if (pp->pVar->getTypeLayout()->getKind() == slang::TypeReflection::Kind::ParameterBlock)
                 {
-                    return offset + (uint32_t)getRegisterIndexFromPath(pp, SLANG_PARAMETER_CATEGORY_REGISTER_SPACE);
+                    return offset + (uint32_t)getRegisterIndexFromPath(pp, SLANG_PARAMETER_CATEGORY_SUB_ELEMENT_REGISTER_SPACE);
                 }
                 offset += (uint32_t)pp->pVar->getBindingSpace(category);
                 continue;
@@ -1043,19 +1043,15 @@ namespace Falcor
     static ParameterCategory getParameterCategory(TypeLayoutReflection* pTypeLayout)
     {
         ParameterCategory category = pTypeLayout->getParameterCategory();
-        if (category == ParameterCategory::Mixed)
+        switch (pTypeLayout->getKind())
         {
-            switch (pTypeLayout->getKind())
-            {
-                case TypeReflection::Kind::ConstantBuffer:
-                case TypeReflection::Kind::ParameterBlock:
-                case TypeReflection::Kind::None:
-                    category = ParameterCategory::ConstantBuffer;
-                    break;
-                default:
-                    FALCOR_UNREACHABLE();
-                    return ParameterCategory::None;
-            }
+            case TypeReflection::Kind::ConstantBuffer:
+            case TypeReflection::Kind::ParameterBlock:
+            case TypeReflection::Kind::None:
+                category = ParameterCategory::ConstantBuffer;
+                break;
+            default:
+                return category;
         }
         return category;
     }
@@ -1789,6 +1785,16 @@ namespace Falcor
         return getElementType()->findMember(name);
     }
 
+    uint32_t ParameterBlockReflection::getResourceCount() const
+    {
+        return getElementType()->getMemberCount();
+    }
+
+    const ref<const ReflectionVar> ParameterBlockReflection::getResource(uint32_t index) const
+    {
+        return getElementType()->getMember(index);
+    }
+
     void ParameterBlockReflection::addResourceRange(const ResourceRangeBindingInfo& bindingInfo)
     {
         mResourceRanges.push_back(bindingInfo);
@@ -2048,6 +2054,22 @@ namespace Falcor
         }
 
         return TypedShaderVarOffset::kInvalid;
+    }
+
+    uint32_t ReflectionType::getMemberCount() const
+    {
+        if (auto pStructType = asStructType())
+            return pStructType->getMemberCount();
+
+        return 0;
+    }
+
+    ref<const ReflectionVar> ReflectionType::getMember(uint32_t index) const
+    {
+        if (auto pStructType = asStructType())
+            return pStructType->getMember(index);
+
+        return nullptr;
     }
 
     ref<const ReflectionVar> ReflectionType::findMember(std::string_view name) const

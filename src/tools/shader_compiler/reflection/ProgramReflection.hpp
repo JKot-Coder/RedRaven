@@ -672,6 +672,9 @@ namespace Falcor
          */
         ref<const ReflectionVar> findMember(std::string_view name) const;
 
+        uint32_t getMemberCount() const;
+        ref<const ReflectionVar> getMember(uint32_t index) const;
+
         /**
          * Get the (type and) offset of a field/member with the given `name`.
          *
@@ -1401,6 +1404,8 @@ namespace Falcor
          * Get the variable for a resource in the block
          */
         const ref<const ReflectionVar> getResource(std::string_view name) const;
+        uint32_t getResourceCount() const;
+        const ref<const ReflectionVar> getResource(uint32_t index) const;
 
         /**
          * Get the bind-location for a resource in the block
