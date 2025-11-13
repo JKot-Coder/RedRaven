@@ -1668,14 +1668,14 @@ namespace Falcor
         auto rangeCount = pElementType->getResourceRangeCount();
         for (uint32_t rangeIndex = 0; rangeIndex < rangeCount; ++rangeIndex)
         {
-            const auto& rangeInfo = pElementType->getResourceRange(rangeIndex);
-
             ResourceRangeBindingInfo bindingInfo;
 
             uint32_t regIndex = 0;
             uint32_t regSpace = 0;
 
 #if FALCOR_HAS_D3D12
+            const auto& rangeInfo = pElementType->getResourceRange(rangeIndex);
+
             if (pResult->mBuildDescriptorSets)
             {
                 switch (rangeInfo.descriptorType)

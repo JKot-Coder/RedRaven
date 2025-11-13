@@ -8,7 +8,6 @@
 #define FALCOR_ASSERT(condition) ASSERT(condition)
 #define FALCOR_API
 #define FALCOR_OBJECT(T)
-#define FALCOR_HAS_D3D12 1
 
 namespace
 {
