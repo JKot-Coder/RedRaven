@@ -38,15 +38,6 @@ namespace Falcor
     {
     }
 
-    void ProgramVersion::init(
-        const ref<const ProgramReflection>& pReflector,
-        const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints)
-    {
-        FALCOR_ASSERT(pReflector);
-        mpReflector = pReflector;
-        mpSlangEntryPoints = pSlangEntryPoints;
-    }
-
     ref<ProgramVersion> ProgramVersion::createEmpty(slang::IComponentType* pSlangGlobalScope)
     {
         return ref<ProgramVersion>(new ProgramVersion(pSlangGlobalScope));
@@ -60,10 +51,5 @@ namespace Falcor
     slang::IComponentType* ProgramVersion::getSlangGlobalScope() const
     {
         return mpSlangGlobalScope;
-    }
-
-    slang::IComponentType* ProgramVersion::getSlangEntryPoint(uint32_t index) const
-    {
-        return mpSlangEntryPoints[index];
     }
 } // namespace Falcor

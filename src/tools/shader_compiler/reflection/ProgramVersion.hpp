@@ -29,8 +29,6 @@
 #include "ProgramReflection.hpp"
 #include "Types.hpp"
 #include "Utils.hpp"
-#include <memory>
-#include <vector>
 
 #include <slang-com-ptr.h>
 #include <slang.h>
@@ -40,36 +38,14 @@ namespace Falcor
     class ProgramVersion
     {
     public:
-        /**
-         * Get the reflection object.
-         * @return A program reflection object.
-         */
-        const ref<const ProgramReflection>& getReflector() const
-        {
-            FALCOR_ASSERT(mpReflector);
-            return mpReflector;
-        }
-
         slang::ISession* getSlangSession() const;
         slang::IComponentType* getSlangGlobalScope() const;
-        slang::IComponentType* getSlangEntryPoint(uint32_t index) const;
-        const std::vector<Slang::ComPtr<slang::IComponentType>>& getSlangEntryPoints() const { return mpSlangEntryPoints; }
 
     public:
         static ref<ProgramVersion> createEmpty(slang::IComponentType* pSlangGlobalScope);
 
     protected:
-        friend class Program;
-        friend class ProgramManager;
-
         ProgramVersion(slang::IComponentType* pSlangGlobalScope);
-
-        void init(
-            const ref<const ProgramReflection>& pReflector,
-            const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints);
-
-        ref<const ProgramReflection> mpReflector;
         Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
-        std::vector<Slang::ComPtr<slang::IComponentType>> mpSlangEntryPoints;
     };
 } // namespace Falcor
