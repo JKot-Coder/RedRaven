@@ -33,18 +33,14 @@
 
 namespace Falcor
 {
-    ProgramVersion::ProgramVersion(slang::IComponentType* pSlangGlobalScope)
-        : mpSlangGlobalScope(pSlangGlobalScope)
+    ProgramVersion::ProgramVersion(slang::ISession* pSlangSession)
+        : mpSlangSession(pSlangSession)
     {
     }
 
     slang::ISession* ProgramVersion::getSlangSession() const
     {
-        return getSlangGlobalScope()->getSession();
+        return mpSlangSession;
     }
 
-    slang::IComponentType* ProgramVersion::getSlangGlobalScope() const
-    {
-        return mpSlangGlobalScope;
-    }
 } // namespace Falcor

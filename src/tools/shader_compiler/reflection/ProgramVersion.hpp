@@ -30,7 +30,6 @@
 #include "Types.hpp"
 #include "Utils.hpp"
 
-#include <slang-com-ptr.h>
 #include <slang.h>
 
 namespace Falcor
@@ -42,7 +41,7 @@ namespace Falcor
         slang::IComponentType* getSlangGlobalScope() const;
 
     public:
-        ProgramVersion(slang::IComponentType* pSlangGlobalScope);
-        Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
+        ProgramVersion(slang::ISession* pSlangGlobalScope);
+        slang::ISession* mpSlangSession;
     };
 } // namespace Falcor
