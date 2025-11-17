@@ -33,24 +33,6 @@
 
 namespace Falcor
 {
-
-    //
-    // EntryPointGroupKernels
-    //
-
-    ref<const EntryPointGroupKernels> EntryPointGroupKernels::create(
-        EntryPointGroupKernels::Type type,
-        const std::vector<ref<EntryPointKernel>>& kernels,
-        const std::string& exportName)
-    {
-        return ref<EntryPointGroupKernels>(new EntryPointGroupKernels(type, kernels, exportName));
-    }
-
-    EntryPointGroupKernels::EntryPointGroupKernels(Type type, const std::vector<ref<EntryPointKernel>>& kernels, const std::string& exportName)
-        : mType(type), mKernels(kernels), mExportName(exportName)
-    {
-    }
-
     ProgramVersion::ProgramVersion(slang::IComponentType* pSlangGlobalScope)
         : mpSlangGlobalScope(pSlangGlobalScope)
     {
