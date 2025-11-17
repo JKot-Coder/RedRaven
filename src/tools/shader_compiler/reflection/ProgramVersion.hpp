@@ -42,9 +42,6 @@ namespace Falcor
         slang::IComponentType* getSlangGlobalScope() const;
 
     public:
-        static ref<ProgramVersion> createEmpty(slang::IComponentType* pSlangGlobalScope);
-
-    protected:
         ProgramVersion(slang::IComponentType* pSlangGlobalScope);
         Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
     };

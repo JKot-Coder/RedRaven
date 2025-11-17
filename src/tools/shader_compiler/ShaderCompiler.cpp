@@ -454,7 +454,7 @@ namespace RR  {
         std::cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
 
         std::string log;
-        auto programVersion = ProgramVersion::createEmpty(linkedProgram);
+        auto programVersion = eastl::make_unique<Falcor::ProgramVersion>(linkedProgram);
         try {
 
             std::vector<slang::EntryPointLayout*> entryPointLayouts;

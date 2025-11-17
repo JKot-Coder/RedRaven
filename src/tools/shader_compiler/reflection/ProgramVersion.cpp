@@ -38,11 +38,6 @@ namespace Falcor
     {
     }
 
-    ref<ProgramVersion> ProgramVersion::createEmpty(slang::IComponentType* pSlangGlobalScope)
-    {
-        return ref<ProgramVersion>(new ProgramVersion(pSlangGlobalScope));
-    }
-
     slang::ISession* ProgramVersion::getSlangSession() const
     {
         return getSlangGlobalScope()->getSession();
