@@ -39,15 +39,11 @@ namespace Falcor
     }
 
     void ProgramVersion::init(
-        const DefineList& defineList,
         const ref<const ProgramReflection>& pReflector,
-        const std::string& name,
         const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints)
     {
         FALCOR_ASSERT(pReflector);
-        mDefines = defineList;
         mpReflector = pReflector;
-        mName = name;
         mpSlangEntryPoints = pSlangEntryPoints;
     }
 

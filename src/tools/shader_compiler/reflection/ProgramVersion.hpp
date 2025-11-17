@@ -29,11 +29,7 @@
 #include "ProgramReflection.hpp"
 #include "Types.hpp"
 #include "Utils.hpp"
-#include <initializer_list>
-#include <map>
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 #include <slang-com-ptr.h>
@@ -41,73 +37,9 @@
 
 namespace Falcor
 {
-    class FALCOR_API Program;
-    class FALCOR_API ProgramVars;
-    class FALCOR_API ProgramVersion;
-
-    class DefineList : public std::map<std::string, std::string>
-    {
-    public:
-        /**
-         * Adds a macro definition. If the macro already exists, it will be replaced.
-         * @param[in] name The name of macro.
-         * @param[in] value Optional. The value of the macro.
-         * @return The updated list of macro definitions.
-         */
-        DefineList& add(const std::string& name, const std::string& val = "")
-        {
-            (*this)[name] = val;
-            return *this;
-        }
-
-        /**
-         * Removes a macro definition. If the macro doesn't exist, the call will be silently ignored.
-         * @param[in] name The name of macro.
-         * @return The updated list of macro definitions.
-         */
-        DefineList& remove(const std::string& name)
-        {
-            (*this).erase(name);
-            return *this;
-        }
-
-        /**
-         * Add a define list to the current list
-         */
-        DefineList& add(const DefineList& dl)
-        {
-            for (const auto& p : dl)
-                add(p.first, p.second);
-            return *this;
-        }
-
-        /**
-         * Remove a define list from the current list
-         */
-        DefineList& remove(const DefineList& dl)
-        {
-            for (const auto& p : dl)
-                remove(p.first);
-            return *this;
-        }
-
-        DefineList() = default;
-        DefineList(std::initializer_list<std::pair<const std::string, std::string>> il) : std::map<std::string, std::string>(il) { }
-    };
-
     class ProgramVersion
     {
     public:
-        /**
-         * Get the defines that were used to create this version
-         */
-        const DefineList& getDefines() const { return mDefines; }
-
-        /**
-         * Get the program name
-         */
-        const std::string& getName() const { return mName; }
-
         /**
          * Get the reflection object.
          * @return A program reflection object.
@@ -133,14 +65,10 @@ namespace Falcor
         ProgramVersion(slang::IComponentType* pSlangGlobalScope);
 
         void init(
-            const DefineList& defineList,
             const ref<const ProgramReflection>& pReflector,
-            const std::string& name,
             const std::vector<Slang::ComPtr<slang::IComponentType>>& pSlangEntryPoints);
 
-        DefineList mDefines;
         ref<const ProgramReflection> mpReflector;
-        std::string mName;
         Slang::ComPtr<slang::IComponentType> mpSlangGlobalScope;
         std::vector<Slang::ComPtr<slang::IComponentType>> mpSlangEntryPoints;
     };
