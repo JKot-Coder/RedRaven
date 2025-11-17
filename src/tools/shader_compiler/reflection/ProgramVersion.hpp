@@ -126,16 +126,10 @@ namespace Falcor
          */
         static ref<EntryPointKernel> create(
             Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint,
-            ShaderType type,
             const std::string& entryPointName)
         {
-            return ref<EntryPointKernel>(new EntryPointKernel(linkedSlangEntryPoint, type, entryPointName));
+            return ref<EntryPointKernel>(new EntryPointKernel(linkedSlangEntryPoint, entryPointName));
         }
-
-        /**
-         * Get the shader Type
-         */
-        ShaderType getType() const { return mType; }
 
         /**
          * Get the name of the entry point.
@@ -160,13 +154,12 @@ namespace Falcor
         }
 
     protected:
-        EntryPointKernel(Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint, ShaderType type, const std::string& entryPointName)
-            : mLinkedSlangEntryPoint(linkedSlangEntryPoint), mType(type), mEntryPointName(entryPointName)
+        EntryPointKernel(Slang::ComPtr<slang::IComponentType> linkedSlangEntryPoint, const std::string& entryPointName)
+            : mLinkedSlangEntryPoint(linkedSlangEntryPoint), mEntryPointName(entryPointName)
         {
         }
 
         Slang::ComPtr<slang::IComponentType> mLinkedSlangEntryPoint;
-        ShaderType mType;
         std::string mEntryPointName;
         mutable Slang::ComPtr<ISlangBlob> mpBlob;
     };
@@ -197,7 +190,6 @@ namespace Falcor
         virtual ~EntryPointGroupKernels() = default;
 
         Type getType() const { return mType; }
-        const EntryPointKernel* getKernel(ShaderType type) const;
         const EntryPointKernel* getKernelByIndex(size_t index) const { return mKernels[index].get(); }
         const std::string& getExportName() const { return mExportName; }
 

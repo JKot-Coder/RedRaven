@@ -32,9 +32,6 @@
 
 #include <map>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-
 using namespace slang;
 
 namespace Falcor
@@ -1056,11 +1053,6 @@ namespace Falcor
         return category;
     }
 
-    static ParameterCategory getParameterCategory(VariableLayoutReflection* pVarLayout)
-    {
-        return getParameterCategory(pVarLayout->getTypeLayout());
-    }
-
     ref<ReflectionVar> reflectVariable(
         VariableLayoutReflection* pSlangLayout,
         ShaderVarOffset::RangeIndex rangeIndex,
@@ -1414,36 +1406,6 @@ namespace Falcor
         // this kind of matching/validation in the application layer.
 
         return pGroup;
-    }
-
-    static ShaderType getShaderTypeFromSlangStage(SlangStage stage)
-    {
-        switch (stage)
-        {
-#define CASE(SLANG_NAME, FALCOR_NAME) \
-    case SLANG_STAGE_##SLANG_NAME:    \
-        return ShaderType::FALCOR_NAME
-
-            CASE(VERTEX, Vertex);
-            CASE(HULL, Hull);
-            CASE(DOMAIN, Domain);
-            CASE(GEOMETRY, Geometry);
-            CASE(PIXEL, Pixel);
-
-            CASE(COMPUTE, Compute);
-
-            CASE(RAY_GENERATION, RayGeneration);
-            CASE(INTERSECTION, Intersection);
-            CASE(ANY_HIT, AnyHit);
-            CASE(CLOSEST_HIT, ClosestHit);
-            CASE(MISS, Miss);
-            CASE(CALLABLE, Callable);
-#undef CASE
-
-            default:
-                FALCOR_UNREACHABLE();
-                return ShaderType::Count;
-        }
     }
 
     ProgramReflection::ProgramReflection(
@@ -2431,5 +2393,3 @@ namespace Falcor
         return (*this == *pOtherInterface);
     }
 } // namespace Falcor
-
-#pragma clang diagnostic pop

@@ -51,16 +51,6 @@ namespace Falcor
     {
     }
 
-    const EntryPointKernel* EntryPointGroupKernels::getKernel(ShaderType type) const
-    {
-        for (auto& pKernel : mKernels)
-        {
-            if (pKernel->getType() == type)
-                return pKernel.get();
-        }
-        return nullptr;
-    }
-
     ProgramVersion::ProgramVersion(slang::IComponentType* pSlangGlobalScope)
         : mpSlangGlobalScope(pSlangGlobalScope)
     {
