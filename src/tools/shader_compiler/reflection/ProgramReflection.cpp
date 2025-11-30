@@ -328,126 +328,90 @@ namespace Falcor
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Bool;
-                    case 2:
-                        return ReflectionBasicType::Type::Bool2;
-                    case 3:
-                        return ReflectionBasicType::Type::Bool3;
-                    case 4:
-                        return ReflectionBasicType::Type::Bool4;
+                    case 1: return ReflectionBasicType::Type::Bool;
+                    case 2: return ReflectionBasicType::Type::Bool2;
+                    case 3: return ReflectionBasicType::Type::Bool3;
+                    case 4: return ReflectionBasicType::Type::Bool4;
                 }
                 break;
             case TypeReflection::ScalarType::UInt8:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Uint8;
-                    case 2:
-                        return ReflectionBasicType::Type::Uint8_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Uint8_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Uint8_4;
+                    case 1: return ReflectionBasicType::Type::Uint8;
+                    case 2: return ReflectionBasicType::Type::Uint8_2;
+                    case 3: return ReflectionBasicType::Type::Uint8_3;
+                    case 4: return ReflectionBasicType::Type::Uint8_4;
                 }
                 break;
             case TypeReflection::ScalarType::UInt16:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Uint16;
-                    case 2:
-                        return ReflectionBasicType::Type::Uint16_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Uint16_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Uint16_4;
+                    case 1: return ReflectionBasicType::Type::Uint16;
+                    case 2: return ReflectionBasicType::Type::Uint16_2;
+                    case 3: return ReflectionBasicType::Type::Uint16_3;
+                    case 4: return ReflectionBasicType::Type::Uint16_4;
                 }
                 break;
             case TypeReflection::ScalarType::UInt32:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Uint;
-                    case 2:
-                        return ReflectionBasicType::Type::Uint2;
-                    case 3:
-                        return ReflectionBasicType::Type::Uint3;
-                    case 4:
-                        return ReflectionBasicType::Type::Uint4;
+                    case 1: return ReflectionBasicType::Type::Uint;
+                    case 2: return ReflectionBasicType::Type::Uint2;
+                    case 3: return ReflectionBasicType::Type::Uint3;
+                    case 4: return ReflectionBasicType::Type::Uint4;
                 }
                 break;
             case TypeReflection::ScalarType::UInt64:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Uint64;
-                    case 2:
-                        return ReflectionBasicType::Type::Uint64_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Uint64_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Uint64_4;
+                    case 1: return ReflectionBasicType::Type::Uint64;
+                    case 2: return ReflectionBasicType::Type::Uint64_2;
+                    case 3: return ReflectionBasicType::Type::Uint64_3;
+                    case 4: return ReflectionBasicType::Type::Uint64_4;
                 }
                 break;
             case TypeReflection::ScalarType::Int8:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Int8;
-                    case 2:
-                        return ReflectionBasicType::Type::Int8_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Int8_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Int8_4;
+                    case 1: return ReflectionBasicType::Type::Int8;
+                    case 2: return ReflectionBasicType::Type::Int8_2;
+                    case 3: return ReflectionBasicType::Type::Int8_3;
+                    case 4: return ReflectionBasicType::Type::Int8_4;
                 }
                 break;
             case TypeReflection::ScalarType::Int16:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Int16;
-                    case 2:
-                        return ReflectionBasicType::Type::Int16_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Int16_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Int16_4;
+                    case 1: return ReflectionBasicType::Type::Int16;
+                    case 2: return ReflectionBasicType::Type::Int16_2;
+                    case 3: return ReflectionBasicType::Type::Int16_3;
+                    case 4: return ReflectionBasicType::Type::Int16_4;
                 }
                 break;
             case TypeReflection::ScalarType::Int32:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Int;
-                    case 2:
-                        return ReflectionBasicType::Type::Int2;
-                    case 3:
-                        return ReflectionBasicType::Type::Int3;
-                    case 4:
-                        return ReflectionBasicType::Type::Int4;
+                    case 1: return ReflectionBasicType::Type::Int;
+                    case 2: return ReflectionBasicType::Type::Int2;
+                    case 3: return ReflectionBasicType::Type::Int3;
+                    case 4: return ReflectionBasicType::Type::Int4;
                 }
                 break;
             case TypeReflection::ScalarType::Int64:
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Int64;
-                    case 2:
-                        return ReflectionBasicType::Type::Int64_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Int64_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Int64_4;
+                    case 1: return ReflectionBasicType::Type::Int64;
+                    case 2: return ReflectionBasicType::Type::Int64_2;
+                    case 3: return ReflectionBasicType::Type::Int64_3;
+                    case 4: return ReflectionBasicType::Type::Int64_4;
                 }
                 break;
             case TypeReflection::ScalarType::Float16:
@@ -456,47 +420,34 @@ namespace Falcor
                     case 1:
                         switch (columns)
                         {
-                            case 1:
-                                return ReflectionBasicType::Type::Float16;
-                            case 2:
-                                return ReflectionBasicType::Type::Float16_2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float16_3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float16_4;
+                            case 1: return ReflectionBasicType::Type::Float16;
+                            case 2: return ReflectionBasicType::Type::Float16_2;
+                            case 3: return ReflectionBasicType::Type::Float16_3;
+                            case 4: return ReflectionBasicType::Type::Float16_4;
                         }
                         break;
                     case 2:
                         switch (columns)
                         {
-                            case 2:
-                                return ReflectionBasicType::Type::Float16_2x2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float16_2x3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float16_2x4;
+                            case 2: return ReflectionBasicType::Type::Float16_2x2;
+                            case 3: return ReflectionBasicType::Type::Float16_2x3;
+                            case 4: return ReflectionBasicType::Type::Float16_2x4;
                         }
                         break;
                     case 3:
                         switch (columns)
                         {
-                            case 2:
-                                return ReflectionBasicType::Type::Float16_3x2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float16_3x3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float16_3x4;
+                            case 2: return ReflectionBasicType::Type::Float16_3x2;
+                            case 3: return ReflectionBasicType::Type::Float16_3x3;
+                            case 4: return ReflectionBasicType::Type::Float16_3x4;
                         }
                         break;
                     case 4:
                         switch (columns)
                         {
-                            case 2:
-                                return ReflectionBasicType::Type::Float16_4x2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float16_4x3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float16_4x4;
+                            case 2: return ReflectionBasicType::Type::Float16_4x2;
+                            case 3: return ReflectionBasicType::Type::Float16_4x3;
+                            case 4: return ReflectionBasicType::Type::Float16_4x4;
                         }
                         break;
                 }
@@ -507,47 +458,34 @@ namespace Falcor
                     case 1:
                         switch (columns)
                         {
-                            case 1:
-                                return ReflectionBasicType::Type::Float;
-                            case 2:
-                                return ReflectionBasicType::Type::Float2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float4;
+                            case 1: return ReflectionBasicType::Type::Float;
+                            case 2: return ReflectionBasicType::Type::Float2;
+                            case 3: return ReflectionBasicType::Type::Float3;
+                            case 4: return ReflectionBasicType::Type::Float4;
                         }
                         break;
                     case 2:
                         switch (columns)
                         {
-                            case 2:
-                                return ReflectionBasicType::Type::Float2x2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float2x3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float2x4;
+                            case 2: return ReflectionBasicType::Type::Float2x2;
+                            case 3: return ReflectionBasicType::Type::Float2x3;
+                            case 4: return ReflectionBasicType::Type::Float2x4;
                         }
                         break;
                     case 3:
                         switch (columns)
                         {
-                            case 2:
-                                return ReflectionBasicType::Type::Float3x2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float3x3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float3x4;
+                            case 2: return ReflectionBasicType::Type::Float3x2;
+                            case 3: return ReflectionBasicType::Type::Float3x3;
+                            case 4: return ReflectionBasicType::Type::Float3x4;
                         }
                         break;
                     case 4:
                         switch (columns)
                         {
-                            case 2:
-                                return ReflectionBasicType::Type::Float4x2;
-                            case 3:
-                                return ReflectionBasicType::Type::Float4x3;
-                            case 4:
-                                return ReflectionBasicType::Type::Float4x4;
+                            case 2: return ReflectionBasicType::Type::Float4x2;
+                            case 3: return ReflectionBasicType::Type::Float4x3;
+                            case 4: return ReflectionBasicType::Type::Float4x4;
                         }
                         break;
                 }
@@ -556,14 +494,10 @@ namespace Falcor
                 FALCOR_ASSERT(rows == 1);
                 switch (columns)
                 {
-                    case 1:
-                        return ReflectionBasicType::Type::Float64;
-                    case 2:
-                        return ReflectionBasicType::Type::Float64_2;
-                    case 3:
-                        return ReflectionBasicType::Type::Float64_3;
-                    case 4:
-                        return ReflectionBasicType::Type::Float64_4;
+                    case 1: return ReflectionBasicType::Type::Float64;
+                    case 2: return ReflectionBasicType::Type::Float64_2;
+                    case 3: return ReflectionBasicType::Type::Float64_3;
+                    case 4: return ReflectionBasicType::Type::Float64_4;
                 }
                 break;
 
