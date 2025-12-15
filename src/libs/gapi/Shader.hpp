@@ -2,6 +2,8 @@
 
 #include "Resource.hpp"
 
+#include "common/EnumClassOperators.hpp"
+
 namespace RR::Render
 {
     class DeviceContext;
@@ -28,6 +30,34 @@ namespace RR::GAPI
         Tile, // METAL only
         Count
     };
+
+    enum class ShaderStageMask : uint32_t
+    {
+        None = 0,
+        Vertex = 1 << (uint32_t)ShaderStage::Vertex,
+        Pixel = 1 << (uint32_t)ShaderStage::Pixel,
+        Compute = 1 << (uint32_t)ShaderStage::Compute,
+        Geometry = 1 << (uint32_t)ShaderStage::Geometry,
+        Hull = 1 << (uint32_t)ShaderStage::Hull,
+        Domain = 1 << (uint32_t)ShaderStage::Domain,
+        Amplification = 1 << (uint32_t)ShaderStage::Amplification,
+        Mesh = 1 << (uint32_t)ShaderStage::Mesh,
+        RayGen = 1 << (uint32_t)ShaderStage::RayGen,
+        RayMiss = 1 << (uint32_t)ShaderStage::RayMiss,
+        RayClosestHit = 1 << (uint32_t)ShaderStage::RayClosestHit,
+        RayAnyHit = 1 << (uint32_t)ShaderStage::RayAnyHit,
+        RayIntersection = 1 << (uint32_t)ShaderStage::RayIntersection,
+        Callable = 1 << (uint32_t)ShaderStage::Callable,
+        Tile = 1 << (uint32_t)ShaderStage::Tile, // METAL only
+        All = (1 << (uint32_t)ShaderStage::Count) - 1,
+    };
+    ENUM_CLASS_BITWISE_OPS(ShaderStageMask);
+
+    constexpr ShaderStageMask GetShaderStageMask(ShaderStage stage)
+    {
+        ASSERT(stage < ShaderStage::Count);
+        return static_cast<ShaderStageMask>(1 << eastl::to_underlying(stage));
+    }
 
     struct ShaderDesc
     {

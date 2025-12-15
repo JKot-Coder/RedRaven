@@ -10,6 +10,7 @@ namespace RR
         class Shader;
         struct ShaderDesc;
         enum class ShaderStage : uint8_t;
+        enum class ShaderStageMask : uint32_t;
 
         struct VertexLayout;
 
