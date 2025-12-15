@@ -8,6 +8,8 @@ set(SRC
     ShaderCompiler.cpp
     JsonnetProcessor.cpp
     JsonnetProcessor.hpp
+    SlangUtils.hpp
+    SlangUtils.cpp
     reflection/ReflectionBuilder.hpp
     reflection/ReflectionBuilder.cpp
     reflection/ReflectionResourceType.hpp
@@ -35,6 +37,7 @@ set(LIBRARIES
 
 add_executable(${PROJECT_NAME} WIN32 ${SRC})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "tools")
 target_copy_slang_binaries(${PROJECT_NAME})
