@@ -177,6 +177,8 @@ namespace RR
             if (!pass["pixelShader"].empty())
                 addEntryPoint(pass["pixelShader"]);
 
+            // TODO check if entry points valid.
+
             ShaderCompiler compiler;
             CompileResult shaderResult;
             if (RR_FAILED(compiler.CompileShader(globalSession, shaderCompileDesc, shaderResult)))

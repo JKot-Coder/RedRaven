@@ -51,6 +51,8 @@ namespace RR  {
 
     Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
     {
+        ASSERT(desc.entryPoints.size() > 0);
+
         slang::TargetDesc targetDesc;
         targetDesc.format = SLANG_HLSL;
         targetDesc.profile = globalSession->findProfile("sm_6_5");
