@@ -11,7 +11,7 @@ namespace RR  {
 
     namespace GAPI
     {
-        enum class ShaderType : uint8_t;
+        enum class ShaderStage : uint8_t;
     }
 
     struct ShaderCompileDesc
@@ -30,7 +30,7 @@ namespace RR  {
         }
 
         std::string name;
-        GAPI::ShaderType type;
+        GAPI::ShaderStage stage;
         Slang::ComPtr<slang::IBlob> source;
         Slang::ComPtr<slang::ISession> session; // Sources alive until session alive.
     };

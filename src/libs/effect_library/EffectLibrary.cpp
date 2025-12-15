@@ -93,7 +93,7 @@ namespace RR::EffectLibrary
 
             ShaderDesc shaderDesc;
             shaderDesc.name = getString(shaderHeader.nameIndex);
-            shaderDesc.type = shaderHeader.type;
+            shaderDesc.stage = shaderHeader.stage;
             shaderDesc.data = shaderData.get();
             shaderDesc.size = shaderHeader.size;
 

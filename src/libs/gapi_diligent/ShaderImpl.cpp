@@ -9,25 +9,25 @@ namespace RR::GAPI::Diligent
 {
     ShaderImpl::~ShaderImpl() { }
 
-    DL::SHADER_TYPE getShaderType(GAPI::ShaderType shaderType)
+    DL::SHADER_TYPE getShaderType(GAPI::ShaderStage shaderStage)
     {
-        switch (shaderType)
+        switch (shaderStage)
         {
-            case GAPI::ShaderType::Vertex: return DL::SHADER_TYPE_VERTEX;
-            case GAPI::ShaderType::Pixel: return DL::SHADER_TYPE_PIXEL;
-            case GAPI::ShaderType::Compute: return DL::SHADER_TYPE_COMPUTE;
-            case GAPI::ShaderType::Geometry: return DL::SHADER_TYPE_GEOMETRY;
-            case GAPI::ShaderType::Hull: return DL::SHADER_TYPE_HULL;
-            case GAPI::ShaderType::Domain: return DL::SHADER_TYPE_DOMAIN;
-            case GAPI::ShaderType::Amplification: return DL::SHADER_TYPE_AMPLIFICATION;
-            case GAPI::ShaderType::Mesh: return DL::SHADER_TYPE_MESH;
-            case GAPI::ShaderType::RayGen: return DL::SHADER_TYPE_RAY_GEN;
-            case GAPI::ShaderType::RayMiss: return DL::SHADER_TYPE_RAY_MISS;
-            case GAPI::ShaderType::RayClosestHit: return DL::SHADER_TYPE_RAY_CLOSEST_HIT;
-            case GAPI::ShaderType::RayAnyHit: return DL::SHADER_TYPE_RAY_ANY_HIT;
-            case GAPI::ShaderType::RayIntersection: return DL::SHADER_TYPE_RAY_INTERSECTION;
-            case GAPI::ShaderType::Callable: return DL::SHADER_TYPE_CALLABLE;
-            case GAPI::ShaderType::Tile: return DL::SHADER_TYPE_TILE;
+            case GAPI::ShaderStage::Vertex: return DL::SHADER_TYPE_VERTEX;
+            case GAPI::ShaderStage::Pixel: return DL::SHADER_TYPE_PIXEL;
+            case GAPI::ShaderStage::Compute: return DL::SHADER_TYPE_COMPUTE;
+            case GAPI::ShaderStage::Geometry: return DL::SHADER_TYPE_GEOMETRY;
+            case GAPI::ShaderStage::Hull: return DL::SHADER_TYPE_HULL;
+            case GAPI::ShaderStage::Domain: return DL::SHADER_TYPE_DOMAIN;
+            case GAPI::ShaderStage::Amplification: return DL::SHADER_TYPE_AMPLIFICATION;
+            case GAPI::ShaderStage::Mesh: return DL::SHADER_TYPE_MESH;
+            case GAPI::ShaderStage::RayGen: return DL::SHADER_TYPE_RAY_GEN;
+            case GAPI::ShaderStage::RayMiss: return DL::SHADER_TYPE_RAY_MISS;
+            case GAPI::ShaderStage::RayClosestHit: return DL::SHADER_TYPE_RAY_CLOSEST_HIT;
+            case GAPI::ShaderStage::RayAnyHit: return DL::SHADER_TYPE_RAY_ANY_HIT;
+            case GAPI::ShaderStage::RayIntersection: return DL::SHADER_TYPE_RAY_INTERSECTION;
+            case GAPI::ShaderStage::Callable: return DL::SHADER_TYPE_CALLABLE;
+            case GAPI::ShaderStage::Tile: return DL::SHADER_TYPE_TILE;
             default:
                 ASSERT_MSG(false, "Unknown shader type");
                 return DL::SHADER_TYPE_UNKNOWN;
@@ -40,7 +40,7 @@ namespace RR::GAPI::Diligent
         shaderCI.ByteCode = desc.data;
         shaderCI.ByteCodeSize = desc.size;
         shaderCI.Desc.Name = name.c_str();
-        shaderCI.Desc.ShaderType = getShaderType(desc.type);
+        shaderCI.Desc.ShaderType = getShaderType(desc.stage);
         shaderCI.LoadConstantBufferReflection = false;
         return shaderCI;
     }

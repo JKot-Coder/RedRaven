@@ -44,7 +44,7 @@ namespace RR::Render
             GAPI::ShaderDesc shaderDesc;
             EffectLibrary::ShaderDesc shaderAssetDesc = effectLibrary->GetShader(i);
 
-            shaderDesc.type = shaderAssetDesc.type;
+            shaderDesc.stage = shaderAssetDesc.stage;
             shaderDesc.data = shaderAssetDesc.data;
             shaderDesc.size = shaderAssetDesc.size;
 

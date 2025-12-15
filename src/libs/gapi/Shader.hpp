@@ -9,7 +9,7 @@ namespace RR::Render
 
 namespace RR::GAPI
 {
-    enum class ShaderType : uint8_t
+    enum class ShaderStage : uint8_t
     {
         Vertex,
         Pixel,
@@ -34,11 +34,11 @@ namespace RR::GAPI
     public:
         ShaderDesc() = default;
 
-        ShaderDesc(ShaderType type, const std::byte* data, size_t size)
-            : type(type), data(data), size(size) { }
+        ShaderDesc(ShaderStage stage, const std::byte* data, size_t size)
+            : stage(stage), data(data), size(size) { }
 
     public:
-        ShaderType type;
+        ShaderStage stage;
         const std::byte* data;
         size_t size;
     };

@@ -45,8 +45,8 @@ namespace RR::Render
         ASSERT(effectDesc.passes.size() == 1);
         auto& pass = effectDesc.passes[0]; // TODO
         graphicPSODesc.depthStencilFormat = params.depthStencilFormat;
-        graphicPSODesc.vs = pass.shaders[eastl::to_underlying(GAPI::ShaderType::Vertex)];
-        graphicPSODesc.ps = pass.shaders[eastl::to_underlying(GAPI::ShaderType::Pixel)];
+        graphicPSODesc.vs = pass.shaders[eastl::to_underlying(GAPI::ShaderStage::Vertex)];
+        graphicPSODesc.ps = pass.shaders[eastl::to_underlying(GAPI::ShaderStage::Pixel)];
 
         const auto& deviceContext = DeviceContext::Instance();
         GAPI::GraphicPipelineState::UniquePtr pipelineState = deviceContext.CreatePipelineState(graphicPSODesc, "Effect");

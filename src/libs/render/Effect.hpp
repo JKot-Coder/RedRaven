@@ -100,7 +100,7 @@ namespace RR::Render
             GAPI::RasterizerDesc rasterizerDesc;
             GAPI::DepthStencilDesc depthStencilDesc;
             GAPI::BlendDesc blendDesc;
-            eastl::array<const GAPI::Shader*, eastl::to_underlying(GAPI::ShaderType::Count)> shaders;
+            eastl::array<const GAPI::Shader*, eastl::to_underlying(GAPI::ShaderStage::Count)> shaders;
         };
 
         eastl::vector<PassDesc> passes;

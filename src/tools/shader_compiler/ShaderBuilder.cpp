@@ -129,7 +129,7 @@ namespace RR
 
         Asset::ShaderDesc shaderDesc;
         shaderDesc.header.nameIndex = pushString(shader.name);
-        shaderDesc.header.type = shader.type;
+        shaderDesc.header.stage = shader.stage;
         shaderDesc.header.size = static_cast<uint32_t>(shader.source->getBufferSize());
         shaderDesc.data = reinterpret_cast<const std::byte*>(shader.source->getBufferPointer());
 
@@ -183,7 +183,7 @@ namespace RR
                 throw std::runtime_error("Failed to compile shader");
 
             for (auto& shader : shaderResult.shaders)
-                passDesc.shaderIndexes[eastl::to_underlying(shader.type)] = pushShader(std::move(shader));
+                passDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = pushShader(std::move(shader));
 
             passes.push_back(std::move(passDesc));
         }

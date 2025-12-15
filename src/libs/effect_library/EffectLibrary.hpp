@@ -24,7 +24,7 @@ namespace RR::EffectLibrary
         GAPI::RasterizerDesc rasterizerDesc;
         GAPI::DepthStencilDesc depthStencilDesc;
         GAPI::BlendDesc blendDesc;
-        eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderType::Count)> shaderIndexes;
+        eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
     };
 
     struct EffectDesc
@@ -36,7 +36,7 @@ namespace RR::EffectLibrary
     struct ShaderDesc
     {
         const char* name;
-        GAPI::ShaderType type;
+        GAPI::ShaderStage stage;
         std::byte* data;
         size_t size;
     };
