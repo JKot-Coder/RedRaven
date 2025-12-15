@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 
 #define FALCOR_THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__))
-#define FALCOR_UNREACHABLE() throw std::runtime_error("Unreachable")
+#define FALCOR_UNREACHABLE() assert(false); throw std::runtime_error("Unreachable")
 #define UNIMPLEMENTED() assert(false); throw std::runtime_error("Unimplemented")
 #define FALCOR_ASSERT(condition) ASSERT(condition)
 #define FALCOR_API
@@ -45,7 +45,7 @@ namespace
         const auto& items = EnumInfo<T>::items();
         auto it = eastl::find_if(eastl::begin(items), eastl::end(items), [value](const auto& item) { return item.first == value; });
         if (it == items.end())
-            THROW("Invalid enum value {}", int(value));
+            FALCOR_THROW("Invalid enum value {}", int(value));
         return it->second;
     }
 
