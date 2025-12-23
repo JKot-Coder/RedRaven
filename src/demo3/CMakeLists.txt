@@ -23,3 +23,4 @@ set(SHADERS_SRC
 add_executable(${PROJECT_NAME} WIN32 ${SRC})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 target_add_shaders(${PROJECT_NAME} SHADERS ${SHADERS_SRC})
+target_copy_webgpu_binaries(${PROJECT_NAME})

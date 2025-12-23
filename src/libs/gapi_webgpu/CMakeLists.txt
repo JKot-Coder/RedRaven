@@ -15,4 +15,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     RR::BuildSettings
     common
     gapi
+    webgpu
 )

@@ -5,6 +5,9 @@
 
 #include "Device.hpp"
 
+#define WEBGPU_CPP_IMPLEMENTATION
+#include "webgpu/webgpu.hpp"
+
 namespace RR::GAPI::WebGPU
 {
     DeviceImpl::DeviceImpl() { }
@@ -19,7 +22,37 @@ namespace RR::GAPI::WebGPU
         ASSERT(!inited);
         UNUSED(deviceDesc);
 
-        return false;
+        const wgpu::InstanceDescriptor instanceDescriptor = {};
+        wgpu::Instance instance = wgpu::createInstance(instanceDescriptor);
+
+        if(!instance)
+        {
+            Log::Format::Error("Failed to create WebGPU instance");
+            return false;
+        }
+
+        wgpu::RequestAdapterOptions requestAdapterOptions = {};
+        requestAdapterOptions.powerPreference = wgpu::PowerPreference::HighPerformance;
+
+        wgpu::Adapter adapter = instance.requestAdapter(requestAdapterOptions);
+        if(!adapter)
+        {
+            Log::Format::Error("Failed to request WebGPU adapter");
+            return false;
+        }
+
+        wgpu::DeviceDescriptor deviceDescriptor = {};
+        deviceDescriptor.label = wgpu::StringView("Primary");
+
+        wgpu::Device device = adapter.requestDevice(deviceDescriptor);
+        if(!adapter)
+        {
+            Log::Format::Error("Failed to request WebGPU device");
+            return false;
+        }
+
+        UNUSED(device);
+        return true;
     }
 
     void DeviceImpl::Present(SwapChain* swapChain)
