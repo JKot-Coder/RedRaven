@@ -1,6 +1,6 @@
 #add_subdirectory(demo)
 add_subdirectory(tools)
 add_subdirectory(libs)
-add_subdirectory(demo2)
+add_subdirectory(demo3)
 #add_subdirectory(tests)
 #add_subdirectory(rfx)

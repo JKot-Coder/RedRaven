@@ -58,14 +58,14 @@
             "preLaunchTask": "CMake: build ecs_codegen",
         },
         {
-            "name": "demo2",
+            "name": "demo3",
             "request": "launch",
             "type": "cppvsdbg",
             "console": "internalConsole",
-            "program": "${workspaceFolder}/bin/demo2.exe",
+            "program": "${workspaceFolder}/bin/demo3.exe",
             "args": [""],
             "cwd": "${workspaceFolder}/bin/",
-            "preLaunchTask": "CMake: build demo2",
+            "preLaunchTask": "CMake: build demo3",
             "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
         },
         {
