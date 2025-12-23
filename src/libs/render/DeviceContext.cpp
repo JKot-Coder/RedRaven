@@ -13,7 +13,7 @@
 #include "render/CommandContext.hpp"
 #include "render/Effect.hpp"
 
-#include "gapi_diligent/Device.hpp"
+#include "gapi_webgpu/Device.hpp"
 
 namespace RR::Render
 {
@@ -29,7 +29,7 @@ namespace RR::Render
 
         inited = false;
         submission.ExecuteAwait([this](GAPI::Device& device) {
-            if(!GAPI::Diligent::InitDevice(device))
+            if(!GAPI::WebGPU::InitDevice(device))
             {
                 Log::Format::Error("Failed to initialize device");
                 return;
