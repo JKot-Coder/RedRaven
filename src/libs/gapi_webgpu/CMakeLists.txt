@@ -3,6 +3,8 @@ project (gapi_webgpu)
 set(SRC
     Device.cpp
     Device.hpp
+    DeviceImpl.cpp
+    DeviceImpl.hpp
 )
 source_group( "" FILES ${SRC} )
 
