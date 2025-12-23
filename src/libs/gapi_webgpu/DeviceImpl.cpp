@@ -4,8 +4,6 @@
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "Device.hpp"
-
-#define WEBGPU_CPP_IMPLEMENTATION
 #include "webgpu/webgpu.hpp"
 
 namespace RR::GAPI::WebGPU

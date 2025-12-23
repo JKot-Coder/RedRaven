@@ -5,6 +5,7 @@ set(SRC
     Device.hpp
     DeviceImpl.cpp
     DeviceImpl.hpp
+    WebGPUImpl.cpp
 )
 source_group( "" FILES ${SRC} )
 
