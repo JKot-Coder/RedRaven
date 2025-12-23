@@ -116,6 +116,7 @@ add_subdirectory(src/dependencies/utfcpp)
 add_subdirectory(src/dependencies/flecs)
 add_subdirectory(src/dependencies/ska)
 add_subdirectory(src/dependencies/nanobench)
+add_subdirectory(src/dependencies/webgpu)
 #add_subdirectory(src/dependencies/imgui)
 
 find_package(imgui CONFIG REQUIRED)

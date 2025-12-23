@@ -13,7 +13,9 @@
                 "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets",
                 "VCPKG_PLATFORM_TOOLSET": "llvm",
                 "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang"
+                "CMAKE_CXX_COMPILER": "clang",
+                "WEBGPU_BACKEND": "DAWN",
+                "WEBGPU_BUILD_FROM_SOURCE": "OFF"
             },
             "environment": {
                 "VCPKG_FEATURE_FLAGS": "-binarycaching,manifests"
