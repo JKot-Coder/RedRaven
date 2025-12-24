@@ -24,7 +24,11 @@ namespace RR
 
         public:
             DebugMode debugMode = DebugMode::Retail;
-            uint32_t maxFramesInFlight = 2;
+            uint32_t maxFramesInFlightHint = 2;
+            // DX12: SetMaximumFrameLatency
+            // Vulkan: CPU-side pacing
+            // WebGPU: ignored
+
         };
 
         class ISingleThreadDevice
