@@ -4,6 +4,7 @@
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "Device.hpp"
+#include "SwapChainImpl.hpp"
 
 namespace RR::GAPI::WebGPU
 {
@@ -64,8 +65,11 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(swapChain);
-        NOT_IMPLEMENTED();
+        ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
+        auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
+
+        // WebGPU waits for gpu on Present()
+        swapChainImpl->Present();
     }
 
     void DeviceImpl::MoveToNextFrame(uint64_t frameIndex)
@@ -73,7 +77,7 @@ namespace RR::GAPI::WebGPU
         ASSERT_IS_DEVICE_INITED;
 
         UNUSED(frameIndex);
-        NOT_IMPLEMENTED();
+        // Nothing to do here. WebGPU handles frame waiting on swapChain->Present();
     }
 
     GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDesc& resourceDesc) const
@@ -137,8 +141,9 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<SwapChainImpl>();
+        impl->Init(instance, device, resource.GetDesc());
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitBuffer(Buffer& resource, const BufferData* initialData) const
