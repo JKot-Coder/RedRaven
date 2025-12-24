@@ -274,8 +274,8 @@ namespace RR::App
             ctx->SetVertexBuffer(0, *vertexBuffer.get(), 0);
           //  ctx->DrawIndexed(cubeEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 36);*/
 
-       //     deviceContext.Compile(*ctx);
-        //    deviceContext.Submit(commandQueue.get(), *ctx);
+            deviceContext.Compile(*ctx);
+            deviceContext.Submit(commandQueue.get(), *ctx);
             deviceContext.Present(applicationInstance->swapChain.get());
             deviceContext.MoveToNextFrame(0);
         }

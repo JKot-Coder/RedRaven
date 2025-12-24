@@ -119,8 +119,10 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(commandList);
-        NOT_IMPLEMENTED();
+        ASSERT(dynamic_cast<CommandListImpl*>(commandList.GetPrivateImpl()));
+        auto commandListImpl = static_cast<CommandListImpl*>(commandList.GetPrivateImpl());
+
+        commandListImpl->Compile(device, commandList);
     }
 
     void DeviceImpl::InitCommandList(CommandList& resource) const

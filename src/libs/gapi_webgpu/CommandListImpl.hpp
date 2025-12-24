@@ -13,9 +13,16 @@ namespace RR::GAPI::WebGPU
         ~CommandListImpl();
 
         void Init(wgpu::Device device);
-        void Compile();
+        void Compile(wgpu::Device device, GAPI::CommandList2& commandList);
+
+        wgpu::CommandBuffer TakeCommandBuffer()
+        {
+            wgpu::CommandBuffer tmp = nullptr;
+            eastl::swap(commandBuffer, tmp);
+            return tmp;
+        }
 
     private:
-        wgpu::CommandEncoder commandEncoder;
+        wgpu::CommandBuffer commandBuffer;
     };
 }
