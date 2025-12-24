@@ -235,8 +235,8 @@ namespace RR::App
             return 1;
         }
 
-        auto triangleEffect = Render::EffectManager::Instance().Load("triangle");
-        auto cubeEffect = Render::EffectManager::Instance().Load("cube");
+      //  auto triangleEffect = Render::EffectManager::Instance().Load("triangle");
+        //auto cubeEffect = Render::EffectManager::Instance().Load("cube");
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
 
@@ -249,33 +249,33 @@ namespace RR::App
                            applicationInstance->swapChain = CreateSwapChain(window, description);
                            swapChain = applicationInstance->swapChain.get();
                        });
-
+/*
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateGraphicsCommandContext("test");
         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 
         auto vertexBuffer = CreateVertexBuffer();
         auto indexBuffer = CreateIndexBuffer();
-
+*/
         while (!applicationInstance->quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
             world.Tick();
-
+/*
             const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
                                             .ColorAttachment(0, swapChain->GetCurrentBackBufferTexture()->GetRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
                                             .Build();
 
             ctx->SetRenderPass(renderPassDesc);
-            ctx->Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
+          //  ctx->Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 
             ctx->SetVertexLayout(&Render::Vertex::GetVertexLayout());
             ctx->SetIndexBuffer(indexBuffer.get());
             ctx->SetVertexBuffer(0, *vertexBuffer.get(), 0);
-            ctx->DrawIndexed(cubeEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 36);
+          //  ctx->DrawIndexed(cubeEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 36);*/
 
-            deviceContext.Compile(*ctx);
-            deviceContext.Submit(commandQueue.get(), *ctx);
+       //     deviceContext.Compile(*ctx);
+        //    deviceContext.Submit(commandQueue.get(), *ctx);
             deviceContext.Present(applicationInstance->swapChain.get());
             deviceContext.MoveToNextFrame(0);
         }
