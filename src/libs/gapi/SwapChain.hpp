@@ -20,7 +20,7 @@ namespace RR
         {
             uint32_t width = 0;
             uint32_t height = 0;
-            uint32_t bufferCount = 2;
+            uint32_t backBuffersCount = 2;
 
             GpuResourceFormat gpuResourceFormat;
             GpuResourceFormat depthStencilFormat;
@@ -38,7 +38,7 @@ namespace RR
 
             virtual void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const = 0;
             virtual void InitDepthBufferTexture(Texture& resource) const = 0;
-            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFER_COUNT>& backBuffers, GAPI::Texture* depthBuffer) = 0;
+            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFERS_COUNT>& backBuffers, GAPI::Texture* depthBuffer) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain, false>
@@ -74,7 +74,7 @@ namespace RR
 
         private:
             SwapChainDesc desc_;
-            eastl::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFER_COUNT> backBuffers_;
+            eastl::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFERS_COUNT> backBuffers_;
             eastl::shared_ptr<Texture> depthBuffer_;
 
             friend class Render::DeviceContext;

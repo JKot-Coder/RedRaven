@@ -15,7 +15,7 @@ namespace RR
         {
             ASSERT(desc.width > 0);
             ASSERT(desc.height > 0);
-            ASSERT(desc.bufferCount <= MAX_BACK_BUFFER_COUNT);
+            ASSERT(desc.backBuffersCount <= MAX_BACK_BUFFERS_COUNT);
             ASSERT(desc.gpuResourceFormat != GpuResourceFormat::Unknown);
             ASSERT(desc.windowNativeHandle.has_value());
         }
@@ -30,8 +30,8 @@ namespace RR
             desc_.width = width;
             desc_.height = height;
 
-            eastl::array<Texture*, MAX_BACK_BUFFER_COUNT> backBuffers;
-            for (uint32_t i = 0; i < desc_.bufferCount; i++)
+            eastl::array<Texture*, MAX_BACK_BUFFERS_COUNT> backBuffers;
+            for (uint32_t i = 0; i < desc_.backBuffersCount; i++)
                 backBuffers[i] = backBuffers_[i].get();
 
             GetPrivateImpl()->Resize(width, height, backBuffers, depthBuffer_.get());
@@ -44,7 +44,7 @@ namespace RR
 
         Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
         {
-            ASSERT(index < desc_.bufferCount);
+            ASSERT(index < desc_.backBuffersCount);
 
             if (backBuffers_[index])
                 return backBuffers_[index];

@@ -28,7 +28,7 @@
 namespace RR::App
 {
 
-    constexpr uint32_t BACK_BUFFER_COUNT = 2;
+    constexpr uint32_t BACK_BUFFERS_COUNT = 2;
 
     struct Application
     {
@@ -82,7 +82,7 @@ namespace RR::App
 
         swapChainDesc.width = description.width;
         swapChainDesc.height = description.height;
-        swapChainDesc.bufferCount = BACK_BUFFER_COUNT;
+        swapChainDesc.backBuffersCount = BACK_BUFFERS_COUNT;
         swapChainDesc.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
         swapChainDesc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
