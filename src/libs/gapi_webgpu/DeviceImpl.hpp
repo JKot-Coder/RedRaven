@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gapi/Device.hpp"
+#include "webgpu/webgpu.hpp"
 
 namespace RR::GAPI::WebGPU
 {
@@ -33,6 +34,8 @@ namespace RR::GAPI::WebGPU
 
     private:
         bool inited = false;
+        wgpu::Instance instance;
+        wgpu::Device device;
         GAPI::DeviceDesc desc = {};
     };
 }

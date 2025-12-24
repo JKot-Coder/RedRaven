@@ -4,7 +4,6 @@
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "Device.hpp"
-#include "webgpu/webgpu.hpp"
 
 namespace RR::GAPI::WebGPU
 {
@@ -20,12 +19,18 @@ namespace RR::GAPI::WebGPU
         ASSERT(!inited);
         UNUSED(deviceDesc);
 
-        const wgpu::InstanceDescriptor instanceDescriptor = {};
-        wgpu::Instance instance = wgpu::createInstance(instanceDescriptor);
+        auto resetOnExit = ([this]() {
+            instance.release();
+            device.release();
+            inited = false;
+        });
 
+        const wgpu::InstanceDescriptor instanceDescriptor = {};
+        instance = wgpu::createInstance(instanceDescriptor);
         if(!instance)
         {
             Log::Format::Error("Failed to create WebGPU instance");
+            resetOnExit();
             return false;
         }
 
@@ -36,20 +41,22 @@ namespace RR::GAPI::WebGPU
         if(!adapter)
         {
             Log::Format::Error("Failed to request WebGPU adapter");
+            resetOnExit();
             return false;
         }
 
         wgpu::DeviceDescriptor deviceDescriptor = {};
         deviceDescriptor.label = wgpu::StringView("Primary");
 
-        wgpu::Device device = adapter.requestDevice(deviceDescriptor);
-        if(!adapter)
+        device = adapter.requestDevice(deviceDescriptor);
+        if(!device)
         {
             Log::Format::Error("Failed to request WebGPU device");
+            resetOnExit();
             return false;
         }
 
-        UNUSED(device);
+        inited = true;
         return true;
     }
 
