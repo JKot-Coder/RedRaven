@@ -69,7 +69,7 @@ namespace RR::GAPI::WebGPU
         surfaceConfiguration.device = device;
         surfaceConfiguration.format = getWGPUFormat(desc.backBufferFormat);
         surfaceConfiguration.presentMode = getPresentMode(desc.presentMode);
-        surfaceConfiguration.usage = wgpu::TextureUsage::RenderAttachment;
+        surfaceConfiguration.usage = wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::CopyDst;
 
         Resize(desc.width, desc.height, {});
     }
