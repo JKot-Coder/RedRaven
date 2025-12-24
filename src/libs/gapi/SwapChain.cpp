@@ -15,7 +15,6 @@ namespace RR
         {
             ASSERT(desc.width > 0);
             ASSERT(desc.height > 0);
-            ASSERT(desc.isStereo == false);
             ASSERT(desc.bufferCount <= MAX_BACK_BUFFER_COUNT);
             ASSERT(desc.gpuResourceFormat != GpuResourceFormat::Unknown);
             ASSERT(desc.windowNativeHandle.has_value());

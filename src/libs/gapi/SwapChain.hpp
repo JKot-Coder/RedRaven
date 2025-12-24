@@ -25,8 +25,6 @@ namespace RR
             GpuResourceFormat gpuResourceFormat;
             GpuResourceFormat depthStencilFormat;
 
-            bool isStereo = false;
-
             eastl::any windowNativeHandle = nullptr;
         };
 
