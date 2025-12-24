@@ -7,6 +7,8 @@ set(SRC
     DeviceImpl.hpp
     SwapChainImpl.cpp
     SwapChainImpl.hpp
+    Utils.cpp
+    Utils.hpp
     WebGPUImpl.cpp
 )
 source_group( "" FILES ${SRC} )
