@@ -15,6 +15,8 @@ namespace RR::GAPI::WebGPU
         void Init(GAPI::GpuResourceView& resource);
         void DestroyResource();
 
+        wgpu::TextureView GetTextureView() const { return view; }
+
     private:
         wgpu::TextureView view;
     };
