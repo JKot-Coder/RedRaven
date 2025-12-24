@@ -16,7 +16,7 @@ namespace RR
             ASSERT(desc.width > 0);
             ASSERT(desc.height > 0);
             ASSERT(desc.backBuffersCount <= MAX_BACK_BUFFERS_COUNT);
-            ASSERT(desc.gpuResourceFormat != GpuResourceFormat::Unknown);
+            ASSERT(desc.backBufferFormat != GpuResourceFormat::Unknown);
             ASSERT(desc.windowNativeHandle.has_value());
         }
 
@@ -50,7 +50,7 @@ namespace RR
                 return backBuffers_[index];
 
             // TODO  description_.width = 0 sometimes happends
-            const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.gpuResourceFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
+            const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.backBufferFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
 
             auto& deviceContext = Render::DeviceContext::Instance();
 

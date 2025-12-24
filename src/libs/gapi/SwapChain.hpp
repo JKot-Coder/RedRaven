@@ -31,7 +31,7 @@ namespace RR
             PresentMode presentMode = PresentMode::Fifo;
             uint32_t backBuffersCount = 2;
 
-            GpuResourceFormat gpuResourceFormat;
+            GpuResourceFormat backBufferFormat;
             GpuResourceFormat depthStencilFormat;
 
             eastl::any windowNativeHandle = nullptr;
