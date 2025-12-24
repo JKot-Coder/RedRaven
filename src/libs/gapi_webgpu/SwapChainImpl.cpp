@@ -27,12 +27,17 @@ namespace RR::GAPI::WebGPU
 
     wgpu::TextureFormat getWGPUFormat(GAPI::GpuResourceFormat format)
     {
+        if(GpuResourceFormatInfo::IsSRGB(format))
+        {
+            Log::Format::Error("{} is SRGB format they are not supported in WebGPU, use regular format and SRGB RTV instead", GpuResourceFormatInfo::ToString(format));
+            return wgpu::TextureFormat::Undefined;
+        }
+
         switch(format)
         {
-            case GAPI::GpuResourceFormat::RGBA8UnormSrgb: return wgpu::TextureFormat::RGBA8UnormSrgb;
             case GAPI::GpuResourceFormat::RGBA8Unorm: return wgpu::TextureFormat::RGBA8Unorm;
             default:
-                ASSERT_MSG(false, "Invalid format");
+                Log::Format::Error( "Invalid back buffer format: {}", GpuResourceFormatInfo::ToString(format));
                 return wgpu::TextureFormat::Undefined;
         }
     }

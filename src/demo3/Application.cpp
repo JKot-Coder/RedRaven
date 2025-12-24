@@ -84,7 +84,7 @@ namespace RR::App
         swapChainDesc.height = description.height;
         swapChainDesc.backBuffersCount = BACK_BUFFERS_COUNT;
         swapChainDesc.presentMode = GAPI::SwapChainDesc::PresentMode::Fifo;
-        swapChainDesc.backBufferFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+        swapChainDesc.backBufferFormat = GAPI::GpuResourceFormat::RGBA8Unorm;
 
         return Render::DeviceContext::Instance().CreateSwapchain(swapChainDesc);
     }
