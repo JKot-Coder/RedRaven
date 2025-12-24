@@ -13,8 +13,9 @@ namespace RR::GAPI::WebGPU
             switch (viewType)
             {
                 case GAPI::GpuResourceView::ViewType::ShaderResourceView: return wgpu::TextureUsage::TextureBinding;
-                case GAPI::GpuResourceView::ViewType::DepthStencilView: return wgpu::TextureUsage::RenderAttachment;
-                case GAPI::GpuResourceView::ViewType::RenderTargetView: return wgpu::TextureUsage::CopyDst;
+                case GAPI::GpuResourceView::ViewType::DepthStencilView:
+                case GAPI::GpuResourceView::ViewType::RenderTargetView:
+                    return wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::CopyDst;
                 case GAPI::GpuResourceView::ViewType::UnorderedAccessView: return wgpu::TextureUsage::StorageBinding;
                 default:
                     ASSERT_MSG(false, "Unknown view type");
