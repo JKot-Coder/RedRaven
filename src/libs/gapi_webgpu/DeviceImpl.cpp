@@ -4,6 +4,8 @@
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "Device.hpp"
+
+#include "CommandListImpl.hpp"
 #include "SwapChainImpl.hpp"
 #include "TextureImpl.hpp"
 #include "TextureViewImpl.hpp"
@@ -131,9 +133,10 @@ namespace RR::GAPI::WebGPU
     void DeviceImpl::InitCommandList2(CommandList2& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
-        UNUSED(resource);
 
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<CommandListImpl>();
+        impl->Init(device);
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitCommandQueue(CommandQueue& resource) const
