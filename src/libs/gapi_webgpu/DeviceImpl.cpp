@@ -5,6 +5,11 @@
 
 #include "Device.hpp"
 #include "SwapChainImpl.hpp"
+#include "TextureImpl.hpp"
+#include "TextureViewImpl.hpp"
+
+#include "gapi/Resource.hpp"
+#include "gapi/Texture.hpp"
 
 namespace RR::GAPI::WebGPU
 {
@@ -133,8 +138,17 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(view);
-        NOT_IMPLEMENTED();
+        const auto gpuResource = view.GetGpuResource().lock();
+        if (gpuResource->GetDesc().IsTexture())
+        {
+            auto impl = std::make_unique<TextureViewImpl>();
+            impl->Init(view);
+            view.SetPrivateImpl(impl.release());
+        }
+        else
+        {
+            NOT_IMPLEMENTED();
+        }
     }
 
     void DeviceImpl::InitSwapChain(SwapChain& resource) const
@@ -154,12 +168,13 @@ namespace RR::GAPI::WebGPU
         NOT_IMPLEMENTED();
     }
 
-    void DeviceImpl::InitTexture(Texture& resource) const
+    void DeviceImpl::InitTexture(RR::GAPI::Texture& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = std::make_unique<TextureImpl>();
+        impl->Init(device, resource);
+        resource.SetPrivateImpl(impl.release());
     }
 
     void DeviceImpl::InitShader(Shader& resource) const

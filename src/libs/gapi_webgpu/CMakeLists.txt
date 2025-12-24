@@ -7,6 +7,10 @@ set(SRC
     DeviceImpl.hpp
     SwapChainImpl.cpp
     SwapChainImpl.hpp
+    TextureImpl.cpp
+    TextureImpl.hpp
+    TextureViewImpl.cpp
+    TextureViewImpl.hpp
     Utils.cpp
     Utils.hpp
     WebGPUImpl.cpp
