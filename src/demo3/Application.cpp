@@ -83,6 +83,7 @@ namespace RR::App
         swapChainDesc.width = description.width;
         swapChainDesc.height = description.height;
         swapChainDesc.backBuffersCount = BACK_BUFFERS_COUNT;
+        swapChainDesc.presentMode = GAPI::SwapChainDesc::PresentMode::Fifo;
         swapChainDesc.gpuResourceFormat = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
         swapChainDesc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 

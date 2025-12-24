@@ -18,8 +18,17 @@ namespace RR
     {
         struct SwapChainDesc
         {
+            enum class PresentMode : uint8_t
+            {
+                Fifo,       // VSync
+                Mailbox,    // Low-latency VSync (if supported)
+                Immediate   // No VSync (tearing)
+            };
+
             uint32_t width = 0;
             uint32_t height = 0;
+
+            PresentMode presentMode = PresentMode::Fifo;
             uint32_t backBuffersCount = 2;
 
             GpuResourceFormat gpuResourceFormat;
