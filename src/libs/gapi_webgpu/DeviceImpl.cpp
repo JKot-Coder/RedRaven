@@ -31,8 +31,10 @@ namespace RR::GAPI::WebGPU
             inited = false;
         });
 
-        const wgpu::InstanceDescriptor instanceDescriptor = {};
-        instance = wgpu::createInstance(instanceDescriptor);
+        wgpu::InstanceDescriptor instanceDesc;
+        instanceDesc.setDefault();
+
+        instance = wgpu::createInstance(instanceDesc);
         if(!instance)
         {
             Log::Format::Error("Failed to create WebGPU instance");
@@ -40,7 +42,8 @@ namespace RR::GAPI::WebGPU
             return false;
         }
 
-        wgpu::RequestAdapterOptions requestAdapterOptions = {};
+        wgpu::RequestAdapterOptions requestAdapterOptions;
+        requestAdapterOptions.setDefault();
         requestAdapterOptions.powerPreference = wgpu::PowerPreference::HighPerformance;
 
         wgpu::Adapter adapter = instance.requestAdapter(requestAdapterOptions);
@@ -51,7 +54,8 @@ namespace RR::GAPI::WebGPU
             return false;
         }
 
-        wgpu::DeviceDescriptor deviceDescriptor = {};
+        wgpu::DeviceDescriptor deviceDescriptor;
+        deviceDescriptor.setDefault();
         deviceDescriptor.label = wgpu::StringView("Primary");
 
         device = adapter.requestDevice(deviceDescriptor);
