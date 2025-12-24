@@ -30,35 +30,26 @@ namespace RR
             desc_.width = width;
             desc_.height = height;
 
-            eastl::array<Texture*, MAX_BACK_BUFFERS_COUNT> backBuffers;
-            for (uint32_t i = 0; i < desc_.backBuffersCount; i++)
-                backBuffers[i] = backBuffers_[i].get();
-
-            GetPrivateImpl()->Resize(width, height, backBuffers);
-
-            for (auto& backBuffer : backBuffers_)
-                backBuffer = nullptr;
+            GetPrivateImpl()->Resize(width, height);
+            backBuffer.reset();
         }
 
-        Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
+        Texture::SharedPtr SwapChain::GetCurrentBackBufferTexture()
         {
-            ASSERT(index < desc_.backBuffersCount);
-
-            if (backBuffers_[index])
-                return backBuffers_[index];
-
             // TODO  description_.width = 0 sometimes happends
-            const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.backBufferFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
+            if (!backBuffer)
+            {
+                const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.backBufferFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
+                auto& deviceContext = Render::DeviceContext::Instance();
+                backBuffer = deviceContext.CreateSwapChainBackBuffer(
+                    this,
+                    desc,
+                    fmt::sprintf("%s BackBufferTexture", "SwapChain")); // TODO move it
+            }
 
-            auto& deviceContext = Render::DeviceContext::Instance();
+            UpdateCurrentBackBufferTexture(*backBuffer);
 
-            backBuffers_[index] = deviceContext.CreateSwapChainBackBuffer(
-                this,
-                index,
-                desc,
-                fmt::sprintf("%s BackBufferTexture:%d", "SwapChain", index)); // TODO move it
-
-            return backBuffers_[index];
+            return backBuffer;
         }
     }
 }

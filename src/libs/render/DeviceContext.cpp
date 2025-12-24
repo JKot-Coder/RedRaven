@@ -200,7 +200,7 @@ namespace RR::Render
         return resource;
     }
 
-    GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, uint32_t backBufferIndex, const GAPI::GpuResourceDesc& desc, const std::string& name) const
+    GAPI::Texture::SharedPtr DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
@@ -211,7 +211,7 @@ namespace RR::Render
         ASSERT(desc.bindFlags == GAPI::GpuResourceBindFlags::RenderTarget);
 
         auto resource = GAPI::Texture::Create(desc, nullptr, name);
-        swapchain->InitBackBufferTexture(backBufferIndex, *resource.get());
+        swapchain->UpdateCurrentBackBufferTexture(*resource.get());
 
         return resource;
     }

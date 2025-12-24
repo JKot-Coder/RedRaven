@@ -13,6 +13,7 @@ namespace RR::GAPI::WebGPU
         ~TextureImpl() override;
 
         void Init(const wgpu::Device& device, const GpuResource& resource);
+        void UpdateTextureResource(const wgpu::SurfaceTexture& surfaceTexture);
 
         void DestroyImmediatly() override;
         std::any GetRawHandle() const override;

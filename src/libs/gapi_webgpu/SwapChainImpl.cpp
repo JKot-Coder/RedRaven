@@ -3,6 +3,9 @@
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
 #include "gapi/GpuResource.hpp"
+#include "gapi/Texture.hpp"
+
+#include "TextureImpl.hpp"
 
 #if OS_WINDOWS
 #include "windows.h"
@@ -71,13 +74,11 @@ namespace RR::GAPI::WebGPU
         surfaceConfiguration.presentMode = getPresentMode(desc.presentMode);
         surfaceConfiguration.usage = wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::CopyDst;
 
-        Resize(desc.width, desc.height, {});
+        Resize(desc.width, desc.height);
     }
 
-    void SwapChainImpl::Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFERS_COUNT>& backBuffers)
+    void SwapChainImpl::Resize(uint32_t width, uint32_t height)
     {
-        UNUSED(backBuffers);
-
         surfaceConfiguration.width = width;
         surfaceConfiguration.height = height;
 
@@ -90,17 +91,15 @@ namespace RR::GAPI::WebGPU
         return {};
     }
 
-    uint32_t SwapChainImpl::GetCurrentBackBufferIndex() const
+    void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& resource) const
     {
-        return 0;
-    }
+        wgpu::SurfaceTexture surfaceTexture;
+        surface.getCurrentTexture(&surfaceTexture);
 
-    void SwapChainImpl::InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const
-    {
-        ASSERT(backBufferIndex == 0);
-        UNUSED(backBufferIndex, resource);
+        if (!resource.GetPrivateImpl())
+            resource.SetPrivateImpl(new TextureImpl());
 
-      //  surface.getCurrentTexture(&surfaceTexture);
+        resource.GetPrivateImpl<TextureImpl>()->UpdateTextureResource(surfaceTexture);
     }
 
     void SwapChainImpl::Present()

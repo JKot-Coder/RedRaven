@@ -63,6 +63,12 @@ namespace RR::GAPI::WebGPU
         texture = device.createTexture(desc);
     }
 
+    void TextureImpl::UpdateTextureResource(const wgpu::SurfaceTexture& surfaceTexture)
+    {
+        // Just trust for caller code knows what he is doing
+        texture = surfaceTexture.texture;
+    }
+
     void TextureImpl::DestroyImmediatly() { NOT_IMPLEMENTED(); }
 
     std::any TextureImpl::GetRawHandle() const
