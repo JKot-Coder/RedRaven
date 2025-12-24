@@ -32,7 +32,6 @@ namespace RR
             uint32_t backBuffersCount = 2;
 
             GpuResourceFormat backBufferFormat;
-            GpuResourceFormat depthStencilFormat;
 
             eastl::any windowNativeHandle = nullptr;
         };
@@ -46,8 +45,7 @@ namespace RR
             virtual eastl::any GetWaitableObject() const = 0;
 
             virtual void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const = 0;
-            virtual void InitDepthBufferTexture(Texture& resource) const = 0;
-            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFERS_COUNT>& backBuffers, GAPI::Texture* depthBuffer) = 0;
+            virtual void Resize(uint32_t width, uint32_t height, const eastl::array<GAPI::Texture*, MAX_BACK_BUFFERS_COUNT>& backBuffers) = 0;
         };
 
         class SwapChain final : public Resource<ISwapChain, false>
@@ -58,7 +56,6 @@ namespace RR
             ~SwapChain();
 
             eastl::shared_ptr<Texture> GetBackBufferTexture(uint32_t index);
-            eastl::shared_ptr<Texture> GetDepthBufferTexture();
             eastl::shared_ptr<Texture> GetCurrentBackBufferTexture() { return GetBackBufferTexture(GetCurrentBackBufferIndex()); }
 
             const SwapChainDesc& GetDesc() const { return desc_; }
@@ -79,12 +76,10 @@ namespace RR
             void Resize(uint32_t width, uint32_t height);
 
             inline void InitBackBufferTexture(uint32_t backBufferIndex, Texture& resource) const { return GetPrivateImpl()->InitBackBufferTexture(backBufferIndex, resource); }
-            inline void InitDepthBufferTexture(Texture& resource) const { return GetPrivateImpl()->InitDepthBufferTexture(resource); }
 
         private:
             SwapChainDesc desc_;
             eastl::array<eastl::shared_ptr<Texture>, MAX_BACK_BUFFERS_COUNT> backBuffers_;
-            eastl::shared_ptr<Texture> depthBuffer_;
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;

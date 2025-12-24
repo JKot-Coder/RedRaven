@@ -216,22 +216,6 @@ namespace RR::Render
         return resource;
     }
 
-    eastl::shared_ptr<GAPI::Texture> DeviceContext::CreateSwapChainDepthBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDesc& desc) const
-    {
-        ASSERT(inited);
-
-        ASSERT(swapchain);
-        ASSERT(desc.dimension == GAPI::GpuResourceDimension::Texture2D);
-        ASSERT(desc.usage == GAPI::GpuResourceUsage::Default);
-        ASSERT(desc.GetNumSubresources() == 1);
-        ASSERT(desc.bindFlags == GAPI::GpuResourceBindFlags::DepthStencil);
-
-        auto resource = GAPI::Texture::Create(desc, nullptr, "SwapChain Depth Buffer");
-        swapchain->InitDepthBufferTexture(*resource.get());
-
-        return resource;
-    }
-
     GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const
     {
         ASSERT(inited);

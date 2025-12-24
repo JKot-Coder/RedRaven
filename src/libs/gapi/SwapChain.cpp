@@ -34,12 +34,10 @@ namespace RR
             for (uint32_t i = 0; i < desc_.backBuffersCount; i++)
                 backBuffers[i] = backBuffers_[i].get();
 
-            GetPrivateImpl()->Resize(width, height, backBuffers, depthBuffer_.get());
+            GetPrivateImpl()->Resize(width, height, backBuffers);
 
             for (auto& backBuffer : backBuffers_)
                 backBuffer = nullptr;
-
-            depthBuffer_.reset();
         }
 
         Texture::SharedPtr SwapChain::GetBackBufferTexture(uint32_t index)
@@ -61,19 +59,6 @@ namespace RR
                 fmt::sprintf("%s BackBufferTexture:%d", "SwapChain", index)); // TODO move it
 
             return backBuffers_[index];
-        }
-
-        Texture::SharedPtr SwapChain::GetDepthBufferTexture()
-        {
-            if (depthBuffer_)
-                return depthBuffer_;
-
-            const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.depthStencilFormat, GpuResourceBindFlags::DepthStencil, GpuResourceUsage::Default, 1, 1);
-
-            auto& deviceContext = Render::DeviceContext::Instance();
-
-            depthBuffer_ = deviceContext.CreateSwapChainDepthBuffer(this, desc);
-            return depthBuffer_;
         }
     }
 }
