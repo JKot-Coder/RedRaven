@@ -54,9 +54,17 @@ namespace RR::GAPI::WebGPU
             return false;
         }
 
+        wgpu::UncapturedErrorCallbackInfo uncapturedErrorCallbackInfo;
+        uncapturedErrorCallbackInfo.setDefault();
+        uncapturedErrorCallbackInfo.callback = [](WGPUDevice const* device, WGPUErrorType type, WGPUStringView message, void* userdata1, void* userdata2) {
+            UNUSED(device, type, userdata1, userdata2);
+            Log::Format::Error("Uncaptured error: {}", message.data);
+        };
+
         wgpu::DeviceDescriptor deviceDescriptor;
         deviceDescriptor.setDefault();
         deviceDescriptor.label = wgpu::StringView("Primary");
+        deviceDescriptor.uncapturedErrorCallbackInfo = uncapturedErrorCallbackInfo;
 
         device = adapter.requestDevice(deviceDescriptor);
         if(!device)
@@ -65,6 +73,12 @@ namespace RR::GAPI::WebGPU
             resetOnExit();
             return false;
         }
+
+        // Add an error callback for more debug info
+        device.setLoggingCallback([](wgpu::LoggingType type, wgpu::StringView message) {
+            UNUSED(type);
+            Log::Format::Error("WebGPU: {}", message.data);
+        });
 
         inited = true;
         return true;
