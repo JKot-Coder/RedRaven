@@ -34,6 +34,7 @@ namespace RR::GAPI::WebGPU
 
     private:
         bool inited = false;
+        mutable bool queueInited = false;
         wgpu::Instance instance;
         wgpu::Device device;
         GAPI::DeviceDesc desc = {};

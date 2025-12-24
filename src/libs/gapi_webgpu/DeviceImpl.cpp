@@ -6,6 +6,7 @@
 #include "Device.hpp"
 
 #include "CommandListImpl.hpp"
+#include "CommandQueueImpl.hpp"
 #include "SwapChainImpl.hpp"
 #include "TextureImpl.hpp"
 #include "TextureViewImpl.hpp"
@@ -143,8 +144,16 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        if (queueInited)
+        {
+            Log::Format::Error("WebGPU: Only one command queue is allowed");
+            return;
+        }
+
+        auto impl = eastl::make_unique<CommandQueueImpl>();
+        impl->Init(device);
+        resource.SetPrivateImpl(impl.release());
+        queueInited = true;
     }
 
     void DeviceImpl::InitFence(Fence& resource) const

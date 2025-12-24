@@ -3,6 +3,8 @@ project (gapi_webgpu)
 set(SRC
     CommandListImpl.cpp
     CommandListImpl.hpp
+    CommandQueueImpl.cpp
+    CommandQueueImpl.hpp
     Device.cpp
     Device.hpp
     DeviceImpl.cpp
