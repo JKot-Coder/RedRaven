@@ -140,6 +140,7 @@ namespace RR
         {
             bool IsDepth(GpuResourceFormat format);
             bool IsStencil(GpuResourceFormat format);
+            bool IsSRGB(GpuResourceFormat format);
             bool IsCompressed(GpuResourceFormat format);
 
             uint32_t GetBlockSize(GpuResourceFormat format);
