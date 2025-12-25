@@ -125,14 +125,6 @@ namespace RR::GAPI::WebGPU
         commandListImpl->Compile(device, commandList);
     }
 
-    void DeviceImpl::InitCommandList(CommandList& resource) const
-    {
-        ASSERT_IS_DEVICE_INITED;
-
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
-    }
-
     void DeviceImpl::InitCommandList2(CommandList2& resource) const
     {
         ASSERT_IS_DEVICE_INITED;

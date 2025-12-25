@@ -19,7 +19,6 @@ namespace RR::GAPI::WebGPU
 
         void Compile(CommandList2& commandList) override;
 
-        void InitCommandList(CommandList& resource) const override;
         void InitCommandList2(CommandList2& resource) const override;
         void InitCommandQueue(CommandQueue& resource) const override;
         void InitFence(Fence& resource) const override;

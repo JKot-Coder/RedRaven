@@ -4,7 +4,6 @@
 #include <thread>
 
 #include "gapi/CommandQueue.hpp"
-#include "gapi/CommandList.hpp"
 
 using namespace std::chrono;
 

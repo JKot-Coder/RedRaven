@@ -35,7 +35,6 @@ namespace RR
 
         class CommandList2;
 
-        class CommandList;
         class CopyCommandList;
         class ComputeCommandList;
         class GraphicsCommandList;
