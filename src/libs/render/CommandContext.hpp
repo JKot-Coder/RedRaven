@@ -13,32 +13,39 @@ namespace RR::Render
 
     class CommandContext
     {
-    protected:
+    public:
+        using UniquePtr = eastl::unique_ptr<CommandContext>;
+
+    private:
+        friend class DeviceContext;
+        friend class PassEncoderBase;
+
+        explicit CommandContext(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
+
         GAPI::CommandList& GetCommandList() { return commandList; }
 
-        friend class DeviceContext;
+        static UniquePtr Create(GAPI::CommandList&& commandlist)
+        {
+            return UniquePtr(new CommandContext(eastl::move(commandlist)));
+        }
 
-    protected:
-        explicit CommandContext(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
+    private:
         GAPI::CommandList commandList;
     };
 
-    class CopyCommandContext : public CommandContext
+    class PassEncoderBase
     {
-    public:
-        CopyCommandContext(GAPI::CommandList&& commandlist) : CommandContext(eastl::move(commandlist)) { }
+    protected:
+        PassEncoderBase(CommandContext& commandContext) : commandContext(&commandContext) { }
+        GAPI::CommandList& GetCommandList() { return commandContext->GetCommandList(); }
+
+        CommandContext* commandContext = nullptr;
     };
 
-    class ComputeCommandContext : public CopyCommandContext
+    class RenderPassEncoder final : private PassEncoderBase
     {
     public:
-        ComputeCommandContext(GAPI::CommandList&& commandlist) : CopyCommandContext(eastl::move(commandlist)) { }
-    };
-
-    class GraphicsCommandContext final : public ComputeCommandContext
-    {
-    public:
-        using UniquePtr = eastl::unique_ptr<GraphicsCommandContext>;
+        using UniquePtr = eastl::unique_ptr<RenderPassEncoder>;
 
     private:
         struct GeometryManager
@@ -72,10 +79,10 @@ namespace RR::Render
     private:
         friend class Render::DeviceContext;
 
-        GraphicsCommandContext(GAPI::CommandList&& commandlist) : ComputeCommandContext(eastl::move(commandlist)) { }
-        static UniquePtr Create(GAPI::CommandList&& commandlist)
+        RenderPassEncoder(CommandContext& commandContext) : PassEncoderBase(commandContext) { }
+        static UniquePtr Create(CommandContext& commandContext)
         {
-            return eastl::unique_ptr<GraphicsCommandContext>(new GraphicsCommandContext(eastl::move(commandlist)));
+            return eastl::unique_ptr<RenderPassEncoder>(new RenderPassEncoder(commandContext));
         }
 
         GAPI::Commands::GeometryLayout& flushLayout() { return geometryManager.flush(GetCommandList()); }

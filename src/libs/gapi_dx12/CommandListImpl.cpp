@@ -111,9 +111,7 @@ namespace RR::GAPI::DX12
     }
 
     void CommandListImpl::Compile(CommandList& commandList)
-    {
-
-        //ASSERT(commandList.size() != 0);
+    {;
         D3DCommandList->Reset(allocatorsPool.GetNextAllocator().get(), nullptr);
 
         CommandCompileContext ctx{ D3DCommandList.get() };

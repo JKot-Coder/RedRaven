@@ -88,13 +88,13 @@ namespace RR::Render
         multiThreadDevice->Compile(commandContext.GetCommandList());
     }
 
-    Render::GraphicsCommandContext::UniquePtr DeviceContext::CreateGraphicsCommandContext(const std::string& name) const
+    Render::CommandContext::UniquePtr DeviceContext::CreateCommandContext(const std::string& name) const
     {
         ASSERT(inited);
 
         GAPI::CommandList commandList(name);
         multiThreadDevice->InitCommandList(commandList);
-        auto resource = Render::GraphicsCommandContext::Create(eastl::move(commandList));
+        auto resource = Render::CommandContext::Create(eastl::move(commandList));
 
         return resource;
     }

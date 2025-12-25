@@ -104,8 +104,6 @@ namespace RR::GAPI::WebGPU
         auto commandEncoder = device.createCommandEncoder(commandEncoderDescriptor);
         CommandCompileContext ctx{ commandEncoder };
 
-        ASSERT(commandList.size() != 0);
-
         for (const auto* command : commandList)
         {
             switch (command->type)

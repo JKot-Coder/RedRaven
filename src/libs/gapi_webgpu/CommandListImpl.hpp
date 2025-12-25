@@ -19,6 +19,7 @@ namespace RR::GAPI::WebGPU
         {
             wgpu::CommandBuffer tmp = nullptr;
             eastl::swap(commandBuffer, tmp);
+            ASSERT(tmp);
             return tmp;
         }
 

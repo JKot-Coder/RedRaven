@@ -12,7 +12,7 @@
 namespace RR::Render
 {
 
-    GAPI::Commands::GeometryLayout& GraphicsCommandContext::GeometryManager::flush(GAPI::CommandList& commandList)
+    GAPI::Commands::GeometryLayout& RenderPassEncoder::GeometryManager::flush(GAPI::CommandList& commandList)
     {
         if (!dirty)
         {
@@ -36,19 +36,19 @@ namespace RR::Render
         return *currentLayout;
     }
 
-    void GraphicsCommandContext::GeometryManager::SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0)
+    void RenderPassEncoder::GeometryManager::SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0)
     {
         if (vertexBindings.size() > slot && vertexBindings[slot].vertexBuffer == &buffer && vertexBindings[slot].vertexBufferOffset == offset)
             return;
 
         if (vertexBindings.size() <= slot)
-            vertexBindings.resize(slot + 1, { nullptr, 0 });
+            vertexBindings.resize(slot + 1, {nullptr, 0});
 
-        vertexBindings[slot] = { &buffer, offset };
+        vertexBindings[slot] = {&buffer, offset};
         dirty = true;
     }
 
-    void GraphicsCommandContext::GeometryManager::SetIndexBuffer(const GAPI::Buffer* buffer)
+    void RenderPassEncoder::GeometryManager::SetIndexBuffer(const GAPI::Buffer* buffer)
     {
         if (currentLayout && currentLayout->indexBuffer == buffer)
             return;
@@ -57,13 +57,13 @@ namespace RR::Render
         dirty = true;
     }
 
-    void GraphicsCommandContext::SetRenderPass(const GAPI::RenderPassDesc& renderPass)
+    void RenderPassEncoder::SetRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
 
         graphicsParams.SetRenderTargetCount(renderPass.colorAttachmentCount);
 
-        for(size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
+        for (size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
         {
             const auto& colorAttachment = renderPass.colorAttachments[i];
             const auto* renderTargetView = colorAttachment.renderTargetView;
@@ -74,7 +74,7 @@ namespace RR::Render
         graphicsParams.SetDepthStencilFormat(depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown);
     }
 
-    void GraphicsCommandContext::Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
+    void RenderPassEncoder::Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)
     {
         ASSERT(effect);
         graphicsParams.SetPrimitiveTopology(topology);
@@ -88,7 +88,7 @@ namespace RR::Render
         GetCommandList().emplaceCommand<GAPI::Commands::Draw>(drawAttribs, pso, flushLayout());
     }
 
-    void GraphicsCommandContext::DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount)
+    void RenderPassEncoder::DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount)
     {
         ASSERT(effect);
 

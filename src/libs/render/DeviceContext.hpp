@@ -21,7 +21,7 @@ namespace RR
 namespace RR::Render
 {
     class CommandContext;
-    class GraphicsCommandContext;
+    class RenderPassEncoder;
     class Effect;
     struct EffectDesc;
 
@@ -49,11 +49,11 @@ namespace RR::Render
 
             submission.Submit(commandQueue, commandContext.GetCommandList());
 
-            commandContext.reset();
+            //commandContext.reset();
         }
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
-        eastl::unique_ptr<Render::GraphicsCommandContext> CreateGraphicsCommandContext(const std::string& name) const;
+        eastl::unique_ptr<Render::CommandContext> CreateCommandContext(const std::string& name) const;
         eastl::unique_ptr<Render::Effect> CreateEffect(const std::string& name, EffectDesc&& effectDesc) const;
         eastl::unique_ptr<GAPI::Shader> CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const;
         eastl::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name = "") const;
