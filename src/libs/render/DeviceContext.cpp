@@ -211,10 +211,7 @@ namespace RR::Render
         ASSERT(desc.GetNumSubresources() == 1);
         ASSERT(desc.bindFlags == GAPI::GpuResourceBindFlags::RenderTarget);
 
-        auto resource = GAPI::Texture::Create(desc, nullptr, name);
-        swapchain->UpdateCurrentBackBufferTexture(*resource.get());
-
-        return resource;
+        return GAPI::Texture::Create(desc, nullptr, name);
     }
 
     GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const

@@ -25,5 +25,6 @@ namespace RR::GAPI::WebGPU
     private:
         wgpu::SurfaceConfiguration surfaceConfiguration;
         wgpu::Surface surface;
+        wgpu::SurfaceTexture surfaceTexture;
     };
 }

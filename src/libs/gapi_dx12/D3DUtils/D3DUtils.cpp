@@ -153,7 +153,7 @@ namespace RR::GAPI::DX12::D3DUtils
         output.Scaling = DXGI_SCALING_NONE;
         output.SwapEffect = swapEffect;
         output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-        output.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+        output.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
         return output;
     }
 

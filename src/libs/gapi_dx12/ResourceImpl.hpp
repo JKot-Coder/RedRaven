@@ -30,6 +30,12 @@ namespace RR
             void* Map() override;
             void Unmap() override;
 
+            void UpdateTextureResource(const ComSharedPtr<ID3D12Resource>& resource)
+            {
+                ASSERT(resource);
+                // Hope caller knows what he is doing
+                D3DResource_ = resource;
+            }
             const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
         public:

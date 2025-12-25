@@ -265,7 +265,7 @@ namespace RR
                 ASSERT(dynamic_cast<SwapChainImpl*>(swapChain->GetPrivateImpl()));
                 auto swapChainImpl = static_cast<SwapChainImpl*>(swapChain->GetPrivateImpl());
 
-                auto result = swapChainImpl->Present(0);
+                auto result = swapChainImpl->Present();
 
                 // If the device was reset we must completely reinitialize the renderer.
                 if (result == DXGI_ERROR_DEVICE_REMOVED || result == DXGI_ERROR_DEVICE_RESET)

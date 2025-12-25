@@ -19,7 +19,7 @@ namespace RR
 
             virtual eastl::any GetWaitableObject() const override;
 
-            HRESULT Present(uint32_t interval);
+            HRESULT Present();
 
             const ComSharedPtr<IDXGISwapChain3>& GetD3DObject() const { return D3DSwapChain_; }
 

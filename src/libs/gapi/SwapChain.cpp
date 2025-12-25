@@ -36,9 +36,9 @@ namespace RR
 
         Texture::SharedPtr SwapChain::GetCurrentBackBufferTexture()
         {
-            // TODO  description_.width = 0 sometimes happends
             if (!backBuffer)
             {
+                // TODO  description_.width = 0 sometimes happends
                 const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.backBufferFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
                 auto& deviceContext = Render::DeviceContext::Instance();
                 backBuffer = deviceContext.CreateSwapChainBackBuffer(
@@ -48,6 +48,7 @@ namespace RR
             }
 
             UpdateCurrentBackBufferTexture(*backBuffer);
+            backBuffer->ReleaseRTV();
 
             return backBuffer;
         }

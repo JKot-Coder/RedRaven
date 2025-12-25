@@ -23,6 +23,10 @@ namespace RR::GAPI
         const DepthStencilView* GetDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
         const UnorderedAccessView* GetUAV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
 
+        void ReleaseRTV()
+        {
+            rtvs_.clear();
+        }
     private:
         EASTL_FRIEND_MAKE_SHARED;
 
