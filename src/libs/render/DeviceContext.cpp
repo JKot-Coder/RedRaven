@@ -30,7 +30,7 @@ namespace RR::Render
 
         inited = false;
         submission.ExecuteAwait([this](GAPI::Device& device) {
-            if(!GAPI::DX12::InitDevice(device))
+            if(!GAPI::WebGPU::InitDevice(device))
             {
                 Log::Format::Error("Failed to initialize device");
                 return;
