@@ -3,7 +3,7 @@ project (gapi)
 set(SRC
     Buffer.cpp
     Buffer.hpp
-    CommandList2.hpp
+    CommandList.hpp
     CommandQueue.hpp
     Device.hpp
     Fence.hpp

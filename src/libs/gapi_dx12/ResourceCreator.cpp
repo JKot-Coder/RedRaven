@@ -1,6 +1,6 @@
 #include "ResourceCreator.hpp"
 
-#include "gapi_dx12/CommandList2Impl.hpp"
+#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorManager.hpp"
 #include "gapi_dx12/DeviceContext.hpp"

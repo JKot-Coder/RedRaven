@@ -6,7 +6,7 @@
 #include "gapi/Shader.hpp"
 #include "gapi/Buffer.hpp"
 #include "gapi/Texture.hpp"
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/PipelineState.hpp"
 

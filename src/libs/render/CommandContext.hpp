@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gapi/ForwardDeclarations.hpp"
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/commands/Draw.hpp"
 
 #include "math/ForwardDeclarations.hpp"

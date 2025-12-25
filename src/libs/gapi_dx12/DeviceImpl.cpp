@@ -1,7 +1,7 @@
 #include "DeviceImpl.hpp"
 
 #include "gapi/Buffer.hpp"
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
@@ -10,7 +10,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
-#include "gapi_dx12/CommandList2Impl.hpp"
+#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorManager.hpp"

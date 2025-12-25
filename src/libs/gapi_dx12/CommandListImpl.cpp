@@ -1,10 +1,10 @@
-#include "CommandList2Impl.hpp"
+#include "CommandListImpl.hpp"
 
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandList.hpp"
 
 #include "gapi/commands/SetRenderPass.hpp"
 
