@@ -3,6 +3,7 @@
 //#include "gapi/CommandList.hpp"
 #include "gapi/Fence.hpp"
 
+#include "gapi_dx12/CommandList2Impl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -118,9 +119,33 @@ namespace RR
                 NOT_IMPLEMENTED();
             }
 
-            void CommandQueueImpl::Submit(CommandList2* commandList) {
-                UNUSED(commandList);
-                NOT_IMPLEMENTED();
+            void CommandQueueImpl::Submit(CommandList2* commandList)
+            {
+                ASSERT(D3DCommandQueue_);
+                ASSERT(commandList);
+
+                const auto commandListImpl = commandList->GetPrivateImpl<CommandList2Impl>();
+
+               // ASSERT(type_ == commandList->GetType());
+
+              //  if (waitForPendingUploads)
+              //      InitialDataUploder::Instance().FlushAndWaitFor(*this);
+
+                std::array<ID3D12CommandList*, 1> commandLists;
+                size_t numCommandLists = 0;
+
+                auto pushCommandList = [&commandLists, &numCommandLists](const CommandList2Impl& commandList) {
+                    const auto& d3dCommandList = commandList.GetD3DObject();
+                    ASSERT(d3dCommandList);
+
+                    commandLists[numCommandLists] = d3dCommandList.get();
+                    numCommandLists++;
+                };
+
+                pushCommandList(*commandListImpl);
+
+                D3DCommandQueue_->ExecuteCommandLists(numCommandLists, commandLists.data());
+              //  Signal(commandListImpl->GetSubmissionFence());
             }
 
             void CommandQueueImpl::Signal(FenceImpl& fence)

@@ -39,8 +39,10 @@ namespace RR::GAPI::DX12
     public:
         void Init(const CommandList2& commandList);
         void Compile(CommandList2& commandList);
+        const ComSharedPtr<ID3D12GraphicsCommandList4>& GetD3DObject() const { return D3DCommandList; }
 
     private:
         CommandAllocatorsPool allocatorsPool;
+        ComSharedPtr<ID3D12GraphicsCommandList4> D3DCommandList;
     };
 }

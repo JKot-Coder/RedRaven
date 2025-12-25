@@ -71,14 +71,20 @@ namespace RR::GAPI::DX12
     void CommandList2Impl::Init(const CommandList2& commandList)
     {
         // TODO proper command list type
-        allocatorsPool.Init(D3D12_COMMAND_LIST_TYPE_DIRECT, commandList.GetName());
-        UNUSED(commandList);
+        const auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        allocatorsPool.Init(type, commandList.GetName());
+
+        const auto allocator = allocatorsPool.GetNextAllocator();
+
+        D3DCall(DeviceContext::GetDevice()->CreateCommandList(0, type, allocator.get(), nullptr, IID_PPV_ARGS(D3DCommandList.put())));
+        D3DUtils::SetAPIName(D3DCommandList.get(), commandList.GetName());
     }
 
     void CommandList2Impl::Compile(CommandList2& commandList)
     {
 
         //ASSERT(commandList.size() != 0);
+        D3DCommandList->Reset(allocatorsPool.GetNextAllocator().get(), nullptr);
 
         for (const auto* command : commandList)
         {
@@ -96,7 +102,6 @@ namespace RR::GAPI::DX12
 
         commandList.clear();
 
-       // commandBuffer = commandEncoder.finish();
-        //commandEncoder.release();
+        D3DCommandList->Close();
     }
 }
