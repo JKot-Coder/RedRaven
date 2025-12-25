@@ -3,11 +3,9 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/Texture.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp" // TODO ??
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/InitialDataUploder.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
@@ -71,7 +69,7 @@ namespace RR
                 return D3D12_RESOURCE_STATE_COMMON;
             }
 
-            GpuResourceFootprint::SubresourceFootprint getSubresourceFootprint(const GpuResourceDescription& resourceDesc,
+            GpuResourceFootprint::SubresourceFootprint getSubresourceFootprint(const GpuResourceDesc& resourceDesc,
                                                                                const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout,
                                                                                UINT numRows,
                                                                                UINT64 rowSizeInBytes)
@@ -104,16 +102,14 @@ namespace RR
             allocation_ = nullptr;
         }
 
-        void ResourceImpl::Init(const std::shared_ptr<GpuResource>& resource)
+        void ResourceImpl::Init(const GpuResource& resource)
         {
-            ASSERT(resource);
-
-            const auto& desc = resource->GetDescription();
+            const auto& desc = resource.GetDesc();
             const auto usage = desc.usage;
-            Init(desc, resource->GetName());
+            Init(desc, resource.GetName());
 
             // TODO UPDATE THIS CODE
-            const auto& initialData = resource->GetInitialData();
+          /*  const auto& initialData = resource.GetInitialData();
             ASSERT_MSG(!initialData || (usage == GpuResourceUsage::Default) || (usage == GpuResourceUsage::Upload), "Initial resource data can only be applied to a resource with 'Default' or 'Upload' usage.");
             if (initialData)
             {
@@ -141,10 +137,10 @@ namespace RR
             }
 
             if (initialData)
-                resource->ResetInitialData();
+                resource->ResetInitialData();*/
         }
 
-        void ResourceImpl::Init(const GpuResourceDescription& resourceDesc, const std::string& name)
+        void ResourceImpl::Init(const GpuResourceDesc& resourceDesc, const std::string& name)
         {
             // TextureDesc ASSERT checks done on Texture initialization;
             ASSERT(!D3DResource_);
@@ -201,7 +197,7 @@ namespace RR
             D3DUtils::SetAPIName(D3DResource_.get(), name);
         }
 
-        GpuResourceFootprint ResourceImpl::GetFootprint(const GpuResourceDescription& resourceDesc)
+        GpuResourceFootprint ResourceImpl::GetFootprint(const GpuResourceDesc& resourceDesc)
         {
             const auto& device = DeviceContext::GetDevice();
             const auto numSubresources = resourceDesc.GetNumSubresources();
@@ -229,7 +225,7 @@ namespace RR
             return footprint;
         }
 
-        std::vector<GpuResourceFootprint::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDescription& resourceDesc) const
+        std::vector<GpuResourceFootprint::SubresourceFootprint> ResourceImpl::GetSubresourceFootprints(const GpuResourceDesc& resourceDesc) const
         {
             const auto& device = DeviceContext::GetDevice();
 

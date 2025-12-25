@@ -67,24 +67,24 @@ namespace RR
                 }
 
                 template <typename DescType>
-                void initDsvRtvUavBufferDesc(DescType& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc);
+                void initDsvRtvUavBufferDesc(DescType& description, const GpuResourceDesc& gpuResDesc, const GpuResourceViewDesc& viewDesc);
 
                 template <>
-                void initDsvRtvUavBufferDesc(D3D12_DEPTH_STENCIL_VIEW_DESC& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
+                void initDsvRtvUavBufferDesc(D3D12_DEPTH_STENCIL_VIEW_DESC& description, const GpuResourceDesc& gpuResDesc, const GpuResourceViewDesc& viewDesc)
                 {
                     UNUSED(description, gpuResDesc, viewDesc);
                     LOG_FATAL("Unsupported resource view type");
                 }
 
                 template <>
-                void initDsvRtvUavBufferDesc(D3D12_RENDER_TARGET_VIEW_DESC& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
+                void initDsvRtvUavBufferDesc(D3D12_RENDER_TARGET_VIEW_DESC& description, const GpuResourceDesc& gpuResDesc, const GpuResourceViewDesc& viewDesc)
                 {
                     UNUSED(description, gpuResDesc, viewDesc);
                     LOG_FATAL("Unsupported resource view type");
                 }
 
                 template <>
-                void initDsvRtvUavBufferDesc(D3D12_UNORDERED_ACCESS_VIEW_DESC& description, const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
+                void initDsvRtvUavBufferDesc(D3D12_UNORDERED_ACCESS_VIEW_DESC& description, const GpuResourceDesc& gpuResDesc, const GpuResourceViewDesc& viewDesc)
                 {
                     description.Buffer.StructureByteStride = gpuResDesc.buffer.stride;
                     description.Buffer.CounterOffsetInBytes = 0;
@@ -100,7 +100,7 @@ namespace RR
                 }
 
                 template <typename DescType>
-                DescType createDsvRtvUavDescCommon(const GpuResourceDescription& gpuResDesc, const GpuResourceViewDescription& viewDesc)
+                DescType createDsvRtvUavDescCommon(const GpuResourceDesc& gpuResDesc, const GpuResourceViewDesc& viewDesc)
                 {
                     DescType result = {};
 
@@ -152,7 +152,7 @@ namespace RR
                 }
 
                 template <typename DescType>
-                DescType createDsvRtvDesc(const GpuResourceDescription& gpuResourceDescription, const GpuResourceViewDescription& description)
+                DescType createDsvRtvDesc(const GpuResourceDesc& gpuResourceDescription, const GpuResourceViewDesc& description)
                 {
                     static_assert(std::is_same<DescType, D3D12_DEPTH_STENCIL_VIEW_DESC>::value || std::is_same<DescType, D3D12_RENDER_TARGET_VIEW_DESC>::value);
 
@@ -169,19 +169,19 @@ namespace RR
                     return result;
                 }
 
-                D3D12_DEPTH_STENCIL_VIEW_DESC createDsvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
+                D3D12_DEPTH_STENCIL_VIEW_DESC createDsvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDesc& description)
                 {
-                    return createDsvRtvDesc<D3D12_DEPTH_STENCIL_VIEW_DESC>(resource->GetDescription(), description);
+                    return createDsvRtvDesc<D3D12_DEPTH_STENCIL_VIEW_DESC>(resource->GetDesc(), description);
                 }
 
-                D3D12_RENDER_TARGET_VIEW_DESC createRtvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
+                D3D12_RENDER_TARGET_VIEW_DESC createRtvDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDesc& description)
                 {
-                    return createDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(resource->GetDescription(), description);
+                    return createDsvRtvDesc<D3D12_RENDER_TARGET_VIEW_DESC>(resource->GetDesc(), description);
                 }
 
-                D3D12_UNORDERED_ACCESS_VIEW_DESC createUavDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDescription& description)
+                D3D12_UNORDERED_ACCESS_VIEW_DESC createUavDesc(const GpuResource::SharedPtr& resource, const GpuResourceViewDesc& description)
                 {
-                    return createDsvRtvUavDescCommon<D3D12_UNORDERED_ACCESS_VIEW_DESC>(resource->GetDescription(), description);
+                    return createDsvRtvUavDescCommon<D3D12_UNORDERED_ACCESS_VIEW_DESC>(resource->GetDesc(), description);
                 }
 
                 std::shared_ptr<DescriptorHeap> createDescpriptiorHeap(const DescriptorHeap::DescriptorHeapDesc& desc)
@@ -265,14 +265,14 @@ namespace RR
                     case GpuResourceView::ViewType::RenderTargetView:
                     {
                         rtvDescriptorHeap_->Allocate(*descriptor);
-                        const auto& desc = createRtvDesc(resourceSharedPtr, resourceView.GetDescription());
+                        const auto& desc = createRtvDesc(resourceSharedPtr, resourceView.GetDesc());
                         DeviceContext::GetDevice()->CreateRenderTargetView(resourceD3dObject.get(), &desc, descriptor->GetCPUHandle());
                     }
                     break;
                     case GpuResourceView::ViewType::UnorderedAccessView:
                     {
                         cbvUavSrvDescriptorHeap_->Allocate(*descriptor);
-                        const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDescription());
+                        const auto& desc = createUavDesc(resourceSharedPtr, resourceView.GetDesc());
                         DeviceContext::GetDevice()->CreateUnorderedAccessView(resourceD3dObject.get(), nullptr, &desc, descriptor->GetCPUHandle());
                     }
                     break;

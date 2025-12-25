@@ -6,7 +6,6 @@ namespace RR
 {
     namespace GAPI::DX12
     {
-        class CommandListImpl;
         class FenceImpl;
 
         class CommandQueueImpl final : public ICommandQueue
@@ -23,11 +22,11 @@ namespace RR
             void ImmediateD3DObjectRelease();
 
             void Init(const std::string& name);
-            void Submit(const std::shared_ptr<CommandList>& commandList) override;
-            void Submit(CommandListImpl& commandList, bool waitForPendingUploads);
+            void Signal(const eastl::shared_ptr<Fence>& fence) override;
+            void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) override;
+            void Submit(const eastl::shared_ptr<CommandList>& commandList) override;
+            void Submit(CommandList2* commandList) override;
 
-            void Signal(const std::shared_ptr<Fence>& fence) override;
-            void Signal(const std::shared_ptr<Fence>& fence, uint64_t value) override;
             void Signal(FenceImpl& fence);
             void Signal(FenceImpl& fence, uint64_t value);
 

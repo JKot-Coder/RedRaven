@@ -468,6 +468,10 @@ namespace RR
         class GpuResource : public Resource<IGpuResource>, public eastl::enable_shared_from_this<GpuResource>
         {
         public:
+            using SharedPtr = eastl::shared_ptr<GpuResource>;
+            using SharedConstPtr = eastl::shared_ptr<const GpuResource>;
+
+        public:
             template <typename Type>
             eastl::shared_ptr<Type> GetTyped();
 

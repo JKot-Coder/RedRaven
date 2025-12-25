@@ -1,22 +1,20 @@
 #include "DeviceImpl.hpp"
 
 #include "gapi/Buffer.hpp"
-#include "gapi/CommandList.hpp"
+#include "gapi/CommandList2.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Device.hpp"
 #include "gapi/Fence.hpp"
 #include "gapi/Frame.hpp"
-#include "gapi/Object.hpp"
+#include "gapi/GpuResource.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorManager.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/InitialDataUploder.hpp"
 #include "gapi_dx12/ResourceCreator.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
@@ -63,7 +61,7 @@ namespace RR
                 waitForGpu();
                 waitForGpu();
 
-                InitialDataUploder::Instance().Terminate();
+               // InitialDataUploder::Instance().Terminate();
                 DescriptorManager::Instance().Terminate();
                 ResourceReleaseContext::Instance().Terminate();
 
@@ -74,7 +72,7 @@ namespace RR
                 dxgiFactory_ = nullptr;
                 dxgiAdapter_ = nullptr;
 
-                if (description_.debugMode != IDevice::DebugMode::Retail)
+                if (description_.debugMode != DeviceDesc::DebugMode::Retail)
                 {
                     ComSharedPtr<ID3D12DebugDevice> debugLayer;
 
@@ -91,7 +89,7 @@ namespace RR
                 d3dDevice_ = nullptr;
             }
 
-            bool DeviceImpl::Init(const IDevice::Description& description)
+            bool DeviceImpl::Init(const DeviceDesc& description)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT(!inited_);
@@ -118,7 +116,7 @@ namespace RR
 
                 ResourceReleaseContext::Instance().Init();
                 DescriptorManager::Instance().Init();
-                InitialDataUploder::Instance().Init();
+                //InitialDataUploder::Instance().Init();
 
                 DeviceContext::Init(
                     allocator,
@@ -139,16 +137,10 @@ namespace RR
                 ResourceReleaseContext::ExecuteDeferredDeletions(DeviceContext::GetGraphicsCommandQueue());
             }
 
-            GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDescription& description) const
+            GpuResourceFootprint DeviceImpl::GetResourceFootprint(const GpuResourceDesc& description) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceImpl::GetFootprint(description);
-            }
-
-            void DeviceImpl::InitFramebuffer(Framebuffer& resource) const
-            {
-                ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::InitFramebuffer(resource);
             }
 
             void DeviceImpl::InitSwapChain(SwapChain& resource) const
@@ -169,32 +161,30 @@ namespace RR
                 return ResourceCreator::InitCommandQueue(resource);
             }
 
-            void DeviceImpl::InitCommandList(CommandList& resource) const
+            void DeviceImpl::InitCommandList2(CommandList2& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::InitCommandList(resource);
+                return ResourceCreator::InitCommandList2(resource);
             }
 
-            void DeviceImpl::InitTexture(const std::shared_ptr<Texture>& resource) const
+            void DeviceImpl::InitTexture(Texture& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                ASSERT(resource);
                 auto impl = std::make_unique<ResourceImpl>();
                 impl->Init(resource);
 
-                resource->SetPrivateImpl(impl.release());
+                resource.SetPrivateImpl(impl.release());
             }
 
-            void DeviceImpl::InitBuffer(const std::shared_ptr<Buffer>& resource) const
+            void DeviceImpl::InitBuffer(Buffer& resource, const BufferData* initialData) const
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                ASSERT(resource);
                 auto impl = std::make_unique<ResourceImpl>();
                 impl->Init(resource);
 
-                resource->SetPrivateImpl(impl.release());
+                resource.SetPrivateImpl(impl.release());
             }
 
             void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
@@ -223,7 +213,7 @@ namespace RR
 
             }*/
 
-            void DeviceImpl::Present(const SwapChain::SharedPtr& swapChain)
+            void DeviceImpl::Present(SwapChain* swapChain)
             {
                 ASSERT_IS_CREATION_THREAD;
                 ASSERT_IS_DEVICE_INITED;
@@ -286,7 +276,7 @@ namespace RR
 
                 // Enable the debug layer (requires the Graphics Tools "optional feature").
                 // NOTE: Enabling the debug layer after device creation will invalidate the active device.
-                if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
+                if (description_.debugMode == DeviceDesc::DebugMode::Debug || description_.debugMode == DeviceDesc::DebugMode::Instrumented)
                 {
                     ComSharedPtr<ID3D12Debug1> debugController;
                     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.put()))))
@@ -294,7 +284,7 @@ namespace RR
                         debugController->EnableDebugLayer();
                         debugController->SetEnableGPUBasedValidation(true);
 
-                        if (description_.debugMode == IDevice::DebugMode::Debug)
+                        if (description_.debugMode == DeviceDesc::DebugMode::Debug)
                         {
                             debugController->SetEnableSynchronizedCommandQueueValidation(true);
                         }
@@ -337,7 +327,7 @@ namespace RR
 
                 D3DUtils::SetAPIName(d3dDevice_.get(), "Main");
 
-                if (description_.debugMode == IDevice::DebugMode::Debug || description_.debugMode == IDevice::DebugMode::Instrumented)
+                if (description_.debugMode == DeviceDesc::DebugMode::Debug || description_.debugMode == DeviceDesc::DebugMode::Instrumented)
                 {
                     // Configure debug device (if active).
                     ComSharedPtr<ID3D12InfoQueue> d3dInfoQueue;

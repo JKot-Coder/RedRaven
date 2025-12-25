@@ -20,16 +20,12 @@ set(D3D_UTILS_SRC
 source_group( "D3DUtils" FILES ${D3D_UTILS_SRC} )
 
 set(IMPL_SRC
-    CommandListImpl.cpp
-    CommandListImpl.hpp
     CommandQueueImpl.cpp
     CommandQueueImpl.hpp
     DeviceImpl.cpp
     DeviceImpl.hpp
     FenceImpl.cpp
     FenceImpl.hpp
-    FramebufferImpl.cpp
-    FramebufferImpl.hpp
     PipelineStateImpl.cpp
     PipelineStateImpl.hpp
     ResourceImpl.cpp
@@ -52,8 +48,6 @@ set(SRC
     Device.hpp
     DeviceContext.cpp
     DeviceContext.hpp
-    InitialDataUploder.cpp
-    InitialDataUploder.hpp
     pch.hpp
     ResourceCreator.cpp
     ResourceCreator.hpp

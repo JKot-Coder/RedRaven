@@ -1,39 +1,27 @@
 #include "ResourceCreator.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorManager.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/FramebufferImpl.hpp"
 #include "gapi_dx12/ResourceImpl.hpp"
 #include "gapi_dx12/ResourceViewsImpl.hpp"
 #include "gapi_dx12/SwapChainImpl.hpp"
 
-#include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
 #include "gapi/Fence.hpp"
-#include "gapi/Framebuffer.hpp"
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
-#include "gapi/Object.hpp"
+#include "gapi/Resource.hpp"
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
 namespace RR::GAPI::DX12
 {
-    void ResourceCreator::InitFramebuffer(Framebuffer& resource)
-    {
-        auto impl = std::make_unique<FramebufferImpl>();
-        impl->Init(resource.GetDescription());
-
-        resource.SetPrivateImpl(impl.release());
-    }
-
     void ResourceCreator::InitSwapChain(SwapChain& resource)
     {
         auto impl = std::make_unique<SwapChainImpl>();
-        impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDescription());
+        impl->Init(DeviceContext::GetDevice(), DeviceContext::GetDxgiFactory(), DeviceContext::GetGraphicsCommandQueue()->GetD3DObject(), resource.GetDesc());
 
         resource.SetPrivateImpl(impl.release());
     }
@@ -70,13 +58,14 @@ namespace RR::GAPI::DX12
         resource.SetPrivateImpl(impl.release());
     }
 
+    /*
     void ResourceCreator::InitCommandList(CommandList& resource)
     {
         auto impl = std::make_unique<CommandListImpl>(resource.GetCommandListType());
         impl->Init(resource.GetName());
 
         resource.SetPrivateImpl(static_cast<ICommandList*>(impl.release()));
-    }
+    }*/
 
     void ResourceCreator::InitGpuResourceView(GpuResourceView& object)
     {

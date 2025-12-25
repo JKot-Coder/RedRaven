@@ -1,6 +1,5 @@
 #include "InitialDataUploder.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"

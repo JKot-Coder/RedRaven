@@ -13,7 +13,6 @@ namespace RR
 
     namespace GAPI::DX12
     {
-        class CommandListImpl;
         class CommandQueueImpl;
         class FenceImpl;
         class ResourceImpl;

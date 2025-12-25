@@ -18,14 +18,14 @@ namespace RR
             ~ResourceImpl();
 
             void DestroyImmediatly() override;
-            void Init(const std::shared_ptr<GpuResource>& resource);
-            void Init(const GpuResourceDescription& resourceDesc, const std::string& name);
+            void Init(const GpuResource& resource);
+            void Init(const GpuResourceDesc& resourceDesc, const std::string& name);
             void Init(const ComSharedPtr<ID3D12Resource>& resource, D3D12MA::Allocation* allocation, const std::string& name);
 
             std::any GetRawHandle() const override { return D3DResource_.get(); }
             D3D12_RESOURCE_STATES GetDefaultResourceState() const { return defaultState_; }
 
-            std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDescription& desc) const override;
+            std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints(const GpuResourceDesc& desc) const override;
 
             void* Map() override;
             void Unmap() override;
@@ -33,7 +33,7 @@ namespace RR
             const ComSharedPtr<ID3D12Resource>& GetD3DObject() const { return D3DResource_; }
 
         public:
-            static GpuResourceFootprint GetFootprint(const GpuResourceDescription& resourceDesc);
+            static GpuResourceFootprint GetFootprint(const GpuResourceDesc& resourceDesc);
 
         private:
             ComSharedPtr<ID3D12Resource> D3DResource_;

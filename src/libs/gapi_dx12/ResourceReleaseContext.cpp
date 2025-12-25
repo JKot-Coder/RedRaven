@@ -1,7 +1,6 @@
 #include "ResourceReleaseContext.hpp"
 
 #include "gapi_dx12/CommandQueueImpl.hpp"
-#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/third_party/d3d12_memory_allocator/D3D12MemAlloc.h"
 

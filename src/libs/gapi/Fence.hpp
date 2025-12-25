@@ -38,7 +38,7 @@ namespace RR
             }
 
             Fence(const std::string& name)
-                : Resource(Object::Type::Fence, name)
+                : Resource(Resource::Type::Fence, name)
             {
             }
 

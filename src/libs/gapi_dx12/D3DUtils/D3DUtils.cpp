@@ -82,7 +82,7 @@ namespace RR::GAPI::DX12::D3DUtils
         return d3d;
     }
 
-    D3D12_RESOURCE_DESC GetResourceDesc(const GpuResourceDescription& resourceDesc)
+    D3D12_RESOURCE_DESC GetResourceDesc(const GpuResourceDesc& resourceDesc)
     {
         ASSERT(resourceDesc.IsValid());
 
@@ -136,20 +136,20 @@ namespace RR::GAPI::DX12::D3DUtils
                 left.Flags == right.Flags);
     }
 
-    DXGI_SWAP_CHAIN_DESC1 GetDxgiSwapChainDesc1(const SwapChainDescription& description, DXGI_SWAP_EFFECT swapEffect)
+    DXGI_SWAP_CHAIN_DESC1 GetDxgiSwapChainDesc1(const SwapChainDesc& description, DXGI_SWAP_EFFECT swapEffect)
     {
         ASSERT(description.width >= 0);
         ASSERT(description.height >= 0);
-        ASSERT(description.bufferCount > 0 && description.bufferCount <= MAX_BACK_BUFFER_COUNT);
+        ASSERT(description.backBuffersCount > 0 && description.backBuffersCount <= MAX_BACK_BUFFERS_COUNT);
 
         DXGI_SWAP_CHAIN_DESC1 output;
         output.Width = description.width;
         output.Height = description.height;
-        output.Format = GetDxgiResourceFormat(description.gpuResourceFormat);
-        output.Stereo = (description.isStereo) ? TRUE : FALSE;
+        output.Format = GetDxgiResourceFormat(description.backBufferFormat);
+        output.Stereo = FALSE;
         output.SampleDesc = {1, 0};
         output.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        output.BufferCount = description.bufferCount;
+        output.BufferCount = description.backBuffersCount;
         output.Scaling = DXGI_SCALING_NONE;
         output.SwapEffect = swapEffect;
         output.AlphaMode = DXGI_ALPHA_MODE_IGNORE;

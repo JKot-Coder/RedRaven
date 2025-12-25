@@ -13,13 +13,11 @@ namespace RR
             SwapChainImpl() = default;
             ~SwapChainImpl();
 
-            void Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDescription& description);
-            void Reset(const SwapChainDescription& description, const Texture** backBuffers) override;
+            void Init(const ComSharedPtr<ID3D12Device>& device, const ComSharedPtr<IDXGIFactory2>& dxgiFactory, const ComSharedPtr<ID3D12CommandQueue>& commandQueue, const SwapChainDesc& description);
+            void UpdateCurrentBackBufferTexture(Texture& resource) const override;
+            void Resize(uint32_t width, uint32_t height) override;
 
-            virtual std::any GetWaitableObject() const override;
-            uint32_t GetCurrentBackBufferIndex() const override;
-
-            void InitBackBufferTexture(uint32_t backBufferIndex, const std::shared_ptr<Texture>& resource) override;
+            virtual eastl::any GetWaitableObject() const override;
 
             HRESULT Present(uint32_t interval);
 

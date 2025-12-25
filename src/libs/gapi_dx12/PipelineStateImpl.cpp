@@ -1,6 +1,5 @@
 #include "PipelineStateImpl.hpp"
 
-#include "gapi/Framebuffer.hpp"
 #include "gapi/PipelineState.hpp"
 
 #include "gapi_dx12/DeviceContext.hpp"
@@ -11,9 +10,6 @@ namespace RR
 {
     namespace GAPI::DX12
     {
-       
-
-
         struct InputLayout
         {
             enum class InputClass : uint32_t
@@ -43,25 +39,25 @@ namespace RR
 
         namespace
         {
-            D3D12_BLEND getD3D12BlendFunc(BlendFunc func)
+            D3D12_BLEND getD3D12BlendFunc(BlendFactor func)
             {
                 switch (func)
                 {
-                    case BlendFunc::Zero: return D3D12_BLEND_ZERO;
-                    case BlendFunc::One: return D3D12_BLEND_ONE;
-                    case BlendFunc::SrcColor: return D3D12_BLEND_SRC_COLOR;
-                    case BlendFunc::OneMinusSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
-                    case BlendFunc::DstColor: return D3D12_BLEND_DEST_COLOR;
-                    case BlendFunc::OneMinusDstColor: return D3D12_BLEND_INV_DEST_COLOR;
-                    case BlendFunc::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
-                    case BlendFunc::OneMinusSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
-                    case BlendFunc::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
-                    case BlendFunc::OneMinusDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
-                    case BlendFunc::SrcAlphaSaturate: return D3D12_BLEND_SRC_ALPHA_SAT;
-                    case BlendFunc::Src1Color: return D3D12_BLEND_INV_SRC1_COLOR;
-                    case BlendFunc::OneMinusSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
-                    case BlendFunc::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
-                    case BlendFunc::OneMinusSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
+                    case BlendFactor::Zero: return D3D12_BLEND_ZERO;
+                    case BlendFactor::One: return D3D12_BLEND_ONE;
+                    case BlendFactor::SrcColor: return D3D12_BLEND_SRC_COLOR;
+                    case BlendFactor::OneMinusSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
+                    case BlendFactor::DstColor: return D3D12_BLEND_DEST_COLOR;
+                    case BlendFactor::OneMinusDstColor: return D3D12_BLEND_INV_DEST_COLOR;
+                    case BlendFactor::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
+                    case BlendFactor::OneMinusSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
+                    case BlendFactor::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
+                    case BlendFactor::OneMinusDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
+                    case BlendFactor::SrcAlphaSaturate: return D3D12_BLEND_SRC_ALPHA_SAT;
+                    case BlendFactor::Src1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+                    case BlendFactor::OneMinusSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+                    case BlendFactor::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
+                    case BlendFactor::OneMinusSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
                     default: ASSERT_MSG(false, "Unknown blend func"); return (D3D12_BLEND)0;
                 }
             }
@@ -132,57 +128,57 @@ namespace RR
                 }
             }
 
-            D3D12_PRIMITIVE_TOPOLOGY_TYPE getD3DPrimitiveTopologyType(GraphicPipelineStateDesc::PrimitiveTopology topology)
+            D3D12_PRIMITIVE_TOPOLOGY_TYPE getD3DPrimitiveTopologyType(PrimitiveTopology topology)
             {
                 switch (topology)
                 {
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PointList:
+                    case PrimitiveTopology::PointList:
                         return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 
-                    case GraphicPipelineStateDesc::PrimitiveTopology::LineList:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::LineStrip:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::LineListAdj:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::LineStripAdj:
+                    case PrimitiveTopology::LineList:
+                    case PrimitiveTopology::LineStrip:
+                    case PrimitiveTopology::LineListAdj:
+                    case PrimitiveTopology::LineStripAdj:
                         return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
 
-                    case GraphicPipelineStateDesc::PrimitiveTopology::TriangleList:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::TriangleStrip:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::TriangleListAdj:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::TriangleStripAdj:
+                    case PrimitiveTopology::TriangleList:
+                    case PrimitiveTopology::TriangleStrip:
+                    case PrimitiveTopology::TriangleListAdj:
+                    case PrimitiveTopology::TriangleStripAdj:
                         return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_1:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_2:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_3:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_4:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_5:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_6:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_7:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_8:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_9:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_10:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_11:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_12:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_13:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_14:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_15:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_16:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_17:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_18:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_19:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_20:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_21:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_22:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_23:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_24:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_25:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_26:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_27:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_28:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_29:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_30:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_31:
-                    case GraphicPipelineStateDesc::PrimitiveTopology::PathListControlPoint_32:
+                    case PrimitiveTopology::PathListControlPoint_1:
+                    case PrimitiveTopology::PathListControlPoint_2:
+                    case PrimitiveTopology::PathListControlPoint_3:
+                    case PrimitiveTopology::PathListControlPoint_4:
+                    case PrimitiveTopology::PathListControlPoint_5:
+                    case PrimitiveTopology::PathListControlPoint_6:
+                    case PrimitiveTopology::PathListControlPoint_7:
+                    case PrimitiveTopology::PathListControlPoint_8:
+                    case PrimitiveTopology::PathListControlPoint_9:
+                    case PrimitiveTopology::PathListControlPoint_10:
+                    case PrimitiveTopology::PathListControlPoint_11:
+                    case PrimitiveTopology::PathListControlPoint_12:
+                    case PrimitiveTopology::PathListControlPoint_13:
+                    case PrimitiveTopology::PathListControlPoint_14:
+                    case PrimitiveTopology::PathListControlPoint_15:
+                    case PrimitiveTopology::PathListControlPoint_16:
+                    case PrimitiveTopology::PathListControlPoint_17:
+                    case PrimitiveTopology::PathListControlPoint_18:
+                    case PrimitiveTopology::PathListControlPoint_19:
+                    case PrimitiveTopology::PathListControlPoint_20:
+                    case PrimitiveTopology::PathListControlPoint_21:
+                    case PrimitiveTopology::PathListControlPoint_22:
+                    case PrimitiveTopology::PathListControlPoint_23:
+                    case PrimitiveTopology::PathListControlPoint_24:
+                    case PrimitiveTopology::PathListControlPoint_25:
+                    case PrimitiveTopology::PathListControlPoint_26:
+                    case PrimitiveTopology::PathListControlPoint_27:
+                    case PrimitiveTopology::PathListControlPoint_28:
+                    case PrimitiveTopology::PathListControlPoint_29:
+                    case PrimitiveTopology::PathListControlPoint_30:
+                    case PrimitiveTopology::PathListControlPoint_31:
+                    case PrimitiveTopology::PathListControlPoint_32:
                         return D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
 
                     default: ASSERT_MSG(false, "Unknown topology"); return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
@@ -219,7 +215,7 @@ namespace RR
                 d3dBlendDesc.AlphaToCoverageEnable = blendDesc.alphaToCoverageEnabled;
                 d3dBlendDesc.IndependentBlendEnable = blendDesc.independentBlendEnabled;
 
-                static_assert(std::size(BlendDesc {}.rtBlend) == std::size(D3D12_BLEND_DESC {}.RenderTarget));
+                static_assert(MAX_RENDER_TARGETS_COUNT == std::size(D3D12_BLEND_DESC {}.RenderTarget));
 
                 // If IndependentBlendEnable set to FALSE, only the RenderTarget[0] members are used
                 uint32_t numRTs = d3dBlendDesc.IndependentBlendEnable ? blendDesc.rtBlend.size() : 1;
@@ -234,11 +230,11 @@ namespace RR
 
                     d3dRtDesc.BlendEnable = rtDesc.blendEnabled;
                     d3dRtDesc.BlendOp = getD3D12BlendOp(rtDesc.rgbBlendOp);
-                    d3dRtDesc.SrcBlend = getD3D12BlendFunc(rtDesc.srcRgbFunc);
-                    d3dRtDesc.DestBlend = getD3D12BlendFunc(rtDesc.dstRgbFunc);
+                    d3dRtDesc.SrcBlend = getD3D12BlendFunc(rtDesc.srcRgb);
+                    d3dRtDesc.DestBlend = getD3D12BlendFunc(rtDesc.dstRgb);
                     d3dRtDesc.BlendOpAlpha = getD3D12BlendOp(rtDesc.alphaBlendOp);
-                    d3dRtDesc.SrcBlendAlpha = getD3D12BlendFunc(rtDesc.srcAlphaFunc);
-                    d3dRtDesc.DestBlendAlpha = getD3D12BlendFunc(rtDesc.dstAlphaFunc);
+                    d3dRtDesc.SrcBlendAlpha = getD3D12BlendFunc(rtDesc.srcAlpha);
+                    d3dRtDesc.DestBlendAlpha = getD3D12BlendFunc(rtDesc.dstAlpha);
 
                     d3dRtDesc.RenderTargetWriteMask = IsSet(rtDesc.writeMask, WriteMask::Red) ? D3D12_COLOR_WRITE_ENABLE_RED : 0;
                     d3dRtDesc.RenderTargetWriteMask |= IsSet(rtDesc.writeMask, WriteMask::Green) ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0;
@@ -332,9 +328,9 @@ namespace RR
             d3d12psoDesc.PrimitiveTopologyType = getD3DPrimitiveTopologyType(gpsoDesc.primitiveTopology);
 
             uint32_t numRenderTargets = 0;
-            for (uint32_t rtIndex = 0; rtIndex < gpsoDesc.framebufferDesc.renderTargetViews.size(); ++rtIndex)
+            for (uint32_t rtIndex = 0; rtIndex < gpsoDesc.renderTargetCount; ++rtIndex)
             {
-                const auto format = gpsoDesc.framebufferDesc.renderTargetViews[rtIndex]->GetDescription().format;
+                const auto format = gpsoDesc.renderTargetFormats[rtIndex];
                 d3d12psoDesc.RTVFormats[rtIndex] = D3DUtils::GetDxgiResourceFormat(format);
 
                 if (format == GpuResourceFormat::Unknown)
@@ -344,8 +340,8 @@ namespace RR
             }
 
             d3d12psoDesc.NumRenderTargets = numRenderTargets;
-            d3d12psoDesc.DSVFormat = D3DUtils::GetDxgiResourceFormat(gpsoDesc.framebufferDesc.depthStencilView->GetDescription().format);
-            d3d12psoDesc.SampleDesc = D3DUtils::GetSampleDesc(gpsoDesc.framebufferDesc.multisampleType);
+            d3d12psoDesc.DSVFormat = D3DUtils::GetDxgiResourceFormat(gpsoDesc.depthStencilFormat);
+            d3d12psoDesc.SampleDesc = {1, 0};///D3DUtils::GetSampleDesc(gpsoDesc.multisampleType);
             d3d12psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 
             /*

@@ -1,12 +1,10 @@
 #include "CommandQueueImpl.hpp"
 
-#include "gapi/CommandList.hpp"
+//#include "gapi/CommandList.hpp"
 #include "gapi/Fence.hpp"
 
-#include "gapi_dx12/CommandListImpl.hpp"
 #include "gapi_dx12/DeviceContext.hpp"
 #include "gapi_dx12/FenceImpl.hpp"
-#include "gapi_dx12/InitialDataUploder.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
 namespace RR
@@ -52,7 +50,7 @@ namespace RR
                 fence_ = std::make_shared<FenceImpl>();
                 fence_->Init(name);
             }
-
+/*
             void CommandQueueImpl::Submit(CommandListImpl& commandList, bool waitForPendingUploads)
             {
                 ASSERT(D3DCommandQueue_);
@@ -101,7 +99,7 @@ namespace RR
                 ASSERT(fence);
                 ASSERT(fence->GetPrivateImpl<FenceImpl>());
                 Signal(*fence->GetPrivateImpl<FenceImpl>(), value);
-            }
+            }*/
 
             void CommandQueueImpl::Signal(FenceImpl& fence)
             {
