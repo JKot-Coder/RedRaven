@@ -120,6 +120,8 @@ namespace RR::GAPI::WebGPU
             }
         }
 
+        commandList.clear();
+
         commandBuffer = commandEncoder.finish();
         commandEncoder.release();
     }
