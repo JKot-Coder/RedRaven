@@ -119,12 +119,12 @@ namespace RR
                 NOT_IMPLEMENTED();
             }
 
-            void CommandQueueImpl::Submit(CommandList2* commandList)
+            void CommandQueueImpl::Submit(CommandList* commandList)
             {
                 ASSERT(D3DCommandQueue_);
                 ASSERT(commandList);
 
-                const auto commandListImpl = commandList->GetPrivateImpl<CommandList2Impl>();
+                const auto commandListImpl = commandList->GetPrivateImpl<CommandListImpl>();
 
                // ASSERT(type_ == commandList->GetType());
 
@@ -134,7 +134,7 @@ namespace RR
                 std::array<ID3D12CommandList*, 1> commandLists;
                 size_t numCommandLists = 0;
 
-                auto pushCommandList = [&commandLists, &numCommandLists](const CommandList2Impl& commandList) {
+                auto pushCommandList = [&commandLists, &numCommandLists](const CommandListImpl& commandList) {
                     const auto& d3dCommandList = commandList.GetD3DObject();
                     ASSERT(d3dCommandList);
 

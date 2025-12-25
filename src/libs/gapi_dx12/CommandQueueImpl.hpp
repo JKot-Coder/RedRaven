@@ -25,7 +25,7 @@ namespace RR
             void Signal(const eastl::shared_ptr<Fence>& fence) override;
             void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) override;
             void Submit(const eastl::shared_ptr<CommandList>& commandList) override;
-            void Submit(CommandList2* commandList) override;
+            void Submit(CommandList* commandList) override;
 
             void Signal(FenceImpl& fence);
             void Signal(FenceImpl& fence, uint64_t value);

@@ -8,7 +8,7 @@
 
 namespace RR::GAPI::DX12
 {
-    class CommandList2Impl final : public ICommandList
+    class CommandListImpl final : public ICommandList
     {
     private:
         class CommandAllocatorsPool final
@@ -37,8 +37,8 @@ namespace RR::GAPI::DX12
         static constexpr int MaxAllocatorsCount = 16;
 
     public:
-        void Init(const CommandList2& commandList);
-        void Compile(CommandList2& commandList);
+        void Init(const CommandList& commandList);
+        void Compile(CommandList& commandList);
         const ComSharedPtr<ID3D12GraphicsCommandList4>& GetD3DObject() const { return D3DCommandList; }
 
     private:

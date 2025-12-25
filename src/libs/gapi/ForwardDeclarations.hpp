@@ -33,7 +33,7 @@ namespace RR
         class CommandQueue;
         enum class CommandQueueType : uint32_t;
 
-        class CommandList2;
+        class CommandList;
 
         class CopyCommandList;
         class ComputeCommandList;

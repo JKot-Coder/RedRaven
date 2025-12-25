@@ -41,7 +41,7 @@ namespace RR::GAPI::DX12
         }
     }
 
-    ComSharedPtr<ID3D12CommandAllocator> CommandList2Impl::CommandAllocatorsPool::createAllocator() const
+    ComSharedPtr<ID3D12CommandAllocator> CommandListImpl::CommandAllocatorsPool::createAllocator() const
     {
         ComSharedPtr<ID3D12CommandAllocator> allocator;
 
@@ -51,7 +51,7 @@ namespace RR::GAPI::DX12
         return allocator;
     }
 
-    CommandList2Impl::CommandAllocatorsPool::~CommandAllocatorsPool()
+    CommandListImpl::CommandAllocatorsPool::~CommandAllocatorsPool()
     {
         while (!allocators_.empty())
         {
@@ -62,7 +62,7 @@ namespace RR::GAPI::DX12
         }
     }
 
-    void CommandList2Impl::CommandAllocatorsPool::Init(
+    void CommandListImpl::CommandAllocatorsPool::Init(
         D3D12_COMMAND_LIST_TYPE type,
         const std::string& name)
     {
@@ -76,7 +76,7 @@ namespace RR::GAPI::DX12
             allocators_.emplace(createAllocator(), 0);
     }
 
-    ComSharedPtr<ID3D12CommandAllocator> CommandList2Impl::CommandAllocatorsPool::GetNextAllocator()
+    ComSharedPtr<ID3D12CommandAllocator> CommandListImpl::CommandAllocatorsPool::GetNextAllocator()
     {
         auto allocator = allocators_.front();
 
@@ -98,7 +98,7 @@ namespace RR::GAPI::DX12
         return allocator.first;
     }
 
-    void CommandList2Impl::Init(const CommandList2& commandList)
+    void CommandListImpl::Init(const CommandList& commandList)
     {
         // TODO proper command list type
         const auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -110,7 +110,7 @@ namespace RR::GAPI::DX12
         D3DUtils::SetAPIName(D3DCommandList.get(), commandList.GetName());
     }
 
-    void CommandList2Impl::Compile(CommandList2& commandList)
+    void CommandListImpl::Compile(CommandList& commandList)
     {
 
         //ASSERT(commandList.size() != 0);

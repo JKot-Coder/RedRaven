@@ -35,7 +35,7 @@ namespace RR
             virtual void Signal(const eastl::shared_ptr<Fence>& fence) = 0;
             virtual void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) = 0;
             virtual void Submit(const eastl::shared_ptr<CommandList>& commandList) = 0;
-            virtual void Submit(CommandList2* commandList) = 0;
+            virtual void Submit(CommandList* commandList) = 0;
             virtual void WaitForGpu() = 0;
         };
 
@@ -50,7 +50,7 @@ namespace RR
             inline void Signal(const eastl::shared_ptr<Fence>& fence) { return GetPrivateImpl()->Signal(fence); }
             inline void Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { return GetPrivateImpl()->Signal(fence, value); }
             inline void Submit(const eastl::shared_ptr<CommandList>& commandList) { return GetPrivateImpl()->Submit(commandList); }
-            inline void Submit(CommandList2& commandList) { return GetPrivateImpl()->Submit(&commandList); }
+            inline void Submit(CommandList& commandList) { return GetPrivateImpl()->Submit(&commandList); }
 
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 

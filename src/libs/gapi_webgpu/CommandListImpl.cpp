@@ -94,7 +94,7 @@ namespace RR::GAPI::WebGPU
         UNUSED(device);
     }
 
-    void CommandListImpl::Compile(wgpu::Device device,GAPI::CommandList2& commandList)
+    void CommandListImpl::Compile(wgpu::Device device,GAPI::CommandList& commandList)
     {
         ASSERT(!commandBuffer);
 

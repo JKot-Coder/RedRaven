@@ -61,9 +61,9 @@ namespace RR::GAPI::DX12
         resource.SetPrivateImpl(impl.release());
     }
 
-    void ResourceCreator::InitCommandList2(CommandList2& resource)
+    void ResourceCreator::InitCommandList(CommandList& resource)
     {
-        auto impl = std::make_unique<CommandList2Impl>();
+        auto impl = std::make_unique<CommandListImpl>();
         impl->Init(resource);
 
         resource.SetPrivateImpl(static_cast<ICommandList*>(impl.release()));

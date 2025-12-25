@@ -22,7 +22,7 @@ namespace RR
             GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& description) const override;
 
             void InitBuffer(Buffer& resource, const BufferData* initialData) const override;
-            void InitCommandList2(CommandList2& resource) const override;
+            void InitCommandList(CommandList& resource) const override;
             void InitCommandQueue(CommandQueue& resource) const override;
             void InitFence(Fence& resource) const override;
             void InitGpuResourceView(GpuResourceView& view) const override;
@@ -31,7 +31,7 @@ namespace RR
             void InitShader(Shader& resource) const override;
             void InitPipelineState(PipelineState& resource) const override;
 
-            void Compile(CommandList2& commandList) override;
+            void Compile(CommandList& commandList) override;
 
             std::any GetRawDevice() const override { return d3dDevice_.get(); }
             ID3D12Device* GetDevice() const { return d3dDevice_.get(); }

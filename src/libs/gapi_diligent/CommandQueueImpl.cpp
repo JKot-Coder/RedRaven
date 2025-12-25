@@ -23,7 +23,7 @@ namespace RR
         void CommandQueueImpl::Signal(const eastl::shared_ptr<Fence>& fence) { UNUSED(fence); NOT_IMPLEMENTED(); }
         void CommandQueueImpl::Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) { UNUSED(fence, value); NOT_IMPLEMENTED(); }
         void CommandQueueImpl::Submit(const eastl::shared_ptr<CommandList>& commandList) { UNUSED(commandList); NOT_IMPLEMENTED(); }
-        void CommandQueueImpl::Submit(CommandList2* commandList)
+        void CommandQueueImpl::Submit(CommandList* commandList)
         {
             auto* commandContextImpl = static_cast<CommandListImpl*>(commandList->GetPrivateImpl());
             ASSERT(commandContextImpl);

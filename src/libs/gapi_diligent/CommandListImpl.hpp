@@ -2,7 +2,7 @@
 
 
 #include "gapi/ForwardDeclarations.hpp"
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandList.hpp"
 
 #include "RefCntAutoPtr.hpp"
 
@@ -22,7 +22,7 @@ namespace RR::GAPI::Diligent
         ~CommandListImpl();
 
         void Init();
-        void Compile(GAPI::CommandList2& commandList,DL::IDeviceContext* device);
+        void Compile(GAPI::CommandList& commandList,DL::IDeviceContext* device);
 
         DL::ICommandList* GetCommandList() { ASSERT(diligentCommandList); return diligentCommandList.RawPtr(); }
         void Reset() { diligentCommandList.Release(); }

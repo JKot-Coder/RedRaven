@@ -14,25 +14,25 @@ namespace RR::Render
     class CommandContext
     {
     protected:
-        GAPI::CommandList2& GetCommandList() { return commandList; }
+        GAPI::CommandList& GetCommandList() { return commandList; }
 
         friend class DeviceContext;
 
     protected:
-        explicit CommandContext(GAPI::CommandList2&& commandlist) : commandList(eastl::move(commandlist)) { }
-        GAPI::CommandList2 commandList;
+        explicit CommandContext(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
+        GAPI::CommandList commandList;
     };
 
     class CopyCommandContext : public CommandContext
     {
     public:
-        CopyCommandContext(GAPI::CommandList2&& commandlist) : CommandContext(eastl::move(commandlist)) { }
+        CopyCommandContext(GAPI::CommandList&& commandlist) : CommandContext(eastl::move(commandlist)) { }
     };
 
     class ComputeCommandContext : public CopyCommandContext
     {
     public:
-        ComputeCommandContext(GAPI::CommandList2&& commandlist) : CopyCommandContext(eastl::move(commandlist)) { }
+        ComputeCommandContext(GAPI::CommandList&& commandlist) : CopyCommandContext(eastl::move(commandlist)) { }
     };
 
     class GraphicsCommandContext final : public ComputeCommandContext
@@ -43,7 +43,7 @@ namespace RR::Render
     private:
         struct GeometryManager
         {
-            GAPI::Commands::GeometryLayout& flush(GAPI::CommandList2& commandList);
+            GAPI::Commands::GeometryLayout& flush(GAPI::CommandList& commandList);
 
             void SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset);
             void SetIndexBuffer(const GAPI::Buffer* buffer);
@@ -72,8 +72,8 @@ namespace RR::Render
     private:
         friend class Render::DeviceContext;
 
-        GraphicsCommandContext(GAPI::CommandList2&& commandlist) : ComputeCommandContext(eastl::move(commandlist)) { }
-        static UniquePtr Create(GAPI::CommandList2&& commandlist)
+        GraphicsCommandContext(GAPI::CommandList&& commandlist) : ComputeCommandContext(eastl::move(commandlist)) { }
+        static UniquePtr Create(GAPI::CommandList&& commandlist)
         {
             return eastl::unique_ptr<GraphicsCommandContext>(new GraphicsCommandContext(eastl::move(commandlist)));
         }

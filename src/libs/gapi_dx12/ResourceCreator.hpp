@@ -30,7 +30,7 @@ namespace RR
 
             namespace ResourceCreator
             {
-                void InitCommandList2(CommandList2& resource);
+                void InitCommandList(CommandList& resource);
                 void InitCommandQueue(CommandQueue& resource);
                 void InitFence(Fence& resource);
                 void InitGpuResourceView(GpuResourceView& view);

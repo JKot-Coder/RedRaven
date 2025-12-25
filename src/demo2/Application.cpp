@@ -11,7 +11,7 @@
 #include "gapi/Buffer.hpp"
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/CommandQueue.hpp"
-#include "gapi/CommandList2.hpp"
+#include "gapi/CommandList.hpp"
 #include "gapi/PipelineState.hpp"
 #include "gapi/RenderPassDesc.hpp"
 

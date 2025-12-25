@@ -121,7 +121,7 @@ namespace RR::GAPI::Diligent
         return {};
     }
 
-    void DeviceImpl::Compile(CommandList2& commandList)
+    void DeviceImpl::Compile(CommandList& commandList)
     {
         ASSERT_IS_DEVICE_INITED;
 
@@ -141,7 +141,7 @@ namespace RR::GAPI::Diligent
         NOT_IMPLEMENTED();
     }
 
-    void DeviceImpl::InitCommandList2(CommandList2& resource) const
+    void DeviceImpl::InitCommandList(CommandList& resource) const
     {
         ASSERT_IS_DEVICE_INITED;
         UNUSED(resource);

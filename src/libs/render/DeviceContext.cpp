@@ -92,8 +92,8 @@ namespace RR::Render
     {
         ASSERT(inited);
 
-        GAPI::CommandList2 commandList(name);
-        multiThreadDevice->InitCommandList2(commandList);
+        GAPI::CommandList commandList(name);
+        multiThreadDevice->InitCommandList(commandList);
         auto resource = Render::GraphicsCommandContext::Create(eastl::move(commandList));
 
         return resource;

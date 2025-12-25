@@ -55,7 +55,7 @@ namespace RR::Render
         executeAwait(eastl::move(work));
     }
 
-    void Submission::Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList2& commandList)
+    void Submission::Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList& commandList)
     {
         ASSERT(commandQueue);
 

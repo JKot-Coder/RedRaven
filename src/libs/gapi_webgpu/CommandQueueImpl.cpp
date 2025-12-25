@@ -37,7 +37,7 @@ namespace RR::GAPI::WebGPU
         NOT_IMPLEMENTED();
     }
 
-    void CommandQueueImpl::Submit(CommandList2* commandList)
+    void CommandQueueImpl::Submit(CommandList* commandList)
     {
         queue.submit(commandList->GetPrivateImpl<CommandListImpl>()->TakeCommandBuffer());
     }

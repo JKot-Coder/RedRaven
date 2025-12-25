@@ -21,7 +21,7 @@ namespace RR::GAPI
         virtual ~ICommandList() = default;
     };
 
-    class CommandList2 final : public Resource<ICommandList>
+    class CommandList final : public Resource<ICommandList>
     {
     public:
         template <typename CommandType, typename... Args>
@@ -67,7 +67,7 @@ namespace RR::GAPI
     private:
         friend class Render::DeviceContext;
 
-        CommandList2(const std::string& name, size_t initialCommandCapacity = 100, size_t bufferCapacity = 128 * 1024)
+        CommandList(const std::string& name, size_t initialCommandCapacity = 100, size_t bufferCapacity = 128 * 1024)
             :  Resource(Type::CommandList, name), allocator(bufferCapacity)
         {
             commands.reserve(initialCommandCapacity);

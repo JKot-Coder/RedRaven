@@ -48,10 +48,10 @@ namespace RR
 
             virtual GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& desc) const = 0;
 
-            virtual void Compile(CommandList2& commandList) = 0;
+            virtual void Compile(CommandList& commandList) = 0;
 
             virtual void InitBuffer(Buffer& resource, const BufferData* initialData) const = 0;
-            virtual void InitCommandList2(CommandList2& resource) const = 0;
+            virtual void InitCommandList(CommandList& resource) const = 0;
             virtual void InitCommandQueue(CommandQueue& resource) const = 0;
             virtual void InitFence(Fence& resource) const = 0;
             virtual void InitGpuResourceView(GpuResourceView& view) const = 0;
@@ -82,14 +82,14 @@ namespace RR
             //   virtual void Submit(const eastl::shared_ptr<CommandList>& CommandList) = 0;
             void Present(SwapChain* swapChain) override { GetPrivateImpl()->Present(swapChain); }
             void MoveToNextFrame(uint64_t frameIndex) override { GetPrivateImpl()->MoveToNextFrame(frameIndex); }
-            void Compile(CommandList2& commandList) override { GetPrivateImpl()->Compile(commandList); }
+            void Compile(CommandList& commandList) override { GetPrivateImpl()->Compile(commandList); }
 
             GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& desc) const
                 override { return GetPrivateImpl()->GetResourceFootprint(desc); };
 
             // Todo init resource?
             void InitBuffer(Buffer& resource, const BufferData* initialData) const override { GetPrivateImpl()->InitBuffer(resource, initialData); };
-            void InitCommandList2(CommandList2& resource) const override { GetPrivateImpl()->InitCommandList2(resource); };
+            void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
             void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };
             void InitFence(Fence& resource) const override { GetPrivateImpl()->InitFence(resource); };
             void InitGpuResourceView(GpuResourceView& view) const override { GetPrivateImpl()->InitGpuResourceView(view); };

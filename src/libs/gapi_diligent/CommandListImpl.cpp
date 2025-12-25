@@ -167,7 +167,7 @@ namespace RR::GAPI::Diligent
     CommandListImpl::~CommandListImpl() { }
 
     void CommandListImpl::Init() { }
-    void CommandListImpl::Compile(GAPI::CommandList2& commandList, DL::IDeviceContext* device)
+    void CommandListImpl::Compile(GAPI::CommandList& commandList, DL::IDeviceContext* device)
     {
         device->Begin(0);
 

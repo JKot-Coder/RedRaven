@@ -41,7 +41,7 @@ namespace RR::Render
         SubmissionThreadWork(SubmissionThreadFunction&& function) : type(Type::Callback), function(eastl::move(function)) { }
         SubmissionThreadWork(uint64_t frameIndex) : type(Type::MoveToNextFrame), frameIndex(frameIndex) { }
         SubmissionThreadWork(GAPI::SwapChain* swapChain) : type(Type::Present), swapChain(swapChain) { }
-        SubmissionThreadWork(GAPI::CommandQueue& commandQueue, GAPI::CommandList2& commandList) : type(Type::Submit), submit {&commandQueue, &commandList} { }
+        SubmissionThreadWork(GAPI::CommandQueue& commandQueue, GAPI::CommandList& commandList) : type(Type::Submit), submit {&commandQueue, &commandList} { }
 
     public:
         static SubmissionThreadWork Terminate()
@@ -64,7 +64,7 @@ namespace RR::Render
             return SubmissionThreadWork(swapChain);
         }
 
-        static SubmissionThreadWork Submit(GAPI::CommandQueue& commandQueue, GAPI::CommandList2& commandList)
+        static SubmissionThreadWork Submit(GAPI::CommandQueue& commandQueue, GAPI::CommandList& commandList)
         {
             return SubmissionThreadWork(commandQueue, commandList);
         }
@@ -77,7 +77,7 @@ namespace RR::Render
         struct Submit
         {
             GAPI::CommandQueue* commandQueue;
-            GAPI::CommandList2* commandList;
+            GAPI::CommandList* commandList;
         };
 
         union
@@ -101,7 +101,7 @@ namespace RR::Render
 
         void ExecuteAsync(SubmissionThreadFunction&& function);
         void ExecuteAwait(SubmissionThreadFunction&& function);
-        void Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList2& commandList);
+        void Submit(GAPI::CommandQueue* commandQueue, GAPI::CommandList& commandList);
         void Present(GAPI::SwapChain* swapChain);
         void MoveToNextFrame(uint64_t frameIndex);
 

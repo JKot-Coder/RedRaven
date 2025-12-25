@@ -12,7 +12,7 @@
 namespace RR::Render
 {
 
-    GAPI::Commands::GeometryLayout& GraphicsCommandContext::GeometryManager::flush(GAPI::CommandList2& commandList)
+    GAPI::Commands::GeometryLayout& GraphicsCommandContext::GeometryManager::flush(GAPI::CommandList& commandList)
     {
         if (!dirty)
         {

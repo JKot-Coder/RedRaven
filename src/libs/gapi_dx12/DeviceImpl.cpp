@@ -164,10 +164,10 @@ namespace RR
                 return ResourceCreator::InitCommandQueue(resource);
             }
 
-            void DeviceImpl::InitCommandList2(CommandList2& resource) const
+            void DeviceImpl::InitCommandList(CommandList& resource) const
             {
                 ASSERT_IS_DEVICE_INITED;
-                return ResourceCreator::InitCommandList2(resource);
+                return ResourceCreator::InitCommandList(resource);
             }
 
             void DeviceImpl::InitTexture(Texture& resource) const
@@ -208,11 +208,11 @@ namespace RR
                 return ResourceCreator::InitGpuResourceView(view);
             }
 
-            void DeviceImpl::Compile(CommandList2& commandList)
+            void DeviceImpl::Compile(CommandList& commandList)
             {
                 ASSERT_IS_DEVICE_INITED;
 
-                auto commandListImpl = static_cast<CommandList2Impl*>(commandList.GetPrivateImpl());
+                auto commandListImpl = static_cast<CommandListImpl*>(commandList.GetPrivateImpl());
                 commandListImpl->Compile(commandList);
             }
             /*
