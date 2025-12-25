@@ -10,7 +10,7 @@
 #include "gapi/CommandQueue.hpp"
 #include "gapi/PipelineState.hpp"
 
-#include "render/CommandContext.hpp"
+#include "render/CommandEncoder.hpp"
 #include "render/Effect.hpp"
 
 #include "gapi_webgpu/Device.hpp"

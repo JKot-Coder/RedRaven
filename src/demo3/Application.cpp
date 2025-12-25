@@ -19,7 +19,7 @@
 
 #include "render/VertexFormats/Vertex.hpp"
 #include "render/DeviceContext.hpp"
-#include "render/CommandContext.hpp"
+#include "render/CommandEncoder.hpp"
 #include "render/EffectManager.hpp"
 #include "render/VertexFormats/Vertex.hpp"
 
@@ -251,7 +251,7 @@ namespace RR::App
                        });
 
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
-        auto ctx = deviceContext.CreateGraphicsCommandContext("test");
+        auto ctx = deviceContext.CreateCommandContext("test");
         UNUSED(ctx);
          auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 /*
@@ -270,7 +270,7 @@ namespace RR::App
                                             .Build();
                                             UNUSED(renderPassDesc);
 
-            ctx->SetRenderPass(renderPassDesc);
+           // ctx->SetRenderPass(renderPassDesc);
             /*
           //  ctx->Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 

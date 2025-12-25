@@ -3,8 +3,8 @@ project (render)
 set(SRC
     DeviceContext.cpp
     DeviceContext.hpp
-    CommandContext.cpp
-    CommandContext.hpp
+    CommandEncoder.cpp
+    CommandEncoder.hpp
     Effect.hpp
     Effect.cpp
     EffectManager.cpp

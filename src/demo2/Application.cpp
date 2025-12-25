@@ -19,7 +19,7 @@
 
 #include "render/VertexFormats/Vertex.hpp"
 #include "render/DeviceContext.hpp"
-#include "render/CommandContext.hpp"
+#include "render/CommandEncoder.hpp"
 #include "render/EffectManager.hpp"
 #include "render/VertexFormats/Vertex.hpp"
 
