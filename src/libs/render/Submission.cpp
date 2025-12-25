@@ -120,6 +120,7 @@ namespace RR::Render
         switch (work.GetType())
         {
             case SubmissionThreadWork::Type::Terminate:
+                device.reset();
                 return true;
             case SubmissionThreadWork::Type::Callback:
                 work.function(*device);
