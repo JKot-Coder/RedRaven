@@ -10,6 +10,7 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
+#include "gapi_dx12/CommandList2Impl.hpp"
 #include "gapi_dx12/CommandQueueImpl.hpp"
 #include "gapi_dx12/DescriptorHeap.hpp"
 #include "gapi_dx12/DescriptorManager.hpp"
@@ -210,7 +211,9 @@ namespace RR
             void DeviceImpl::Compile(CommandList2& commandList)
             {
                 ASSERT_IS_DEVICE_INITED;
-                NOT_IMPLEMENTED();
+
+                auto commandListImpl = static_cast<CommandList2Impl*>(commandList.GetPrivateImpl());
+                commandListImpl->Compile(commandList);
             }
             /*
             void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
