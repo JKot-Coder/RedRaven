@@ -486,6 +486,8 @@ namespace RR
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
+            inline void ResetRTV() { rtvs_.clear(); }
+
         protected:
             GpuResource(GpuResourceDesc desc, const std::string& name)
                 : Resource(Type::GpuResource, name), desc_(desc) { };

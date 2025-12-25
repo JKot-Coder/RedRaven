@@ -94,10 +94,15 @@ namespace RR::GAPI::WebGPU
 
     void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& resource) const
     {
+        // TODO Check resource description is valid
+
         if (!resource.GetPrivateImpl())
             resource.SetPrivateImpl(new TextureImpl());
 
         resource.GetPrivateImpl<TextureImpl>()->UpdateTextureResource(surfaceTexture);
+
+        // TODO update rtv insted
+        resource.ResetRTV();
     }
 
     void SwapChainImpl::Present()

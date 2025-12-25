@@ -48,7 +48,6 @@ namespace RR
             }
 
             UpdateCurrentBackBufferTexture(*backBuffer);
-            backBuffer->ReleaseRTV();
 
             return backBuffer;
         }

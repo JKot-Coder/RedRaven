@@ -63,6 +63,8 @@ namespace RR
             {
                 ASSERT(D3DSwapChain_);
 
+                // TODO Check resource description is valid
+
                 ComSharedPtr<ID3D12Resource> backBuffer;
                 const auto backBufferIndex = D3DSwapChain_->GetCurrentBackBufferIndex();
                 D3DCall(D3DSwapChain_->GetBuffer(backBufferIndex, IID_PPV_ARGS(backBuffer.put())));
@@ -80,7 +82,8 @@ namespace RR
                 ASSERT(resource.GetDesc().usage == GpuResourceUsage::Default);
                 ASSERT(IsSet(resource.GetDesc().bindFlags, GpuResourceBindFlags::RenderTarget));
 
-
+                // TODO update rtv insted
+                resource.ResetRTV();
                 /*   ASSERT(D3DSwapChain_);
 
 
