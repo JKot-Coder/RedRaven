@@ -11,22 +11,22 @@ namespace RR::Render
 {
     class DeviceContext;
 
-    class CommandContext
+    class CommandEncoder
     {
     public:
-        using UniquePtr = eastl::unique_ptr<CommandContext>;
+        using UniquePtr = eastl::unique_ptr<CommandEncoder>;
 
     private:
         friend class DeviceContext;
         friend class PassEncoderBase;
 
-        explicit CommandContext(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
+        explicit CommandEncoder(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
 
         GAPI::CommandList& GetCommandList() { return commandList; }
 
         static UniquePtr Create(GAPI::CommandList&& commandlist)
         {
-            return UniquePtr(new CommandContext(eastl::move(commandlist)));
+            return UniquePtr(new CommandEncoder(eastl::move(commandlist)));
         }
 
     private:
@@ -36,10 +36,10 @@ namespace RR::Render
     class PassEncoderBase
     {
     protected:
-        PassEncoderBase(CommandContext& commandContext) : commandContext(&commandContext) { }
+        PassEncoderBase(CommandEncoder& commandContext) : commandContext(&commandContext) { }
         GAPI::CommandList& GetCommandList() { return commandContext->GetCommandList(); }
 
-        CommandContext* commandContext = nullptr;
+        CommandEncoder* commandContext = nullptr;
     };
 
     class RenderPassEncoder final : private PassEncoderBase
@@ -79,8 +79,8 @@ namespace RR::Render
     private:
         friend class Render::DeviceContext;
 
-        RenderPassEncoder(CommandContext& commandContext) : PassEncoderBase(commandContext) { }
-        static UniquePtr Create(CommandContext& commandContext)
+        RenderPassEncoder(CommandEncoder& commandContext) : PassEncoderBase(commandContext) { }
+        static UniquePtr Create(CommandEncoder& commandContext)
         {
             return eastl::unique_ptr<RenderPassEncoder>(new RenderPassEncoder(commandContext));
         }

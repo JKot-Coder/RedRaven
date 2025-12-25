@@ -15,7 +15,7 @@ namespace RR
     namespace GAPI
     {
         class CommandList;
-        class CommandContext;
+        class CommandEncoder;
 
         enum class CommandQueueType : uint32_t
         {

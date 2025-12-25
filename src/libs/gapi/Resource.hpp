@@ -12,7 +12,7 @@ namespace RR
         public:
             enum class Type
             {
-                CommandContext,
+                CommandEncoder,
                 CommandList,
                 CommandQueue,
                 Device,

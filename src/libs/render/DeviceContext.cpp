@@ -81,20 +81,20 @@ namespace RR::Render
         return resource;
     }
 
-    void DeviceContext::Compile(Render::CommandContext& commandContext)
+    void DeviceContext::Compile(Render::CommandEncoder& commandContext)
     {
         ASSERT(inited);
 
         multiThreadDevice->Compile(commandContext.GetCommandList());
     }
 
-    Render::CommandContext::UniquePtr DeviceContext::CreateCommandContext(const std::string& name) const
+    Render::CommandEncoder::UniquePtr DeviceContext::CreateCommandEncoder(const std::string& name) const
     {
         ASSERT(inited);
 
         GAPI::CommandList commandList(name);
         multiThreadDevice->InitCommandList(commandList);
-        auto resource = Render::CommandContext::Create(eastl::move(commandList));
+        auto resource = Render::CommandEncoder::Create(eastl::move(commandList));
 
         return resource;
     }

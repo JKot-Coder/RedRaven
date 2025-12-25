@@ -20,7 +20,7 @@ namespace RR
 
 namespace RR::Render
 {
-    class CommandContext;
+    class CommandEncoder;
     class RenderPassEncoder;
     class Effect;
     struct EffectDesc;
@@ -38,14 +38,14 @@ namespace RR::Render
         void MoveToNextFrame(uint64_t frameIndex);
         void ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height);
 
-        void Compile(CommandContext& commandContext);
+        void Compile(CommandEncoder& commandContext);
 
-        template<typename CommandContextType>
-        void Submit(GAPI::CommandQueue* commandQueue, CommandContextType& commandContext)
+        template<typename CommandEncoderType>
+        void Submit(GAPI::CommandQueue* commandQueue, CommandEncoderType& commandContext)
         {
             ASSERT(inited);
             ASSERT(commandQueue);
-            static_assert(std::is_base_of<CommandContext, CommandContextType>::value, "CommandContextType must be derived from CommandContext");
+            static_assert(std::is_base_of<CommandEncoder, CommandEncoderType>::value, "CommandEncoderType must be derived from CommandEncoder");
 
             submission.Submit(commandQueue, commandContext.GetCommandList());
 
@@ -53,7 +53,7 @@ namespace RR::Render
         }
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
-        eastl::unique_ptr<Render::CommandContext> CreateCommandContext(const std::string& name) const;
+        eastl::unique_ptr<Render::CommandEncoder> CreateCommandEncoder(const std::string& name) const;
         eastl::unique_ptr<Render::Effect> CreateEffect(const std::string& name, EffectDesc&& effectDesc) const;
         eastl::unique_ptr<GAPI::Shader> CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const;
         eastl::shared_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name = "") const;
