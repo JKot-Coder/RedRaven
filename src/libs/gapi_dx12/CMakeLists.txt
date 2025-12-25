@@ -20,6 +20,8 @@ set(D3D_UTILS_SRC
 source_group( "D3DUtils" FILES ${D3D_UTILS_SRC} )
 
 set(IMPL_SRC
+    CommandList2Impl.cpp
+    CommandList2Impl.hpp
     CommandQueueImpl.cpp
     CommandQueueImpl.hpp
     DeviceImpl.cpp
