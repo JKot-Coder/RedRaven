@@ -47,7 +47,7 @@ namespace RR
                 // Create a swap chain for the window.
                 D3DCall(dxgiFactory->CreateSwapChainForHwnd(
                     commandQueue.get(),
-                    std::any_cast<HWND>(description.windowNativeHandle),
+                    eastl::any_cast<HWND>(description.windowNativeHandle),
                     &targetSwapChainDesc,
                     nullptr,
                     nullptr,

@@ -16,6 +16,8 @@
 #include "gapi/SwapChain.hpp"
 #include "gapi/Texture.hpp"
 
+#define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
+
 namespace RR::GAPI::DX12
 {
     void ResourceCreator::InitSwapChain(SwapChain& resource)
@@ -58,14 +60,17 @@ namespace RR::GAPI::DX12
         resource.SetPrivateImpl(impl.release());
     }
 
-    /*
-    void ResourceCreator::InitCommandList(CommandList& resource)
+
+    void ResourceCreator::InitCommandList2(CommandList2& resource)
     {
+        UNUSED(resource);
+        NOT_IMPLEMENTED();
+        /*
         auto impl = std::make_unique<CommandListImpl>(resource.GetCommandListType());
         impl->Init(resource.GetName());
 
-        resource.SetPrivateImpl(static_cast<ICommandList*>(impl.release()));
-    }*/
+        resource.SetPrivateImpl(static_cast<ICommandList*>(impl.release()));*/
+    }
 
     void ResourceCreator::InitGpuResourceView(GpuResourceView& object)
     {

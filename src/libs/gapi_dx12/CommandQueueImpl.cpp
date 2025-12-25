@@ -7,6 +7,8 @@
 #include "gapi_dx12/FenceImpl.hpp"
 #include "gapi_dx12/ResourceReleaseContext.hpp"
 
+#define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
+
 namespace RR
 {
     namespace GAPI
@@ -100,6 +102,26 @@ namespace RR
                 ASSERT(fence->GetPrivateImpl<FenceImpl>());
                 Signal(*fence->GetPrivateImpl<FenceImpl>(), value);
             }*/
+
+            void CommandQueueImpl::Signal(const eastl::shared_ptr<Fence>& fence) {
+                UNUSED(fence);
+                NOT_IMPLEMENTED();
+            }
+
+            void CommandQueueImpl::Signal(const eastl::shared_ptr<Fence>& fence, uint64_t value) {
+                UNUSED(fence, value);
+                NOT_IMPLEMENTED();
+            }
+
+            void CommandQueueImpl::Submit(const eastl::shared_ptr<CommandList>& commandList) {
+                UNUSED(commandList);
+                NOT_IMPLEMENTED();
+            }
+
+            void CommandQueueImpl::Submit(CommandList2* commandList) {
+                UNUSED(commandList);
+                NOT_IMPLEMENTED();
+            }
 
             void CommandQueueImpl::Signal(FenceImpl& fence)
             {

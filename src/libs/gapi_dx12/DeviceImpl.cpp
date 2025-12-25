@@ -34,6 +34,8 @@
 #define ASSERT_IS_DEVICE_INITED
 #endif
 
+#define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
+
 using namespace std::chrono_literals;
 
 namespace RR
@@ -187,10 +189,28 @@ namespace RR
                 resource.SetPrivateImpl(impl.release());
             }
 
+            void DeviceImpl::InitShader(Shader& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                NOT_IMPLEMENTED();
+            }
+
+            void DeviceImpl::InitPipelineState(PipelineState& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                NOT_IMPLEMENTED();
+            }
+
             void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
+            }
+
+            void DeviceImpl::Compile(CommandList2& commandList)
+            {
+                ASSERT_IS_DEVICE_INITED;
+                NOT_IMPLEMENTED();
             }
             /*
             void DeviceImpl::Submit(const CommandList::SharedPtr& commandList)
