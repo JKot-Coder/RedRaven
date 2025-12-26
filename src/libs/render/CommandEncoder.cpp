@@ -60,18 +60,7 @@ namespace RR::Render
     void RenderPassEncoder::setRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
-
-        graphicsParams.SetRenderTargetCount(renderPass.colorAttachmentCount);
-
-        for (size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
-        {
-            const auto& colorAttachment = renderPass.colorAttachments[i];
-            const auto* renderTargetView = colorAttachment.renderTargetView;
-            graphicsParams.SetRenderTargetFormat(i, renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown);
-        }
-
-        const auto* depthStencilView = renderPass.depthStencilAttachment.depthStencilView;
-        graphicsParams.SetDepthStencilFormat(depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown);
+        graphicsParams.SetRenderPass(renderPass);
     }
 
     void RenderPassEncoder::Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)

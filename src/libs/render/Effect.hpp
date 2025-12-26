@@ -5,6 +5,7 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
+#include "gapi/RenderPassDesc.hpp"
 
 #include "absl/container/flat_hash_map.h"
 
@@ -24,27 +25,27 @@ namespace RR::Render
             dirty = true;
         }
 
+
+        void SetRenderPass(const GAPI::RenderPassDesc& renderPass)
+        {
+            renderTargetCount = renderPass.colorAttachmentCount;
+
+            for (size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
+            {
+                const auto& colorAttachment = renderPass.colorAttachments[i];
+                const auto* renderTargetView = colorAttachment.renderTargetView;
+                renderTargetFormats[i] = renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+            }
+
+            const auto* depthStencilView = renderPass.depthStencilAttachment.depthStencilView;
+            depthStencilFormat = depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+
+            dirty = true;
+        }
+
         void SetVertexLayout(const GAPI::VertexLayout* vertexLayout)
         {
             this->vertexLayout = vertexLayout;
-            dirty = true;
-        }
-
-        void SetRenderTargetCount(uint32_t renderTargetCount)
-        {
-            this->renderTargetCount = renderTargetCount;
-            dirty = true;
-        }
-
-        void SetRenderTargetFormat(uint32_t index, GAPI::GpuResourceFormat format)
-        {
-            renderTargetFormats[index] = format;
-            dirty = true;
-        }
-
-        void SetDepthStencilFormat(GAPI::GpuResourceFormat format)
-        {
-            depthStencilFormat = format;
             dirty = true;
         }
 
