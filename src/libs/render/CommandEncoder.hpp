@@ -10,11 +10,15 @@
 namespace RR::Render
 {
     class DeviceContext;
+    class RenderPassEncoder;
 
     class CommandEncoder
     {
     public:
         using UniquePtr = eastl::unique_ptr<CommandEncoder>;
+
+    public:
+        eastl::unique_ptr<RenderPassEncoder> BeginRenderPass(const GAPI::RenderPassDesc& renderPass);
 
     private:
         friend class DeviceContext;
@@ -72,19 +76,23 @@ namespace RR::Render
         void SetVertexLayout(const GAPI::VertexLayout* layout) { graphicsParams.SetVertexLayout(layout); }
         void SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0) { geometryManager.SetVertexBuffer(slot, buffer, offset); }
         void SetIndexBuffer(const GAPI::Buffer* buffer) { geometryManager.SetIndexBuffer(buffer); }
-        void SetRenderPass(const GAPI::RenderPassDesc& renderPass);
         void Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
         void DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount = 0);
 
     private:
-        friend class Render::DeviceContext;
+        friend class Render::CommandEncoder;
 
-        RenderPassEncoder(CommandEncoder& commandContext) : PassEncoderBase(commandContext) { }
-        static UniquePtr Create(CommandEncoder& commandContext)
+        RenderPassEncoder(CommandEncoder& commandContext, const GAPI::RenderPassDesc& renderPass) : PassEncoderBase(commandContext)
         {
-            return eastl::unique_ptr<RenderPassEncoder>(new RenderPassEncoder(commandContext));
+            setRenderPass(renderPass);
         }
 
+        static UniquePtr Create(CommandEncoder& commandContext, const GAPI::RenderPassDesc& renderPass)
+        {
+            return eastl::unique_ptr<RenderPassEncoder>(new RenderPassEncoder(commandContext, renderPass));
+        }
+
+        void setRenderPass(const GAPI::RenderPassDesc& renderPass);
         GAPI::Commands::GeometryLayout& flushLayout() { return geometryManager.flush(GetCommandList()); }
 
         void reset()
@@ -98,4 +106,9 @@ namespace RR::Render
         GraphicsParams graphicsParams;
         GeometryManager geometryManager;
     };
+
+    inline RenderPassEncoder::UniquePtr CommandEncoder::BeginRenderPass(const GAPI::RenderPassDesc& renderPass)
+    {
+        return RenderPassEncoder::Create(*this, renderPass);
+    }
 }

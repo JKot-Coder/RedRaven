@@ -270,7 +270,8 @@ namespace RR::App
                                             .Build();
                                             UNUSED(renderPassDesc);
 
-           // ctx->SetRenderPass(renderPassDesc);
+            auto renderPassEncoder = ctx->BeginRenderPass(renderPassDesc);
+
             /*
           //  ctx->Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 

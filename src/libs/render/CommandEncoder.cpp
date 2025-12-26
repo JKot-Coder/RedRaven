@@ -57,7 +57,7 @@ namespace RR::Render
         dirty = true;
     }
 
-    void RenderPassEncoder::SetRenderPass(const GAPI::RenderPassDesc& renderPass)
+    void RenderPassEncoder::setRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
         GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
 
