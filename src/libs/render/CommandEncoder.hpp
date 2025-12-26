@@ -6,6 +6,7 @@
 
 #include "math/ForwardDeclarations.hpp"
 #include "render/Effect.hpp"
+#include "common/NonCopyableMovable.hpp"
 
 namespace RR::Render
 {
@@ -20,12 +21,26 @@ namespace RR::Render
     public:
         RenderPassEncoder BeginRenderPass(const GAPI::RenderPassDesc& renderPass);
 
+        void Finish()
+        {
+            ASSERT_MSG(state == State::Open, "CommandEncoder was not started");
+            state = State::Closed;
+        };
+
     private:
-        friend class DeviceContext;
+        enum class State : uint8_t
+        {
+            Open,
+            Closed,
+            RenderPass,
+        };
+
+    private:
+        friend class RR::Render::DeviceContext;
         friend class PassEncoderBase;
+        friend class RenderPassEncoder;
 
         explicit CommandEncoder(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
-
         GAPI::CommandList& GetCommandList() { return commandList; }
 
         static UniquePtr Create(GAPI::CommandList&& commandlist)
@@ -33,7 +48,20 @@ namespace RR::Render
             return UniquePtr(new CommandEncoder(eastl::move(commandlist)));
         }
 
+        void EndRenderPass()
+        {
+            ASSERT_MSG(state == State::RenderPass, "RenderPass was not started");
+            state = State::Open;
+        }
+
+        void Reset()
+        {
+            ASSERT_MSG(state == State::Closed, "CommandEncoder was not finished");
+            state = State::Open;
+        }
+
     private:
+        State state = State::Open;
         GAPI::CommandList commandList;
     };
 
@@ -41,9 +69,29 @@ namespace RR::Render
     {
     protected:
         PassEncoderBase(CommandEncoder& commandContext) : commandContext(&commandContext) { }
-        GAPI::CommandList& GetCommandList() { return commandContext->GetCommandList(); }
 
-        void reset() { commandContext = nullptr; }
+        ~PassEncoderBase()
+        {
+            ASSERT_MSG(!commandContext, "PassEncoder was not ended");
+        }
+
+        GAPI::CommandList& GetCommandList()
+        {
+            ASSERT(commandContext);
+            return commandContext->GetCommandList();
+        }
+
+        CommandEncoder& GetCommandEncoder()
+        {
+            ASSERT(commandContext);
+            return *commandContext;
+        }
+
+        void reset()
+        {
+            ASSERT(commandContext);
+            commandContext = nullptr;
+        }
 
     private:
         CommandEncoder* commandContext = nullptr;
@@ -86,6 +134,8 @@ namespace RR::Render
         {
             graphicsParams.Reset();
             geometryManager.Reset();
+
+            Base::GetCommandEncoder().EndRenderPass();
             Base::reset();
         }
 
@@ -112,6 +162,8 @@ namespace RR::Render
 
     inline RenderPassEncoder CommandEncoder::BeginRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
+        ASSERT(state == State::Open);
+        state = State::RenderPass;
         return RenderPassEncoder::Create(*this, renderPass);
     }
 }

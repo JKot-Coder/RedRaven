@@ -2,6 +2,7 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 
+#include "render/CommandEncoder.hpp"
 #include "render/Submission.hpp"
 
 #include "common/Singleton.hpp"
@@ -38,18 +39,15 @@ namespace RR::Render
         void MoveToNextFrame(uint64_t frameIndex);
         void ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height);
 
-        void Compile(CommandEncoder& commandContext);
+        void Compile(CommandEncoder& commandEncoder);
 
-        template<typename CommandEncoderType>
-        void Submit(GAPI::CommandQueue* commandQueue, CommandEncoderType& commandContext)
+        void Submit(GAPI::CommandQueue* commandQueue, CommandEncoder& commandEncoder)
         {
             ASSERT(inited);
             ASSERT(commandQueue);
-            static_assert(std::is_base_of<CommandEncoder, CommandEncoderType>::value, "CommandEncoderType must be derived from CommandEncoder");
 
-            submission.Submit(commandQueue, commandContext.GetCommandList());
-
-            //commandContext.reset();
+            submission.Submit(commandQueue, commandEncoder.GetCommandList());
+            commandEncoder.Reset();
         }
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
