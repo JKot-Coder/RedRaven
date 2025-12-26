@@ -11,6 +11,8 @@ set(SRC
     Device.hpp
     DeviceImpl.cpp
     DeviceImpl.hpp
+    ShaderImpl.cpp
+    ShaderImpl.hpp
     SwapChainImpl.cpp
     SwapChainImpl.hpp
     TextureImpl.cpp

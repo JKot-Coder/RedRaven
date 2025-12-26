@@ -235,7 +235,8 @@ namespace RR::App
             return 1;
         }
 
-      //  auto triangleEffect = Render::EffectManager::Instance().Load("triangle");
+       auto triangleEffect = Render::EffectManager::Instance().Load("triangle");
+    UNUSED(triangleEffect);
         //auto cubeEffect = Render::EffectManager::Instance().Load("cube");
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
