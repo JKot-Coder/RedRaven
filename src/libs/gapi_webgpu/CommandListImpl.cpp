@@ -13,6 +13,7 @@ namespace RR::GAPI::WebGPU
         struct CommandCompileContext
         {
             wgpu::CommandEncoder encoder;
+            wgpu::RenderPassEncoder renderPassEncoder;
         };
 
         wgpu::LoadOp getWGPULoadOp(GAPI::AttachmentLoadOp loadOp)
@@ -45,7 +46,7 @@ namespace RR::GAPI::WebGPU
             return wgpu::Color{ clearColor.x, clearColor.y, clearColor.z, clearColor.w };
         }
 
-        void compileCommand(const Commands::SetRenderPass& command, CommandCompileContext& ctx)
+        void compileCommand(const Commands::BeginRenderPass& command, CommandCompileContext& ctx)
         {
             eastl::array<wgpu::RenderPassColorAttachment, MAX_COLOR_ATTACHMENT_COUNT> colorAttachments;
 
@@ -82,9 +83,13 @@ namespace RR::GAPI::WebGPU
                 renderPassDescriptor.depthStencilAttachment = &depthStencilAttachment;
             }
 
-            auto renderPassEncoder = ctx.encoder.beginRenderPass(renderPassDescriptor);
-            renderPassEncoder.end();
-            renderPassEncoder.release();
+            ctx.renderPassEncoder = ctx.encoder.beginRenderPass(renderPassDescriptor);
+        }
+
+        void compileCommand(const Commands::EndRenderPass&, CommandCompileContext& ctx)
+        {
+            ctx.renderPassEncoder.end();
+            ctx.renderPassEncoder.release();
         }
     }
     CommandListImpl::~CommandListImpl() { }
@@ -102,14 +107,18 @@ namespace RR::GAPI::WebGPU
         commandEncoderDescriptor.setDefault();
 
         auto commandEncoder = device.createCommandEncoder(commandEncoderDescriptor);
-        CommandCompileContext ctx{ commandEncoder };
+        CommandCompileContext ctx{ commandEncoder, nullptr };
 
         for (const auto* command : commandList)
         {
             switch (command->type)
             {
-            case Command::Type::SetRenderPass:
-                compileCommand(static_cast<const Commands::SetRenderPass&>(*command), ctx);
+            case Command::Type::BeginRenderPass:
+                compileCommand(static_cast<const Commands::BeginRenderPass&>(*command), ctx);
+                break;
+
+            case Command::Type::EndRenderPass:
+                compileCommand(static_cast<const Commands::EndRenderPass&>(*command), ctx);
                 break;
 
             default:

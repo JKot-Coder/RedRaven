@@ -8,7 +8,8 @@ namespace RR::GAPI
         {
             Draw,
             DrawIndexed,
-            SetRenderPass
+            BeginRenderPass,
+            EndRenderPass
         };
 
     public:

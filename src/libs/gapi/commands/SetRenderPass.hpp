@@ -6,11 +6,15 @@
 
 namespace RR::GAPI::Commands
 {
-    struct SetRenderPass : public Command
+    struct BeginRenderPass : public Command
     {
-
-        SetRenderPass(const RenderPassDesc& desc) : Command(Type::SetRenderPass), desc(desc) { }
+        BeginRenderPass(const RenderPassDesc& desc) : Command(Type::BeginRenderPass), desc(desc) { }
 
         RenderPassDesc desc;
+    };
+
+    struct EndRenderPass : public Command
+    {
+        EndRenderPass() : Command(Type::EndRenderPass) { }
     };
 }

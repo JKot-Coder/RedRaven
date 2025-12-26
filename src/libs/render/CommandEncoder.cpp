@@ -59,8 +59,19 @@ namespace RR::Render
 
     void RenderPassEncoder::setRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
-        GetCommandList().emplaceCommand<GAPI::Commands::SetRenderPass>(renderPass);
+        GetCommandList().emplaceCommand<GAPI::Commands::BeginRenderPass>(renderPass);
         graphicsParams.SetRenderPass(renderPass);
+    }
+
+    void RenderPassEncoder::End()
+    {
+        GetCommandList().emplaceCommand<GAPI::Commands::EndRenderPass>();
+
+        graphicsParams.Reset();
+        geometryManager.Reset();
+
+        Base::GetCommandEncoder().EndRenderPass();
+        Base::reset();
     }
 
     void RenderPassEncoder::Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount)

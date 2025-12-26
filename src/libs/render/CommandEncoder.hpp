@@ -129,15 +129,7 @@ namespace RR::Render
         void SetIndexBuffer(const GAPI::Buffer* buffer) { geometryManager.SetIndexBuffer(buffer); }
         void Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
         void DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount = 0);
-
-        void End()
-        {
-            graphicsParams.Reset();
-            geometryManager.Reset();
-
-            Base::GetCommandEncoder().EndRenderPass();
-            Base::reset();
-        }
+        void End();
 
     private:
         friend class Render::CommandEncoder;
