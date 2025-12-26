@@ -5,7 +5,7 @@
 #include "gapi/Buffer.hpp"
 
 #include "gapi/commands/Draw.hpp"
-#include "gapi/commands/SetRenderPass.hpp"
+#include "gapi/commands/RenderPass.hpp"
 
 #include "render/Effect.hpp"
 

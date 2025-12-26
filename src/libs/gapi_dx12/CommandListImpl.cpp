@@ -6,7 +6,7 @@
 
 #include "gapi/CommandList.hpp"
 
-#include "gapi/commands/SetRenderPass.hpp"
+#include "gapi/commands/RenderPass.hpp"
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
@@ -19,7 +19,7 @@ namespace RR::GAPI::DX12
             ID3D12GraphicsCommandList4* cmdList;
         };
 
-        void compileCommand(const Commands::SetRenderPass& command, CommandCompileContext& ctx)
+        void compileCommand(const Commands::BeginRenderPass& command, CommandCompileContext& ctx)
         {
             for (uint32_t i = 0; i < command.desc.colorAttachmentCount; i++)
             {
@@ -120,8 +120,8 @@ namespace RR::GAPI::DX12
         {
             switch (command->type)
             {
-            case Command::Type::SetRenderPass:
-                compileCommand(static_cast<const Commands::SetRenderPass&>(*command), ctx);
+            case Command::Type::BeginRenderPass:
+                compileCommand(static_cast<const Commands::BeginRenderPass&>(*command), ctx);
                 break;
 
             default:

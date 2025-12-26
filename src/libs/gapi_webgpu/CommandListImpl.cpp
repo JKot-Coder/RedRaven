@@ -1,6 +1,6 @@
 #include "CommandListImpl.hpp"
 
-#include "gapi/commands/SetRenderPass.hpp"
+#include "gapi/commands/RenderPass.hpp"
 
 #include "TextureViewImpl.hpp"
 
