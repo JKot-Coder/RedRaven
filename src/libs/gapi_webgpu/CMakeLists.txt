@@ -1,6 +1,8 @@
 project (gapi_webgpu)
 
 set(SRC
+    BufferImpl.cpp
+    BufferImpl.hpp
     CommandListImpl.cpp
     CommandListImpl.hpp
     CommandQueueImpl.cpp

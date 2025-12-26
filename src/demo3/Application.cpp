@@ -252,11 +252,11 @@ namespace RR::App
 
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateCommandEncoder("test");
-         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
-/*
+        auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
+
         auto vertexBuffer = CreateVertexBuffer();
         auto indexBuffer = CreateIndexBuffer();
-*/
+
         while (!applicationInstance->quit)
         {
             world.EmitImmediately<Ecs::WindowModule::Tick>({});
