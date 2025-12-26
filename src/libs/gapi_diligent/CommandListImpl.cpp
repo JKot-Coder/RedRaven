@@ -25,8 +25,8 @@ namespace RR::GAPI::Diligent
 
         void compileCommand(const Commands::SetRenderPass& command, const CommandCompileContext& ctx)
         {
-            eastl::array<DL::ITextureView*, MAX_RENDER_TARGETS_COUNT> renderTargets;
-            ASSERT(MAX_RENDER_TARGETS_COUNT == command.desc.colorAttachments.size());
+            eastl::array<DL::ITextureView*, MAX_COLOR_ATTACHMENT_COUNT> renderTargets;
+            ASSERT(MAX_COLOR_ATTACHMENT_COUNT == command.desc.colorAttachments.size());
 
             uint32_t colorAttachmentCount = 0;
             for (uint32_t i = 0; i < command.desc.colorAttachments.size(); i++)

@@ -47,7 +47,7 @@ namespace RR::GAPI::WebGPU
 
         void compileCommand(const Commands::SetRenderPass& command, CommandCompileContext& ctx)
         {
-            eastl::array<wgpu::RenderPassColorAttachment, MAX_RENDER_TARGETS_COUNT> colorAttachments;
+            eastl::array<wgpu::RenderPassColorAttachment, MAX_COLOR_ATTACHMENT_COUNT> colorAttachments;
 
             for (uint32_t i = 0; i < command.desc.colorAttachmentCount; i++)
             {

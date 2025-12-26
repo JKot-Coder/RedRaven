@@ -196,8 +196,8 @@ namespace RR::App
 
         GAPI::GraphicPipelineStateDesc desc;
 
-        desc.renderTargetCount = 1;
-        desc.renderTargetFormats[0] = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
+        desc.colorAttachmentCount = 1;
+        desc.colorAttachmentFormats[0] = GAPI::GpuResourceFormat::RGBA8UnormSrgb;
         desc.depthStencilFormat = GAPI::GpuResourceFormat::D32Float;
 
         ASSERT(vs);

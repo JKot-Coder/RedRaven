@@ -215,7 +215,7 @@ namespace RR
                 d3dBlendDesc.AlphaToCoverageEnable = blendDesc.alphaToCoverageEnabled;
                 d3dBlendDesc.IndependentBlendEnable = blendDesc.independentBlendEnabled;
 
-                static_assert(MAX_RENDER_TARGETS_COUNT == std::size(D3D12_BLEND_DESC {}.RenderTarget));
+                static_assert(MAX_COLOR_ATTACHMENT_COUNT == std::size(D3D12_BLEND_DESC {}.RenderTarget));
 
                 // If IndependentBlendEnable set to FALSE, only the RenderTarget[0] members are used
                 uint32_t numRTs = d3dBlendDesc.IndependentBlendEnable ? blendDesc.rtBlend.size() : 1;
@@ -328,9 +328,9 @@ namespace RR
             d3d12psoDesc.PrimitiveTopologyType = getD3DPrimitiveTopologyType(gpsoDesc.primitiveTopology);
 
             uint32_t numRenderTargets = 0;
-            for (uint32_t rtIndex = 0; rtIndex < gpsoDesc.renderTargetCount; ++rtIndex)
+            for (uint32_t rtIndex = 0; rtIndex < gpsoDesc.colorAttachmentCount; ++rtIndex)
             {
-                const auto format = gpsoDesc.renderTargetFormats[rtIndex];
+                const auto format = gpsoDesc.colorAttachmentFormats[rtIndex];
                 d3d12psoDesc.RTVFormats[rtIndex] = D3DUtils::GetDxgiResourceFormat(format);
 
                 if (format == GpuResourceFormat::Unknown)

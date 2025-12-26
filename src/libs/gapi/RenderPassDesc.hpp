@@ -59,7 +59,7 @@ namespace RR::GAPI
         struct BuilderImpl;
 
     public:
-        static constexpr uint32_t MaxColorAttachments = MAX_RENDER_TARGETS_COUNT;
+        static constexpr uint32_t MaxColorAttachments = MAX_COLOR_ATTACHMENT_COUNT;
 
         [[nodiscard]] static BuilderImpl Builder();
 

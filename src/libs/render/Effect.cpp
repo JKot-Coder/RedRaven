@@ -33,14 +33,14 @@ namespace RR::Render
         if(params.vertexLayout)
             graphicPSODesc.vertexLayout = *params.vertexLayout;
 
-        ASSERT(params.renderTargetCount <= graphicPSODesc.renderTargetFormats.size());
-        ASSERT(params.renderTargetCount <= params.renderTargetFormats.size());
+        ASSERT(params.colorAttachmentCount <= graphicPSODesc.colorAttachmentFormats.size());
+        ASSERT(params.colorAttachmentCount <= params.colorAttachmentFormats.size());
 
-        graphicPSODesc.renderTargetCount = params.renderTargetCount;
+        graphicPSODesc.colorAttachmentCount = params.colorAttachmentCount;
 
         // Todo maybe we need to check real shaders outputs here.
-        for(size_t i = 0; i < params.renderTargetCount; ++i)
-            graphicPSODesc.renderTargetFormats[i] = params.renderTargetFormats[i];
+        for(size_t i = 0; i < params.colorAttachmentCount; ++i)
+            graphicPSODesc.colorAttachmentFormats[i] = params.colorAttachmentFormats[i];
 
         ASSERT(effectDesc.passes.size() == 1);
         auto& pass = effectDesc.passes[0]; // TODO

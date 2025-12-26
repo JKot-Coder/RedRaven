@@ -118,9 +118,9 @@ namespace RR::GAPI
 
         bool independentBlendEnabled : 1;
         bool alphaToCoverageEnabled : 1;
-        std::array<RTBlendStateDesc, MAX_RENDER_TARGETS_COUNT> rtBlend;
+        std::array<RTBlendStateDesc, MAX_COLOR_ATTACHMENT_COUNT> rtBlend;
     }; // no padding
-    static_assert(sizeof(BlendDesc) == MAX_RENDER_TARGETS_COUNT * 4 + 1);
+    static_assert(sizeof(BlendDesc) == MAX_COLOR_ATTACHMENT_COUNT * 4 + 1);
 
     struct DepthStencilDesc
     {
@@ -237,8 +237,8 @@ namespace RR::GAPI
         PrimitiveTopology primitiveTopology;
         VertexLayout vertexLayout;
 
-        uint32_t renderTargetCount = 0;
-        eastl::array<GpuResourceFormat, MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
+        uint32_t colorAttachmentCount = 0;
+        eastl::array<GpuResourceFormat, MAX_COLOR_ATTACHMENT_COUNT> colorAttachmentFormats;
         GpuResourceFormat depthStencilFormat = GpuResourceFormat::Unknown;
 
         const Shader* vs = nullptr;

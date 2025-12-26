@@ -100,7 +100,7 @@ namespace RR
         depthStencilDesc.stencilReadMask = effect.value("stencilReadMask", false);
 
         auto colorWriteMasks = effect["colorWriteMasks"];
-        if (colorWriteMasks.size() > GAPI::MAX_RENDER_TARGETS_COUNT)
+        if (colorWriteMasks.size() > GAPI::MAX_COLOR_ATTACHMENT_COUNT)
             throw std::runtime_error("Invalid color write masks count: " + std::to_string(colorWriteMasks.size()));
 
         for (size_t i = 0; i < colorWriteMasks.size(); i++)

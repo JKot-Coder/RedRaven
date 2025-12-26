@@ -28,13 +28,13 @@ namespace RR::Render
 
         void SetRenderPass(const GAPI::RenderPassDesc& renderPass)
         {
-            renderTargetCount = renderPass.colorAttachmentCount;
+            colorAttachmentCount = renderPass.colorAttachmentCount;
 
             for (size_t i = 0; i < renderPass.colorAttachmentCount; ++i)
             {
                 const auto& colorAttachment = renderPass.colorAttachments[i];
                 const auto* renderTargetView = colorAttachment.renderTargetView;
-                renderTargetFormats[i] = renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+                colorAttachmentFormats[i] = renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
             }
 
             const auto* depthStencilView = renderPass.depthStencilAttachment.depthStencilView;
@@ -53,9 +53,9 @@ namespace RR::Render
         {
             dirty = true;
             primitiveTopology = GAPI::PrimitiveTopology::TriangleList;
-            renderTargetCount = 0;
+            colorAttachmentCount = 0;
             vertexLayout = nullptr;
-            renderTargetFormats.fill(GAPI::GpuResourceFormat::Unknown);
+            colorAttachmentFormats.fill(GAPI::GpuResourceFormat::Unknown);
             depthStencilFormat = GAPI::GpuResourceFormat::Unknown;
         }
 
@@ -66,12 +66,12 @@ namespace RR::Render
                 static_assert(sizeof(GraphicsParams) == 64);
 
                 HashBuilder<PsoHasher> hashBuilder;
-                hashBuilder.Combine(renderTargetCount);
+                hashBuilder.Combine(colorAttachmentCount);
                 hashBuilder.Combine(primitiveTopology);
                 if (vertexLayout)
                     hashBuilder.Combine(vertexLayout->GetHash());
-                for (size_t i = 0; i < renderTargetCount; ++i)
-                    hashBuilder.Combine(renderTargetFormats[i]);
+                for (size_t i = 0; i < colorAttachmentCount; ++i)
+                    hashBuilder.Combine(colorAttachmentFormats[i]);
                 hashBuilder.Combine(depthStencilFormat);
                 hash = hashBuilder.GetHash();
                 dirty = false;
@@ -85,8 +85,8 @@ namespace RR::Render
 
         GAPI::PrimitiveTopology primitiveTopology;
         const GAPI::VertexLayout* vertexLayout = nullptr;
-        uint32_t renderTargetCount = 0;
-        eastl::array<GAPI::GpuResourceFormat, GAPI::MAX_RENDER_TARGETS_COUNT> renderTargetFormats;
+        uint32_t colorAttachmentCount = 0;
+        eastl::array<GAPI::GpuResourceFormat, GAPI::MAX_COLOR_ATTACHMENT_COUNT> colorAttachmentFormats;
         GAPI::GpuResourceFormat depthStencilFormat;
         mutable PsoHashType hash;
 

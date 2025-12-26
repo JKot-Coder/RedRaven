@@ -177,16 +177,16 @@ namespace RR::GAPI::Diligent
         dlDesc.BlendDesc = getBlendDesc(desc.blendDesc);
         dlDesc.NumViewports = 1;
 
-        ASSERT(desc.renderTargetCount <= MAX_RENDER_TARGETS_COUNT);
-        ASSERT(desc.renderTargetCount <= DILIGENT_MAX_RENDER_TARGETS);
+        ASSERT(desc.colorAttachmentCount <= MAX_COLOR_ATTACHMENT_COUNT);
+        ASSERT(desc.colorAttachmentCount <= DILIGENT_MAX_RENDER_TARGETS);
 
-        uint32_t renderTargetCount = Min(desc.renderTargetCount, MAX_RENDER_TARGETS_COUNT);
+        uint32_t renderTargetCount = Min(desc.colorAttachmentCount, MAX_COLOR_ATTACHMENT_COUNT);
         renderTargetCount = Min<uint32_t>(renderTargetCount, DILIGENT_MAX_RENDER_TARGETS);
 
         dlDesc.NumRenderTargets = static_cast<uint8_t>(renderTargetCount);
 
         for (size_t i = 0; i < renderTargetCount; i++)
-            dlDesc.RTVFormats[i] = GetDLTextureFormat(desc.renderTargetFormats[i]);
+            dlDesc.RTVFormats[i] = GetDLTextureFormat(desc.colorAttachmentFormats[i]);
 
         dlDesc.DSVFormat = GetDLTextureFormat(desc.depthStencilFormat);
         dlDesc.InputLayout = getInputLayout(desc.vertexLayout, layoutElements);
