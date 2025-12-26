@@ -43,6 +43,9 @@ namespace RR::Render
         PassEncoderBase(CommandEncoder& commandContext) : commandContext(&commandContext) { }
         GAPI::CommandList& GetCommandList() { return commandContext->GetCommandList(); }
 
+        void reset() { commandContext = nullptr; }
+
+    private:
         CommandEncoder* commandContext = nullptr;
     };
 
@@ -50,6 +53,7 @@ namespace RR::Render
     {
     public:
         using UniquePtr = eastl::unique_ptr<RenderPassEncoder>;
+        using Base = PassEncoderBase;
 
     private:
         struct GeometryManager
@@ -79,6 +83,13 @@ namespace RR::Render
         void Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
         void DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount = 0);
 
+        void End()
+        {
+            graphicsParams.Reset();
+            geometryManager.Reset();
+            Base::reset();
+        }
+
     private:
         friend class Render::CommandEncoder;
 
@@ -94,13 +105,6 @@ namespace RR::Render
 
         void setRenderPass(const GAPI::RenderPassDesc& renderPass);
         GAPI::Commands::GeometryLayout& flushLayout() { return geometryManager.flush(GetCommandList()); }
-
-        void reset()
-        {
-            // We reset only internal state here. Command list still in use until submit.
-            graphicsParams.Reset();
-            geometryManager.Reset();
-        }
 
     private:
         GraphicsParams graphicsParams;
