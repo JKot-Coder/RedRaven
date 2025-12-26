@@ -130,8 +130,6 @@ namespace RR::GAPI::DX12
             }
         }
 
-        commandList.clear();
-
         D3DCommandList->Close();
     }
 }

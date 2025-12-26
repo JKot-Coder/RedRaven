@@ -86,6 +86,7 @@ namespace RR::Render
         ASSERT(inited);
 
         multiThreadDevice->Compile(commandContext.GetCommandList());
+        commandContext.Reset();
     }
 
     Render::CommandEncoder::UniquePtr DeviceContext::CreateCommandEncoder(const std::string& name) const

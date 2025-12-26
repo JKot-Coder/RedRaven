@@ -47,7 +47,6 @@ namespace RR::Render
             ASSERT(commandQueue);
 
             submission.Submit(commandQueue, commandEncoder.GetCommandList());
-            commandEncoder.Reset();
         }
 
         eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
