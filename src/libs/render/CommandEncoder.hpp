@@ -18,7 +18,7 @@ namespace RR::Render
         using UniquePtr = eastl::unique_ptr<CommandEncoder>;
 
     public:
-        eastl::unique_ptr<RenderPassEncoder> BeginRenderPass(const GAPI::RenderPassDesc& renderPass);
+        RenderPassEncoder BeginRenderPass(const GAPI::RenderPassDesc& renderPass);
 
     private:
         friend class DeviceContext;
@@ -37,7 +37,7 @@ namespace RR::Render
         GAPI::CommandList commandList;
     };
 
-    class PassEncoderBase
+    class PassEncoderBase : public Common::NonCopyable
     {
     protected:
         PassEncoderBase(CommandEncoder& commandContext) : commandContext(&commandContext) { }
@@ -52,7 +52,6 @@ namespace RR::Render
     class RenderPassEncoder final : private PassEncoderBase
     {
     public:
-        using UniquePtr = eastl::unique_ptr<RenderPassEncoder>;
         using Base = PassEncoderBase;
 
     private:
@@ -98,9 +97,9 @@ namespace RR::Render
             setRenderPass(renderPass);
         }
 
-        static UniquePtr Create(CommandEncoder& commandContext, const GAPI::RenderPassDesc& renderPass)
+        static RenderPassEncoder Create(CommandEncoder& commandContext, const GAPI::RenderPassDesc& renderPass)
         {
-            return eastl::unique_ptr<RenderPassEncoder>(new RenderPassEncoder(commandContext, renderPass));
+            return RenderPassEncoder(commandContext, renderPass);
         }
 
         void setRenderPass(const GAPI::RenderPassDesc& renderPass);
@@ -111,7 +110,7 @@ namespace RR::Render
         GeometryManager geometryManager;
     };
 
-    inline RenderPassEncoder::UniquePtr CommandEncoder::BeginRenderPass(const GAPI::RenderPassDesc& renderPass)
+    inline RenderPassEncoder CommandEncoder::BeginRenderPass(const GAPI::RenderPassDesc& renderPass)
     {
         return RenderPassEncoder::Create(*this, renderPass);
     }
