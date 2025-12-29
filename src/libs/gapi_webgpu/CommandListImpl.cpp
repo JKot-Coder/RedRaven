@@ -20,9 +20,9 @@ namespace RR::GAPI::WebGPU
         {
             switch (loadOp)
             {
+                case GAPI::AttachmentLoadOp::Discard:
                 case GAPI::AttachmentLoadOp::Load: return wgpu::LoadOp::Load;
-                case GAPI::AttachmentLoadOp::Clear:
-                case GAPI::AttachmentLoadOp::Discard: return wgpu::LoadOp::Clear;
+                case GAPI::AttachmentLoadOp::Clear: return wgpu::LoadOp::Clear;
                 default:
                     ASSERT_MSG(false, "Unsupported load op");
                     return wgpu::LoadOp::Undefined;
