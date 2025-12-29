@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/hashing/Hash.hpp"
+#include "gapi/Limits.hpp"
 
 namespace RR::GAPI
 {
@@ -39,7 +40,7 @@ namespace RR::GAPI
     struct VertexLayout
     {
     private:
-        eastl::fixed_vector<VertexAttributeDesc, 8> attributes;
+        eastl::fixed_vector<VertexAttributeDesc, MAX_VERTEX_ATTRIBUTES, false> attributes;
         Common::HashType hash;
 
         friend struct VertexLayoutBuilder;
@@ -49,7 +50,6 @@ namespace RR::GAPI
 
         size_t GetAttributeCount() const { return attributes.size(); }
         const VertexAttributeDesc& GetAttribute(size_t index) const { return attributes[index]; }
-        const eastl::fixed_vector<VertexAttributeDesc, 8>& GetAttributes() const { return attributes; }
 
         static VertexLayoutBuilder Build();
     };

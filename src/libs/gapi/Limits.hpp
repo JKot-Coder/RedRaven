@@ -7,5 +7,8 @@ namespace RR
         constexpr uint32_t MAX_GPU_FRAMES_BUFFERED = 3;
         constexpr uint32_t MAX_BACK_BUFFERS_COUNT = 3;
         constexpr uint32_t MAX_COLOR_ATTACHMENT_COUNT = 8;
+        constexpr uint32_t MAX_VERTEX_ATTRIBUTES = 16;
+        constexpr uint32_t MAX_VERTEX_BUFFERS = 8;
+        constexpr uint32_t MAX_VERTEX_ATTRIBUTES_PER_BUFFER = 8;
     }
 }

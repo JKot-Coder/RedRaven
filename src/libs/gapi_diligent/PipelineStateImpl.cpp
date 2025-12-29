@@ -5,6 +5,7 @@
 #include "PipelineState.h"
 
 #include "gapi/PipelineState.hpp"
+#include "gapi/Limits.hpp"
 
 #include "gapi_diligent/ShaderImpl.hpp"
 #include "gapi_diligent/Utils.hpp"
@@ -13,8 +14,6 @@ namespace DL = ::Diligent;
 
 namespace RR::GAPI::Diligent
 {
-    static constexpr uint32_t MaxLayoutElements = 16;
-
     DL::BLEND_OPERATION getBlendOp(GAPI::BlendOp op)
     {
         switch (op)
@@ -140,7 +139,7 @@ namespace RR::GAPI::Diligent
         }
     }
 
-    DL::InputLayoutDesc getInputLayout(const GAPI::VertexLayout& layout, eastl::array<DL::LayoutElement, MaxLayoutElements>& layoutElements)
+    DL::InputLayoutDesc getInputLayout(const GAPI::VertexLayout& layout, eastl::array<DL::LayoutElement, MAX_VERTEX_ATTRIBUTES>& layoutElements)
     {
         DL::InputLayoutDesc inputLayout;
 
@@ -171,7 +170,7 @@ namespace RR::GAPI::Diligent
         return inputLayout;
     }
 
-    DL::GraphicsPipelineDesc getGraphicsPipelineDesc(const GAPI::GraphicPipelineStateDesc& desc, eastl::array<DL::LayoutElement, MaxLayoutElements>& layoutElements)
+    DL::GraphicsPipelineDesc getGraphicsPipelineDesc(const GAPI::GraphicPipelineStateDesc& desc, eastl::array<DL::LayoutElement, MAX_VERTEX_ATTRIBUTES>& layoutElements)
     {
         DL::GraphicsPipelineDesc dlDesc;
         dlDesc.BlendDesc = getBlendDesc(desc.blendDesc);
@@ -203,7 +202,7 @@ namespace RR::GAPI::Diligent
     DL::GraphicsPipelineStateCreateInfo getGraphicPipelineStateCreateInfo(
         const GAPI::GraphicPipelineStateDesc& desc,
         const std::string& name,
-        eastl::array<DL::LayoutElement, MaxLayoutElements>& layoutElements)
+        eastl::array<DL::LayoutElement, MAX_VERTEX_ATTRIBUTES>& layoutElements)
     {
         DL::GraphicsPipelineStateCreateInfo createInfo(name.c_str());
         createInfo.GraphicsPipeline = getGraphicsPipelineDesc(desc, layoutElements);
@@ -228,7 +227,7 @@ namespace RR::GAPI::Diligent
                 auto& graphicResource = static_cast<const GAPI::GraphicPipelineState&>(resource);
 
                 // To avoid allocations and keep thread safity we should allocate this on stack
-                eastl::array<DL::LayoutElement, MaxLayoutElements> layoutElements;
+                eastl::array<DL::LayoutElement, MAX_VERTEX_ATTRIBUTES> layoutElements;
                 auto createInfo = getGraphicPipelineStateCreateInfo(graphicResource.GetDescription(), resource.GetName(), layoutElements);
 
                 DL::IPipelineState* psoPtr = nullptr;
