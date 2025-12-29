@@ -10,7 +10,7 @@ struct PSInput
 };
 
 [shader("vertex")]
-VSOutput vertexMain(in uint VertId : SV_VertexID)
+VSOutput vertexMain(in uint VertId : SV_VulkanVertexID)
 {
     float4 Pos[3];
     Pos[0] = float4(-0.5, -0.5, 0.0, 1.0);
