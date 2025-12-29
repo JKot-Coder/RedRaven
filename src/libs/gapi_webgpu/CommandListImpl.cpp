@@ -1,7 +1,12 @@
 #include "CommandListImpl.hpp"
 
 #include "gapi/commands/RenderPass.hpp"
+#include "gapi/commands/Draw.hpp"
 
+#include "gapi/Buffer.hpp"
+
+#include "BufferImpl.hpp"
+#include "PipelineStateImpl.hpp"
 #include "TextureViewImpl.hpp"
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
@@ -91,6 +96,87 @@ namespace RR::GAPI::WebGPU
             ctx.renderPassEncoder.end();
             ctx.renderPassEncoder.release();
         }
+
+        // ---------------------------------------------------------------------------------------------
+        // Draw commands
+        // ---------------------------------------------------------------------------------------------
+
+        template <typename T>
+        void compileCommand(const T& command, bool indexed, CommandCompileContext& ctx)
+        {
+            const auto* pso = static_cast<const PipelineStateImpl*>(command.psoImpl);
+            ASSERT(pso);
+            ASSERT(command.geometryLayout);
+
+            ctx.renderPassEncoder.setPipeline(pso->GetRenderPipeline());
+            ASSERT(command.geometryLayout->vertexBindings.size() <= MAX_VERTEX_BUFFERS);
+            const size_t vertexBindingsCount = command.geometryLayout->vertexBindings.size();
+
+            // Set vertex buffers
+            for (size_t i = 0; i < vertexBindingsCount; i++)
+            {
+                const auto& vertexBinding = command.geometryLayout->vertexBindings[i];
+                if (vertexBinding.vertexBuffer)
+                {
+                    const auto* bufferImpl = vertexBinding.vertexBuffer->template GetPrivateImpl<BufferImpl>();
+                    ctx.renderPassEncoder.setVertexBuffer(
+                        static_cast<uint32_t>(i),
+                        bufferImpl->GetBuffer(),
+                        vertexBinding.vertexBufferOffset,
+                        vertexBinding.vertexBuffer->GetDesc().buffer.size - vertexBinding.vertexBufferOffset);
+                }
+            }
+
+            if (indexed)
+            {
+                const auto* indexBuffer = command.geometryLayout->indexBuffer;
+                ASSERT(indexBuffer);
+                ASSERT(indexBuffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
+
+                auto getIndexBufferFormat = [](GAPI::GpuResourceFormat format) -> wgpu::IndexFormat
+                {
+                    switch (format)
+                    {
+                        case GAPI::GpuResourceFormat::R16Uint: return wgpu::IndexFormat::Uint16;
+                        case GAPI::GpuResourceFormat::R32Uint: return wgpu::IndexFormat::Uint32;
+                        default: ASSERT_MSG(false, "Unknown index buffer format"); return wgpu::IndexFormat::Undefined;
+                    }
+                };
+
+                const wgpu::IndexFormat indexFormat = getIndexBufferFormat(indexBuffer->GetDesc().GetBufferFormat());
+                const auto* bufferImpl = indexBuffer->template GetPrivateImpl<BufferImpl>();
+                ctx.renderPassEncoder.setIndexBuffer(bufferImpl->GetBuffer(), indexFormat, 0, indexBuffer->GetDesc().buffer.size - 0);
+
+                const uint32_t instanceCount = Max(command.attribs.instanceCount, 1u);
+                ctx.renderPassEncoder.drawIndexed(
+                    command.attribs.vertexCount,
+                    instanceCount,
+                    command.attribs.startLocation,
+                    0, // baseVertex
+                    0  // firstInstance
+                );
+            }
+            else
+            {
+                const uint32_t instanceCount = Max(command.attribs.instanceCount, 1u);
+                ctx.renderPassEncoder.draw(
+                    command.attribs.vertexCount,
+                    instanceCount,
+                    command.attribs.startLocation,
+                    0  // firstInstance
+                );
+            }
+        }
+
+        void compileCommand(const Commands::Draw& command, CommandCompileContext& ctx)
+        {
+            compileCommand(command, false, ctx);
+        }
+
+        void compileCommand(const Commands::DrawIndexed& command, CommandCompileContext& ctx)
+        {
+            compileCommand(command, true, ctx);
+        }
     }
     CommandListImpl::~CommandListImpl() { }
 
@@ -99,7 +185,7 @@ namespace RR::GAPI::WebGPU
         UNUSED(device);
     }
 
-    void CommandListImpl::Compile(wgpu::Device device,GAPI::CommandList& commandList)
+    void CommandListImpl::Compile(wgpu::Device device, GAPI::CommandList& commandList)
     {
         ASSERT(!commandBuffer);
 
@@ -119,6 +205,14 @@ namespace RR::GAPI::WebGPU
 
             case Command::Type::EndRenderPass:
                 compileCommand(static_cast<const Commands::EndRenderPass&>(*command), ctx);
+                break;
+
+            case Command::Type::Draw:
+                compileCommand(static_cast<const Commands::Draw&>(*command), ctx);
+                break;
+
+            case Command::Type::DrawIndexed:
+                compileCommand(static_cast<const Commands::DrawIndexed&>(*command), ctx);
                 break;
 
             default:
