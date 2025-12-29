@@ -8,12 +8,14 @@
 #include "BufferImpl.hpp"
 #include "CommandListImpl.hpp"
 #include "CommandQueueImpl.hpp"
+#include "PipelineStateImpl.hpp"
 #include "ShaderImpl.hpp"
 #include "SwapChainImpl.hpp"
 #include "TextureImpl.hpp"
 #include "TextureViewImpl.hpp"
 
 #include "gapi/Buffer.hpp"
+#include "gapi/PipelineState.hpp"
 #include "gapi/Resource.hpp"
 #include "gapi/Shader.hpp"
 #include "gapi/Texture.hpp"
@@ -219,7 +221,8 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        UNUSED(resource);
-        NOT_IMPLEMENTED();
+        auto impl = eastl::make_unique<PipelineStateImpl>();
+        impl->Init(device, resource);
+        resource.SetPrivateImpl(impl.release());
     }
 }

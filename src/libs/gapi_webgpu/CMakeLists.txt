@@ -11,6 +11,8 @@ set(SRC
     Device.hpp
     DeviceImpl.cpp
     DeviceImpl.hpp
+    PipelineStateImpl.cpp
+    PipelineStateImpl.hpp
     ShaderImpl.cpp
     ShaderImpl.hpp
     SwapChainImpl.cpp
