@@ -5,6 +5,7 @@
 
 #include "Device.hpp"
 
+#include "BindingLayoutImpl.hpp"
 #include "BufferImpl.hpp"
 #include "CommandListImpl.hpp"
 #include "CommandQueueImpl.hpp"
@@ -14,6 +15,7 @@
 #include "TextureImpl.hpp"
 #include "TextureViewImpl.hpp"
 
+#include "gapi/BindingLayout.hpp"
 #include "gapi/Buffer.hpp"
 #include "gapi/PipelineState.hpp"
 #include "gapi/Resource.hpp"
@@ -222,6 +224,24 @@ namespace RR::GAPI::WebGPU
         ASSERT_IS_DEVICE_INITED;
 
         auto impl = eastl::make_unique<PipelineStateImpl>();
+        impl->Init(device, resource);
+        resource.SetPrivateImpl(impl.release());
+    }
+
+    void DeviceImpl::InitBindingLayout(BindingLayout& resource) const
+    {
+        ASSERT_IS_DEVICE_INITED;
+
+        auto impl = eastl::make_unique<BindingLayoutImpl>();
+        impl->Init(device, resource);
+        resource.SetPrivateImpl(impl.release());
+    }
+
+    void DeviceImpl::InitBindingSet(BindingSet& resource) const
+    {
+        ASSERT_IS_DEVICE_INITED;
+
+        auto impl = eastl::make_unique<BindingSetImpl>();
         impl->Init(device, resource);
         resource.SetPrivateImpl(impl.release());
     }

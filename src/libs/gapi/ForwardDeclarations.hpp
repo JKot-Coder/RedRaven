@@ -19,6 +19,10 @@ namespace RR
         class GraphicPipelineState;
         struct GraphicPipelineStateDesc;
 
+        class BindingLayout;
+        class IBindingLayout;
+        struct BindingLayoutDesc;
+
         struct RenderPassDesc;
 
         struct BufferData;

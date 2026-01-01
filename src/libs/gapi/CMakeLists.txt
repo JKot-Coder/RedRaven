@@ -3,6 +3,7 @@ project (gapi)
 set(SRC
     Buffer.cpp
     Buffer.hpp
+    BindingLayout.hpp
     CommandList.hpp
     CommandQueue.hpp
     Device.hpp

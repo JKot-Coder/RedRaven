@@ -1,0 +1,103 @@
+#pragma once
+
+#include "gapi/ForwardDeclarations.hpp"
+#include "gapi/Resource.hpp"
+#include "gapi/Shader.hpp"
+#include "gapi/Limits.hpp"
+
+#include <EASTL/vector.h>
+
+namespace RR::GAPI
+{
+
+    enum class BindingType : uint8_t
+    {
+        ConstantBuffer,
+        TextureSRV,
+        TextureUAV,
+        BufferSRV,
+        BufferUAV,
+        Sampler
+    };
+
+    struct BindingLayoutElement
+    {
+        BindingType type;
+        uint32_t    binding;
+        uint32_t    count;
+        ShaderStageMask stageMask;
+
+        struct TextureMeta {
+            GpuResourceDimension dimension;
+            GpuResourceFormat format;
+            enum class SampleType { Float, Int, Uint, Depth } sampleType = SampleType::Float;
+        } textureMeta;
+    };
+
+    struct BindingLayoutDesc
+    {
+        struct BindingGroupLayout
+        {
+            eastl::fixed_vector<BindingLayoutElement, MAX_BINDINGS_PER_GROUP, false> elements;
+        };
+
+        eastl::fixed_vector<BindingGroupLayout, MAX_BINDING_GROUPS, false> groups;
+    };
+
+    class IBindingLayout
+    {
+    public:
+        virtual ~IBindingLayout() = default;
+    };
+
+    class BindingLayout final : public Resource<IBindingLayout, true>
+    {
+    public:
+        using UniquePtr = eastl::unique_ptr<BindingLayout>;
+
+        BindingLayout(const BindingLayoutDesc& desc, const std::string& name)
+            : Resource(Type::BindingLayout, name), desc_(desc)
+        {
+        }
+
+        const BindingLayoutDesc& GetDesc() const { return desc_; }
+
+    private:
+        BindingLayoutDesc desc_;
+    };
+
+    struct BindingElement
+    {
+        uint32_t binding;
+        const GpuResourceView* view = nullptr;
+    };
+
+    struct BindingSetDesc
+    {
+        const BindingLayout* layout = nullptr;
+        eastl::vector<BindingElement> bindings;
+    };
+
+    class IBindingSet
+    {
+    public:
+        virtual ~IBindingSet() = default;
+    };
+
+    class BindingSet final : public Resource<IBindingSet, true>
+    {
+    public:
+        using UniquePtr = eastl::unique_ptr<BindingSet>;
+
+        BindingSet(const BindingSetDesc& desc, const std::string& name)
+            : Resource(Type::BindingSet, name), desc_(desc)
+        {
+        }
+
+        const BindingSetDesc& GetDesc() const { return desc_; }
+
+    private:
+        BindingSetDesc desc_;
+    };
+}
+

@@ -202,10 +202,23 @@ namespace RR
                 NOT_IMPLEMENTED();
             }
 
+            void DeviceImpl::InitBindingLayout(BindingLayout& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                UNUSED(resource);
+                NOT_IMPLEMENTED();
+            }
+
             void DeviceImpl::InitGpuResourceView(GpuResourceView& view) const
             {
                 ASSERT_IS_DEVICE_INITED;
                 return ResourceCreator::InitGpuResourceView(view);
+            }
+
+            void DeviceImpl::InitBindingSet(BindingSet& resource) const
+            {
+                ASSERT_IS_DEVICE_INITED;
+                NOT_IMPLEMENTED();
             }
 
             void DeviceImpl::Compile(CommandList& commandList)

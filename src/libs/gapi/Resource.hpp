@@ -24,6 +24,7 @@ namespace RR
                 SwapChain,
                 Shader,
                 PipelineState,
+                BindingLayout,
             };
 
         public:

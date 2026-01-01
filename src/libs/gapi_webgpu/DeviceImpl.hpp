@@ -28,6 +28,8 @@ namespace RR::GAPI::WebGPU
         void InitTexture(Texture& resource) const override;
         void InitShader(Shader& resource) const override;
         void InitPipelineState(PipelineState& resource) const override;
+        void InitBindingLayout(BindingLayout& resource) const override;
+        void InitBindingSet(BindingSet& resource) const override;
 
         std::any GetRawDevice() const override { ASSERT_MSG(false, "Not implemented"); return nullptr; }
 
