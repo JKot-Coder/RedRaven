@@ -9,17 +9,17 @@ namespace RR::Common
 {
     namespace IO
     {
-        std::string FileSystem::CurrentPath() const
+        std::string FileSystem::CurrentPath()
         {
             return std::filesystem::current_path().generic_u8string();
         }
 
-        bool FileSystem::IsExist(std::string_view path) const
+        bool FileSystem::IsExist(std::string_view path)
         {
             return std::filesystem::exists(path);
         }
 
-        RResult FileSystem::Open(std::string_view path, FileOpenMode acess, File& file) const
+        RResult FileSystem::Open(std::string_view path, FileOpenMode acess, File& file)
         {
             return file.Open(path, acess);
         }
