@@ -10,6 +10,8 @@ set(SRC
     JsonnetProcessor.hpp
     SlangUtils.hpp
     SlangUtils.cpp
+    SubprocessRunner.hpp
+    SubprocessRunner.cpp
     reflection/ReflectionBuilder.hpp
     reflection/ReflectionBuilder.cpp
     reflection/ReflectionResourceType.hpp

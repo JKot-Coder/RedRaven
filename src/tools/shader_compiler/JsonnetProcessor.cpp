@@ -1,8 +1,6 @@
 #include "JsonnetProcessor.hpp"
 
-#include "common/OnScopeExit.hpp"
-
-#include "subprocess.h"
+#include "SubprocessRunner.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -31,47 +29,19 @@ namespace RR
 
         args.push_back(nullptr);
 
-        subprocess_s process;
-        auto runCode = subprocess_create(args.data(),
-                                         subprocess_option_combined_stdout_stderr |
-                                             subprocess_option_no_window |
-                                             subprocess_option_search_user_path,
-                                         &process);
+        SubprocessResult processResult;
+        RR_RETURN_ON_FAIL(SubprocessRunner::Run(args, processResult));
 
-        if (runCode != 0)
+        if (processResult.exitCode != 0)
         {
-            std::cerr << "Process " << args[0] << " executed with error: " << runCode << std::endl;
-            return Common::RResult::Fail;
-        }
-
-        ON_SCOPE_EXIT([&process]() {
-            UNUSED(subprocess_destroy(&process));
-        });
-
-        char buffer[4096];
-        std::string output;
-        while (unsigned size = subprocess_read_stdout(&process, buffer, sizeof(buffer)))
-            output.append(buffer, size);
-
-        int exitCode;
-        for (int result = subprocess_join(&process, &exitCode); result != 0;) {
-            std::cerr << "Process " << args[0] << " failed to join." << result << std::endl;
-#ifndef OS_WINDOWS
-            std::cerr << "errno: " << errno << " (" << strerror(errno) << ")" << std::endl;
-#endif
-            return Common::RResult::Fail;
-        }
-
-        if (exitCode != 0)
-        {
-            std::cerr << "Process executed with error: " << exitCode << std::endl;
-            std::cerr << output << std::endl;
+            std::cerr << "Process executed with error: " << processResult.exitCode << std::endl;
+            std::cerr << processResult.output << std::endl;
             return Common::RResult::Fail;
         }
 
         try
         {
-            outputJson = nlohmann::json::parse(output);
+            outputJson = nlohmann::json::parse(processResult.output);
         }
         catch (const std::exception& e)
         {
