@@ -5,6 +5,7 @@
 
 #include "common/Result.hpp"
 #include "gapi/Shader.hpp"
+#include "SpirvToWgslTranscoder.hpp"
 
 #include "reflection/ReflectionBuilder.hpp"
 #include "SlangUtils.hpp"
@@ -158,8 +159,24 @@ namespace RR  {
                 return Common::RResult::Fail;
             }
 
-            const char* c = static_cast<const char*>(shaderResult.source->getBufferPointer());
-            size_t s = shaderResult.source->getBufferSize();
+            if (targetDesc.format == SLANG_SPIRV)
+            {
+
+                std::string wgslCode;
+                RR_RETURN_ON_FAIL(SpirvToWgslTranscoder::Transcode(compiledCode, wgslCode));
+                shaderResult.source.resize(wgslCode.size());
+                std::memcpy(shaderResult.source.data(), wgslCode.data(), wgslCode.size());
+            }
+            else
+            {
+                // Copy to code to result
+                shaderResult.source.resize(compiledCode->getBufferSize());
+                std::memcpy(shaderResult.source.data(), compiledCode->getBufferPointer(), compiledCode->getBufferSize());
+            }
+
+
+            const char* c = reinterpret_cast<const char*>(shaderResult.source.data());
+            size_t s = shaderResult.source.size();
 
             std::cout << "Shader: "<< std::endl << std::string(c,s ) << std::endl;
 

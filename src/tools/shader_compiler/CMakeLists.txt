@@ -12,6 +12,8 @@ set(SRC
     SlangUtils.cpp
     SubprocessRunner.hpp
     SubprocessRunner.cpp
+    SpirvToWgslTranscoder.hpp
+    SpirvToWgslTranscoder.cpp
     reflection/ReflectionBuilder.hpp
     reflection/ReflectionBuilder.cpp
     reflection/ReflectionResourceType.hpp
