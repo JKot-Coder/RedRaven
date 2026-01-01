@@ -44,7 +44,6 @@ namespace RR
     private:
         eastl::vector<EffectLibrary::Asset::EffectDesc> effects;
         eastl::vector<EffectLibrary::Asset::ShaderDesc> shaders;
-        eastl::vector<ShaderResult> shaderResults;
         Common::ChunkAllocator stringAllocator;
         uint32_t stringsCount = 0;
         Slang::ComPtr<slang::IGlobalSession> globalSession;

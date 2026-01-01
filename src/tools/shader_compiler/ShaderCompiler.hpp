@@ -23,16 +23,10 @@ namespace RR  {
 
     struct ShaderResult
     {
-        ~ShaderResult() {
-            source.setNull();
-            // Kill session last
-            session.setNull();
-        }
-
+        ~ShaderResult() { }
         std::string name;
         GAPI::ShaderStage stage;
-        Slang::ComPtr<slang::IBlob> source;
-        Slang::ComPtr<slang::ISession> session; // Sources alive until session alive.
+        std::vector<std::byte> source;
     };
 
     struct CompileResult

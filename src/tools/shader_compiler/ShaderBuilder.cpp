@@ -130,10 +130,9 @@ namespace RR
         Asset::ShaderDesc shaderDesc;
         shaderDesc.header.nameIndex = pushString(shader.name);
         shaderDesc.header.stage = shader.stage;
-        shaderDesc.header.size = static_cast<uint32_t>(shader.source->getBufferSize());
-        shaderDesc.data = reinterpret_cast<const std::byte*>(shader.source->getBufferPointer());
+        shaderDesc.header.size = static_cast<uint32_t>(shader.source.size());
+        shaderDesc.data = std::move(shader.source);
 
-        shaderResults.emplace_back(std::move(shader));
         shaders.emplace_back(std::move(shaderDesc));
         return index;
     }
@@ -310,7 +309,7 @@ namespace RR
         for (auto& shader : shaders)
         {
             file.write(reinterpret_cast<const char*>(&shader.header), sizeof(Asset::ShaderDesc::Header));
-            file.write(reinterpret_cast<const char*>(shader.data), shader.header.size);
+            file.write(reinterpret_cast<const char*>(shader.data.data()), shader.header.size);
         }
 
         // Effects
@@ -321,8 +320,6 @@ namespace RR
             for (auto& pass : effect.passes)
                 file.write(reinterpret_cast<const char*>(&pass), sizeof(Asset::PassDesc));
         }
-
-        shaderResults.clear();
 
         file.close();
         return Common::RResult::Ok;

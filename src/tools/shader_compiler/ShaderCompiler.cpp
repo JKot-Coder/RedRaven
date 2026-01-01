@@ -144,9 +144,10 @@ namespace RR  {
 
             ShaderResult shaderResult;
             shaderResult.stage = GetShaderStage(stage);
-            shaderResult.session = session;
             shaderResult.name = programLayout->getEntryPointByIndex(i)->getName();
-            if (SLANG_FAILED(linkedProgram->getEntryPointCode(i, 0, shaderResult.source.writeRef(), diagnostics.writeRef())))
+
+            slang::IBlob* compiledCode;
+            if (SLANG_FAILED(linkedProgram->getEntryPointCode(i, 0, &compiledCode, diagnostics.writeRef())))
             {
                 if (diagnostics)
                 {
@@ -231,7 +232,7 @@ namespace RR  {
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
 
         ReflectionBuilder reflectionBuilder;
-        reflectionBuilder.Build(programLayout);
+        reflectionBuilder.Build(linkedProgram.get(), programLayout);
 
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
 

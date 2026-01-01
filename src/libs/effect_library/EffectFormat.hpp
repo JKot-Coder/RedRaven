@@ -32,7 +32,7 @@ namespace RR::EffectLibrary
                 GAPI::ShaderStage stage;
                 uint32_t size;
             } header;
-            const std::byte* data;
+            std::vector<std::byte> data;
         };
 
         struct PassDesc
