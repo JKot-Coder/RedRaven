@@ -1,7 +1,5 @@
 #include "ReflectionBuilder.hpp"
 
-#include "effect_library/ShaderReflectionData.hpp"
-
 #include "slang.h"
 using namespace slang;
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "effect_library/ShaderReflectionData.hpp"
-
 namespace slang
 {
     class ShaderReflection;
