@@ -181,49 +181,6 @@ namespace RR  {
 
             std::cout << "Shader: "<< std::endl << std::string(c,s ) << std::endl;
 
-            // Анализируем скомпилированный HLSL код для извлечения правильной информации о binding
-            std::string shaderCode(c, s);
-            std::cout << "HLSL Analysis:" << std::endl;
-
-            // Ищем cbuffer declarations
-            size_t pos = 0;
-            while ((pos = shaderCode.find("cbuffer", pos)) != std::string::npos)
-            {
-                size_t lineEnd = shaderCode.find('\n', pos);
-                if (lineEnd != std::string::npos)
-                {
-                    std::string cbufferLine = shaderCode.substr(pos, lineEnd - pos);
-                    std::cout << "  Found: " << cbufferLine << std::endl;
-
-                    // Извлекаем имя буфера
-                    size_t nameStart = cbufferLine.find(' ');
-                    if (nameStart != std::string::npos)
-                    {
-                        nameStart++;
-                        size_t nameEnd = cbufferLine.find(' ', nameStart);
-                        if (nameEnd == std::string::npos) nameEnd = cbufferLine.find(':', nameStart);
-                        if (nameEnd != std::string::npos)
-                        {
-                            std::string bufferName = cbufferLine.substr(nameStart, nameEnd - nameStart);
-                            std::cout << "    Buffer name: " << bufferName << std::endl;
-                        }
-                    }
-
-                    // Извлекаем register информацию
-                    size_t registerPos = cbufferLine.find("register(");
-                    if (registerPos != std::string::npos)
-                    {
-                        size_t registerStart = registerPos + 9; // "register("
-                        size_t registerEnd = cbufferLine.find(')', registerStart);
-                        if (registerEnd != std::string::npos)
-                        {
-                            std::string registerInfo = cbufferLine.substr(registerStart, registerEnd - registerStart);
-                            std::cout << "    Register info: " << registerInfo << std::endl;
-                        }
-                    }
-                }
-                pos = lineEnd;
-            }
 
             result.shaders.emplace_back(std::move(shaderResult));
         }
