@@ -32,9 +32,9 @@ namespace RR::GAPI::WebGPU
             }
         }
 
-        constexpr wgpu::TextureSampleType getTextureSampleType(GAPI::BindingLayoutElement::TextureMeta::SampleType sampleType)
+        constexpr wgpu::TextureSampleType getTextureSampleType(GAPI::BindingLayoutTextureMeta::SampleType sampleType)
         {
-            using Type = GAPI::BindingLayoutElement::TextureMeta::SampleType;
+            using Type = GAPI::BindingLayoutTextureMeta::SampleType;
             switch (sampleType)
             {
                 case Type::Float: return wgpu::TextureSampleType::Float;
@@ -91,16 +91,16 @@ namespace RR::GAPI::WebGPU
                     }
                     case GAPI::BindingType::TextureSRV:
                     {
-                        entry.texture.sampleType = getTextureSampleType(element.textureMeta.sampleType);
-                        entry.texture.viewDimension = getTextureViewDimension(element.textureMeta.dimension);
+                        entry.texture.sampleType = getTextureSampleType(desc.textureMetas[element.textureMetaIndex].sampleType);
+                        entry.texture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
                         entry.texture.multisampled = false;
                         break;
                     }
                     case GAPI::BindingType::TextureUAV:
                     {
                         entry.storageTexture.access = wgpu::StorageTextureAccess::WriteOnly;
-                        entry.storageTexture.format = GetWGPUFormat(element.textureMeta.format);
-                        entry.storageTexture.viewDimension = getTextureViewDimension(element.textureMeta.dimension);
+                        entry.storageTexture.format = GetWGPUFormat(desc.textureMetas[element.textureMetaIndex].format);
+                        entry.storageTexture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
                         break;
                     }
                     case GAPI::BindingType::Sampler:

@@ -20,18 +20,19 @@ namespace RR::GAPI
         Sampler
     };
 
+    struct BindingLayoutTextureMeta {
+        GpuResourceDimension dimension;
+        GpuResourceFormat format;
+        enum class SampleType { Float, Int, Uint, Depth } sampleType = SampleType::Float;
+    };
+
     struct BindingLayoutElement
     {
         BindingType type;
         uint32_t    binding;
         uint32_t    count;
         ShaderStageMask stageMask;
-
-        struct TextureMeta {
-            GpuResourceDimension dimension;
-            GpuResourceFormat format;
-            enum class SampleType { Float, Int, Uint, Depth } sampleType = SampleType::Float;
-        } textureMeta;
+        uint32_t textureMetaIndex;
     };
 
     struct BindingLayoutDesc
@@ -42,6 +43,7 @@ namespace RR::GAPI
         };
 
         eastl::fixed_vector<BindingGroupLayout, MAX_BINDING_GROUPS, false> groups;
+        eastl::fixed_vector<BindingLayoutTextureMeta, 16, false> textureMetas;
     };
 
     class IBindingLayout
