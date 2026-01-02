@@ -15,9 +15,6 @@ namespace RR
         if (args.empty() || args.back() != nullptr)
             return Common::RResult::InvalidArgument;
 
-        if (!Common::IO::FileSystem::IsExist(args[0]))
-            return Common::RResult::FileNotFound;
-
         subprocess_s process;
         auto runCode = subprocess_create(args.data(),
                                          subprocess_option_combined_stdout_stderr |
