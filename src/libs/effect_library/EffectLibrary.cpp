@@ -129,11 +129,72 @@ namespace RR::EffectLibrary
 
                 PassDesc passDesc;
                 passDesc.name = getString(assetPassDesc.nameIndex);
-                passDesc.rasterizerDesc = assetPassDesc.rasterizerDesc;
-                passDesc.depthStencilDesc = assetPassDesc.depthStencilDesc;
-                passDesc.blendDesc = assetPassDesc.blendDesc;
-                passDesc.shaderIndexes = assetPassDesc.shaderIndexes;
+                passDesc.rasterizerDesc = assetPassDesc.psoDesc.rasterizerDesc;
+                passDesc.depthStencilDesc = assetPassDesc.psoDesc.depthStencilDesc;
+                passDesc.blendDesc = assetPassDesc.psoDesc.blendDesc;
+                passDesc.shaderIndexes = assetPassDesc.psoDesc.shaderIndexes;
 
+                Asset::ReflectionDesc::Header reflectionHeader;
+                if(file.Read(reinterpret_cast<void*>(&reflectionHeader), sizeof(reflectionHeader)) != sizeof(reflectionHeader))
+                {
+                    LOG_ERROR("Failed to read reflection header: {}", j);
+                    return Common::RResult::Fail;
+                }
+
+                passDesc.reflection.textureMetas.resize(reflectionHeader.textureMetasCount);
+                if(file.Read(passDesc.reflection.textureMetas.data(), reflectionHeader.textureMetasCount * sizeof(GAPI::BindingLayoutTextureMeta)) != reflectionHeader.textureMetasCount * sizeof(GAPI::BindingLayoutTextureMeta))
+                {
+                    LOG_ERROR("Failed to read texture metas: {}", j);
+                    return Common::RResult::Fail;
+                }
+
+                std::vector<Asset::FieldReflection> assetFields(reflectionHeader.variablesCount);
+                if(file.Read(assetFields.data(), reflectionHeader.variablesCount * sizeof(Asset::FieldReflection)) != reflectionHeader.variablesCount * sizeof(Asset::FieldReflection))
+                {
+                    LOG_ERROR("Failed to read reflection variables: {}", j);
+                    return Common::RResult::Fail;
+                }
+
+                passDesc.reflection.fields.reserve(reflectionHeader.variablesCount);
+                for(const auto& field : assetFields)
+                {
+                    FieldReflection f;
+                    f.name = getString(field.nameIndex);
+                    f.type = field.type;
+                    f.kind = field.kind;
+                    f.arraySize = field.arraySize;
+                    f.offset = field.offset;
+                    f.size = field.size;
+                    f.firstMemberIndex = field.firstMemberIndex;
+                    f.memberCount = field.memberCount;
+                    passDesc.reflection.fields.emplace_back(eastl::move(f));
+                }
+
+                std::vector<Asset::ResourceReflection> assetResourceReflections(reflectionHeader.resourcesCount);
+                if(file.Read(assetResourceReflections.data(), reflectionHeader.resourcesCount * sizeof(Asset::ResourceReflection)) != reflectionHeader.resourcesCount * sizeof(Asset::ResourceReflection))
+                {
+                    LOG_ERROR("Failed to read reflection resources: {}", j);
+                    return Common::RResult::Fail;
+                }
+
+                passDesc.reflection.resources.reserve(reflectionHeader.resourcesCount);
+                for(const auto& resourceReflection : assetResourceReflections)
+                {
+                    ResourceReflection r;
+                    r.name = getString(resourceReflection.nameIndex);
+                    r.type = resourceReflection.type;
+                    r.stageMask = resourceReflection.stageMask;
+                    r.binding = resourceReflection.binding;
+                    r.set = resourceReflection.set;
+                    r.count = resourceReflection.count;
+                    r.textureMetaIndex = resourceReflection.textureMetaIndex;
+                    r.variables = resourceReflection.firstVarIndex != Asset::INVALID_INDEX ? eastl::span<FieldReflection>(passDesc.reflection.fields.data() + resourceReflection.firstVarIndex, resourceReflection.varCount) : eastl::span<FieldReflection>();
+                    r.child = resourceReflection.firstChildResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[resourceReflection.firstChildResourceIndex] : nullptr;
+                    r.next = resourceReflection.nextResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[resourceReflection.nextResourceIndex] : nullptr;
+                    passDesc.reflection.resources.emplace_back(eastl::move(r));
+                }
+
+                passDesc.reflection.rootBlock = reflectionHeader.rootResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[reflectionHeader.rootResourceIndex] : nullptr;
                 effectDesc.passes.emplace_back(eastl::move(passDesc));
             }
 

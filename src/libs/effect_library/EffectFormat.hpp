@@ -2,6 +2,11 @@
 
 #include "gapi/Shader.hpp"
 #include "gapi/PipelineState.hpp"
+#include "gapi/BindingLayout.hpp"
+
+#include <vector>
+#include <cstdint>
+#include <cstddef>
 
 namespace RR::EffectLibrary
 {
@@ -9,6 +14,134 @@ namespace RR::EffectLibrary
     {
         #pragma pack(push, 1)
         static constexpr uint32_t INVALID_INDEX = static_cast<uint32_t>(-1);
+
+        enum class FieldType : uint8_t
+        {
+            Bool,
+            Bool2,
+            Bool3,
+            Bool4,
+
+            Uint8,
+            Uint8_2,
+            Uint8_3,
+            Uint8_4,
+
+            Uint16,
+            Uint16_2,
+            Uint16_3,
+            Uint16_4,
+
+            Uint,
+            Uint2,
+            Uint3,
+            Uint4,
+
+            Uint64,
+            Uint64_2,
+            Uint64_3,
+            Uint64_4,
+
+            Int8,
+            Int8_2,
+            Int8_3,
+            Int8_4,
+
+            Int16,
+            Int16_2,
+            Int16_3,
+            Int16_4,
+
+            Int,
+            Int2,
+            Int3,
+            Int4,
+
+            Int64,
+            Int64_2,
+            Int64_3,
+            Int64_4,
+
+            Float16,
+            Float16_2,
+            Float16_3,
+            Float16_4,
+
+            Float16_2x2,
+            Float16_2x3,
+            Float16_2x4,
+            Float16_3x2,
+            Float16_3x3,
+            Float16_3x4,
+            Float16_4x2,
+            Float16_4x3,
+            Float16_4x4,
+
+            Float,
+            Float2,
+            Float3,
+            Float4,
+
+            Float2x2,
+            Float2x3,
+            Float2x4,
+            Float3x2,
+            Float3x3,
+            Float3x4,
+            Float4x2,
+            Float4x3,
+            Float4x4,
+
+            Float64,
+            Float64_2,
+            Float64_3,
+            Float64_4,
+        };
+
+        enum class FieldKind
+        {
+            Array,
+            Struct,
+            Basic
+        };
+
+        struct FieldReflection
+        {
+            uint32_t nameIndex;
+            FieldType type;
+            FieldKind kind;
+            uint32_t arraySize; // 0 or 1 = not array, >1 = array
+
+            uint32_t offset;    // Offset in bytes relative to the start of the parent structure/buffer
+            uint32_t size;      // Size in bytes
+
+            // For Structs
+            uint32_t firstMemberIndex; // Index into variables vector for first member
+            uint32_t memberCount;      // Number of members
+        };
+
+        struct ResourceReflection
+        {
+            uint32_t nameIndex;
+
+            GAPI::BindingType type;
+            GAPI::ShaderStageMask stageMask;
+
+            uint32_t binding; // Slot index
+            uint32_t set;     // Space/Set index
+
+            uint32_t count; // 0 or 1 = not array, >1 = array
+
+            // For textures only
+            uint32_t textureMetaIndex;
+
+            // For constant buffers only
+            uint32_t firstVarIndex;
+            uint32_t varCount;
+
+            uint32_t firstChildResourceIndex;
+            uint32_t nextResourceIndex;
+        };
 
         struct Header
         {
@@ -35,13 +168,31 @@ namespace RR::EffectLibrary
             std::vector<std::byte> data;
         };
 
+        struct ReflectionDesc
+        {
+            struct Header
+            {
+                uint32_t resourcesCount;
+                uint32_t variablesCount;
+                uint32_t textureMetasCount;
+                uint32_t rootResourceIndex;
+            } header;
+
+            std::vector<FieldReflection> fields;
+            std::vector<GAPI::BindingLayoutTextureMeta> textureMetas;
+            std::vector<ResourceReflection> resources;
+        };
+
         struct PassDesc
         {
             uint32_t nameIndex;
-            GAPI::BlendDesc blendDesc;
-            GAPI::RasterizerDesc rasterizerDesc;
-            GAPI::DepthStencilDesc depthStencilDesc;
-            eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
+            struct PSODesc
+            {
+                GAPI::BlendDesc blendDesc;
+                GAPI::RasterizerDesc rasterizerDesc;
+                GAPI::DepthStencilDesc depthStencilDesc;
+                eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
+            } psoDesc;
         };
 
         struct EffectDesc
@@ -51,6 +202,7 @@ namespace RR::EffectLibrary
                 uint32_t nameIndex;
                 uint32_t passCount;
             } header;
+
             std::vector<PassDesc> passes;
         };
         #pragma pack(pop)

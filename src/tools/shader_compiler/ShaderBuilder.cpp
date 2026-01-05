@@ -158,8 +158,8 @@ namespace RR
 
             EffectLibrary::Asset::PassDesc passDesc;
             passDesc.nameIndex = pushString(passKey);
-            passDesc.shaderIndexes.fill(Asset::INVALID_INDEX);
-            evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
+            passDesc.psoDesc.shaderIndexes.fill(Asset::INVALID_INDEX);
+            evaluateRenderStateDesc(renderState, passDesc.psoDesc.rasterizerDesc, passDesc.psoDesc.depthStencilDesc, passDesc.psoDesc.blendDesc);
 
             ShaderCompileDesc shaderCompileDesc;
             shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
@@ -184,7 +184,7 @@ namespace RR
                 throw std::runtime_error("Failed to compile shader");
 
             for (auto& shader : shaderResult.shaders)
-                passDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = pushShader(std::move(shader));
+                passDesc.psoDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = pushShader(std::move(shader));
 
             passes.push_back(std::move(passDesc));
         }
@@ -286,7 +286,19 @@ namespace RR
 
         uint32_t effectsSectionSize = 0;
         for (auto& effect : effects)
+        {
             effectsSectionSize += sizeof(Asset::EffectDesc::Header) + static_cast<uint32_t>(effect.passes.size()) * sizeof(EffectLibrary::Asset::PassDesc);
+
+            for(auto& pass : effect.passes)
+            {
+                effectsSectionSize += sizeof(Asset::PassDesc);
+                effectsSectionSize += sizeof(Asset::ReflectionDesc::Header);
+
+                effectsSectionSize += pass.reflection.textureMetas.size() * sizeof(GAPI::BindingLayoutTextureMeta);
+                effectsSectionSize += pass.reflection.fields.size() * sizeof(Asset::FieldReflection);
+                effectsSectionSize += pass.reflection.resources.size() * sizeof(Asset::ResourceReflection);
+            }
+        }
 
         Asset::Header header;
         header.magic = Asset::Header::MAGIC;
@@ -318,7 +330,23 @@ namespace RR
             file.write(reinterpret_cast<const char*>(&effect.header), sizeof(Asset::EffectDesc::Header));
 
             for (auto& pass : effect.passes)
-                file.write(reinterpret_cast<const char*>(&pass), sizeof(Asset::PassDesc));
+            {
+                file.write(reinterpret_cast<const char*>(&pass.nameIndex), sizeof(uint32_t));
+                file.write(reinterpret_cast<const char*>(&pass.psoDesc), sizeof(Asset::PassDesc::PSODesc));
+
+                const auto& reflection = pass.reflection;
+                Asset::ReflectionDesc::Header reflectionHeader;
+                reflectionHeader.resourcesCount = static_cast<uint32_t>(reflection.resources.size());
+                reflectionHeader.variablesCount = static_cast<uint32_t>(reflection.fields.size());
+                reflectionHeader.textureMetasCount = static_cast<uint32_t>(reflection.textureMetas.size());
+                reflectionHeader.rootResourceIndex = Asset::INVALID_INDEX;
+
+                file.write(reinterpret_cast<const char*>(&reflectionHeader), sizeof(Asset::ReflectionDesc::Header));
+
+                file.write(reinterpret_cast<const char*>(reflection.textureMetas.data()), reflection.textureMetas.size() * sizeof(GAPI::BindingLayoutTextureMeta));
+                file.write(reinterpret_cast<const char*>(reflection.fields.data()), reflection.fields.size() * sizeof(Asset::FieldReflection));
+                file.write(reinterpret_cast<const char*>(reflection.resources.data()), reflection.resources.size() * sizeof(Asset::ResourceReflection));
+            }
         }
 
         file.close();

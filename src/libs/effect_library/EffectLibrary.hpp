@@ -2,6 +2,8 @@
 
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
+#include "gapi/BindingLayout.hpp"
+#include "effect_library/EffectFormat.hpp" // For Asset enums (VarType, VarKind)
 
 #include "absl/container/flat_hash_map.h"
 #include "common/hashing/Hash.hpp"
@@ -18,6 +20,47 @@ namespace RR::Render
 
 namespace RR::EffectLibrary
 {
+    struct FieldReflection
+    {
+        const char* name;
+        Asset::FieldType type;
+        Asset::FieldKind kind;
+        uint32_t arraySize;
+
+        uint32_t offset;
+        uint32_t size;
+
+        uint32_t firstMemberIndex;
+        uint32_t memberCount;
+    };
+
+    struct ResourceReflection
+    {
+        const char* name;
+
+        GAPI::BindingType type;
+        GAPI::ShaderStageMask stageMask;
+
+        uint32_t binding;
+        uint32_t set;
+        uint32_t count;
+
+        uint32_t textureMetaIndex;
+
+        eastl::span<FieldReflection> variables;
+
+        ResourceReflection* child;
+        ResourceReflection* next;
+    };
+
+    struct ReflectionData
+    {
+        std::vector<GAPI::BindingLayoutTextureMeta> textureMetas;
+        std::vector<ResourceReflection> resources;
+        std::vector<FieldReflection> fields;
+        ResourceReflection* rootBlock;
+    };
+
     struct PassDesc
     {
         const char* name;
@@ -25,6 +68,7 @@ namespace RR::EffectLibrary
         GAPI::DepthStencilDesc depthStencilDesc;
         GAPI::BlendDesc blendDesc;
         eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
+        ReflectionData reflection;
     };
 
     struct EffectDesc
