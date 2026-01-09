@@ -56,16 +56,14 @@ namespace RR
 
         for (auto& pass : effect.passes)
         {
-            auto nameIndex = AddString(pass.name);
-            insertData(effectsData, nameIndex);
-
-            Asset::PassDesc::PSODesc psoDesc;
-            psoDesc.rasterizerDesc = pass.rasterizerDesc;
-            psoDesc.depthStencilDesc = pass.depthStencilDesc;
-            psoDesc.blendDesc = pass.blendDesc;
+            Asset::PassDesc passDesc;
+            passDesc.nameIndex = AddString(pass.name);
+            passDesc.rasterizerDesc = pass.rasterizerDesc;
+            passDesc.depthStencilDesc = pass.depthStencilDesc;
+            passDesc.blendDesc = pass.blendDesc;
             for (uint32_t i = 0; i < pass.shaderIndexes.size(); i++)
-                psoDesc.shaderIndexes[i] = pass.shaderIndexes[i];
-            insertData(effectsData, psoDesc);
+                passDesc.shaderIndexes[i] = pass.shaderIndexes[i];
+            insertData(effectsData, passDesc);
 
             Asset::ReflectionDesc::Header reflectionHeader;
             reflectionHeader.resourcesCount = static_cast<uint32_t>(pass.reflection.resources.size());

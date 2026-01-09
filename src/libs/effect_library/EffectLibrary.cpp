@@ -129,10 +129,10 @@ namespace RR::EffectLibrary
 
                 PassDesc passDesc;
                 passDesc.name = getString(assetPassDesc.nameIndex);
-                passDesc.rasterizerDesc = assetPassDesc.psoDesc.rasterizerDesc;
-                passDesc.depthStencilDesc = assetPassDesc.psoDesc.depthStencilDesc;
-                passDesc.blendDesc = assetPassDesc.psoDesc.blendDesc;
-                passDesc.shaderIndexes = assetPassDesc.psoDesc.shaderIndexes;
+                passDesc.rasterizerDesc = assetPassDesc.rasterizerDesc;
+                passDesc.depthStencilDesc = assetPassDesc.depthStencilDesc;
+                passDesc.blendDesc = assetPassDesc.blendDesc;
+                passDesc.shaderIndexes = assetPassDesc.shaderIndexes;
 
                 Asset::ReflectionDesc::Header reflectionHeader;
                 if(file.Read(reinterpret_cast<void*>(&reflectionHeader), sizeof(reflectionHeader)) != sizeof(reflectionHeader))

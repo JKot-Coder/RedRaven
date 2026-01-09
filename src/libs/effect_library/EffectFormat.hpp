@@ -183,13 +183,10 @@ namespace RR::EffectLibrary
         struct PassDesc
         {
             uint32_t nameIndex;
-            struct PSODesc
-            {
-                GAPI::BlendDesc blendDesc;
-                GAPI::RasterizerDesc rasterizerDesc;
-                GAPI::DepthStencilDesc depthStencilDesc;
-                eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
-            } psoDesc;
+            GAPI::BlendDesc blendDesc;
+            GAPI::RasterizerDesc rasterizerDesc;
+            GAPI::DepthStencilDesc depthStencilDesc;
+            eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
         };
 
         struct EffectDesc
