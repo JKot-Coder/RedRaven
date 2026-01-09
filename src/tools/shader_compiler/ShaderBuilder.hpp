@@ -1,8 +1,9 @@
 #pragma once
 
+#include "EffectSerializer.hpp"
+
 #include "common/Singleton.hpp"
 #include "common/Result.hpp"
-#include "common/ChunkAllocator.hpp"
 
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
@@ -11,7 +12,6 @@
 
 #include "nlohmann/json_fwd.hpp"
 #include "slang-com-ptr.h"
-#include "absl/container/flat_hash_map.h"
 
 namespace RR
 {
@@ -27,10 +27,8 @@ namespace RR
     class ShaderBuilder : public Common::Singleton<ShaderBuilder>
     {
     public:
-        ShaderBuilder();
-        ~ShaderBuilder();
-
         Common::RResult BuildLibrary(const LibraryBuildDesc& desc);
+
     private:
         Common::RResult compileFile(const LibraryBuildDesc& desc, const std::string& sourceFile);
         void compileEffect(const std::string& name, nlohmann::json effect, const std::string& sourceFile);
@@ -42,11 +40,7 @@ namespace RR
         uint32_t pushShader(ShaderResult&& shader);
 
     private:
-        eastl::vector<EffectLibrary::Asset::EffectDesc> effects;
-        eastl::vector<EffectLibrary::Asset::ShaderDesc> shaders;
-        Common::ChunkAllocator stringAllocator;
-        uint32_t stringsCount = 0;
+        EffectSerializer effectSerializer;
         Slang::ComPtr<slang::IGlobalSession> globalSession;
-        absl::flat_hash_map<std::string, uint32_t> stringsCache;
     };
 }

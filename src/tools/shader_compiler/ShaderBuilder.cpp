@@ -17,7 +17,6 @@
 namespace RR
 {
     using namespace Common;
-    using namespace EffectLibrary;
 
     std::string toLower(std::string str)
     {
@@ -25,9 +24,6 @@ namespace RR
                        [](unsigned char c) { return std::tolower(c); });
         return str;
     }
-
-    ShaderBuilder::ShaderBuilder() : stringAllocator(1024) { }
-    ShaderBuilder::~ShaderBuilder() { }
 
     GAPI::CullMode getCullMode(const std::string& cullMode)
     {
@@ -114,37 +110,25 @@ namespace RR
 
     uint32_t ShaderBuilder::pushString(std::string_view str)
     {
-        auto it = stringsCache.find(str);
-        if (it != stringsCache.end())
-            return it->second;
-
-        stringAllocator.allocateString(str);
-        stringsCache[str] = stringsCount;
-        return stringsCount++;
+        return effectSerializer.AddString(str);
     };
 
     uint32_t ShaderBuilder::pushShader(ShaderResult&& shader)
     {
-        uint32_t index = static_cast<uint32_t>(shaders.size());
+        EffectLibrary::ShaderDesc shaderDesc;
+        shaderDesc.name = shader.name.c_str();
+        shaderDesc.stage = shader.stage;
+        shaderDesc.data = shader.source.data();
+        shaderDesc.size = shader.source.size();
 
-        Asset::ShaderDesc shaderDesc;
-        shaderDesc.header.nameIndex = pushString(shader.name);
-        shaderDesc.header.stage = shader.stage;
-        shaderDesc.header.size = static_cast<uint32_t>(shader.source.size());
-        shaderDesc.data = std::move(shader.source);
-
-        shaders.emplace_back(std::move(shaderDesc));
-        return index;
+        return effectSerializer.AddShader(shaderDesc);
     }
 
     void ShaderBuilder::compileEffect(const std::string& name, nlohmann::json effect, const std::string& sourceFile)
     {
+        EffectLibrary::EffectDesc effectDesc;
         std::cout << "Effect: " << name << std::endl;
-
-        effects.push_back();
-        EffectLibrary::Asset::EffectDesc& effectDesc = effects.back();
-        effectDesc.header.nameIndex = pushString(name);
-        auto& passes = effects.back().passes;
+        effectDesc.name = name.c_str();
 
         for (auto& passKV : effect.items())
         {
@@ -156,10 +140,10 @@ namespace RR
             if (renderState.empty())
                 throw std::runtime_error("Render state is empty for pass: " + passKey);
 
-            EffectLibrary::Asset::PassDesc passDesc;
-            passDesc.nameIndex = pushString(passKey);
-            passDesc.psoDesc.shaderIndexes.fill(Asset::INVALID_INDEX);
-            evaluateRenderStateDesc(renderState, passDesc.psoDesc.rasterizerDesc, passDesc.psoDesc.depthStencilDesc, passDesc.psoDesc.blendDesc);
+            EffectLibrary::PassDesc passDesc;
+            passDesc.name = passKey.c_str();
+            passDesc.shaderIndexes.fill(EffectLibrary::Asset::INVALID_INDEX);
+            evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
             ShaderCompileDesc shaderCompileDesc;
             shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
@@ -184,12 +168,12 @@ namespace RR
                 throw std::runtime_error("Failed to compile shader");
 
             for (auto& shader : shaderResult.shaders)
-                passDesc.psoDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = pushShader(std::move(shader));
+                passDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = pushShader(std::move(shader));
 
-            passes.push_back(std::move(passDesc));
+            effectDesc.passes.push_back(std::move(passDesc));
         }
 
-        effectDesc.header.passCount = static_cast<uint32_t>(passes.size());
+        effectSerializer.AddEffect(effectDesc);
     }
 
     Common::RResult ShaderBuilder::compileFile(const LibraryBuildDesc& desc, const std::string& sourceFile)
@@ -267,90 +251,6 @@ namespace RR
 
     Common::RResult ShaderBuilder::saveLibrary(const LibraryBuildDesc& desc)
     {
-        std::cout << "Save shader library: " << desc.outputFile << std::endl;
-
-        std::ofstream file(desc.outputFile, std::ios::binary);
-        if (!file.is_open())
-        {
-            std::cerr << "Failed to open file: " << desc.outputFile << std::endl;
-            return Common::RResult::Fail;
-        }
-
-        uint32_t stringSectionSize = 0;
-        for (auto& chunk : stringAllocator)
-            stringSectionSize += static_cast<uint32_t>(chunk.allocated);
-
-        uint32_t shadersSectionSize = 0;
-        for (auto& shader : shaders)
-            shadersSectionSize += shader.header.size + sizeof(shader.header);
-
-        uint32_t effectsSectionSize = 0;
-        for (auto& effect : effects)
-        {
-            effectsSectionSize += sizeof(Asset::EffectDesc::Header) + static_cast<uint32_t>(effect.passes.size()) * sizeof(EffectLibrary::Asset::PassDesc);
-
-            for(auto& pass : effect.passes)
-            {
-                effectsSectionSize += sizeof(Asset::PassDesc);
-                effectsSectionSize += sizeof(Asset::ReflectionDesc::Header);
-
-                effectsSectionSize += pass.reflection.textureMetas.size() * sizeof(GAPI::BindingLayoutTextureMeta);
-                effectsSectionSize += pass.reflection.fields.size() * sizeof(Asset::FieldReflection);
-                effectsSectionSize += pass.reflection.resources.size() * sizeof(Asset::ResourceReflection);
-            }
-        }
-
-        Asset::Header header;
-        header.magic = Asset::Header::MAGIC;
-        header.version = Asset::Header::VERSION;
-        header.stringSectionSize = stringSectionSize;
-        header.stringsCount = stringsCount;
-        header.shadersSectionSize = shadersSectionSize;
-        header.shadersCount = static_cast<uint32_t>(shaders.size());
-        header.effectsSectionSize = effectsSectionSize;
-        header.effectsCount = static_cast<uint32_t>(effects.size());
-
-        // Header
-        file.write(reinterpret_cast<const char*>(&header), sizeof(header));
-
-        // Strings
-        for (auto& chunk : stringAllocator)
-            file.write(reinterpret_cast<const char*>(chunk.buffer.get()), chunk.allocated);
-
-        // Shaders
-        for (auto& shader : shaders)
-        {
-            file.write(reinterpret_cast<const char*>(&shader.header), sizeof(Asset::ShaderDesc::Header));
-            file.write(reinterpret_cast<const char*>(shader.data.data()), shader.header.size);
-        }
-
-        // Effects
-        for (auto& effect : effects)
-        {
-            file.write(reinterpret_cast<const char*>(&effect.header), sizeof(Asset::EffectDesc::Header));
-
-            for (auto& pass : effect.passes)
-            {
-                file.write(reinterpret_cast<const char*>(&pass.nameIndex), sizeof(uint32_t));
-                file.write(reinterpret_cast<const char*>(&pass.psoDesc), sizeof(Asset::PassDesc::PSODesc));
-
-                const auto& reflection = pass.reflection;
-                Asset::ReflectionDesc::Header reflectionHeader;
-                reflectionHeader.resourcesCount = static_cast<uint32_t>(reflection.resources.size());
-                reflectionHeader.variablesCount = static_cast<uint32_t>(reflection.fields.size());
-                reflectionHeader.textureMetasCount = static_cast<uint32_t>(reflection.textureMetas.size());
-                reflectionHeader.rootResourceIndex = Asset::INVALID_INDEX;
-
-                file.write(reinterpret_cast<const char*>(&reflectionHeader), sizeof(Asset::ReflectionDesc::Header));
-
-                file.write(reinterpret_cast<const char*>(reflection.textureMetas.data()), reflection.textureMetas.size() * sizeof(GAPI::BindingLayoutTextureMeta));
-                file.write(reinterpret_cast<const char*>(reflection.fields.data()), reflection.fields.size() * sizeof(Asset::FieldReflection));
-                file.write(reinterpret_cast<const char*>(reflection.resources.data()), reflection.resources.size() * sizeof(Asset::ResourceReflection));
-            }
-        }
-
-        file.close();
-        return Common::RResult::Ok;
+        return effectSerializer.Serialize(desc.outputFile);
     }
-
 }

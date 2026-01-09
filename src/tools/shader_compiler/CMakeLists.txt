@@ -6,6 +6,8 @@ set(SRC
     ShaderBuilder.hpp
     ShaderCompiler.hpp
     ShaderCompiler.cpp
+    EffectSerializer.hpp
+    EffectSerializer.cpp
     JsonnetProcessor.cpp
     JsonnetProcessor.hpp
     SlangUtils.hpp
