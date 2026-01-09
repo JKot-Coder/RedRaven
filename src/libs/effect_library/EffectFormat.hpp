@@ -159,13 +159,10 @@ namespace RR::EffectLibrary
 
         struct ShaderDesc
         {
-            struct Header
-            {
-                uint32_t nameIndex;
-                GAPI::ShaderStage stage;
-                uint32_t size;
-            } header;
-            std::vector<std::byte> data;
+            uint32_t nameIndex;
+            GAPI::ShaderStage stage;
+            uint32_t size;
+            // DATA block
         };
 
         struct ReflectionDesc
@@ -197,13 +194,9 @@ namespace RR::EffectLibrary
 
         struct EffectDesc
         {
-            struct Header
-            {
-                uint32_t nameIndex;
-                uint32_t passCount;
-            } header;
-
-            std::vector<PassDesc> passes;
+            uint32_t nameIndex;
+            uint32_t passCount;
+            // PASSES block
         };
         #pragma pack(pop)
     }

@@ -34,14 +34,14 @@ namespace RR
 
     uint32_t EffectSerializer::AddShader(const ShaderDesc& shader)
     {
-        shaderData.reserve(shaderData.size() + shader.size + sizeof(Asset::ShaderDesc::Header));
+        shaderData.reserve(shaderData.size() + shader.size + sizeof(Asset::ShaderDesc));
 
-        Asset::ShaderDesc::Header header;
-        header.nameIndex = AddString(shader.name);
-        header.stage = shader.stage;
-        header.size = static_cast<uint32_t>(shader.size);
+        Asset::ShaderDesc shaderDesc;
+        shaderDesc.nameIndex = AddString(shader.name);
+        shaderDesc.stage = shader.stage;
+        shaderDesc.size = static_cast<uint32_t>(shader.size);
 
-        insertData(shaderData, header);
+        insertData(shaderData, shaderDesc);
         insertData(shaderData, shader.data, shader.size);
 
         return shadersCount++;
@@ -49,10 +49,10 @@ namespace RR
 
     uint32_t EffectSerializer::AddEffect(const EffectDesc& effect)
     {
-        Asset::EffectDesc::Header header;
-        header.nameIndex = AddString(effect.name);
-        header.passCount = static_cast<uint32_t>(effect.passes.size());
-        insertData(effectsData, header);
+        Asset::EffectDesc effectDesc;
+        effectDesc.nameIndex = AddString(effect.name);
+        effectDesc.passCount = static_cast<uint32_t>(effect.passes.size());
+        insertData(effectsData, effectDesc);
 
         for (auto& pass : effect.passes)
         {
