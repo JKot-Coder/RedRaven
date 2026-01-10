@@ -132,7 +132,29 @@ namespace RR::EffectLibrary
                 passDesc.rasterizerDesc = assetPassDesc.rasterizerDesc;
                 passDesc.depthStencilDesc = assetPassDesc.depthStencilDesc;
                 passDesc.blendDesc = assetPassDesc.blendDesc;
-                passDesc.shaderIndexes = assetPassDesc.shaderIndexes;
+
+                eastl::fixed_vector<GAPI::ShaderStage, eastl::to_underlying(GAPI::ShaderStage::Count), false> shaderStages;
+
+                for (uint32_t i = 0; i < eastl::to_underlying(GAPI::ShaderStage::Count); i++)
+                {
+                    const auto shaderStage = static_cast<GAPI::ShaderStage>(i);
+
+                    if (IsSet(assetPassDesc.shaderStages, GetShaderStageMask(shaderStage)))
+                        shaderStages.push_back(shaderStage);
+
+                    passDesc.shaderIndexes[eastl::to_underlying(shaderStage)] = Asset::INVALID_INDEX;
+                }
+
+                eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
+                uint32_t shaderIndexesSize = sizeof(uint32_t) * shaderStages.size();
+                if(file.Read(reinterpret_cast<void*>(&shaderIndexes), shaderIndexesSize) != shaderIndexesSize)
+                {
+                    LOG_ERROR("Failed to read shader indexes: {}", j);
+                    return Common::RResult::Fail;
+                }
+
+                for(uint32_t i = 0; i < shaderStages.size(); i++)
+                    passDesc.shaderIndexes[eastl::to_underlying(shaderStages[i])] = shaderIndexes[i];
 
                 Asset::ReflectionDesc::Header reflectionHeader;
                 if(file.Read(reinterpret_cast<void*>(&reflectionHeader), sizeof(reflectionHeader)) != sizeof(reflectionHeader))

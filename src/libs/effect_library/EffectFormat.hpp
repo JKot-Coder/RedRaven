@@ -186,7 +186,7 @@ namespace RR::EffectLibrary
             GAPI::BlendDesc blendDesc;
             GAPI::RasterizerDesc rasterizerDesc;
             GAPI::DepthStencilDesc depthStencilDesc;
-            eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
+            GAPI::ShaderStageMask shaderStages;
         };
 
         struct EffectDesc

@@ -61,9 +61,20 @@ namespace RR
             passDesc.rasterizerDesc = pass.rasterizerDesc;
             passDesc.depthStencilDesc = pass.depthStencilDesc;
             passDesc.blendDesc = pass.blendDesc;
+            passDesc.shaderStages = GAPI::ShaderStageMask::None;
+
+            eastl::fixed_vector<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count), false> shaderIndexes;
             for (uint32_t i = 0; i < pass.shaderIndexes.size(); i++)
-                passDesc.shaderIndexes[i] = pass.shaderIndexes[i];
+            {
+                if(pass.shaderIndexes[i] == Asset::INVALID_INDEX)
+                    continue;
+
+                passDesc.shaderStages |= GetShaderStageMask(static_cast<GAPI::ShaderStage>(i));
+                shaderIndexes.push_back(pass.shaderIndexes[i]);
+            }
+
             insertData(effectsData, passDesc);
+            insertData(effectsData, shaderIndexes.data(), shaderIndexes.size() * sizeof(uint32_t));
 
             Asset::ReflectionDesc::Header reflectionHeader;
             reflectionHeader.resourcesCount = static_cast<uint32_t>(pass.reflection.resources.size());
