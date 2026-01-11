@@ -181,6 +181,14 @@ namespace RR
             Count
         };
 
+        enum class TextureSampleType : uint32_t
+        {
+            Float,
+            Int,
+            Uint,
+            Depth
+        };
+
         // TODO: make non copyable use pass by value and move tehnique
         struct GpuResourceDesc
         {

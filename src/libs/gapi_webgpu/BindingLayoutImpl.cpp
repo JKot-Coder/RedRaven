@@ -32,15 +32,15 @@ namespace RR::GAPI::WebGPU
             }
         }
 
-        constexpr wgpu::TextureSampleType getTextureSampleType(GAPI::BindingLayoutTextureMeta::SampleType sampleType)
+        constexpr wgpu::TextureSampleType getTextureSampleType(GAPI::TextureSampleType sampleType)
         {
-            using Type = GAPI::BindingLayoutTextureMeta::SampleType;
+            using Sample = GAPI::TextureSampleType;
             switch (sampleType)
             {
-                case Type::Float: return wgpu::TextureSampleType::Float;
-                case Type::Int: return wgpu::TextureSampleType::Sint;
-                case Type::Uint: return wgpu::TextureSampleType::Uint;
-                case Type::Depth: return wgpu::TextureSampleType::Depth;
+                case Sample::Float: return wgpu::TextureSampleType::Float;
+                case Sample::Int: return wgpu::TextureSampleType::Sint;
+                case Sample::Uint: return wgpu::TextureSampleType::Uint;
+                case Sample::Depth: return wgpu::TextureSampleType::Depth;
                 default:
                     ASSERT_MSG(false, "Unknown texture sample type");
                     return wgpu::TextureSampleType::Undefined;

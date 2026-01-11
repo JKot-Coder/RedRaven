@@ -57,6 +57,7 @@ namespace RR
         enum class GpuResourceFormat : uint32_t;
         enum class GpuResourceUsage : uint32_t;
         enum class MultisampleType : uint32_t;
+        enum class TextureSampleType : uint32_t;
 
         class GpuResourceView;
         struct GpuResourceViewDesc;

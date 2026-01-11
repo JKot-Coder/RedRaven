@@ -23,7 +23,7 @@ namespace RR::GAPI
     struct BindingLayoutTextureMeta {
         GpuResourceDimension dimension;
         GpuResourceFormat format;
-        enum class SampleType { Float, Int, Uint, Depth } sampleType = SampleType::Float;
+        TextureSampleType sampleType;
     };
 
     struct BindingLayoutElement
