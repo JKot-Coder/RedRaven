@@ -20,7 +20,6 @@ namespace RR
         insertData(data, reinterpret_cast<const void*>(&value), sizeof(value));
     }
 
-
     uint32_t EffectSerializer::AddString(const std::string_view& str)
     {
         auto it = stringsCache.find(str);
@@ -45,6 +44,22 @@ namespace RR
         insertData(shaderData, shader.data, shader.size);
 
         return shadersCount++;
+    }
+
+    uint32_t EffectSerializer::AddSrv(const SrvReflectionDesc& srv)
+    {
+        Asset::SrvReflection srvDesc;
+        srvDesc.nameIndex = AddString(srv.name);
+        srvDesc.stageMask = srv.stageMask;
+        srvDesc.dimension = srv.dimension;
+        srvDesc.sampleType = srv.sampleType;
+        srvDesc.binding = srv.binding;
+        srvDesc.set = srv.set;
+        srvDesc.count = srv.count;
+
+        insertData(srvData, srv);
+
+        return srvCount++;
     }
 
     uint32_t EffectSerializer::AddEffect(const EffectDesc& effect)
@@ -118,12 +133,12 @@ namespace RR
         header.stringsCount = stringsCount;
         header.shadersSectionSize = shaderData.size();
         header.shadersCount = shadersCount;
-        header.srvSectionSize = 0;
-        header.srvCount = 0;
-        header.uavSectionSize = 0;
-        header.uavCount = 0;
-        header.cbvSectionSize = 0;
-        header.cbvCount = 0;
+        header.srvSectionSize = srvData.size();
+        header.srvCount = srvCount;
+        header.uavSectionSize = uavData.size();
+        header.uavCount = uavCount;
+        header.cbvSectionSize = cbvData.size();
+        header.cbvCount = cbvCount;
         header.effectsSectionSize = effectsData.size();
         header.effectsCount = effectsCount;
 

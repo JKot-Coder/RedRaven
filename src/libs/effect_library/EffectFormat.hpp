@@ -125,14 +125,7 @@ namespace RR::EffectLibrary
             uint32_t nameIndex;
             GAPI::ShaderStageMask stageMask;
             GAPI::GpuResourceDimension dimension;
-
-            enum class SampleType
-            {
-                Float,
-                Int,
-                Uint,
-                Depth
-            } sampleType = SampleType::Float;
+            GAPI::TextureSampleType sampleType;
 
             uint32_t binding; // Slot index
             uint32_t set; // Space/Set index
