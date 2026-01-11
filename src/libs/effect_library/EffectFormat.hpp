@@ -120,27 +120,47 @@ namespace RR::EffectLibrary
             uint32_t memberCount;      // Number of members
         };
 
-        struct ResourceReflection
+        struct SrvReflection
         {
             uint32_t nameIndex;
-
-            GAPI::BindingType type;
             GAPI::ShaderStageMask stageMask;
+            GAPI::GpuResourceDimension dimension;
+
+            enum class SampleType
+            {
+                Float,
+                Int,
+                Uint,
+                Depth
+            } sampleType = SampleType::Float;
 
             uint32_t binding; // Slot index
-            uint32_t set;     // Space/Set index
+            uint32_t set; // Space/Set index
 
             uint32_t count; // 0 or 1 = not array, >1 = array
+        };
 
-            // For textures only
-            uint32_t textureMetaIndex;
+        struct UavReflection
+        {
+            uint32_t nameIndex;
+            GAPI::ShaderStageMask stageMask;
+            GAPI::GpuResourceDimension dimension;
+            GAPI::GpuResourceFormat format;
 
-            // For constant buffers only
-            uint32_t firstVarIndex;
-            uint32_t varCount;
+            uint32_t binding; // Slot index
+            uint32_t set; // Space/Set index
 
-            uint32_t firstChildResourceIndex;
-            uint32_t nextResourceIndex;
+            uint32_t count; // 0 or 1 = not array, >1 = array
+        };
+
+        struct CbvReflection
+        {
+            uint32_t nameIndex;
+            GAPI::ShaderStageMask stageMask;
+            uint32_t binding; // Slot index
+            uint32_t set; // Space/Set index
+
+            uint32_t count; // 0 or 1 = not array, >1 = array
         };
 
         struct Header
@@ -153,6 +173,12 @@ namespace RR::EffectLibrary
             uint32_t stringsCount;
             uint32_t shadersSectionSize;
             uint32_t shadersCount;
+            uint32_t srvSectionSize;
+            uint32_t srvCount;
+            uint32_t uavSectionSize;
+            uint32_t uavCount;
+            uint32_t cbvSectionSize;
+            uint32_t cbvCount;
             uint32_t effectsSectionSize;
             uint32_t effectsCount;
         };
@@ -174,10 +200,6 @@ namespace RR::EffectLibrary
                 uint32_t textureMetasCount;
                 uint32_t rootResourceIndex;
             } header;
-
-            std::vector<FieldReflection> fields;
-            std::vector<GAPI::BindingLayoutTextureMeta> textureMetas;
-            std::vector<ResourceReflection> resources;
         };
 
         struct PassDesc
@@ -187,6 +209,7 @@ namespace RR::EffectLibrary
             GAPI::RasterizerDesc rasterizerDesc;
             GAPI::DepthStencilDesc depthStencilDesc;
             GAPI::ShaderStageMask shaderStages;
+            // List of shader indexes based on shaderStages mask
         };
 
         struct EffectDesc

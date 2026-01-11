@@ -155,7 +155,7 @@ namespace RR::EffectLibrary
 
                 for(uint32_t i = 0; i < shaderStages.size(); i++)
                     passDesc.shaderIndexes[eastl::to_underlying(shaderStages[i])] = shaderIndexes[i];
-
+/*
                 Asset::ReflectionDesc::Header reflectionHeader;
                 if(file.Read(reinterpret_cast<void*>(&reflectionHeader), sizeof(reflectionHeader)) != sizeof(reflectionHeader))
                 {
@@ -216,7 +216,9 @@ namespace RR::EffectLibrary
                     passDesc.reflection.resources.emplace_back(eastl::move(r));
                 }
 
+
                 passDesc.reflection.rootBlock = reflectionHeader.rootResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[reflectionHeader.rootResourceIndex] : nullptr;
+               */
                 effectDesc.passes.emplace_back(eastl::move(passDesc));
             }
 

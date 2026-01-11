@@ -75,7 +75,7 @@ namespace RR
 
             insertData(effectsData, passDesc);
             insertData(effectsData, shaderIndexes.data(), shaderIndexes.size() * sizeof(uint32_t));
-
+/*
             Asset::ReflectionDesc::Header reflectionHeader;
             reflectionHeader.resourcesCount = static_cast<uint32_t>(pass.reflection.resources.size());
             reflectionHeader.variablesCount = static_cast<uint32_t>(pass.reflection.fields.size());
@@ -90,7 +90,7 @@ namespace RR
                 insertData(effectsData, field);
 
             for (auto& resource : pass.reflection.resources)
-                insertData(effectsData, resource);
+                insertData(effectsData, resource);*/
         }
 
        return effectsCount++;
@@ -118,6 +118,12 @@ namespace RR
         header.stringsCount = stringsCount;
         header.shadersSectionSize = shaderData.size();
         header.shadersCount = shadersCount;
+        header.srvSectionSize = 0;
+        header.srvCount = 0;
+        header.uavSectionSize = 0;
+        header.uavCount = 0;
+        header.cbvSectionSize = 0;
+        header.cbvCount = 0;
         header.effectsSectionSize = effectsData.size();
         header.effectsCount = effectsCount;
 
