@@ -14,11 +14,14 @@ namespace RR  {
         enum class ShaderStage : uint8_t;
     }
 
+    class EffectSerializer;
+
     struct ShaderCompileDesc
     {
         std::vector<std::string> modules;
         std::vector<std::string> includePathes;
         std::vector<std::string> entryPoints;
+        EffectSerializer* effectSerializer = nullptr;
     };
 
     struct ShaderResult

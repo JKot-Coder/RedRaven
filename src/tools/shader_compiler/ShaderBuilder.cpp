@@ -146,6 +146,7 @@ namespace RR
             evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
             ShaderCompileDesc shaderCompileDesc;
+            shaderCompileDesc.effectSerializer = &effectSerializer;
             shaderCompileDesc.includePathes.emplace_back(std::filesystem::path(sourceFile).parent_path().generic_string());
 
             for (auto& module : pass["modules"].items())

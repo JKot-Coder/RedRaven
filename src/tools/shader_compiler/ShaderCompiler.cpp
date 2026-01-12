@@ -30,6 +30,7 @@ namespace RR  {
 
     Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
     {
+        ASSERT(desc.effectSerializer != nullptr);
         ASSERT(desc.entryPoints.size() > 0);
 
         slang::TargetDesc targetDesc;
@@ -189,7 +190,7 @@ namespace RR  {
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
 
         ReflectionBuilder reflectionBuilder;
-        reflectionBuilder.Build(linkedProgram.get(), programLayout);
+        reflectionBuilder.Build(desc.effectSerializer, linkedProgram.get(), programLayout);
 
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
 
