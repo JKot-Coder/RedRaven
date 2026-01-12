@@ -155,6 +155,12 @@ namespace RR
         // Effects
         file.write(reinterpret_cast<const char*>(effectsData.data()), effectsData.size());
 
+        if (file.fail())
+        {
+            std::cerr << "Failed to write to file: " << path << std::endl;
+            return Common::RResult::Fail;
+        }
+
         file.close();
         return Common::RResult::Ok;
     }
