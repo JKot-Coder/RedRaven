@@ -93,17 +93,34 @@ namespace RR
             case RR::ResourceReflection::Type::RawBuffer:
             case RR::ResourceReflection::Type::TypedBuffer:
             {
-                Asset::SrvReflection srvDesc;
-                srvDesc.nameIndex = AddString(resource.name);
-                srvDesc.usageMask = resource.usageMask;
-                srvDesc.dimension = resource.dimension;
-                srvDesc.sampleType = resource.sampleType;
-                srvDesc.binding = resource.bindingLocation.registerIndex;
-                srvDesc.set = resource.bindingLocation.registerSpace;
-                srvDesc.count = resource.count;
+                if (resource.access == RR::ResourceReflection::Access::Read)
+                {
+                    Asset::SrvReflection srvDesc;
+                    srvDesc.nameIndex = AddString(resource.name);
+                    srvDesc.usageMask = resource.usageMask;
+                    srvDesc.dimension = resource.dimension;
+                    srvDesc.sampleType = resource.sampleType;
+                    srvDesc.binding = resource.bindingLocation.registerIndex;
+                    srvDesc.set = resource.bindingLocation.registerSpace;
+                    srvDesc.count = resource.count;
 
-                insertData(srvData, srvDesc);
-                return srvCount++;
+                    insertData(srvData, srvDesc);
+                    return srvCount++;
+                }
+                else
+                {
+                    Asset::UavReflection uavDesc;
+                    uavDesc.nameIndex = AddString(resource.name);
+                    uavDesc.usageMask = resource.usageMask;
+                    uavDesc.dimension = resource.dimension;
+                    uavDesc.format = resource.format;
+                    uavDesc.binding = resource.bindingLocation.registerIndex;
+                    uavDesc.set = resource.bindingLocation.registerSpace;
+                    uavDesc.count = resource.count;
+
+                    insertData(uavData, uavDesc);
+                    return uavCount++;
+                }
             }
             case RR::ResourceReflection::Type::ConstantBuffer:
             {
