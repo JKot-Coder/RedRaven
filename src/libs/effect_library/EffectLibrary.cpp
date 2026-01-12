@@ -101,6 +101,27 @@ namespace RR::EffectLibrary
             shaders.emplace_back(eastl::move(shaderDesc));
         }
 
+        auto shaderData = eastl::make_unique<std::byte[]>(header.srvSectionSize);
+        if(file.Read(reinterpret_cast<void*>(shaderData.get()), header.srvSectionSize) != header.srvSectionSize)
+        {
+            LOG_ERROR("Failed to read SRV section size: {}", header.srvSectionSize);
+            return Common::RResult::Fail;
+        }
+
+        auto uavData = eastl::make_unique<std::byte[]>(header.uavSectionSize);
+        if(file.Read(reinterpret_cast<void*>(uavData.get()), header.uavSectionSize) != header.uavSectionSize)
+        {
+            LOG_ERROR("Failed to read UAV section size: {}", header.uavSectionSize);
+            return Common::RResult::Fail;
+        }
+
+        auto cbvData = eastl::make_unique<std::byte[]>(header.cbvSectionSize);
+        if(file.Read(reinterpret_cast<void*>(cbvData.get()), header.cbvSectionSize) != header.cbvSectionSize)
+        {
+            LOG_ERROR("Failed to read CBV section size: {}", header.cbvSectionSize);
+            return Common::RResult::Fail;
+        }
+
         effectsMap.reserve(header.effectsCount);
         for(uint32_t i = 0; i < header.effectsCount; i++)
         {

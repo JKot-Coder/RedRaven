@@ -152,6 +152,11 @@ namespace RR
         // Shaders
         file.write(reinterpret_cast<const char*>(shaderData.data()), shaderData.size());
 
+        // SRV UAV CBV
+        file.write(reinterpret_cast<const char*>(srvData.data()), srvData.size());
+        file.write(reinterpret_cast<const char*>(uavData.data()), uavData.size());
+        file.write(reinterpret_cast<const char*>(cbvData.data()), cbvData.size());
+
         // Effects
         file.write(reinterpret_cast<const char*>(effectsData.data()), effectsData.size());
 
