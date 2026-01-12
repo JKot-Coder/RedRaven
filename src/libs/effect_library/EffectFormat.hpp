@@ -98,28 +98,6 @@ namespace RR::EffectLibrary
             Float64_4,
         };
 
-        enum class FieldKind
-        {
-            Array,
-            Struct,
-            Basic
-        };
-
-        struct FieldReflection
-        {
-            uint32_t nameIndex;
-            FieldType type;
-            FieldKind kind;
-            uint32_t arraySize; // 0 or 1 = not array, >1 = array
-
-            uint32_t offset;    // Offset in bytes relative to the start of the parent structure/buffer
-            uint32_t size;      // Size in bytes
-
-            // For Structs
-            uint32_t firstMemberIndex; // Index into variables vector for first member
-            uint32_t memberCount;      // Number of members
-        };
-
         struct SrvReflection
         {
             uint32_t nameIndex;
@@ -139,6 +117,7 @@ namespace RR::EffectLibrary
             GAPI::ShaderStageMask usageMask;
             GAPI::GpuResourceDimension dimension;
             GAPI::GpuResourceFormat format;
+            // TODO: Store acess type.
 
             uint32_t binding; // Slot index
             uint32_t set; // Space/Set index
@@ -154,6 +133,18 @@ namespace RR::EffectLibrary
             uint32_t set; // Space/Set index
 
             uint32_t count; // 0 or 1 = not array, >1 = array
+        };
+
+        struct FieldReflection
+        {
+            uint32_t nameIndex;
+            FieldType type;
+
+            uint32_t offset; // Offset in bytes relative to the start of the parent structure/buffer
+            uint32_t size; // Size in bytes
+
+            uint32_t arraySize; // 0 or 1 = not array, >1 = array
+            uint32_t structIndex; // For structs
         };
 
         struct Header
@@ -172,6 +163,8 @@ namespace RR::EffectLibrary
             uint32_t uavCount;
             uint32_t cbvSectionSize;
             uint32_t cbvCount;
+            uint32_t fieldsSectionSize;
+            uint32_t fieldsCount;
             uint32_t effectsSectionSize;
             uint32_t effectsCount;
         };

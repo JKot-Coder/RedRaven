@@ -20,18 +20,25 @@ namespace RR::Render
 
 namespace RR::EffectLibrary
 {
+
+    enum class FieldKind : uint8_t
+    {
+        Array,
+        Struct,
+        Basic,
+    };
+
     struct FieldReflection
     {
         const char* name;
         Asset::FieldType type;
-        Asset::FieldKind kind;
+        FieldKind kind;
+
+        uint32_t structIndex;
         uint32_t arraySize;
 
         uint32_t offset;
         uint32_t size;
-
-        uint32_t firstMemberIndex;
-        uint32_t memberCount;
     };
 
     struct ResourceReflection

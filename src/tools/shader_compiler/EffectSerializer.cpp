@@ -170,6 +170,12 @@ namespace RR
         return 0;
     }
 
+    uint32_t EffectSerializer::AddField(const RR::EffectLibrary::FieldReflection& field)
+    {
+        UNUSED(field);
+        return 0;
+    }
+
     uint32_t EffectSerializer::AddEffect(const EffectDesc& effect)
     {
         Asset::EffectDesc effectDesc;

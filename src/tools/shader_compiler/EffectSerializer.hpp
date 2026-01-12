@@ -21,7 +21,7 @@ namespace RR
 
     struct ResourceReflection
     {
-        enum class Type
+        enum class Type : int32_t
         {
             Texture,
             StructuredBuffer,
@@ -32,8 +32,17 @@ namespace RR
             AccelerationStructure,
         };
 
+        enum class Access : int32_t
+        {
+            Read,
+            Write,
+            ReadWrite
+        };
+
         std::string name;
         Type type;
+        Access access;
+
         GAPI::GpuResourceDimension dimension;
         BindingLocation bindingLocation;
         GAPI::TextureSampleType sampleType = GAPI::TextureSampleType::Undefined;
@@ -51,6 +60,7 @@ namespace RR
 
         uint32_t AddString(const std::string_view& str);
         uint32_t AddShader(const EffectLibrary::ShaderDesc& shader);
+        uint32_t AddField(const RR::EffectLibrary::FieldReflection& field);
         uint32_t AddResource(const ResourceReflection& resource);
         uint32_t AddEffect(const EffectLibrary::EffectDesc& effect);
 
