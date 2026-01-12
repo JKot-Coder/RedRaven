@@ -236,7 +236,7 @@ namespace RR::App
         }
 
        auto triangleEffect = Render::EffectManager::Instance().Load("triangle");
-    UNUSED(triangleEffect);
+         UNUSED(triangleEffect);
         //auto cubeEffect = Render::EffectManager::Instance().Load("cube");
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
@@ -253,7 +253,7 @@ namespace RR::App
 
         auto texture = deviceContext.CreateTexture(GAPI::GpuResourceDesc::Texture2D(1920, 1080, GAPI::GpuResourceFormat::RGBA8Unorm, GAPI::GpuResourceBindFlags::RenderTarget), nullptr, "Empty");
         auto ctx = deviceContext.CreateCommandEncoder("test");
-        auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
+         auto commandQueue = deviceContext.CreateCommandQueue(GAPI::CommandQueueType::Graphics, "test");
 
         auto vertexBuffer = CreateVertexBuffer();
         auto indexBuffer = CreateIndexBuffer();
@@ -271,15 +271,19 @@ namespace RR::App
                                             UNUSED(renderPassDesc);
 
             auto renderPassEncoder = ctx->BeginRenderPass(renderPassDesc);
+
+
+
+            renderPassEncoder.Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
+
             renderPassEncoder.End();
 
             ctx->Finish();
-            /*
-          //  ctx->Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 
-            ctx->SetVertexLayout(&Render::Vertex::GetVertexLayout());
-            ctx->SetIndexBuffer(indexBuffer.get());
-            ctx->SetVertexBuffer(0, *vertexBuffer.get(), 0);
+
+          //  ctx->SetVertexLayout(&Render::Vertex::GetVertexLayout());
+          // ctx->SetIndexBuffer(indexBuffer.get());
+          //  ctx->SetVertexBuffer(0, *vertexBuffer.get(), 0);
           //  ctx->DrawIndexed(cubeEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 36);*/
 
             deviceContext.Compile(*ctx);

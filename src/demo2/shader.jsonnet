@@ -30,6 +30,7 @@ local ColorMask = import "colorMask.jsonnet";
                 modules: ["shader.slang"],
                 vertexShader: "mainVS",
                 pixelShader: "mainPS",
+              //  computeShader: "main",
                 inputLayout: "cube"
             }
         }
