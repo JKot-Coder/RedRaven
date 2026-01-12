@@ -23,6 +23,10 @@ namespace RR
         class IBindingLayout;
         struct BindingLayoutDesc;
 
+        class BindingSet;
+        class IBindingSet;
+        struct BindingSetDesc;
+
         struct RenderPassDesc;
 
         struct BufferData;

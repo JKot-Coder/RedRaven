@@ -25,6 +25,7 @@ namespace RR
                 Shader,
                 PipelineState,
                 BindingLayout,
+                BindingSet,
             };
 
         public:

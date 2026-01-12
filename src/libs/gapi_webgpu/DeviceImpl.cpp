@@ -6,6 +6,7 @@
 #include "Device.hpp"
 
 #include "BindingLayoutImpl.hpp"
+#include "BindingSetImpl.hpp"
 #include "BufferImpl.hpp"
 #include "CommandListImpl.hpp"
 #include "CommandQueueImpl.hpp"
