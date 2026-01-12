@@ -4,6 +4,10 @@
 
 #include <fstream>
 
+#define THROW(message)          \
+    ASSERT_MSG(false, message); \
+    throw std::runtime_error(message);
+
 namespace RR
 {
     using namespace EffectLibrary;
@@ -46,20 +50,100 @@ namespace RR
         return shadersCount++;
     }
 
-    uint32_t EffectSerializer::AddSrv(const SrvReflectionDesc& srv)
+    std::string getShaderStageName(GAPI::ShaderStage stage)
     {
-        Asset::SrvReflection srvDesc;
-        srvDesc.nameIndex = AddString(srv.name);
-        srvDesc.stageMask = srv.stageMask;
-        srvDesc.dimension = srv.dimension;
-        srvDesc.sampleType = srv.sampleType;
-        srvDesc.binding = srv.binding;
-        srvDesc.set = srv.set;
-        srvDesc.count = srv.count;
+        switch (stage)
+        {
+            case GAPI::ShaderStage::Vertex: return "Vertex";
+            case GAPI::ShaderStage::Pixel: return "Pixel";
+            case GAPI::ShaderStage::Compute: return "Compute";
+            case GAPI::ShaderStage::Geometry: return "Geometry";
+            case GAPI::ShaderStage::Hull: return "Hull";
+            case GAPI::ShaderStage::Domain: return "Domain";
+            case GAPI::ShaderStage::Amplification: return "Amplification";
+            case GAPI::ShaderStage::Mesh: return "Mesh";
+            case GAPI::ShaderStage::RayGen: return "RayGen";
+            case GAPI::ShaderStage::RayMiss: return "RayMiss";
+            case GAPI::ShaderStage::RayClosestHit: return "RayClosestHit";
+            case GAPI::ShaderStage::RayAnyHit: return "RayAnyHit";
+            case GAPI::ShaderStage::RayIntersection: return "RayIntersection";
+            case GAPI::ShaderStage::Callable: return "Callable";
+            case GAPI::ShaderStage::Tile: return "Tile";
+            default: return "Unknown";
+        }
+    }
 
-        insertData(srvData, srv);
+    std::string getUsageMaskString(GAPI::ShaderStageMask usageMask)
+    {
+        std::string usageMaskString;
+        for (uint32_t i = 0; i < eastl::to_underlying(GAPI::ShaderStage::Count); i++)
+        {
+            if (Common::IsSet(usageMask, GAPI::GetShaderStageMask(static_cast<GAPI::ShaderStage>(i))))
+                usageMaskString += getShaderStageName(static_cast<GAPI::ShaderStage>(i)) + " ";
+        }
+        return usageMaskString;
+    }
 
-        return srvCount++;
+    uint32_t EffectSerializer::AddResource(const RR::ResourceReflection& resource)
+    {
+        switch (resource.type)
+        {
+            case RR::ResourceReflection::Type::Texture:
+            case RR::ResourceReflection::Type::StructuredBuffer:
+            case RR::ResourceReflection::Type::RawBuffer:
+            case RR::ResourceReflection::Type::TypedBuffer:
+            {
+                Asset::SrvReflection srvDesc;
+                srvDesc.nameIndex = AddString(resource.name);
+                srvDesc.usageMask = resource.usageMask;
+                srvDesc.dimension = resource.dimension;
+                srvDesc.sampleType = resource.sampleType;
+                srvDesc.binding = resource.bindingLocation.registerIndex;
+                srvDesc.set = resource.bindingLocation.registerSpace;
+                srvDesc.count = resource.count;
+
+                insertData(srvData, srvDesc);
+                return srvCount++;
+            }
+            case RR::ResourceReflection::Type::ConstantBuffer:
+            {
+                Asset::CbvReflection cbvDesc;
+                cbvDesc.nameIndex = AddString(resource.name);
+                cbvDesc.usageMask = resource.usageMask;
+                cbvDesc.binding = resource.bindingLocation.registerIndex;
+                cbvDesc.set = resource.bindingLocation.registerSpace;
+                cbvDesc.count = resource.count;
+
+                insertData(cbvData, cbvDesc);
+                return cbvCount++;
+            }
+            default:
+            THROW("Invalid type");
+        }
+        /*
+                switch (resource.type)
+                {
+                    case ResourceReflection::Type::Texture:
+                        break;
+                    case ResourceReflection::Type::StructuredBuffer:
+                        break;
+                    case ResourceReflection::Type::RawBuffer:
+                        break;
+                }
+                Asset::SrvReflection srvDesc;
+                srvDesc.nameIndex = AddString(srv.name);
+                srvDesc.stageMask = srv.stageMask;
+                srvDesc.dimension = srv.dimension;
+                srvDesc.sampleType = srv.sampleType;
+                srvDesc.binding = srv.binding;
+                srvDesc.set = srv.set;
+                srvDesc.count = srv.count;
+
+                insertData(srvData, srv);
+
+                return srvCount++;*/
+        UNUSED(resource);
+        return 0;
     }
 
     uint32_t EffectSerializer::AddEffect(const EffectDesc& effect)

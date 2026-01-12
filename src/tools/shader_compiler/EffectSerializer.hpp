@@ -13,15 +13,34 @@ namespace RR
         enum class RResult : int32_t;
     }
 
-    struct SrvReflectionDesc
+    struct BindingLocation
     {
+        uint32_t registerIndex;
+        uint32_t registerSpace;
+    };
+
+    struct ResourceReflection
+    {
+        enum class Type
+        {
+            Texture,
+            StructuredBuffer,
+            RawBuffer,
+            TypedBuffer,
+            Sampler,
+            ConstantBuffer,
+            AccelerationStructure,
+        };
+
         std::string name;
-        GAPI::ShaderStageMask stageMask;
+        Type type;
         GAPI::GpuResourceDimension dimension;
-        GAPI::TextureSampleType sampleType;
-        uint32_t binding;
-        uint32_t set;
+        BindingLocation bindingLocation;
+        GAPI::TextureSampleType sampleType = GAPI::TextureSampleType::Undefined;
+        GAPI::GpuResourceFormat format = GAPI::GpuResourceFormat::Unknown;
         uint32_t count;
+
+        GAPI::ShaderStageMask usageMask = GAPI::ShaderStageMask::None;
     };
 
     class EffectSerializer
@@ -32,7 +51,7 @@ namespace RR
 
         uint32_t AddString(const std::string_view& str);
         uint32_t AddShader(const EffectLibrary::ShaderDesc& shader);
-        uint32_t AddSrv(const SrvReflectionDesc& srv);
+        uint32_t AddResource(const ResourceReflection& resource);
         uint32_t AddEffect(const EffectLibrary::EffectDesc& effect);
 
         Common::RResult Serialize(const std::string& path);
