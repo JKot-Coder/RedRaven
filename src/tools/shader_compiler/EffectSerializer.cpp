@@ -165,7 +165,7 @@ namespace RR
             eastl::fixed_vector<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count), false> shaderIndexes;
             for (uint32_t i = 0; i < pass.shaderIndexes.size(); i++)
             {
-                if(pass.shaderIndexes[i] == Asset::INVALID_INDEX)
+                if (pass.shaderIndexes[i] == Asset::INVALID_INDEX)
                     continue;
 
                 passDesc.shaderStages |= GetShaderStageMask(static_cast<GAPI::ShaderStage>(i));
@@ -192,7 +192,7 @@ namespace RR
                 insertData(effectsData, resource);*/
         }
 
-       return effectsCount++;
+        return effectsCount++;
     }
 
     Common::RResult EffectSerializer::Serialize(const std::string& path)
