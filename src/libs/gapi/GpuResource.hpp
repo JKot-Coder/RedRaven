@@ -183,7 +183,9 @@ namespace RR
 
         enum class TextureSampleType : uint32_t
         {
+            Undefined,
             Float,
+            Double,
             Int,
             Uint,
             Depth
