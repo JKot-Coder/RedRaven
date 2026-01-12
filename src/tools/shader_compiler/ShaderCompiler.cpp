@@ -10,6 +10,8 @@
 #include "reflection/ReflectionBuilder.hpp"
 #include "SlangUtils.hpp"
 
+#include <iostream>
+
 #define TRY_SLANG(statement) \
 	{ \
 		SlangResult res = (statement); \
@@ -19,11 +21,11 @@
 		} \
 	}
 
-#include <iostream>
-
-namespace RR  {
+SlangResult zxc( Slang::ComPtr<slang::IBlob> diagnostics, slang::IComponentType* program);
 
 
+namespace RR
+{
 
     ShaderCompiler::ShaderCompiler() { }
     ShaderCompiler::~ShaderCompiler() { }
@@ -74,6 +76,8 @@ namespace RR  {
 
         for (auto& moduleName : desc.modules)
         {
+
+            std::cout << "Loading module: " << moduleName << std::endl;
             slang::IModule* module = session->loadModule(moduleName.c_str(), diagnostics.writeRef());
 
             if (diagnostics)
@@ -191,6 +195,9 @@ namespace RR  {
 
         ReflectionBuilder reflectionBuilder;
         reflectionBuilder.Build(desc.effectSerializer, linkedProgram.get(), programLayout);
+
+        std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
+        zxc(diagnostics, linkedProgram.get());
 
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
 

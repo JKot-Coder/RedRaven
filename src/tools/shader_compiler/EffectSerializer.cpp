@@ -86,6 +86,13 @@ namespace RR
 
     uint32_t EffectSerializer::AddResource(const RR::ResourceReflection& resource)
     {
+        std::cout << "resource: " << resource.name
+        << " binding location: " << resource.bindingLocation.registerIndex << " " << resource.bindingLocation.registerSpace
+       // << " dimension: " << enumToString(resource.dimension)
+        << " usage mask: " << getUsageMaskString(resource.usageMask)
+     //   << " type: " << enumToString(resource.type)
+         << std::endl;
+
         switch (resource.type)
         {
             case RR::ResourceReflection::Type::Texture:
@@ -191,22 +198,22 @@ namespace RR
 
             insertData(effectsData, passDesc);
             insertData(effectsData, shaderIndexes.data(), shaderIndexes.size() * sizeof(uint32_t));
-/*
-            Asset::ReflectionDesc::Header reflectionHeader;
-            reflectionHeader.resourcesCount = static_cast<uint32_t>(pass.reflection.resources.size());
-            reflectionHeader.variablesCount = static_cast<uint32_t>(pass.reflection.fields.size());
-            reflectionHeader.textureMetasCount = static_cast<uint32_t>(pass.reflection.textureMetas.size());
-            reflectionHeader.rootResourceIndex = Asset::INVALID_INDEX;
-            insertData(effectsData, reflectionHeader);
+            /*
+                        Asset::ReflectionDesc::Header reflectionHeader;
+                        reflectionHeader.resourcesCount = static_cast<uint32_t>(pass.reflection.resources.size());
+                        reflectionHeader.variablesCount = static_cast<uint32_t>(pass.reflection.fields.size());
+                        reflectionHeader.textureMetasCount = static_cast<uint32_t>(pass.reflection.textureMetas.size());
+                        reflectionHeader.rootResourceIndex = Asset::INVALID_INDEX;
+                        insertData(effectsData, reflectionHeader);
 
-            for (auto& textureMeta : pass.reflection.textureMetas)
-                insertData(effectsData, textureMeta);
+                        for (auto& textureMeta : pass.reflection.textureMetas)
+                            insertData(effectsData, textureMeta);
 
-            for (auto& field : pass.reflection.fields)
-                insertData(effectsData, field);
+                        for (auto& field : pass.reflection.fields)
+                            insertData(effectsData, field);
 
-            for (auto& resource : pass.reflection.resources)
-                insertData(effectsData, resource);*/
+                        for (auto& resource : pass.reflection.resources)
+                            insertData(effectsData, resource);*/
         }
 
         return effectsCount++;

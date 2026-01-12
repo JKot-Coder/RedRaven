@@ -24,6 +24,7 @@ set(SRC
     reflection/ProgramReflection.hpp
     reflection/ProgramVersion.cpp
     reflection/ProgramVersion.hpp
+    reflection/refl.cpp
     )
 source_group("" FILES ${SRC})
 
