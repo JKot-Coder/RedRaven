@@ -160,6 +160,8 @@ namespace RR
                 addEntryPoint(pass["vertexShader"]);
             if (!pass["pixelShader"].empty())
                 addEntryPoint(pass["pixelShader"]);
+            if (!pass["computeShader"].empty())
+                addEntryPoint(pass["computeShader"]);
 
             // TODO check if entry points valid.
 
