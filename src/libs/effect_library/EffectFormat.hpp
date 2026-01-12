@@ -123,7 +123,7 @@ namespace RR::EffectLibrary
         struct SrvReflection
         {
             uint32_t nameIndex;
-            GAPI::ShaderStageMask stageMask;
+            GAPI::ShaderStageMask usageMask;
             GAPI::GpuResourceDimension dimension;
             GAPI::TextureSampleType sampleType;
 
@@ -136,7 +136,7 @@ namespace RR::EffectLibrary
         struct UavReflection
         {
             uint32_t nameIndex;
-            GAPI::ShaderStageMask stageMask;
+            GAPI::ShaderStageMask usageMask;
             GAPI::GpuResourceDimension dimension;
             GAPI::GpuResourceFormat format;
 
@@ -149,7 +149,7 @@ namespace RR::EffectLibrary
         struct CbvReflection
         {
             uint32_t nameIndex;
-            GAPI::ShaderStageMask stageMask;
+            GAPI::ShaderStageMask usageMask;
             uint32_t binding; // Slot index
             uint32_t set; // Space/Set index
 
