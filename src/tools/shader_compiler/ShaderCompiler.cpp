@@ -36,8 +36,8 @@ namespace RR
         ASSERT(desc.entryPoints.size() > 0);
 
         slang::TargetDesc targetDesc;
-        targetDesc.format = SLANG_HLSL;
-        targetDesc.profile = globalSession->findProfile("sm_6_5");
+        targetDesc.format = SLANG_SPIRV;
+        targetDesc.profile = globalSession->findProfile("spirv_1_3");
         targetDesc.floatingPointMode = SLANG_FLOATING_POINT_MODE_DEFAULT;
         targetDesc.lineDirectiveMode = SLANG_LINE_DIRECTIVE_MODE_DEFAULT;
 
