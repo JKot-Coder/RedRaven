@@ -41,6 +41,7 @@ namespace RR::GAPI::WebGPU
                 case Sample::Int: return wgpu::TextureSampleType::Sint;
                 case Sample::Uint: return wgpu::TextureSampleType::Uint;
                 case Sample::Depth: return wgpu::TextureSampleType::Depth;
+                case Sample::Undefined: return wgpu::TextureSampleType::Undefined;
                 default:
                     ASSERT_MSG(false, "Unknown texture sample type");
                     return wgpu::TextureSampleType::Undefined;
