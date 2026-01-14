@@ -1898,15 +1898,14 @@ HANDLE(Device)
 	void pushErrorScope(ErrorFilter filter) const;
 	void setLabel(StringView label) const;
 	template<typename Lambda>
-	void setLoggingCallback(CallbackMode callbackMode, const Lambda& callback) const {
+	void setLoggingCallback(const Lambda& callback) const {
 		auto* lambda = new Lambda(callback);
-		auto cCallback = [](WGPULoggingType type, WGPUStringView message, void* userdata1, void*) -> void {
+		WGPULoggingCallback cCallback = [](WGPULoggingType type, WGPUStringView message, void* userdata1, void*) -> void {
 			std::unique_ptr<Lambda> lambda(reinterpret_cast<Lambda*>(userdata1));
 			(*lambda)(static_cast<LoggingType>(type), message);
 		};
-		LoggingCallbackInfo callbackInfo = {
+		WGPULoggingCallbackInfo callbackInfo = {
 			/* nextInChain = */ nullptr,
-			/* mode = */ callbackMode,
 			/* callback = */ cCallback,
 			/* userdata1 = */ (void*)lambda,
 			/* userdata2 = */ nullptr,
