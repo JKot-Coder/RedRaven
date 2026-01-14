@@ -229,7 +229,7 @@ namespace RR
                 ctx->currentPath += var->getName() + ".";
                 ctx->currentParameterBlock = resourceType->getParameterBlockReflector();
 
-                StructReflection structReflection;
+                //StructReflection structReflection;
                 for (uint32_t j = 0; j < structType->getMemberCount(); j++)
                     reflect(ctx, structType->getMember(j));
 
@@ -246,10 +246,10 @@ namespace RR
                    type->getKind() == ReflectionResourceType::Kind::Struct ||
                    type->getKind() == ReflectionResourceType::Kind::Array);
 
-            FieldReflection fieldReflection;
-            fieldReflection.name = var->getName();
-            fieldReflection.type = getBasicType(type->asBasicType());
-            fieldReflection.kind = getFieldKind(type->getKind());
+            EffectLibrary::FieldReflection fieldReflection;
+            fieldReflection.name = var->getName().c_str();
+            fieldReflection.type = getFieldType(type->asBasicType()->getType());
+            fieldReflection.kind = EffectLibrary::FieldKind::Basic;
             fieldReflection.structIndex = 0;
             fieldReflection.arraySize = 0;
             fieldReflection.offset = 0;
@@ -302,8 +302,6 @@ namespace RR
                 }
             }
 
-            UNUSED(hasGlobalUniforms);
-            UNUSED(getBasicType);
 
         /*    StructReflection* globalUniformsStructReflectionPtr = nullptr;
 */
