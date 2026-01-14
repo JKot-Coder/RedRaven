@@ -39,7 +39,8 @@ namespace RR::GAPI::WebGPU
         switch(format)
         {
             case GAPI::GpuResourceFormat::RGBA8Unorm: return wgpu::TextureFormat::RGBA8Unorm;
-            default:
+            case GAPI::GpuResourceFormat::BGRA8Unorm: return wgpu::TextureFormat::BGRA8Unorm;
+              default:
                 Log::Format::Error( "Invalid back buffer format: {}", GpuResourceFormatInfo::ToString(format));
                 return wgpu::TextureFormat::Undefined;
         }
