@@ -74,4 +74,19 @@ namespace RR::Common::IO
 
         return result;
     }
+
+    size_t File::Read(void* buffer, size_t byteSize) const
+    {
+        if (!IsOpen())
+        {
+            ASSERT_MSG(false, "File is not opened");
+            return 0;
+        }
+
+        ssize_t result = read(handle_, buffer, byteSize);
+        if (result == -1)
+            return 0;
+
+        return result;
+    }
 }
