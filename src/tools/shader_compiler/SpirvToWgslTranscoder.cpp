@@ -56,7 +56,7 @@ namespace RR
         std::string wgslFilePath = tempWgslFile.string();
 
         std::vector<const char*> args = {
-            "tint",
+            "./tint",
             "--format", "wgsl",
             "-o", wgslFilePath.c_str(),
             spvFilePath.c_str(),
