@@ -12,10 +12,10 @@ namespace RR::Common::Threading
         Thread(Thread&& other) noexcept : thread_(std::move(other.thread_)) {};
 
         template <class Function, class... Args>
-        explicit Thread(std::string_view threadName, Function&& f, Args&&... args)
+        explicit Thread(const std::string& threadName, Function&& f, Args&&... args)
             : thread_(eastl::forward<Function>(f), eastl::forward<Args>(args)...)
         {
-            SetName(threadName);
+            setName(threadName);
         }
 
         Thread& operator=(Thread&& other) noexcept
@@ -24,7 +24,6 @@ namespace RR::Common::Threading
             return *this;
         }
 
-        void SetName(std::string_view threadName);
         bool IsJoinable() const noexcept { return thread_.joinable(); }
         std::thread::id GetId() const noexcept { return thread_.get_id(); }
         std::thread::native_handle_type GetNativeHandle() { return thread_.native_handle(); }
@@ -32,6 +31,9 @@ namespace RR::Common::Threading
         void Detach() { thread_.detach(); }
         void swap(Thread& other) noexcept { thread_.swap(other.thread_); }
         static unsigned int HardwareConcurrency() noexcept { return std::thread::hardware_concurrency(); }
+
+    private:
+        void setName(const std::string& threadName);
 
     private:
         std::thread thread_;
