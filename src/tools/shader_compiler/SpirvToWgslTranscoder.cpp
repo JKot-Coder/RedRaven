@@ -64,7 +64,11 @@ namespace RR
         };
 
         SubprocessResult processResult;
-        RR_RETURN_ON_FAIL(SubprocessRunner::Run(args, processResult));
+        if (RR_FAILED(SubprocessRunner::Run(args, processResult)))
+        {
+            std::cerr << "SpirvToWgslTranscoder::Transcode: Tint process failed" << std::endl;
+            return Common::RResult::Fail;
+        }
 
         if (processResult.exitCode != 0)
         {
