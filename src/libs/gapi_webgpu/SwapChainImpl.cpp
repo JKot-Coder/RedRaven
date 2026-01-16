@@ -9,6 +9,8 @@
 
 #if OS_WINDOWS
 #include "windows.h"
+#elif OS_APPLE
+#include "SurfaceMetalLayer.h"
 #endif
 
 namespace RR::GAPI::WebGPU
@@ -51,16 +53,27 @@ namespace RR::GAPI::WebGPU
         ASSERT(instance);
         ASSERT(device);
 
+        wgpu::SurfaceDescriptor surfaceDescriptor;
+        surfaceDescriptor.setDefault();
+        surfaceDescriptor.label = wgpu::StringView("Surface");
+
 #if OS_WINDOWS
         wgpu::SurfaceSourceWindowsHWND wgpuSurfaceNativeDesc;
         wgpuSurfaceNativeDesc.setDefault();
         wgpuSurfaceNativeDesc.hinstance = GetModuleHandle(nullptr);
         wgpuSurfaceNativeDesc.hwnd = eastl::any_cast<HWND>(desc.windowNativeHandle);
-#endif
-
-        wgpu::SurfaceDescriptor surfaceDescriptor = {};
         surfaceDescriptor.nextInChain = &wgpuSurfaceNativeDesc.chain;
-        surfaceDescriptor.label = wgpu::StringView("Surface");
+#elif OS_APPLE
+        auto* nsWindow = eastl::any_cast<void*>(desc.windowNativeHandle);
+        ASSERT(nsWindow != nullptr);
+        auto* metalLayer = GetOrCreateMetalLayer(nsWindow);
+        ASSERT(metalLayer != nullptr);
+
+        wgpu::SurfaceSourceMetalLayer wgpuSurfaceNativeDesc;
+        wgpuSurfaceNativeDesc.setDefault();
+        wgpuSurfaceNativeDesc.layer = metalLayer;
+        surfaceDescriptor.nextInChain = &wgpuSurfaceNativeDesc.chain;
+#endif
 
         surface = instance.createSurface(surfaceDescriptor);
         if(!surface)

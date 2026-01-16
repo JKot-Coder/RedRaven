@@ -29,10 +29,17 @@ set(SRC
     Utils.hpp
     WebGPUImpl.cpp
 )
+
+if(APPLE)
+    set(SRC ${SRC} SurfaceMetalLayer.mm SurfaceMetalLayer.h)
+    set_source_files_properties(SurfaceMetalLayer.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+endif()
+
 source_group( "" FILES ${SRC} )
 
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
+
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
 target_link_libraries(${PROJECT_NAME} PRIVATE
     RR::BuildSettings
@@ -40,3 +47,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     gapi
     webgpu
 )
+
+if(APPLE)
+   target_link_libraries(${PROJECT_NAME} PUBLIC "-framework Cocoa" "-framework QuartzCore")
+endif()
