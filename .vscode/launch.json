@@ -74,7 +74,7 @@
             "type": "cppvsdbg",
             "console": "internalConsole",
             "program": "${workspaceFolder}/bin/shader_compiler.exe",
-            "args": ["build", "${command:cmake.buildDirectory}/src/demo2/shaders.jsonnet", "--output", "${workspaceFolder}/bin/CompiledShaders.rfxlib", "--include", "${workspaceFolder}/src/shaders"],
+            "args": ["build", "${command:cmake.buildDirectory}/src/demo3/shaders.jsonnet", "--output", "${workspaceFolder}/bin/CompiledShaders.rfxlib", "--include", "${workspaceFolder}/src/shaders"],
             "cwd": "${workspaceFolder}/bin/",
             "preLaunchTask": "CMake: build shader_compiler",
             "visualizerFile": "${command:cmake.buildDirectory}/vcpkg_installed/x64-win-llvm/doc/EASTL.natvis",
