@@ -36,8 +36,6 @@ namespace RR
 
         Common::RResult saveLibrary(const LibraryBuildDesc& desc);
 
-        uint32_t pushString(std::string_view str);
-        uint32_t pushShader(ShaderResult&& shader);
 
     private:
         EffectSerializer effectSerializer;

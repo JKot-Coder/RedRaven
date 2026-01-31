@@ -10,6 +10,8 @@
 #include "reflection/ReflectionBuilder.hpp"
 #include "SlangUtils.hpp"
 
+#include "EffectSerializer.hpp"
+
 #include <iostream>
 
 #define TRY_SLANG(statement) \
@@ -30,7 +32,7 @@ namespace RR
     ShaderCompiler::ShaderCompiler() { }
     ShaderCompiler::~ShaderCompiler() { }
 
-    Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result)
+    Common::RResult ShaderCompiler::CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, RR::PassDesc& passDesc)
     {
         ASSERT(desc.effectSerializer != nullptr);
         ASSERT(desc.entryPoints.size() > 0);
@@ -147,9 +149,9 @@ namespace RR
         {
             SlangStage stage = programLayout->getEntryPointByIndex(i)->getStage();
 
-            ShaderResult shaderResult;
-            shaderResult.stage = GetShaderStage(stage);
-            shaderResult.name = programLayout->getEntryPointByIndex(i)->getName();
+            EffectLibrary::ShaderDesc shader;
+            shader.name = programLayout->getEntryPointByIndex(i)->getName();
+            shader.stage = GetShaderStage(stage);
 
             slang::IBlob* compiledCode;
             if (SLANG_FAILED(linkedProgram->getEntryPointCode(i, 0, &compiledCode, diagnostics.writeRef())))
@@ -165,42 +167,33 @@ namespace RR
                 return Common::RResult::Fail;
             }
 
+            std::string wgslCode;
+
             if (targetDesc.format == SLANG_SPIRV)
             {
-
-                std::string wgslCode;
                 RR_RETURN_ON_FAIL(SpirvToWgslTranscoder::Transcode(compiledCode, wgslCode));
-                shaderResult.source.resize(wgslCode.size());
-                std::memcpy(shaderResult.source.data(), wgslCode.data(), wgslCode.size());
+                shader.data = reinterpret_cast<const std::byte*>(wgslCode.data());
+                shader.size = wgslCode.size();
             }
             else
             {
-                // Copy to code to result
-                shaderResult.source.resize(compiledCode->getBufferSize());
-                std::memcpy(shaderResult.source.data(), compiledCode->getBufferPointer(), compiledCode->getBufferSize());
+                shader.data = reinterpret_cast<const std::byte*>(compiledCode->getBufferPointer());
+                shader.size = compiledCode->getBufferSize();
             }
 
-
-            const char* c = reinterpret_cast<const char*>(shaderResult.source.data());
-            size_t s = shaderResult.source.size();
-
-            std::cout << "Shader: "<< std::endl << std::string(c,s ) << std::endl;
-
-
-            result.shaders.emplace_back(std::move(shaderResult));
+            std::cout << "Shader: "<< std::endl << std::string(reinterpret_cast<const char*>(shader.data), shader.size) << std::endl;
+            passDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = desc.effectSerializer->AddShader(shader);
         }
-
 
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
 
         ReflectionBuilder reflectionBuilder;
-        reflectionBuilder.Build(desc.effectSerializer, linkedProgram.get(), programLayout);
+        RR_RETURN_ON_FAIL(reflectionBuilder.Build(*desc.effectSerializer, linkedProgram.get(), programLayout, passDesc.rootBindingGroupIndex));
 
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
         zxc(diagnostics, linkedProgram.get());
 
         std::cout << "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" << std::endl;
-
 
         return Common::RResult::Ok;
     }

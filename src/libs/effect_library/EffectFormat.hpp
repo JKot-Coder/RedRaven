@@ -17,6 +17,9 @@ namespace RR::EffectLibrary
 
         enum class FieldType : uint8_t
         {
+            Array,
+            Struct,
+
             Bool,
             Bool2,
             Bool3,
@@ -106,8 +109,6 @@ namespace RR::EffectLibrary
             GAPI::TextureSampleType sampleType;
 
             uint32_t binding; // Slot index
-            uint32_t set; // Space/Set index
-
             uint32_t count; // 0 or 1 = not array, >1 = array
         };
 
@@ -119,9 +120,7 @@ namespace RR::EffectLibrary
             GAPI::GpuResourceFormat format;
             // TODO: Store acess type.
 
-            uint32_t binding; // Slot index
-            uint32_t set; // Space/Set index
-
+            uint32_t binding; // Slot indexx
             uint32_t count; // 0 or 1 = not array, >1 = array
         };
 
@@ -129,13 +128,14 @@ namespace RR::EffectLibrary
         {
             uint32_t nameIndex;
             GAPI::ShaderStageMask usageMask;
-            uint32_t binding; // Slot index
-            uint32_t set; // Space/Set index
 
+            uint32_t binding; // Slot index
             uint32_t count; // 0 or 1 = not array, >1 = array
+
+            uint32_t layoutIndex;
         };
 
-        struct FieldReflection
+        struct UniformReflection
         {
             uint32_t nameIndex;
             FieldType type;
@@ -144,7 +144,21 @@ namespace RR::EffectLibrary
             uint32_t size; // Size in bytes
 
             uint32_t arraySize; // 0 or 1 = not array, >1 = array
-            uint32_t structIndex; // For structs
+            uint32_t layoutIndex; // For structs
+        };
+
+        struct Layout
+        {
+            uint32_t elementsCount;
+            // List of indexes to fields or other resources
+        };
+
+        struct BindGroup
+        {
+            uint32_t nameIndex;
+            uint32_t bindingSpace;
+            uint32_t uniformCBV;
+            uint32_t resourcesLayoutIndex;
         };
 
         struct Header
@@ -153,7 +167,7 @@ namespace RR::EffectLibrary
             static constexpr uint32_t VERSION = 1;
             uint32_t magic;
             uint32_t version;
-            uint32_t stringSectionSize;
+            uint32_t stringsSectionSize;
             uint32_t stringsCount;
             uint32_t shadersSectionSize;
             uint32_t shadersCount;
@@ -167,6 +181,12 @@ namespace RR::EffectLibrary
             uint32_t fieldsCount;
             uint32_t effectsSectionSize;
             uint32_t effectsCount;
+            uint32_t uniformsSectionSize;
+            uint32_t uniformsCount;
+            uint32_t layoutsSectionSize;
+            uint32_t layoutsCount;
+            uint32_t bindGroupsSectionSize;
+            uint32_t bindGroupsCount;
         };
 
         struct ShaderDesc
@@ -175,17 +195,6 @@ namespace RR::EffectLibrary
             GAPI::ShaderStage stage;
             uint32_t size;
             // DATA block
-        };
-
-        struct ReflectionDesc
-        {
-            struct Header
-            {
-                uint32_t resourcesCount;
-                uint32_t variablesCount;
-                uint32_t textureMetasCount;
-                uint32_t rootResourceIndex;
-            } header;
         };
 
         struct PassDesc

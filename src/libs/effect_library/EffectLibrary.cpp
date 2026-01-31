@@ -46,14 +46,14 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
-        stringsData = eastl::make_unique<std::byte[]>(header.stringSectionSize);
-        if(file.Read(reinterpret_cast<void*>(stringsData.get()), header.stringSectionSize) != header.stringSectionSize)
+        stringsData = eastl::make_unique<std::byte[]>(header.stringsSectionSize);
+        if(file.Read(reinterpret_cast<void*>(stringsData.get()), header.stringsSectionSize) != header.stringsSectionSize)
         {
-            LOG_ERROR("Failed to read strings data: {}", header.stringSectionSize);
+            LOG_ERROR("Failed to read strings data: {}", header.stringsSectionSize);
             return Common::RResult::Fail;
         }
 
-        char* lastChar = reinterpret_cast<char*>(stringsData.get() + header.stringSectionSize);
+        char* lastChar = reinterpret_cast<char*>(stringsData.get() + header.stringsSectionSize);
         char* currentChar = reinterpret_cast<char*>(stringsData.get());
         char* stringStart = currentChar;
 

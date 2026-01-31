@@ -9,11 +9,7 @@ namespace RR  {
         enum class RResult : int32_t;
     }
 
-    namespace GAPI
-    {
-        enum class ShaderStage : uint8_t;
-    }
-
+    struct PassDesc;
     class EffectSerializer;
 
     struct ShaderCompileDesc
@@ -24,26 +20,13 @@ namespace RR  {
         EffectSerializer* effectSerializer = nullptr;
     };
 
-    struct ShaderResult
-    {
-        ~ShaderResult() { }
-        std::string name;
-        GAPI::ShaderStage stage;
-        std::vector<std::byte> source;
-    };
-
-    struct CompileResult
-    {
-        std::vector<ShaderResult> shaders;
-    };
-
     class ShaderCompiler
     {
     public:
         ShaderCompiler();
         ~ShaderCompiler();
 
-        Common::RResult CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, CompileResult& result);
+        Common::RResult CompileShader(const Slang::ComPtr<slang::IGlobalSession>& globalSession, const ShaderCompileDesc& desc, RR::PassDesc& passDesc);
     };
 
 }

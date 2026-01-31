@@ -108,25 +108,9 @@ namespace RR
         }
     }
 
-    uint32_t ShaderBuilder::pushString(std::string_view str)
-    {
-        return effectSerializer.AddString(str);
-    };
-
-    uint32_t ShaderBuilder::pushShader(ShaderResult&& shader)
-    {
-        EffectLibrary::ShaderDesc shaderDesc;
-        shaderDesc.name = shader.name.c_str();
-        shaderDesc.stage = shader.stage;
-        shaderDesc.data = shader.source.data();
-        shaderDesc.size = shader.source.size();
-
-        return effectSerializer.AddShader(shaderDesc);
-    }
-
     void ShaderBuilder::compileEffect(const std::string& name, nlohmann::json effect, const std::string& sourceFile)
     {
-        EffectLibrary::EffectDesc effectDesc;
+        EffectDesc effectDesc;
         std::cout << "Effect: " << name << std::endl;
         effectDesc.name = name.c_str();
 
@@ -140,8 +124,8 @@ namespace RR
             if (renderState.empty())
                 throw std::runtime_error("Render state is empty for pass: " + passKey);
 
-            EffectLibrary::PassDesc passDesc;
-            passDesc.name = passKey.c_str();
+            RR::PassDesc passDesc;
+            passDesc.name = passKey;
             passDesc.shaderIndexes.fill(EffectLibrary::Asset::INVALID_INDEX);
             evaluateRenderStateDesc(renderState, passDesc.rasterizerDesc, passDesc.depthStencilDesc, passDesc.blendDesc);
 
@@ -166,14 +150,10 @@ namespace RR
             // TODO check if entry points valid.
 
             ShaderCompiler compiler;
-            CompileResult shaderResult;
-            if (RR_FAILED(compiler.CompileShader(globalSession, shaderCompileDesc, shaderResult)))
+            if (RR_FAILED(compiler.CompileShader(globalSession, shaderCompileDesc, passDesc)))
                 throw std::runtime_error("Failed to compile shader");
 
-            for (auto& shader : shaderResult.shaders)
-                passDesc.shaderIndexes[eastl::to_underlying(shader.stage)] = pushShader(std::move(shader));
-
-            effectDesc.passes.push_back(std::move(passDesc));
+            effectDesc.passes.emplace_back(std::move(passDesc));
         }
 
         effectSerializer.AddEffect(effectDesc);

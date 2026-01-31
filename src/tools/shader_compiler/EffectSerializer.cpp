@@ -4,51 +4,16 @@
 
 #include <fstream>
 
-#define THROW(message)          \
-    ASSERT_MSG(false, message); \
-    throw std::runtime_error(message);
+#define THROW(message)                     \
+    {                                      \
+        ASSERT_MSG(false, message);        \
+        throw std::runtime_error(message); \
+    }                                      \
+    (void)0
 
 namespace RR
 {
     using namespace EffectLibrary;
-
-    void insertData(std::vector<std::byte>& data, const void* ptr, size_t size)
-    {
-        data.reserve(data.size() + size);
-        data.insert(data.end(), reinterpret_cast<const std::byte*>(ptr), reinterpret_cast<const std::byte*>(ptr) + size);
-    }
-
-    template <typename T>
-    void insertData(std::vector<std::byte>& data, const T& value)
-    {
-        insertData(data, reinterpret_cast<const void*>(&value), sizeof(value));
-    }
-
-    uint32_t EffectSerializer::AddString(const std::string_view& str)
-    {
-        auto it = stringsCache.find(str);
-        if (it != stringsCache.end())
-            return it->second;
-
-        stringAllocator.allocateString(str);
-        stringsCache[str] = stringsCount;
-        return stringsCount++;
-    }
-
-    uint32_t EffectSerializer::AddShader(const ShaderDesc& shader)
-    {
-        shaderData.reserve(shaderData.size() + shader.size + sizeof(Asset::ShaderDesc));
-
-        Asset::ShaderDesc shaderDesc;
-        shaderDesc.nameIndex = AddString(shader.name);
-        shaderDesc.stage = shader.stage;
-        shaderDesc.size = static_cast<uint32_t>(shader.size);
-
-        insertData(shaderData, shaderDesc);
-        insertData(shaderData, shader.data, shader.size);
-
-        return shadersCount++;
-    }
 
     std::string getShaderStageName(GAPI::ShaderStage stage)
     {
@@ -84,14 +49,61 @@ namespace RR
         return usageMaskString;
     }
 
+    void insertData(std::vector<std::byte>& data, const void* ptr, size_t size)
+    {
+        data.reserve(data.size() + size);
+        data.insert(data.end(), reinterpret_cast<const std::byte*>(ptr), reinterpret_cast<const std::byte*>(ptr) + size);
+    }
+
+    template <typename T>
+    void insertData(std::vector<std::byte>& data, const T& value)
+    {
+        insertData(data, reinterpret_cast<const void*>(&value), sizeof(value));
+    }
+
+    uint32_t EffectSerializer::AddString(const std::string_view& str)
+    {
+        auto it = stringsCache.find(str);
+        if (it != stringsCache.end())
+            return it->second;
+
+        stringAllocator.allocateString(str);
+        stringsCache[str] = stringsCount;
+        return stringsCount++;
+    }
+
+    uint32_t EffectSerializer::AddShader(const ShaderDesc& shader)
+    {
+        shadersData.reserve(shadersData.size() + shader.size + sizeof(Asset::ShaderDesc));
+
+        Asset::ShaderDesc shaderDesc;
+        shaderDesc.nameIndex = AddString(shader.name);
+        shaderDesc.stage = shader.stage;
+        shaderDesc.size = static_cast<uint32_t>(shader.size);
+
+        insertData(shadersData, shaderDesc);
+        insertData(shadersData, shader.data, shader.size);
+
+        return shadersCount++;
+    }
+
+    uint32_t EffectSerializer::AddLayout(const eastl::span<uint32_t>& layout)
+    {
+        Asset::Layout layoutAsset;
+        layoutAsset.elementsCount = static_cast<uint32_t>(layout.size());
+        insertData(layoutsData, layoutAsset);
+        insertData(layoutsData, layout.data(), layout.size() * sizeof(uint32_t));
+        return layoutsCount++;
+    }
+
     uint32_t EffectSerializer::AddResource(const RR::ResourceReflection& resource)
     {
         std::cout << "resource: " << resource.name
-        << " binding location: " << resource.bindingLocation.registerIndex << " " << resource.bindingLocation.registerSpace
-       // << " dimension: " << enumToString(resource.dimension)
-        << " usage mask: " << getUsageMaskString(resource.usageMask)
-     //   << " type: " << enumToString(resource.type)
-         << std::endl;
+                  << " binding index:" << resource.bindingIndex
+                  // << " dimension: " << enumToString(resource.dimension)
+                  << " usage mask: " << getUsageMaskString(resource.usageMask)
+                  //   << " type: " << enumToString(resource.type)
+                  << std::endl;
 
         switch (resource.type)
         {
@@ -107,12 +119,14 @@ namespace RR
                     srvDesc.usageMask = resource.usageMask;
                     srvDesc.dimension = resource.dimension;
                     srvDesc.sampleType = resource.sampleType;
-                    srvDesc.binding = resource.bindingLocation.registerIndex;
-                    srvDesc.set = resource.bindingLocation.registerSpace;
+                    srvDesc.binding = resource.bindingIndex;
                     srvDesc.count = resource.count;
 
                     insertData(srvData, srvDesc);
-                    return srvCount++;
+
+                    auto index = srvCount++;
+                    //currentLayout.resources.push_back(index);
+                    return index;
                 }
                 else
                 {
@@ -121,12 +135,14 @@ namespace RR
                     uavDesc.usageMask = resource.usageMask;
                     uavDesc.dimension = resource.dimension;
                     uavDesc.format = resource.format;
-                    uavDesc.binding = resource.bindingLocation.registerIndex;
-                    uavDesc.set = resource.bindingLocation.registerSpace;
+                    uavDesc.binding = resource.bindingIndex;
                     uavDesc.count = resource.count;
 
                     insertData(uavData, uavDesc);
-                    return uavCount++;
+
+                    auto index = uavCount++;
+                    //currentLayout.resources.push_back(index);
+                    return index;
                 }
             }
             case RR::ResourceReflection::Type::ConstantBuffer:
@@ -134,15 +150,18 @@ namespace RR
                 Asset::CbvReflection cbvDesc;
                 cbvDesc.nameIndex = AddString(resource.name);
                 cbvDesc.usageMask = resource.usageMask;
-                cbvDesc.binding = resource.bindingLocation.registerIndex;
-                cbvDesc.set = resource.bindingLocation.registerSpace;
+                cbvDesc.binding = resource.bindingIndex;
                 cbvDesc.count = resource.count;
+                cbvDesc.layoutIndex = resource.layoutIndex;
 
                 insertData(cbvData, cbvDesc);
-                return cbvCount++;
+
+                auto index = cbvCount++;
+                return index;
             }
+
             default:
-            THROW("Invalid type");
+                THROW("Invalid type");
         }
         /*
                 switch (resource.type)
@@ -170,13 +189,15 @@ namespace RR
         return 0;
     }
 
-    uint32_t EffectSerializer::AddField(const RR::EffectLibrary::FieldReflection& field)
+    uint32_t EffectSerializer::AddUniform(const UniformDesc& uniform)
     {
-        UNUSED(field);
-        return 0;
+        UNUSED(uniform);
+
+        std::cout << "add uniform: " << uniform.name << std::endl;
+        return uniformsCount++;
     }
 
-    uint32_t EffectSerializer::AddEffect(const EffectDesc& effect)
+    uint32_t EffectSerializer::AddEffect(const RR::EffectDesc& effect)
     {
         Asset::EffectDesc effectDesc;
         effectDesc.nameIndex = AddString(effect.name);
@@ -204,29 +225,31 @@ namespace RR
 
             insertData(effectsData, passDesc);
             insertData(effectsData, shaderIndexes.data(), shaderIndexes.size() * sizeof(uint32_t));
-            /*
-                        Asset::ReflectionDesc::Header reflectionHeader;
-                        reflectionHeader.resourcesCount = static_cast<uint32_t>(pass.reflection.resources.size());
-                        reflectionHeader.variablesCount = static_cast<uint32_t>(pass.reflection.fields.size());
-                        reflectionHeader.textureMetasCount = static_cast<uint32_t>(pass.reflection.textureMetas.size());
-                        reflectionHeader.rootResourceIndex = Asset::INVALID_INDEX;
-                        insertData(effectsData, reflectionHeader);
-
-                        for (auto& textureMeta : pass.reflection.textureMetas)
-                            insertData(effectsData, textureMeta);
-
-                        for (auto& field : pass.reflection.fields)
-                            insertData(effectsData, field);
-
-                        for (auto& resource : pass.reflection.resources)
-                            insertData(effectsData, resource);*/
         }
 
         return effectsCount++;
     }
 
+    uint32_t EffectSerializer::AddBindGroup(const BindGroupDesc& bindGroup)
+    {
+        Asset::BindGroup bindGroupAsset;
+        bindGroupAsset.nameIndex = AddString(bindGroup.name);
+        bindGroupAsset.bindingSpace = bindGroup.bindingSpace;
+        bindGroupAsset.uniformCBV = bindGroup.uniformCBV;
+        bindGroupAsset.resourcesLayoutIndex = bindGroup.resourcesLayoutIndex;
+
+        insertData(bindGroupsData, bindGroup);
+        return bindGroupsCount++;
+    }
+
     Common::RResult EffectSerializer::Serialize(const std::string& path)
     {
+      //  if (!stack.empty())
+     //  // {
+      //      std::cerr << "Bind group is not closed, failed to serialize" << std::endl;
+      //      return Common::RResult::Fail;
+      //  }
+
         std::cout << "Save shader library: " << path << std::endl;
 
         std::ofstream file(path, std::ios::binary);
@@ -236,16 +259,16 @@ namespace RR
             return Common::RResult::Fail;
         }
 
-        uint32_t stringSectionSize = 0;
+        uint32_t stringsSectionSize = 0;
         for (auto& chunk : stringAllocator)
-            stringSectionSize += static_cast<uint32_t>(chunk.allocated);
+            stringsSectionSize += static_cast<uint32_t>(chunk.allocated);
 
         Asset::Header header;
         header.magic = Asset::Header::MAGIC;
         header.version = Asset::Header::VERSION;
-        header.stringSectionSize = stringSectionSize;
+        header.stringsSectionSize = stringsSectionSize;
         header.stringsCount = stringsCount;
-        header.shadersSectionSize = shaderData.size();
+        header.shadersSectionSize = shadersData.size();
         header.shadersCount = shadersCount;
         header.srvSectionSize = srvData.size();
         header.srvCount = srvCount;
@@ -255,6 +278,12 @@ namespace RR
         header.cbvCount = cbvCount;
         header.effectsSectionSize = effectsData.size();
         header.effectsCount = effectsCount;
+        header.uniformsSectionSize = uniformsData.size();
+        header.uniformsCount = uniformsCount;
+        header.layoutsSectionSize = layoutsData.size();
+        header.layoutsCount = layoutsCount;
+        header.bindGroupsSectionSize = bindGroupsData.size();
+        header.bindGroupsCount = bindGroupsCount;
 
         // Header
         file.write(reinterpret_cast<const char*>(&header), sizeof(header));
@@ -264,7 +293,7 @@ namespace RR
             file.write(reinterpret_cast<const char*>(chunk.buffer.get()), chunk.allocated);
 
         // Shaders
-        file.write(reinterpret_cast<const char*>(shaderData.data()), shaderData.size());
+        file.write(reinterpret_cast<const char*>(shadersData.data()), shadersData.size());
 
         // SRV UAV CBV
         file.write(reinterpret_cast<const char*>(srvData.data()), srvData.size());

@@ -13,8 +13,15 @@ namespace Falcor
 
 namespace RR
 {
+    namespace Common
+    {
+        enum class RResult : int32_t;
+    }
+
     struct ReflectionCtx;
     class EffectSerializer;
+    struct ResourceReflection;
+    struct UniformDesc;
 
     class ReflectionBuilder
     {
@@ -22,9 +29,9 @@ namespace RR
         ReflectionBuilder();
         ~ReflectionBuilder();
 
-        void Build(EffectSerializer* serializer, slang::IComponentType* program, slang::ShaderReflection* reflection);
+        Common::RResult Build(EffectSerializer& serializer, slang::IComponentType* program, slang::ShaderReflection* reflection, uint32_t& globalBindingGroupIndex);
 
     private:
-        void reflect(ReflectionCtx* ctx, const std::shared_ptr<const Falcor::ReflectionVar>& var);
+        eastl::unique_ptr<ReflectionCtx> ctx;
     };
 }

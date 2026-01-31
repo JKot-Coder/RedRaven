@@ -20,54 +20,6 @@ namespace RR::Render
 
 namespace RR::EffectLibrary
 {
-
-    enum class FieldKind : uint8_t
-    {
-        Array,
-        Struct,
-        Basic,
-    };
-
-    struct FieldReflection
-    {
-        const char* name;
-        Asset::FieldType type;
-        FieldKind kind;
-
-        uint32_t structIndex;
-        uint32_t arraySize;
-
-        uint32_t offset;
-        uint32_t size;
-    };
-
-    struct ResourceReflection
-    {
-        const char* name;
-
-        GAPI::BindingType type;
-        GAPI::ShaderStageMask stageMask;
-
-        uint32_t binding;
-        uint32_t set;
-        uint32_t count;
-
-        uint32_t textureMetaIndex;
-
-        eastl::span<FieldReflection> variables;
-
-        ResourceReflection* child;
-        ResourceReflection* next;
-    };
-
-    struct ReflectionData
-    {
-        std::vector<GAPI::BindingLayoutTextureMeta> textureMetas;
-        std::vector<ResourceReflection> resources;
-        std::vector<FieldReflection> fields;
-        ResourceReflection* rootBlock;
-    };
-
     struct PassDesc
     {
         const char* name;
@@ -75,7 +27,7 @@ namespace RR::EffectLibrary
         GAPI::DepthStencilDesc depthStencilDesc;
         GAPI::BlendDesc blendDesc;
         eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
-        ReflectionData reflection;
+        uint32_t rootBindingGroupIndex;
     };
 
     struct EffectDesc
@@ -88,7 +40,7 @@ namespace RR::EffectLibrary
     {
         const char* name;
         GAPI::ShaderStage stage;
-        std::byte* data;
+        const std::byte* data;
         size_t size;
     };
 
