@@ -118,34 +118,28 @@ namespace RR::GAPI::WebGPU
                 const auto& vertexBinding = command.geometryLayout->vertexBindings[i];
                 if (vertexBinding.vertexBuffer)
                 {
-                    const auto* bufferImpl = vertexBinding.vertexBuffer->template GetPrivateImpl<BufferImpl>();
+                    const auto* bufferImpl = static_cast<const BufferImpl*>(vertexBinding.vertexBuffer);
                     ctx.renderPassEncoder.setVertexBuffer(
                         static_cast<uint32_t>(i),
                         bufferImpl->GetBuffer(),
                         vertexBinding.vertexBufferOffset,
-                        vertexBinding.vertexBuffer->GetDesc().buffer.size - vertexBinding.vertexBufferOffset);
+                        bufferImpl->GetSize() - vertexBinding.vertexBufferOffset);
                 }
             }
 
             if (indexed)
             {
-                const auto* indexBuffer = command.geometryLayout->indexBuffer;
+                const auto* indexBuffer = static_cast<const BufferImpl*>(command.geometryLayout->indexBuffer);
                 ASSERT(indexBuffer);
-                ASSERT(indexBuffer->GetDesc().GetBufferMode() == GAPI::BufferMode::Formatted);
 
-                auto getIndexBufferFormat = [](GAPI::GpuResourceFormat format) -> wgpu::IndexFormat
+                const wgpu::IndexFormat indexFormat = indexBuffer->GetIndexFormat();
+                if (indexFormat != wgpu::IndexFormat::Uint16 && indexFormat != wgpu::IndexFormat::Uint32)
                 {
-                    switch (format)
-                    {
-                        case GAPI::GpuResourceFormat::R16Uint: return wgpu::IndexFormat::Uint16;
-                        case GAPI::GpuResourceFormat::R32Uint: return wgpu::IndexFormat::Uint32;
-                        default: ASSERT_MSG(false, "Unknown index buffer format"); return wgpu::IndexFormat::Undefined;
-                    }
-                };
+                    ASSERT_MSG(false, "Unknown index buffer format");
+                    return;
+                }
 
-                const wgpu::IndexFormat indexFormat = getIndexBufferFormat(indexBuffer->GetDesc().GetBufferFormat());
-                const auto* bufferImpl = indexBuffer->template GetPrivateImpl<BufferImpl>();
-                ctx.renderPassEncoder.setIndexBuffer(bufferImpl->GetBuffer(), indexFormat, 0, indexBuffer->GetDesc().buffer.size - 0);
+                ctx.renderPassEncoder.setIndexBuffer(indexBuffer->GetBuffer(), indexFormat, 0, indexBuffer->GetSize() - 0);
 
                 const uint32_t instanceCount = Max(command.attribs.instanceCount, 1u);
                 ctx.renderPassEncoder.drawIndexed(

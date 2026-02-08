@@ -100,7 +100,7 @@ namespace RR::Render
             GAPI::Commands::GeometryLayout& flush(GAPI::CommandList& commandList);
 
             void SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset);
-            void SetIndexBuffer(const GAPI::Buffer* buffer);
+            void SetIndexBuffer(const GAPI::Buffer& buffer);
             void Reset()
             {
                 indexBuffer = nullptr;
@@ -118,7 +118,7 @@ namespace RR::Render
     public:
         void SetVertexLayout(const GAPI::VertexLayout* layout) { graphicsParams.SetVertexLayout(layout); }
         void SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0) { geometryManager.SetVertexBuffer(slot, buffer, offset); }
-        void SetIndexBuffer(const GAPI::Buffer* buffer) { geometryManager.SetIndexBuffer(buffer); }
+        void SetIndexBuffer(const GAPI::Buffer& buffer) { geometryManager.SetIndexBuffer(buffer); }
         void Draw(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startVertex, uint32_t vertexCount, uint32_t instanceCount = 0);
         void DrawIndexed(Effect* effect, GAPI::PrimitiveTopology topology, uint32_t startIndex, uint32_t indexCount, uint32_t instanceCount = 0);
         void End();

@@ -22,9 +22,13 @@ namespace RR::GAPI::WebGPU
         void Unmap() override;
 
         wgpu::Buffer GetBuffer() const { return buffer; }
+        wgpu::IndexFormat GetIndexFormat() const { return indexFormat; }
+        size_t GetSize() const { return size; }
 
     private:
         wgpu::Buffer buffer;
+        wgpu::IndexFormat indexFormat;
+        size_t size;
     };
 }
 

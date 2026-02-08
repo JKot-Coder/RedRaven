@@ -29,7 +29,7 @@ namespace RR::Render
 
         currentLayout = commandList.allocate<GAPI::Commands::GeometryLayout>();
         currentLayout->vertexBindings = eastl::span(vbArray, vertexBindings.size());
-        currentLayout->indexBuffer = indexBuffer;
+        currentLayout->indexBuffer = indexBuffer->GetPrivateImpl<GAPI::IGpuResource>();
 
         dirty = false;
 
@@ -38,22 +38,22 @@ namespace RR::Render
 
     void RenderPassEncoder::GeometryManager::SetVertexBuffer(uint32_t slot, const GAPI::Buffer& buffer, uint32_t offset = 0)
     {
-        if (vertexBindings.size() > slot && vertexBindings[slot].vertexBuffer == &buffer && vertexBindings[slot].vertexBufferOffset == offset)
+        if (vertexBindings.size() > slot && vertexBindings[slot].vertexBuffer == buffer.GetPrivateImpl<GAPI::IGpuResource>() && vertexBindings[slot].vertexBufferOffset == offset)
             return;
 
         if (vertexBindings.size() <= slot)
             vertexBindings.resize(slot + 1, {nullptr, 0});
 
-        vertexBindings[slot] = {&buffer, offset};
+        vertexBindings[slot] = {buffer.GetPrivateImpl<GAPI::IGpuResource>(), offset};
         dirty = true;
     }
 
-    void RenderPassEncoder::GeometryManager::SetIndexBuffer(const GAPI::Buffer* buffer)
+    void RenderPassEncoder::GeometryManager::SetIndexBuffer(const GAPI::Buffer& buffer)
     {
-        if (currentLayout && currentLayout->indexBuffer == buffer)
+        if (currentLayout && currentLayout->indexBuffer == buffer.GetPrivateImpl<GAPI::IGpuResource>())
             return;
 
-        indexBuffer = buffer;
+        indexBuffer = &buffer;
         dirty = true;
     }
 

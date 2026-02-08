@@ -2,7 +2,7 @@
 
 #include "gapi/commands/Command.hpp"
 
-#include "gapi/Resource.hpp"
+#include "gapi/ForwardDeclarations.hpp"
 #include "gapi/PipelineState.hpp"
 
 namespace RR::GAPI::Commands
@@ -16,13 +16,13 @@ namespace RR::GAPI::Commands
 
     struct VertexBinding
     {
-        const Buffer* vertexBuffer = nullptr;
+        const IGpuResource* vertexBuffer = nullptr;
         uint32_t vertexBufferOffset = 0;
     };
 
     struct GeometryLayout
     {
-        const Buffer* indexBuffer = nullptr;
+        const IGpuResource* indexBuffer = nullptr;
         eastl::span<VertexBinding> vertexBindings;
     };
 

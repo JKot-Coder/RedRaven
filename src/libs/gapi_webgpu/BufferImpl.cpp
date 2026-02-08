@@ -2,8 +2,6 @@
 
 #define NOT_IMPLEMENTED() ASSERT_MSG(false, "Not implemented")
 
-#include "Utils.hpp"
-
 namespace RR::GAPI::WebGPU
 {
     BufferImpl::~BufferImpl() { }
@@ -43,10 +41,28 @@ namespace RR::GAPI::WebGPU
 
     void BufferImpl::Init(const wgpu::Device& device, const GpuResource& resource, const BufferData* initialData)
     {
-        ASSERT_MSG(resource.GetDesc().IsBuffer(), "Resource is not a buffer");
+        const auto& desc = resource.GetDesc();
 
-        const auto desc = getBufferDesc(resource.GetDesc(), resource.GetName());
-        buffer = device.createBuffer(desc);
+        ASSERT_MSG(desc.IsBuffer(), "Resource is not a buffer");
+        const auto wgpuDesc = getBufferDesc(desc, resource.GetName());
+
+        auto getIndexBufferFormat = [](GAPI::GpuResourceFormat format) -> wgpu::IndexFormat
+        {
+            switch (format)
+            {
+                case GAPI::GpuResourceFormat::R16Uint: return wgpu::IndexFormat::Uint16;
+                case GAPI::GpuResourceFormat::R32Uint: return wgpu::IndexFormat::Uint32;
+                default: ASSERT_MSG(false, "Unknown index buffer format"); return wgpu::IndexFormat::Undefined;
+            }
+        };
+
+        if (desc.GetBufferMode() == GAPI::BufferMode::Formatted)
+            indexFormat = getIndexBufferFormat(desc.GetBufferFormat());
+        else
+            indexFormat = wgpu::IndexFormat::Undefined;
+
+        buffer = device.createBuffer(wgpuDesc);
+        size = wgpuDesc.size;
 
         UNUSED(initialData);
         // TODO: Implement initial data
