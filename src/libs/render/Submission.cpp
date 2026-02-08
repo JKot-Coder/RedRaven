@@ -11,7 +11,7 @@ namespace RR::Render
 {
     Submission::Submission() : submissionEvent(false, false) { }
 
-    void Submission::Start(GAPI::Device::UniquePtr devicePtr, SubmissionThreadMode mode)
+    void Submission::Start(eastl::unique_ptr<GAPI::Device>&& devicePtr, SubmissionThreadMode mode)
     {
         ASSERT(devicePtr);
         device = eastl::move(devicePtr);

@@ -27,8 +27,6 @@ namespace RR
         class Buffer final : public GpuResource
         {
         public:
-            using UniquePtr = eastl::unique_ptr<Buffer>;
-
             static constexpr size_t MaxPossible = std::numeric_limits<size_t>::max();
 
         public:
@@ -36,12 +34,6 @@ namespace RR
             const UnorderedAccessView* GetUAV(GpuResourceFormat format, size_t firstElement = 0, size_t numElements = MaxPossible);
 
         private:
-
-            static UniquePtr Create(const GpuResourceDesc& desc, const std::string& name)
-            {
-                return eastl::unique_ptr<Buffer>(new Buffer(desc, name));
-            }
-
             Buffer(const GpuResourceDesc& desc, const std::string& name) : GpuResource(desc, name)
             {
                 if (!desc.IsBuffer())

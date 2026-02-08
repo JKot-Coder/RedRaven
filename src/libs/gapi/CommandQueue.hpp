@@ -15,7 +15,6 @@ namespace RR
     namespace GAPI
     {
         class CommandList;
-        class CommandEncoder;
 
         enum class CommandQueueType : uint32_t
         {
@@ -42,8 +41,6 @@ namespace RR
         class CommandQueue final : public Resource<ICommandQueue>
         {
         public:
-            using UniquePtr = eastl::unique_ptr<CommandQueue>;
-
             CommandQueue() = delete;
 
             inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }
@@ -55,11 +52,6 @@ namespace RR
             inline CommandQueueType GetCommandQueueType() const { return type_; }
 
         private:
-            static UniquePtr Create(CommandQueueType type, const std::string& name)
-            {
-                return UniquePtr(new CommandQueue(type, name));
-            }
-
             CommandQueue(CommandQueueType type, const std::string& name)
                 : Resource(Type::CommandQueue, name),
                   type_(type)

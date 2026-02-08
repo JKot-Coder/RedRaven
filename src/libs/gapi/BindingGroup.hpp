@@ -25,7 +25,6 @@ namespace RR::GAPI
     class BindingGroup final : public Resource<IBindingGroup, false>
     {
     public:
-        using UniquePtr = eastl::unique_ptr<BindingGroup>;
         BindingGroup() : Resource(Type::BindingSet) { }
     };
 }

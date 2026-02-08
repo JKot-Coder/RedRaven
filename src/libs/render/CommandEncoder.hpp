@@ -16,9 +16,6 @@ namespace RR::Render
     class CommandEncoder
     {
     public:
-        using UniquePtr = eastl::unique_ptr<CommandEncoder>;
-
-    public:
         RenderPassEncoder BeginRenderPass(const GAPI::RenderPassDesc& renderPass);
 
         void Finish()
@@ -42,11 +39,6 @@ namespace RR::Render
 
         explicit CommandEncoder(GAPI::CommandList&& commandlist) : commandList(eastl::move(commandlist)) { }
         GAPI::CommandList& GetCommandList() { return commandList; }
-
-        static UniquePtr Create(GAPI::CommandList&& commandlist)
-        {
-            return UniquePtr(new CommandEncoder(eastl::move(commandlist)));
-        }
 
         void EndRenderPass()
         {

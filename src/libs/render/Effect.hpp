@@ -6,6 +6,7 @@
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
 #include "gapi/RenderPassDesc.hpp"
+#include "render/ResourcePointers.hpp"
 
 #include "absl/container/flat_hash_map.h"
 
@@ -110,8 +111,6 @@ namespace RR::Render
     class Effect
     {
     public:
-        using UniquePtr = eastl::unique_ptr<Effect>;
-
         ~Effect();
 
         GAPI::GraphicPipelineState* EvaluateGraphicsPipelineState(const GraphicsParams& params);
@@ -121,14 +120,9 @@ namespace RR::Render
 
         Effect(const std::string& name, EffectDesc&& effectDesc);
 
-        static UniquePtr Create(const std::string& name, EffectDesc&& effectDesc)
-        {
-            return eastl::unique_ptr<Effect>(new Effect(name, std::move(effectDesc)));
-        }
-
     private:
         EffectDesc effectDesc;
         // todo trivial hash
-        absl::flat_hash_map<PsoHashType, eastl::unique_ptr<GAPI::PipelineState>> pipelineStates;
+        absl::flat_hash_map<PsoHashType, GraphicPipelineStateUniquePtr> pipelineStates;
     };
 }

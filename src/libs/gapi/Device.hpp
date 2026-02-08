@@ -75,9 +75,6 @@ namespace RR
         class Device final : public Resource<IDevice>, public IDevice
         {
         public:
-            using UniquePtr = eastl::unique_ptr<Device>;
-
-        public:
             virtual ~Device() = default;
 
             const DeviceDesc& GetDesc() const { return desc_; }
@@ -106,11 +103,6 @@ namespace RR
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 
         private:
-            static Device::UniquePtr Create(const DeviceDesc& desc, const std::string& name)
-            {
-                return eastl::unique_ptr<Device>(new Device(desc, name));
-            }
-
             Device(const DeviceDesc& desc, const std::string& name)
                 : Resource(Type::Device, name),
                   desc_(desc)

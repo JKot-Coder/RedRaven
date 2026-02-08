@@ -3,6 +3,7 @@
 #include "common/Singleton.hpp"
 
 #include "gapi/ForwardDeclarations.hpp"
+#include "render/ResourcePointers.hpp"
 
 namespace RR::EffectLibrary
 {
@@ -31,6 +32,6 @@ namespace RR::Render
 
     private:
         eastl::unique_ptr<EffectLibrary::EffectLibrary> effectLibrary;
-        eastl::vector<eastl::unique_ptr<GAPI::Shader>> shaders;
+        eastl::vector<ShaderUniquePtr> shaders;
     };
 }

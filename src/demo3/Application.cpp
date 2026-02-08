@@ -17,6 +17,7 @@
 
 #include "math/VectorMath.hpp"
 
+#include "render/ResourcePointers.hpp"
 #include "render/VertexFormats/Vertex.hpp"
 #include "render/DeviceContext.hpp"
 #include "render/CommandEncoder.hpp"
@@ -35,7 +36,7 @@ namespace RR::App
         struct Instance
         {
             bool quit = false;
-            GAPI::SwapChain::UniquePtr swapChain;
+            Render::SwapChainUniquePtr swapChain;
         };
 
         ECS_SINGLETON;
@@ -75,7 +76,7 @@ namespace RR::App
         });
     }
 
-    GAPI::SwapChain::UniquePtr CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDesc& description)
+    Render::SwapChainUniquePtr CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDesc& description)
     {
         GAPI::SwapChainDesc swapChainDesc;
         swapChainDesc.windowNativeHandle = window.nativeHandle;
@@ -84,7 +85,7 @@ namespace RR::App
         swapChainDesc.height = description.height;
         swapChainDesc.backBuffersCount = BACK_BUFFERS_COUNT;
         swapChainDesc.presentMode = GAPI::SwapChainDesc::PresentMode::Fifo;
-        swapChainDesc.backBufferFormat = GAPI::GpuResourceFormat::RGBA8Unorm;
+        swapChainDesc.backBufferFormat = GAPI::GpuResourceFormat::BGRA8Unorm;
 
         return Render::DeviceContext::Instance().CreateSwapchain(swapChainDesc);
     }
@@ -151,7 +152,7 @@ namespace RR::App
         return deviceContext.CreateBuffer(GAPI::GpuResourceDesc::IndexBuffer(sizeof(Indices) / sizeof(Indices[0]), GAPI::GpuResourceFormat::R32Uint), &bufferData, "Cube index buffer");
     }
 
-    GAPI::GraphicPipelineState::UniquePtr CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
+    Render::GraphicPipelineStateUniquePtr CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
     {
         auto& deviceContext = Render::DeviceContext::Instance();
 
@@ -264,8 +265,17 @@ namespace RR::App
             world.Tick();
 
 
+/*
+            auto bindingContext = ctx->GetBindingContext();
 
-            const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
+            bindGroup = bindingContext->GetBindGroup(effect, "uniforms");
+            bindGrour["someShit"] = 123;
+
+
+            bindingContext->SetBindGroup("qwe", globalUniforms);*/
+
+
+           /* const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
                                             .ColorAttachment(0, swapChain->GetCurrentBackBufferTexture()->GetRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
                                             .Build();
                                             UNUSED(renderPassDesc);
@@ -276,7 +286,7 @@ namespace RR::App
 
             renderPassEncoder.Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 
-            renderPassEncoder.End();
+            renderPassEncoder.End();*/
 
             ctx->Finish();
 

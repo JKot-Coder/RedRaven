@@ -254,8 +254,6 @@ namespace RR::GAPI
     class PipelineState : public Resource<IPipelineState, true>
     {
     public:
-        using UniquePtr = eastl::unique_ptr<PipelineState>;
-
         enum class PsoType : uint8_t
         {
             Graphic,
@@ -276,8 +274,6 @@ namespace RR::GAPI
     class GraphicPipelineState final : public PipelineState
     {
     public:
-        using UniquePtr = eastl::unique_ptr<GraphicPipelineState>;
-
         GraphicPipelineState(const GraphicPipelineStateDesc& description, const std::string& name)
             : PipelineState(PsoType::Graphic, name), description_(description)
         {
@@ -287,11 +283,6 @@ namespace RR::GAPI
 
     private:
         friend class Render::DeviceContext;
-
-        static UniquePtr Create(const GraphicPipelineStateDesc& description, const std::string& name)
-        {
-            return UniquePtr(new GraphicPipelineState(description, name));
-        }
 
         GraphicPipelineStateDesc description_;
     };

@@ -55,8 +55,6 @@ namespace RR::GAPI
     class BindingLayout final : public Resource<IBindingLayout, true>
     {
     public:
-        using UniquePtr = eastl::unique_ptr<BindingLayout>;
-
         BindingLayout(const BindingLayoutDesc& desc, const std::string& name)
             : Resource(Type::BindingLayout, name), desc_(desc)
         {

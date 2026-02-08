@@ -43,6 +43,7 @@ namespace RR::GAPI
             return GpuResourceViewDesc::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
         }
     }
+    /*
 
     const ShaderResourceView* Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
     {
@@ -95,5 +96,5 @@ namespace RR::GAPI
         }
 
         return uavs_[viewDesc].get();
-    }
+    }*/
 }

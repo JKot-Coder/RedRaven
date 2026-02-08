@@ -117,8 +117,8 @@ namespace RR::GAPI::WebGPU
         textureImpl->UpdateTextureResource(surfaceTexture);
 
         // TODO update other views
-        for(const auto& rtv : texture.GetRTVs())
-            rtv.second->GetPrivateImpl<TextureViewImpl>()->RecreateView(*rtv.second.get());
+       // for(const auto& rtv : texture.GetRTVs())
+       //    rtv.second->GetPrivateImpl<TextureViewImpl>()->RecreateView(*rtv.second.get());
     }
 
     void SwapChainImpl::Present()

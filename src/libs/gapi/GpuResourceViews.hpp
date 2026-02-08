@@ -78,8 +78,6 @@ namespace RR
         class GpuResourceView : public Resource<IGpuResourceView, false>
         {
         public:
-            using UniquePtr = eastl::unique_ptr<GpuResourceView>;
-
             enum class ViewType
             {
                 ShaderResourceView,
@@ -109,17 +107,7 @@ namespace RR
 
         class ShaderResourceView final : public GpuResourceView
         {
-        public:
-            using UniquePtr = eastl::unique_ptr<ShaderResourceView>;
-
         private:
-            static UniquePtr Create(
-                GAPI::GpuResource& gpuResource,
-                const GpuResourceViewDesc& desc)
-            {
-                return UniquePtr(new ShaderResourceView(gpuResource, desc));
-            };
-
             ShaderResourceView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
@@ -128,17 +116,7 @@ namespace RR
 
         class DepthStencilView final : public GpuResourceView
         {
-        public:
-            using UniquePtr = eastl::unique_ptr<DepthStencilView>;
-
         private:
-            static UniquePtr Create(
-                GAPI::Texture& texture,
-                const GpuResourceViewDesc& desc)
-            {
-                return UniquePtr(new DepthStencilView(texture, desc));
-            };
-
             DepthStencilView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
@@ -147,17 +125,7 @@ namespace RR
 
         class RenderTargetView final : public GpuResourceView
         {
-        public:
-            using UniquePtr = eastl::unique_ptr<RenderTargetView>;
-
         private:
-            static UniquePtr Create(
-                GAPI::Texture& texture,
-                const GpuResourceViewDesc& desc)
-            {
-                return UniquePtr(new RenderTargetView(texture, desc));
-            };
-
             RenderTargetView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
@@ -166,17 +134,7 @@ namespace RR
 
         class UnorderedAccessView final : public GpuResourceView
         {
-        public:
-            using UniquePtr = eastl::unique_ptr<UnorderedAccessView>;
-
         private:
-            static UniquePtr Create(
-                GAPI::GpuResource& gpuResource,
-                const GpuResourceViewDesc& desc)
-            {
-                return UniquePtr(new UnorderedAccessView(gpuResource, desc));
-            };
-
             UnorderedAccessView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;

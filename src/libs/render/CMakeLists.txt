@@ -5,6 +5,7 @@ set(SRC
     DeviceContext.hpp
     CommandEncoder.cpp
     CommandEncoder.hpp
+    ResourcePointers.hpp
     Effect.hpp
     Effect.cpp
     EffectManager.cpp

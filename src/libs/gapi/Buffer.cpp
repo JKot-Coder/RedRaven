@@ -34,7 +34,7 @@ namespace RR
                 return GpuResourceViewDesc::Buffer(format, firstElement, numElements);
             }
         }
-
+/*
         const ShaderResourceView* Buffer::GetSRV(GpuResourceFormat format, size_t firstElement, size_t numElements)
         {
             const auto viewDesc = createViewDescription(desc_, format, firstElement, numElements);
@@ -61,6 +61,6 @@ namespace RR
             }
 
             return uavs_[viewDesc].get();
-        }
+        }*/
     }
 }

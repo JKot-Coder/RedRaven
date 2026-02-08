@@ -495,13 +495,13 @@ namespace RR
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
-            inline auto GetRTVs() const { return makeViewsRange(rtvs_.begin(), rtvs_.end()); }
+            //inline auto GetRTVs() const { return makeViewsRange(rtvs_.begin(), rtvs_.end()); }
 
         protected:
             GpuResource(GpuResourceDesc desc, const std::string& name)
                 : Resource(Type::GpuResource, name), desc_(desc) { };
 
-        private:
+       /* private:
             template <class It>
             struct ViewsRange
             {
@@ -514,16 +514,16 @@ namespace RR
             static ViewsRange<It> makeViewsRange(It b, It e)
             {
                 return {b, e};
-            }
+            }*/
 
         protected:
             GpuResourceDesc desc_;
 
             // TODO Use one map for all views
-            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;
-            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDesc::HashFunc> rtvs_;
-            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDesc::HashFunc> dsvs_;
-            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDesc::HashFunc> uavs_;
+            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;
+            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDesc::HashFunc> rtvs_;
+            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDesc::HashFunc> dsvs_;
+            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDesc::HashFunc> uavs_;
         };
 
         template <>

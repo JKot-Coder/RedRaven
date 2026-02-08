@@ -25,7 +25,7 @@ namespace RR::Render
     {
         ASSERT(!inited);
 
-        auto device = GAPI::Device::Create(desc, "Primary");
+        auto device = eastl::unique_ptr<GAPI::Device>(new GAPI::Device(desc, "Primary"));
         submission.Start(eastl::move(device), SubmissionThreadMode::Enabled);
 
         inited = false;
@@ -71,11 +71,11 @@ namespace RR::Render
         swapchain->Resize(width, height);
     }
 
-    GAPI::CommandQueue::UniquePtr DeviceContext::CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const
+    CommandQueueUniquePtr DeviceContext::CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::CommandQueue::Create(type, name);
+        auto resource = CommandQueueUniquePtr(new GAPI::CommandQueue(type, name));
         multiThreadDevice->InitCommandQueue(*resource.get());
 
         return resource;
@@ -89,116 +89,116 @@ namespace RR::Render
         commandContext.Reset();
     }
 
-    Render::CommandEncoder::UniquePtr DeviceContext::CreateCommandEncoder(const std::string& name) const
+    eastl::unique_ptr<Render::CommandEncoder> DeviceContext::CreateCommandEncoder(const std::string& name) const
     {
         ASSERT(inited);
 
         GAPI::CommandList commandList(name);
         multiThreadDevice->InitCommandList(commandList);
-        auto resource = Render::CommandEncoder::Create(eastl::move(commandList));
+        auto resource = eastl::unique_ptr<Render::CommandEncoder>(new Render::CommandEncoder(eastl::move(commandList)));
 
         return resource;
     }
 
-    Render::Effect::UniquePtr DeviceContext::CreateEffect(const std::string& name, EffectDesc&& effectDesc) const
+    eastl::unique_ptr<Render::Effect> DeviceContext::CreateEffect(const std::string& name, EffectDesc&& effectDesc) const
     {
         ASSERT(inited);
         // Why it's here?
-        return Render::Effect::Create(name, eastl::move(effectDesc));
+        return eastl::unique_ptr<Render::Effect>(new Render::Effect(name, eastl::move(effectDesc)));
     }
 
-    GAPI::Shader::UniquePtr DeviceContext::CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const
+    ShaderUniquePtr DeviceContext::CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Shader::Create(desc, name);
+        auto resource = ShaderUniquePtr(new GAPI::Shader(desc, name));
         multiThreadDevice->InitShader(*resource.get());
 
         return resource;
     }
 
-    GAPI::Buffer::UniquePtr DeviceContext::CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name) const
+    BufferUniquePtr DeviceContext::CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Buffer::Create(desc, name);
+        auto resource = BufferUniquePtr(new GAPI::Buffer(desc, name));
         multiThreadDevice->InitBuffer(*resource.get(), initialData);
 
         return resource;
     }
 
-    GAPI::Texture::UniquePtr DeviceContext::CreateTexture(
+    TextureUniquePtr DeviceContext::CreateTexture(
         const GAPI::GpuResourceDesc& desc,
         const Common::IDataBuffer::SharedPtr& initialData,
         const std::string& name)
     {
         ASSERT(inited);
 
-        auto resource = GAPI::Texture::Create(desc, initialData, name);
+        auto resource = TextureUniquePtr(new GAPI::Texture(desc, initialData, name));
         multiThreadDevice->InitTexture(*static_cast<GAPI::Texture*>(resource.get()));
 
         return resource;
     }
 
-    GAPI::RenderTargetView::UniquePtr DeviceContext::CreateRenderTargetView(
+    RenderTargetViewUniquePtr DeviceContext::CreateRenderTargetView(
         GAPI::Texture& texture,
         const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::RenderTargetView::Create(texture, desc);
+        auto resource = RenderTargetViewUniquePtr(new GAPI::RenderTargetView(texture, desc));
         multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::DepthStencilView::UniquePtr DeviceContext::CreateDepthStencilView(
+    DepthStencilViewUniquePtr DeviceContext::CreateDepthStencilView(
         GAPI::Texture& texture,
         const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::DepthStencilView::Create(texture, desc);
+        auto resource = DepthStencilViewUniquePtr(new GAPI::DepthStencilView(texture, desc));
         multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::ShaderResourceView::UniquePtr DeviceContext::CreateShaderResourceView(
+    ShaderResourceViewUniquePtr DeviceContext::CreateShaderResourceView(
         GAPI::GpuResource& gpuResource,
         const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::ShaderResourceView::Create(gpuResource, desc);
+        auto resource = ShaderResourceViewUniquePtr(new GAPI::ShaderResourceView(gpuResource, desc));
         multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::UnorderedAccessView::UniquePtr DeviceContext::CreateUnorderedAccessView(
+    UnorderedAccessViewUniquePtr DeviceContext::CreateUnorderedAccessView(
         GAPI::GpuResource& gpuResource,
         const GAPI::GpuResourceViewDesc& desc) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::UnorderedAccessView::Create(gpuResource, desc);
+        auto resource = UnorderedAccessViewUniquePtr(new GAPI::UnorderedAccessView(gpuResource, desc));
         multiThreadDevice->InitGpuResourceView(*resource.get());
 
         return resource;
     }
 
-    GAPI::SwapChain::UniquePtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDesc& desc) const
+    SwapChainUniquePtr DeviceContext::CreateSwapchain(const GAPI::SwapChainDesc& desc) const
     {
         ASSERT(inited);
 
-        auto resource = GAPI::SwapChain::Create(desc);
+        auto resource = SwapChainUniquePtr(new GAPI::SwapChain(desc));
         multiThreadDevice->InitSwapChain(*resource.get());
 
         return resource;
     }
 
-    GAPI::Texture::UniquePtr DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const
+    eastl::unique_ptr<GAPI::Texture> DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
@@ -208,17 +208,17 @@ namespace RR::Render
         ASSERT(desc.GetNumSubresources() == 1);
         ASSERT(desc.bindFlags == GAPI::GpuResourceBindFlags::RenderTarget);
 
-        return GAPI::Texture::Create(desc, nullptr, name);
+        return eastl::unique_ptr<GAPI::Texture>(new GAPI::Texture(desc, nullptr, name));
     }
 
-    GAPI::GraphicPipelineState::UniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const
+    GraphicPipelineStateUniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
         ASSERT_MSG(desc.vs, "VS is not set in graphic pipeline state: \"{}\"", name);
         ASSERT_MSG(desc.ps, "PS is not set in graphic pipeline state: \"{}\"", name);
 
-        auto resource = GAPI::GraphicPipelineState::Create(desc, name);
+        auto resource = GraphicPipelineStateUniquePtr(new GAPI::GraphicPipelineState(desc, name));
         multiThreadDevice->InitPipelineState(*resource.get());
 
         return resource;

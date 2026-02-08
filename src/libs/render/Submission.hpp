@@ -96,7 +96,7 @@ namespace RR::Render
 
         bool isSubmissionThread() const { return submissionThread ? (std::this_thread::get_id() == submissionThread->GetId()) : true; }
 
-        void Start(GAPI::Device::UniquePtr device, SubmissionThreadMode mode);
+        void Start(eastl::unique_ptr<GAPI::Device>&& device, SubmissionThreadMode mode);
         void Terminate();
 
         void ExecuteAsync(SubmissionThreadFunction&& function);
@@ -114,7 +114,7 @@ namespace RR::Render
         void threadFunc();
 
     private:
-        GAPI::Device::UniquePtr device;
+        eastl::unique_ptr<GAPI::Device> device;
         eastl::unique_ptr<Threading::Thread> submissionThread;
         Common::Threading::Event submissionEvent;
         Common::Threading::Mutex mutex;

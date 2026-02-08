@@ -51,8 +51,6 @@ namespace RR
         class SwapChain final : public Resource<ISwapChain, false>
         {
         public:
-            using UniquePtr = eastl::unique_ptr<SwapChain>;
-
             ~SwapChain();
             Texture* GetCurrentBackBufferTexture();
 
@@ -61,11 +59,6 @@ namespace RR
             eastl::any GetWaitableObject() const { return GetPrivateImpl()->GetWaitableObject(); }
 
         private:
-            static UniquePtr Create(const SwapChainDesc& desc)
-            {
-                return UniquePtr(new SwapChain(desc));
-            }
-
             SwapChain(const SwapChainDesc& desc);
 
             // This method isn't thread safe. So it's should be called from device context.
@@ -75,7 +68,7 @@ namespace RR
 
         private:
             SwapChainDesc desc_;
-            Texture::UniquePtr backBuffer;
+            eastl::unique_ptr<Texture> backBuffer;
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
