@@ -13,7 +13,6 @@ namespace RR::GAPI::Commands
             for (uint32_t i = 0; i < desc.colorAttachmentCount; i++)
             {
                 ASSERT(desc.colorAttachments[i].renderTargetView);
-                ASSERT(desc.colorAttachments[i].renderTargetView->GetPrivateImpl());
             }
         }
 

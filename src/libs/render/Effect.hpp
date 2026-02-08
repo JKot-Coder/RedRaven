@@ -25,7 +25,6 @@ namespace RR::Render
             dirty = true;
         }
 
-
         void SetRenderPass(const GAPI::RenderPassDesc& renderPass)
         {
             colorAttachmentCount = renderPass.colorAttachmentCount;
@@ -34,11 +33,11 @@ namespace RR::Render
             {
                 const auto& colorAttachment = renderPass.colorAttachments[i];
                 const auto* renderTargetView = colorAttachment.renderTargetView;
-                colorAttachmentFormats[i] = renderTargetView ? renderTargetView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+                colorAttachmentFormats[i] = renderTargetView ? colorAttachment.format : GAPI::GpuResourceFormat::Unknown;
             }
 
             const auto* depthStencilView = renderPass.depthStencilAttachment.depthStencilView;
-            depthStencilFormat = depthStencilView ? depthStencilView->GetDesc().format : GAPI::GpuResourceFormat::Unknown;
+            depthStencilFormat = depthStencilView ? renderPass.depthStencilAttachment.format : GAPI::GpuResourceFormat::Unknown;
 
             dirty = true;
         }

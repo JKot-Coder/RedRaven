@@ -28,7 +28,8 @@ namespace RR::GAPI
 
     struct ColorAttachmentDesc
     {
-        const RenderTargetView* renderTargetView = nullptr;
+        const IGpuResourceView* renderTargetView = nullptr;
+        GpuResourceFormat format;
         AttachmentLoadOp loadOp;
         AttachmentStoreOp storeOp;
         Vector4 clearColor;
@@ -45,7 +46,8 @@ namespace RR::GAPI
 
     struct DepthStencilAttachmentDesc
     {
-        const DepthStencilView* depthStencilView = nullptr;
+        const IGpuResourceView* depthStencilView = nullptr;
+        GpuResourceFormat format;
         AttachmentLoadOp loadOp;
         AttachmentStoreOp storeOp;
         DepthStencilClearFlags clearFlags;
@@ -76,8 +78,17 @@ namespace RR::GAPI
             ASSERT(index < desc.colorAttachments.size());
             ASSERT(desc.colorAttachments[index].renderTargetView == nullptr);
 
-            desc.colorAttachments[index] = ColorAttachmentDesc {renderTargetView, loadOp, storeOp, clearColor};
+            const auto& textureDesc = renderTargetView->GetGpuResource()->GetDesc();
+
+            desc.colorAttachments[index] = ColorAttachmentDesc {
+                renderTargetView->GetPrivateImpl<IGpuResourceView>(),
+                textureDesc.texture.format,
+                loadOp, storeOp, clearColor};
             desc.colorAttachmentCount = eastl::max(desc.colorAttachmentCount, index + 1);
+
+#if ENABLE_ASSERTS
+            validate(textureDesc);
+#endif
             return *this;
         }
 
@@ -87,75 +98,50 @@ namespace RR::GAPI
             ASSERT((loadOp == AttachmentLoadOp::Clear && clearFlags != DepthStencilClearFlags::None) ||
                    (loadOp != AttachmentLoadOp::Clear && clearFlags == DepthStencilClearFlags::None));
 
-            desc.depthStencilAttachment = {depthStencilView, loadOp, storeOp, clearFlags, depthClearValue, stencilClearValue};
+            const auto& textureDesc = depthStencilView->GetGpuResource()->GetDesc();
+
+            desc.depthStencilAttachment = {
+                depthStencilView->GetPrivateImpl<IGpuResourceView>(),
+                textureDesc.texture.format,
+                loadOp, storeOp, clearFlags, depthClearValue, stencilClearValue};
+
+#if ENABLE_ASSERTS
+            validate(textureDesc);
+#endif
             return *this;
         }
 
         [[nodiscard]] RenderPassDesc Build() const
         {
-#if ENABLE_ASSERTS
-            AssertValid();
-#endif
             return desc;
         }
 
 #if ENABLE_ASSERTS
-        void AssertValid() const
+        void validate(const GpuResourceDesc& textureDesc)
         {
-            ASSERT(desc.colorAttachmentCount < desc.colorAttachments.size());
-
-            static constexpr uint32_t INVALID_SIZE = 0xFFFFFFFF;
-            uint32_t width = INVALID_SIZE, height = INVALID_SIZE, depth = INVALID_SIZE;
-            GpuResourceDimension dimension = GpuResourceDimension::Count;
-            for (uint32_t i = 0; i < desc.colorAttachmentCount; i++)
+            if (width == INVALID_SIZE)
             {
-                const auto* renderTargetView = desc.colorAttachments[i].renderTargetView;
-                if (renderTargetView == nullptr)
-                    continue;
-
-                auto gpuResource = renderTargetView->GetGpuResource();
-                auto texture = gpuResource->GetTyped<Texture>();
-                auto description = texture->GetDesc();
-
-                if (dimension == GpuResourceDimension::Count)
-                {
-                    dimension = description.GetDimension();
-                }
-                else
-                {
-                    ASSERT_MSG(dimension == description.GetDimension(), "Color attachment dimension mismatch");
-                }
-
-                if (width == INVALID_SIZE)
-                {
-                    width = description.GetWidth();
-                    height = description.GetHeight();
-                    depth = description.GetDepth();
-                }
-                else
-                {
-                    ASSERT_MSG(width == description.GetWidth() && height == description.GetHeight() && depth == description.GetDepth(), "Color attachment size mismatch");
-                }
+                width = textureDesc.texture.width;
+                height = textureDesc.texture.height;
+                depth = textureDesc.texture.depth;
+                dimension = textureDesc.GetDimension();
             }
-
-            const auto* depthStencilView = desc.depthStencilAttachment.depthStencilView;
-            if (depthStencilView)
+            else
             {
-                auto gpuResource = depthStencilView->GetGpuResource();
-                auto texture = gpuResource->GetTyped<Texture>();
-                auto description = texture->GetDesc();
-
-                if (width != INVALID_SIZE)
-                    ASSERT_MSG(width == description.GetWidth() && height == description.GetHeight() && depth == description.GetDepth(), "Color attachment and DepthStencil attachment size mismatch");
-
-                if (dimension != GpuResourceDimension::Count)
-                    ASSERT_MSG(dimension == description.GetDimension(), "DepthStencil attachment dimension mismatch");
+                ASSERT_MSG(width == textureDesc.GetWidth() && height == textureDesc.GetHeight() && depth == textureDesc.GetDepth(), "attachment size mismatch");
+                ASSERT_MSG(dimension == textureDesc.GetDimension(), "attachment dimension mismatch");
             }
         }
 #endif
 
     private:
         RenderPassDesc desc;
+
+#if ENABLE_ASSERTS
+        static constexpr uint32_t INVALID_SIZE = 0xFFFFFFFF;
+        uint32_t width = INVALID_SIZE, height = INVALID_SIZE, depth = INVALID_SIZE;
+        GpuResourceDimension dimension = GpuResourceDimension::Count;
+#endif
     };
 
     inline RenderPassDesc::BuilderImpl RenderPassDesc::Builder()

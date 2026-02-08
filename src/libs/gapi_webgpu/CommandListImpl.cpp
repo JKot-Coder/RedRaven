@@ -59,7 +59,7 @@ namespace RR::GAPI::WebGPU
             {
                 wgpu::RenderPassColorAttachment colorAttachment;
                 colorAttachment.setDefault();
-                colorAttachment.view = command.desc.colorAttachments[i].renderTargetView->GetPrivateImpl<TextureViewImpl>()->GetTextureView();
+                colorAttachment.view = static_cast<const TextureViewImpl*>(command.desc.colorAttachments[i].renderTargetView)->GetTextureView();
                 colorAttachment.loadOp = getWGPULoadOp(command.desc.colorAttachments[i].loadOp);
                 colorAttachment.storeOp = getWGPUStoreOp(command.desc.colorAttachments[i].storeOp);
                 colorAttachment.clearValue = getWGPUColor(command.desc.colorAttachments[i].clearColor);
@@ -77,7 +77,7 @@ namespace RR::GAPI::WebGPU
                 wgpu::RenderPassDepthStencilAttachment depthStencilAttachment;
                 depthStencilAttachment.setDefault();
                 // TODO: FIX separate depth and stencil load and store ops
-                depthStencilAttachment.view = command.desc.depthStencilAttachment.depthStencilView->GetPrivateImpl<TextureViewImpl>()->GetTextureView();
+                depthStencilAttachment.view = static_cast<const TextureViewImpl*>(command.desc.depthStencilAttachment.depthStencilView)->GetTextureView();
                 depthStencilAttachment.depthLoadOp = getWGPULoadOp(command.desc.depthStencilAttachment.loadOp);
                 depthStencilAttachment.depthStoreOp = getWGPUStoreOp(command.desc.depthStencilAttachment.storeOp);
                 depthStencilAttachment.depthClearValue = command.desc.depthStencilAttachment.depthClearValue;
