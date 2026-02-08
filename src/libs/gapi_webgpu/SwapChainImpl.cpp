@@ -6,6 +6,7 @@
 #include "gapi/Texture.hpp"
 
 #include "TextureImpl.hpp"
+#include "TextureViewImpl.hpp"
 
 #if OS_WINDOWS
 #include "windows.h"
@@ -106,17 +107,18 @@ namespace RR::GAPI::WebGPU
         return {};
     }
 
-    void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& resource) const
+    void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& texture) const
     {
         // TODO Check resource description is valid
+        if (!texture.GetPrivateImpl())
+            texture.SetPrivateImpl(new TextureImpl());
 
-        if (!resource.GetPrivateImpl())
-            resource.SetPrivateImpl(new TextureImpl());
+        const auto textureImpl = texture.GetPrivateImpl<TextureImpl>();
+        textureImpl->UpdateTextureResource(surfaceTexture);
 
-        resource.GetPrivateImpl<TextureImpl>()->UpdateTextureResource(surfaceTexture);
-
-        // TODO update rtv insted
-        resource.ResetRTV();
+        // TODO update other views
+        for(const auto& rtv : texture.GetRTVs())
+            rtv.second->GetPrivateImpl<TextureViewImpl>()->RecreateView(*rtv.second.get());
     }
 
     void SwapChainImpl::Present()

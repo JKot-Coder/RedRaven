@@ -495,11 +495,26 @@ namespace RR
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
-            inline void ResetRTV() { rtvs_.clear(); }
+            inline auto GetRTVs() const { return makeViewsRange(rtvs_.begin(), rtvs_.end()); }
 
         protected:
             GpuResource(GpuResourceDesc desc, const std::string& name)
                 : Resource(Type::GpuResource, name), desc_(desc) { };
+
+        private:
+            template <class It>
+            struct ViewsRange
+            {
+                It b, e;
+                It begin() const { return b; }
+                It end() const { return e; }
+            };
+
+            template <class It>
+            static ViewsRange<It> makeViewsRange(It b, It e)
+            {
+                return {b, e};
+            }
 
         protected:
             GpuResourceDesc desc_;

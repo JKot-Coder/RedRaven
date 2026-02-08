@@ -17,6 +17,8 @@ namespace RR::GAPI::WebGPU
 
         wgpu::TextureView GetTextureView() const { return view; }
 
+        void RecreateView(GAPI::GpuResourceView& gpuResourceView);
+
     private:
         wgpu::TextureView view;
     };
