@@ -518,12 +518,6 @@ namespace RR
 
         protected:
             GpuResourceDesc desc_;
-
-            // TODO Use one map for all views
-            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;
-            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDesc::HashFunc> rtvs_;
-            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDesc::HashFunc> dsvs_;
-            //absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDesc::HashFunc> uavs_;
         };
 
         template <>

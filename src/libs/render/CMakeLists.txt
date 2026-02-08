@@ -6,6 +6,9 @@ set(SRC
     CommandEncoder.cpp
     CommandEncoder.hpp
     ResourcePointers.hpp
+    SwapChain.hpp
+    SwapChain.cpp
+    RenderTarget.hpp
     Effect.hpp
     Effect.cpp
     EffectManager.cpp

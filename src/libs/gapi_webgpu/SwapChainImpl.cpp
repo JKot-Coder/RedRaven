@@ -107,7 +107,7 @@ namespace RR::GAPI::WebGPU
         return {};
     }
 
-    void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& texture) const
+    void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& texture, RenderTargetView& rtv) const
     {
         // TODO Check resource description is valid
         if (!texture.GetPrivateImpl())
@@ -116,9 +116,7 @@ namespace RR::GAPI::WebGPU
         const auto textureImpl = texture.GetPrivateImpl<TextureImpl>();
         textureImpl->UpdateTextureResource(surfaceTexture);
 
-        // TODO update other views
-       // for(const auto& rtv : texture.GetRTVs())
-       //    rtv.second->GetPrivateImpl<TextureViewImpl>()->RecreateView(*rtv.second.get());
+        rtv.GetPrivateImpl<TextureViewImpl>()->RecreateView(rtv);
     }
 
     void SwapChainImpl::Present()

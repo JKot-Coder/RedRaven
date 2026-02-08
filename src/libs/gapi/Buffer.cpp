@@ -2,8 +2,6 @@
 
 #include "gapi/GpuResourceViews.hpp"
 
-#include "render/DeviceContext.hpp"
-
 #include "math/Math.hpp"
 
 namespace RR

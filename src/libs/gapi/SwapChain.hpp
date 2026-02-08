@@ -15,6 +15,11 @@ namespace RR
         class Window;
     }
 
+    namespace Render
+    {
+        class SwapChain;
+    }
+
     namespace GAPI
     {
         struct SwapChainDesc
@@ -44,7 +49,7 @@ namespace RR
 
             virtual eastl::any GetWaitableObject() const = 0;
 
-            virtual void UpdateCurrentBackBufferTexture(Texture& resource) const = 0;
+            virtual void UpdateCurrentBackBufferTexture(Texture& resource, RenderTargetView& rtv) const = 0;
             virtual void Resize(uint32_t width, uint32_t height) = 0;
         };
 
@@ -52,7 +57,6 @@ namespace RR
         {
         public:
             ~SwapChain();
-            Texture* GetCurrentBackBufferTexture();
 
             const SwapChainDesc& GetDesc() const { return desc_; }
             // TODO temporary
@@ -64,14 +68,13 @@ namespace RR
             // This method isn't thread safe. So it's should be called from device context.
             void Resize(uint32_t width, uint32_t height);
 
-            inline void UpdateCurrentBackBufferTexture(Texture& resource) const { return GetPrivateImpl()->UpdateCurrentBackBufferTexture(resource); }
+            inline void UpdateBackBufferTexture(Texture& resource, RenderTargetView& rtv) const { return GetPrivateImpl()->UpdateCurrentBackBufferTexture(resource, rtv); }
 
         private:
             SwapChainDesc desc_;
-            eastl::unique_ptr<Texture> backBuffer;
 
             friend class Render::DeviceContext;
-            friend class Render::DeviceContext;
+            friend class Render::SwapChain;
         };
     }
 }

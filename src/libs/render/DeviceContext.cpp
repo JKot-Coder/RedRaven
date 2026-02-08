@@ -12,6 +12,7 @@
 
 #include "render/CommandEncoder.hpp"
 #include "render/Effect.hpp"
+#include "render/SwapChain.hpp"
 
 #include "gapi_webgpu/Device.hpp"
 #include "gapi_dx12/Device.hpp"
@@ -55,10 +56,9 @@ namespace RR::Render
         inited = false;
     }
 
-    void DeviceContext::Present(GAPI::SwapChain* swapChain)
+    void DeviceContext::Present(Render::SwapChain& swapChain)
     {
-        ASSERT(swapChain);
-        submission.ExecuteAwait([swapChain](GAPI::Device& device) { device.Present(swapChain); });
+        submission.ExecuteAwait([swapChainObj = swapChain.GetSwapChain()](GAPI::Device& device) { device.Present(swapChainObj); });
     }
 
     void DeviceContext::MoveToNextFrame(uint64_t frameIndex)
@@ -198,17 +198,19 @@ namespace RR::Render
         return resource;
     }
 
-    eastl::unique_ptr<GAPI::Texture> DeviceContext::CreateSwapChainBackBuffer(const GAPI::SwapChain* swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const
+    TextureUniquePtr DeviceContext::CreateSwapChainBackBuffer(GAPI::SwapChain& swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const
     {
         ASSERT(inited);
 
-        ASSERT(swapchain);
         ASSERT(desc.dimension == GAPI::GpuResourceDimension::Texture2D);
         ASSERT(desc.usage == GAPI::GpuResourceUsage::Default);
         ASSERT(desc.GetNumSubresources() == 1);
         ASSERT(desc.bindFlags == GAPI::GpuResourceBindFlags::RenderTarget);
 
-        return eastl::unique_ptr<GAPI::Texture>(new GAPI::Texture(desc, nullptr, name));
+        auto resource = TextureUniquePtr(new GAPI::Texture(desc, nullptr, name));
+        multiThreadDevice->InitSwapChainBackBuffer(swapchain, *resource.get());
+
+        return resource;
     }
 
     GraphicPipelineStateUniquePtr DeviceContext::CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const

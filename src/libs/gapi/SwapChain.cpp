@@ -3,8 +3,6 @@
 #include "gapi/GpuResource.hpp"
 #include "gapi/Texture.hpp"
 
-#include "render/DeviceContext.hpp"
-
 namespace RR
 {
     namespace GAPI
@@ -31,25 +29,7 @@ namespace RR
             desc_.height = height;
 
             GetPrivateImpl()->Resize(width, height);
-            backBuffer.reset();
-        }
-
-        Texture* SwapChain::GetCurrentBackBufferTexture()
-        {
-            if (!backBuffer)
-            {
-                // TODO  description_.width = 0 sometimes happends
-                const GpuResourceDesc desc = GpuResourceDesc::Texture2D(desc_.width, desc_.height, desc_.backBufferFormat, GpuResourceBindFlags::RenderTarget, GpuResourceUsage::Default, 1, 1);
-                auto& deviceContext = Render::DeviceContext::Instance();
-                backBuffer = deviceContext.CreateSwapChainBackBuffer(
-                    this,
-                    desc,
-                    fmt::sprintf("%s BackBufferTexture", "SwapChain")); // TODO move it
-            }
-
-            UpdateCurrentBackBufferTexture(*backBuffer);
-
-            return backBuffer.get();
+           // backBuffer.reset();
         }
     }
 }

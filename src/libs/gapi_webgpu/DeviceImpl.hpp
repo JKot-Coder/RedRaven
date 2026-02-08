@@ -24,6 +24,7 @@ namespace RR::GAPI::WebGPU
         void InitFence(Fence& resource) const override;
         void InitGpuResourceView(GpuResourceView& view) const override;
         void InitSwapChain(SwapChain& resource) const override;
+        void InitSwapChainBackBuffer(SwapChain& swapchain, Texture& resource) const override;
         void InitBuffer(Buffer& resource, const BufferData* initialData) const override;
         void InitTexture(Texture& resource) const override;
         void InitShader(Shader& resource) const override;

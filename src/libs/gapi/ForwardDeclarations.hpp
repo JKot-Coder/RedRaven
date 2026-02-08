@@ -76,9 +76,4 @@ namespace RR
     {
         class DeviceContext;
     }
-
-    namespace Render
-    {
-        class DeviceContext;
-    }
 }

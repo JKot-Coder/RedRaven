@@ -23,6 +23,7 @@
 #include "render/CommandEncoder.hpp"
 #include "render/EffectManager.hpp"
 #include "render/VertexFormats/Vertex.hpp"
+#include "render/SwapChain.hpp"
 
 #include "common/Result.hpp"
 
@@ -36,7 +37,7 @@ namespace RR::App
         struct Instance
         {
             bool quit = false;
-            Render::SwapChainUniquePtr swapChain;
+            eastl::unique_ptr<Render::SwapChain> swapChain;
         };
 
         ECS_SINGLETON;
@@ -65,9 +66,11 @@ namespace RR::App
             .OnEvent<Ecs::WindowModule::Window::OnResizeFinished>()
             .ForEach([](const Ecs::WindowModule::Window::OnResizeFinished& event, Ecs::World& world) {
                 world.View().With<Application>().ForEach([event](Application& application) {
-                    GAPI::SwapChain* swapChain = application.instance->swapChain.get();
-                    auto& deviceContext = Render::DeviceContext::Instance();
-                    deviceContext.ResizeSwapChain(swapChain, event.width, event.height);
+                    UNUSED(event);
+                    UNUSED(application);
+                    //Render::SwapChain* swapChain = application.instance->swapChain.get();
+                   // auto& deviceContext = Render::DeviceContext::Instance();
+                   // deviceContext.ResizeSwapChain(swapChain, event.width, event.height);
                 });
             });
 
@@ -76,7 +79,7 @@ namespace RR::App
         });
     }
 
-    Render::SwapChainUniquePtr CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDesc& description)
+    eastl::unique_ptr<Render::SwapChain> CreateSwapChain(Ecs::WindowModule::Window& window, Ecs::WindowModule::WindowDesc& description)
     {
         GAPI::SwapChainDesc swapChainDesc;
         swapChainDesc.windowNativeHandle = window.nativeHandle;
@@ -87,7 +90,7 @@ namespace RR::App
         swapChainDesc.presentMode = GAPI::SwapChainDesc::PresentMode::Fifo;
         swapChainDesc.backBufferFormat = GAPI::GpuResourceFormat::BGRA8Unorm;
 
-        return Render::DeviceContext::Instance().CreateSwapchain(swapChainDesc);
+        return eastl::make_unique<Render::SwapChain>(swapChainDesc);
     }
 
     GAPI::Buffer::SharedPtr CreateVertexBuffer()
@@ -242,7 +245,7 @@ namespace RR::App
 
         auto windowEntity = world.Entity().Add<Ecs::WindowModule::Window>().Add<Ecs::WindowModule::WindowDesc>(800, 600).Add<MainWindow>().Apply();
 
-        GAPI::SwapChain* swapChain = nullptr;
+        Render::SwapChain* swapChain;
         world.View()
             .With<Ecs::WindowModule::Window>()
             .With<Ecs::WindowModule::WindowDesc>()
@@ -275,18 +278,17 @@ namespace RR::App
             bindingContext->SetBindGroup("qwe", globalUniforms);*/
 
 
-           /* const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
-                                            .ColorAttachment(0, swapChain->GetCurrentBackBufferTexture()->GetRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
+            const auto renderPassDesc = GAPI::RenderPassDesc::Builder()
+                                            .ColorAttachment(0, swapChain->GetBackBufferRTV(), GAPI::AttachmentLoadOp::Clear, Vector4(1.0f, 1.0f, rand() % 255 / 255.0f, 1.0f))
                                             .Build();
                                             UNUSED(renderPassDesc);
 
             auto renderPassEncoder = ctx->BeginRenderPass(renderPassDesc);
 
 
+          renderPassEncoder.Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
 
-            renderPassEncoder.Draw(triangleEffect.get(), GAPI::PrimitiveTopology::TriangleList, 0, 3);
-
-            renderPassEncoder.End();*/
+            renderPassEncoder.End();
 
             ctx->Finish();
 
@@ -298,7 +300,7 @@ namespace RR::App
 
             deviceContext.Compile(*ctx);
             deviceContext.Submit(commandQueue.get(), *ctx);
-            deviceContext.Present(applicationInstance->swapChain.get());
+            deviceContext.Present(*applicationInstance->swapChain);
             deviceContext.MoveToNextFrame(0);
         }
 

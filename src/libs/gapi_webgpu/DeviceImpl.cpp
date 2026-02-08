@@ -193,6 +193,17 @@ namespace RR::GAPI::WebGPU
         resource.SetPrivateImpl(impl.release());
     }
 
+    void DeviceImpl::InitSwapChainBackBuffer(SwapChain& swapchain, Texture& resource) const
+    {
+        ASSERT_IS_DEVICE_INITED;
+
+        auto impl = std::make_unique<TextureImpl>();
+        const auto surfaceTexture = swapchain.GetPrivateImpl<SwapChainImpl>()->GetSurfaceTexture();
+
+        impl->UpdateTextureResource(surfaceTexture);
+        resource.SetPrivateImpl(impl.release());
+    }
+
     void DeviceImpl::InitBuffer(Buffer& resource, const BufferData* initialData) const
     {
         ASSERT_IS_DEVICE_INITED;
@@ -243,7 +254,7 @@ namespace RR::GAPI::WebGPU
         ASSERT_IS_DEVICE_INITED;
 
         auto impl = eastl::make_unique<BindingGroupImpl>();
-        impl->Init(device, resource, desc);
+        impl->Init(device, desc);
         resource.SetPrivateImpl(impl.release());
     }
 }
