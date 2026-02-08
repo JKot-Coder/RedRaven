@@ -7,8 +7,7 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/Resource.hpp"
 
-#include <unordered_map>
-
+#include  "absl/container/flat_hash_map.h"
 // TODO Temporary
 #include <any>
 
@@ -505,11 +504,11 @@ namespace RR
         protected:
             GpuResourceDesc desc_;
 
-            // TODO NOT UNORDERD MAP NEVER EVER USE IT!!!!!
-            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;
-            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDesc::HashFunc> rtvs_;
-            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDesc::HashFunc> dsvs_;
-            std::unordered_map<GpuResourceViewDesc, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDesc::HashFunc> uavs_;
+            // TODO Use one map for all views
+            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<ShaderResourceView>, GpuResourceViewDesc::HashFunc> srvs_;
+            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<RenderTargetView>, GpuResourceViewDesc::HashFunc> rtvs_;
+            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<DepthStencilView>, GpuResourceViewDesc::HashFunc> dsvs_;
+            absl::flat_hash_map<GpuResourceViewDesc, eastl::unique_ptr<UnorderedAccessView>, GpuResourceViewDesc::HashFunc> uavs_;
         };
 
         template <>
