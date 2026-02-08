@@ -112,7 +112,6 @@ namespace RR
             }
 
             friend class Render::DeviceContext;
-            friend class Render::DeviceContext;
 
         private:
             DeviceDesc desc_;

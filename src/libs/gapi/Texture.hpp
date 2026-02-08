@@ -34,6 +34,5 @@ namespace RR::GAPI
 
     private:
         friend class Render::DeviceContext;
-        friend class Render::DeviceContext;
     };
 }

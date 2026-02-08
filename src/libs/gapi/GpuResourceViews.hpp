@@ -111,7 +111,6 @@ namespace RR
             ShaderResourceView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
-            friend class Render::DeviceContext;
         };
 
         class DepthStencilView final : public GpuResourceView
@@ -119,7 +118,6 @@ namespace RR
         private:
             DepthStencilView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
-            friend class Render::DeviceContext;
             friend class Render::DeviceContext;
         };
 
@@ -129,7 +127,6 @@ namespace RR
             RenderTargetView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
-            friend class Render::DeviceContext;
         };
 
         class UnorderedAccessView final : public GpuResourceView
@@ -137,7 +134,6 @@ namespace RR
         private:
             UnorderedAccessView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
-            friend class Render::DeviceContext;
             friend class Render::DeviceContext;
         };
     }
