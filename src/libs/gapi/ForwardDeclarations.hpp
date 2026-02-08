@@ -23,9 +23,9 @@ namespace RR
         class IBindingLayout;
         struct BindingLayoutDesc;
 
-        class BindingSet;
-        class IBindingSet;
-        struct BindingSetDesc;
+        class BindingGroup;
+        class IBindingGroup;
+        struct BindingGroupDesc;
 
         struct RenderPassDesc;
 

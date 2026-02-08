@@ -6,7 +6,7 @@
 #include "Device.hpp"
 
 #include "BindingLayoutImpl.hpp"
-#include "BindingSetImpl.hpp"
+#include "BindingGroupImpl.hpp"
 #include "BufferImpl.hpp"
 #include "CommandListImpl.hpp"
 #include "CommandQueueImpl.hpp"
@@ -238,12 +238,12 @@ namespace RR::GAPI::WebGPU
         resource.SetPrivateImpl(impl.release());
     }
 
-    void DeviceImpl::InitBindingSet(BindingSet& resource) const
+    void DeviceImpl::InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const
     {
         ASSERT_IS_DEVICE_INITED;
 
-        auto impl = eastl::make_unique<BindingSetImpl>();
-        impl->Init(device, resource);
+        auto impl = eastl::make_unique<BindingGroupImpl>();
+        impl->Init(device, resource, desc);
         resource.SetPrivateImpl(impl.release());
     }
 }

@@ -5,6 +5,7 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/GpuResource.hpp"
 #include "gapi/Resource.hpp"
+#include "gapi/BindingGroup.hpp" // todo remove
 
 #include <any>
 
@@ -60,7 +61,7 @@ namespace RR
             virtual void InitShader(Shader& resource) const = 0;
             virtual void InitPipelineState(PipelineState& resource) const = 0;
             virtual void InitBindingLayout(BindingLayout& resource) const = 0;
-            virtual void InitBindingSet(BindingSet& resource) const = 0;
+            virtual void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const = 0;
 
             virtual std::any GetRawDevice() const = 0;
         };
@@ -89,7 +90,7 @@ namespace RR
             GAPI::GpuResourceFootprint GetResourceFootprint(const GpuResourceDesc& desc) const
                 override { return GetPrivateImpl()->GetResourceFootprint(desc); };
 
-            // Todo init resource?
+            // Todo remove override
             void InitBuffer(Buffer& resource, const BufferData* initialData) const override { GetPrivateImpl()->InitBuffer(resource, initialData); };
             void InitCommandList(CommandList& resource) const override { GetPrivateImpl()->InitCommandList(resource); };
             void InitCommandQueue(CommandQueue& resource) const override { GetPrivateImpl()->InitCommandQueue(resource); };
@@ -100,7 +101,7 @@ namespace RR
             void InitShader(Shader& resource) const override { GetPrivateImpl()->InitShader(resource); };
             void InitPipelineState(PipelineState& resource) const override { GetPrivateImpl()->InitPipelineState(resource); };
             void InitBindingLayout(BindingLayout& resource) const override { GetPrivateImpl()->InitBindingLayout(resource); };
-            void InitBindingSet(BindingSet& resource) const override { GetPrivateImpl()->InitBindingSet(resource); };
+            void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const override { GetPrivateImpl()->InitBindingGroup(resource, desc); };
 
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 

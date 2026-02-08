@@ -68,38 +68,6 @@ namespace RR::GAPI
         BindingLayoutDesc desc_;
     };
 
-    struct BindingElement
-    {
-        uint32_t binding;
-        const GpuResourceView* view = nullptr;
-    };
 
-    struct BindingSetDesc
-    {
-        const BindingLayout* layout = nullptr;
-        eastl::vector<BindingElement> bindings;
-    };
-
-    class IBindingSet
-    {
-    public:
-        virtual ~IBindingSet() = default;
-    };
-
-    class BindingSet final : public Resource<IBindingSet, true>
-    {
-    public:
-        using UniquePtr = eastl::unique_ptr<BindingSet>;
-
-        BindingSet(const BindingSetDesc& desc, const std::string& name)
-            : Resource(Type::BindingSet, name), desc_(desc)
-        {
-        }
-
-        const BindingSetDesc& GetDesc() const { return desc_; }
-
-    private:
-        BindingSetDesc desc_;
-    };
 }
 

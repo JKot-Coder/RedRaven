@@ -1,15 +1,16 @@
-#include "BindingSetImpl.hpp"
+#include "BindingGroupImpl.hpp"
 
 #include "gapi/BindingLayout.hpp"
 
 namespace RR::GAPI::WebGPU
 {
-    BindingSetImpl::~BindingSetImpl() { }
+    BindingGroupImpl::~BindingGroupImpl() { }
 
-    void BindingSetImpl::Init(const wgpu::Device& device, GAPI::BindingSet& resource)
+    void BindingGroupImpl::Init(const wgpu::Device& device, GAPI::BindingGroup& resource, BindingGroupDesc& desc)
     {
         UNUSED(device);
         UNUSED(resource);
+        UNUSED(desc);
 
 
         // TODO: Implement BindingSet initialization

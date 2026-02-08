@@ -4,6 +4,7 @@ set(SRC
     Buffer.cpp
     Buffer.hpp
     BindingLayout.hpp
+    BindingGroup.hpp
     CommandList.hpp
     CommandQueue.hpp
     Device.hpp
