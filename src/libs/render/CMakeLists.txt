@@ -9,6 +9,7 @@ set(SRC
     SwapChain.hpp
     SwapChain.cpp
     RenderTarget.hpp
+    RenderTarget.cpp
     Effect.hpp
     Effect.cpp
     EffectManager.cpp

@@ -7,7 +7,6 @@
 #include "gapi/GpuResourceViews.hpp"
 #include "gapi/Resource.hpp"
 
-#include  "absl/container/flat_hash_map.h"
 // TODO Temporary
 #include <any>
 
@@ -495,26 +494,9 @@ namespace RR
             inline void* Map() { return GetPrivateImpl()->Map(); }
             inline void Unmap() { return GetPrivateImpl()->Unmap(); }
 
-            //inline auto GetRTVs() const { return makeViewsRange(rtvs_.begin(), rtvs_.end()); }
-
         protected:
             GpuResource(GpuResourceDesc desc, const std::string& name)
                 : Resource(Type::GpuResource, name), desc_(desc) { };
-
-       /* private:
-            template <class It>
-            struct ViewsRange
-            {
-                It b, e;
-                It begin() const { return b; }
-                It end() const { return e; }
-            };
-
-            template <class It>
-            static ViewsRange<It> makeViewsRange(It b, It e)
-            {
-                return {b, e};
-            }*/
 
         protected:
             GpuResourceDesc desc_;

@@ -1,12 +1,13 @@
-#include "Texture.hpp"
+#include "RenderTarget.hpp"
 
-#include "gapi/GpuResourceViews.hpp"
+#include "gapi/Texture.hpp"
 
-#include "math/Math.hpp"
-#include "common/OnScopeExit.hpp"
+#include "render/DeviceContext.hpp"
 
-namespace RR::GAPI
+namespace RR::Render
 {
+    using namespace RR::GAPI;
+
     namespace
     {
         GpuResourceFormat getViewFormat(GpuResourceFormat resourceFormat, GpuResourceFormat viewFormat)
@@ -41,58 +42,61 @@ namespace RR::GAPI
             return GpuResourceViewDesc::Texture(viewFormat, mipLevel, mipCount, firstArraySlice, arraySliceCount);
         }
     }
-    /*
 
-    const ShaderResourceView* Texture::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const GAPI::ShaderResourceView* RenderTarget::GetSRV(uint32_t mipLevel, uint32_t mipCount, uint32_t firstArraySlice, uint32_t numArraySlices, GAPI::GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, mipCount, firstArraySlice, numArraySlices);
+        const auto& desc = texture_->GetDesc();
+        const auto& viewDesc = createViewDesc(desc, format, mipLevel, mipCount, firstArraySlice, numArraySlices);
 
         if (srvs_.find(viewDesc) == srvs_.end())
         {
             // name_ !!!!!!!!!!
-            srvs_[viewDesc] = Render::DeviceContext::Instance().CreateShaderResourceView(*this, viewDesc);
+            srvs_[viewDesc] = Render::DeviceContext::Instance().CreateShaderResourceView(*texture_, viewDesc);
         }
 
         return srvs_[viewDesc].get();
     }
 
-    const DepthStencilView* Texture::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const GAPI::DepthStencilView* RenderTarget::GetDSV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GAPI::GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+        const auto& desc = texture_->GetDesc();
+        const auto& viewDesc = createViewDesc(desc, format, mipLevel, 1, firstArraySlice, numArraySlices);
         // TODO VALIDATION VIEW DESC FORMAT
 
         if (dsvs_.find(viewDesc) == dsvs_.end())
         {
             //  name_ !!!!!!!!
-            dsvs_[viewDesc] = Render::DeviceContext::Instance().CreateDepthStencilView(*this, viewDesc);
+            dsvs_[viewDesc] = Render::DeviceContext::Instance().CreateDepthStencilView(*texture_, viewDesc);
         }
 
         return dsvs_[viewDesc].get();
     }
 
-    const RenderTargetView* Texture::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const GAPI::RenderTargetView* RenderTarget::GetRTV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GAPI::GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+        const auto& desc = texture_->GetDesc();
+        const auto& viewDesc = createViewDesc(desc, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (rtvs_.find(viewDesc) == rtvs_.end())
         {
             // name_ !!!!!!
-           rtvs_[viewDesc] = Render::DeviceContext::Instance().CreateRenderTargetView(*this, viewDesc);
+           rtvs_[viewDesc] = Render::DeviceContext::Instance().CreateRenderTargetView(*texture_, viewDesc);
         }
 
         return rtvs_[viewDesc].get();
     }
 
-    const UnorderedAccessView* Texture::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GpuResourceFormat format)
+    const GAPI::UnorderedAccessView* RenderTarget::GetUAV(uint32_t mipLevel, uint32_t firstArraySlice, uint32_t numArraySlices, GAPI::GpuResourceFormat format)
     {
-        const auto& viewDesc = createViewDesc(desc_, format, mipLevel, 1, firstArraySlice, numArraySlices);
+        const auto& desc = texture_->GetDesc();
+        const auto& viewDesc = createViewDesc(desc, format, mipLevel, 1, firstArraySlice, numArraySlices);
 
         if (uavs_.find(viewDesc) == uavs_.end())
         {
             //  name_ !!!!!!!!!
-           uavs_[viewDesc] = Render::DeviceContext::Instance().CreateUnorderedAccessView(*this, viewDesc);
+           uavs_[viewDesc] = Render::DeviceContext::Instance().CreateUnorderedAccessView(*texture_, viewDesc);
         }
 
         return uavs_[viewDesc].get();
-    }*/
+    }
 }

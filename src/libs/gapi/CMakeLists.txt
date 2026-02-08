@@ -22,7 +22,6 @@ set(SRC
     Shader.hpp
     SwapChain.cpp
     SwapChain.hpp
-    Texture.cpp
     Texture.hpp
     VertexLayout.hpp
 )

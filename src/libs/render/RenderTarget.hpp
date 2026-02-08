@@ -2,17 +2,25 @@
 
 #include "render/ResourcePointers.hpp"
 
+#include "absl/container/flat_hash_map.h"
+
+#include "gapi/GpuResource.hpp"
+#include "gapi/GpuResourceViews.hpp"
+
 namespace RR::Render
 {
     class RenderTarget
     {
     public:
+        static constexpr uint32_t MaxPossible = 0xFFFFFF;
+
+    public:
         RenderTarget(const GAPI::GpuResourceDesc& desc);
 
-        const ShaderResourceView* GetSRV(uint32_t mipLevel = 0, uint32_t mipCount = MaxPossible, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
-        const RenderTargetView* GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
-        const DepthStencilView* GetDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
-        const UnorderedAccessView* GetUAV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GpuResourceFormat format = GpuResourceFormat::Unknown);
+        const GAPI::ShaderResourceView* GetSRV(uint32_t mipLevel = 0, uint32_t mipCount = MaxPossible, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GAPI::GpuResourceFormat format = GAPI::GpuResourceFormat::Unknown);
+        const GAPI::RenderTargetView* GetRTV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GAPI::GpuResourceFormat format = GAPI::GpuResourceFormat::Unknown);
+        const GAPI::DepthStencilView* GetDSV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GAPI::GpuResourceFormat format = GAPI::GpuResourceFormat::Unknown);
+        const GAPI::UnorderedAccessView* GetUAV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GAPI::GpuResourceFormat format = GAPI::GpuResourceFormat::Unknown);
 
     private:
         TextureUniquePtr texture_;
