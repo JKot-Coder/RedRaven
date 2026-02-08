@@ -20,18 +20,8 @@ namespace RR::Render
 
     const GAPI::SwapChainDesc& SwapChain::GetDesc() const { return swapChain_->GetDesc(); }
 
-    GAPI::SwapChain* SwapChain::GetSwapChain() { return swapChain_.get(); }
-
-    GAPI::Texture* SwapChain::GetBackBuffer()
+    void SwapChain::UpdateBackBuffer()
     {
-        // TODO not update every time
-        swapChain_->UpdateBackBufferTexture(*backBuffer_, *backBufferRTV_);
-
-        return backBuffer_.get();
-    }
-
-    GAPI::RenderTargetView* SwapChain::GetBackBufferRTV()
-    {
-        return backBufferRTV_.get();
+        swapChain_->UpdateBackBuffer(*backBuffer_, *backBufferRTV_);
     }
 }

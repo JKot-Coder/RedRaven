@@ -49,7 +49,7 @@ namespace RR
 
             virtual eastl::any GetWaitableObject() const = 0;
 
-            virtual void UpdateCurrentBackBufferTexture(Texture& resource, RenderTargetView& rtv) const = 0;
+            virtual void UpdateBackBuffer(Texture& resource, RenderTargetView& rtv) const = 0;
             virtual void Resize(uint32_t width, uint32_t height) = 0;
         };
 
@@ -68,7 +68,7 @@ namespace RR
             // This method isn't thread safe. So it's should be called from device context.
             void Resize(uint32_t width, uint32_t height);
 
-            inline void UpdateBackBufferTexture(Texture& resource, RenderTargetView& rtv) const { return GetPrivateImpl()->UpdateCurrentBackBufferTexture(resource, rtv); }
+            inline void UpdateBackBuffer(Texture& resource, RenderTargetView& rtv) const { return GetPrivateImpl()->UpdateBackBuffer(resource, rtv); }
 
         private:
             SwapChainDesc desc_;

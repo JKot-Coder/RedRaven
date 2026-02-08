@@ -107,7 +107,7 @@ namespace RR::GAPI::WebGPU
         return {};
     }
 
-    void SwapChainImpl::UpdateCurrentBackBufferTexture(Texture& texture, RenderTargetView& rtv) const
+    void SwapChainImpl::UpdateBackBuffer(Texture& texture, RenderTargetView& rtv) const
     {
         // TODO Check resource description is valid
         if (!texture.GetPrivateImpl())

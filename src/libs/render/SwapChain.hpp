@@ -13,9 +13,11 @@ namespace RR::Render
 
         const GAPI::SwapChainDesc& GetDesc() const;
 
-        GAPI::SwapChain* GetSwapChain();
-        GAPI::Texture* GetBackBuffer();
-        GAPI::RenderTargetView* GetBackBufferRTV();
+        GAPI::SwapChain* GetSwapChain() { return swapChain_.get(); }
+        GAPI::Texture* GetBackBuffer() { return backBuffer_.get(); }
+        GAPI::RenderTargetView* GetBackBufferRTV() { return backBufferRTV_.get(); }
+
+        void UpdateBackBuffer();
 
     private:
         TextureUniquePtr backBuffer_;

@@ -58,7 +58,10 @@ namespace RR::Render
 
     void DeviceContext::Present(Render::SwapChain& swapChain)
     {
-        submission.ExecuteAwait([swapChainObj = swapChain.GetSwapChain()](GAPI::Device& device) { device.Present(swapChainObj); });
+        submission.ExecuteAwait([&swapChain](GAPI::Device& device) {
+            device.Present(swapChain.GetSwapChain());
+            swapChain.UpdateBackBuffer();
+        });
     }
 
     void DeviceContext::MoveToNextFrame(uint64_t frameIndex)
