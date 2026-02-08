@@ -107,6 +107,9 @@ namespace RR
 
         class ShaderResourceView final : public GpuResourceView
         {
+        public:
+            using UniquePtr = eastl::unique_ptr<ShaderResourceView>;
+
         private:
             ShaderResourceView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
@@ -115,6 +118,9 @@ namespace RR
 
         class DepthStencilView final : public GpuResourceView
         {
+        public:
+            using UniquePtr = eastl::unique_ptr<DepthStencilView>;
+
         private:
             DepthStencilView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
@@ -123,6 +129,9 @@ namespace RR
 
         class RenderTargetView final : public GpuResourceView
         {
+        public:
+            using UniquePtr = eastl::unique_ptr<RenderTargetView>;
+
         private:
             RenderTargetView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
@@ -131,6 +140,9 @@ namespace RR
 
         class UnorderedAccessView final : public GpuResourceView
         {
+        public:
+            using UniquePtr = eastl::unique_ptr<UnorderedAccessView>;
+
         private:
             UnorderedAccessView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 

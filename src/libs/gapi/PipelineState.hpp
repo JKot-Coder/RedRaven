@@ -274,6 +274,8 @@ namespace RR::GAPI
     class GraphicPipelineState final : public PipelineState
     {
     public:
+        using UniquePtr = eastl::unique_ptr<GraphicPipelineState>;
+
         GraphicPipelineState(const GraphicPipelineStateDesc& description, const std::string& name)
             : PipelineState(PsoType::Graphic, name), description_(description)
         {

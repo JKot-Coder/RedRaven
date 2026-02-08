@@ -49,7 +49,7 @@ namespace RR::Render
         graphicPSODesc.ps = pass.shaders[eastl::to_underlying(GAPI::ShaderStage::Pixel)];
 
         const auto& deviceContext = DeviceContext::Instance();
-        Render::GraphicPipelineStateUniquePtr pipelineState = deviceContext.CreatePipelineState(graphicPSODesc, "Effect");
+        GAPI::GraphicPipelineState::UniquePtr pipelineState = deviceContext.CreatePipelineState(graphicPSODesc, "Effect");
 
         auto pso = pipelineStates.emplace(psoHash, std::move(pipelineState)).first->second.get();
         return static_cast<GAPI::GraphicPipelineState*>(pso);

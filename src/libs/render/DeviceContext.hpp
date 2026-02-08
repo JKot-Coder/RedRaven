@@ -2,7 +2,6 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 
-#include "render/ResourcePointers.hpp"
 #include "render/CommandEncoder.hpp"
 #include "render/Submission.hpp"
 
@@ -51,18 +50,18 @@ namespace RR::Render
             submission.Submit(commandQueue, commandEncoder.GetCommandList());
         }
 
-        CommandQueueUniquePtr CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
-        ShaderUniquePtr CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const;
-        BufferUniquePtr CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name = "") const;
-        TextureUniquePtr CreateTexture(const GAPI::GpuResourceDesc& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
-        RenderTargetViewUniquePtr CreateRenderTargetView(GAPI::Texture& texture, const GAPI::GpuResourceViewDesc& desc) const;
-        DepthStencilViewUniquePtr CreateDepthStencilView(GAPI::Texture& texture, const GAPI::GpuResourceViewDesc& desc) const;
-        ShaderResourceViewUniquePtr CreateShaderResourceView(GAPI::GpuResource& gpuResource, const GAPI::GpuResourceViewDesc& desc) const;
-        UnorderedAccessViewUniquePtr CreateUnorderedAccessView(GAPI::GpuResource& gpuResource, const GAPI::GpuResourceViewDesc& desc) const;
-        SwapChainUniquePtr CreateSwapchain(const GAPI::SwapChainDesc& desc) const;
-        TextureUniquePtr CreateSwapChainBackBuffer(GAPI::SwapChain& swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const;
-        GraphicPipelineStateUniquePtr CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const;
-        BindingGroupUniquePtr CreateBindingGroup(const GAPI::BindingGroupDesc& desc, const std::string& name) const;
+        eastl::unique_ptr<GAPI::CommandQueue> CreateCommandQueue(GAPI::CommandQueueType type, const std::string& name) const;
+        eastl::unique_ptr<GAPI::Shader> CreateShader(const GAPI::ShaderDesc& desc, const std::string& name) const;
+        eastl::unique_ptr<GAPI::Buffer> CreateBuffer(const GAPI::GpuResourceDesc& desc, const GAPI::BufferData* initialData, const std::string& name = "") const;
+        eastl::unique_ptr<GAPI::Texture> CreateTexture(const GAPI::GpuResourceDesc& desc, const eastl::shared_ptr<Common::IDataBuffer>& initialData, const std::string& name);
+        eastl::unique_ptr<GAPI::RenderTargetView> CreateRenderTargetView(GAPI::Texture& texture, const GAPI::GpuResourceViewDesc& desc) const;
+        eastl::unique_ptr<GAPI::DepthStencilView> CreateDepthStencilView(GAPI::Texture& texture, const GAPI::GpuResourceViewDesc& desc) const;
+        eastl::unique_ptr<GAPI::ShaderResourceView> CreateShaderResourceView(GAPI::GpuResource& gpuResource, const GAPI::GpuResourceViewDesc& desc) const;
+        eastl::unique_ptr<GAPI::UnorderedAccessView> CreateUnorderedAccessView(GAPI::GpuResource& gpuResource, const GAPI::GpuResourceViewDesc& desc) const;
+        eastl::unique_ptr<GAPI::SwapChain> CreateSwapchain(const GAPI::SwapChainDesc& desc) const;
+        eastl::unique_ptr<GAPI::Texture> CreateSwapChainBackBuffer(GAPI::SwapChain& swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const;
+        eastl::unique_ptr<GAPI::GraphicPipelineState> CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const;
+        eastl::unique_ptr<GAPI::BindingGroup> CreateBindingGroup(const GAPI::BindingGroupDesc& desc, const std::string& name) const;
 
         eastl::unique_ptr<CommandEncoder> CreateCommandEncoder(const std::string& name) const;
         eastl::unique_ptr<Render::Effect> CreateEffect(const std::string& name, EffectDesc&& effectDesc) const;

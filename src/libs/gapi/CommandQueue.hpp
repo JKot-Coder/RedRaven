@@ -41,6 +41,8 @@ namespace RR
         class CommandQueue final : public Resource<ICommandQueue>
         {
         public:
+            using UniquePtr = eastl::unique_ptr<CommandQueue>;
+
             CommandQueue() = delete;
 
             inline std::any GetNativeHandle() const { return GetPrivateImpl()->GetNativeHandle(); }

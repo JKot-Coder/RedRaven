@@ -1,7 +1,5 @@
 #pragma once
 
-#include "render/ResourcePointers.hpp"
-
 #include "absl/container/flat_hash_map.h"
 
 #include "gapi/GpuResource.hpp"
@@ -23,12 +21,12 @@ namespace RR::Render
         const GAPI::UnorderedAccessView* GetUAV(uint32_t mipLevel = 0, uint32_t firstArraySlice = 0, uint32_t numArraySlices = MaxPossible, GAPI::GpuResourceFormat format = GAPI::GpuResourceFormat::Unknown);
 
     private:
-        TextureUniquePtr texture_;
+        eastl::unique_ptr<GAPI::Texture> texture_;
 
         // TODO Use one map for all views
-        absl::flat_hash_map<GAPI::GpuResourceViewDesc, ShaderResourceViewUniquePtr, GAPI::GpuResourceViewDesc::HashFunc> srvs_;
-        absl::flat_hash_map<GAPI::GpuResourceViewDesc, RenderTargetViewUniquePtr, GAPI::GpuResourceViewDesc::HashFunc> rtvs_;
-        absl::flat_hash_map<GAPI::GpuResourceViewDesc, DepthStencilViewUniquePtr, GAPI::GpuResourceViewDesc::HashFunc> dsvs_;
-        absl::flat_hash_map<GAPI::GpuResourceViewDesc, UnorderedAccessViewUniquePtr, GAPI::GpuResourceViewDesc::HashFunc> uavs_;
+        absl::flat_hash_map<GAPI::GpuResourceViewDesc, eastl::unique_ptr<GAPI::ShaderResourceView>, GAPI::GpuResourceViewDesc::HashFunc> srvs_;
+        absl::flat_hash_map<GAPI::GpuResourceViewDesc, eastl::unique_ptr<GAPI::RenderTargetView>, GAPI::GpuResourceViewDesc::HashFunc> rtvs_;
+        absl::flat_hash_map<GAPI::GpuResourceViewDesc, eastl::unique_ptr<GAPI::DepthStencilView>, GAPI::GpuResourceViewDesc::HashFunc> dsvs_;
+        absl::flat_hash_map<GAPI::GpuResourceViewDesc, eastl::unique_ptr<GAPI::UnorderedAccessView>, GAPI::GpuResourceViewDesc::HashFunc> uavs_;
     };
 }

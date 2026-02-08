@@ -6,7 +6,6 @@
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
 #include "gapi/RenderPassDesc.hpp"
-#include "render/ResourcePointers.hpp"
 
 #include "absl/container/flat_hash_map.h"
 
@@ -123,6 +122,6 @@ namespace RR::Render
     private:
         EffectDesc effectDesc;
         // todo trivial hash
-        absl::flat_hash_map<PsoHashType, GraphicPipelineStateUniquePtr> pipelineStates;
+        absl::flat_hash_map<PsoHashType, eastl::unique_ptr<GAPI::GraphicPipelineState>> pipelineStates;
     };
 }

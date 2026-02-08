@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gapi/ForwardDeclarations.hpp"
-#include "render/ResourcePointers.hpp"
 
 namespace RR::Render
 {
@@ -20,8 +19,8 @@ namespace RR::Render
         void UpdateBackBuffer();
 
     private:
-        TextureUniquePtr backBuffer_;
-        RenderTargetViewUniquePtr backBufferRTV_;
-        SwapChainUniquePtr swapChain_;
+        eastl::unique_ptr<GAPI::Texture> backBuffer_;
+        eastl::unique_ptr<GAPI::RenderTargetView> backBufferRTV_;
+        eastl::unique_ptr<GAPI::SwapChain> swapChain_;
     };
 }

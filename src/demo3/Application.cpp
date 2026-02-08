@@ -17,7 +17,6 @@
 
 #include "math/VectorMath.hpp"
 
-#include "render/ResourcePointers.hpp"
 #include "render/VertexFormats/Vertex.hpp"
 #include "render/DeviceContext.hpp"
 #include "render/CommandEncoder.hpp"
@@ -155,7 +154,7 @@ namespace RR::App
         return deviceContext.CreateBuffer(GAPI::GpuResourceDesc::IndexBuffer(sizeof(Indices) / sizeof(Indices[0]), GAPI::GpuResourceFormat::R32Uint), &bufferData, "Cube index buffer");
     }
 
-    Render::GraphicPipelineStateUniquePtr CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
+    eastl::unique_ptr<GAPI::GraphicPipelineState> CreatePipelineState(GAPI::Shader* vs, GAPI::Shader* ps)
     {
         auto& deviceContext = Render::DeviceContext::Instance();
 

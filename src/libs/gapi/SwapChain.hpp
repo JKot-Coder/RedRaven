@@ -56,6 +56,8 @@ namespace RR
         class SwapChain final : public Resource<ISwapChain, false>
         {
         public:
+            using UniquePtr = eastl::unique_ptr<SwapChain>;
+
             ~SwapChain();
 
             const SwapChainDesc& GetDesc() const { return desc_; }

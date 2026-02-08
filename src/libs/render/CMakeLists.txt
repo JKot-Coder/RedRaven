@@ -5,7 +5,6 @@ set(SRC
     DeviceContext.hpp
     CommandEncoder.cpp
     CommandEncoder.hpp
-    ResourcePointers.hpp
     SwapChain.hpp
     SwapChain.cpp
     RenderTarget.hpp

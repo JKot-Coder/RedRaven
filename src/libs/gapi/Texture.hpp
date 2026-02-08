@@ -12,6 +12,8 @@ namespace RR::GAPI
     class Texture final : public GpuResource
     {
     public:
+        using UniquePtr = eastl::unique_ptr<Texture>;
+
         static constexpr uint32_t MaxPossible = 0xFFFFFF;
 
     private:

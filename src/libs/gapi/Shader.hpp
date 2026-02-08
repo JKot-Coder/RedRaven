@@ -82,6 +82,8 @@ namespace RR::GAPI
     class Shader final : public Resource<IShader>
     {
     public:
+        using UniquePtr = eastl::unique_ptr<Shader>;
+
         const ShaderDesc& GetDesc() const { return desc_; }
 
     private:

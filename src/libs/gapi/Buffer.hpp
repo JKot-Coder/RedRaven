@@ -27,6 +27,8 @@ namespace RR
         class Buffer final : public GpuResource
         {
         public:
+            using UniquePtr = eastl::unique_ptr<Buffer>;
+
             static constexpr size_t MaxPossible = std::numeric_limits<size_t>::max();
 
         public:
