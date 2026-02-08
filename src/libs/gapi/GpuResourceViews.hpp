@@ -90,22 +90,21 @@ namespace RR
 
             ViewType GetViewType() const { return viewType_; }
             const GpuResourceViewDesc& GetDesc() const { return desc_; }
-            eastl::weak_ptr<GpuResource> GetGpuResource() const { return gpuResource_; }
+            GAPI::GpuResource* GetGpuResource() const { return gpuResource_; }
 
         protected:
-            GpuResourceView(ViewType viewType, const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDesc& desc)
+            GpuResourceView(ViewType viewType, GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc)
                 : Resource<IGpuResourceView, false>(Type::GpuResourceView),
                   viewType_(viewType),
                   desc_(desc),
-                  gpuResource_(gpuResource)
+                  gpuResource_(&gpuResource)
             {
-                ASSERT(gpuResource);
             }
 
         private:
             ViewType viewType_;
             GpuResourceViewDesc desc_;
-            eastl::weak_ptr<GpuResource> gpuResource_;
+            GAPI::GpuResource* gpuResource_;
         };
 
         class ShaderResourceView final : public GpuResourceView
@@ -115,13 +114,13 @@ namespace RR
 
         private:
             static UniquePtr Create(
-                const eastl::shared_ptr<GpuResource>& gpuResource,
+                GAPI::GpuResource& gpuResource,
                 const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new ShaderResourceView(gpuResource, desc));
             };
 
-            ShaderResourceView(const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDesc& desc);
+            ShaderResourceView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
@@ -134,13 +133,13 @@ namespace RR
 
         private:
             static UniquePtr Create(
-                const eastl::shared_ptr<Texture>& texture,
+                GAPI::Texture& texture,
                 const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new DepthStencilView(texture, desc));
             };
 
-            DepthStencilView(const eastl::shared_ptr<Texture>& texture, const GpuResourceViewDesc& desc);
+            DepthStencilView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
@@ -153,13 +152,13 @@ namespace RR
 
         private:
             static UniquePtr Create(
-                const eastl::shared_ptr<Texture>& texture,
+                GAPI::Texture& texture,
                 const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new RenderTargetView(texture, desc));
             };
 
-            RenderTargetView(const eastl::shared_ptr<Texture>& texture, const GpuResourceViewDesc& desc);
+            RenderTargetView(GAPI::Texture& texture, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;
@@ -172,13 +171,13 @@ namespace RR
 
         private:
             static UniquePtr Create(
-                const eastl::shared_ptr<GpuResource>& gpuResource,
+                GAPI::GpuResource& gpuResource,
                 const GpuResourceViewDesc& desc)
             {
                 return UniquePtr(new UnorderedAccessView(gpuResource, desc));
             };
 
-            UnorderedAccessView(const eastl::shared_ptr<GpuResource>& gpuResource, const GpuResourceViewDesc& desc);
+            UnorderedAccessView(GAPI::GpuResource& gpuResource, const GpuResourceViewDesc& desc);
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;

@@ -113,7 +113,7 @@ namespace RR::GAPI
                 if (renderTargetView == nullptr)
                     continue;
 
-                auto gpuResource = renderTargetView->GetGpuResource().lock();
+                auto gpuResource = renderTargetView->GetGpuResource();
                 auto texture = gpuResource->GetTyped<Texture>();
                 auto description = texture->GetDesc();
 
@@ -141,7 +141,7 @@ namespace RR::GAPI
             const auto* depthStencilView = desc.depthStencilAttachment.depthStencilView;
             if (depthStencilView)
             {
-                auto gpuResource = depthStencilView->GetGpuResource().lock();
+                auto gpuResource = depthStencilView->GetGpuResource();
                 auto texture = gpuResource->GetTyped<Texture>();
                 auto description = texture->GetDesc();
 

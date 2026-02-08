@@ -3,6 +3,7 @@
 #include "gapi/ForwardDeclarations.hpp"
 #include "gapi/Limits.hpp"
 #include "gapi/Resource.hpp"
+#include "gapi/Texture.hpp"
 
 // TODO temporary
 #include <eastl/any.h>
@@ -53,7 +54,7 @@ namespace RR
             using UniquePtr = eastl::unique_ptr<SwapChain>;
 
             ~SwapChain();
-            eastl::shared_ptr<Texture> GetCurrentBackBufferTexture();
+            Texture* GetCurrentBackBufferTexture();
 
             const SwapChainDesc& GetDesc() const { return desc_; }
             // TODO temporary
@@ -74,7 +75,7 @@ namespace RR
 
         private:
             SwapChainDesc desc_;
-            eastl::shared_ptr<Texture> backBuffer;
+            Texture::UniquePtr backBuffer;
 
             friend class Render::DeviceContext;
             friend class Render::DeviceContext;

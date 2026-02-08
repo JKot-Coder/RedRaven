@@ -27,8 +27,7 @@ namespace RR
         class Buffer final : public GpuResource
         {
         public:
-            using SharedPtr = eastl::shared_ptr<Buffer>;
-            using SharedConstPtr = eastl::shared_ptr<const Buffer>;
+            using UniquePtr = eastl::unique_ptr<Buffer>;
 
             static constexpr size_t MaxPossible = std::numeric_limits<size_t>::max();
 
@@ -37,11 +36,10 @@ namespace RR
             const UnorderedAccessView* GetUAV(GpuResourceFormat format, size_t firstElement = 0, size_t numElements = MaxPossible);
 
         private:
-            EASTL_FRIEND_MAKE_SHARED;
 
-            static SharedPtr Create(const GpuResourceDesc& desc, const std::string& name)
+            static UniquePtr Create(const GpuResourceDesc& desc, const std::string& name)
             {
-                return eastl::make_shared<Buffer>(desc, name);
+                return eastl::unique_ptr<Buffer>(new Buffer(desc, name));
             }
 
             Buffer(const GpuResourceDesc& desc, const std::string& name) : GpuResource(desc, name)

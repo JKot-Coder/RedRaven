@@ -37,7 +37,7 @@ namespace RR::GAPI::WebGPU
 
     void TextureViewImpl::Init(GAPI::GpuResourceView& gpuResourceView)
     {
-        const auto gpuResource = gpuResourceView.GetGpuResource().lock();
+        const auto gpuResource = gpuResourceView.GetGpuResource();
         ASSERT(gpuResource);
         ASSERT(gpuResource->GetDesc().IsTexture());
         ASSERT(!view);
@@ -48,7 +48,7 @@ namespace RR::GAPI::WebGPU
 
     void TextureViewImpl::RecreateView(GAPI::GpuResourceView& gpuResourceView)
     {
-        const auto gpuResource = gpuResourceView.GetGpuResource().lock();
+        const auto gpuResource = gpuResourceView.GetGpuResource();
         ASSERT(gpuResource);
         ASSERT(gpuResource->GetDesc().IsTexture());
         ASSERT(view);

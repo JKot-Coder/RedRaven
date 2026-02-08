@@ -34,7 +34,7 @@ namespace RR
             backBuffer.reset();
         }
 
-        Texture::SharedPtr SwapChain::GetCurrentBackBufferTexture()
+        Texture* SwapChain::GetCurrentBackBufferTexture()
         {
             if (!backBuffer)
             {
@@ -49,7 +49,7 @@ namespace RR
 
             UpdateCurrentBackBufferTexture(*backBuffer);
 
-            return backBuffer;
+            return backBuffer.get();
         }
     }
 }

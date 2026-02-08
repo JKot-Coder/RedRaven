@@ -171,7 +171,7 @@ namespace RR::GAPI::WebGPU
     {
         ASSERT_IS_DEVICE_INITED;
 
-        const auto gpuResource = view.GetGpuResource().lock();
+        const auto gpuResource = view.GetGpuResource();
         if (gpuResource->GetDesc().IsTexture())
         {
             auto impl = std::make_unique<TextureViewImpl>();

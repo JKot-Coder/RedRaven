@@ -27,11 +27,10 @@ namespace RR
                 return result;
             }
 
-            void check(const GpuResourceViewDesc& desc, const eastl::shared_ptr<GpuResource>& gpuResource, GpuResourceBindFlags requiredBindFlags)
+            void check(const GpuResourceViewDesc& desc, const GAPI::GpuResource& gpuResource, GpuResourceBindFlags requiredBindFlags)
             {
-                ASSERT(gpuResource);
                 #if ENABLE_ASSERTS
-                    const auto& resourceDesc = gpuResource->GetDesc();
+                    const auto& resourceDesc = gpuResource.GetDesc();
 
                     ASSERT(isCompatable(desc, resourceDesc));
                     ASSERT(IsSet(resourceDesc.bindFlags, requiredBindFlags));
@@ -57,7 +56,7 @@ namespace RR
         }
 
         ShaderResourceView::ShaderResourceView(
-            const eastl::shared_ptr<GpuResource>& gpuResource,
+            GAPI::GpuResource& gpuResource,
             const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::ShaderResourceView, gpuResource, desc)
         {
@@ -65,7 +64,7 @@ namespace RR
         }
 
         DepthStencilView::DepthStencilView(
-            const eastl::shared_ptr<Texture>& texture,
+            GAPI::Texture& texture,
             const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::DepthStencilView, texture, desc)
         {
@@ -73,7 +72,7 @@ namespace RR
         }
 
         RenderTargetView::RenderTargetView(
-            const eastl::shared_ptr<Texture>& texture,
+            GAPI::Texture& texture,
             const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::RenderTargetView, texture, desc)
         {;
@@ -81,7 +80,7 @@ namespace RR
         }
 
         UnorderedAccessView::UnorderedAccessView(
-            const eastl::shared_ptr<GpuResource>& gpuResource,
+            GAPI::GpuResource& gpuResource,
             const GpuResourceViewDesc& desc)
             : GpuResourceView(GpuResourceView::ViewType::UnorderedAccessView, gpuResource, desc)
         {

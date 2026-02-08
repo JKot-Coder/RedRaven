@@ -474,7 +474,7 @@ namespace RR
             virtual void Unmap() = 0;
         };
 
-        class GpuResource : public Resource<IGpuResource>, public eastl::enable_shared_from_this<GpuResource>
+        class GpuResource : public Resource<IGpuResource>
         {
         public:
             using SharedPtr = eastl::shared_ptr<GpuResource>;
@@ -482,7 +482,7 @@ namespace RR
 
         public:
             template <typename Type>
-            eastl::shared_ptr<Type> GetTyped();
+            Type* GetTyped();
 
             inline const GpuResourceDesc& GetDesc() const { return desc_; }
             inline std::vector<GpuResourceFootprint::SubresourceFootprint> GetSubresourceFootprints() const
@@ -527,10 +527,10 @@ namespace RR
         };
 
         template <>
-        eastl::shared_ptr<Texture> GpuResource::GetTyped<Texture>();
+        Texture* GpuResource::GetTyped<Texture>();
 
         template <>
-        eastl::shared_ptr<Buffer> GpuResource::GetTyped<Buffer>();
+        Buffer* GpuResource::GetTyped<Buffer>();
 /*
         class GpuResourceDataGuard : public IDataBuffer
         {
