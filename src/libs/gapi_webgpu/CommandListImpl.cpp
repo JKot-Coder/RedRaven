@@ -217,5 +217,7 @@ namespace RR::GAPI::WebGPU
 
         commandBuffer = commandEncoder.finish();
         commandEncoder.release();
+
+        commandList.clear();
     }
 }
