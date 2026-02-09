@@ -29,7 +29,6 @@ namespace RR
             desc_.height = height;
 
             GetPrivateImpl()->Resize(width, height);
-           // backBuffer.reset();
         }
     }
 }

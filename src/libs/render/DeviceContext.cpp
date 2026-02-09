@@ -69,7 +69,7 @@ namespace RR::Render
         submission.ExecuteAwait([frameIndex](GAPI::Device& device) { device.MoveToNextFrame(frameIndex); });
     }
 
-    void DeviceContext::ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height)
+    void DeviceContext::ResizeSwapChain(Render::SwapChain* swapchain, uint32_t width, uint32_t height)
     {
         swapchain->Resize(width, height);
     }

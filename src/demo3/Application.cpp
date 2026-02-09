@@ -67,9 +67,9 @@ namespace RR::App
                 world.View().With<Application>().ForEach([event](Application& application) {
                     UNUSED(event);
                     UNUSED(application);
-                    //Render::SwapChain* swapChain = application.instance->swapChain.get();
-                   // auto& deviceContext = Render::DeviceContext::Instance();
-                   // deviceContext.ResizeSwapChain(swapChain, event.width, event.height);
+                    Render::SwapChain* swapChain = application.instance->swapChain.get();
+                    auto& deviceContext = Render::DeviceContext::Instance();
+                    deviceContext.ResizeSwapChain(swapChain, event.width, event.height);
                 });
             });
 

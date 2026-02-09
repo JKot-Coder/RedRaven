@@ -198,7 +198,7 @@ namespace RR::GAPI::WebGPU
         ASSERT_IS_DEVICE_INITED;
 
         auto impl = std::make_unique<TextureImpl>();
-        const auto surfaceTexture = swapchain.GetPrivateImpl<SwapChainImpl>()->GetSurfaceTexture();
+        const auto surfaceTexture = swapchain.GetPrivateImpl<SwapChainImpl>()->GetCurrentSurfaceTexture();
 
         impl->UpdateTextureResource(surfaceTexture);
         resource.SetPrivateImpl(impl.release());

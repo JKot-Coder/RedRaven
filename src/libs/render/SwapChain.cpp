@@ -9,7 +9,17 @@ namespace RR::Render
     SwapChain::SwapChain(const GAPI::SwapChainDesc& desc)
     {
         swapChain_ = DeviceContext::Instance().CreateSwapchain(desc);
+        resetBackBuffer();
+    }
 
+    void SwapChain::Resize(uint32_t width, uint32_t height)
+    {
+        swapChain_->Resize(width, height);
+        resetBackBuffer();
+    }
+
+    void SwapChain::resetBackBuffer()
+    {
         const GAPI::SwapChainDesc& swapChainDesc = swapChain_->GetDesc();
         const GAPI::GpuResourceDesc backBufferDesc = GAPI::GpuResourceDesc::Texture2D(swapChainDesc.width, swapChainDesc.height, swapChainDesc.backBufferFormat, GAPI::GpuResourceBindFlags::RenderTarget, GAPI::GpuResourceUsage::Default, 1, 1);
         backBuffer_ = DeviceContext::Instance().CreateSwapChainBackBuffer(*swapChain_.get(), backBufferDesc, "SwapChain BackBuffer");

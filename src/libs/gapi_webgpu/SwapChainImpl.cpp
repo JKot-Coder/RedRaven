@@ -98,7 +98,6 @@ namespace RR::GAPI::WebGPU
         surfaceConfiguration.height = height;
 
         surface.configure(surfaceConfiguration);
-        surface.getCurrentTexture(&surfaceTexture);
     }
 
     eastl::any SwapChainImpl::GetWaitableObject() const
@@ -114,7 +113,7 @@ namespace RR::GAPI::WebGPU
             texture.SetPrivateImpl(new TextureImpl());
 
         const auto textureImpl = texture.GetPrivateImpl<TextureImpl>();
-        textureImpl->UpdateTextureResource(surfaceTexture);
+        textureImpl->UpdateTextureResource(GetCurrentSurfaceTexture());
 
         rtv.GetPrivateImpl<TextureViewImpl>()->RecreateView(rtv);
     }
@@ -122,6 +121,12 @@ namespace RR::GAPI::WebGPU
     void SwapChainImpl::Present()
     {
         surface.present();
+    }
+
+    wgpu::SurfaceTexture SwapChainImpl::GetCurrentSurfaceTexture() const
+    {
+        wgpu::SurfaceTexture surfaceTexture;
         surface.getCurrentTexture(&surfaceTexture);
+        return surfaceTexture;
     }
 }

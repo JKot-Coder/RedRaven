@@ -21,11 +21,10 @@ namespace RR::GAPI::WebGPU
         virtual eastl::any GetWaitableObject() const override;
 
         void Present();
-        wgpu::SurfaceTexture GetSurfaceTexture() const { return surfaceTexture; }
+        wgpu::SurfaceTexture GetCurrentSurfaceTexture() const;
 
     private:
         wgpu::SurfaceConfiguration surfaceConfiguration;
         wgpu::Surface surface;
-        wgpu::SurfaceTexture surfaceTexture;
     };
 }

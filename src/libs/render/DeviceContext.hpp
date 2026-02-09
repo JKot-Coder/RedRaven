@@ -38,7 +38,7 @@ namespace RR::Render
 
         void Present(Render::SwapChain& swapChain);
         void MoveToNextFrame(uint64_t frameIndex);
-        void ResizeSwapChain(GAPI::SwapChain* swapchain, uint32_t width, uint32_t height);
+        void ResizeSwapChain(Render::SwapChain* swapchain, uint32_t width, uint32_t height);
 
         void Compile(CommandEncoder& commandEncoder);
 
