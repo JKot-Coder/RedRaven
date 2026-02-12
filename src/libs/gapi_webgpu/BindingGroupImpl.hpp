@@ -12,7 +12,7 @@ namespace RR::GAPI::WebGPU
         BindingGroupImpl() = default;
         ~BindingGroupImpl();
 
-        void Init(const wgpu::Device& device, GAPI::BindingGroup& resource, BindingGroupDesc& desc);
+        void Init(const wgpu::Device& device, BindingGroupDesc& desc);
 
         wgpu::BindGroup GetBindGroup() const { return bindGroup; }
 
