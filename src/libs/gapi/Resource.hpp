@@ -1,11 +1,42 @@
 #pragma once
 
 #include "EASTL/type_traits.h"
+#include "common/Singleton.hpp"
 
 namespace RR
 {
     namespace GAPI
     {
+        class ResourceDeletionQueue final : public Common::Singleton<ResourceDeletionQueue>
+        {
+        private:
+            using DeleterFunc = void (*)(void*);
+
+            struct Zombie
+            {
+                void* object;
+                DeleterFunc deleter;
+            };
+
+            eastl::vector<Zombie> queue_;
+
+        public:
+            void Flush()
+            {
+                for (auto it = queue_.begin(); it != queue_.end(); ++it)
+                    it->deleter(it->object);
+                queue_.clear();
+            }
+
+            template <typename T>
+            void PushDelete(T* object)
+            {
+                if (!object) return;
+                queue_.push_back({object,
+                                  [](void* ptr) { delete static_cast<T*>(ptr); }});
+            }
+        };
+
         template <typename T, bool IsNamed = true>
         class Resource : public Common::NonCopyable
         {
@@ -29,7 +60,7 @@ namespace RR
             };
 
         public:
-            virtual ~Resource() = default;
+            virtual ~Resource() { ResourceDeletionQueue::Instance().PushDelete(privateImpl_.release()); }
 
             T* GetPrivateImpl() { return privateImpl_.get(); }
             const T* GetPrivateImpl() const { return privateImpl_.get(); }
