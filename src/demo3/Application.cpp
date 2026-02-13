@@ -25,6 +25,7 @@
 #include "render/SwapChain.hpp"
 
 #include "common/Result.hpp"
+#include "common/OnScopeExit.hpp"
 
 namespace RR::App
 {
@@ -230,6 +231,7 @@ namespace RR::App
             LOG_ERROR("Failed to initialize device context");
             return 1;
         }
+        ON_SCOPE_EXIT([] { Render::DeviceContext::Instance().Terminate(); });
 
         Render::EffectManager::Instance();
         if(RR_FAILED(Render::EffectManager::Instance().Init("CompiledShaders.rfxlib")))
