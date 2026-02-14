@@ -12,6 +12,6 @@ namespace RR
         constexpr uint32_t MAX_VERTEX_ATTRIBUTES_PER_BUFFER = 8;
 
         constexpr uint32_t MAX_BINDING_GROUPS = 8;
-        constexpr uint32_t MAX_BINDINGS_PER_GROUP = 16;
+        constexpr uint32_t MAX_BINDINGS_PER_GROUP = 32;
     }
 }

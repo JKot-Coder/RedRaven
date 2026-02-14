@@ -49,82 +49,77 @@ namespace RR::GAPI::WebGPU
         }
     }
 
-    BindingLayoutImpl::~BindingLayoutImpl() { }
+    BindingGroupLayoutImpl::~BindingGroupLayoutImpl() { }
 
-    void BindingLayoutImpl::Init(const wgpu::Device& device, GAPI::BindingLayout& resource)
+    void BindingGroupLayoutImpl::Init(const wgpu::Device& device, GAPI::BindingGroupLayout& resource)
     {
         const auto& desc = resource.GetDesc();
-        bindGroupLayouts.clear();
+        eastl::fixed_vector<wgpu::BindGroupLayoutEntry, GAPI::MAX_BINDINGS_PER_GROUP, false> entries;
 
-        for (const auto& group : desc.groups)
+        for (const auto& element : desc.elements)
         {
-            eastl::fixed_vector<wgpu::BindGroupLayoutEntry, GAPI::MAX_BINDINGS_PER_GROUP, false> entries;
+            wgpu::BindGroupLayoutEntry entry;
+            entry.setDefault();
+            entry.binding = element.binding;
+            entry.visibility = getShaderStage(element.stageMask);
 
-            for (const auto& element : group.elements)
+            switch (element.type)
             {
-                wgpu::BindGroupLayoutEntry entry;
-                entry.setDefault();
-                entry.binding = element.binding;
-                entry.visibility = getShaderStage(element.stageMask);
-
-                switch (element.type)
+                case GAPI::BindingType::ConstantBuffer:
                 {
-                    case GAPI::BindingType::ConstantBuffer:
-                    {
-                        entry.buffer.type = wgpu::BufferBindingType::Uniform;
-                        entry.buffer.hasDynamicOffset = false;
-                        entry.buffer.minBindingSize = 0; // Will be set from shader reflection
-                        break;
-                    }
-                    case GAPI::BindingType::BufferSRV:
-                    {
-                        entry.buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
-                        entry.buffer.hasDynamicOffset = false;
-                        entry.buffer.minBindingSize = 0;
-                        break;
-                    }
-                    case GAPI::BindingType::BufferUAV:
-                    {
-                        entry.buffer.type = wgpu::BufferBindingType::Storage;
-                        entry.buffer.hasDynamicOffset = false;
-                        entry.buffer.minBindingSize = 0;
-                        break;
-                    }
-                    case GAPI::BindingType::TextureSRV:
-                    {
-                        entry.texture.sampleType = getTextureSampleType(desc.textureMetas[element.textureMetaIndex].sampleType);
-                        entry.texture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
-                        entry.texture.multisampled = false;
-                        break;
-                    }
-                    case GAPI::BindingType::TextureUAV:
-                    {
-                        entry.storageTexture.access = wgpu::StorageTextureAccess::WriteOnly;
-                        entry.storageTexture.format = GetWGPUFormat(desc.textureMetas[element.textureMetaIndex].format);
-                        entry.storageTexture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
-                        break;
-                    }
-                    case GAPI::BindingType::Sampler:
-                    {
-                        entry.sampler.type = wgpu::SamplerBindingType::Filtering;
-                        break;
-                    }
-                    default:
-                        ASSERT_MSG(false, "Unknown binding type");
-                        continue;
+                    entry.buffer.type = wgpu::BufferBindingType::Uniform;
+                    entry.buffer.hasDynamicOffset = false;
+                    entry.buffer.minBindingSize = 0; // Will be set from shader reflection
+                    break;
                 }
-
-                entries.push_back(entry);
+                case GAPI::BindingType::BufferSRV:
+                {
+                    entry.buffer.type = wgpu::BufferBindingType::ReadOnlyStorage;
+                    entry.buffer.hasDynamicOffset = false;
+                    entry.buffer.minBindingSize = 0;
+                    break;
+                }
+                case GAPI::BindingType::BufferUAV:
+                {
+                    entry.buffer.type = wgpu::BufferBindingType::Storage;
+                    entry.buffer.hasDynamicOffset = false;
+                    entry.buffer.minBindingSize = 0;
+                    break;
+                }
+                case GAPI::BindingType::TextureSRV:
+                {
+                    entry.texture.sampleType = getTextureSampleType(desc.textureMetas[element.textureMetaIndex].sampleType);
+                    entry.texture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
+                    entry.texture.multisampled = false;
+                    break;
+                }
+                case GAPI::BindingType::TextureUAV:
+                {
+                    entry.storageTexture.access = wgpu::StorageTextureAccess::WriteOnly;
+                    entry.storageTexture.format = GetWGPUFormat(desc.textureMetas[element.textureMetaIndex].format);
+                    entry.storageTexture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
+                    break;
+                }
+                case GAPI::BindingType::Sampler:
+                {
+                    entry.sampler.type = wgpu::SamplerBindingType::Filtering;
+                    break;
+                }
+                default:
+                    ASSERT_MSG(false, "Unknown binding type");
+                    continue;
             }
 
-            wgpu::BindGroupLayoutDescriptor layoutDesc;
-            layoutDesc.setDefault();
-            layoutDesc.label = wgpu::StringView(resource.GetName().c_str());
-            layoutDesc.entryCount = entries.size();
-            layoutDesc.entries = entries.data();
-
-            bindGroupLayouts.push_back(device.createBindGroupLayout(layoutDesc));
+            entries.push_back(entry);
         }
+
+        wgpu::BindGroupLayoutDescriptor layoutDesc;
+        layoutDesc.setDefault();
+        layoutDesc.label = wgpu::StringView(resource.GetName().c_str());
+        layoutDesc.entryCount = entries.size();
+        layoutDesc.entries = entries.data();
+
+        bindGroupLayout = device.createBindGroupLayout(layoutDesc);
     }
 }
 

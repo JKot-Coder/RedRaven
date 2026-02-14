@@ -55,7 +55,7 @@ namespace RR
                 SwapChain,
                 Shader,
                 PipelineState,
-                BindingLayout,
+                BindingGroupLayout,
                 BindingSet,
             };
 

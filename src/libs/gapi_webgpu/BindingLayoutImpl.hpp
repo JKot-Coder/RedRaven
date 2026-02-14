@@ -6,16 +6,16 @@
 
 namespace RR::GAPI::WebGPU
 {
-    class BindingLayoutImpl final : public GAPI::IBindingLayout
+    class BindingGroupLayoutImpl final : public GAPI::IBindingGroupLayout
     {
     public:
-        BindingLayoutImpl() = default;
-        ~BindingLayoutImpl();
+        BindingGroupLayoutImpl() = default;
+        ~BindingGroupLayoutImpl();
 
-        void Init(const wgpu::Device& device, GAPI::BindingLayout& resource);
+        void Init(const wgpu::Device& device, GAPI::BindingGroupLayout& resource);
 
     private:
-        eastl::fixed_vector<wgpu::BindGroupLayout, GAPI::MAX_BINDING_GROUPS, false> bindGroupLayouts;
+        wgpu::BindGroupLayout bindGroupLayout;
     };
 }
 

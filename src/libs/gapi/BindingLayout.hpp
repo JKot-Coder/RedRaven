@@ -35,35 +35,30 @@ namespace RR::GAPI
         uint32_t textureMetaIndex;
     };
 
-    struct BindingLayoutDesc
+    struct BindingGroupLayoutDesc
     {
-        struct BindingGroupLayout
-        {
-            eastl::fixed_vector<BindingLayoutElement, MAX_BINDINGS_PER_GROUP, false> elements;
-        };
-
-        eastl::fixed_vector<BindingGroupLayout, MAX_BINDING_GROUPS, false> groups;
+        eastl::fixed_vector<BindingLayoutElement, MAX_BINDINGS_PER_GROUP, false> elements;
         eastl::fixed_vector<BindingLayoutTextureMeta, 16, false> textureMetas;
     };
 
-    class IBindingLayout
+    class IBindingGroupLayout
     {
     public:
-        virtual ~IBindingLayout() = default;
+        virtual ~IBindingGroupLayout() = default;
     };
 
-    class BindingLayout final : public Resource<IBindingLayout, true>
+    class BindingGroupLayout final : public Resource<IBindingGroupLayout, true>
     {
     public:
-        BindingLayout(const BindingLayoutDesc& desc, const std::string& name)
-            : Resource(Type::BindingLayout, name), desc_(desc)
+        BindingGroupLayout(const BindingGroupLayoutDesc& desc, const std::string& name)
+            : Resource(Type::BindingGroupLayout, name), desc_(desc)
         {
         }
 
-        const BindingLayoutDesc& GetDesc() const { return desc_; }
+        const BindingGroupLayoutDesc& GetDesc() const { return desc_; }
 
     private:
-        BindingLayoutDesc desc_;
+        BindingGroupLayoutDesc desc_;
     };
 
 

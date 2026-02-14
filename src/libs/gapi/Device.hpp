@@ -61,7 +61,7 @@ namespace RR
             virtual void InitTexture(Texture& resource) const = 0;
             virtual void InitShader(Shader& resource) const = 0;
             virtual void InitPipelineState(PipelineState& resource) const = 0;
-            virtual void InitBindingLayout(BindingLayout& resource) const = 0;
+            virtual void InitBindingGroupLayout(BindingGroupLayout& resource) const = 0;
             virtual void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const = 0;
 
             virtual std::any GetRawDevice() const = 0;
@@ -99,7 +99,7 @@ namespace RR
             void InitTexture(Texture& resource) const override { GetPrivateImpl()->InitTexture(resource); };
             void InitShader(Shader& resource) const override { GetPrivateImpl()->InitShader(resource); };
             void InitPipelineState(PipelineState& resource) const override { GetPrivateImpl()->InitPipelineState(resource); };
-            void InitBindingLayout(BindingLayout& resource) const override { GetPrivateImpl()->InitBindingLayout(resource); };
+            void InitBindingGroupLayout(BindingGroupLayout& resource) const override { GetPrivateImpl()->InitBindingGroupLayout(resource); };
             void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const override { GetPrivateImpl()->InitBindingGroup(resource, desc); };
 
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
