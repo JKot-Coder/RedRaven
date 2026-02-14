@@ -238,7 +238,7 @@ namespace RR
         bindGroupAsset.uniformCBV = bindGroup.uniformCBV;
         bindGroupAsset.resourcesLayoutIndex = bindGroup.resourcesLayoutIndex;
 
-        insertData(bindGroupsData, bindGroup);
+        insertData(bindGroupsData, bindGroupAsset);
         return bindGroupsCount++;
     }
 
