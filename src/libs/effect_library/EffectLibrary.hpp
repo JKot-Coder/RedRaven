@@ -44,6 +44,12 @@ namespace RR::EffectLibrary
         size_t size;
     };
 
+    struct BindingGroupReflection
+    {
+        const char* name;
+        uint32_t bindingSpace;
+    };
+
     class EffectLibrary
     {
     public:
@@ -78,5 +84,6 @@ namespace RR::EffectLibrary
         eastl::vector<EffectDesc> effects;
         eastl::vector<PassDesc> passes;
         eastl::vector<eastl::unique_ptr<std::byte[]>> shadersData;
+        eastl::vector<BindingGroupReflection> bindingGroupReflections;
     };
 }

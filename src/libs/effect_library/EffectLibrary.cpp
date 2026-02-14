@@ -122,12 +122,28 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
-        auto layoutsData = eastl::make_unique<std::byte[]>(header.layoutsSectionSize);
-        if(file.Read(reinterpret_cast<void*>(layoutsData.get()), header.layoutsSectionSize) != header.layoutsSectionSize)
+        ASSERT(header.layoutsSectionSize % sizeof(uint32_t) == 0);
+        eastl::vector<uint32_t> layoutsData(header.layoutsSectionSize / sizeof(uint32_t));
+        if(file.Read(reinterpret_cast<void*>(layoutsData.data()), header.layoutsSectionSize) != header.layoutsSectionSize)
         {
             LOG_ERROR("Failed to read layouts section size: {}", header.layoutsSectionSize);
             return Common::RResult::Fail;
         }
+
+        auto getLayout = [&layoutsData, &header](uint32_t index) -> eastl::span<uint32_t>
+        {
+            ASSERT(index != Asset::INVALID_INDEX);
+            ASSERT(index < layoutsData.size());
+            ASSERT(index < header.layoutsCount);
+            const uint32_t size = layoutsData[index];
+
+            if(size == 0)
+                return eastl::span<uint32_t>();
+
+            ASSERT(index + size < layoutsData.size());
+            uint32_t* begin = layoutsData.data() + index + 1;
+            return eastl::span<uint32_t>(begin, size);
+        };
 
         auto bindGroupsData = eastl::make_unique<std::byte[]>(header.bindGroupsSectionSize);
         if(file.Read(reinterpret_cast<void*>(bindGroupsData.get()), header.bindGroupsSectionSize) != header.bindGroupsSectionSize)
@@ -135,6 +151,22 @@ namespace RR::EffectLibrary
             LOG_ERROR("Failed to read bind groups section size: {}", header.bindGroupsSectionSize);
             return Common::RResult::Fail;
         }
+
+        ASSERT(header.bindGroupsCount * sizeof(Asset::BindGroup) == header.bindGroupsSectionSize);
+        auto bindGroupsAssets = eastl::span<Asset::BindGroup>(reinterpret_cast<Asset::BindGroup*>(bindGroupsData.get()), header.bindGroupsCount);
+
+        for (const auto& bindGroupAsset : bindGroupsAssets)
+        {
+            BindingGroupReflection bindingGroupReflection;
+            bindingGroupReflection.name = getString(bindGroupAsset.nameIndex);
+            bindingGroupReflection.bindingSpace = bindGroupAsset.bindingSpace;
+
+            auto layout = getLayout(bindGroupAsset.resourcesLayoutIndex);
+            UNUSED(layout);
+
+            bindingGroupReflections.emplace_back(eastl::move(bindingGroupReflection));
+        }
+
         effectsMap.reserve(header.effectsCount);
         for(uint32_t i = 0; i < header.effectsCount; i++)
         {
