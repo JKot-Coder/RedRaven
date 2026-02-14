@@ -108,22 +108,25 @@ namespace RR::EffectLibrary
             shaders.emplace_back(eastl::move(shaderDesc));
         }
 
-        auto shaderData = eastl::make_unique<std::byte[]>(header.srvSectionSize);
-        if (file.Read(reinterpret_cast<void*>(shaderData.get()), header.srvSectionSize) != header.srvSectionSize)
+        auto srvRelections = eastl::vector<Asset::SrvReflection>(header.srvCount);
+        CHECK_RETURN_FAIL(header.srvCount * sizeof(Asset::SrvReflection) == header.srvSectionSize);
+        if (file.Read(reinterpret_cast<void*>(srvRelections.data()), header.srvSectionSize) != header.srvSectionSize)
         {
             LOG_ERROR("Failed to read SRV section size: {}", header.srvSectionSize);
             return Common::RResult::Fail;
         }
 
-        auto uavData = eastl::make_unique<std::byte[]>(header.uavSectionSize);
-        if (file.Read(reinterpret_cast<void*>(uavData.get()), header.uavSectionSize) != header.uavSectionSize)
+        auto uavReflections = eastl::vector<Asset::UavReflection>(header.uavCount);
+        CHECK_RETURN_FAIL(header.uavCount * sizeof(Asset::UavReflection) == header.uavSectionSize);
+        if (file.Read(reinterpret_cast<void*>(uavReflections.data()), header.uavSectionSize) != header.uavSectionSize)
         {
             LOG_ERROR("Failed to read UAV section size: {}", header.uavSectionSize);
             return Common::RResult::Fail;
         }
 
-        auto cbvData = eastl::make_unique<std::byte[]>(header.cbvSectionSize);
-        if (file.Read(reinterpret_cast<void*>(cbvData.get()), header.cbvSectionSize) != header.cbvSectionSize)
+        auto cbvReflections = eastl::vector<Asset::CbvReflection>(header.cbvCount);
+        CHECK_RETURN_FAIL(header.cbvCount * sizeof(Asset::CbvReflection) == header.cbvSectionSize);
+        if (file.Read(reinterpret_cast<void*>(cbvReflections.data()), header.cbvSectionSize) != header.cbvSectionSize)
         {
             LOG_ERROR("Failed to read CBV section size: {}", header.cbvSectionSize);
             return Common::RResult::Fail;
