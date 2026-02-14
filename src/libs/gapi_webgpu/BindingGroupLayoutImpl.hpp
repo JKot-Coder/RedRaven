@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapi/BindingLayout.hpp"
+#include "gapi/BindingGroupLayout.hpp"
 
 #include "webgpu/webgpu.hpp"
 

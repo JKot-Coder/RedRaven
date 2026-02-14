@@ -2,7 +2,7 @@
 
 #include "gapi/Shader.hpp"
 #include "gapi/PipelineState.hpp"
-#include "gapi/BindingLayout.hpp"
+#include "gapi/BindingGroupLayout.hpp"
 
 #include <vector>
 #include <cstdint>

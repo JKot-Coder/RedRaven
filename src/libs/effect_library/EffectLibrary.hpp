@@ -2,7 +2,7 @@
 
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
-#include "gapi/BindingLayout.hpp"
+#include "gapi/BindingGroupLayout.hpp"
 #include "effect_library/EffectFormat.hpp" // For Asset enums (VarType, VarKind)
 
 #include "absl/container/flat_hash_map.h"

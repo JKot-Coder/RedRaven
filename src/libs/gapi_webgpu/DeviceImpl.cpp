@@ -5,7 +5,7 @@
 
 #include "Device.hpp"
 
-#include "BindingLayoutImpl.hpp"
+#include "BindingGroupLayoutImpl.hpp"
 #include "BindingGroupImpl.hpp"
 #include "BufferImpl.hpp"
 #include "CommandListImpl.hpp"
@@ -16,7 +16,7 @@
 #include "TextureImpl.hpp"
 #include "TextureViewImpl.hpp"
 
-#include "gapi/BindingLayout.hpp"
+#include "gapi/BindingGroupLayout.hpp"
 #include "gapi/Buffer.hpp"
 #include "gapi/PipelineState.hpp"
 #include "gapi/Resource.hpp"

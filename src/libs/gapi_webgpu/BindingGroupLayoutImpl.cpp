@@ -1,6 +1,6 @@
-#include "BindingLayoutImpl.hpp"
+#include "BindingGroupLayoutImpl.hpp"
 
-#include "gapi/BindingLayout.hpp"
+#include "gapi/BindingGroupLayout.hpp"
 #include "gapi/GpuResource.hpp"
 
 #include "Utils.hpp"

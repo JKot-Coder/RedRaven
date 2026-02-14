@@ -1,8 +1,8 @@
 project (gapi_webgpu)
 
 set(SRC
-    BindingLayoutImpl.cpp
-    BindingLayoutImpl.hpp
+    BindingGroupLayoutImpl.cpp
+    BindingGroupLayoutImpl.hpp
     BindingGroupImpl.cpp
     BindingGroupImpl.hpp
     BufferImpl.cpp
