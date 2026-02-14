@@ -1,10 +1,10 @@
 #include "EffectLibrary.hpp"
 #include "EffectFormat.hpp"
 
-#include "common/io/File.hpp"
-#include "common/Result.hpp"
 #include "common/OnScopeExit.hpp"
+#include "common/Result.hpp"
 #include "common/hashing/Hash.hpp"
+#include "common/io/File.hpp"
 
 #include "render/DeviceContext.hpp"
 
@@ -28,26 +28,26 @@ namespace RR::EffectLibrary
         });
 
         Asset::Header header;
-        if(file.Read(reinterpret_cast<void*>(&header), sizeof(header)) != sizeof(header))
+        if (file.Read(reinterpret_cast<void*>(&header), sizeof(header)) != sizeof(header))
         {
             LOG_ERROR("Failed to read header from file: {}", path);
             return Common::RResult::Fail;
         }
 
-        if(header.magic != Asset::Header::MAGIC)
+        if (header.magic != Asset::Header::MAGIC)
         {
             LOG_ERROR("Invalid magic number in header: {}", header.magic);
             return Common::RResult::Fail;
         }
 
-        if(header.version != Asset::Header::VERSION)
+        if (header.version != Asset::Header::VERSION)
         {
             LOG_ERROR("Invalid version in header: {}", header.version);
             return Common::RResult::Fail;
         }
 
         stringsData = eastl::make_unique<std::byte[]>(header.stringsSectionSize);
-        if(file.Read(reinterpret_cast<void*>(stringsData.get()), header.stringsSectionSize) != header.stringsSectionSize)
+        if (file.Read(reinterpret_cast<void*>(stringsData.get()), header.stringsSectionSize) != header.stringsSectionSize)
         {
             LOG_ERROR("Failed to read strings data: {}", header.stringsSectionSize);
             return Common::RResult::Fail;
@@ -58,9 +58,9 @@ namespace RR::EffectLibrary
         char* stringStart = currentChar;
 
         strings.reserve(header.stringsCount);
-        while(currentChar != lastChar)
+        while (currentChar != lastChar)
         {
-            if(*currentChar == '\0')
+            if (*currentChar == '\0')
             {
                 strings.push_back(stringStart);
                 stringStart = currentChar + 1;
@@ -69,23 +69,23 @@ namespace RR::EffectLibrary
             currentChar++;
         }
 
-        if(strings.size() != header.stringsCount)
+        if (strings.size() != header.stringsCount)
         {
             LOG_ERROR("Invalid strings count in header: {}", header.stringsCount);
             return Common::RResult::Fail;
         }
 
-        for(uint32_t i = 0; i < header.shadersCount; i++)
+        for (uint32_t i = 0; i < header.shadersCount; i++)
         {
             Asset::ShaderDesc assetShaderDesc;
-            if(file.Read(reinterpret_cast<void*>(&assetShaderDesc), sizeof(assetShaderDesc)) != sizeof(assetShaderDesc))
+            if (file.Read(reinterpret_cast<void*>(&assetShaderDesc), sizeof(assetShaderDesc)) != sizeof(assetShaderDesc))
             {
                 LOG_ERROR("Failed to read shader header: {}", i);
                 return Common::RResult::Fail;
             }
 
             auto shaderData = eastl::make_unique<std::byte[]>(assetShaderDesc.size);
-            if(file.Read(reinterpret_cast<void*>(shaderData.get()), assetShaderDesc.size) != assetShaderDesc.size)
+            if (file.Read(reinterpret_cast<void*>(shaderData.get()), assetShaderDesc.size) != assetShaderDesc.size)
             {
                 LOG_ERROR("Failed to read shader data: {}", i);
                 return Common::RResult::Fail;
@@ -102,21 +102,21 @@ namespace RR::EffectLibrary
         }
 
         auto shaderData = eastl::make_unique<std::byte[]>(header.srvSectionSize);
-        if(file.Read(reinterpret_cast<void*>(shaderData.get()), header.srvSectionSize) != header.srvSectionSize)
+        if (file.Read(reinterpret_cast<void*>(shaderData.get()), header.srvSectionSize) != header.srvSectionSize)
         {
             LOG_ERROR("Failed to read SRV section size: {}", header.srvSectionSize);
             return Common::RResult::Fail;
         }
 
         auto uavData = eastl::make_unique<std::byte[]>(header.uavSectionSize);
-        if(file.Read(reinterpret_cast<void*>(uavData.get()), header.uavSectionSize) != header.uavSectionSize)
+        if (file.Read(reinterpret_cast<void*>(uavData.get()), header.uavSectionSize) != header.uavSectionSize)
         {
             LOG_ERROR("Failed to read UAV section size: {}", header.uavSectionSize);
             return Common::RResult::Fail;
         }
 
         auto cbvData = eastl::make_unique<std::byte[]>(header.cbvSectionSize);
-        if(file.Read(reinterpret_cast<void*>(cbvData.get()), header.cbvSectionSize) != header.cbvSectionSize)
+        if (file.Read(reinterpret_cast<void*>(cbvData.get()), header.cbvSectionSize) != header.cbvSectionSize)
         {
             LOG_ERROR("Failed to read CBV section size: {}", header.cbvSectionSize);
             return Common::RResult::Fail;
@@ -124,20 +124,19 @@ namespace RR::EffectLibrary
 
         ASSERT(header.layoutsSectionSize % sizeof(uint32_t) == 0);
         eastl::vector<uint32_t> layoutsData(header.layoutsSectionSize / sizeof(uint32_t));
-        if(file.Read(reinterpret_cast<void*>(layoutsData.data()), header.layoutsSectionSize) != header.layoutsSectionSize)
+        if (file.Read(reinterpret_cast<void*>(layoutsData.data()), header.layoutsSectionSize) != header.layoutsSectionSize)
         {
             LOG_ERROR("Failed to read layouts section size: {}", header.layoutsSectionSize);
             return Common::RResult::Fail;
         }
 
-        auto getLayout = [&layoutsData, &header](uint32_t index) -> eastl::span<uint32_t>
-        {
+        auto getLayout = [&layoutsData, &header](uint32_t index) -> eastl::span<uint32_t> {
             ASSERT(index != Asset::INVALID_INDEX);
             ASSERT(index < layoutsData.size());
             ASSERT(index < header.layoutsCount);
             const uint32_t size = layoutsData[index];
 
-            if(size == 0)
+            if (size == 0)
                 return eastl::span<uint32_t>();
 
             ASSERT(index + size < layoutsData.size());
@@ -146,7 +145,7 @@ namespace RR::EffectLibrary
         };
 
         auto bindGroupsData = eastl::make_unique<std::byte[]>(header.bindGroupsSectionSize);
-        if(file.Read(reinterpret_cast<void*>(bindGroupsData.get()), header.bindGroupsSectionSize) != header.bindGroupsSectionSize)
+        if (file.Read(reinterpret_cast<void*>(bindGroupsData.get()), header.bindGroupsSectionSize) != header.bindGroupsSectionSize)
         {
             LOG_ERROR("Failed to read bind groups section size: {}", header.bindGroupsSectionSize);
             return Common::RResult::Fail;
@@ -168,10 +167,10 @@ namespace RR::EffectLibrary
         }
 
         effectsMap.reserve(header.effectsCount);
-        for(uint32_t i = 0; i < header.effectsCount; i++)
+        for (uint32_t i = 0; i < header.effectsCount; i++)
         {
             Asset::EffectDesc assetEffectDesc;
-            if(file.Read(reinterpret_cast<void*>(&assetEffectDesc), sizeof(assetEffectDesc)) != sizeof(assetEffectDesc))
+            if (file.Read(reinterpret_cast<void*>(&assetEffectDesc), sizeof(assetEffectDesc)) != sizeof(assetEffectDesc))
             {
                 LOG_ERROR("Failed to read effect header: {}", i);
                 return Common::RResult::Fail;
@@ -184,10 +183,10 @@ namespace RR::EffectLibrary
             EffectDesc effectDesc;
             effectDesc.name = name;
 
-            for(uint32_t j = 0; j < assetEffectDesc.passCount; j++)
+            for (uint32_t j = 0; j < assetEffectDesc.passCount; j++)
             {
                 Asset::PassDesc assetPassDesc;
-                if(file.Read(reinterpret_cast<void*>(&assetPassDesc), sizeof(assetPassDesc)) != sizeof(assetPassDesc))
+                if (file.Read(reinterpret_cast<void*>(&assetPassDesc), sizeof(assetPassDesc)) != sizeof(assetPassDesc))
                 {
                     LOG_ERROR("Failed to read pass desc: {}", j);
                     return Common::RResult::Fail;
@@ -213,78 +212,78 @@ namespace RR::EffectLibrary
 
                 eastl::array<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count)> shaderIndexes;
                 uint32_t shaderIndexesSize = sizeof(uint32_t) * shaderStages.size();
-                if(file.Read(reinterpret_cast<void*>(&shaderIndexes), shaderIndexesSize) != shaderIndexesSize)
+                if (file.Read(reinterpret_cast<void*>(&shaderIndexes), shaderIndexesSize) != shaderIndexesSize)
                 {
                     LOG_ERROR("Failed to read shader indexes: {}", j);
                     return Common::RResult::Fail;
                 }
 
-                for(uint32_t i = 0; i < shaderStages.size(); i++)
+                for (uint32_t i = 0; i < shaderStages.size(); i++)
                     passDesc.shaderIndexes[eastl::to_underlying(shaderStages[i])] = shaderIndexes[i];
-/*
-                Asset::ReflectionDesc::Header reflectionHeader;
-                if(file.Read(reinterpret_cast<void*>(&reflectionHeader), sizeof(reflectionHeader)) != sizeof(reflectionHeader))
-                {
-                    LOG_ERROR("Failed to read reflection header: {}", j);
-                    return Common::RResult::Fail;
-                }
+                /*
+                                Asset::ReflectionDesc::Header reflectionHeader;
+                                if(file.Read(reinterpret_cast<void*>(&reflectionHeader), sizeof(reflectionHeader)) != sizeof(reflectionHeader))
+                                {
+                                    LOG_ERROR("Failed to read reflection header: {}", j);
+                                    return Common::RResult::Fail;
+                                }
 
-                passDesc.reflection.textureMetas.resize(reflectionHeader.textureMetasCount);
-                if(file.Read(passDesc.reflection.textureMetas.data(), reflectionHeader.textureMetasCount * sizeof(GAPI::BindingLayoutTextureMeta)) != reflectionHeader.textureMetasCount * sizeof(GAPI::BindingLayoutTextureMeta))
-                {
-                    LOG_ERROR("Failed to read texture metas: {}", j);
-                    return Common::RResult::Fail;
-                }
+                                passDesc.reflection.textureMetas.resize(reflectionHeader.textureMetasCount);
+                                if(file.Read(passDesc.reflection.textureMetas.data(), reflectionHeader.textureMetasCount * sizeof(GAPI::BindingLayoutTextureMeta)) != reflectionHeader.textureMetasCount * sizeof(GAPI::BindingLayoutTextureMeta))
+                                {
+                                    LOG_ERROR("Failed to read texture metas: {}", j);
+                                    return Common::RResult::Fail;
+                                }
 
-                std::vector<Asset::FieldReflection> assetFields(reflectionHeader.variablesCount);
-                if(file.Read(assetFields.data(), reflectionHeader.variablesCount * sizeof(Asset::FieldReflection)) != reflectionHeader.variablesCount * sizeof(Asset::FieldReflection))
-                {
-                    LOG_ERROR("Failed to read reflection variables: {}", j);
-                    return Common::RResult::Fail;
-                }
+                                std::vector<Asset::FieldReflection> assetFields(reflectionHeader.variablesCount);
+                                if(file.Read(assetFields.data(), reflectionHeader.variablesCount * sizeof(Asset::FieldReflection)) != reflectionHeader.variablesCount * sizeof(Asset::FieldReflection))
+                                {
+                                    LOG_ERROR("Failed to read reflection variables: {}", j);
+                                    return Common::RResult::Fail;
+                                }
 
-                passDesc.reflection.fields.reserve(reflectionHeader.variablesCount);
-                for(const auto& field : assetFields)
-                {
-                    FieldReflection f;
-                    f.name = getString(field.nameIndex);
-                    f.type = field.type;
-                    f.kind = field.kind;
-                    f.arraySize = field.arraySize;
-                    f.offset = field.offset;
-                    f.size = field.size;
-                    f.firstMemberIndex = field.firstMemberIndex;
-                    f.memberCount = field.memberCount;
-                    passDesc.reflection.fields.emplace_back(eastl::move(f));
-                }
+                                passDesc.reflection.fields.reserve(reflectionHeader.variablesCount);
+                                for(const auto& field : assetFields)
+                                {
+                                    FieldReflection f;
+                                    f.name = getString(field.nameIndex);
+                                    f.type = field.type;
+                                    f.kind = field.kind;
+                                    f.arraySize = field.arraySize;
+                                    f.offset = field.offset;
+                                    f.size = field.size;
+                                    f.firstMemberIndex = field.firstMemberIndex;
+                                    f.memberCount = field.memberCount;
+                                    passDesc.reflection.fields.emplace_back(eastl::move(f));
+                                }
 
-                std::vector<Asset::ResourceReflection> assetResourceReflections(reflectionHeader.resourcesCount);
-                if(file.Read(assetResourceReflections.data(), reflectionHeader.resourcesCount * sizeof(Asset::ResourceReflection)) != reflectionHeader.resourcesCount * sizeof(Asset::ResourceReflection))
-                {
-                    LOG_ERROR("Failed to read reflection resources: {}", j);
-                    return Common::RResult::Fail;
-                }
+                                std::vector<Asset::ResourceReflection> assetResourceReflections(reflectionHeader.resourcesCount);
+                                if(file.Read(assetResourceReflections.data(), reflectionHeader.resourcesCount * sizeof(Asset::ResourceReflection)) != reflectionHeader.resourcesCount * sizeof(Asset::ResourceReflection))
+                                {
+                                    LOG_ERROR("Failed to read reflection resources: {}", j);
+                                    return Common::RResult::Fail;
+                                }
 
-                passDesc.reflection.resources.reserve(reflectionHeader.resourcesCount);
-                for(const auto& resourceReflection : assetResourceReflections)
-                {
-                    ResourceReflection r;
-                    r.name = getString(resourceReflection.nameIndex);
-                    r.type = resourceReflection.type;
-                    r.stageMask = resourceReflection.stageMask;
-                    r.binding = resourceReflection.binding;
-                    r.set = resourceReflection.set;
-                    r.count = resourceReflection.count;
-                    r.textureMetaIndex = resourceReflection.textureMetaIndex;
-                    r.variables = resourceReflection.firstVarIndex != Asset::INVALID_INDEX ? eastl::span<FieldReflection>(passDesc.reflection.fields.data() + resourceReflection.firstVarIndex, resourceReflection.varCount) : eastl::span<FieldReflection>();
-                    r.child = resourceReflection.firstChildResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[resourceReflection.firstChildResourceIndex] : nullptr;
-                    r.next = resourceReflection.nextResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[resourceReflection.nextResourceIndex] : nullptr;
-                    passDesc.reflection.resources.emplace_back(eastl::move(r));
-                }
+                                passDesc.reflection.resources.reserve(reflectionHeader.resourcesCount);
+                                for(const auto& resourceReflection : assetResourceReflections)
+                                {
+                                    ResourceReflection r;
+                                    r.name = getString(resourceReflection.nameIndex);
+                                    r.type = resourceReflection.type;
+                                    r.stageMask = resourceReflection.stageMask;
+                                    r.binding = resourceReflection.binding;
+                                    r.set = resourceReflection.set;
+                                    r.count = resourceReflection.count;
+                                    r.textureMetaIndex = resourceReflection.textureMetaIndex;
+                                    r.variables = resourceReflection.firstVarIndex != Asset::INVALID_INDEX ? eastl::span<FieldReflection>(passDesc.reflection.fields.data() + resourceReflection.firstVarIndex, resourceReflection.varCount) : eastl::span<FieldReflection>();
+                                    r.child = resourceReflection.firstChildResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[resourceReflection.firstChildResourceIndex] : nullptr;
+                                    r.next = resourceReflection.nextResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[resourceReflection.nextResourceIndex] : nullptr;
+                                    passDesc.reflection.resources.emplace_back(eastl::move(r));
+                                }
 
 
-                passDesc.reflection.rootBlock = reflectionHeader.rootResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[reflectionHeader.rootResourceIndex] : nullptr;
-               */
+                                passDesc.reflection.rootBlock = reflectionHeader.rootResourceIndex != Asset::INVALID_INDEX ? &passDesc.reflection.resources[reflectionHeader.rootResourceIndex] : nullptr;
+                               */
                 effectDesc.passes.emplace_back(eastl::move(passDesc));
             }
 
@@ -300,7 +299,7 @@ namespace RR::EffectLibrary
         ASSERT(loaded);
 
         auto it = effectsMap.find(hash);
-        if(it == effectsMap.end())
+        if (it == effectsMap.end())
             return false;
 
         effectDesc = effects[it->second];
