@@ -300,6 +300,12 @@ namespace RR
         file.write(reinterpret_cast<const char*>(uavData.data()), uavData.size());
         file.write(reinterpret_cast<const char*>(cbvData.data()), cbvData.size());
 
+        // Layouts
+        file.write(reinterpret_cast<const char*>(layoutsData.data()), layoutsData.size());
+
+        // Binding groups
+        file.write(reinterpret_cast<const char*>(bindGroupsData.data()), bindGroupsData.size());
+
         // Effects
         file.write(reinterpret_cast<const char*>(effectsData.data()), effectsData.size());
 

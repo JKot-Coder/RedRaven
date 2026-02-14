@@ -122,6 +122,19 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
+        auto layoutsData = eastl::make_unique<std::byte[]>(header.layoutsSectionSize);
+        if(file.Read(reinterpret_cast<void*>(layoutsData.get()), header.layoutsSectionSize) != header.layoutsSectionSize)
+        {
+            LOG_ERROR("Failed to read layouts section size: {}", header.layoutsSectionSize);
+            return Common::RResult::Fail;
+        }
+
+        auto bindGroupsData = eastl::make_unique<std::byte[]>(header.bindGroupsSectionSize);
+        if(file.Read(reinterpret_cast<void*>(bindGroupsData.get()), header.bindGroupsSectionSize) != header.bindGroupsSectionSize)
+        {
+            LOG_ERROR("Failed to read bind groups section size: {}", header.bindGroupsSectionSize);
+            return Common::RResult::Fail;
+        }
         effectsMap.reserve(header.effectsCount);
         for(uint32_t i = 0; i < header.effectsCount; i++)
         {
