@@ -2,6 +2,7 @@
 
 #include "common/RingQueue.hpp"
 #include "common/threading/Mutex.hpp"
+#include <condition_variable>
 
 namespace RR::Common::Threading
 {
