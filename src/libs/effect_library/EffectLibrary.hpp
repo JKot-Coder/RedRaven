@@ -50,6 +50,23 @@ namespace RR::EffectLibrary
         uint32_t bindingSpace;
     };
 
+    struct ResourceReflection
+    {
+        Asset::ResourceType type;
+        const char* name;
+        GAPI::ShaderStageMask usageMask;
+        uint32_t binding;
+        uint32_t count;
+        // SRV and UAV
+        GAPI::GpuResourceDimension dimension;
+        // SRV only
+        GAPI::TextureSampleType sampleType;
+        // UAV only
+        GAPI::GpuResourceFormat format;
+        // CBV only
+        uint32_t layoutIndex;
+    };
+
     class EffectLibrary
     {
     public:
@@ -85,5 +102,6 @@ namespace RR::EffectLibrary
         eastl::vector<PassDesc> passes;
         eastl::vector<eastl::unique_ptr<std::byte[]>> shadersData;
         eastl::vector<BindingGroupReflection> bindingGroupReflections;
+        eastl::vector<ResourceReflection> resources;
     };
 }
