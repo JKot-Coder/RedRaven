@@ -6,6 +6,9 @@
 #include "effect_library/EffectLibrary.hpp"
 #include "effect_library/EffectFormat.hpp"
 
+#include "gapi/BindingGroupLayout.hpp"
+#include "gapi/GpuResource.hpp"
+
 #include "common/Result.hpp"
 #include "common/hashing/Hash.hpp"
 
@@ -34,6 +37,57 @@ namespace RR::Render
             shaderDesc.size = shaderAssetDesc.size;
 
             shaders.emplace_back(deviceContext.CreateShader(shaderDesc, shaderAssetDesc.name));
+        }
+
+        bindingGroupLayouts.reserve(effectLibrary->GetBindingGroupCount());
+        for (size_t i = 0; i < effectLibrary->GetBindingGroupCount(); i++)
+        {
+            const auto& group = effectLibrary->GetBindingGroupReflection(i);
+
+            GAPI::BindingGroupLayoutDesc layoutDesc;
+            for (const auto& res : group.resources)
+            {
+                GAPI::BindingLayoutElement element;
+                element.binding = res.binding;
+                element.count = res.count;
+                element.stageMask = res.usageMask;
+                element.textureMetaIndex = 0;
+
+                switch (res.type)
+                {
+                    case EffectLibrary::Asset::ResourceType::CBV:
+                        element.type = GAPI::BindingType::ConstantBuffer;
+                        break;
+                    case EffectLibrary::Asset::ResourceType::SRV:
+                        if (res.dimension == GAPI::GpuResourceDimension::Buffer)
+                        {
+                            element.type = GAPI::BindingType::BufferSRV;
+                        }
+                        else
+                        {
+                            element.type = GAPI::BindingType::TextureSRV;
+                            element.textureMetaIndex = static_cast<uint32_t>(layoutDesc.textureMetas.size());
+                            layoutDesc.textureMetas.push_back({ res.dimension, {}, res.sampleType });
+                        }
+                        break;
+                    case EffectLibrary::Asset::ResourceType::UAV:
+                        if (res.dimension == GAPI::GpuResourceDimension::Buffer)
+                        {
+                            element.type = GAPI::BindingType::BufferUAV;
+                        }
+                        else
+                        {
+                            element.type = GAPI::BindingType::TextureUAV;
+                            element.textureMetaIndex = static_cast<uint32_t>(layoutDesc.textureMetas.size());
+                            layoutDesc.textureMetas.push_back({ res.dimension, res.format, {} });
+                        }
+                        break;
+                }
+
+                layoutDesc.elements.push_back(element);
+            }
+
+            bindingGroupLayouts.emplace_back(deviceContext.CreateBindingGroupLayout(layoutDesc, group.name));
         }
 
         return Common::RResult::Ok;

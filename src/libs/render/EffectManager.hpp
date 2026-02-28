@@ -32,5 +32,6 @@ namespace RR::Render
     private:
         eastl::unique_ptr<EffectLibrary::EffectLibrary> effectLibrary;
         eastl::vector<eastl::unique_ptr<GAPI::Shader>> shaders;
+        eastl::vector<eastl::unique_ptr<GAPI::BindingGroupLayout>> bindingGroupLayouts;
     };
 }

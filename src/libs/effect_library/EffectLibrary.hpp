@@ -84,6 +84,13 @@ namespace RR::EffectLibrary
             return shaders[index];
         }
 
+        size_t GetBindingGroupCount() const { return bindingGroupReflections.size(); }
+        const BindingGroupReflection& GetBindingGroupReflection(size_t index) const
+        {
+            ASSERT(index < bindingGroupReflections.size());
+            return bindingGroupReflections[index];
+        }
+
     private:
 
         const char* getString(uint32_t index) const
