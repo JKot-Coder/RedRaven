@@ -132,6 +132,65 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
+        resources.reserve(header.srvCount + header.uavCount + header.cbvCount);
+
+        absl::flat_hash_map<uint32_t, ResourceReflection*> resourcesMap;
+        resourcesMap.reserve(header.srvCount + header.uavCount + header.cbvCount);
+
+        auto getResource = [&resourcesMap](uint32_t id) -> ResourceReflection* {
+            auto it = resourcesMap.find(id);
+            return it != resourcesMap.end() ? it->second : nullptr;
+        };
+        UNUSED(getResource);
+
+        for (uint32_t i = 0; i < header.srvCount; i++)
+        {
+            const auto& src = srvRelections[i];
+            auto& dst = resources.emplace_back();
+            dst.type = Asset::ResourceType::SRV;
+            dst.name = getString(src.nameIndex);
+            dst.usageMask = src.usageMask;
+            dst.binding = src.binding;
+            dst.count = src.count;
+            dst.dimension = src.dimension;
+            dst.sampleType = src.sampleType;
+            dst.format = {};
+            dst.layoutIndex = Asset::INVALID_INDEX;
+            resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::SRV, i), &dst);
+        }
+
+        for (uint32_t i = 0; i < header.uavCount; i++)
+        {
+            const auto& src = uavReflections[i];
+            auto& dst = resources.emplace_back();
+            dst.type = Asset::ResourceType::UAV;
+            dst.name = getString(src.nameIndex);
+            dst.usageMask = src.usageMask;
+            dst.binding = src.binding;
+            dst.count = src.count;
+            dst.dimension = src.dimension;
+            dst.sampleType = {};
+            dst.format = src.format;
+            dst.layoutIndex = Asset::INVALID_INDEX;
+            resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::UAV, i), &dst);
+        }
+
+        for (uint32_t i = 0; i < header.cbvCount; i++)
+        {
+            const auto& src = cbvReflections[i];
+            auto& dst = resources.emplace_back();
+            dst.type = Asset::ResourceType::CBV;
+            dst.name = getString(src.nameIndex);
+            dst.usageMask = src.usageMask;
+            dst.binding = src.binding;
+            dst.count = src.count;
+            dst.dimension = {};
+            dst.sampleType = {};
+            dst.format = {};
+            dst.layoutIndex = src.layoutIndex;
+            resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::CBV, i), &dst);
+        }
+
         CHECK_RETURN_FAIL(header.layoutsSectionSize % sizeof(uint32_t) == 0);
         eastl::vector<uint32_t> layoutsData(header.layoutsSectionSize / sizeof(uint32_t));
         if (file.Read(reinterpret_cast<void*>(layoutsData.data()), header.layoutsSectionSize) != header.layoutsSectionSize)
