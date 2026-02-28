@@ -51,6 +51,9 @@ namespace RR
 
     void insertData(std::vector<std::byte>& data, const void* ptr, size_t size)
     {
+        if UNLIKELY (size == 0)
+            return;
+
         data.reserve(data.size() + size);
         data.insert(data.end(), reinterpret_cast<const std::byte*>(ptr), reinterpret_cast<const std::byte*>(ptr) + size);
     }
@@ -60,6 +63,15 @@ namespace RR
     {
         insertData(data, reinterpret_cast<const void*>(&value), sizeof(value));
     }
+
+    EffectSerializer::EffectSerializer(): stringAllocator(1024)
+    {
+        // Add dummy empty layout to reuse this layout for all empty layouts
+        Asset::Layout layoutAsset;
+        layoutAsset.elementsCount = 0;
+        insertData(layoutsData, layoutAsset);
+        layoutsCount = 1;
+    };
 
     uint32_t EffectSerializer::AddString(const std::string_view& str)
     {
@@ -89,11 +101,23 @@ namespace RR
 
     uint32_t EffectSerializer::AddLayout(const eastl::span<uint32_t>& layout)
     {
+        if (layout.size() == 0)
+            return 0; // Use dummy empty layout
+
+        static_assert(sizeof(Asset::Layout) == sizeof(uint32_t), "Layout size is not equal to uint32_t");
+        ASSERT(layoutsData.size() % sizeof(uint32_t) == 0);
+
+        // Index is just offsets in index * sizeof(uint32_t) for easier access
+        uint32_t layoutIndex = layoutsData.size() / sizeof(uint32_t);
+
         Asset::Layout layoutAsset;
         layoutAsset.elementsCount = static_cast<uint32_t>(layout.size());
         insertData(layoutsData, layoutAsset);
         insertData(layoutsData, layout.data(), layout.size() * sizeof(uint32_t));
-        return layoutsCount++;
+
+        layoutsCount++;
+
+        return layoutIndex;
     }
 
     uint32_t EffectSerializer::AddResource(const RR::ResourceReflection& resource)
