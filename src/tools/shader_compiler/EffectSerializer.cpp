@@ -124,9 +124,7 @@ namespace RR
 
                     insertData(srvData, srvDesc);
 
-                    auto index = srvCount++;
-                    //currentLayout.resources.push_back(index);
-                    return index;
+                    return Asset::MakeResourceId(Asset::ResourceType::SRV, srvCount++);
                 }
                 else
                 {
@@ -140,9 +138,7 @@ namespace RR
 
                     insertData(uavData, uavDesc);
 
-                    auto index = uavCount++;
-                    //currentLayout.resources.push_back(index);
-                    return index;
+                    return Asset::MakeResourceId(Asset::ResourceType::UAV, uavCount++);
                 }
             }
             case RR::ResourceReflection::Type::ConstantBuffer:
@@ -156,8 +152,7 @@ namespace RR
 
                 insertData(cbvData, cbvDesc);
 
-                auto index = cbvCount++;
-                return index;
+                return Asset::MakeResourceId(Asset::ResourceType::CBV, cbvCount++);
             }
 
             default:

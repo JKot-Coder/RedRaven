@@ -214,5 +214,39 @@ namespace RR::EffectLibrary
             // PASSES block
         };
         #pragma pack(pop)
+
+        // Resource ID encoding: upper 4 bits = type tag, lower 28 bits = index.
+        //
+        //   [31..28]  ResourceType  (4 bits, 16 possible types)
+        //   [27.. 0]  index         (28 bits, up to 268M resources per type)
+        //
+        // INVALID_INDEX (0xFFFFFFFF) is a special sentinel and is NOT a
+        // valid tagged resource ID.
+
+        enum class ResourceType : uint32_t
+        {
+            SRV = 0,
+            UAV = 1,
+            CBV = 2,
+        };
+
+        static constexpr uint32_t RESOURCE_TYPE_SHIFT = 28u;
+        static constexpr uint32_t RESOURCE_TYPE_MASK  = 0xF0000000u;
+        static constexpr uint32_t RESOURCE_INDEX_MASK = 0x0FFFFFFFu;
+
+        inline uint32_t MakeResourceId(ResourceType type, uint32_t index)
+        {
+            return (static_cast<uint32_t>(type) << RESOURCE_TYPE_SHIFT) | (index & RESOURCE_INDEX_MASK);
+        }
+
+        inline ResourceType GetResourceType(uint32_t id)
+        {
+            return static_cast<ResourceType>((id >> RESOURCE_TYPE_SHIFT) & 0xFu);
+        }
+
+        inline uint32_t GetResourceIndex(uint32_t id)
+        {
+            return id & RESOURCE_INDEX_MASK;
+        }
     }
 }
