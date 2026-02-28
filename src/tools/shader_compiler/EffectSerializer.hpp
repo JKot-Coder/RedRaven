@@ -86,7 +86,7 @@ namespace RR
     class EffectSerializer
     {
     public:
-        EffectSerializer(): stringAllocator(1024) { };
+        EffectSerializer();
         ~EffectSerializer() = default;
 
         uint32_t AddString(const std::string_view& str);
