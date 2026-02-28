@@ -20,25 +20,21 @@ namespace RR::GAPI
         Sampler
     };
 
-    struct BindingLayoutTextureMeta {
-        GpuResourceDimension dimension;
-        GpuResourceFormat format;
-        TextureSampleType sampleType;
-    };
-
     struct BindingLayoutElement
     {
-        BindingType type;
-        uint32_t    binding;
-        uint32_t    count;
-        ShaderStageMask stageMask;
-        uint32_t textureMetaIndex;
+        BindingType          type;
+        uint32_t             binding;
+        uint32_t             count;
+        ShaderStageMask      stageMask;
+        // Populated for TextureSRV and TextureUAV
+        GpuResourceDimension dimension;
+        GpuResourceFormat    format;      // TextureUAV only
+        TextureSampleType    sampleType;  // TextureSRV only
     };
 
     struct BindingGroupLayoutDesc
     {
         eastl::fixed_vector<BindingLayoutElement, MAX_BINDINGS_PER_GROUP, false> elements;
-        eastl::fixed_vector<BindingLayoutTextureMeta, 16, false> textureMetas;
     };
 
     class IBindingGroupLayout

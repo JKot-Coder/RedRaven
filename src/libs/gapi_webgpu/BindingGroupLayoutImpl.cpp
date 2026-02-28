@@ -88,16 +88,16 @@ namespace RR::GAPI::WebGPU
                 }
                 case GAPI::BindingType::TextureSRV:
                 {
-                    entry.texture.sampleType = getTextureSampleType(desc.textureMetas[element.textureMetaIndex].sampleType);
-                    entry.texture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
+                    entry.texture.sampleType = getTextureSampleType(element.sampleType);
+                    entry.texture.viewDimension = getTextureViewDimension(element.dimension);
                     entry.texture.multisampled = false;
                     break;
                 }
                 case GAPI::BindingType::TextureUAV:
                 {
                     entry.storageTexture.access = wgpu::StorageTextureAccess::WriteOnly;
-                    entry.storageTexture.format = GetWGPUFormat(desc.textureMetas[element.textureMetaIndex].format);
-                    entry.storageTexture.viewDimension = getTextureViewDimension(desc.textureMetas[element.textureMetaIndex].dimension);
+                    entry.storageTexture.format = GetWGPUFormat(element.format);
+                    entry.storageTexture.viewDimension = getTextureViewDimension(element.dimension);
                     break;
                 }
                 case GAPI::BindingType::Sampler:

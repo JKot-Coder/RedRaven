@@ -51,7 +51,9 @@ namespace RR::Render
                 element.binding = res.binding;
                 element.count = res.count;
                 element.stageMask = res.usageMask;
-                element.textureMetaIndex = 0;
+                element.dimension = {};
+                element.format = {};
+                element.sampleType = {};
 
                 switch (res.type)
                 {
@@ -66,8 +68,8 @@ namespace RR::Render
                         else
                         {
                             element.type = GAPI::BindingType::TextureSRV;
-                            element.textureMetaIndex = static_cast<uint32_t>(layoutDesc.textureMetas.size());
-                            layoutDesc.textureMetas.push_back({ res.dimension, {}, res.sampleType });
+                            element.dimension = res.dimension;
+                            element.sampleType = res.sampleType;
                         }
                         break;
                     case EffectLibrary::Asset::ResourceType::UAV:
@@ -78,8 +80,8 @@ namespace RR::Render
                         else
                         {
                             element.type = GAPI::BindingType::TextureUAV;
-                            element.textureMetaIndex = static_cast<uint32_t>(layoutDesc.textureMetas.size());
-                            layoutDesc.textureMetas.push_back({ res.dimension, res.format, {} });
+                            element.dimension = res.dimension;
+                            element.format = res.format;
                         }
                         break;
                 }
