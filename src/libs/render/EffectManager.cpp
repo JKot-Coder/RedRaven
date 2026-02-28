@@ -21,6 +21,21 @@ namespace RR::Render
         effectLibrary = eastl::make_unique<EffectLibrary::EffectLibrary>();
         RR_RETURN_ON_FAIL(effectLibrary->Load(path));
 
+        auto& deviceContext = DeviceContext::Instance();
+
+        shaders.reserve(effectLibrary->GetShaderCount());
+        for (size_t i = 0; i < effectLibrary->GetShaderCount(); i++)
+        {
+            const EffectLibrary::ShaderDesc& shaderAssetDesc = effectLibrary->GetShader(i);
+
+            GAPI::ShaderDesc shaderDesc;
+            shaderDesc.stage = shaderAssetDesc.stage;
+            shaderDesc.data = shaderAssetDesc.data;
+            shaderDesc.size = shaderAssetDesc.size;
+
+            shaders.emplace_back(deviceContext.CreateShader(shaderDesc, shaderAssetDesc.name));
+        }
+
         return Common::RResult::Ok;
     }
 
@@ -37,18 +52,6 @@ namespace RR::Render
         {
             LOG_ERROR("Failed to get effect desc for effect: {}", name);
             return nullptr;
-        }
-
-        for(size_t i = 0; i < effectLibrary->GetShaderCount(); i++)
-        {
-            GAPI::ShaderDesc shaderDesc;
-            EffectLibrary::ShaderDesc shaderAssetDesc = effectLibrary->GetShader(i);
-
-            shaderDesc.stage = shaderAssetDesc.stage;
-            shaderDesc.data = shaderAssetDesc.data;
-            shaderDesc.size = shaderAssetDesc.size;
-
-            shaders.emplace_back(eastl::move(deviceContext.CreateShader(shaderDesc, shaderAssetDesc.name)));
         }
 
         Render::EffectDesc effectDesc;
