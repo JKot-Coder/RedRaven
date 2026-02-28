@@ -77,6 +77,7 @@ namespace RR::Ecs::WindowModule
 #elif OS_APPLE
         return glfwGetCocoaWindow(glfwWindow);
 #else
+        UNUSED(glfwWindow);
         return nullptr;
 #endif
     }

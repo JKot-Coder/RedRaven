@@ -5,6 +5,7 @@
 #include <limits>
 #include <cstdint>
 #include <chrono>
+#include <condition_variable>
 
 namespace RR::Common::Threading
 {
