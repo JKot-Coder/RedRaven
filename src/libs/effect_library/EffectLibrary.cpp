@@ -132,21 +132,16 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
-        resources.reserve(header.srvCount + header.uavCount + header.cbvCount);
+        eastl::vector<ResourceReflection> tempResources;
+        tempResources.reserve(header.srvCount + header.uavCount + header.cbvCount);
 
-        absl::flat_hash_map<uint32_t, ResourceReflection*> resourcesMap;
+        absl::flat_hash_map<uint32_t, const ResourceReflection*> resourcesMap;
         resourcesMap.reserve(header.srvCount + header.uavCount + header.cbvCount);
-
-        auto getResource = [&resourcesMap](uint32_t id) -> ResourceReflection* {
-            auto it = resourcesMap.find(id);
-            return it != resourcesMap.end() ? it->second : nullptr;
-        };
-        UNUSED(getResource);
 
         for (uint32_t i = 0; i < header.srvCount; i++)
         {
             const auto& src = srvRelections[i];
-            auto& dst = resources.emplace_back();
+            auto& dst = tempResources.emplace_back();
             dst.type = Asset::ResourceType::SRV;
             dst.name = getString(src.nameIndex);
             dst.usageMask = src.usageMask;
@@ -162,7 +157,7 @@ namespace RR::EffectLibrary
         for (uint32_t i = 0; i < header.uavCount; i++)
         {
             const auto& src = uavReflections[i];
-            auto& dst = resources.emplace_back();
+            auto& dst = tempResources.emplace_back();
             dst.type = Asset::ResourceType::UAV;
             dst.name = getString(src.nameIndex);
             dst.usageMask = src.usageMask;
@@ -178,7 +173,7 @@ namespace RR::EffectLibrary
         for (uint32_t i = 0; i < header.cbvCount; i++)
         {
             const auto& src = cbvReflections[i];
-            auto& dst = resources.emplace_back();
+            auto& dst = tempResources.emplace_back();
             dst.type = Asset::ResourceType::CBV;
             dst.name = getString(src.nameIndex);
             dst.usageMask = src.usageMask;
@@ -227,6 +222,9 @@ namespace RR::EffectLibrary
         CHECK_RETURN_FAIL(header.bindGroupsCount * sizeof(Asset::BindGroup) == header.bindGroupsSectionSize);
         auto bindGroupsAssets = eastl::span<Asset::BindGroup>(reinterpret_cast<Asset::BindGroup*>(bindGroupsData.get()), header.bindGroupsCount);
 
+        resources.reserve(tempResources.size());
+        bindingGroupReflections.reserve(header.bindGroupsCount);
+
         for (const auto& bindGroupAsset : bindGroupsAssets)
         {
             BindingGroupReflection bindingGroupReflection;
@@ -235,7 +233,16 @@ namespace RR::EffectLibrary
 
             LayoutSpan layout;
             RR_RETURN_ON_FAIL(getLayout(bindGroupAsset.resourcesLayoutIndex, layout));
-            UNUSED(layout);
+
+            const auto spanStart = resources.size();
+            for (const uint32_t id : layout)
+            {
+                auto it = resourcesMap.find(id);
+                CHECK_RETURN_FAIL(it != resourcesMap.end());
+                resources.emplace_back(*it->second);
+            }
+            bindingGroupReflection.resources = eastl::span<ResourceReflection>(
+                resources.data() + spanStart, resources.size() - spanStart);
 
             bindingGroupReflections.emplace_back(eastl::move(bindingGroupReflection));
         }

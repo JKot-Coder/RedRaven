@@ -44,12 +44,6 @@ namespace RR::EffectLibrary
         size_t size;
     };
 
-    struct BindingGroupReflection
-    {
-        const char* name;
-        uint32_t bindingSpace;
-    };
-
     struct ResourceReflection
     {
         Asset::ResourceType type;
@@ -65,6 +59,13 @@ namespace RR::EffectLibrary
         GAPI::GpuResourceFormat format;
         // CBV only
         uint32_t layoutIndex;
+    };
+
+    struct BindingGroupReflection
+    {
+        const char* name;
+        uint32_t bindingSpace;
+        eastl::span<ResourceReflection> resources;
     };
 
     class EffectLibrary
