@@ -197,11 +197,10 @@ namespace RR::EffectLibrary
         }
 
         using LayoutSpan = eastl::span<uint32_t>;
-        auto getLayout = [&layoutsData, &header](uint32_t index, LayoutSpan& span) -> Common::RResult {
+        auto getLayout = [&layoutsData](uint32_t index, LayoutSpan& span) -> Common::RResult {
             span = LayoutSpan();
             CHECK_RETURN_FAIL(index != Asset::INVALID_INDEX);
             CHECK_RETURN_FAIL(index < layoutsData.size());
-            CHECK_RETURN_FAIL(index < header.layoutsCount);
             const uint32_t size = layoutsData[index];
 
             if (size == 0)
