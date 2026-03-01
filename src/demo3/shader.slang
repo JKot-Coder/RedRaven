@@ -16,7 +16,7 @@ ConstantBuffer<test> ignore;
 struct FrameParams
 {
     float4x4 g_WorldViewProj;
-   // Texture2D<float4> tex2;
+    Texture2D<float4> tex2;
 
    // ConstantBuffer<test> c;
     test2 zzz;
@@ -53,9 +53,9 @@ void mainVS(in  VSInput VSIn, out PSInput PSIn)
 {
     float4x4 g_WorldViewProj = float4x4(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.01, -0.001, 0.0, 0.0, 0.0, 1.0);
     PSIn.Pos= mul(float4(VSIn.Pos, 1.0), g_WorldViewProj);
-
    // PSIn.Pos   = mul(float4(VSIn.Pos + float3(0,0,foo +frame.zzz.zzz+ frame.f+ bar  /*+ frame.c.j + frame2.c2.j  + frame2.c3.j */+ frame2.j2 /* tex.Load(int3(int2(VSIn.Pos.xy),0)).r  +  frame.tex2.Load(int3(int2(VSIn.Pos.xy),0)).r), 1.0)*/, frame.g_WorldViewProj);
     PSIn.Color = VSIn.Color;
+    PSIn.Color += frame.tex2.Load(int3(int2(VSIn.Pos.xy), 0)).r;
 }
 
 #define CONVERT_PS_OUTPUT_TO_GAMMA 0
