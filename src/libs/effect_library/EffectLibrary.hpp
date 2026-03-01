@@ -3,7 +3,6 @@
 #include "gapi/PipelineState.hpp"
 #include "gapi/Shader.hpp"
 #include "gapi/BindingGroupLayout.hpp"
-#include "effect_library/EffectFormat.hpp" // For Asset enums (VarType, VarKind)
 
 #include "absl/container/flat_hash_map.h"
 #include "common/hashing/Hash.hpp"
@@ -46,18 +45,18 @@ namespace RR::EffectLibrary
 
     struct ResourceReflection
     {
-        Asset::ResourceType type;
+        GAPI::BindingType type;
         const char* name;
         GAPI::ShaderStageMask usageMask;
         uint32_t binding;
         uint32_t count;
-        // SRV and UAV
+        // TextureSRV and TextureUAV only
         GAPI::GpuResourceDimension dimension;
-        // SRV only
+        // TextureSRV only
         GAPI::TextureSampleType sampleType;
-        // UAV only
+        // TextureUAV only
         GAPI::GpuResourceFormat format;
-        // CBV only
+        // ConstantBuffer only
         uint32_t layoutIndex;
     };
 

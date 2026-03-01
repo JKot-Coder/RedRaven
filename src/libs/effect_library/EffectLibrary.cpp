@@ -142,13 +142,14 @@ namespace RR::EffectLibrary
         {
             const auto& src = srvRelections[i];
             auto& dst = tempResources.emplace_back();
-            dst.type = Asset::ResourceType::SRV;
+            const bool isBuffer = src.dimension == GAPI::GpuResourceDimension::Buffer;
+            dst.type = isBuffer ? GAPI::BindingType::BufferSRV : GAPI::BindingType::TextureSRV;
             dst.name = getString(src.nameIndex);
             dst.usageMask = src.usageMask;
             dst.binding = src.binding;
             dst.count = src.count;
-            dst.dimension = src.dimension;
-            dst.sampleType = src.sampleType;
+            dst.dimension = isBuffer ? GAPI::GpuResourceDimension{} : src.dimension;
+            dst.sampleType = isBuffer ? GAPI::TextureSampleType{} : src.sampleType;
             dst.format = {};
             dst.layoutIndex = Asset::INVALID_INDEX;
             resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::SRV, i), &dst);
@@ -158,14 +159,15 @@ namespace RR::EffectLibrary
         {
             const auto& src = uavReflections[i];
             auto& dst = tempResources.emplace_back();
-            dst.type = Asset::ResourceType::UAV;
+            const bool isBuffer = src.dimension == GAPI::GpuResourceDimension::Buffer;
+            dst.type = isBuffer ? GAPI::BindingType::BufferUAV : GAPI::BindingType::TextureUAV;
             dst.name = getString(src.nameIndex);
             dst.usageMask = src.usageMask;
             dst.binding = src.binding;
             dst.count = src.count;
-            dst.dimension = src.dimension;
+            dst.dimension = isBuffer ? GAPI::GpuResourceDimension{} : src.dimension;
             dst.sampleType = {};
-            dst.format = src.format;
+            dst.format = isBuffer ? GAPI::GpuResourceFormat{} : src.format;
             dst.layoutIndex = Asset::INVALID_INDEX;
             resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::UAV, i), &dst);
         }
@@ -174,7 +176,7 @@ namespace RR::EffectLibrary
         {
             const auto& src = cbvReflections[i];
             auto& dst = tempResources.emplace_back();
-            dst.type = Asset::ResourceType::CBV;
+            dst.type = GAPI::BindingType::ConstantBuffer;
             dst.name = getString(src.nameIndex);
             dst.usageMask = src.usageMask;
             dst.binding = src.binding;

@@ -48,43 +48,13 @@ namespace RR::Render
             for (const auto& res : group.resources)
             {
                 GAPI::BindingLayoutElement element;
+                element.type = res.type;
                 element.binding = res.binding;
                 element.count = res.count;
                 element.stageMask = res.usageMask;
-                element.dimension = {};
-                element.format = {};
-                element.sampleType = {};
-
-                switch (res.type)
-                {
-                    case EffectLibrary::Asset::ResourceType::CBV:
-                        element.type = GAPI::BindingType::ConstantBuffer;
-                        break;
-                    case EffectLibrary::Asset::ResourceType::SRV:
-                        if (res.dimension == GAPI::GpuResourceDimension::Buffer)
-                        {
-                            element.type = GAPI::BindingType::BufferSRV;
-                        }
-                        else
-                        {
-                            element.type = GAPI::BindingType::TextureSRV;
-                            element.dimension = res.dimension;
-                            element.sampleType = res.sampleType;
-                        }
-                        break;
-                    case EffectLibrary::Asset::ResourceType::UAV:
-                        if (res.dimension == GAPI::GpuResourceDimension::Buffer)
-                        {
-                            element.type = GAPI::BindingType::BufferUAV;
-                        }
-                        else
-                        {
-                            element.type = GAPI::BindingType::TextureUAV;
-                            element.dimension = res.dimension;
-                            element.format = res.format;
-                        }
-                        break;
-                }
+                element.dimension = res.dimension;
+                element.sampleType = res.sampleType;
+                element.format = res.format;
 
                 layoutDesc.elements.push_back(element);
             }
