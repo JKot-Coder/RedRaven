@@ -154,6 +154,16 @@ namespace RR
                 default: throw std::runtime_error("Invalid return type");
             }
         }
+
+        ResourceReflection::Access getShaderAccess(ReflectionResourceType::ShaderAccess access)
+        {
+            switch (access)
+            {
+                case ReflectionResourceType::ShaderAccess::Read: return ResourceReflection::Access::Read;
+                case ReflectionResourceType::ShaderAccess::ReadWrite: return ResourceReflection::Access::ReadWrite;
+                default: throw std::runtime_error("Invalid access");
+            }
+        }
     }
 
     struct ReflectionCtx
@@ -366,6 +376,8 @@ namespace RR
             resourceReflection.usageMask = GetParameterUsageMask(resourceType->getType(), BindingLocation {bindingInfo.regIndex, bindingInfo.regSpace});
             resourceReflection.count = 0;
             resourceReflection.sampleType = getTextureSampleType(resourceType->getReturnType());
+            resourceReflection.access = getShaderAccess(resourceType->getShaderAccess()); // TODO to support write only acess need parse WGSL;
+            resourceReflection.format = {}; // TODO need parse wgsl output for UAV;
 
             const auto index = serializer->AddResource(resourceReflection);
 
