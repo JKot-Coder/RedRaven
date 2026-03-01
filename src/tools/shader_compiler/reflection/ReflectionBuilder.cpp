@@ -236,8 +236,6 @@ namespace RR
             BindGroupDesc bindGroupDesc;
             bindGroupDesc.name = name;
             bindGroupDesc.bindingSpace = bindingLocation.registerSpace;
-            bindGroupDesc.resourcesLayoutIndex = serializer->AddLayout(currentLayout.resources);
-            bindGroupDesc.childsLayoutIndex = serializer->AddLayout(currentLayout.childBindGroups);
 
             if (uniformCBVIndex != RR::EffectLibrary::Asset::INVALID_INDEX)
             {
@@ -254,6 +252,9 @@ namespace RR
                 bindGroupDesc.uniformCBV = serializer->AddResource(resourceReflection);
                 currentLayout.resources.push_back(bindGroupDesc.uniformCBV);
             }
+
+            bindGroupDesc.resourcesLayoutIndex = serializer->AddLayout(currentLayout.resources);
+            bindGroupDesc.childsLayoutIndex = serializer->AddLayout(currentLayout.childBindGroups);
 
             std::cout << "end bind group: " << name
                       << " binding space: " << bindingLocation.registerSpace
