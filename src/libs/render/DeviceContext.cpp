@@ -234,8 +234,8 @@ namespace RR::Render
     {
         ASSERT(inited);
 
-        auto resource = eastl::unique_ptr<GAPI::BindingGroupLayout>(new GAPI::BindingGroupLayout(desc, name));
-        multiThreadDevice->InitBindingGroupLayout(*resource.get());
+        auto resource = eastl::unique_ptr<GAPI::BindingGroupLayout>(new GAPI::BindingGroupLayout(name));
+        multiThreadDevice->InitBindingGroupLayout(*resource.get(), desc);
 
         return resource;
     }

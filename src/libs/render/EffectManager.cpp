@@ -7,6 +7,9 @@
 #include "effect_library/EffectFormat.hpp"
 
 #include "gapi/BindingGroupLayout.hpp"
+#include "gapi/Limits.hpp"
+
+#include <EASTL/fixed_vector.h>
 #include "gapi/GpuResource.hpp"
 
 #include "common/Result.hpp"
@@ -44,7 +47,7 @@ namespace RR::Render
         {
             const auto& group = effectLibrary->GetBindingGroupReflection(i);
 
-            GAPI::BindingGroupLayoutDesc layoutDesc;
+            eastl::fixed_vector<GAPI::BindingLayoutElement, GAPI::MAX_BINDINGS_PER_GROUP, false> elements;
             for (const auto& res : group.resources)
             {
                 GAPI::BindingLayoutElement element;
@@ -56,9 +59,10 @@ namespace RR::Render
                 element.sampleType = res.sampleType;
                 element.format = res.format;
 
-                layoutDesc.elements.push_back(element);
+                elements.push_back(element);
             }
 
+            const GAPI::BindingGroupLayoutDesc layoutDesc { elements };
             bindingGroupLayouts.emplace_back(deviceContext.CreateBindingGroupLayout(layoutDesc, group.name));
         }
 
