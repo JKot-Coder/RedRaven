@@ -5,7 +5,7 @@
 #include "gapi/Shader.hpp"
 #include "gapi/Limits.hpp"
 
-#include <EASTL/vector.h>
+#include <EASTL/span.h>
 
 namespace RR::GAPI
 {
@@ -34,7 +34,7 @@ namespace RR::GAPI
 
     struct BindingGroupLayoutDesc
     {
-        eastl::fixed_vector<BindingLayoutElement, MAX_BINDINGS_PER_GROUP, false> elements;
+        eastl::span<const BindingLayoutElement> elements;
     };
 
     class IBindingGroupLayout
@@ -46,15 +46,10 @@ namespace RR::GAPI
     class BindingGroupLayout final : public Resource<IBindingGroupLayout, true>
     {
     public:
-        BindingGroupLayout(const BindingGroupLayoutDesc& desc, const std::string& name)
-            : Resource(Type::BindingGroupLayout, name), desc_(desc)
+        BindingGroupLayout(const std::string& name)
+            : Resource(Type::BindingGroupLayout, name)
         {
         }
-
-        const BindingGroupLayoutDesc& GetDesc() const { return desc_; }
-
-    private:
-        BindingGroupLayoutDesc desc_;
     };
 
 

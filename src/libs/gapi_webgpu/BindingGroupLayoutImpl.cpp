@@ -51,9 +51,8 @@ namespace RR::GAPI::WebGPU
 
     BindingGroupLayoutImpl::~BindingGroupLayoutImpl() { }
 
-    void BindingGroupLayoutImpl::Init(const wgpu::Device& device, GAPI::BindingGroupLayout& resource)
+    void BindingGroupLayoutImpl::Init(const wgpu::Device& device, const GAPI::BindingGroupLayoutDesc& desc, GAPI::BindingGroupLayout& resource)
     {
-        const auto& desc = resource.GetDesc();
         eastl::fixed_vector<wgpu::BindGroupLayoutEntry, GAPI::MAX_BINDINGS_PER_GROUP, false> entries;
 
         for (const auto& element : desc.elements)
