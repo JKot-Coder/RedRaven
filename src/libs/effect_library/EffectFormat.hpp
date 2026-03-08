@@ -177,8 +177,6 @@ namespace RR::EffectLibrary
             uint32_t uavCount;
             uint32_t cbvSectionSize;
             uint32_t cbvCount;
-            uint32_t fieldsSectionSize;
-            uint32_t fieldsCount;
             uint32_t effectsSectionSize;
             uint32_t effectsCount;
             uint32_t uniformsSectionSize;
