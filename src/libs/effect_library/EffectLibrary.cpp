@@ -151,7 +151,7 @@ namespace RR::EffectLibrary
             dst.dimension = isBuffer ? GAPI::GpuResourceDimension{} : src.dimension;
             dst.sampleType = isBuffer ? GAPI::TextureSampleType{} : src.sampleType;
             dst.format = {};
-            dst.layoutIndex = Asset::INVALID_INDEX;
+            dst.uniformFields = {};
             resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::SRV, i), &dst);
         }
 
@@ -168,7 +168,7 @@ namespace RR::EffectLibrary
             dst.dimension = isBuffer ? GAPI::GpuResourceDimension{} : src.dimension;
             dst.sampleType = {};
             dst.format = isBuffer ? GAPI::GpuResourceFormat{} : src.format;
-            dst.layoutIndex = Asset::INVALID_INDEX;
+            dst.uniformFields = {};
             resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::UAV, i), &dst);
         }
 
@@ -184,7 +184,7 @@ namespace RR::EffectLibrary
             dst.dimension = {};
             dst.sampleType = {};
             dst.format = {};
-            dst.layoutIndex = src.layoutIndex;
+            dst.uniformFields = {}; // resolved after layoutsData is loaded
             resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::CBV, i), &dst);
         }
 
