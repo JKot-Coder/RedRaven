@@ -196,21 +196,18 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
-        using LayoutSpan = eastl::span<uint32_t>;
-        auto getLayout = [&layoutsData](uint32_t index, LayoutSpan& span) -> Common::RResult {
-            span = LayoutSpan();
-            CHECK_RETURN_FAIL(index != Asset::INVALID_INDEX);
-            CHECK_RETURN_FAIL(index < layoutsData.size());
+        auto getLayout = [&layoutsData](uint32_t index) -> eastl::span<const uint32_t> {
+            if (index == Asset::INVALID_INDEX)
+                return {};
+
+            ASSERT(index < layoutsData.size());
             const uint32_t size = layoutsData[index];
 
             if (size == 0)
-                return RResult::Ok;
+                return {};
 
-            CHECK_RETURN_FAIL(index + size < layoutsData.size());
-            uint32_t* begin = layoutsData.data() + index + 1;
-            span = eastl::span<uint32_t>(begin, size);
-
-            return Common::RResult::Ok;
+            ASSERT(index + size < layoutsData.size());
+            return eastl::span<const uint32_t>(layoutsData.data() + index + 1, size);
         };
 
         auto bindGroupsData = eastl::make_unique<std::byte[]>(header.bindGroupsSectionSize);
@@ -232,8 +229,7 @@ namespace RR::EffectLibrary
             bindingGroupReflection.name = getString(bindGroupAsset.nameIndex);
             bindingGroupReflection.bindingSpace = bindGroupAsset.bindingSpace;
 
-            LayoutSpan layout;
-            RR_RETURN_ON_FAIL(getLayout(bindGroupAsset.resourcesLayoutIndex, layout));
+            const auto layout = getLayout(bindGroupAsset.resourcesLayoutIndex);
 
             const auto spanStart = resources.size();
             for (const uint32_t id : layout)
