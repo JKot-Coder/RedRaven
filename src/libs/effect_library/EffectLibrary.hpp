@@ -43,6 +43,13 @@ namespace RR::EffectLibrary
         size_t size;
     };
 
+    struct UniformFieldReflection
+    {
+        const char* name;
+        uint32_t offset; // byte offset in parent buffer
+        uint32_t size; // byte size
+    };
+
     struct ResourceReflection
     {
         GAPI::BindingType type;
