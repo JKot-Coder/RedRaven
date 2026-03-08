@@ -30,7 +30,7 @@ namespace RR::GAPI::WebGPU
         void InitShader(Shader& resource) const override;
         void InitPipelineState(PipelineState& resource) const override;
         void InitBindingGroupLayout(BindingGroupLayout& resource, const BindingGroupLayoutDesc& desc) const override;
-        void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const override;
+        void InitBindingGroup(BindingGroup& resource, const BindingGroupDesc& desc, const BindingGroupLayout& layout) const override;
 
         std::any GetRawDevice() const override { ASSERT_MSG(false, "Not implemented"); return nullptr; }
 

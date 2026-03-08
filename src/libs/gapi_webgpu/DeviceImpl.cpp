@@ -249,12 +249,15 @@ namespace RR::GAPI::WebGPU
         resource.SetPrivateImpl(impl.release());
     }
 
-    void DeviceImpl::InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const
+    void DeviceImpl::InitBindingGroup(BindingGroup& resource, const BindingGroupDesc& desc, const BindingGroupLayout& layout) const
     {
         ASSERT_IS_DEVICE_INITED;
 
+        const auto* layoutImpl = layout.GetPrivateImpl<BindingGroupLayoutImpl>();
+        ASSERT(layoutImpl);
+
         auto impl = eastl::make_unique<BindingGroupImpl>();
-        impl->Init(device, desc);
+        impl->Init(device, desc, layoutImpl->GetBindGroupLayout());
         resource.SetPrivateImpl(impl.release());
     }
 }

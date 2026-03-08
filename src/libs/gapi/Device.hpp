@@ -62,7 +62,7 @@ namespace RR
             virtual void InitShader(Shader& resource) const = 0;
             virtual void InitPipelineState(PipelineState& resource) const = 0;
             virtual void InitBindingGroupLayout(BindingGroupLayout& resource, const BindingGroupLayoutDesc& desc) const = 0;
-            virtual void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const = 0;
+            virtual void InitBindingGroup(BindingGroup& resource, const BindingGroupDesc& desc, const BindingGroupLayout& layout) const = 0;
 
             virtual std::any GetRawDevice() const = 0;
         };
@@ -100,7 +100,7 @@ namespace RR
             void InitShader(Shader& resource) const override { GetPrivateImpl()->InitShader(resource); };
             void InitPipelineState(PipelineState& resource) const override { GetPrivateImpl()->InitPipelineState(resource); };
             void InitBindingGroupLayout(BindingGroupLayout& resource, const BindingGroupLayoutDesc& desc) const override { GetPrivateImpl()->InitBindingGroupLayout(resource, desc); };
-            void InitBindingGroup(BindingGroup& resource, BindingGroupDesc& desc) const override { GetPrivateImpl()->InitBindingGroup(resource, desc); };
+            void InitBindingGroup(BindingGroup& resource, const BindingGroupDesc& desc, const BindingGroupLayout& layout) const override { GetPrivateImpl()->InitBindingGroup(resource, desc, layout); };
 
             std::any GetRawDevice() const override { return GetPrivateImpl()->GetRawDevice(); }
 

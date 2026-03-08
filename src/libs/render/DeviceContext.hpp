@@ -62,7 +62,7 @@ namespace RR::Render
         eastl::unique_ptr<GAPI::Texture> CreateSwapChainBackBuffer(GAPI::SwapChain& swapchain, const GAPI::GpuResourceDesc& desc, const std::string& name) const;
         eastl::unique_ptr<GAPI::GraphicPipelineState> CreatePipelineState(const GAPI::GraphicPipelineStateDesc& desc, const std::string& name) const;
         eastl::unique_ptr<GAPI::BindingGroupLayout> CreateBindingGroupLayout(const GAPI::BindingGroupLayoutDesc& desc, const std::string& name) const;
-        eastl::unique_ptr<GAPI::BindingGroup> CreateBindingGroup(const GAPI::BindingGroupDesc& desc, const std::string& name) const;
+        eastl::unique_ptr<GAPI::BindingGroup> CreateBindingGroup(const GAPI::BindingGroupDesc& desc, const GAPI::BindingGroupLayout& layout) const;
 
         eastl::unique_ptr<CommandEncoder> CreateCommandEncoder(const std::string& name) const;
         eastl::unique_ptr<Render::Effect> CreateEffect(const std::string& name, EffectDesc&& effectDesc) const;

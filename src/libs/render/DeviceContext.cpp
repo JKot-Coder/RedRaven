@@ -8,6 +8,7 @@
 #include "gapi/Texture.hpp"
 #include "gapi/CommandList.hpp"
 #include "gapi/CommandQueue.hpp"
+#include "gapi/BindingGroup.hpp"
 #include "gapi/BindingGroupLayout.hpp"
 #include "gapi/PipelineState.hpp"
 
@@ -236,6 +237,16 @@ namespace RR::Render
 
         auto resource = eastl::unique_ptr<GAPI::BindingGroupLayout>(new GAPI::BindingGroupLayout(name));
         multiThreadDevice->InitBindingGroupLayout(*resource.get(), desc);
+
+        return resource;
+    }
+
+    eastl::unique_ptr<GAPI::BindingGroup> DeviceContext::CreateBindingGroup(const GAPI::BindingGroupDesc& desc, const GAPI::BindingGroupLayout& layout) const
+    {
+        ASSERT(inited);
+
+        auto resource = eastl::unique_ptr<GAPI::BindingGroup>(new GAPI::BindingGroup());
+        multiThreadDevice->InitBindingGroup(*resource.get(), desc, layout);
 
         return resource;
     }
