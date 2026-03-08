@@ -210,9 +210,21 @@ namespace RR
 
     uint32_t EffectSerializer::AddUniform(const UniformDesc& uniform)
     {
-        UNUSED(uniform);
+        std::cout << "add uniform: " << uniform.name
+                  << " offset:" << uniform.offset
+                  << " size:" << uniform.size
+                  << std::endl;
 
-        std::cout << "add uniform: " << uniform.name << std::endl;
+        Asset::UniformReflection uniformAsset;
+        uniformAsset.nameIndex = AddString(uniform.name);
+        uniformAsset.type = uniform.type;
+        uniformAsset.offset = uniform.offset;
+        uniformAsset.size = uniform.size;
+        uniformAsset.arraySize = uniform.arraySize;
+        uniformAsset.layoutIndex = uniform.layoutIndex;
+
+        insertData(uniformsData, uniformAsset);
+
         return uniformsCount++;
     }
 
@@ -318,6 +330,9 @@ namespace RR
         file.write(reinterpret_cast<const char*>(srvData.data()), srvData.size());
         file.write(reinterpret_cast<const char*>(uavData.data()), uavData.size());
         file.write(reinterpret_cast<const char*>(cbvData.data()), cbvData.size());
+
+        // Uniforms
+        file.write(reinterpret_cast<const char*>(uniformsData.data()), uniformsData.size());
 
         // Layouts
         file.write(reinterpret_cast<const char*>(layoutsData.data()), layoutsData.size());
