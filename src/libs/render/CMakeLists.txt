@@ -13,6 +13,8 @@ set(SRC
     Effect.cpp
     EffectManager.cpp
     EffectManager.hpp
+    ParameterBlockLayout.cpp
+    ParameterBlockLayout.hpp
     Submission.cpp
     Submission.hpp
 )
