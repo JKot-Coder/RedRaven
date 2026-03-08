@@ -1,10 +1,12 @@
 #include "CommandListImpl.hpp"
 
+#include "gapi/commands/Binding.hpp"
 #include "gapi/commands/RenderPass.hpp"
 #include "gapi/commands/Draw.hpp"
 
 #include "gapi/Buffer.hpp"
 
+#include "BindingGroupImpl.hpp"
 #include "BufferImpl.hpp"
 #include "PipelineStateImpl.hpp"
 #include "TextureViewImpl.hpp"
@@ -171,6 +173,21 @@ namespace RR::GAPI::WebGPU
         {
             compileCommand(command, true, ctx);
         }
+
+        // ---------------------------------------------------------------------------------------------
+        // Binding commands
+        // ---------------------------------------------------------------------------------------------
+
+        void compileCommand(const Commands::SetBindGroup& command, CommandCompileContext& ctx)
+        {
+            ASSERT(ctx.renderPassEncoder);
+
+            const auto* bindGroupImpl = static_cast<const BindingGroupImpl*>(command.bindGroup);
+            ASSERT(bindGroupImpl);
+
+            // TODO: Phase 8 - upload uniform data via ring buffer and pass dynamic offsets
+            ctx.renderPassEncoder.setBindGroup(command.group, bindGroupImpl->GetBindGroup(), 0, nullptr);
+        }
     }
     CommandListImpl::~CommandListImpl() { }
 
@@ -207,6 +224,10 @@ namespace RR::GAPI::WebGPU
 
             case Command::Type::DrawIndexed:
                 compileCommand(static_cast<const Commands::DrawIndexed&>(*command), ctx);
+                break;
+
+            case Command::Type::SetBindGroup:
+                compileCommand(static_cast<const Commands::SetBindGroup&>(*command), ctx);
                 break;
 
             default:
