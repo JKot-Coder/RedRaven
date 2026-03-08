@@ -132,6 +132,59 @@ namespace RR::EffectLibrary
             return Common::RResult::Fail;
         }
 
+        // Read uniforms (serialized after CBV)
+        eastl::vector<UniformFieldReflection> rawUniforms;
+        {
+            auto uniformAssets = eastl::vector<Asset::UniformReflection>(header.uniformsCount);
+            CHECK_RETURN_FAIL(header.uniformsCount * sizeof(Asset::UniformReflection) == header.uniformsSectionSize);
+            if (header.uniformsSectionSize > 0)
+            {
+                if (file.Read(reinterpret_cast<void*>(uniformAssets.data()), header.uniformsSectionSize) != header.uniformsSectionSize)
+                {
+                    LOG_ERROR("Failed to read uniforms section size: {}", header.uniformsSectionSize);
+                    return Common::RResult::Fail;
+                }
+            }
+
+            rawUniforms.reserve(header.uniformsCount);
+            for (uint32_t i = 0; i < header.uniformsCount; i++)
+            {
+                const auto& src = uniformAssets[i];
+                UniformFieldReflection field;
+                field.name = getString(src.nameIndex);
+                field.offset = src.offset;
+                field.size = src.size;
+                rawUniforms.emplace_back(eastl::move(field));
+            }
+        }
+
+        // Pre-reserve to exact capacity: each uniform is referenced exactly once
+        // across all CBVs. Avoids reallocation during CBV loop so spans stay valid.
+        uniformFields.reserve(rawUniforms.size());
+
+        // Read layouts data
+        CHECK_RETURN_FAIL(header.layoutsSectionSize % sizeof(uint32_t) == 0);
+        eastl::vector<uint32_t> layoutsData(header.layoutsSectionSize / sizeof(uint32_t));
+        if (file.Read(reinterpret_cast<void*>(layoutsData.data()), header.layoutsSectionSize) != header.layoutsSectionSize)
+        {
+            LOG_ERROR("Failed to read layouts section size: {}", header.layoutsSectionSize);
+            return Common::RResult::Fail;
+        }
+
+        auto getLayout = [&layoutsData](uint32_t index) -> eastl::span<const uint32_t> {
+            if (index == Asset::INVALID_INDEX)
+                return {};
+
+            ASSERT(index < layoutsData.size());
+            const uint32_t size = layoutsData[index];
+
+            if (size == 0)
+                return {};
+
+            ASSERT(index + size < layoutsData.size());
+            return eastl::span<const uint32_t>(layoutsData.data() + index + 1, size);
+        };
+
         eastl::vector<ResourceReflection> tempResources;
         tempResources.reserve(header.srvCount + header.uavCount + header.cbvCount);
 
@@ -184,31 +237,18 @@ namespace RR::EffectLibrary
             dst.dimension = {};
             dst.sampleType = {};
             dst.format = {};
-            dst.uniformFields = {}; // resolved after layoutsData is loaded
+
+            const auto uniformIndices = getLayout(src.layoutIndex);
+            const auto uniformSpanStart = uniformFields.size();
+            for (const uint32_t idx : uniformIndices)
+            {
+                ASSERT(idx < rawUniforms.size());
+                uniformFields.push_back(rawUniforms[idx]);
+            }
+            dst.uniformFields = eastl::span<UniformFieldReflection>(uniformFields.data() + uniformSpanStart, uniformIndices.size());
+
             resourcesMap.emplace(Asset::MakeResourceId(Asset::ResourceType::CBV, i), &dst);
         }
-
-        CHECK_RETURN_FAIL(header.layoutsSectionSize % sizeof(uint32_t) == 0);
-        eastl::vector<uint32_t> layoutsData(header.layoutsSectionSize / sizeof(uint32_t));
-        if (file.Read(reinterpret_cast<void*>(layoutsData.data()), header.layoutsSectionSize) != header.layoutsSectionSize)
-        {
-            LOG_ERROR("Failed to read layouts section size: {}", header.layoutsSectionSize);
-            return Common::RResult::Fail;
-        }
-
-        auto getLayout = [&layoutsData](uint32_t index) -> eastl::span<const uint32_t> {
-            if (index == Asset::INVALID_INDEX)
-                return {};
-
-            ASSERT(index < layoutsData.size());
-            const uint32_t size = layoutsData[index];
-
-            if (size == 0)
-                return {};
-
-            ASSERT(index + size < layoutsData.size());
-            return eastl::span<const uint32_t>(layoutsData.data() + index + 1, size);
-        };
 
         auto bindGroupsData = eastl::make_unique<std::byte[]>(header.bindGroupsSectionSize);
         if (file.Read(reinterpret_cast<void*>(bindGroupsData.get()), header.bindGroupsSectionSize) != header.bindGroupsSectionSize)

@@ -117,5 +117,6 @@ namespace RR::EffectLibrary
         eastl::vector<eastl::unique_ptr<std::byte[]>> shadersData;
         eastl::vector<BindingGroupReflection> bindingGroupReflections;
         eastl::vector<ResourceReflection> resources;
+        eastl::vector<UniformFieldReflection> uniformFields;
     };
 }
