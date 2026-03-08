@@ -14,6 +14,8 @@ namespace RR::GAPI::WebGPU
 
         void Init(const wgpu::Device& device, const GAPI::BindingGroupLayoutDesc& desc, GAPI::BindingGroupLayout& resource);
 
+        wgpu::BindGroupLayout GetBindGroupLayout() const { return bindGroupLayout; }
+
     private:
         wgpu::BindGroupLayout bindGroupLayout;
     };
