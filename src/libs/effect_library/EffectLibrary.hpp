@@ -63,8 +63,8 @@ namespace RR::EffectLibrary
         GAPI::TextureSampleType sampleType;
         // TextureUAV only
         GAPI::GpuResourceFormat format;
-        // ConstantBuffer only
-        uint32_t layoutIndex;
+        // ConstantBuffer only: resolved uniform field descriptors
+        eastl::span<UniformFieldReflection> uniformFields;
     };
 
     struct BindingGroupReflection
