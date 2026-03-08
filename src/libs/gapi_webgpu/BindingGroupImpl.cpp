@@ -1,6 +1,6 @@
 #include "BindingGroupImpl.hpp"
 
-#include "gapi/BindingGroupLayout.hpp"
+#include "gapi/Limits.hpp"
 #include "gapi/GpuResource.hpp"
 #include "gapi/GpuResourceViews.hpp"
 
@@ -12,7 +12,7 @@ namespace RR::GAPI::WebGPU
 {
     BindingGroupImpl::~BindingGroupImpl() { }
 
-    void BindingGroupImpl::Init(const wgpu::Device& device, BindingGroupDesc& desc)
+    void BindingGroupImpl::Init(const wgpu::Device& device, const BindingGroupDesc& desc, wgpu::BindGroupLayout layout)
     {
         eastl::fixed_vector<wgpu::BindGroupEntry, GAPI::MAX_BINDINGS_PER_GROUP, false> entries;
         for (const auto& element : desc.elements)
@@ -63,12 +63,11 @@ namespace RR::GAPI::WebGPU
 
         wgpu::BindGroupDescriptor bindGroupDesc;
         bindGroupDesc.setDefault();
-        //bindGroupDesc.layout = ???;
-        bindGroupDesc.entryCount = desc.elements.size();
+        bindGroupDesc.layout = layout;
+        bindGroupDesc.entryCount = entries.size();
         bindGroupDesc.entries = entries.data();
 
-        device.createBindGroup(bindGroupDesc);
-
+        bindGroup = device.createBindGroup(bindGroupDesc);
     }
 }
 
