@@ -9,7 +9,8 @@ namespace RR::GAPI
             Draw,
             DrawIndexed,
             BeginRenderPass,
-            EndRenderPass
+            EndRenderPass,
+            SetBindGroup
         };
 
     public:
