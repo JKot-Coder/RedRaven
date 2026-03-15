@@ -3,6 +3,8 @@
 #include "gapi/BindingGroupLayout.hpp"
 #include "gapi/Limits.hpp"
 
+#include "absl/container/flat_hash_map.h"
+
 #include "common/hashing/Hash.hpp"
 
 namespace RR::EffectLibrary
@@ -60,17 +62,24 @@ namespace RR::Render
             return resourceSlots[index];
         }
 
-        // O(n) lookup by name hash. For hot paths, cache the index.
+        // O(1) hash-map lookup by name hash. For hot paths, cache the index.
         uint32_t FindFieldIndex(Common::HashType nameHash) const;
         uint32_t FindResourceSlotIndex(Common::HashType nameHash) const;
+
+        const GAPI::BindingGroupLayout* GetGapiLayout() const { return gapiLayout; }
+        void SetGapiLayout(const GAPI::BindingGroupLayout* layout) { gapiLayout = layout; }
 
     private:
         const char* name = nullptr;
         uint32_t bindingSpace = 0;
         uint32_t uniformBufferSize = 0; // total CBV size in bytes (0 if none)
         uint32_t uniformCbvSlot = INVALID_SLOT; // binding index of default CBV
+        const GAPI::BindingGroupLayout* gapiLayout = nullptr;
 
         eastl::fixed_vector<FieldDesc, 16, true> fields;
         eastl::fixed_vector<ResourceSlotDesc, GAPI::MAX_BINDINGS_PER_GROUP, false> resourceSlots;
+
+        absl::flat_hash_map<Common::HashType, uint32_t> fieldMap; // nameHash -> field index
+        absl::flat_hash_map<Common::HashType, uint32_t> resourceMap; // nameHash -> resource slot index
     };
 }
