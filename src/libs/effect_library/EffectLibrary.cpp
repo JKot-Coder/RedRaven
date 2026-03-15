@@ -315,6 +315,7 @@ namespace RR::EffectLibrary
                 passDesc.rasterizerDesc = assetPassDesc.rasterizerDesc;
                 passDesc.depthStencilDesc = assetPassDesc.depthStencilDesc;
                 passDesc.blendDesc = assetPassDesc.blendDesc;
+                passDesc.rootBindingGroupIndex = assetPassDesc.rootBindingGroupIndex;
 
                 eastl::fixed_vector<GAPI::ShaderStage, eastl::to_underlying(GAPI::ShaderStage::Count), false> shaderStages;
 

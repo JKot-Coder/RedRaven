@@ -164,7 +164,7 @@ namespace RR::EffectLibrary
         struct Header
         {
             static constexpr uint32_t MAGIC = 0x4C584652;
-            static constexpr uint32_t VERSION = 1;
+            static constexpr uint32_t VERSION = 2;
             uint32_t magic;
             uint32_t version;
             uint32_t stringsSectionSize;
@@ -202,6 +202,7 @@ namespace RR::EffectLibrary
             GAPI::RasterizerDesc rasterizerDesc;
             GAPI::DepthStencilDesc depthStencilDesc;
             GAPI::ShaderStageMask shaderStages;
+            uint32_t rootBindingGroupIndex;
             // List of shader indexes based on shaderStages mask
         };
 
