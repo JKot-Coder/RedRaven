@@ -3,6 +3,7 @@ project (gapi)
 set(SRC
     Buffer.cpp
     Buffer.hpp
+    BindingGroupLayout.cpp
     BindingGroupLayout.hpp
     BindingGroup.hpp
     CommandList.hpp
@@ -37,4 +38,4 @@ source_group( "" FILES ${SRC} ${COMMANDS} )
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
-target_link_libraries(${PROJECT_NAME} PRIVATE common)
+target_link_libraries(${PROJECT_NAME} PRIVATE common absl::flat_hash_map)

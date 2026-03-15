@@ -14,8 +14,6 @@ set(SRC
     EffectContext.hpp
     EffectManager.cpp
     EffectManager.hpp
-    BindingBlockLayout.cpp
-    BindingBlockLayout.hpp
     Submission.cpp
     Submission.hpp
 )

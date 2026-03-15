@@ -15,6 +15,8 @@
 #include "common/Result.hpp"
 #include "common/hashing/Hash.hpp"
 
+#include <limits>
+
 namespace RR::Render
 {
     EffectManager::EffectManager() {};
@@ -47,6 +49,7 @@ namespace RR::Render
         {
             const auto& group = effectLibrary->GetBindingGroupReflection(i);
 
+            // --- GPU binding layout ---
             eastl::fixed_vector<GAPI::BindingLayoutElement, GAPI::MAX_BINDINGS_PER_GROUP, false> elements;
             for (const auto& res : group.resources)
             {
@@ -63,17 +66,71 @@ namespace RR::Render
             }
 
             const GAPI::BindingGroupLayoutDesc layoutDesc { elements };
-            bindingGroupLayouts.emplace_back(deviceContext.CreateBindingGroupLayout(layoutDesc, group.name));
-        }
+            auto& layout = bindingGroupLayouts.emplace_back(
+                deviceContext.CreateBindingGroupLayout(layoutDesc, group.name));
 
-        blockLayouts.resize(effectLibrary->GetBindingGroupCount());
-        for (size_t i = 0; i < effectLibrary->GetBindingGroupCount(); i++)
-        {
-            const auto& group = effectLibrary->GetBindingGroupReflection(i);
-            blockLayouts[i].InitFromReflection(group);
-            blockLayouts[i].SetGapiLayout(bindingGroupLayouts[i].get());
+            // --- Reflection metadata ---
+            eastl::fixed_vector<GAPI::FieldDesc, 16, true> fields;
+            eastl::fixed_vector<GAPI::ResourceSlotDesc, GAPI::MAX_BINDINGS_PER_GROUP, false> resources;
+            uint32_t uniformBufferSize = 0;
+            uint32_t uniformCbvSlot = GAPI::BindingGroupLayout::INVALID_SLOT;
+            uint16_t resourceSlotIndex = 0;
 
-            blockLayoutMap[Common::Hash(group.name)] = static_cast<uint32_t>(i);
+            for (const auto& res : group.resources)
+            {
+                switch (res.type)
+                {
+                    case GAPI::BindingType::ConstantBuffer:
+                    {
+                        if (uniformCbvSlot == GAPI::BindingGroupLayout::INVALID_SLOT)
+                            uniformCbvSlot = res.binding;
+
+                        for (const auto& uniform : res.uniformFields)
+                        {
+                            ASSERT(uniform.offset <= std::numeric_limits<uint16_t>::max());
+                            ASSERT(uniform.size <= std::numeric_limits<uint16_t>::max());
+
+                            GAPI::FieldDesc field;
+                            field.nameHash = Common::Hash(uniform.name);
+                            field.offset = static_cast<uint16_t>(uniform.offset);
+                            field.size = static_cast<uint16_t>(uniform.size);
+                            fields.push_back(field);
+
+                            const uint32_t extent = uniform.offset + uniform.size;
+                            if (extent > uniformBufferSize)
+                                uniformBufferSize = extent;
+                        }
+                        break;
+                    }
+                    case GAPI::BindingType::TextureSRV:
+                    case GAPI::BindingType::TextureUAV:
+                    case GAPI::BindingType::BufferSRV:
+                    case GAPI::BindingType::BufferUAV:
+                    case GAPI::BindingType::Sampler:
+                    {
+                        GAPI::ResourceSlotDesc slot;
+                        slot.nameHash = Common::Hash(res.name);
+                        slot.binding = static_cast<uint16_t>(res.binding);
+                        slot.slotIndex = resourceSlotIndex++;
+                        slot.type = res.type;
+                        resources.push_back(slot);
+                        break;
+                    }
+                    default:
+                        ASSERT_MSG(false, "Unknown binding type");
+                        break;
+                }
+            }
+
+            GAPI::BindingGroupReflectionDesc reflDesc;
+            reflDesc.bindingSpace = group.bindingSpace;
+            reflDesc.fields = fields;
+            reflDesc.resources = resources;
+            reflDesc.uniformBufferSize = uniformBufferSize;
+            reflDesc.uniformCbvSlot = uniformCbvSlot;
+            layout->InitReflection(reflDesc);
+
+            layoutMap[Common::Hash(group.name)] = static_cast<uint32_t>(i);
         }
 
         return Common::RResult::Ok;
