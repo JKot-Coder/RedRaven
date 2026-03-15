@@ -1,8 +1,15 @@
 #pragma once
 
+#include "BindingBlockLayout.hpp"
+
 #include "common/Singleton.hpp"
+#include "common/hashing/Hash.hpp"
+
+#include "absl/container/flat_hash_map.h"
 
 #include "gapi/ForwardDeclarations.hpp"
+
+#include <string>
 
 namespace RR::EffectLibrary
 {
@@ -33,5 +40,7 @@ namespace RR::Render
         eastl::unique_ptr<EffectLibrary::EffectLibrary> effectLibrary;
         eastl::vector<eastl::unique_ptr<GAPI::Shader>> shaders;
         eastl::vector<eastl::unique_ptr<GAPI::BindingGroupLayout>> bindingGroupLayouts;
+        eastl::vector<BindingBlockLayout> blockLayouts;
+        absl::flat_hash_map<Common::HashType, uint32_t> blockLayoutMap; // nameHash -> index
     };
 }

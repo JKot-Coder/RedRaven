@@ -66,6 +66,16 @@ namespace RR::Render
             bindingGroupLayouts.emplace_back(deviceContext.CreateBindingGroupLayout(layoutDesc, group.name));
         }
 
+        blockLayouts.resize(effectLibrary->GetBindingGroupCount());
+        for (size_t i = 0; i < effectLibrary->GetBindingGroupCount(); i++)
+        {
+            const auto& group = effectLibrary->GetBindingGroupReflection(i);
+            blockLayouts[i].InitFromReflection(group);
+            blockLayouts[i].SetGapiLayout(bindingGroupLayouts[i].get());
+
+            blockLayoutMap[Common::Hash(group.name)] = static_cast<uint32_t>(i);
+        }
+
         return Common::RResult::Ok;
     }
 
@@ -109,4 +119,5 @@ namespace RR::Render
         auto effect = deviceContext.CreateEffect(name, eastl::move(effectDesc));
         return effect;
     }
+
 }
