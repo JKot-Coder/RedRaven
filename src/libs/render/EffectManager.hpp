@@ -5,8 +5,7 @@
 
 #include "gapi/ForwardDeclarations.hpp"
 
-#include <EASTL/fixed_vector.h>
-#include <EASTL/vector_map.h>
+#include "absl/container/flat_hash_map.h"
 
 #include <string>
 
@@ -36,16 +35,10 @@ namespace RR::Render
         size_t GetShaderCount() const { return shaders.size(); }
 
     private:
-        using HashToIndex = eastl::pair<Common::HashType, uint32_t>;
-        using LayoutLookup = eastl::vector_map<
-            Common::HashType, uint32_t,
-            eastl::less<Common::HashType>,
-            EASTLAllocatorType,
-            eastl::fixed_vector<HashToIndex, 16, true>>;
-
         eastl::unique_ptr<EffectLibrary::EffectLibrary> effectLibrary;
         eastl::vector<eastl::unique_ptr<GAPI::Shader>> shaders;
         eastl::vector<eastl::unique_ptr<GAPI::BindingGroupLayout>> bindingGroupLayouts;
-        LayoutLookup layoutMap; // nameHash -> index
+        // nameHash -> layout ptr (owned by bindingGroupLayouts)
+        absl::flat_hash_map<Common::HashType, GAPI::BindingGroupLayout*, Common::PrehashedHasher> layoutMap;
     };
 }

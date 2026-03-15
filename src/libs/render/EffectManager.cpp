@@ -130,7 +130,7 @@ namespace RR::Render
             reflDesc.uniformCbvSlot = uniformCbvSlot;
             layout->InitReflection(reflDesc);
 
-            layoutMap[Common::Hash(group.name)] = static_cast<uint32_t>(i);
+            layoutMap[Common::Hash(group.name)] = layout.get();
         }
 
         return Common::RResult::Ok;
