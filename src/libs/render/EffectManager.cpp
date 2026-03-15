@@ -3,14 +3,14 @@
 #include "render/DeviceContext.hpp"
 #include "render/Effect.hpp"
 
-#include "effect_library/EffectLibrary.hpp"
 #include "effect_library/EffectFormat.hpp"
+#include "effect_library/EffectLibrary.hpp"
 
 #include "gapi/BindingGroupLayout.hpp"
 #include "gapi/Limits.hpp"
 
-#include <EASTL/fixed_vector.h>
 #include "gapi/GpuResource.hpp"
+#include <EASTL/fixed_vector.h>
 
 #include "common/Result.hpp"
 #include "common/hashing/Hash.hpp"
@@ -19,8 +19,8 @@
 
 namespace RR::Render
 {
-    EffectManager::EffectManager() {};
-    EffectManager::~EffectManager() {};
+    EffectManager::EffectManager() { };
+    EffectManager::~EffectManager() { };
 
     Common::RResult EffectManager::Init(std::string_view path)
     {
@@ -65,7 +65,7 @@ namespace RR::Render
                 elements.push_back(element);
             }
 
-            const GAPI::BindingGroupLayoutDesc layoutDesc { elements };
+            const GAPI::BindingGroupLayoutDesc layoutDesc {elements};
             auto& layout = bindingGroupLayouts.emplace_back(
                 deviceContext.CreateBindingGroupLayout(layoutDesc, group.name));
 
@@ -145,14 +145,14 @@ namespace RR::Render
         EffectLibrary::EffectDesc libraryEffectDesc;
 
         // TODO, Could be replace with const expr hash. Todo replace with hashed string
-        if(!effectLibrary->GetEffectDesc(Common::Hash(name), libraryEffectDesc))
+        if (!effectLibrary->GetEffectDesc(Common::Hash(name), libraryEffectDesc))
         {
             LOG_ERROR("Failed to get effect desc for effect: {}", name);
             return nullptr;
         }
 
         Render::EffectDesc effectDesc;
-        for(auto& pass : libraryEffectDesc.passes)
+        for (auto& pass : libraryEffectDesc.passes)
         {
             Render::EffectDesc::PassDesc passDesc;
             passDesc.name = pass.name;
@@ -161,7 +161,7 @@ namespace RR::Render
             passDesc.blendDesc = pass.blendDesc;
 
             static_assert(eastl::tuple_size<decltype(passDesc.shaders)>::value == eastl::tuple_size<decltype(pass.shaderIndexes)>::value);
-            for(uint32_t i = 0; i < pass.shaderIndexes.size(); i++)
+            for (uint32_t i = 0; i < pass.shaderIndexes.size(); i++)
             {
                 const auto shaderIndex = pass.shaderIndexes[i];
                 if (shaderIndex == EffectLibrary::Asset::INVALID_INDEX)
