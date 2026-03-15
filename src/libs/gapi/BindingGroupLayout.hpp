@@ -7,10 +7,9 @@
 
 #include "common/hashing/Hash.hpp"
 
-#include "absl/container/flat_hash_map.h"
-
 #include <EASTL/fixed_vector.h>
 #include <EASTL/span.h>
+#include <EASTL/vector_map.h>
 
 namespace RR::GAPI
 {
@@ -61,7 +60,7 @@ namespace RR::GAPI
 
     struct BindingGroupReflectionDesc
     {
-        uint32_t                            bindingSpace    = 0;
+        uint32_t                            bindingSpace      = 0;
         eastl::span<const FieldDesc>        fields;
         eastl::span<const ResourceSlotDesc> resources;
         uint32_t                            uniformBufferSize = 0;
@@ -105,20 +104,29 @@ namespace RR::GAPI
             return resourceSlots[index];
         }
 
-        // O(1) lookup by precomputed name hash. Cache the index for hot paths.
+        // O(log n) lookup by precomputed name hash. Cache the index for hot paths.
         uint32_t FindFieldIndex(Common::HashType nameHash) const;
         uint32_t FindResourceSlotIndex(Common::HashType nameHash) const;
 
     private:
-        uint32_t bindingSpace    = 0;
+        using HashToIndex = eastl::pair<Common::HashType, uint32_t>;
+
+        template <size_t N, bool Overflow = true>
+        using Lookup = eastl::vector_map<
+            Common::HashType, uint32_t,
+            eastl::less<Common::HashType>,
+            EASTLAllocatorType,
+            eastl::fixed_vector<HashToIndex, N, Overflow>>;
+
+        uint32_t bindingSpace      = 0;
         uint32_t uniformBufferSize = 0;
         uint32_t uniformCbvSlot    = INVALID_SLOT;
 
-        eastl::fixed_vector<FieldDesc, 16, true>                          fields;
+        eastl::fixed_vector<FieldDesc, 16, true>                             fields;
         eastl::fixed_vector<ResourceSlotDesc, MAX_BINDINGS_PER_GROUP, false> resourceSlots;
 
-        absl::flat_hash_map<Common::HashType, uint32_t> fieldMap;    // nameHash -> field index
-        absl::flat_hash_map<Common::HashType, uint32_t> resourceMap; // nameHash -> slot index
+        Lookup<16>                    fieldMap;    // nameHash -> field index
+        Lookup<MAX_BINDINGS_PER_GROUP, false> resourceMap; // nameHash -> slot index
     };
 
 }
