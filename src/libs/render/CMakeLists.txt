@@ -23,7 +23,7 @@ source_group( "" FILES ${SRC} )
 add_library(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "libs")
 target_include_directories(${PROJECT_NAME} PRIVATE "..")
-target_link_libraries(${PROJECT_NAME} PRIVATE RR::BuildSettings common gapi gapi_webgpu effect_library)
+target_link_libraries(${PROJECT_NAME} PRIVATE RR::BuildSettings common gapi gapi_webgpu effect_library absl::flat_hash_map)
 
 #if (WIN32)
 #target_link_libraries(${PROJECT_NAME} PRIVATE gapi_dx12)

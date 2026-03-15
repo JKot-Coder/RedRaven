@@ -31,7 +31,10 @@ namespace RR::Render
                         field.nameHash = Common::Hash(uniform.name);
                         field.offset = static_cast<uint16_t>(uniform.offset);
                         field.size = static_cast<uint16_t>(uniform.size);
+
+                        const uint32_t fieldIndex = static_cast<uint32_t>(fields.size());
                         fields.push_back(field);
+                        fieldMap[field.nameHash] = fieldIndex;
 
                         // Track maximum extent for buffer size
                         const uint32_t extent = uniform.offset + uniform.size;
@@ -52,7 +55,9 @@ namespace RR::Render
                     slot.slotIndex = resourceSlotIndex++;
                     slot.type = res.type;
 
+                    const uint32_t index = static_cast<uint32_t>(resourceSlots.size());
                     resourceSlots.push_back(slot);
+                    resourceMap[slot.nameHash] = index;
                     break;
                 }
                 default:
@@ -66,23 +71,13 @@ namespace RR::Render
 
     uint32_t BindingBlockLayout::FindFieldIndex(Common::HashType nameHash) const
     {
-        for (uint32_t i = 0; i < fields.size(); i++)
-        {
-            if (fields[i].nameHash == nameHash)
-                return i;
-        }
-
-        return INVALID_SLOT;
+        auto it = fieldMap.find(nameHash);
+        return it != fieldMap.end() ? it->second : INVALID_SLOT;
     }
 
     uint32_t BindingBlockLayout::FindResourceSlotIndex(Common::HashType nameHash) const
     {
-        for (uint32_t i = 0; i < resourceSlots.size(); i++)
-        {
-            if (resourceSlots[i].nameHash == nameHash)
-                return i;
-        }
-
-        return INVALID_SLOT;
+        auto it = resourceMap.find(nameHash);
+        return it != resourceMap.end() ? it->second : INVALID_SLOT;
     }
 }
