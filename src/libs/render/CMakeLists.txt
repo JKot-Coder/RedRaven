@@ -11,6 +11,7 @@ set(SRC
     RenderTarget.cpp
     Effect.hpp
     Effect.cpp
+    EffectContext.hpp
     EffectManager.cpp
     EffectManager.hpp
     BindingBlockLayout.cpp
