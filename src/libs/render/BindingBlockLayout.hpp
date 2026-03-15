@@ -26,18 +26,18 @@ namespace RR::Render
     {
         Common::HashType nameHash; // precomputed hash
         uint16_t binding; // binding index in bind group
-        uint16_t slotIndex; // index in ParameterBlock::resources[]
+        uint16_t slotIndex; // index in BindingBlock::resources[]
         GAPI::BindingType type; // TextureSRV, BufferSRV, Sampler, etc.
     };
 
     // Immutable layout built once from EffectLibrary reflection data.
-    // Shared (read-only) across all ParameterBlock instances with same layout.
-    class ParameterBlockLayout
+    // Shared (read-only) across all BindingBlock instances with same layout.
+    class BindingBlockLayout
     {
     public:
         static constexpr uint32_t INVALID_SLOT = ~0u;
 
-        ParameterBlockLayout() = default;
+        BindingBlockLayout() = default;
 
         void InitFromReflection(const EffectLibrary::BindingGroupReflection& group);
 

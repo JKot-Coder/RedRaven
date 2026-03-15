@@ -1,4 +1,4 @@
-#include "ParameterBlockLayout.hpp"
+#include "BindingBlockLayout.hpp"
 
 #include "effect_library/EffectLibrary.hpp"
 
@@ -6,7 +6,7 @@
 
 namespace RR::Render
 {
-    void ParameterBlockLayout::InitFromReflection(const EffectLibrary::BindingGroupReflection& group)
+    void BindingBlockLayout::InitFromReflection(const EffectLibrary::BindingGroupReflection& group)
     {
         name = group.name;
         bindingSpace = group.bindingSpace;
@@ -64,7 +64,7 @@ namespace RR::Render
         }
     }
 
-    uint32_t ParameterBlockLayout::FindFieldIndex(Common::HashType nameHash) const
+    uint32_t BindingBlockLayout::FindFieldIndex(Common::HashType nameHash) const
     {
         for (uint32_t i = 0; i < fields.size(); i++)
         {
@@ -75,7 +75,7 @@ namespace RR::Render
         return INVALID_SLOT;
     }
 
-    uint32_t ParameterBlockLayout::FindResourceSlotIndex(Common::HashType nameHash) const
+    uint32_t BindingBlockLayout::FindResourceSlotIndex(Common::HashType nameHash) const
     {
         for (uint32_t i = 0; i < resourceSlots.size(); i++)
         {
