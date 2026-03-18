@@ -243,6 +243,7 @@ namespace RR
             passDesc.depthStencilDesc = pass.depthStencilDesc;
             passDesc.blendDesc = pass.blendDesc;
             passDesc.shaderStages = GAPI::ShaderStageMask::None;
+            passDesc.rootBindingGroupIndex = pass.rootBindingGroupIndex;
 
             eastl::fixed_vector<uint32_t, eastl::to_underlying(GAPI::ShaderStage::Count), false> shaderIndexes;
             for (uint32_t i = 0; i < pass.shaderIndexes.size(); i++)

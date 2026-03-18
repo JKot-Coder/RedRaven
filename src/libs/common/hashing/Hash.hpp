@@ -107,4 +107,11 @@ namespace RR::Common
     {
         return ConstexprHash<DefaultHasher>(str, len);
     }
+
+    // Pass-through hasher for values that are already a hash.
+    // Avoids double-hashing when using HashType as a map key.
+    struct PrehashedHasher
+    {
+        size_t operator()(HashType val) const noexcept { return val; }
+    };
 }

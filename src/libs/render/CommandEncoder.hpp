@@ -6,6 +6,7 @@
 
 #include "math/ForwardDeclarations.hpp"
 #include "render/Effect.hpp"
+#include "render/EffectContext.hpp"
 #include "common/NonCopyableMovable.hpp"
 
 namespace RR::Render
@@ -17,6 +18,8 @@ namespace RR::Render
     {
     public:
         RenderPassEncoder BeginRenderPass(const GAPI::RenderPassDesc& renderPass);
+
+        EffectContext CreateEffectContext(Effect* effect) { return EffectContext(effect); }
 
         void Finish()
         {
