@@ -68,44 +68,13 @@ src/libs/ecs/tests/   - ECS unit tests
 src/rfx/tests/        - Shader compiler tests
 ```
 
-## Commit Message Format
+## Git Preferences
 
-See format rules below. Use subsystem names from the table above as
-`<Subsystem>` tokens. Use `<Project>` from context (e.g. `Common`,
-`Render`, `ECS`, `GAPI`, `Shader`, `Platform`).
+- Do NOT add `Co-Authored-By: Claude *` to commit messages.
+- After committing, run `git clang-format HEAD~1` and amend the commit
+  if there are any formatting changes.
 
----
+## Committing
 
-## Commit Message Format Reference
-
-### Rules
-
-- **Language:** English only. Professional technical style.
-- **Encoding:** ASCII only. No emojis, no smart quotes, no em dashes (`-`). Use only hyphen-minus (`-`).
-- **Line width:** Body lines wrap at 72 characters.
-- **Mood:** Imperative ("Fix crash", not "Fixed crash").
-
-### Template
-
-```
-<Project>: <Subsystem>: <Imperative Title>
-
-<Context/Problem - what was wrong and why. Wrap at 72 chars.>
-
-<Solution/Implementation - what was done and how. Wrap at 72 chars.>
-
-Video: <link, only if provided>
-Fix:   <link, only if provided>
-```
-
-### Example
-
-```
-Render: FrameGraph: Fix UAV read from uninitialized resource
-
-Bloom post-process pass reads from an uninitialized UAV when
-MSAA is disabled, causing a GPU device lost on DX11.
-
-Initialize the UAV with a zero-clear before the bloom dispatch
-to ensure valid state on all hardware tiers.
-```
+Use the `/commit` skill to create commits. It handles message formatting,
+staging, and post-commit clang-format automatically.
